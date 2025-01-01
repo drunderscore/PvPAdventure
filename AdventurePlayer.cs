@@ -152,7 +152,7 @@ public class AdventurePlayer : ModPlayer
                 _playerMeleeInvincibleTime[i]--;
         }
 
-        if (--_nextPingPongTime <= 0)
+        if (Main.dedServ && --_nextPingPongTime <= 0)
         {
             _nextPingPongTime = TimeBetweenPingPongs;
             SendPingPong();
@@ -163,22 +163,18 @@ public class AdventurePlayer : ModPlayer
             Mod.Logger.Info($"Recent damage for {this} expired (was from {RecentDamageFromPlayer.Who})");
             RecentDamageFromPlayer = null;
         }
+
+        if (AdventureItem.RecallItems[Player.inventory[Player.selectedItem].type] && !CanRecall())
+        {
+            Player.SetItemAnimation(0);
+            Player.SetItemTime(0);
+        }
     }
 
     private bool CanRecall()
     {
         return Player.lifeRegen >= 0.0 && !Player.controlLeft && !Player.controlRight && !Player.controlUp &&
                !Player.controlDown && Player.velocity == Vector2.Zero;
-    }
-
-    public override void PostUpdate()
-    {
-        // FIXME: this might be better off in preupdate
-        if (AdventureItem.RecallItems[Player.inventory[Player.selectedItem].type] && !CanRecall())
-        {
-            Player.SetItemAnimation(0);
-            Player.SetItemTime(0);
-        }
     }
 
     public override bool CanUseItem(Item item)
@@ -189,7 +185,7 @@ public class AdventurePlayer : ModPlayer
             if (CanRecall())
                 return true;
 
-            if (Main.netMode != NetmodeID.Server && Player.whoAmI == Main.myPlayer)
+            if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
                 PopupText.NewText(new AdvancedPopupRequest
                 {
                     Color = Color.Crimson,
@@ -325,8 +321,9 @@ public class AdventurePlayer : ModPlayer
     public override void ProcessTriggers(TriggersSet triggersSet)
     {
         var scoreboard = ModContent.GetInstance<Scoreboard>();
+        var keybinds = ModContent.GetInstance<Keybinds>();
 
-        if (ModContent.GetInstance<Keybinds>().Scoreboard.JustPressed)
+        if (keybinds.Scoreboard.JustPressed)
         {
             scoreboard.Visible = true;
             Main.InGameUI.SetState(ModContent.GetInstance<Scoreboard>().UiScoreboard);
@@ -337,18 +334,27 @@ public class AdventurePlayer : ModPlayer
             // Main.player[0].HeldItem, Main.npc.First(npc => npc.active));
             // ModContent.GetInstance<ObjectiveNotice>().AddClaimReceivedNotice((Team)Main.player[0].team);
         }
-        else if (ModContent.GetInstance<Keybinds>().Scoreboard.JustReleased)
+        else if (keybinds.Scoreboard.JustReleased)
         {
             scoreboard.Visible = false;
             Main.InGameUI.SetState(null);
+        }
+
+        if (keybinds.BountyShop.JustPressed)
+        {
+            var bountyShop = ModContent.GetInstance<BountyManager>().UiBountyShop;
+
+            if (Main.InGameUI.CurrentState == bountyShop)
+                Main.InGameUI.SetState(null);
+            else
+                Main.InGameUI.SetState(bountyShop);
         }
     }
 
     private void SyncStatistics(int to = -1, int ignore = -1)
     {
         var packet = Mod.GetPacket();
-        // FIXME: no magic
-        packet.Write((byte)1);
+        packet.Write((byte)AdventurePacketIdentifier.PlayerStatistics);
         new Statistics((byte)Player.whoAmI, Kills, Deaths).Serialize(packet);
         packet.Send(to, ignore);
     }
@@ -375,8 +381,7 @@ public class AdventurePlayer : ModPlayer
         _pingPongStopwatch = Stopwatch.StartNew();
 
         var packet = Mod.GetPacket();
-        // FIXME: no magic
-        packet.Write((byte)3);
+        packet.Write((byte)AdventurePacketIdentifier.PingPong);
         new PingPong(_pingPongCanary).Serialize(packet);
         packet.Send(Player.whoAmI);
     }

@@ -203,28 +203,8 @@ public class Scoreboard : ModSystem
         }
     }
 
-    private class ScoreboardGameInterfaceLayer : GameInterfaceLayer
+    private class ScoreboardGameInterfaceLayer() : GameInterfaceLayer("PvPAdventure: Scoreboard", InterfaceScaleType.UI)
     {
-        private readonly IList<short> _bosses = new List<short>();
-
-        public ScoreboardGameInterfaceLayer() : base("PvPAdventure: Scoreboard", InterfaceScaleType.UI)
-        {
-            for (short i = 0; i < NPCID.Count; i++)
-            {
-                if (i == NPCID.Spazmatism)
-                    continue;
-
-                // FIXME: Don't special-case moon lord tbh.
-                if (i == NPCID.MoonLordCore)
-                    continue;
-
-                var npc = new NPC();
-                npc.SetDefaults(i);
-                if (npc.boss)
-                    _bosses.Add(i);
-            }
-        }
-
         protected override bool DrawSelf()
         {
             DrawJamesBosses();
@@ -242,20 +222,26 @@ public class Scoreboard : ModSystem
             const int bossHeadTeamIconVisualSeparatorYOffset = 28;
             var teamIconsTexture = TextureAssets.Pvp[1].Value;
 
-            // FIXME: this is dumb!
-            var numberOfVanillaBossTextureIds = _bosses
-                .Select(bossId => NPCID.Sets.BossHeadTextures[bossId])
-                .Where(headId => headId != -1)
-                .Count();
+            var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+            var bosses = adventureConfig.BossOrder.Select(npcDefinition => (short)npcDefinition.Type).ToList();
+            var numberOfBosses = bosses.Count;
+
+            var onlyDisplayWorldEvilBoss = ModContent.GetInstance<AdventureConfig>().OnlyDisplayWorldEvilBoss &&
+                                           bosses.Contains(NPCID.EaterofWorldsHead) &&
+                                           bosses.Contains(NPCID.BrainofCthulhu);
+
+            // We might have both evil bosses in this list, but we actually just want to display the one that
+            // pertains to this world.
+            if (onlyDisplayWorldEvilBoss)
+                numberOfBosses -= 1;
 
             // FIXME: The left and right padding visually based on the team icons is somewhat off
             //        (too much right padding from team icon)
             // FIXME: Constant height is good, but should be calculated based on number of teams
             //        (which is also a constant), which would remove the "none" team and the height for it's indicator.
             var containerSize =
-                new Vector2(
-                    (containerPadding + (numberOfVanillaBossTextureIds * horizontalSpaceBetweenBossHeads)) -
-                    teamIconXOffset, 245);
+                new Vector2((containerPadding + (numberOfBosses * horizontalSpaceBetweenBossHeads)) - teamIconXOffset,
+                    245);
 
             // Horizontally center the dialog, with a slight bias towards the right, mostly on 1920x1080, decreasingly
             // so as our width increases.
@@ -281,19 +267,27 @@ public class Scoreboard : ModSystem
                     (int)(nextBossHeadPosition.Y + bossHeadTeamIconVisualSeparatorYOffset), (int)(containerSize.X - 4),
                     2), visualSeparatorColor);
 
-            foreach (var bossId in _bosses)
+            foreach (var bossId in bosses)
             {
-                var headId = NPCID.Sets.BossHeadTextures[bossId];
-                if (headId == -1)
-                    continue;
+                if (onlyDisplayWorldEvilBoss)
+                {
+                    if (bossId == NPCID.BrainofCthulhu && !WorldGen.crimson ||
+                        bossId == NPCID.EaterofWorldsHead && WorldGen.crimson)
+                        continue;
+                }
+
+                // FIXME: Stupid hack for Golem head texture
+                var headId = NPCID.Sets.BossHeadTextures[bossId == NPCID.Golem ? NPCID.GolemHead : bossId];
 
                 var hasAnyTeamDownedThisBoss = ModContent.GetInstance<PointsManager>()
                     .DownedNpcs
                     .Values
                     .Any(downedNpcs => downedNpcs.Contains(bossId));
 
-                Main.BossNPCHeadRenderer.DrawWithOutlines(null, headId, nextBossHeadPosition,
-                    hasAnyTeamDownedThisBoss ? Color.White : Color.Gray, 0.0f, 1.0f, SpriteEffects.None);
+                // If we don't have a texture, we just won't render one, but we'll keep the gap and indicators.
+                if (headId != -1)
+                    Main.BossNPCHeadRenderer.DrawWithOutlines(null, headId, nextBossHeadPosition,
+                        hasAnyTeamDownedThisBoss ? Color.White : Color.Gray, 0.0f, 1.0f, SpriteEffects.None);
 
                 var nextTeamIconPosition = new Vector2(nextBossHeadPosition.X - teamIconXOffset,
                     nextBossHeadPosition.Y + verticalSeparationBetweenBossHeadAndTeamIcon);

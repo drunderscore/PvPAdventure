@@ -9,7 +9,10 @@ Mods: {
 			NotPermittedToJoin: You are not permitted to join
 		}
 
-		Keybinds.Scoreboard.DisplayName: Scoreboard
+		Keybinds: {
+			Scoreboard.DisplayName: Scoreboard
+			BountyShop.DisplayName: Bounty Shop
+		}
 
 		Configs: {
 			AdventureConfig: {
@@ -38,6 +41,16 @@ Mods: {
 				Combat: {
 					Label: Combat
 					Tooltip: ""
+				}
+
+				OnlyDisplayWorldEvilBoss: {
+					Tooltip: ""
+					Label: Only Display World Evil Boss
+				}
+
+				BossOrder: {
+					Tooltip: ""
+					Label: Boss Order
 				}
 			}
 

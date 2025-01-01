@@ -162,8 +162,7 @@ public class BountyManager : ModSystem
                     {
                         // FIXME: wtf??
                         var packet = ModContent.GetInstance<BountyManager>().Mod.GetPacket();
-                        // FIXME: no magic
-                        packet.Write((byte)0);
+                        packet.Write((byte)AdventurePacketIdentifier.BountyTransaction);
                         new Transaction(bountyManager.TransactionId, (byte)Main.LocalPlayer.team, 0, i1).Serialize(
                             packet);
                         packet.Send();
@@ -194,7 +193,7 @@ public class BountyManager : ModSystem
 
     public override void Load()
     {
-        if (Main.netMode != NetmodeID.Server)
+        if (!Main.dedServ)
             UiBountyShop = new UIBountyShop(this);
     }
 
@@ -202,28 +201,6 @@ public class BountyManager : ModSystem
     {
         foreach (var team in Enum.GetValues<Team>())
             _bounties[team] = new List<Page>();
-
-        var config = ModContent.GetInstance<AdventureConfig>();
-
-        foreach (var team in Enum.GetValues<Team>())
-        {
-            if (team == Team.None)
-                continue;
-
-            var page = new Page(new List<Item[]>());
-
-            foreach (var bounty in config.Bounties)
-            {
-                var items = bounty.Items.Select(configItem =>
-                    new Item(configItem.Item.Type, configItem.Stack, configItem.Prefix.Type)).ToArray();
-
-                if (items.Length > 0)
-                    page.Bounties.Add(items);
-            }
-
-            if (page.Bounties.Count > 0)
-                _bounties[team].Add(page);
-        }
     }
 
     public override void NetSend(BinaryWriter writer)
@@ -297,6 +274,9 @@ public class BountyManager : ModSystem
             .Select(items => items.Select(item => new Item(item.Item.Type, item.Stack, item.Prefix.Type)).ToArray())
             .ToList();
 
+        if (eligibleBounties.Count == 0)
+            return;
+
         _bounties[team].Add(new Page(eligibleBounties));
 
         NetMessage.SendData(MessageID.WorldData);
@@ -312,10 +292,7 @@ public class BountyManager : ModSystem
     // FIXME: We could be MUCH smarter.
     public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
     {
-        if (Main.netMode == NetmodeID.Server)
-            return false;
-
-        if (messageType is MessageID.PlayerTeam)
+        if (!Main.dedServ && messageType is MessageID.PlayerTeam)
             Main.QueueMainThreadAction(() => UiBountyShop.Invalidate());
 
         return false;
@@ -326,10 +303,7 @@ public class BountyManager : ModSystem
         int number,
         float number2, float number3, float number4, int number5, int number6, int number7)
     {
-        if (Main.netMode == NetmodeID.Server)
-            return false;
-
-        if (msgType == MessageID.PlayerTeam)
+        if (!Main.dedServ && msgType == MessageID.PlayerTeam)
             Main.QueueMainThreadAction(() => UiBountyShop.Invalidate());
 
         return false;

@@ -9,7 +9,7 @@ using Terraria.UI;
 
 namespace PvPAdventure.System;
 
-[Autoload(Side = ModSide.Both)]
+[Autoload(Side = ModSide.Client)]
 public class AdventureInventory : ModSystem
 {
     private delegate void AccessorySlotLoaderDrawSlotDelegate(AccessorySlotLoader self, Item[] items, int context,
@@ -19,26 +19,23 @@ public class AdventureInventory : ModSystem
 
     public override void Load()
     {
-        if (Main.netMode != NetmodeID.Server)
-        {
-            // TML handles the accessory slots specially, because it's expected mods will want to add their own.
-            // This here will both draw and handle the slot.
-            _accessorySlotLoaderDrawHook =
-                new Hook(
-                    typeof(AccessorySlotLoader).GetMethod("DrawSlot", BindingFlags.NonPublic | BindingFlags.Instance),
-                    OnAccessorySlotLoaderDrawSlot);
+        // TML handles the accessory slots specially, because it's expected mods will want to add their own.
+        // This here will both draw and handle the slot.
+        _accessorySlotLoaderDrawHook =
+            new Hook(
+                typeof(AccessorySlotLoader).GetMethod("DrawSlot", BindingFlags.NonPublic | BindingFlags.Instance),
+                OnAccessorySlotLoaderDrawSlot);
 
-            // Otherwise, slot drawing and handling will end up in these two functions.
-            On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += OnItemSlotDraw;
-            On_ItemSlot.Handle_ItemArray_int_int += OnItemSlotHandle;
+        // Otherwise, slot drawing and handling will end up in these two functions.
+        On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += OnItemSlotDraw;
+        On_ItemSlot.Handle_ItemArray_int_int += OnItemSlotHandle;
 
-            // However, sometimes the handling logic will be manually inlined (armor dye slots), so we need to check the
-            // individual methods that implement the lower level handling.
-            On_ItemSlot.OverrideHover_ItemArray_int_int += OnItemSlotOverrideHover;
-            On_ItemSlot.RightClick_ItemArray_int_int += OnItemSlotRightClick;
-            On_ItemSlot.LeftClick_ItemArray_int_int += OnItemSlotLeftClick;
-            On_ItemSlot.MouseHover_ItemArray_int_int += OnItemSlotMouseHover;
-        }
+        // However, sometimes the handling logic will be manually inlined (armor dye slots), so we need to check the
+        // individual methods that implement the lower level handling.
+        On_ItemSlot.OverrideHover_ItemArray_int_int += OnItemSlotOverrideHover;
+        On_ItemSlot.RightClick_ItemArray_int_int += OnItemSlotRightClick;
+        On_ItemSlot.LeftClick_ItemArray_int_int += OnItemSlotLeftClick;
+        On_ItemSlot.MouseHover_ItemArray_int_int += OnItemSlotMouseHover;
     }
 
     private static bool IsPlayerDyeContext(int context) => context is ItemSlot.Context.EquipDye

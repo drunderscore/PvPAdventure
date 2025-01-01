@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -15,6 +16,30 @@ public class AdventureConfig : ModConfig
     public List<Bounty> Bounties { get; set; } = new();
     public Dictionary<ItemDefinition, ItemStatisticModification> ItemStatisticModifications { get; set; } = new();
     public CombatConfig Combat { get; set; } = new();
+
+    public List<NPCDefinition> BossOrder { get; set; } =
+    [
+        new(NPCID.KingSlime),
+        new(NPCID.EyeofCthulhu),
+        new(NPCID.EaterofWorldsHead),
+        new(NPCID.BrainofCthulhu),
+        new(NPCID.QueenBee),
+        new(NPCID.SkeletronHead),
+        new(NPCID.Deerclops),
+        new(NPCID.WallofFlesh),
+
+        new(NPCID.QueenSlimeBoss),
+        new(NPCID.Retinazer),
+        new(NPCID.TheDestroyer),
+        new(NPCID.SkeletronPrime),
+        new(NPCID.Plantera),
+        new(NPCID.Golem),
+        new(NPCID.DukeFishron),
+        new(NPCID.HallowBoss),
+        new(NPCID.CultistBoss)
+    ];
+
+    [DefaultValue(true)] public bool OnlyDisplayWorldEvilBoss { get; set; }
 
     public List<ProjectileDefinition> BossInvulnerableProjectiles { get; set; } =
     [

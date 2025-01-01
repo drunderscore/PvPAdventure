@@ -21,13 +21,12 @@ public class PvPAdventure : Mod
         // This mod should only ever be loaded when connecting to a server, it should never be loaded beforehand.
         // We don't use Netplay.Disconnect here, as that's not initialized to true (but rather to default value, aka false), so instead
         // we'll check the connection status of our own socket.
-        if (Main.netMode != NetmodeID.Server)
+        if (!Main.dedServ)
         {
             if (!AllowLoadingWhilstDisconnected && !Netplay.Connection.Socket.IsConnected())
                 throw new Exception("This mod should only be loaded whilst connected to a server.");
         }
-
-        if (Main.netMode == NetmodeID.Server)
+        else
         {
             ModContent.GetInstance<DiscordIdentification>().PlayerJoin += (_, args) =>
             {
@@ -40,16 +39,15 @@ public class PvPAdventure : Mod
 
     public override void HandlePacket(BinaryReader reader, int whoAmI)
     {
-        var id = reader.ReadByte();
+        var id = (AdventurePacketIdentifier)reader.ReadByte();
 
-        // FIXME: no magic numbers
         switch (id)
         {
-            case 0:
+            case AdventurePacketIdentifier.BountyTransaction:
             {
                 var bountyTransaction = BountyManager.Transaction.Deserialize(reader);
 
-                if (Main.netMode == NetmodeID.MultiplayerClient)
+                if (!Main.dedServ)
                     break;
 
                 var bountyManager = ModContent.GetInstance<BountyManager>();
@@ -99,34 +97,40 @@ public class PvPAdventure : Mod
 
                 break;
             }
-            case 1:
+            case AdventurePacketIdentifier.PlayerStatistics:
             {
                 var statistics = AdventurePlayer.Statistics.Deserialize(reader);
-                var player = Main.player[Main.netMode == NetmodeID.Server ? whoAmI : statistics.Player];
+                var player = Main.player[Main.dedServ ? whoAmI : statistics.Player];
 
                 statistics.Apply(player.GetModPlayer<AdventurePlayer>());
 
                 // FIXME: bruh thats a little dumb maybe
-                if (Main.netMode != NetmodeID.Server)
+                if (!Main.dedServ)
                     ModContent.GetInstance<Scoreboard>().UiScoreboard.Invalidate();
 
                 break;
             }
-            case 2:
+            case AdventurePacketIdentifier.WorldMapLighting:
             {
                 var worldMapSyncLighting = WorldMapSyncManager.Lighting.Deserialize(reader);
 
                 // On the server, we just forward this to everyone else.
-                if (Main.netMode == NetmodeID.Server)
+                if (Main.dedServ)
                 {
                     var packet = GetPacket();
-                    // FIXME: no magic
-                    packet.Write((byte)2);
+                    packet.Write((byte)AdventurePacketIdentifier.WorldMapLighting);
                     worldMapSyncLighting.Serialize(packet);
-                    packet.Send(ignoreClient: whoAmI);
+
+                    var team = Main.player[whoAmI].team;
+                    foreach (var player in Main.ActivePlayers)
+                    {
+                        // Map will sync to teammates and everyone without a team.
+                        if (player.team == (int)Team.None || player.team == team)
+                            packet.Send(player.whoAmI);
+                    }
                 }
                 // On the client, we use it to update the lighting of the world map tiles.
-                else if (Main.netMode == NetmodeID.MultiplayerClient)
+                else
                 {
                     try
                     {
@@ -155,18 +159,17 @@ public class PvPAdventure : Mod
 
                 break;
             }
-            case 3:
+            case AdventurePacketIdentifier.PingPong:
             {
                 var pingPong = AdventurePlayer.PingPong.Deserialize(reader);
-                if (Main.netMode == NetmodeID.Server)
+                if (Main.dedServ)
                 {
                     Main.player[whoAmI].GetModPlayer<AdventurePlayer>().OnPingPongReceived(pingPong);
                 }
-                else if (Main.netMode == NetmodeID.MultiplayerClient)
+                else
                 {
                     var packet = GetPacket();
-                    // FIXME: no magic
-                    packet.Write((byte)3);
+                    packet.Write((byte)AdventurePacketIdentifier.PingPong);
                     pingPong.Serialize(packet);
                     packet.Send();
                 }

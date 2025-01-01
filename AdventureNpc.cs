@@ -20,7 +20,7 @@ public class AdventureNpc : GlobalNPC
 
     public override void Load()
     {
-        if (Main.netMode != NetmodeID.MultiplayerClient)
+        if (Main.dedServ)
             On_NPC.PlayerInteraction += OnNPCPlayerInteraction;
     }
 

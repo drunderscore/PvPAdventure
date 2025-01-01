@@ -15,18 +15,18 @@ public class CombatManager : ModSystem
         // Do not draw the PvP or team icons -- the server has full control over your PvP and team.
         // TODO: In the future, the server should send a packet relaying if the player can toggle hostile and which teams they may join.
         //       For now, let's just totally disable it.
-        if (PreventPersonalCombatModifications && Main.netMode != NetmodeID.Server)
+        if (PreventPersonalCombatModifications && !Main.dedServ)
             On_Main.DrawPVPIcons += _ => { };
-        
+
         On_Player.Hurt_HurtInfo_bool += OnPlayerHurt;
     }
 
     public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
     {
-        return PreventPersonalCombatModifications && Main.netMode == NetmodeID.Server &&
+        return PreventPersonalCombatModifications && Main.dedServ &&
                (messageType is MessageID.TogglePVP or MessageID.PlayerTeam);
     }
-    
+
     // FIXME: An IL patch might be slightly better.
     //        Doing it this way isn't great, because anything introduced in-between the i-frames being set isn't correct
     //        Meaning side effects are possible.

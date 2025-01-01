@@ -86,8 +86,7 @@ public class WorldMapSyncManager : ModSystem
             try
             {
                 var packet = Mod.GetPacket();
-                // FIXME: no magic
-                packet.Write((byte)2);
+                packet.Write((byte)AdventurePacketIdentifier.WorldMapLighting);
                 new Lighting(_betterMapTileUpdates).Serialize(packet);
                 packet.Send();
             }

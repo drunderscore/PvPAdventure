@@ -23,7 +23,7 @@ public class DiscordIdentification : ModSystem
 
     public override void Load()
     {
-        if (Enabled && Main.netMode != NetmodeID.MultiplayerClient)
+        if (Enabled && Main.dedServ)
             IL_MessageBuffer.GetData += OnGetDataIL;
     }
 
