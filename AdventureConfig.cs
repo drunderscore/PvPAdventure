@@ -17,6 +17,17 @@ public class AdventureConfig : ModConfig
     public Dictionary<ItemDefinition, ItemStatisticModification> ItemStatisticModifications { get; set; } = new();
     public CombatConfig Combat { get; set; } = new();
 
+    //Adding a [ReloadRequired] attribute here seems to apply it to the entire config?
+    //Though this might be better since it allows the host to edit recipes in-game.
+    public List<RecipeConfig> DuplicateItemRecipes { get; set; } =
+    [   
+        new RecipeConfig(new List<ItemDefinition>(){new(ItemID.FetidBaghnakhs), new (ItemID.DartPistol), new(ItemID.SoulDrain), new(ItemID.FleshKnuckles),new(ItemID.TendonHook)}, new(), 3),
+        new RecipeConfig(new List<ItemDefinition>(){new(ItemID.ChainGuillotines), new(ItemID.DartRifle), new(ItemID.ClingerStaff), new(ItemID.PutridScent), new(ItemID.WormHook)}, new(), 3),
+        new RecipeConfig(new List<ItemDefinition>(){new(ItemID.FlyingKnife), new(ItemID.DaedalusStormbow), new(ItemID.CrystalVileShard), new(ItemID.IlluminantHook)}, new(), 3),
+        new RecipeConfig(new List<ItemDefinition>(){new(ItemID.BreakerBlade), new(ItemID.ClockworkAssaultRifle), new(ItemID.LaserRifle), new(ItemID.FireWhip)}, new(), 3),
+        new RecipeConfig(new List<ItemDefinition>(){new(ItemID.GolemFist), new(ItemID.PossessedHatchet), new(ItemID.Stynger), new(ItemID.HeatRay), new(ItemID.StaffofEarth), new(ItemID.EyeoftheGolem), new(ItemID.SunStone)}, new(), 3)
+    ];
+
     public List<NPCDefinition> BossOrder { get; set; } =
     [
         new(NPCID.KingSlime),
@@ -116,6 +127,21 @@ public class AdventureConfig : ModConfig
     {
         public int MeleeInvincibilityFrames { get; set; } = 8;
         public int RecentDamagePreservationFrames { get; set; } = 15 * 60;
+    }
+
+    public class RecipeConfig
+    {
+        public List<ItemDefinition> Materials { get; set; } = new();
+        public TileDefinition Workstation { get; set; } = new();
+        public int AmountNeeded { get; set; } = 3;
+
+        public RecipeConfig() { }
+        public RecipeConfig(List<ItemDefinition> materials, TileDefinition workstation, int amountNeeded)
+        {
+            Materials = materials;
+            Workstation = workstation;
+            AmountNeeded = amountNeeded;
+        }
     }
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)

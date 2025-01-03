@@ -1,44 +1,29 @@
-﻿using System.Collections.Generic;
-using Terraria;
-using Terraria.ID;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.System
+namespace PvPAdventure.System;
+
+public class RecipeManager : ModSystem
 {
-    [Autoload]
-    public class RecipeManager : ModSystem
+    public override void AddRecipes()
     {
-        private readonly List<List<int>> _lootTables =
-        [
-            [ItemID.FlyingKnife, ItemID.DaedalusStormbow, ItemID.CrystalVileShard, ItemID.IlluminantHook],
-            [ItemID.ChainGuillotines, ItemID.DartRifle, ItemID.ClingerStaff, ItemID.PutridScent, ItemID.WormHook],
-            [ItemID.FetidBaghnakhs, ItemID.DartPistol, ItemID.SoulDrain, ItemID.FleshKnuckles, ItemID.TendonHook],
-            [ItemID.BreakerBlade, ItemID.ClockworkAssaultRifle, ItemID.LaserRifle, ItemID.FireWhip],
-            [
-                ItemID.GolemFist, ItemID.PossessedHatchet, ItemID.Stynger, ItemID.StaffofEarth, ItemID.HeatRay,
-                ItemID.SunStone, ItemID.EyeoftheGolem
-            ]
-        ];
-
-        public override void AddRecipes()
+        for (int i = 0; i < ModContent.GetInstance<AdventureConfig>().DuplicateItemRecipes.Count; i++)
         {
-            foreach (var lootTable in _lootTables)
-                CreateDuplicateDropRecipe(lootTable, 3);
-        }
-
-        private static void CreateDuplicateDropRecipe(List<int> lootTable, int amountOfMaterial)
-        {
-            for (int i = 0; i < lootTable.Count; i++)
+            for (int result = 0; result < ModContent.GetInstance<AdventureConfig>().DuplicateItemRecipes[i].EnemyDrops.Count; result++)
             {
-                for (int j = 0; j < lootTable.Count; j++)
+                for (int material = 0; material < ModContent.GetInstance<AdventureConfig>().DuplicateItemRecipes[i].EnemyDrops.Count; material++)
                 {
-                    if (j == i)
+                    Recipe recipe;
+                    if (result == material)
                         continue;
 
-                    Recipe.Create(lootTable[i])
-                        .AddIngredient(lootTable[j], amountOfMaterial)
-                        .AddTile(TileID.WorkBenches)
-                        .Register();
+                    recipe = Recipe.Create(ModContent.GetInstance<AdventureConfig>().DuplicateItemRecipes[i].EnemyDrops[result].Type)
+                        .AddIngredient(ModContent.GetInstance<AdventureConfig>().DuplicateItemRecipes[i].EnemyDrops[material].Type, ModContent.GetInstance<AdventureConfig>().DuplicateItemRecipes[i].AmountNeeded);
+
+                    if (ModContent.GetInstance<AdventureConfig>().DuplicateItemRecipes[i].Workstation.Type != -1)
+                        recipe.AddTile(ModContent.GetInstance<AdventureConfig>().DuplicateItemRecipes[i].Workstation.Type);
+
+                    recipe.Register();
                 }
             }
         }

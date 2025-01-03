@@ -52,6 +52,26 @@ Mods: {
 					Tooltip: ""
 					Label: Boss Order
 				}
+
+				DuplicateDropRecipes: {
+					Label: Duplicate Drop Recipes
+					Tooltip: ""
+				}
+
+				LootTableRecipes: {
+					Label: Loot Table Recipes
+					Tooltip: ""
+				}
+
+				EnemyDropRecipes: {
+					Label: Enemy Drop Recipes
+					Tooltip: ""
+				}
+
+				DuplicateItemRecipes: {
+					Label: Duplicate Item Recipes - [c/FF1919:Requires A Mod Reload to take Affect]
+					Tooltip: ""
+				}
 			}
 
 			PointsConfig: {
@@ -228,6 +248,35 @@ Mods: {
 
 				Team: {
 					Label: Team
+					Tooltip: ""
+				}
+			}
+
+			RecipeConfig: {
+				Tooltip: ""
+
+				MaterialsNeeded: {
+					Label: Materials Needed
+					Tooltip: ""
+				}
+
+				Items: {
+					Label: Items
+					Tooltip: ""
+				}
+
+				EnemyDrops: {
+					Label: Enemy Drops
+					Tooltip: ""
+				}
+
+				Workstation: {
+					Label: Workstation
+					Tooltip: ""
+				}
+
+				AmountNeeded: {
+					Label: Amount Needed
 					Tooltip: ""
 				}
 			}
