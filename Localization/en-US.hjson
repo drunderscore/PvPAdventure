@@ -255,18 +255,8 @@ Mods: {
 			RecipeConfig: {
 				Tooltip: ""
 
-				MaterialsNeeded: {
-					Label: Materials Needed
-					Tooltip: ""
-				}
-
-				Items: {
-					Label: Items
-					Tooltip: ""
-				}
-
-				EnemyDrops: {
-					Label: Enemy Drops
+				Materials: {
+					Label: Materials
 					Tooltip: ""
 				}
 
