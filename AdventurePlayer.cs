@@ -325,6 +325,35 @@ public class AdventurePlayer : ModPlayer
             ModContent.GetInstance<AdventureConfig>().Combat.RecentDamagePreservationFrames);
     }
 
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (modifiers.PvP)
+        {
+            Player player = Main.LocalPlayer;
+            float totalArmorPenetration = 0;
+
+            float defenseMultiplier = 0.5f;
+            if (Main.masterMode)
+                defenseMultiplier = 1;
+            else if (Main.expertMode)
+                defenseMultiplier = 0.75f;
+
+            if (modifiers.DamageSource.SourceItem != null && modifiers.DamageSource.SourceItem.DamageType == DamageClass.Melee && modifiers.DamageSource.SourceItem.useStyle == ItemUseStyleID.Swing)
+            {
+                totalArmorPenetration = modifiers.DamageSource.SourceItem.ArmorPenetration + Main.player[modifiers.DamageSource.SourcePlayerIndex].GetTotalArmorPenetration(DamageClass.Melee);
+            }
+            else
+            {
+                totalArmorPenetration = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex].ArmorPenetration;
+            }
+
+            if (totalArmorPenetration > player.statDefense)
+                totalArmorPenetration = player.statDefense;
+
+            modifiers.SourceDamage.Base += totalArmorPenetration * defenseMultiplier;
+        }
+    }
+
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         if (Main.netMode == NetmodeID.MultiplayerClient)
