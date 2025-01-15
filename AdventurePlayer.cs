@@ -338,6 +338,7 @@ public class AdventurePlayer : ModPlayer
             else if (Main.expertMode)
                 defenseMultiplier = 0.75f;
 
+            //Checks whether the damage source is a broadsword or a projectile and adds to the armor penetration value accordingly
             if (modifiers.DamageSource.SourceItem != null && modifiers.DamageSource.SourceItem.DamageType == DamageClass.Melee && modifiers.DamageSource.SourceItem.useStyle == ItemUseStyleID.Swing)
             {
                 totalArmorPenetration = modifiers.DamageSource.SourceItem.ArmorPenetration + Main.player[modifiers.DamageSource.SourcePlayerIndex].GetTotalArmorPenetration(DamageClass.Melee);
@@ -347,6 +348,7 @@ public class AdventurePlayer : ModPlayer
                 totalArmorPenetration = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex].ArmorPenetration;
             }
 
+            //Ensures that the damage from armor penetration never exceedes the player's defense
             if (totalArmorPenetration > player.statDefense)
                 totalArmorPenetration = player.statDefense;
 
