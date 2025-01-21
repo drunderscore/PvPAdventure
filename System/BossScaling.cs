@@ -42,7 +42,9 @@ public class BossScaling : GlobalNPC
                     activeTeamMembers++;
             }
             activePlayersCount = activeTeamMembers;
-            gameModeData = GameModeData.ExpertMode;
+
+            if (!Main.expertMode)
+                gameModeData = GameModeData.ExpertMode;
         }
         orig(self, activePlayersCount, gameModeData, strengthOverride);
     }
