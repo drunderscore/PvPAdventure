@@ -237,6 +237,27 @@ public class AdventureNpc : GlobalNPC
     {
         if (IsPartOfEaterOfWorlds((short)npc.type))
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.WormScarf));
+
+        if (npc.type == NPCID.KingSlime)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.RoyalGel));
+
+        if (npc.type == NPCID.EyeofCthulhu)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.EoCShield));
+
+        if (npc.type == NPCID.QueenBee)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.HiveBackpack));
+
+        if (npc.type == NPCID.SkeletronHead)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.BoneGlove));
+
+        if (npc.type == NPCID.Deerclops)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.BoneHelm));
+
+        if (npc.type == NPCID.QueenSlimeBoss)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.VolatileGelatin));
+
+        if (npc.type == NPCID.Plantera)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.SporeSac));
     }
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
