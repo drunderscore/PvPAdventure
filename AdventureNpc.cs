@@ -169,26 +169,38 @@ public class AdventureNpc : GlobalNPC
 
     public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
     {
-        if (IsPartOfEaterOfWorlds((short)npc.type))
-            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.WormScarf));
-
         if (npc.type == NPCID.KingSlime)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.RoyalGel));
 
         if (npc.type == NPCID.EyeofCthulhu)
-            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.EoCShield));
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.EoCShield, 10));
+
+        if (IsPartOfEaterOfWorlds((short)npc.type))
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.WormScarf));
+
+        if (npc.type == NPCID.BrainofCthulhu)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.WormScarf));
 
         if (npc.type == NPCID.QueenBee)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.HiveBackpack));
 
-        if (npc.type == NPCID.SkeletronHead)
-            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.BoneGlove));
-
         if (npc.type == NPCID.Deerclops)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.BoneHelm));
 
+        if (npc.type == NPCID.SkeletronHead)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.BoneGlove));
+
         if (npc.type == NPCID.QueenSlimeBoss)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.VolatileGelatin));
+
+        if (npc.type == NPCID.TheDestroyer)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.MechanicalWagonPiece));
+
+        if (npc.type == NPCID.Retinazer || npc.type == NPCID.Spazmatism)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.MechanicalWheelPiece));
+
+        if (npc.type == NPCID.SkeletronPrime)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.MechanicalBatteryPiece));
 
         if (npc.type == NPCID.Plantera)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.SporeSac));
