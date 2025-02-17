@@ -1,5 +1,6 @@
 ﻿using Terraria;
 using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure;
@@ -28,5 +29,19 @@ public class AdventureReforge : GlobalItem
     public override bool CanReforge(Item item)
     {
         return false;
+    }
+}
+public class WorldReforges : ModSystem
+{
+    public override void PostWorldGen()
+    {
+        for (int i = 0; i < Main.chest.Length; i++)
+        {
+            if (Main.chest[i] != null)
+            {
+                Main.chest[i].item[0].ResetPrefix();
+                Main.chest[i].item[1].ResetPrefix();
+            }
+        }
     }
 }
