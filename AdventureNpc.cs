@@ -173,12 +173,9 @@ public class AdventureNpc : GlobalNPC
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.RoyalGel));
 
         if (npc.type == NPCID.EyeofCthulhu)
-            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.EoCShield, 10));
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.EoCShield));
 
-        if (IsPartOfEaterOfWorlds((short)npc.type))
-            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.WormScarf));
-
-        if (npc.type == NPCID.BrainofCthulhu)
+        if (IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.WormScarf));
 
         if (npc.type == NPCID.QueenBee)
