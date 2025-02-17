@@ -38,6 +38,7 @@ namespace PvPAdventure.System
 
                     Recipe.Create(lootTable[i])
                         .AddIngredient(lootTable[j], amountOfMaterial)
+                        .DisableDecraft()
                         .Register();
                 }
             }
