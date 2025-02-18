@@ -201,6 +201,7 @@ public class AdventureNpc : GlobalNPC
 
         if (npc.type == NPCID.Plantera)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.SporeSac));
+
     }
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
