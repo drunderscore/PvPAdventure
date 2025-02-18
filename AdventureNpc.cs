@@ -349,6 +349,7 @@ public class AdventureNpc : GlobalNPC
 
 
         if (IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
+
             AddNonExpertBossLoot(ItemID.WormScarf);
         else
         {
@@ -387,6 +388,7 @@ public class AdventureNpc : GlobalNPC
                     break;
             }
         }
+
     }
 
     // This only runs on the attacking player
