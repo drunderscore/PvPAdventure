@@ -244,6 +244,15 @@ public class AdventureNpc : GlobalNPC
         if (IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.WormScarf));
 
+        if (npc.type == NPCID.KingSlime)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.RoyalGel));
+
+        if (npc.type == NPCID.EyeofCthulhu)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.EoCShield));
+
+        if (IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.WormScarf));
+
         if (npc.type == NPCID.QueenBee)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.HiveBackpack));
 
@@ -268,6 +277,66 @@ public class AdventureNpc : GlobalNPC
         if (npc.type == NPCID.Plantera)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.SporeSac));
 
+
+        foreach (var rule in npcLoot.Get())
+        {
+            if (rule is DropBasedOnExpertMode drop)
+            {
+                if (drop.ruleForNormalMode is CommonDrop normalDropRule)
+                {
+                    switch (normalDropRule.itemId)
+                    {
+                        case ItemID.Tabi:
+                            normalDropRule.chanceDenominator = 4;
+                            break;
+
+                        case ItemID.PaladinsHammer:
+                        case ItemID.PaladinsShield:
+                            normalDropRule.chanceNumerator = 3;
+                            normalDropRule.chanceDenominator = 20;
+                            break;
+
+                        case ItemID.ShadowbeamStaff:
+                        case ItemID.SpectreStaff:
+                        case ItemID.InfernoFork:
+                        case ItemID.SniperRifle:
+                        case ItemID.TacticalShotgun:
+                        case ItemID.RocketLauncher:
+                            normalDropRule.chanceNumerator = 1;
+                            normalDropRule.chanceDenominator = 10;
+                            break;
+
+                        case ItemID.MaceWhip:
+                            normalDropRule.chanceNumerator = 3;
+                            normalDropRule.chanceDenominator = 400;
+                            break;
+
+                        case ItemID.SpiderFang:
+                            normalDropRule.chanceNumerator = 4;
+                            normalDropRule.chanceDenominator = 5;
+                            break;
+                    }
+                }
+            }
+
+            if (rule is ItemDropWithConditionRule conditionalDrop)
+            {
+                if (conditionalDrop.itemId == ItemID.ButterflyDust)
+                {
+                    conditionalDrop.chanceNumerator = 1;
+                    conditionalDrop.chanceDenominator = 1;
+                }
+            }
+
+            if (rule is CommonDrop commonDrop)
+            {
+                if (commonDrop.itemId == ItemID.MagicQuiver)
+                {
+                    commonDrop.chanceNumerator = 1;
+                    commonDrop.chanceDenominator = 50;
+                }
+            }
+        }
     }
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
