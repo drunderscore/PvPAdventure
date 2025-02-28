@@ -430,6 +430,10 @@ public class AdventureNpc : GlobalNPC
                             break;
                     }
                 }
+                else if (npc.type == NPCID.GoblinSummoner && drop.ruleForNormalMode is OneFromOptionsDropRule optionsRule)
+                {
+                    optionsRule.chanceDenominator = 1;
+                }
             }
 
             if (rule is ItemDropWithConditionRule conditionalDrop)
