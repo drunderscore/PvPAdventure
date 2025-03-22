@@ -26,7 +26,7 @@ public class ObjectiveNotice : ModSystem
             TextSnippet snippet;
 
             // TryParse doesn't check the bounds (aside from whether the enum ordinal is wide enough), so do it ourselves.
-            if (Enum.TryParse(text, true, out Team team) && (int)team < Enum.GetValues<Team>().Length)
+            if (Enum.TryParse(text, true, out Team team))
             {
                 var outline = false;
 

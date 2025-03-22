@@ -255,7 +255,7 @@ public class GameManager : ModSystem
             if (player == null)
                 return;
 
-            if (!Enum.TryParse(args[1], true, out Team team) || (int)team >= Enum.GetValues<Team>().Length)
+            if (!Enum.TryParse(args[1], true, out Team team))
                 return;
 
             player.team = (int)team;
