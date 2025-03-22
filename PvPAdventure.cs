@@ -18,6 +18,11 @@ public class PvPAdventure : Mod
 
     public override void Load()
     {
+        Array.Resize(ref Main.teamColor, Main.teamColor.Length + 2);
+        // This is Rebecca Purple, the favorite color of Rebecca Alison Meyer.
+        Main.teamColor[^1] = new(102, 51, 153);
+        Main.teamColor[^2] = Color.Orange;
+
         // This mod should only ever be loaded when connecting to a server, it should never be loaded beforehand.
         // We don't use Netplay.Disconnect here, as that's not initialized to true (but rather to default value, aka false), so instead
         // we'll check the connection status of our own socket.
@@ -30,6 +35,11 @@ public class PvPAdventure : Mod
                 args.Allowed = true;
             };
         }
+    }
+
+    public override void Unload()
+    {
+        Array.Resize(ref Main.teamColor, 6);
     }
 
     public override void HandlePacket(BinaryReader reader, int whoAmI)
