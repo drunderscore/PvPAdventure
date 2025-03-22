@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -223,8 +222,11 @@ public class BountyManager : ModSystem
 
     public override void ClearWorld()
     {
-        foreach (var team in Enum.GetValues<Team>())
+        for (var i = 0; i < 8; i++)
+        {
+            var team = (Team)i;
             _bounties[team] = new List<Page>();
+        }
     }
 
     public override void NetSend(BinaryWriter writer)

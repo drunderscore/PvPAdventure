@@ -43,8 +43,9 @@ public class PointsManager : ModSystem
 
     public override void ClearWorld()
     {
-        foreach (var team in Enum.GetValues<Team>())
+        for (var i = 0; i < 8; i++)
         {
+            var team = (Team)i;
             _points[team] = 0;
             _downedNpcs[team] = new HashSet<short>();
         }
@@ -301,10 +302,9 @@ public class PointsManager : ModSystem
 
             var numberOfPlayersOnLargestTeam = Math.Min(playerTeamsEnumeration.Count(), 8);
 
-            foreach (var team in Enum.GetValues<Team>())
+            for (var j = 0; j < 8; j++)
             {
-                if (team == Team.None)
-                    continue;
+                var team = (Team)j;
 
                 var players = Main.player
                     .Where(player => player.active)
@@ -501,8 +501,9 @@ public class PointsManager : ModSystem
                 var nextTeamIconPosition = new Vector2(nextBossHeadPosition.X - teamIconXOffset,
                     nextBossHeadPosition.Y + verticalSeparationBetweenBossHeadAndTeamIcon);
 
-                foreach (var team in Enum.GetValues<Team>())
+                for (var i = 0; i < 8; i++)
                 {
+                    var team = (Team)i;
                     if (team == Team.None)
                         continue;
 
