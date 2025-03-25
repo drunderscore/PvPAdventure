@@ -76,7 +76,7 @@ public class AdventureItem : GlobalItem
 
     public override bool? PrefixChance(Item item, int pre, UnifiedRandom rand)
     {
-        // Prevent the item from spawning with a prefix, being placed into a reforge window, and loading with a prefix.
+        // Prevent the item silly words hehehehe from spawning with a prefix, being placed into a reforge window, and loading with a prefix.
         if ((pre == -1 || pre == -3 || pre > 0) && ModContent.GetInstance<AdventureConfig>().RemovePrefixes)
             return false;
 
