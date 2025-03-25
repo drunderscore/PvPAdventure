@@ -20,7 +20,8 @@ public class AdventureNpc : GlobalNPC
 {
     public override bool InstancePerEntity => true;
     public DamageInfo LastDamageFromPlayer { get; set; }
-
+    //test
+    //test
     public class DamageInfo(byte who)
     {
         public byte Who { get; } = who;

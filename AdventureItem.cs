@@ -56,7 +56,7 @@ public class AdventureItem : GlobalItem
             .Any(itemDefinition => item.type == itemDefinition.Type);
     }
 
-    // NOTE: This will not remove already-equipped accessories from players.
+    // NOTE: This will not reemove already-equipped accessories from players.
     public override bool CanEquipAccessory(Item item, Player player, int slot, bool modded)
     {
         return !ModContent.GetInstance<AdventureConfig>().PreventUse
