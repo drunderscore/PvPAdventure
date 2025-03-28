@@ -337,7 +337,7 @@ public class AdventureNpc : GlobalNPC
                 if (commonDrop.itemId == ItemID.MagicQuiver)
                 {
                     commonDrop.chanceNumerator = 1;
-                    commonDrop.chanceDenominator = 50;
+                    commonDrop.chanceDenominator = 30;
                 }
             }
         }
