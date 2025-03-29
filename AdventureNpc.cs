@@ -409,6 +409,15 @@ public class AdventureNpc : GlobalNPC
                             normalDropRule.chanceDenominator = 20;
                             break;
 
+                        case ItemID.Stinger:
+                            if (npc.type == NPCID.MossHornet)
+                            {
+                                normalDropRule.chanceNumerator = 2;
+                                normalDropRule.chanceDenominator = 3;
+
+                            }
+                            break;
+
                         case ItemID.ShadowbeamStaff:
                         case ItemID.SpectreStaff:
                         case ItemID.InfernoFork:
