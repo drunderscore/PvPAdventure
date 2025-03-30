@@ -7,7 +7,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure
 {
-    internal class CursedFlameDebuffPlayer : ModPlayer
+    internal class PlayerDebuffModifier : ModPlayer
     {
         //Changes dps for varius player debuffs
         public override void UpdateBadLifeRegen()
