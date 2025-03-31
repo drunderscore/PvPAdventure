@@ -262,9 +262,6 @@ public class AdventureNpc : GlobalNPC
         if (npc.type == NPCID.SkeletronHead)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.BoneGlove));
 
-        if (npc.type == NPCID.QueenSlimeBoss)
-            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.VolatileGelatin));
-
         if (npc.type == NPCID.TheDestroyer)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.MechanicalWagonPiece));
 
@@ -295,13 +292,12 @@ public class AdventureNpc : GlobalNPC
                             normalDropRule.chanceNumerator = 3;
                             normalDropRule.chanceDenominator = 20;
                             break;
-
+                       
+                        //probably doesnt work FIXME
                         case ItemID.Stinger:
                             if (npc.type == NPCID.MossHornet)
                             {
-                                normalDropRule.chanceNumerator = 2;
-                                normalDropRule.chanceDenominator = 3;
-
+                                normalDropRule.chanceDenominator = 1;
                             }
                             break;
 
@@ -349,6 +345,51 @@ public class AdventureNpc : GlobalNPC
                     commonDrop.chanceDenominator = 30;
                 }
             }
+        }
+   
+        //power cell drop rete changers
+        if (npc.netID == NPCID.FlyingSnake || npc.netID == NPCID.Lihzahrd || npc.netID == NPCID.LihzahrdCrawler)
+        {
+            // Clear the existing loot rules (optional, depending on your needs)
+            npcLoot.RemoveWhere(rule => true);
+
+            // Add the new loot rule with a 5% chance to drop 1 power cell
+            npcLoot.Add(ItemDropRule.Common(ItemID.LihzahrdPowerCell, 33, 1, 1)); // 1 in 20 chance (~5%)
+
+            // Add a 33% chance to drop a Solar Tablet Fragment
+            npcLoot.Add(ItemDropRule.Common(ItemID.LunarTabletFragment, 3, 1, 1)); // 1 in 3 chance (~33.33%)
+
+
+
+        }
+        //loot pool seperators
+        if (npc.netID == NPCID.Golem)
+        {
+            // Clear existing loot
+            npcLoot.RemoveWhere(rule => true);
+
+            // Add your existing drops
+            npcLoot.Add(ItemDropRule.Common(ItemID.BeetleHusk, 1, 4, 8));
+            npcLoot.Add(ItemDropRule.Common(ItemID.GolemTrophy, 10, 1, 1));
+            npcLoot.Add(ItemDropRule.Common(ItemID.GolemMask, 7, 1, 3));
+            npcLoot.Add(ItemDropRule.Common(ItemID.StyngerBolt, 1, 60, 99));
+
+            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Stynger, ItemID.PossessedHatchet, ItemID.GolemFist, ItemID.HeatRay, ItemID.StaffofEarth));
+            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Picksaw, ItemID.EyeoftheGolem, ItemID.SunStone));
+        }
+        if (npc.netID == NPCID.QueenSlimeBoss)
+        {
+            // Clear existing loot
+            npcLoot.RemoveWhere(rule => true);
+
+            // Add your existing drops
+            npcLoot.Add(ItemDropRule.Common(ItemID.GelBalloon, 1, 25, 75));
+            npcLoot.Add(ItemDropRule.Common(ItemID.VolatileGelatin, 1, 1, 1));
+            npcLoot.Add(ItemDropRule.Common(ItemID.QueenSlimeTrophy, 10, 1, 1));
+            npcLoot.Add(ItemDropRule.Common(ItemID.QueenSlimeMask, 7, 1, 3));
+
+            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.CrystalNinjaHelmet, ItemID.CrystalNinjaChestplate, ItemID.CrystalNinjaLeggings));
+            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Smolstar, ItemID.QueenSlimeHook, ItemID.QueenSlimeMountSaddle));
         }
     }
 
