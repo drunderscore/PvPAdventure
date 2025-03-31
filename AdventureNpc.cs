@@ -330,7 +330,16 @@ public class AdventureNpc : GlobalNPC
 
         ModContent.GetInstance<PointsManager>().AwardNpcKillToTeam((Team)lastDamager.team, npc);
     }
+    public class GuardianDeathHandler : ModPlayer
+    {
+        //dungeon gardian dies on killing a player
+        public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
+        {
+            // Only run on server and single player
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
 
+//<<<<<<< HEAD
     public override bool? CanChat(NPC npc)
     {
         // This is now a possibility from our multiplayer pause.
@@ -340,6 +349,29 @@ public class AdventureNpc : GlobalNPC
         return null;
     }
 
+//=======
+            // Check if the death was caused by an NPC
+            if (damageSource.SourceNPCIndex >= 0 && damageSource.SourceNPCIndex < Main.maxNPCs)
+            {
+                NPC killingNPC = Main.npc[damageSource.SourceNPCIndex];
+
+                // Verify the NPC is a Dungeon Guardian
+                if (killingNPC.active && killingNPC.type == NPCID.DungeonGuardian)
+                {
+                    // Kill all active Dungeon Guardians
+                    for (int i = 0; i < Main.maxNPCs; i++)
+                    {
+                        NPC npc = Main.npc[i];
+                        if (npc.active && npc.type == NPCID.DungeonGuardian)
+                        {
+                            npc.StrikeInstantKill();
+                        }
+                    }
+                }
+            }
+        }
+    }
+//>>>>>>> 988ec20 (dungeon gardian update)
     public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
     {
         void AddNonExpertBossLoot(int id)
@@ -506,6 +538,13 @@ public class AdventureNpc : GlobalNPC
 
             npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.CrystalNinjaHelmet, ItemID.CrystalNinjaChestplate, ItemID.CrystalNinjaLeggings));
             npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Smolstar, ItemID.QueenSlimeHook, ItemID.QueenSlimeMountSaddle));
+        }
+        if (npc.netID == NPCID.DungeonGuardian)
+        {
+            //remove dungeon gardian pet loot, and replace with skull
+            npcLoot.RemoveWhere(rule => true);
+            npcLoot.Add(ItemDropRule.Common(ItemID.Skull, 1, 1, 1)); // 1 in 20 chance (~5%)
+
         }
     }
 
