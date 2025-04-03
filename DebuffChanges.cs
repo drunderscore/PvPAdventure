@@ -14,12 +14,12 @@ namespace PvPAdventure
         {
             if (base.Player.HasBuff(39))
             {
-                base.Player.lifeRegen += 7;
+                base.Player.lifeRegen += 14;
                 base.Player.lifeRegenTime = 0f;
             }
             if (base.Player.HasBuff(70))
             {
-                base.Player.lifeRegen += 14;
+                base.Player.lifeRegen += 20;
                 base.Player.lifeRegenTime = 0f;
             }
         }
