@@ -112,15 +112,6 @@ namespace PvPAdventure.System
             Recipe.Create(ItemID.BlizzardinaBottle)
                 .AddIngredient(ItemID.Fish)
                 .Register();
-
-            Recipe.Create(ItemID.TacticalShotgun)
-                .AddIngredient(ItemID.Shotgun)
-                .AddIngredient(ItemID.IllegalGunParts, 11)
-                .Register();
-
-            Recipe.Create(ItemID.MagicMirror)
-                .AddIngredient(ItemID.Cloud, 243)
-                .Register();
         }
     }
 }
