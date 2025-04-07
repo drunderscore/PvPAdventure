@@ -791,35 +791,4 @@ public class AdventurePlayer : ModPlayer
     {
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
     }
-    {
-     private bool _hadShinyStoneLastFrame;
-
-        public override void PostUpdateEquips()
-        {
-            // Check if Shiny Stone is equipped
-            var hasShinyStone = IsShinyStoneEquipped();
-
-            // Apply debuff when first equipped or when you relog and rejoin (unintentional but works so who gafs)
-            if (hasShinyStone && !hadShinyStoneLastFrame)
-            {
-                Player.AddBuff<ShinyStoneHotswap>, 60 * 60);
-            }
-
-            // Disable Shiny Stone effects while debuffed
-            if (Player.HasBuff(ModContent.BuffType<ShinyStoneHotswap>()))
-            {
-                Player.shinyStone = false;
-            }
-
-            _hadShinyStoneLastFrame = hasShinyStone;
-        }
-        public override void OnRespawn()
-        {
-            // We re-apply debuff if equipped and you respawn
-            //TODO: we could maybe make it so that if you equip the shiny stone witin the bounds of the spawnbox you don't get the Charging debuff
-            if (IsShinyStoneEquipped())
-            {
-                Player.AddBuff<ShinyStoneHotswap>, 15 * 60);
-            }
-        }
-    }
+}
