@@ -44,7 +44,7 @@ namespace PvPAdventure
             //TODO: we could maybe make it so that if you equip the shiny stone witin the bounds of the spawnbox you don't get the Charging debuff
             if (IsShinyStoneEquipped())
             {
-                Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 900); // 15 seconds of Charging after respawning
+                Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 900); // 15 seconds of Charging after respawnin
             }
         }
 
