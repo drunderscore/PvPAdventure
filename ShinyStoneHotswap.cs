@@ -5,8 +5,8 @@ namespace PvPAdventure;
 
 public class ShinyStoneHotswap : ModBuff
 {
-    public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap}}";
-    
+    public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap";
+
     public override void SetStaticDefaults()
     {
         Main.debuff[Type] = true;
