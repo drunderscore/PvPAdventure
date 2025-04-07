@@ -621,9 +621,16 @@ Mods: {
 
 		Bounty.CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
 
+
 		Pause: {
 			True: "[c/FF0000:The game has been paused.]"
 			False: "[c/00FF00:The game has been resumed.]"
+
+		Buffs: {
+			ShinyStoneHotswap: {
+				DisplayName: Shiny Stone Hotswap
+				Description: ejs stupid buff
+			}
 		}
 	}
 }
