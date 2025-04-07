@@ -1,16 +1,14 @@
 ﻿using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace Tpvpaquickaddon.Content.Buffs
+namespace PvPAdventure;
+
+public class ShinyStoneHotswap : ModBuff
 {
-    public class ShinyStoneHotswap : ModBuff
+    public override void SetStaticDefaults()
     {
-        public override void SetStaticDefaults()
-        {
-            Main.debuff[Type] = true;
-            Main.buffNoSave[Type] = true;
-            Main.buffNoTimeDisplay[Type] = false; // Show timer
-        }
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = true;
+        Main.buffNoTimeDisplay[Type] = false; // Show timer
     }
 }
