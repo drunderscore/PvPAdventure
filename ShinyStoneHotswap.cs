@@ -48,7 +48,7 @@ namespace PvPAdventure
                 Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 900); // 15 seconds of Charging after respawnin
             }
         }
-        //>>>>>>> c7bba43 (Added the shiny stone code I wrote from addon to here. Truthfully I'm not sure if I need to do something special for the asset to line up, and because It's my first time doing this I probably fucked up. Also the code might be shit but we will see. Anyways I'm supposed to describe my change so: Added new debuff that prevents shiny stone from working, preventing players from switching shiny stone on/off whenever they need to heal. Also this time im pushing this to remote.)
+//>>>>>>> c7bba43(Added the shiny stone code I wrote from addon to here.Truthfully I'm not sure if I need to do something special for the asset to line up, and because It's my first time doing this I probably fucked up. Also the code might be shit but we will see. Anyways I'm supposed to describe my change so: Added new debuff that prevents shiny stone from working, preventing players from switching shiny stone on/off whenever they need to heal. Also this time im pushing this to remote.)
 
         private bool IsShinyStoneEquipped()
         {
