@@ -683,17 +683,19 @@ public class AdventurePlayer : ModPlayer
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
     }
     {
-     private bool _hadShinyStoneLastFrame;
+ public class ShinyStoneDisabler : ModPlayer
+    {
+        private bool hadShinyStoneLastFrame;
 
         public override void PostUpdateEquips()
         {
             // Check if Shiny Stone is equipped
-            var hasShinyStone = IsShinyStoneEquipped();
+            bool hasShinyStone = IsShinyStoneEquipped();
 
-            // Apply debuff when first equipped or when you relog and rejoin (unintentional but works so who gafs)
+            // Apply debuff when first equipped or after respawn
             if (hasShinyStone && !hadShinyStoneLastFrame)
             {
-                Player.AddBuff<ShinyStoneHotswap>, 60 * 60);
+                Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 3600); // 60 seconds
             }
 
             // Disable Shiny Stone effects while debuffed
@@ -702,15 +704,29 @@ public class AdventurePlayer : ModPlayer
                 Player.shinyStone = false;
             }
 
-            _hadShinyStoneLastFrame = hasShinyStone;
+            hadShinyStoneLastFrame = hasShinyStone;
         }
+
         public override void OnRespawn()
         {
-            // We re-apply debuff if equipped and you respawn
-            //TODO: we could maybe make it so that if you equip the shiny stone witin the bounds of the spawnbox you don't get the Charging debuff
+            // Re-apply debuff if equipped during respawn
             if (IsShinyStoneEquipped())
             {
-                Player.AddBuff<ShinyStoneHotswap>, 15 * 60);
+                Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 900);
             }
         }
+
+        private bool IsShinyStoneEquipped()
+        {
+            for (int i = 3; i < 10; i++) // Check all accessory slots
+            {
+                if (Player.armor[i].type == ItemID.ShinyStone &&
+                   (i < 7 || !Player.hideVisibleAccessory[i - 3]))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
+}
