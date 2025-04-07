@@ -2,13 +2,10 @@
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure
+namespace Tpvpaquickaddon.Content.Buffs
 {
-
     public class ShinyStoneHotswap : ModBuff
-
     {
-        public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap}";
         public override void SetStaticDefaults()
         {
             Main.debuff[Type] = true;
@@ -61,6 +58,9 @@ namespace PvPAdventure
                 }
             }
             return false;
+        }
+    }
+            Main.buffNoTimeDisplay[Type] = false; // Show timer
         }
     }
 }
