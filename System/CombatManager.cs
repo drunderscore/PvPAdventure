@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using MonoMod.Cil;
 using Terraria;
@@ -11,6 +12,35 @@ namespace PvPAdventure.System;
 public class CombatManager : ModSystem
 {
     private const bool PreventPersonalCombatModifications = true;
+
+    private static readonly HashSet<short> BossProjectiles =
+    [
+        ProjectileID.DeerclopsIceSpike,
+        ProjectileID.DeerclopsRangedProjectile,
+        ProjectileID.InsanityShadowHostile,
+        ProjectileID.QueenBeeStinger,
+        ProjectileID.Skull,
+        ProjectileID.EyeLaser,
+        ProjectileID.QueenSlimeSmash,
+        ProjectileID.QueenSlimeGelAttack,
+        ProjectileID.CursedFlameHostile,
+        ProjectileID.EyeFire,
+        ProjectileID.DeathLaser,
+        ProjectileID.BombSkeletronPrime,
+        ProjectileID.SeedPlantera,
+        ProjectileID.PoisonSeedPlantera,
+        ProjectileID.ThornBall,
+        ProjectileID.EyeBeam,
+        ProjectileID.Fireball,
+        ProjectileID.CultistBossIceMist,
+        ProjectileID.CultistBossLightningOrb,
+        ProjectileID.CultistBossLightningOrbArc,
+        ProjectileID.CultistBossFireBall,
+        ProjectileID.CultistBossFireBallClone,
+        ProjectileID.Sharknado,
+        ProjectileID.Cthulunado
+    ];
+
     public const int PvPImmunityCooldownId = -100;
 
     public override void Load()
@@ -35,6 +65,7 @@ public class CombatManager : ModSystem
         IL_Player.Hurt_PlayerDeathReason_int_int_refHurtInfo_bool_bool_int_bool_float_float_float += EditPlayerHurt2;
         // Don't presumptuously check Player.immune for projectile PvP damage -- player hurt will do it for you.
         // Don't apply statuses conditionally on the value of Player.immune.
+        // Override the cooldown counter/immunity cooldown ID for boss projectiles.
         IL_Projectile.Damage += EditProjectileDamage;
         // Don't presumptuously check Player.immune for melee PvP damage -- player hurt will do it for you.
         IL_Player.ItemCheck_MeleeHitPVP += EditPlayerItemCheck_MeleeHitPVP;
@@ -124,6 +155,21 @@ public class CombatManager : ModSystem
         cursor.Remove();
         // ...to replace it's loaded value with the result of our delegate.
         cursor.EmitDelegate((Player self) => self.GetModPlayer<AdventurePlayer>().PvPImmuneTime > 0);
+
+        // Find the first call to ModProjectile.CooldownSlot (property)...
+        cursor.GotoNext(i => i.MatchCallvirt<ModProjectile>("get_CooldownSlot"));
+        // ...and skip its call and store...
+        cursor.Index += 2;
+        // ...and two more unrelated instructions, to pass a label for a branch earlier...
+        cursor.Index += 2;
+        // ...to prepare a delegate call.
+        cursor.EmitLdarg0()
+            .EmitLdloca(2)
+            .EmitDelegate((Projectile projectile, ref int cooldownSlot) =>
+            {
+                if (BossProjectiles.Contains((short)projectile.type))
+                    cooldownSlot = ImmunityCooldownID.Bosses;
+            });
     }
 
     private void EditPlayerItemCheck_MeleeHitPVP(ILContext il)
