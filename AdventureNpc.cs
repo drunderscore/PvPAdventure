@@ -395,7 +395,7 @@ public class AdventureNpc : GlobalNPC
             npcLoot.Add(ItemDropRule.Common(ItemID.StyngerBolt, 1, 60, 99));
 
             npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Stynger, ItemID.PossessedHatchet, ItemID.GolemFist, ItemID.HeatRay, ItemID.StaffofEarth));
-            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Picksaw, ItemID.EyeoftheGolem, ItemID.SunStone));
+            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Picksaw, ItemID.EyeoftheGolem, ItemID.SunStone, ItemID.ShinyStone));
         }
         if (npc.netID == NPCID.QueenSlimeBoss)
         {

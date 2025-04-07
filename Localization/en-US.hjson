@@ -363,8 +363,8 @@ Mods: {
 
 		Buffs: {
 			ShinyStoneHotswap: {
-				DisplayName: Shiny Stone Hotswap
-				Description: ejs stupid buff
+				DisplayName: Charging
+				Description: Shiny Stone is absorbing light!
 			}
 		}
 	}
