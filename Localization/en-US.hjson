@@ -360,5 +360,12 @@ Mods: {
 		}
 
 		Bounty.CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
+
+		Buffs: {
+			ShinyStoneHotswap: {
+				DisplayName: Shiny Stone Hotswap
+				Description: ejs stupid buff
+			}
+		}
 	}
 }
