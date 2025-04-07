@@ -626,9 +626,4 @@ Mods: {
 			False: "[c/00FF00:The game has been resumed.]"
 		}
 	}
-	Buffs: {
-	ShinyStoneHotswap: {
-		DisplayName: Charging
-		Description: Shiny Stone is absorbing light!
-	}
 }
