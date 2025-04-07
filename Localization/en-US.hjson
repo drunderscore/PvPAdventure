@@ -361,4 +361,9 @@ Mods: {
 
 		Bounty.CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
 	}
+	Buffs: {
+	ShinyStoneHotswap: {
+		DisplayName: Charging
+		Description: Shiny Stone is absorbing light!
+	}
 }
