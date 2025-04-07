@@ -1,4 +1,5 @@
-﻿using Terraria;
+﻿/*
+using Terraria;
 using Terraria.ModLoader;
 using MonoMod.Cil;
 
@@ -35,3 +36,4 @@ namespace LifeFruitPatcher
         }
     }
 }
+*/
