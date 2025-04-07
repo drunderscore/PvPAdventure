@@ -7,8 +7,6 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Assets\" />
-    <Folder Include="Assets\Buff\" />
     <Folder Include="Discord" />
     <Folder Include="lib\Native\" />
   </ItemGroup>
