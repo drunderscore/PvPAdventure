@@ -254,6 +254,11 @@ Mods: {
 					Label: Standard Invincibility Frames
 					Tooltip: ""
 				}
+
+				Debuff: {
+					Label: Debuff
+					Tooltip: ""
+				}
 			}
 
 			AdventureClientConfig: {
@@ -327,6 +332,20 @@ Mods: {
 				}
 
 				Tooltip: ""
+			}
+
+			DebuffConfig: {
+				CursedInfernoDps: {
+					Label: Cursed Inferno Dps
+					Tooltip: Higher is less damage
+				}
+
+				Tooltip: ""
+
+				VenomDps: {
+					Label: Venom Dps
+					Tooltip: Higher is less damage
+				}
 			}
 		}
 
