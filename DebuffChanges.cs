@@ -14,12 +14,12 @@ namespace PvPAdventure
 
             if (Player.HasBuff(39)) // On Fire!
             {
-                Player.lifeRegen += config.CursedInfernoDps;
+                Player.lifeRegen += config.Combat.Debuff.CursedInfernoDps;
                 Player.lifeRegenTime = 0f;
             }
             if (Player.HasBuff(70)) // Poisoned
             {
-                Player.lifeRegen += config.VenomDps;
+                Player.lifeRegen += config.Combat.Debuff.VenomDps;
                 Player.lifeRegenTime = 0f;
             }
         }

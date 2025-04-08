@@ -85,14 +85,6 @@ public class AdventureConfig : ModConfig
 
     public bool RemovePrefixes { get; set; }
 
-    [Header("Debuff Changes")]
-
-    [DefaultValue(12)]
-    public int CursedInfernoDps { get; set; }
-
-    [DefaultValue(18)]
-    public int VenomDps { get; set; }
-
     public class PointsConfig
     {
         public Dictionary<NPCDefinition, NpcPoints> Npc { get; set; } = new();
@@ -178,7 +170,15 @@ public class AdventureConfig : ModConfig
 
             [DefaultValue(null)] [NullAllowed] public Falloff DefaultFalloff { get; set; }
         }
-       
+        public class DebuffConfig
+        {
+            [DefaultValue(12)]
+            public int CursedInfernoDps { get; set; }
+
+            [DefaultValue(18)]
+            public int VenomDps { get; set; }
+
+        }
 
 
 
@@ -190,9 +190,14 @@ public class AdventureConfig : ModConfig
         [DefaultValue(15 * 60)]
         public int RecentDamagePreservationFrames { get; set; }
 
+        public DebuffConfig Debuff { get; set; } = new();
+
         public PlayerDamageBalanceConfig PlayerDamageBalance { get; set; } = new();
 
         [Range(0, 5 * 60)] [DefaultValue(8)] public int StandardInvincibilityFrames { get; set; }
+
+
+
     }
 
 
