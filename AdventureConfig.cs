@@ -154,7 +154,7 @@ public class AdventureConfig : ModConfig
             public class Falloff
             {
                 [Increment(0.0001f)]
-                [Range(0.0f, 1.0f)]
+                [Range(0.0f, 3.0f)]
                 public float Coefficient { get; set; }
 
                 [Increment(0.05f)]
