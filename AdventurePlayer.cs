@@ -76,7 +76,6 @@ public class AdventurePlayer : ModPlayer
             adventurePlayer.Deaths = Deaths;
         }
     }
-
     public sealed class ItemPickup(int[] items) : IPacket<ItemPickup>
     {
         public int[] Items { get; } = items;
@@ -624,6 +623,7 @@ public class AdventurePlayer : ModPlayer
             PvPImmuneTime = adventureConfig.Combat.StandardInvincibilityFrames;
     }
 
+
     public override bool OnPickup(Item item)
     {
         // FIXME: This could work for non-modded items, but I'm not so sure the item type ordinals are determinant.
@@ -681,5 +681,20 @@ public class AdventurePlayer : ModPlayer
     public override string ToString()
     {
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
+    }
+    // Handles the set bonus effects
+    public class TikiArmorModPlayer : ModPlayer
+    {
+        public override void PostUpdateEquips()
+        {
+            // Check if wearing full Tiki Armor
+            if (Player.armor[0].type == ItemID.TikiMask &&
+                Player.armor[1].type == ItemID.TikiShirt &&
+                Player.armor[2].type == ItemID.TikiPants)
+            {
+                Player.maxMinions += 1;
+                Player.noKnockback = true;
+            }
+        }
     }
 }
