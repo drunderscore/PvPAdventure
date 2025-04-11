@@ -697,4 +697,31 @@ public class AdventurePlayer : ModPlayer
             }
         }
     }
+    public class ForceZoom : ModPlayer
+    {
+        // Configuration
+        private const float BaseMinimumZoom = 1.0f; // Normal minimum zoom (100%)
+        // Runtime variables
+        private float currentMinimumZoom;
+        private float playerZoomTarget;
+
+        public override void PostUpdate()
+        {
+            // 1. Determine current minimum based on equipment
+            currentMinimumZoom = Player.armor[0].type == ItemID.Goggles
+                ? BaseMinimumZoom 
+                : BaseMinimumZoom;
+
+            // 2. Get the player's current zoom target from the game
+            playerZoomTarget = Main.GameZoomTarget;
+
+            // 3. Enforce minimum zoom but allow zooming in beyond
+            if (playerZoomTarget < currentMinimumZoom)
+            {
+                Main.GameZoomTarget = currentMinimumZoom;
+                Main.GameViewMatrix.Zoom = new Vector2(currentMinimumZoom);
+            }
+
+        }
+    }
 }
