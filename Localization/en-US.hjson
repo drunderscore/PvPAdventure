@@ -634,3 +634,5 @@ Mods: {
 		}
 	}
 }
+
+ArmorSetBonus.Tiki: Set bonus: Knockback immunity,  increases whip range by 20% , +2 minion slots. Does not apply if name contains "ss"
