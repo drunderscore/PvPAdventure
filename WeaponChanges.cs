@@ -67,8 +67,10 @@ namespace PvPAdventure
             {
                 if (item.type == ItemID.TrueNightsEdge)
                 {
-                    item.damage = 110;
-                    item.shootSpeed = 21;
+                    item.damage = 150;
+                    item.shootSpeed = 50;
+                    item.useTime = 35;
+                    item.useAnimation = 35;
                 }
             }
         }

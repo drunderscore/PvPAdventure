@@ -2,6 +2,7 @@
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using System.Linq;
 
 namespace PvPAdventure.System
 {
@@ -45,7 +46,7 @@ namespace PvPAdventure.System
             //adds the multi boss drop recipies (placeholder code)
             foreach (var lootTable in _lootTables)
                 CreateDuplicateDropRecipe(lootTable, 3);
-           
+
             // Convert Cursed Flames to Ichor
             Recipe.Create(ItemID.Ichor)
                 .AddIngredient(ItemID.CursedFlame)
@@ -88,6 +89,17 @@ namespace PvPAdventure.System
                 .AddTile(476) // Shimmering Pool tile ID
                 .Register();
 
+            Recipe.Create(ItemID.PaladinsHammer)
+                .AddIngredient(ItemID.PaladinsShield)
+                .AddTile(476) // Shimmering Pool tile ID
+                .Register();
+
+            Recipe.Create(ItemID.PaladinsShield)
+                .AddIngredient(ItemID.PaladinsHammer)
+                .AddTile(476) // Shimmering Pool tile ID
+                .Register();
+
+
             //placeholder code before proper item replacments
             Recipe.Create(ItemID.Tabi)
                 .AddIngredient(ItemID.BlackBelt)
@@ -112,6 +124,33 @@ namespace PvPAdventure.System
             Recipe.Create(ItemID.BlizzardinaBottle)
                 .AddIngredient(ItemID.Fish)
                 .Register();
+
+            int[] itemsToRemove = new int[]
+            {
+            ItemID.TrueNightsEdge,
+            ItemID.MoonlordArrow
+            };
+
+            for (int i = 0; i < Main.recipe.Length; i++)
+            {
+                Recipe recipe = Main.recipe[i];
+                if (recipe.createItem.type != ItemID.None && itemsToRemove.Contains(recipe.createItem.type))
+                {
+                    recipe.DisableRecipe();
+                }
+            }
+
+            //temp sudo terrablade
+            Recipe.Create(ItemID.TrueNightsEdge)
+                .AddIngredient(ItemID.SoulofFright, 20)
+                .AddIngredient(ItemID.SoulofMight, 20)
+                .AddIngredient(ItemID.SoulofSight, 20)
+                .AddIngredient(ItemID.NightsEdge)
+                .AddIngredient(ItemID.TrueExcalibur)
+                .AddIngredient(ItemID.BrokenHeroSword)
+                .AddTile(TileID.MythrilAnvil)
+                .Register();
+
         }
     }
 }
