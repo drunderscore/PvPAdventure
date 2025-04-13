@@ -47,7 +47,7 @@ public class AdventureNpc : GlobalNPC
         // Remove requirement for no existing NPCs in the world for some natural NPC spawns.
         IL_NPC.SpawnNPC += EditNPCSpawnNPC;
     }
-
+    
     private void OnNPCScaleStats(On_NPC.orig_ScaleStats orig, NPC self, int? activeplayerscount,
         GameModeData gamemodedata, float? strengthoverride)
     {
@@ -90,6 +90,7 @@ public class AdventureNpc : GlobalNPC
             orig(self, activeplayerscount, gamemodedata, strengthoverride);
         }
     }
+    
 
     public override void SetDefaults(NPC entity)
     {
@@ -178,7 +179,10 @@ public class AdventureNpc : GlobalNPC
         {
             self.GetGlobalNPC<AdventureNpc>().LastDamageFromPlayer = new DamageInfo((byte)player);
         }
+    
+    
     }
+
 
     private void OnNPCTargetClosest(On_NPC.orig_TargetClosest orig, NPC self, bool facetarget)
     {
@@ -330,16 +334,6 @@ public class AdventureNpc : GlobalNPC
 
         ModContent.GetInstance<PointsManager>().AwardNpcKillToTeam((Team)lastDamager.team, npc);
     }
-    public class GuardianDeathHandler : ModPlayer
-    {
-        //dungeon gardian dies on killing a player
-        public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
-        {
-            // Only run on server and single player
-            if (Main.netMode == NetmodeID.MultiplayerClient)
-                return;
-
-//<<<<<<< HEAD
     public override bool? CanChat(NPC npc)
     {
         // This is now a possibility from our multiplayer pause.
@@ -348,8 +342,14 @@ public class AdventureNpc : GlobalNPC
 
         return null;
     }
-
-//=======
+    public class GuardianDeathHandler : ModPlayer
+    {
+        //dungeon gardian dies on killing a player
+        public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
+        {
+            // Only run on server and single player
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
             // Check if the death was caused by an NPC
             if (damageSource.SourceNPCIndex >= 0 && damageSource.SourceNPCIndex < Main.maxNPCs)
             {
@@ -371,7 +371,7 @@ public class AdventureNpc : GlobalNPC
             }
         }
     }
-//>>>>>>> 988ec20 (dungeon gardian update)
+
     public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
     {
         void AddNonExpertBossLoot(int id)
@@ -506,10 +506,8 @@ public class AdventureNpc : GlobalNPC
 
             // Add a 33% chance to drop a Solar Tablet Fragment
             npcLoot.Add(ItemDropRule.Common(ItemID.LunarTabletFragment, 3, 1, 1)); // 1 in 3 chance (~33.33%)
-
-
-
         }
+
         //loot pool seperators
         if (npc.netID == NPCID.Golem)
         {

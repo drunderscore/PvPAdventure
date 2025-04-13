@@ -793,8 +793,6 @@ public class AdventurePlayer : ModPlayer
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
     }
 
-}
-
     private bool hadShinyStoneLastFrame;
 
     public override void PostUpdateEquips()
@@ -838,7 +836,7 @@ public class AdventurePlayer : ModPlayer
         }
         return false;
     }
-}
+
 
     // Handles the set bonus effects
     public class TikiArmorModPlayer : ModPlayer
@@ -856,7 +854,7 @@ public class AdventurePlayer : ModPlayer
         }
     }
 
-}
+
 
     public class ForceZoom : ModPlayer
     {
