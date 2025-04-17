@@ -456,16 +456,12 @@ public class AdventureNpc : GlobalNPC
                         case ItemID.TacticalShotgun:
                         case ItemID.RocketLauncher:
                             normalDropRule.chanceNumerator = 1;
-                            normalDropRule.chanceDenominator = 1;
+                            normalDropRule.chanceDenominator = 10;
                             break;
 
                         case ItemID.MaceWhip:
                             normalDropRule.chanceNumerator = 3;
                             normalDropRule.chanceDenominator = 400;
-                            break;
-
-                        case ItemID.Gladius:
-                            normalDropRule.chanceDenominator = 1;
                             break;
 
                         case ItemID.SpiderFang:
@@ -511,14 +507,12 @@ public class AdventureNpc : GlobalNPC
             // Add a 33% chance to drop a Solar Tablet Fragment
             npcLoot.Add(ItemDropRule.Common(ItemID.LunarTabletFragment, 3, 1, 1)); // 1 in 3 chance (~33.33%)
         }
+
+
         
         //NOT power cell drop rete changers
         if (npc.netID == NPCID.EyeofCthulhu)
         {
-            // Clear the existing loot rules (optional, depending on your needs)
-            //npcLoot.RemoveWhere(rule => true);
-
-            // Add the new loot rule with a 5% chance to drop 1 power cell
             npcLoot.Add(ItemDropRule.Common(ItemID.Binoculars, 1, 1, 1)); // 1 in 20 chance (~5%)
         }
 
