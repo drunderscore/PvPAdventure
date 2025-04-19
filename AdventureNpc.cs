@@ -513,7 +513,12 @@ public class AdventureNpc : GlobalNPC
         //NOT power cell drop rete changers
         if (npc.netID == NPCID.EyeofCthulhu)
         {
-            npcLoot.Add(ItemDropRule.Common(ItemID.Binoculars, 1, 1, 1)); // 1 in 20 chance (~5%)
+            npcLoot.Add(ItemDropRule.Common(ItemID.Binoculars, 1, 1, 1)); 
+        }
+
+        if (npc.netID == NPCID.KingSlime)
+        {
+            npcLoot.Add(ItemDropRule.Common(ItemID.SlimySaddle, 1, 1, 1)); 
         }
 
         //loot pool seperators
