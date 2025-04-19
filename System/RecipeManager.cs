@@ -99,6 +99,16 @@ namespace PvPAdventure.System
                 .AddTile(476) // Shimmering Pool tile ID
                 .Register();
 
+            Recipe.Create(ItemID.MaceWhip)
+                .AddIngredient(ItemID.Keybrand)
+                .AddTile(476) // Shimmering Pool tile ID
+                .Register();
+
+            Recipe.Create(ItemID.Keybrand)
+                .AddIngredient(ItemID.MaceWhip)
+                .AddTile(476) // Shimmering Pool tile ID
+                .Register();
+
 
             //placeholder code before proper item replacments
             Recipe.Create(ItemID.Tabi)
