@@ -813,6 +813,16 @@ public class AdventurePlayer : ModPlayer
         }
 
         hadShinyStoneLastFrame = hasShinyStone;
+
+        // Check if wearing full Tiki Armor
+        if (Player.armor[0].type == ItemID.TikiMask &&
+            Player.armor[1].type == ItemID.TikiShirt &&
+            Player.armor[2].type == ItemID.TikiPants)
+        {
+            Player.maxMinions += 1;
+            Player.noKnockback = true;
+        }
+    
     }
 
     public override void OnRespawn()
@@ -836,21 +846,11 @@ public class AdventurePlayer : ModPlayer
         }
         return false;
     }
-
-
-    // Handles the set bonus effects
-    public class TikiArmorModPlayer : ModPlayer
+    //used for ForceNoAutoFire 
+    public bool PreviousUseItem { get; set; }
+    public override void PostUpdate()
     {
-        public override void PostUpdateEquips()
-        {
-            // Check if wearing full Tiki Armor
-            if (Player.armor[0].type == ItemID.TikiMask &&
-                Player.armor[1].type == ItemID.TikiShirt &&
-                Player.armor[2].type == ItemID.TikiPants)
-            {
-                Player.maxMinions += 1;
-                Player.noKnockback = true;
-            }
-        }
+        // Save the previous state of "UseItem" (left-click)
+        PreviousUseItem = Player.controlUseItem;
     }
 }
