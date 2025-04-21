@@ -408,7 +408,7 @@ public class AdventureNpc : GlobalNPC
             npcLoot.Add(ItemDropRule.Common(ItemID.QueenSlimeTrophy, 10, 1, 1));
             npcLoot.Add(ItemDropRule.Common(ItemID.QueenSlimeMask, 7, 1, 3));
 
-            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.CrystalNinjaHelmet, ItemID.CrystalNinjaChestplate, ItemID.CrystalNinjaLeggings));
+            npcLoot.Add(ItemDropRule.FewFromOptions(2, 1, ItemID.CrystalNinjaHelmet, ItemID.CrystalNinjaChestplate, ItemID.CrystalNinjaLeggings));
             npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Smolstar, ItemID.QueenSlimeHook, ItemID.QueenSlimeMountSaddle));
         }
         if (npc.netID == NPCID.DungeonGuardian)
@@ -417,6 +417,28 @@ public class AdventureNpc : GlobalNPC
             npcLoot.RemoveWhere(rule => true);
             npcLoot.Add(ItemDropRule.Common(ItemID.Skull, 1, 1, 1)); // 1 in 20 chance (~5%)
 
+        }
+        if (npc.netID == NPCID.QueenBee)
+        {
+            // Clear existing loot
+            npcLoot.RemoveWhere(rule => true);
+
+            // Add your existing drops
+            npcLoot.Add(ItemDropRule.Common(ItemID.HiveWand, 3, 1, 1));
+            npcLoot.Add(ItemDropRule.Common(ItemID.QueenBeeTrophy, 10, 1, 1));
+            npcLoot.Add(ItemDropRule.Common(ItemID.BeeMask, 7, 1, 1));
+            npcLoot.Add(ItemDropRule.Common(ItemID.HoneyedGoggles, 20, 1, 1));
+            npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 16, 26));
+            npcLoot.Add(ItemDropRule.Common(ItemID.Nectar, 14, 1, 1));
+            npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 10, 30));
+
+
+            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.BeeKeeper, ItemID.BeesKnees));
+            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.BeeGun, ItemID.HoneyComb));
+        }
+        if (npc.netID == NPCID.SkeletronHead)
+        {
+            npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey, 1, 1, 1));
         }
     }
 
