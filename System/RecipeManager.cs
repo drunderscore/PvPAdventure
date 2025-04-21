@@ -88,6 +88,11 @@ namespace PvPAdventure.System
                 .AddTile(476) // Shimmering Pool tile ID
                 .Register();
 
+            Recipe.Create(ItemID.Headstone)
+                .AddIngredient(ItemID.StoneBlock, 50)
+                .AddTile(TileID.HeavyWorkBench) 
+                .Register();
+
             //placeholder code before proper item replacments
             Recipe.Create(ItemID.Tabi)
                 .AddIngredient(ItemID.BlackBelt)
@@ -112,6 +117,7 @@ namespace PvPAdventure.System
             Recipe.Create(ItemID.BlizzardinaBottle)
                 .AddIngredient(ItemID.Fish)
                 .Register();
+
         }
     }
 }
