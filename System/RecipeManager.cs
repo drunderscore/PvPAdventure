@@ -161,6 +161,11 @@ namespace PvPAdventure.System
                 .AddTile(TileID.MythrilAnvil)
                 .Register();
 
+            Recipe.Create(ItemID.Headstone)
+                .AddIngredient(ItemID.StoneBlock, 50)
+                .AddTile(TileID.HeavyWorkBench)
+                .Register();
+
         }
     }
 }
