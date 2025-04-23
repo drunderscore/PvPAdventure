@@ -596,6 +596,8 @@ public class AdventureNpc : GlobalNPC
 
             npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 10, 30));
 
+            npcLoot.Add(ItemDropRule.Common(ItemID.HiveBackpack, 1, 1, 1));
+
 
 
 
