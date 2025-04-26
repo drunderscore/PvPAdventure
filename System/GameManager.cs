@@ -13,6 +13,7 @@ using Terraria.GameContent.NetModules;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.Net;
+using Terraria.GameContent.Events;
 
 namespace PvPAdventure.System;
 
@@ -334,5 +335,58 @@ public class GameManager : ModSystem
 
         public override string Command => "crashout";
         public override CommandType Type => CommandType.World;
+    }
+
+    public class WeatherAlertSystem : ModSystem
+    {
+        private bool wasRaining;
+        private bool wasSandstorm;
+
+        public override void OnWorldLoad()
+        {
+            wasRaining = Main.raining;
+            wasSandstorm = Sandstorm.Happening;
+        }
+
+        public override void PostUpdateWorld()
+        {
+            if (Main.netMode == NetmodeID.Server || Main.netMode == NetmodeID.SinglePlayer)
+            {
+                CheckWeatherChange(
+                    condition: Main.raining,
+                    wasCondition: ref wasRaining,
+                    message: "A storm is brewing!",
+                    color: new Color(100, 150, 255)
+                );
+
+                CheckWeatherChange(
+                    condition: Sandstorm.Happening,
+                    wasCondition: ref wasSandstorm,
+                    message: "Desert winds are picking up (like a game)!",
+                    color: new Color(255, 200, 100)
+                );
+            }
+        }
+
+        private void CheckWeatherChange(bool condition, ref bool wasCondition, string message, Color color)
+        {
+            if (!wasCondition && condition)
+            {
+                NotifyWeatherStart(message, color);
+            }
+            wasCondition = condition;
+        }
+
+        private void NotifyWeatherStart(string message, Color color)
+        {
+            if (Main.netMode == NetmodeID.Server)
+            {
+                ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(message), color);
+            }
+            else
+            {
+                Main.NewText(message, color);
+            }
+        }
     }
 }
