@@ -118,6 +118,11 @@ Mods: {
 					Label: Npc Balance
 					Tooltip: ""
 				}
+
+				ChestItemReplacements: {
+					Label: Chest Item Replacements
+					Tooltip: ""
+				}
 			}
 
 			PointsConfig: {
@@ -401,6 +406,11 @@ Mods: {
 					Label: Knockback
 					Tooltip: ""
 				}
+
+				Value: {
+					Tooltip: ""
+					Label: Value
+				}
 			}
 
 			OptionalInt: {
@@ -560,9 +570,9 @@ Mods: {
 					Tooltip: ""
 				}
 
-				ChlorophyteSpreadChanceDenominator: {
+				ChlorophyteSpreadChanceModifier: {
+					Label: Chlorophyte Spread Chance Modifier
 					Tooltip: ""
-					Label: Chlorophyte Spread Chance Denominator
 				}
 			}
 
@@ -588,11 +598,31 @@ Mods: {
 					Tooltip: ""
 				}
 			}
+
+			ChestItemReplacement: {
+				Tooltip: ""
+
+				Items: {
+					Label: Items
+					Tooltip: ""
+				}
+			}
+
+			InvasionSizeValue: {
+				Value: {
+					Tooltip: ""
+					Label: Value
+				}
+
+				Tooltip: ""
+			}
 		}
 
 		Item.Disabled: Cannot be used in this gamemode
 		Player.CannotRecall: Cannot recall!
 		Tiles.LockedLihzahrdChest.MapEntry: Locked Lihzahrd Chest
+		Sandstorm: "[c/FFC864:Desert winds are picking up...]"
+		Rain: "[c/6496FF:A storm is brewing overhead...]"
 
 		NPCs: {
 			Bound: {

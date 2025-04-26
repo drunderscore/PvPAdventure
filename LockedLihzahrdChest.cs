@@ -110,7 +110,7 @@ public class LockedLihzahrdChest : ModTile
         var player = Main.LocalPlayer;
         Main.mouseRightRelease = false;
 
-        if (!player.HasItemInInventoryOrOpenVoidBag(ItemID.TempleKey))
+        if (!player.ConsumeItem(ItemID.TempleKey, includeVoidBag: true))
             return false;
 
         var left = i;

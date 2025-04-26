@@ -46,6 +46,8 @@ public class AdventureNpc : GlobalNPC
         IL_NPC.CheckActive += EditNPCCheckActive;
         // Remove requirement for no existing NPCs in the world for some natural NPC spawns.
         IL_NPC.SpawnNPC += EditNPCSpawnNPC;
+        // Make Guide Voodoo Doll spawn Wall of Flesh without the Guide NPC being alive.
+        On_Item.CheckLavaDeath += OnItemCheckLavaDeath;
     }
     
     private void OnNPCScaleStats(On_NPC.orig_ScaleStats orig, NPC self, int? activeplayerscount,
@@ -94,7 +96,7 @@ public class AdventureNpc : GlobalNPC
 
     public override void SetDefaults(NPC entity)
     {
-        if (entity.isLikeATownNPC)
+        if (entity.isLikeATownNPC && entity.type != NPCID.Guide)
             // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
             entity.immortal = true;
 
@@ -222,7 +224,7 @@ public class AdventureNpc : GlobalNPC
     {
         orig(self, newtype);
 
-        if (self.isLikeATownNPC)
+        if (self.isLikeATownNPC && self.type != NPCID.Guide)
             // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
             self.immortal = true;
     }
@@ -304,6 +306,28 @@ public class AdventureNpc : GlobalNPC
         RemoveAnyNPCsCalls(NPCID.BigMimicJungle);
     }
 
+    private void OnItemCheckLavaDeath(On_Item.orig_CheckLavaDeath orig, Item self, int i)
+    {
+        if (self.type == ItemID.GuideVoodooDoll)
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
+
+            self.active = false;
+            self.type = ItemID.None;
+            self.stack = 0;
+
+            NPC.SpawnWOF(self.position);
+
+            if (Main.dedServ)
+                NetMessage.SendData(MessageID.SyncItem, number: i);
+        }
+        else
+        {
+            orig(self, i);
+        }
+    }
+
     public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
     {
         var config = ModContent.GetInstance<AdventureConfig>();
@@ -374,256 +398,7 @@ public class AdventureNpc : GlobalNPC
 
     public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
     {
-        void AddNonExpertBossLoot(int id)
-        {
-            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), id));
-        }
-
-        if (IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
-
-
-            AddNonExpertBossLoot(ItemID.WormScarf);
-        else
-        {
-            switch (npc.type)
-            {
-                case NPCID.KingSlime:
-                    AddNonExpertBossLoot(ItemID.RoyalGel);
-                    break;
-                case NPCID.EyeofCthulhu:
-                    AddNonExpertBossLoot(ItemID.EoCShield);
-                    break;
-                case NPCID.QueenBee:
-                    AddNonExpertBossLoot(ItemID.HiveBackpack);
-                    break;
-                case NPCID.Deerclops:
-                    AddNonExpertBossLoot(ItemID.BoneHelm);
-                    break;
-                case NPCID.SkeletronHead:
-                    AddNonExpertBossLoot(ItemID.BoneGlove);
-                    break;
-                case NPCID.QueenSlimeBoss:
-                    AddNonExpertBossLoot(ItemID.VolatileGelatin);
-                    break;
-                case NPCID.TheDestroyer:
-                    AddNonExpertBossLoot(ItemID.MechanicalWagonPiece);
-                    break;
-                case NPCID.Retinazer:
-                case NPCID.Spazmatism:
-                    AddNonExpertBossLoot(ItemID.MechanicalWheelPiece);
-                    break;
-                case NPCID.SkeletronPrime:
-                    AddNonExpertBossLoot(ItemID.MechanicalBatteryPiece);
-                    break;
-                case NPCID.Plantera:
-                    AddNonExpertBossLoot(ItemID.SporeSac);
-                    break;
-            }
-        }
-
-
-
-        foreach (var rule in npcLoot.Get())
-        {
-            if (rule is DropBasedOnExpertMode drop)
-            {
-                if (drop.ruleForNormalMode is CommonDrop normalDropRule)
-                {
-                    switch (normalDropRule.itemId)
-                    {
-                        case ItemID.Tabi:
-                            normalDropRule.chanceDenominator = 4;
-                            break;
-
-                        case ItemID.PaladinsHammer:
-                        case ItemID.PaladinsShield:
-                            normalDropRule.chanceNumerator = 3;
-                            normalDropRule.chanceDenominator = 20;
-                            break;
-                       
-                        //probably doesnt work FIXME
-                        case ItemID.Stinger:
-                            if (npc.type == NPCID.MossHornet)
-                            {
-                                normalDropRule.chanceDenominator = 1;
-                            }
-                            break;
-
-                        case ItemID.ShadowbeamStaff:
-                        case ItemID.SpectreStaff:
-                        case ItemID.InfernoFork:
-                        case ItemID.SniperRifle:
-                        case ItemID.TacticalShotgun:
-                        case ItemID.RocketLauncher:
-                            normalDropRule.chanceNumerator = 1;
-                            normalDropRule.chanceDenominator = 10;
-                            break;
-
-                        case ItemID.MaceWhip:
-                            normalDropRule.chanceNumerator = 3;
-                            normalDropRule.chanceDenominator = 400;
-                            break;
-
-                        case ItemID.SpiderFang:
-                            normalDropRule.chanceNumerator = 4;
-                            normalDropRule.chanceDenominator = 5;
-                            break;
-                    }
-                }
-                else if (npc.type == NPCID.GoblinSummoner && drop.ruleForNormalMode is OneFromOptionsDropRule optionsRule)
-                {
-                    optionsRule.chanceDenominator = 1;
-                }
-            }
-
-            if (rule is ItemDropWithConditionRule conditionalDrop)
-            {
-                if (conditionalDrop.itemId == ItemID.ButterflyDust)
-                {
-                    conditionalDrop.chanceNumerator = 1;
-                    conditionalDrop.chanceDenominator = 1;
-                }
-            }
-
-            if (rule is CommonDrop commonDrop)
-            {
-                if (commonDrop.itemId == ItemID.MagicQuiver)
-                {
-                    commonDrop.chanceNumerator = 1;
-                    commonDrop.chanceDenominator = 30;
-                }
-            }
-        }
-   
-        //power cell drop rete changers
-        if (npc.netID == NPCID.FlyingSnake || npc.netID == NPCID.Lihzahrd || npc.netID == NPCID.LihzahrdCrawler)
-        {
-            // Clear the existing loot rules (optional, depending on your needs)
-            npcLoot.RemoveWhere(rule => true);
-
-            // Add the new loot rule with a 5% chance to drop 1 power cell
-            npcLoot.Add(ItemDropRule.Common(ItemID.LihzahrdPowerCell, 33, 1, 1)); // 1 in 20 chance (~5%)
-
-            // Add a 33% chance to drop a Solar Tablet Fragment
-            npcLoot.Add(ItemDropRule.Common(ItemID.LunarTabletFragment, 3, 1, 1)); // 1 in 3 chance (~33.33%)
-        }
-
-
-        
-        //NOT power cell drop rete changers
-        if (npc.netID == NPCID.EyeofCthulhu)
-        {
-            npcLoot.Add(ItemDropRule.Common(ItemID.Binoculars, 1, 1, 1)); 
-        }
-
-        if (npc.netID == NPCID.KingSlime)
-        {
-            npcLoot.Add(ItemDropRule.Common(ItemID.SlimySaddle, 1, 1, 1)); 
-        }
-
-        //loot pool seperators
-        if (npc.netID == NPCID.Golem)
-        {
-            // Clear existing loot
-            npcLoot.RemoveWhere(rule => true);
-
-            // Add your existing drops
-            npcLoot.Add(ItemDropRule.Common(ItemID.BeetleHusk, 1, 4, 8));
-            npcLoot.Add(ItemDropRule.Common(ItemID.GolemTrophy, 10, 1, 1));
-            npcLoot.Add(ItemDropRule.Common(ItemID.GolemMask, 7, 1, 3));
-            npcLoot.Add(ItemDropRule.Common(ItemID.StyngerBolt, 1, 60, 99));
-
-            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Stynger, ItemID.PossessedHatchet, ItemID.GolemFist, ItemID.HeatRay, ItemID.StaffofEarth));
-            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Picksaw, ItemID.EyeoftheGolem, ItemID.SunStone, ItemID.ShinyStone));
-        }
-        if (npc.netID == NPCID.QueenSlimeBoss)
-        {
-            // Clear existing loot
-            npcLoot.RemoveWhere(rule => true);
-
-            // Add your existing drops
-            npcLoot.Add(ItemDropRule.Common(ItemID.GelBalloon, 1, 25, 75));
-            npcLoot.Add(ItemDropRule.Common(ItemID.VolatileGelatin, 1, 1, 1));
-            npcLoot.Add(ItemDropRule.Common(ItemID.QueenSlimeTrophy, 10, 1, 1));
-            npcLoot.Add(ItemDropRule.Common(ItemID.QueenSlimeMask, 7, 1, 3));
-
-            npcLoot.Add(ItemDropRule.FewFromOptions(2, 1, ItemID.CrystalNinjaHelmet, ItemID.CrystalNinjaChestplate, ItemID.CrystalNinjaLeggings));
-            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.Smolstar, ItemID.QueenSlimeHook, ItemID.QueenSlimeMountSaddle));
-        }
-        if (npc.netID == NPCID.DungeonGuardian)
-        {
-            //remove dungeon gardian pet loot, and replace with skull
-            npcLoot.RemoveWhere(rule => true);
-            npcLoot.Add(ItemDropRule.Common(ItemID.Skull, 1, 1, 1)); // 1 in 20 chance (~5%)
-
-        }
-        if (npc.netID == NPCID.QueenBee)
-
-
-
-        {
-
-
-            // Clear existing loot
-
-
-            npcLoot.RemoveWhere(rule => true);
-
-
-
-
-
-            // Add your existing drops
-
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.HiveWand, 3, 1, 1));
-
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.QueenBeeTrophy, 10, 1, 1));
-
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.BeeMask, 7, 1, 1));
-
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.HoneyedGoggles, 20, 1, 1));
-
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 16, 26));
-
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.Nectar, 14, 1, 1));
-
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 10, 30));
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.HiveBackpack, 1, 1, 1));
-
-
-
-
-
-
-
-
-            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.BeeKeeper, ItemID.BeesKnees));
-
-
-            npcLoot.Add(ItemDropRule.OneFromOptions(1, ItemID.BeeGun, ItemID.HoneyComb));
-
-
-        }
-
-
-        if (npc.netID == NPCID.SkeletronHead)
-
-
-        {
-
-
-            npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey, 1, 1, 1));
-
-
-        }
+        AdventureDropDatabase.ModifyNPCLoot(npc, npcLoot);
     }
 
     // This only runs on the attacking player
@@ -665,6 +440,27 @@ public class AdventureNpc : GlobalNPC
                 Mod.Logger.Warn(
                     "Failed to remove moon phase condition for Steampunker's Jetpack shop entry -- not changing it any further.");
         }
+    }
+
+    public override bool CheckDead(NPC npc)
+    {
+        if (npc.type == NPCID.Guide)
+        {
+            if (Collision.LavaCollision(npc.position, npc.width, npc.height))
+            {
+                NPC.SpawnWOF(npc.position);
+
+                // If the Wall of Flesh is alive, good enough, we can die.
+                // NOTE: This will cause DoDeathEvents to then invoke NPC.SpawnWOF again, but that's okay, it'll just fail.
+                if (NPC.AnyNPCs(NPCID.WallofFlesh))
+                    return true;
+            }
+
+            npc.life = 1;
+            return false;
+        }
+
+        return true;
     }
 
     private static void PlayHitMarker(int damage)

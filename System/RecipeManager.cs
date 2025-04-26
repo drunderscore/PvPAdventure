@@ -4,168 +4,215 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using System.Linq;
 
-namespace PvPAdventure.System
+namespace PvPAdventure.System;
+
+[Autoload(Side = ModSide.Both)]
+public class RecipeManager : ModSystem
 {
-    [Autoload]
-    public class RecipeManager : ModSystem
+    public override void AddRecipes()
     {
-        private readonly List<List<int>> _lootTables =
-        [
-            [ItemID.FlyingKnife, ItemID.DaedalusStormbow, ItemID.CrystalVileShard, ItemID.IlluminantHook],
-            [ItemID.ChainGuillotines, ItemID.DartRifle, ItemID.ClingerStaff, ItemID.PutridScent, ItemID.WormHook],
-            [ItemID.FetidBaghnakhs, ItemID.DartPistol, ItemID.SoulDrain, ItemID.FleshKnuckles, ItemID.TendonHook],
-            [ItemID.TitanGlove, ItemID.MagicDagger, ItemID.StarCloak, ItemID.CrossNecklace, ItemID.PhilosophersStone, ItemID.DualHook],
-            [ItemID.RazorbladeTyphoon, ItemID.Flairon, ItemID.BubbleGun, ItemID.Tsunami, ItemID.TempestStaff],
-            [ItemID.BreakerBlade, ItemID.ClockworkAssaultRifle, ItemID.LaserRifle, ItemID.FireWhip],
-            [
-                ItemID.GolemFist, ItemID.PossessedHatchet, ItemID.Stynger, ItemID.StaffofEarth, ItemID.HeatRay,
-                ItemID.SunStone, ItemID.EyeoftheGolem
-            ],
-            [ItemID.Flairon, ItemID.Tsunami, ItemID.RazorbladeTyphoon, ItemID.BubbleGun, ItemID.TempestStaff]
-        ];
+        CreateDuplicateDropRecipe([
+            ItemID.FlyingKnife,
+            ItemID.DaedalusStormbow,
+            ItemID.CrystalVileShard,
+            ItemID.IlluminantHook
+        ], 3);
 
-        private static void CreateDuplicateDropRecipe(List<int> lootTable, int amountOfMaterial)
+        CreateDuplicateDropRecipe([
+            ItemID.ChainGuillotines,
+            ItemID.DartRifle,
+            ItemID.ClingerStaff,
+            ItemID.PutridScent,
+            ItemID.WormHook
+        ], 3);
+
+        CreateDuplicateDropRecipe([
+            ItemID.FetidBaghnakhs,
+            ItemID.DartPistol,
+            ItemID.SoulDrain,
+            ItemID.FleshKnuckles,
+            ItemID.TendonHook
+        ], 3);
+
+        CreateDuplicateDropRecipe([
+            ItemID.TitanGlove,
+            ItemID.MagicDagger,
+            ItemID.StarCloak,
+            ItemID.CrossNecklace,
+            ItemID.PhilosophersStone,
+            ItemID.DualHook
+        ], 3);
+
+        CreateDuplicateDropRecipe([
+            ItemID.RazorbladeTyphoon,
+            ItemID.Flairon,
+            ItemID.BubbleGun,
+            ItemID.Tsunami,
+            ItemID.TempestStaff
+        ], 3);
+
+        CreateDuplicateDropRecipe([
+            ItemID.BreakerBlade,
+            ItemID.ClockworkAssaultRifle,
+            ItemID.LaserRifle,
+            ItemID.FireWhip
+        ], 3);
+
+        CreateDuplicateDropRecipe([
+            ItemID.GolemFist,
+            ItemID.PossessedHatchet,
+            ItemID.Stynger,
+            ItemID.StaffofEarth,
+            ItemID.HeatRay,
+            ItemID.SunStone,
+            ItemID.EyeoftheGolem
+        ], 3);
+
+        CreateDuplicateDropRecipe([
+            ItemID.Flairon,
+            ItemID.Tsunami,
+            ItemID.RazorbladeTyphoon,
+            ItemID.BubbleGun,
+            ItemID.TempestStaff
+        ], 3);
+
+        // Convert Cursed Flames to Ichor
+        Recipe.Create(ItemID.Ichor)
+            .AddIngredient(ItemID.CursedFlame)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        // Convert Ichor to Cursed Flames
+        Recipe.Create(ItemID.CursedFlame)
+            .AddIngredient(ItemID.Ichor)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.CrystalNinjaChestplate)
+            .AddIngredient(ItemID.CrystalNinjaHelmet)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.CrystalNinjaLeggings)
+            .AddIngredient(ItemID.CrystalNinjaChestplate)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.CrystalNinjaHelmet)
+            .AddIngredient(ItemID.CrystalNinjaLeggings)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.GladiatorBreastplate)
+            .AddIngredient(ItemID.GladiatorHelmet)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.GladiatorLeggings)
+            .AddIngredient(ItemID.GladiatorBreastplate)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.GladiatorHelmet)
+            .AddIngredient(ItemID.GladiatorLeggings)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.PaladinsHammer)
+            .AddIngredient(ItemID.PaladinsShield)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.PaladinsShield)
+            .AddIngredient(ItemID.PaladinsHammer)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.MaceWhip)
+            .AddIngredient(ItemID.Keybrand)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+        Recipe.Create(ItemID.Keybrand)
+            .AddIngredient(ItemID.MaceWhip)
+            .AddTile(476) // Shimmering Pool tile ID
+            .Register();
+
+
+        //placeholder code before proper item replacments
+        Recipe.Create(ItemID.Tabi)
+            .AddIngredient(ItemID.BlackBelt)
+            .Register();
+
+        Recipe.Create(ItemID.AncientChisel)
+            .AddIngredient(ItemID.MagicConch)
+            .Register();
+
+        Recipe.Create(ItemID.XenoStaff)
+            .AddIngredient(ItemID.CosmicCarKey)
+            .Register();
+
+        Recipe.Create(ItemID.CloudinaBottle)
+            .AddIngredient(ItemID.MagicMirror)
+            .Register();
+
+        Recipe.Create(ItemID.FeralClaws)
+            .AddIngredient(ItemID.Seaweed)
+            .Register();
+
+        Recipe.Create(ItemID.BlizzardinaBottle)
+            .AddIngredient(ItemID.Fish)
+            .Register();
+
+        int[] itemsToRemove = new int[]
         {
-            for (int i = 0; i < lootTable.Count; i++)
-            {
-                for (int j = 0; j < lootTable.Count; j++)
-                {
-                    if (j == i)
-                        continue;
+            ItemID.TrueNightsEdge,
+            ItemID.MoonlordArrow
+        };
 
-                    Recipe.Create(lootTable[i])
-                        .AddIngredient(lootTable[j], amountOfMaterial)
-                        .DisableDecraft()
-                        .Register();
-                }
+        for (int i = 0; i < Main.recipe.Length; i++)
+        {
+            Recipe recipe = Main.recipe[i];
+            if (recipe.createItem.type != ItemID.None && itemsToRemove.Contains(recipe.createItem.type))
+            {
+                recipe.DisableRecipe();
             }
         }
 
-        public override void AddRecipes()
+        //temp sudo terrablade
+        Recipe.Create(ItemID.TrueNightsEdge)
+            .AddIngredient(ItemID.SoulofFright, 20)
+            .AddIngredient(ItemID.SoulofMight, 20)
+            .AddIngredient(ItemID.SoulofSight, 20)
+            .AddIngredient(ItemID.NightsEdge)
+            .AddIngredient(ItemID.TrueExcalibur)
+            .AddIngredient(ItemID.BrokenHeroSword)
+            .AddTile(TileID.MythrilAnvil)
+            .Register();
+
+        Recipe.Create(ItemID.Headstone)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+    }
+
+
+
+    private static void CreateDuplicateDropRecipe(List<int> lootTable, int amountOfMaterial)
+    {
+        for (var i = 0; i < lootTable.Count; i++)
+
         {
-            //adds the multi boss drop recipies (placeholder code)
-            foreach (var lootTable in _lootTables)
-                CreateDuplicateDropRecipe(lootTable, 3);
-
-            // Convert Cursed Flames to Ichor
-            Recipe.Create(ItemID.Ichor)
-                .AddIngredient(ItemID.CursedFlame)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            // Convert Ichor to Cursed Flames
-            Recipe.Create(ItemID.CursedFlame)
-                .AddIngredient(ItemID.Ichor)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.CrystalNinjaChestplate)
-                .AddIngredient(ItemID.CrystalNinjaHelmet)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.CrystalNinjaLeggings)
-                .AddIngredient(ItemID.CrystalNinjaChestplate)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.CrystalNinjaHelmet)
-                .AddIngredient(ItemID.CrystalNinjaLeggings)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.GladiatorBreastplate)
-                .AddIngredient(ItemID.GladiatorHelmet)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.GladiatorLeggings)
-                .AddIngredient(ItemID.GladiatorBreastplate)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.GladiatorHelmet)
-                .AddIngredient(ItemID.GladiatorLeggings)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.PaladinsHammer)
-                .AddIngredient(ItemID.PaladinsShield)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.PaladinsShield)
-                .AddIngredient(ItemID.PaladinsHammer)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.MaceWhip)
-                .AddIngredient(ItemID.Keybrand)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-            Recipe.Create(ItemID.Keybrand)
-                .AddIngredient(ItemID.MaceWhip)
-                .AddTile(476) // Shimmering Pool tile ID
-                .Register();
-
-
-            //placeholder code before proper item replacments
-            Recipe.Create(ItemID.Tabi)
-                .AddIngredient(ItemID.BlackBelt)
-                .Register();
-
-            Recipe.Create(ItemID.AncientChisel)
-                .AddIngredient(ItemID.MagicConch)
-                .Register();
-
-            Recipe.Create(ItemID.XenoStaff)
-                .AddIngredient(ItemID.CosmicCarKey)
-                .Register();
-
-            Recipe.Create(ItemID.CloudinaBottle)
-                .AddIngredient(ItemID.MagicMirror)
-                .Register();
-
-            Recipe.Create(ItemID.FeralClaws)
-                .AddIngredient(ItemID.Seaweed)
-                .Register();
-
-            Recipe.Create(ItemID.BlizzardinaBottle)
-                .AddIngredient(ItemID.Fish)
-                .Register();
-
-            int[] itemsToRemove = new int[]
+            for (var j = 0; j < lootTable.Count; j++)
             {
-            ItemID.TrueNightsEdge,
-            ItemID.MoonlordArrow
-            };
+                if (j == i)
+                    continue;
 
-            for (int i = 0; i < Main.recipe.Length; i++)
-            {
-                Recipe recipe = Main.recipe[i];
-                if (recipe.createItem.type != ItemID.None && itemsToRemove.Contains(recipe.createItem.type))
-                {
-                    recipe.DisableRecipe();
-                }
+                Recipe.Create(lootTable[i])
+                    .AddIngredient(lootTable[j], amountOfMaterial)
+                    .DisableDecraft()
+                    .Register();
             }
-
-            //temp sudo terrablade
-            Recipe.Create(ItemID.TrueNightsEdge)
-                .AddIngredient(ItemID.SoulofFright, 20)
-                .AddIngredient(ItemID.SoulofMight, 20)
-                .AddIngredient(ItemID.SoulofSight, 20)
-                .AddIngredient(ItemID.NightsEdge)
-                .AddIngredient(ItemID.TrueExcalibur)
-                .AddIngredient(ItemID.BrokenHeroSword)
-                .AddTile(TileID.MythrilAnvil)
-                .Register();
-
-            Recipe.Create(ItemID.Headstone)
-                .AddIngredient(ItemID.StoneBlock, 50)
-                .AddTile(TileID.HeavyWorkBench)
-                .Register();
-
         }
     }
 }

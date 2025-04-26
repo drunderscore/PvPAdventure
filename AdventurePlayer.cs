@@ -185,6 +185,9 @@ public class AdventurePlayer : ModPlayer
 
         // Allow player hurt sound to be silenced or not, without regards to the networked value or mutating it.
         IL_Player.Hurt_HurtInfo_bool += EditPlayerHurt;
+
+        // Modify the damage dealt by the entire wall from the Wall of Flesh to use ImmunityCooldownID.Bosses
+        IL_Player.WOFTongue += EditPlayerWOFTongue;
     }
 
     private void OnPlayerPlaceThing_Tiles(On_Player.orig_PlaceThing_Tiles orig, Player self)
@@ -291,6 +294,22 @@ public class AdventurePlayer : ModPlayer
             // ...and a delegate, whose return value will take the place of the above-removed load.
             .EmitDelegate((Player.HurtInfo hurtInfo, Player target) =>
                 ShouldSilenceHurtSound(target, hurtInfo) ?? hurtInfo.SoundDisabled);
+    }
+
+    private void EditPlayerWOFTongue(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // Find the call to Player.Hurt...
+        cursor.GotoNext(i => i.MatchCall<Player>("Hurt"));
+
+        // ...and go back to the cooldownCounter parameter...
+        cursor.Index -= 5;
+
+        // ...to remove it...
+        cursor.Remove()
+            // ...and replace it with a constant.
+            .EmitLdcI4(ImmunityCooldownID.Bosses);
     }
 
     private int OnPlayerGetRespawnTime(On_Player.orig_GetRespawnTime orig, Player self, bool pvp) => orig(self, false);

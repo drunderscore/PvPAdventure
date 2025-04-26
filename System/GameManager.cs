@@ -9,6 +9,7 @@ using Terraria.ID;
 using Microsoft.Xna.Framework;
 using Terraria.Chat;
 using Terraria.GameContent.Creative;
+using Terraria.GameContent.Events;
 using Terraria.GameContent.NetModules;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -59,6 +60,12 @@ public class GameManager : ModSystem
         if (Main.dedServ)
             // Only send world map pings to teammates.
             On_NetPingModule.Deserialize += OnNetPingModuleDeserialize;
+
+        // Broadcast a message when rain starts.
+        On_Main.StartRain += OnMainStartRain;
+
+        // Broadcast a message when a sandstorm starts.
+        On_Sandstorm.StartSandstorm += OnSandstormStartSandstorm;
     }
 
     private void OnMainStartInvasion(On_Main.orig_StartInvasion orig, int type)
@@ -73,10 +80,10 @@ public class GameManager : ModSystem
             return;
 
         // We shouldn't increase the invasion size, only ever decrease it.
-        if (Main.invasionSize > invasionSize)
+        if (Main.invasionSize > invasionSize.Value)
         {
             Mod.Logger.Info($"Reducing invasion {type} size from {Main.invasionSize} to {invasionSize}");
-            Main.invasionSize = Main.invasionSizeStart = Main.invasionProgressMax = invasionSize;
+            Main.invasionSize = Main.invasionSizeStart = Main.invasionProgressMax = invasionSize.Value;
         }
     }
 
@@ -100,6 +107,18 @@ public class GameManager : ModSystem
         }
 
         return true;
+    }
+
+    private void OnSandstormStartSandstorm(On_Sandstorm.orig_StartSandstorm orig)
+    {
+        orig();
+        ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Sandstorm"), Color.White);
+    }
+
+    private void OnMainStartRain(On_Main.orig_StartRain orig)
+    {
+        orig();
+        ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Rain"), Color.White);
     }
 
     public override void PostUpdateTime()

@@ -47,6 +47,8 @@ public class AdventureItem : GlobalItem
                 item.scale = statistics.Scale.Value;
             if (statistics.Knockback != null)
                 item.knockBack = statistics.Knockback.Value;
+            if (statistics.Value != null)
+                item.value = statistics.Value.Value;
         }
     }
 

@@ -54,7 +54,12 @@ public class AdventureConfig : ModConfig
         new(ProjectileID.BouncyDynamite)
     ];
 
-    public Dictionary<int, int> InvasionSizes { get; set; } = new();
+    public class InvasionSizeValue
+    {
+        [Range(0, 1000)] public int Value { get; set; }
+    }
+
+    public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = new();
 
     [Range(0, 60 * 60)]
     [DefaultValue(4 * 60)]
@@ -105,6 +110,20 @@ public class AdventureConfig : ModConfig
         }
     }
 
+    public class ConfigItem
+    {
+        public ItemDefinition Item { get; set; } = new();
+        public PrefixDefinition Prefix { get; set; } = new();
+        private int _stack = 1;
+
+        // NOTE: Just for QOL. Can be screwed with by changing the above item after setting this.
+        public int Stack
+        {
+            get => _stack;
+            set => _stack = Math.Clamp(value, 1, new Item(Item.Type, 1, Prefix.Type).maxStack);
+        }
+    }
+
     public class Condition
     {
         public enum WorldProgressionState
@@ -126,20 +145,6 @@ public class AdventureConfig : ModConfig
 
     public class Bounty
     {
-        public class ConfigItem
-        {
-            public ItemDefinition Item { get; set; } = new();
-            public PrefixDefinition Prefix { get; set; } = new();
-            private int _stack = 1;
-
-            // NOTE: Just for QOL. Can be screwed with by changing the above item after setting this.
-            public int Stack
-            {
-                get => _stack;
-                set => _stack = Math.Clamp(value, 1, new Item(Item.Type, 1, Prefix.Type).maxStack);
-            }
-        }
-
         public List<ConfigItem> Items { get; set; } = [];
         public Condition Conditions { get; set; } = new();
     }
@@ -202,7 +207,7 @@ public class AdventureConfig : ModConfig
 
         public class OptionalInt : IEquatable<OptionalInt>
         {
-            [Range(0, 1000)] public int Value { get; set; }
+            [Range(0, 1000000)] public int Value { get; set; }
 
             public bool Equals(OptionalInt other)
             {
@@ -252,6 +257,7 @@ public class AdventureConfig : ModConfig
         [DefaultValue(null)] [NullAllowed] public OptionalInt Mana { get; set; }
         [DefaultValue(null)] [NullAllowed] public OptionalFloat Scale { get; set; }
         [DefaultValue(null)] [NullAllowed] public OptionalFloat Knockback { get; set; }
+        [DefaultValue(null)] [NullAllowed] public OptionalInt Value { get; set; }
 
         public bool Equals(Statistics other)
         {
@@ -260,7 +266,7 @@ public class AdventureConfig : ModConfig
             return Equals(Damage, other.Damage) && Equals(UseTime, other.UseTime) &&
                    Equals(UseAnimation, other.UseAnimation) && Equals(ShootSpeed, other.ShootSpeed) &&
                    Equals(Crit, other.Crit) && Equals(Mana, other.Mana) && Equals(Scale, other.Scale) &&
-                   Equals(Knockback, other.Knockback);
+                   Equals(Knockback, other.Knockback) && Equals(Value, other.Value);
         }
 
         public override bool Equals(object obj)
@@ -270,8 +276,20 @@ public class AdventureConfig : ModConfig
             return obj.GetType() == GetType() && Equals((Statistics)obj);
         }
 
-        public override int GetHashCode() =>
-            HashCode.Combine(Damage, UseTime, UseAnimation, ShootSpeed, Crit, Mana, Scale, Knockback);
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(Damage);
+            hashCode.Add(UseTime);
+            hashCode.Add(UseAnimation);
+            hashCode.Add(ShootSpeed);
+            hashCode.Add(Crit);
+            hashCode.Add(Mana);
+            hashCode.Add(Scale);
+            hashCode.Add(Knockback);
+            hashCode.Add(Value);
+            return hashCode.ToHashCode();
+        }
     }
 
     [ReloadRequired] public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = new();
@@ -286,7 +304,7 @@ public class AdventureConfig : ModConfig
 
         [DefaultValue(30)] public int PlanteraBulbChanceDenominator { get; set; } = 30;
 
-        [DefaultValue(1)] public int ChlorophyteSpreadChanceDenominator { get; set; } = 1;
+        [DefaultValue(8)] public int ChlorophyteSpreadChanceModifier { get; set; } = 8;
     }
 
     public WorldGenerationConfig WorldGeneration { get; set; } = new();
@@ -305,6 +323,13 @@ public class AdventureConfig : ModConfig
     }
 
     public NpcBalanceConfig NpcBalance { get; set; } = new();
+
+    public class ChestItemReplacement
+    {
+        public List<ConfigItem> Items { get; set; } = new();
+    }
+
+    public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = new();
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
