@@ -109,4 +109,15 @@ public class AdventureItem : GlobalItem
 
     // This is likely unnecessary if we are overriding PrefixChance, but might as well.
     public override bool CanReforge(Item item) => !ModContent.GetInstance<AdventureConfig>().RemovePrefixes;
+
+    public class PickaxeAdjustments : GlobalItem
+    {
+        public override void SetDefaults(Item item)
+        {
+            if (item.type == ItemID.SpectrePickaxe || item.type == ItemID.ShroomiteDiggingClaw)
+            {
+                item.pick = 210;
+            }
+        }
+    }
 }
