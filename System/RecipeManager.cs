@@ -138,30 +138,8 @@ public class RecipeManager : ModSystem
             .AddTile(476) // Shimmering Pool tile ID
             .Register();
 
-
-        //placeholder code before proper item replacments
-        Recipe.Create(ItemID.Tabi)
-            .AddIngredient(ItemID.BlackBelt)
-            .Register();
-
-        Recipe.Create(ItemID.AncientChisel)
-            .AddIngredient(ItemID.MagicConch)
-            .Register();
-
         Recipe.Create(ItemID.XenoStaff)
             .AddIngredient(ItemID.CosmicCarKey)
-            .Register();
-
-        Recipe.Create(ItemID.CloudinaBottle)
-            .AddIngredient(ItemID.MagicMirror)
-            .Register();
-
-        Recipe.Create(ItemID.FeralClaws)
-            .AddIngredient(ItemID.Seaweed)
-            .Register();
-
-        Recipe.Create(ItemID.BlizzardinaBottle)
-            .AddIngredient(ItemID.Fish)
             .Register();
 
         int[] itemsToRemove = new int[]
