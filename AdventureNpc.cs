@@ -429,6 +429,9 @@ public class AdventureNpc : GlobalNPC
 
         if (npc.type == NPCID.Plantera)
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), ItemID.SporeSac));
+
+        if (npc.type == NPCID.SkeletronHead)
+            npcLoot.Add(ItemDropRule.Common((ItemID.GoldenKey), 1, 1, 1));
     }
 
     // This only runs on the attacking player
