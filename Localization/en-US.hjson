@@ -123,6 +123,16 @@ Mods: {
 					Label: Chest Item Replacements
 					Tooltip: ""
 				}
+
+				MinimumDamageReceivedByPlayers: {
+					Tooltip: ""
+					Label: Minimum Damage Received By Players
+				}
+
+				MinimumDamageReceivedByPlayersFromPlayer: {
+					Tooltip: ""
+					Label: Minimum Damage Received By Players From Player
+				}
 			}
 
 			PointsConfig: {

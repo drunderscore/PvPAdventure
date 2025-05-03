@@ -656,6 +656,14 @@ public class AdventurePlayer : ModPlayer
 
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
+        modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
+        {
+            var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+            info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayers);
+            if (info.PvP)
+                info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayersFromPlayer);
+        };
+
         if (!modifiers.PvP)
             return;
 

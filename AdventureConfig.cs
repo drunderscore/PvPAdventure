@@ -331,6 +331,9 @@ public class AdventureConfig : ModConfig
 
     public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = new();
 
+    [Range(0, 600)] public int MinimumDamageReceivedByPlayers { get; set; }
+    [Range(0, 600)] public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
+
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
         if (pendingConfig is not AdventureConfig pendingAdventureConfig)
