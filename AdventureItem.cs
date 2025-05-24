@@ -26,6 +26,30 @@ public class AdventureItem : GlobalItem
             }
         }
     }
+    public class GelatinCrystalRestriction : GlobalItem
+    {
+        public override bool CanUseItem(Item item, Player player)
+        {
+            if (item.type == ItemID.QueenSlimeCrystal)
+            {
+                bool isUnderground = player.position.Y > Main.worldSurface * 16;
+                bool inUndergroundHallow = isUnderground && player.ZoneHallow;
+
+                if (inUndergroundHallow)
+                {
+                    Main.NewText("Queen Slime refuses to emerge in the corrupted crystals here!", 255, 50, 50);
+                    return false;
+                }
+
+                // Still block summon in other underground areas but without message
+                if (isUnderground)
+                {
+                    return false;
+                }
+            }
+            return base.CanUseItem(item, player);
+        }
+    }
 
     public override void SetDefaults(Item item)
     {
