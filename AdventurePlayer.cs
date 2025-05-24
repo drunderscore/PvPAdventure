@@ -532,6 +532,12 @@ public class AdventurePlayer : ModPlayer
         hadShinyStoneLastFrame = hasShinyStone;
 
         // Check if wearing full Tiki Armor
+        if (Player.armor[0].type == ItemID.TikiMask &&
+            Player.armor[1].type == ItemID.TikiShirt &&
+            Player.armor[2].type == ItemID.TikiPants)
+        {
+            Player.noKnockback = true;
+        }
 
     }
     public override void OnRespawn()
