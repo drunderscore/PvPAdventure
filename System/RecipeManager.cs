@@ -1,13 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using System.Linq;
 
 namespace PvPAdventure.System;
 
 [Autoload(Side = ModSide.Both)]
 public class RecipeManager : ModSystem
 {
+
     public override void AddRecipes()
     {
         CreateDuplicateDropRecipe([
@@ -79,6 +82,37 @@ public class RecipeManager : ModSystem
             .AddIngredient(ItemID.StoneBlock, 50)
             .AddTile(TileID.HeavyWorkBench)
             .Register();
+
+
+
+
+        int[] itemsToRemove = new int[]
+    {
+            ItemID.TrueNightsEdge,
+            ItemID.MoonlordArrow
+    };
+
+        for (int i = 0; i < Main.recipe.Length; i++)
+        {
+            Recipe recipe = Main.recipe[i];
+            if (recipe.createItem.type != ItemID.None && itemsToRemove.Contains(recipe.createItem.type))
+            {
+                recipe.DisableRecipe();
+            }
+        }
+
+        //temp sudo terrablade
+        Recipe.Create(ItemID.TrueNightsEdge)
+            .AddIngredient(ItemID.SoulofFright, 20)
+            .AddIngredient(ItemID.SoulofMight, 20)
+            .AddIngredient(ItemID.SoulofSight, 20)
+            .AddIngredient(ItemID.NightsEdge)
+            .AddIngredient(ItemID.TrueExcalibur)
+            .AddIngredient(ItemID.BrokenHeroSword)
+            .AddTile(TileID.MythrilAnvil)
+            .Register();
+
+
     }
 
     private static void CreateDuplicateDropRecipe(List<int> lootTable, int amountOfMaterial)
