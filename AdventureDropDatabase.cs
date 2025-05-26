@@ -23,7 +23,12 @@ public static class AdventureDropDatabase
         foreach (var ruleChainAttempt in rule.ChainedRules)
             ModifyDropRate(ruleChainAttempt.RuleToChain, type, numerator, denominator);
     }
-
+    public class NotInHardmodeCondition : IItemDropRuleCondition
+    {
+        public bool CanDrop(DropAttemptInfo info) => !Main.hardMode;
+        public bool CanShowItemDropInUI() => true;
+        public string GetConditionDescription() => "Drops in pre-Hardmode";
+    }
     public static void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
     {
         var drops = npcLoot.Get();
@@ -217,6 +222,16 @@ public static class AdventureDropDatabase
 
             case NPCID.SkeletronHead:
                 npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey));
+                break;
+
+            case NPCID.WallofFlesh:
+                npcLoot.Add(new LeadingConditionRule(new NotInHardmodeCondition()))
+                    .OnSuccess(ItemDropRule.OneFromOptions(1,
+                        ItemID.SummonerEmblem,
+                        ItemID.RangerEmblem,
+                        ItemID.WarriorEmblem,
+                        ItemID.SorcererEmblem
+                    ));
                 break;
         }
     }
