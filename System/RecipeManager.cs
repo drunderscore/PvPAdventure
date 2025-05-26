@@ -285,6 +285,75 @@ namespace PvPAdventure.System
         }
     }
 
+    public class AnyCorruptionMimic1 : ModSystem
+    {
+        public static RecipeGroup AnyCorruptionMimicPrimary;
+        public static int[] PrimaryItems => new int[] {
+            ItemID.Fake_CorruptionChest,
+            ItemID.PutridScent,
+            ItemID.DartRifle,
+            ItemID.ClingerStaff,
+            ItemID.ChainGuillotines,
+            ItemID.WormHook,
+        };
+
+        public override void AddRecipeGroups()
+        {
+            // Main group with trophy as first item (for icon)
+            AnyCorruptionMimicPrimary = new RecipeGroup(() => Language.GetTextValue("Any Corrupt Mimic Primary"), PrimaryItems);
+            RecipeGroup.RegisterGroup("PvPAdventure:AnyCorruptionMimicPrimary", AnyCorruptionMimicPrimary);
+
+            // Create exclude subgroups while maintaining icon as first item
+            foreach (int itemID in PrimaryItems.Where(id => id != ItemID.Fake_CorruptionChest))
+            {
+                var validItems = PrimaryItems
+                    .Where(id => id != itemID && id != ItemID.Fake_CorruptionChest)
+                    .Prepend(ItemID.Fake_CorruptionChest) // Keep item first for icon
+                    .ToArray();
+
+                RecipeGroup group = new RecipeGroup(
+                    () => Language.GetTextValue("Any Corrupt Mimic Primary"),
+                    validItems
+                );
+                RecipeGroup.RegisterGroup($"PvPAdventure:AnyCorruptionMimicPrimaryExclude{itemID}", group);
+            }
+        }
+    }
+
+    public class AnyHallowedMimic1 : ModSystem
+    {
+        public static RecipeGroup AnyHallowedMimicPrimary;
+        public static int[] PrimaryItems => new int[] {
+            ItemID.Fake_HallowedChest,
+            ItemID.DaedalusStormbow,
+            ItemID.CrystalVileShard,
+            ItemID.FlyingKnife,
+            ItemID.IlluminantHook,
+        };
+
+        public override void AddRecipeGroups()
+        {
+            // Main group with trophy as first item (for icon)
+            AnyHallowedMimicPrimary = new RecipeGroup(() => Language.GetTextValue("Any Hallowed Mimic Primary"), PrimaryItems);
+            RecipeGroup.RegisterGroup("PvPAdventure:AnyHallowedMimicPrimary", AnyHallowedMimicPrimary);
+
+            // Create exclude subgroups while maintaining icon as first item
+            foreach (int itemID in PrimaryItems.Where(id => id != ItemID.Fake_HallowedChest))
+            {
+                var validItems = PrimaryItems
+                    .Where(id => id != itemID && id != ItemID.Fake_HallowedChest)
+                    .Prepend(ItemID.Fake_HallowedChest) // Keep item first for icon
+                    .ToArray();
+
+                RecipeGroup group = new RecipeGroup(
+                    () => Language.GetTextValue("Any Hallowed Mimic Primary"),
+                    validItems
+                );
+                RecipeGroup.RegisterGroup($"PvPAdventure:AnyHallowedMimicPrimaryExclude{itemID}", group);
+            }
+        }
+    }
+
     public class RecipeSystem : ModSystem
     {
         public override void AddRecipes()
@@ -369,6 +438,26 @@ namespace PvPAdventure.System
             {
                 Recipe.Create(itemID)
                     .AddRecipeGroup($"PvPAdventure:AnySaucerPrimaryExclude{itemID}", 3)
+                    .AddCondition(shimmerCondition)
+                    .DisableDecraft()
+                    .Register();
+            }
+
+            // Primary Corro mimic recipes (Relic remains icon)
+            foreach (int itemID in AnyCorruptionMimic1.PrimaryItems.Where(id => id != ItemID.Fake_CorruptionChest))
+            {
+                Recipe.Create(itemID)
+                    .AddRecipeGroup($"PvPAdventure:AnyCorruptionMimicPrimaryExclude{itemID}", 3)
+                    .AddCondition(shimmerCondition)
+                    .DisableDecraft()
+                    .Register();
+            }
+
+            // Primary Hallow mimic recipes (Relic remains icon)
+            foreach (int itemID in AnyHallowedMimic1.PrimaryItems.Where(id => id != ItemID.Fake_HallowedChest))
+            {
+                Recipe.Create(itemID)
+                    .AddRecipeGroup($"PvPAdventure:AnyHallowedMimicPrimaryExclude{itemID}", 2)
                     .AddCondition(shimmerCondition)
                     .DisableDecraft()
                     .Register();
