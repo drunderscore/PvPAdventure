@@ -510,6 +510,58 @@ public class AdventurePlayer : ModPlayer
         return true;
     }
 
+    private bool hadShinyStoneLastFrame;
+
+    public override void PostUpdateEquips()
+    {
+        // Check if Shiny Stone is equipped
+        bool hasShinyStone = IsShinyStoneEquipped();
+
+        // Apply debuff when first equipped or after respawn
+        if (hasShinyStone && !hadShinyStoneLastFrame)
+        {
+            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 3600); // 60 seconds
+        }
+
+        // Disable Shiny Stone effects while debuffed
+        if (Player.HasBuff(ModContent.BuffType<ShinyStoneHotswap>()))
+        {
+            Player.shinyStone = false;
+        }
+
+        hadShinyStoneLastFrame = hasShinyStone;
+
+        // Check if wearing full Tiki Armor
+        if (Player.armor[0].type == ItemID.TikiMask &&
+            Player.armor[1].type == ItemID.TikiShirt &&
+            Player.armor[2].type == ItemID.TikiPants)
+        {
+            Player.noKnockback = true;
+        }
+
+    }
+    public override void OnRespawn()
+    {
+        // Re-apply debuff if equipped during respawn
+        if (IsShinyStoneEquipped())
+        {
+            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 900);
+        }
+    }
+
+    private bool IsShinyStoneEquipped()
+    {
+        for (int i = 3; i < 10; i++) // Check all accessory slots
+        {
+            if (Player.armor[i].type == ItemID.ShinyStone &&
+               (i < 7 || !Player.hideVisibleAccessory[i - 3]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         // Only play kill markers on clients that we hurt that aren't ourselves
@@ -850,5 +902,16 @@ public class AdventurePlayer : ModPlayer
     public override string ToString()
     {
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
+    }
+}
+public class ShinyStoneHotswap : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = true;
+        Main.buffNoTimeDisplay[Type] = false; // Show timer
     }
 }
