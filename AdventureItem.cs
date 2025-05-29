@@ -50,6 +50,26 @@ public class AdventureItem : GlobalItem
             return base.CanUseItem(item, player);
         }
     }
+    public class PrismaticLacewingRestriction : GlobalItem
+    {
+        public override bool CanUseItem(Item item, Player player)
+        {
+            // Target Prismatic Lacewing (Empress summon item)
+            if (item.type == ItemID.EmpressButterfly)
+            {
+                // Check if player is below surface level
+                bool isUnderground = player.position.Y > Main.worldSurface * 16;
+                bool inUndergroundHallow = isUnderground && player.ZoneHallow;
+
+                if (isUnderground)
+                {
+                    Main.NewText("The sacred light refuses to manifest in these corrupted depths!", 200, 150, 255);
+                    return false;
+                }
+            }
+            return base.CanUseItem(item, player);
+        }
+    }
 
     public override void SetDefaults(Item item)
     {
