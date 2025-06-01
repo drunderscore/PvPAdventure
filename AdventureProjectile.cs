@@ -192,7 +192,7 @@ public class SpectreHoodPvPFix : GlobalProjectile
     // Custom implementation of ghostHeal that works with PvP
     private static void CustomGhostHeal(Projectile proj, int dmg, Vector2 position, Entity victim)
     {
-        float healMultiplier = 0.2f; // Increased from 0.2f to test IL edit is working
+        float healMultiplier = 1f; // Increased from 0.2f to test IL edit is working
         healMultiplier -= proj.numHits * 0.05f;
 
         if (healMultiplier <= 0f)
