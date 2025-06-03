@@ -625,7 +625,7 @@
         "Terraria/Tsunami": 1.0,
         "Terraria/StaffofEarth": 0.79999995,
         "Terraria/ChlorophyteShotbow": 1.2,
-        "Terraria/FairyQueenRangedItem": 0.84999996,
+        "Terraria/FairyQueenRangedItem": 0.75,
         "Terraria/MaceWhip": 0.55,
         "Terraria/HeatRay": 0.5,
         "Terraria/SniperRifle": 0.55,
@@ -775,10 +775,6 @@
     {
       "Name": "BeetleShell",
       "DisplayName": "Beetle Shell"
-    },
-    {
-      "Name": "EmpressButterfly",
-      "DisplayName": "Prismatic Lacewing"
     }
   ],
   "NpcSpawnAnnouncements": [
