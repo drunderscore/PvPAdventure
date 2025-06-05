@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using PvPAdventure.System;
 using Terraria;
@@ -88,28 +89,65 @@ public class AdventureProjectile : GlobalProjectile
         projectile.netSpam = 0;
     }
 
-
-    public class SpiderStaffGlobalProjectile : GlobalProjectile
+    private void OnProjectileghostHeal(On_Projectile.orig_ghostHeal orig, Projectile self, int dmg, Vector2 position,
+        Entity victim)
     {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        // Don't touch anything about the Ghost Heal outside PvP.
+        if (victim is not Player)
         {
-            return entity.type == ProjectileID.VenomSpider ||
-                   entity.type == ProjectileID.JumperSpider || // Note: Fix typo here
-                   entity.type == ProjectileID.DangerousSpider;
+            orig(self, dmg, position, victim);
+            return;
         }
 
-        public override void PostAI(Projectile projectile)
+        // This implementation differs from vanilla:
+        //   - The None team isn't counted when looking for teammates.
+        //     - Two players on the None team fighting would end up healing the person you attacked.
+        //   - Player life steal is entirely disregarded.
+        //   - All nearby teammates are healed, instead of only the one with the largest health deficit.
+
+        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+
+        var healMultiplier = adventureConfig.Combat.GhostHealMultiplier;
+        healMultiplier -= self.numHits * 0.05f;
+        if (healMultiplier <= 0f)
+            return;
+
+        var heal = dmg * healMultiplier;
+        if ((int)heal <= 0)
+            return;
+
+        if (!self.CountsAsClass(DamageClass.Magic))
+            return;
+
+        var maxDistance = adventureConfig.Combat.GhostHealMaxDistance;
+        for (var i = 0; i < Main.maxPlayers; i++)
         {
-            Player owner = Main.player[projectile.owner];
+            var player = Main.player[i];
 
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.SpiderStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.SpiderStaff && owner.inventory[58].stack > 0;
+            if (!player.active || player.dead || !player.hostile)
+                continue;
 
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
+            if (player.team == (int)Team.None || player.team != Main.player[self.owner].team)
+                continue;
+
+            if (self.Distance(player.Center) > maxDistance)
+                continue;
+
+            // FIXME: Can't set the context properly because of poor TML visibility to ProjectileSourceID.
+            Projectile.NewProjectile(
+                self.GetSource_OnHit(victim),
+                position.X,
+                position.Y,
+                0f,
+                0f,
+                298,
+                0,
+                0f,
+                self.owner,
+                i,
+                heal
+            );
+
         }
     }
 
@@ -135,345 +173,305 @@ public class AdventureProjectile : GlobalProjectile
         }
     }
 
-    public class QueenSpiderStaffGlobalProjectile : GlobalProjectile
+    public class SpiderStaffGlobalProjectile : GlobalProjectile
     {
         public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
         {
-            return entity.type == ProjectileID.SpiderHiver;
+            return entity.type == ProjectileID.VenomSpider ||
+                   entity.type == ProjectileID.JumperSpider || // Note: Fix typo here
+                   entity.type == ProjectileID.DangerousSpider;
         }
-
         public override void PostAI(Projectile projectile)
         {
             Player owner = Main.player[projectile.owner];
 
             // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.QueenSpiderStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.QueenSpiderStaff && owner.inventory[58].stack > 0;
+            bool hasStaff = owner.HasItem(ItemID.SpiderStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.SpiderStaff && owner.inventory[58].stack > 0;
+
 
             if (!hasStaff && !mouseHasStaff)
             {
                 projectile.Kill();
             }
         }
-    }
 
-    public class NimbusRodGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+
+
+        public class QueenSpiderStaffGlobalProjectile : GlobalProjectile
         {
-            return entity.type == ProjectileID.RainNimbus;
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.SpiderHiver;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.QueenSpiderStaff);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.QueenSpiderStaff && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
         }
 
-        public override void PostAI(Projectile projectile)
+        public class NimbusRodGlobalProjectile : GlobalProjectile
         {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.NimbusRod);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.NimbusRod && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
             {
-                projectile.Kill();
+                return entity.type == ProjectileID.RainNimbus;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.NimbusRod);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.NimbusRod && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class XenoStaffGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.UFOMinion;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.XenoStaff);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.XenoStaff && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class BladeStaffGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.Smolstar;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.Smolstar);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.Smolstar && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class HornetStaffGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.Hornet;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.HornetStaff);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.HornetStaff && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class ImpStaffGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.FlyingImp;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.ImpStaff);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.ImpStaff && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class PygmyStaffGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.Pygmy ||
+                       entity.type == ProjectileID.Pygmy2 ||
+                       entity.type == ProjectileID.Pygmy3 ||
+                       entity.type == ProjectileID.Pygmy4;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.PygmyStaff);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.PygmyStaff && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class DeadlySphereGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.DeadlySphere;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.DeadlySphereStaff);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.DeadlySphereStaff && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class PirateStaffGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.OneEyedPirate ||
+                       entity.type == ProjectileID.SoulscourgePirate ||
+                       entity.type == ProjectileID.PirateCaptain;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.PirateStaff);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.PirateStaff && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class TempestStaffGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.Tempest;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.TempestStaff);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.TempestStaff && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class TerraprismaGlobalProjectile : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.EmpressBlade;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                Player owner = Main.player[projectile.owner];
+
+                // Check inventory (including equipped items) AND mouse slot
+                bool hasStaff = owner.HasItem(ItemID.EmpressBlade);
+                bool mouseHasStaff = owner.inventory[58].type == ItemID.EmpressBlade && owner.inventory[58].stack > 0;
+
+                if (!hasStaff && !mouseHasStaff)
+                {
+                    projectile.Kill();
+                }
+            }
+        }
+
+        public class DeadProjectileList : GlobalProjectile
+        {
+            public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+            {
+                return entity.type == ProjectileID.ClingerStaff ||
+                       entity.type == ProjectileID.SporeTrap ||
+                       entity.type == ProjectileID.SporeTrap2 ||
+                       entity.type == ProjectileID.SporeGas ||
+                       entity.type == ProjectileID.SporeGas2 ||
+                       entity.type == ProjectileID.SporeGas3;
+            }
+
+            public override void PostAI(Projectile projectile)
+            {
+                // Ensure owner index is valid
+                if (projectile.owner < 0 || projectile.owner >= Main.maxPlayers)
+                    return;
+
+                Player owner = Main.player[projectile.owner];
+
+                // Kill projectile if owner is dead or inactive
+                if (owner.dead || !owner.active)
+                {
+                    projectile.Kill();
+                }
             }
         }
     }
-
-    public class XenoStaffGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.UFOMinion;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.XenoStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.XenoStaff && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class BladeStaffGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.Smolstar;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.Smolstar);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.Smolstar && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class HornetStaffGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.Hornet;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.HornetStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.HornetStaff && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class ImpStaffGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.FlyingImp;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.ImpStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.ImpStaff && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class PygmyStaffGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.Pygmy ||
-                   entity.type == ProjectileID.Pygmy2 ||
-                   entity.type == ProjectileID.Pygmy3 ||
-                   entity.type == ProjectileID.Pygmy4;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.PygmyStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.PygmyStaff && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class DeadlySphereGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.DeadlySphere;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.DeadlySphereStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.DeadlySphereStaff && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class PirateStaffGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.OneEyedPirate ||
-                   entity.type == ProjectileID.SoulscourgePirate ||
-                   entity.type == ProjectileID.PirateCaptain;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.PirateStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.PirateStaff && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class TempestStaffGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.Tempest;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.TempestStaff);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.TempestStaff && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class TerraprismaGlobalProjectile : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.EmpressBlade;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            Player owner = Main.player[projectile.owner];
-
-            // Check inventory (including equipped items) AND mouse slot
-            bool hasStaff = owner.HasItem(ItemID.EmpressBlade);
-            bool mouseHasStaff = owner.inventory[58].type == ItemID.EmpressBlade && owner.inventory[58].stack > 0;
-
-            if (!hasStaff && !mouseHasStaff)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-    public class DeadProjectileList : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-        {
-            return entity.type == ProjectileID.ClingerStaff ||
-                   entity.type == ProjectileID.SporeTrap ||
-                   entity.type == ProjectileID.SporeTrap2 ||
-                   entity.type == ProjectileID.SporeGas ||
-                   entity.type == ProjectileID.SporeGas2 ||
-                   entity.type == ProjectileID.SporeGas3;
-        }
-
-        public override void PostAI(Projectile projectile)
-        {
-            // Ensure owner index is valid
-            if (projectile.owner < 0 || projectile.owner >= Main.maxPlayers)
-                return;
-
-            Player owner = Main.player[projectile.owner];
-
-            // Kill projectile if owner is dead or inactive
-            if (owner.dead || !owner.active)
-            {
-                projectile.Kill();
-            }
-        }
-    }
-
-        private void OnProjectileghostHeal(On_Projectile.orig_ghostHeal orig, Projectile self, int dmg, Vector2 position,
-            Entity victim)
-        {
-            // Don't touch anything about the Ghost Heal outside PvP.
-            if (victim is not Player)
-            {
-                orig(self, dmg, position, victim);
-                return;
-            }
-
-            // This implementation differs from vanilla in two key ways:
-            //   - The None team isn't counted when looking for teammates.
-            //     - Two players on the None team fighting would end up healing the person you attacked.
-            //   - Player life steal is entirely disregarded.
-
-            var healMultiplier = ModContent.GetInstance<AdventureConfig>().Combat.GhostHealMultiplier;
-            healMultiplier -= self.numHits * 0.05f;
-            if (healMultiplier <= 0f)
-                return;
-
-            var heal = dmg * healMultiplier;
-            if ((int)heal <= 0)
-                return;
-
-            if (!self.CountsAsClass(DamageClass.Magic))
-                return;
-
-            var targetPlayer = self.owner;
-            var targetPlayerHealthDeficit = 0;
-            for (var i = 0; i < Main.maxPlayers; i++)
-            {
-                var player = Main.player[i];
-
-                if (!player.active || player.dead || !player.hostile)
-                    continue;
-
-                if (player.team == (int)Team.None || player.team != Main.player[self.owner].team)
-                    continue;
-
-                if (self.Distance(player.Center) > 3000.0f)
-                    continue;
-
-                var healthDeficit = player.statLifeMax2 - Main.player[i].statLife;
-                if (healthDeficit <= targetPlayerHealthDeficit)
-                    continue;
-
-                targetPlayer = i;
-                targetPlayerHealthDeficit = healthDeficit;
-            }
-
-            // FIXME: Can't set the context properly because of poor TML visibility to ProjectileSourceID.
-            Projectile.NewProjectile(
-                self.GetSource_OnHit(victim),
-                position.X,
-                position.Y,
-                0f,
-                0f,
-                298,
-                0,
-                0f,
-                self.owner,
-                targetPlayer,
-                heal
-            );
-        }
-    }
+}
 

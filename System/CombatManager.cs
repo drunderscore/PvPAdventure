@@ -47,6 +47,7 @@ public class CombatManager : ModSystem
     ];
 
     public const int PvPImmunityCooldownId = -100;
+    public const int PaladinsShieldReflectImmunityCooldownId = -101;
 
     public override void Load()
     {
@@ -74,6 +75,13 @@ public class CombatManager : ModSystem
         IL_Projectile.Damage += EditProjectileDamage;
         // Don't presumptuously check Player.immune for melee PvP damage -- player hurt will do it for you.
         IL_Player.ItemCheck_MeleeHitPVP += EditPlayerItemCheck_MeleeHitPVP;
+
+        // Remove Main.myPlayer check when determining Paladin's Shield damage reduction.
+        IL_Player.ApplyVanillaHurtEffectModifiers += EditPlayerApplyVanillaHurtEffectModifiers;
+        // Use a different immunity cooldown ID when applying Paladin's Shield reflect damage, to remove i-frames.
+        IL_Player.OnHurt_Part2 += EditPlayerOnHurt_Part2;
+        // Remove player immunity check, so it doesn't influence whether Paladin's Shield damage reduction occurs.
+        IL_Player.TeammateHasPalidinShieldAndCanTakeDamage += EditPlayerTeammateHasPalidinShieldAndCanTakeDamage;
     }
 
     public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
@@ -186,5 +194,43 @@ public class CombatManager : ModSystem
         cursor.Index -= 1;
         // ...to remove it, the load, and the branch.
         cursor.RemoveRange(3);
+    }
+
+    private void EditPlayerApplyVanillaHurtEffectModifiers(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // Find the load of Entity.whoAmI...
+        cursor.GotoNext(i => i.MatchLdfld<Entity>("whoAmI"));
+        // ...and go back to the "this" load...
+        cursor.Index -= 1;
+        // ...to remove it, Entity.whoAmI load, comparison load, and branch.
+        cursor.RemoveRange(4);
+    }
+
+    private void EditPlayerOnHurt_Part2(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // Find the call to Player.Hurt...
+        cursor.GotoNext(i => i.MatchCallvirt<Player>("Hurt"));
+        // ...and go back to the cooldownCounter parameter...
+        cursor.Index -= 5;
+        // ...to remove it...
+        cursor.Remove();
+        // ...and replace it with a constant (functionally removing i-frames for this hurt).
+        cursor.EmitLdcI4(PaladinsShieldReflectImmunityCooldownId);
+    }
+
+    private void EditPlayerTeammateHasPalidinShieldAndCanTakeDamage(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // Find the load of Player.immune...
+        cursor.GotoNext(i => i.MatchLdfld<Player>("immune"));
+        // ...and go back...
+        cursor.Index -= 3;
+        // ...to remove some loads and branches (functionally removing immunity influence).
+        cursor.RemoveRange(5);
     }
 }
