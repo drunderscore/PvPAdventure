@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -15,6 +16,9 @@ public class AdventureProjectile : GlobalProjectile
     public override void Load()
     {
         On_PlayerDeathReason.ByProjectile += OnPlayerDeathReasonByProjectile;
+
+        // Adapt Spectre Hood set bonus "Ghost Heal" to be better suited for PvP.
+        On_Projectile.ghostHeal += OnProjectileghostHeal;
     }
 
     private static EntitySource_ItemUse GetItemUseSource(Projectile projectile, Projectile lastProjectile)
@@ -83,6 +87,7 @@ public class AdventureProjectile : GlobalProjectile
         // Ignore net spam restraints.
         projectile.netSpam = 0;
     }
+
 
     public class SpiderStaffGlobalProjectile : GlobalProjectile
     {
@@ -404,4 +409,71 @@ public class AdventureProjectile : GlobalProjectile
             }
         }
     }
-}
+
+        private void OnProjectileghostHeal(On_Projectile.orig_ghostHeal orig, Projectile self, int dmg, Vector2 position,
+            Entity victim)
+        {
+            // Don't touch anything about the Ghost Heal outside PvP.
+            if (victim is not Player)
+            {
+                orig(self, dmg, position, victim);
+                return;
+            }
+
+            // This implementation differs from vanilla in two key ways:
+            //   - The None team isn't counted when looking for teammates.
+            //     - Two players on the None team fighting would end up healing the person you attacked.
+            //   - Player life steal is entirely disregarded.
+
+            var healMultiplier = ModContent.GetInstance<AdventureConfig>().Combat.GhostHealMultiplier;
+            healMultiplier -= self.numHits * 0.05f;
+            if (healMultiplier <= 0f)
+                return;
+
+            var heal = dmg * healMultiplier;
+            if ((int)heal <= 0)
+                return;
+
+            if (!self.CountsAsClass(DamageClass.Magic))
+                return;
+
+            var targetPlayer = self.owner;
+            var targetPlayerHealthDeficit = 0;
+            for (var i = 0; i < Main.maxPlayers; i++)
+            {
+                var player = Main.player[i];
+
+                if (!player.active || player.dead || !player.hostile)
+                    continue;
+
+                if (player.team == (int)Team.None || player.team != Main.player[self.owner].team)
+                    continue;
+
+                if (self.Distance(player.Center) > 3000.0f)
+                    continue;
+
+                var healthDeficit = player.statLifeMax2 - Main.player[i].statLife;
+                if (healthDeficit <= targetPlayerHealthDeficit)
+                    continue;
+
+                targetPlayer = i;
+                targetPlayerHealthDeficit = healthDeficit;
+            }
+
+            // FIXME: Can't set the context properly because of poor TML visibility to ProjectileSourceID.
+            Projectile.NewProjectile(
+                self.GetSource_OnHit(victim),
+                position.X,
+                position.Y,
+                0f,
+                0f,
+                298,
+                0,
+                0f,
+                self.owner,
+                targetPlayer,
+                heal
+            );
+        }
+    }
+

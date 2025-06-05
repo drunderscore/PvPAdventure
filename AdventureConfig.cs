@@ -185,6 +185,8 @@ public class AdventureConfig : ModConfig
         public PlayerDamageBalanceConfig PlayerDamageBalance { get; set; } = new();
 
         [Range(0, 5 * 60)] [DefaultValue(8)] public int StandardInvincibilityFrames { get; set; }
+
+        [DefaultValue(0.2f)] public float GhostHealMultiplier { get; set; }
     }
 
     public class Statistics : IEquatable<Statistics>

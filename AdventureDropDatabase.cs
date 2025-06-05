@@ -1,3 +1,4 @@
+using System.Linq;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
@@ -129,6 +130,11 @@ public static class AdventureDropDatabase
                     ModifyDropRate(drop, ItemID.ButterflyDust, 1, 1);
                 break;
 
+            case NPCID.Mothron:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.BrokenHeroSword, 1, 2);
+                break;
+
             case NPCID.SkeletonArcher:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.MagicQuiver, 1, 30);
@@ -138,7 +144,7 @@ public static class AdventureDropDatabase
             case NPCID.LihzahrdCrawler:
             case NPCID.FlyingSnake:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.LihzahrdPowerCell, 1, 33);
+                    ModifyDropRate(drop, ItemID.LihzahrdPowerCell, 1, 50);
                 break;
 
             case NPCID.EyeofCthulhu:
@@ -234,6 +240,18 @@ public static class AdventureDropDatabase
                         ItemID.WarriorEmblem,
                         ItemID.SorcererEmblem
                     ));
+                break;
+
+            case NPCID.MartianSaucerCore:
+                foreach (var drop in drops)
+                {
+                    if (drop is OneFromOptionsNotScaledWithLuckDropRule oneFromOptionsNotScaledWithLuckDropRule)
+                    {
+                        oneFromOptionsNotScaledWithLuckDropRule.dropIds = oneFromOptionsNotScaledWithLuckDropRule
+                            .dropIds.Where(id => id != ItemID.CosmicCarKey).ToArray();
+                    }
+                }
+
                 break;
         }
     }

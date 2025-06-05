@@ -123,6 +123,9 @@ public class GameManager : ModSystem
 
     public override void PostUpdateTime()
     {
+        // The Nurse is never allowed to spawn.
+        Main.townNPCCanSpawn[NPCID.Nurse] = false;
+
         switch (CurrentPhase)
         {
             case Phase.Waiting:

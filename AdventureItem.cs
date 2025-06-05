@@ -122,6 +122,9 @@ public class AdventureItem : GlobalItem
             ItemID.Keybrand => ItemID.MaceWhip,
             _ => ItemID.Sets.ShimmerTransformToItem[item.type]
         };
+
+        if (item.type == ItemID.SpectrePickaxe || item.type == ItemID.ShroomiteDiggingClaw)
+            item.pick = 210;
     }
 
     public override bool CanUseItem(Item item, Player player)
