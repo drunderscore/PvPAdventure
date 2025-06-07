@@ -1,8 +1,7 @@
-using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Microsoft.Xna.Framework;
+using MonoMod.Cil;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.Enums;
@@ -14,8 +13,6 @@ namespace PvPAdventure;
 
 public class PvPAdventure : Mod
 {
-    internal static Color NpcChatColor = new(245, 133, 34);
-
     public override void Load()
     {
         // This mod should only ever be loaded when connecting to a server, it should never be loaded beforehand.
@@ -30,6 +27,22 @@ public class PvPAdventure : Mod
                 args.Allowed = true;
             };
         }
+
+        // Don't set Player.mouseInterface when mousing over buffs.
+        IL_Main.DrawBuffIcon += EditMainDrawBuffIcon;
+    }
+
+    private void EditMainDrawBuffIcon(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // First, find a store to Player.mouseInterface...
+        // NOTE: The reference we find actually relates to gamepad, which we don't touch.
+        cursor.GotoNext(i => i.MatchStfld<Player>("mouseInterface"));
+        // ...and go past the gamepad interactions...
+        cursor.Index += 2;
+        // ...to remove the loads and stores to Player.mouseInterface for non-gamepad.
+        cursor.RemoveRange(5);
     }
 
     public override void HandlePacket(BinaryReader reader, int whoAmI)
@@ -196,12 +209,5 @@ public class PvPAdventure : Mod
                 break;
             }
         }
-    }
-
-    internal void DisableOurselfAndReload()
-    {
-        var modLoaderType = typeof(ModLoader);
-        modLoaderType.GetMethod("DisableMod", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [Name]);
-        modLoaderType.GetMethod("Reload", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, null);
     }
 }

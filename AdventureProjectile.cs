@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using PvPAdventure.System;
 using Terraria;
@@ -133,6 +132,10 @@ public class AdventureProjectile : GlobalProjectile
             if (self.Distance(player.Center) > maxDistance)
                 continue;
 
+            var personalHeal = heal;
+            if (player.ghostHeal)
+                personalHeal *= adventureConfig.Combat.GhostHealMultiplierWearers;
+
             // FIXME: Can't set the context properly because of poor TML visibility to ProjectileSourceID.
             Projectile.NewProjectile(
                 self.GetSource_OnHit(victim),
@@ -145,7 +148,7 @@ public class AdventureProjectile : GlobalProjectile
                 0f,
                 self.owner,
                 i,
-                heal
+                personalHeal
             );
 
         }

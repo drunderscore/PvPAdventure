@@ -187,6 +187,8 @@ public class AdventureConfig : ModConfig
         [Range(0, 5 * 60)] [DefaultValue(8)] public int StandardInvincibilityFrames { get; set; }
 
         [DefaultValue(0.2f)] public float GhostHealMultiplier { get; set; }
+        [Description("Additional multiplier for any player that can Ghost Heal")]
+        [DefaultValue(1.0f)] public float GhostHealMultiplierWearers { get; set; }
 
         [Range(0.0f, 3000.0f)]
         [DefaultValue(3000.0f)]
