@@ -531,14 +531,15 @@ public class AdventurePlayer : ModPlayer
 
         hadShinyStoneLastFrame = hasShinyStone;
 
-        // Check if wearing full Tiki Armor
-        if (Player.armor[0].type == ItemID.TikiMask &&
-            Player.armor[1].type == ItemID.TikiShirt &&
-            Player.armor[2].type == ItemID.TikiPants)
+        // Check if wearing full Beetle Scale Mail Armor
+        if (Player.armor[0].type == ItemID.BeetleHelmet &&
+            Player.armor[1].type == ItemID.BeetleScaleMail &&
+            Player.armor[2].type == ItemID.BeetleLeggings)
         {
-            Player.noKnockback = true;
+            // Increase melee damage by 10% and melee speed by 10%
+            Player.GetDamage(DamageClass.Melee) += 0.12f;
+            Player.GetAttackSpeed(DamageClass.Melee) += 0.12f;
         }
-
     }
     public override void OnRespawn()
     {

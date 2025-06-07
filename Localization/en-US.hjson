@@ -679,3 +679,5 @@ Mods: {
 		}
 	}
 }
+
+ArmorSetBonus.BeetleDamage: Increase your melee damage and speed by 10%. Beetles increase your melee damage and speed permanently upon killing a player, up to three times.
