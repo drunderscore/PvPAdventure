@@ -689,3 +689,15 @@ Mods: {
 		}
 	}
 }
+
+BuffDescription: {
+	BeetleMight1: Melee damage and speed increase by 15%
+	BeetleMight2: Melee damage and speed increase by 25%
+	BeetleMight3: Melee damage increase by 30% and melee speed increase by 60%
+}
+
+ArmorSetBonus.BeetleDamage:
+	'''
+	+10% melee damage and speed
+	Beetles increase your melee damage and attack speed
+	'''
