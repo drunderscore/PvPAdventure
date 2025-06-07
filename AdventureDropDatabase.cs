@@ -55,6 +55,11 @@ public static class AdventureDropDatabase
                     ModifyDropRate(drop, ItemID.Stinger, 1, 1);
                 break;
 
+            case NPCID.GiantTortoise:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 5);
+                break;
+
             case NPCID.Necromancer:
             case NPCID.NecromancerArmored:
                 foreach (var drop in drops)
@@ -81,6 +86,8 @@ public static class AdventureDropDatabase
             case NPCID.TacticalSkeleton:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.TacticalShotgun, 1, 10);
+                npcLoot.Add(ItemDropRule.Common(ItemID.RifleScope, 6));
+
                 break;
 
             case NPCID.SkeletonCommando:
@@ -128,6 +135,11 @@ public static class AdventureDropDatabase
             case NPCID.Moth:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.ButterflyDust, 1, 1);
+                break;
+
+            case NPCID.GiantCursedSkull:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.ShadowJoustingLance, 1, 12);
                 break;
 
             case NPCID.Mothron:
