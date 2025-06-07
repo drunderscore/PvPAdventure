@@ -110,6 +110,10 @@ public class AdventureItem : GlobalItem
             ItemID.PaladinsShield => ItemID.PaladinsHammer,
             ItemID.MaceWhip => ItemID.Keybrand,
             ItemID.Keybrand => ItemID.MaceWhip,
+            ItemID.SniperRifle => ItemID.RifleScope,
+            ItemID.RifleScope=> ItemID.SniperRifle,
+            ItemID.Tabi => ItemID.BlackBelt,
+            ItemID.BlackBelt => ItemID.Tabi,
             _ => ItemID.Sets.ShimmerTransformToItem[item.type]
         };
 
