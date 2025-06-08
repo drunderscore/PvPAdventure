@@ -682,4 +682,30 @@ public class AdventurePlayer : ModPlayer
     {
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
     }
+
+    public class RemoveFlaskBuffsOnDeath : ModPlayer
+    {
+        // Array of buff IDs to remove on death
+        private readonly int[] buffsToRemove = { 71, 73, 74, 75, 76, 77, 78, 79 }; //Every single Flask buff that doesn't go away on death for some reason
+
+        public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
+        {
+           
+            for (int i = 0; i < Player.MaxBuffs; i++)
+            {
+                int buffType = Player.buffType[i];
+
+                
+                foreach (int buffId in buffsToRemove)
+                {
+                    if (buffType == buffId)
+                    {
+                        Player.DelBuff(i); // Remove the buff
+                        i--; // Adjust index since we removed a buff
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
