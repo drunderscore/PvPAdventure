@@ -539,6 +539,12 @@ public class AdventurePlayer : ModPlayer
             Player.noKnockback = true;
         }
 
+        if (Player.HasBuff(BuffID.BeetleMight3))
+        {
+            // we apply the glowing eye effect from Yoraiz0rsSpell item
+            Player.yoraiz0rEye = 33;
+        }
+
     }
     public override void OnRespawn()
     {
