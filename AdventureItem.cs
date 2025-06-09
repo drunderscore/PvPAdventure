@@ -114,6 +114,8 @@ public class AdventureItem : GlobalItem
             ItemID.RifleScope=> ItemID.SniperRifle,
             ItemID.Tabi => ItemID.BlackBelt,
             ItemID.BlackBelt => ItemID.Tabi,
+            ItemID.PiggyBank => ItemID.MoneyTrough,
+            ItemID.MoneyTrough => ItemID.PiggyBank,
             _ => ItemID.Sets.ShimmerTransformToItem[item.type]
         };
 
