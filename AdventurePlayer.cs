@@ -548,6 +548,9 @@ public class AdventurePlayer : ModPlayer
             Player.SetItemTime(0);
         }
 
+        if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
+            ModContent.GetInstance<DeathSummaryManager>().AddDamageTaken(info);
+
         // Don't need the client to have this information right now, and I can't be sure it's accurate.
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
@@ -595,6 +598,9 @@ public class AdventurePlayer : ModPlayer
         // Only play kill markers on clients that we hurt that aren't ourselves
         if (!Main.dedServ && pvp && damageSource.SourcePlayerIndex == Main.myPlayer && Player.whoAmI != Main.myPlayer)
             PlayKillMarker((int)damage);
+
+        if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
+            ModContent.GetInstance<DeathSummaryManager>().Visualize();
 
         // Only for non-suicide PvP deaths, apply Beetle Might as needed to the attacker.
         if (pvp && damageSource.SourcePlayerIndex != Player.whoAmI)
