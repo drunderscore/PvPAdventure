@@ -599,6 +599,7 @@ public class AdventurePlayer : ModPlayer
         if (!Main.dedServ && pvp && damageSource.SourcePlayerIndex == Main.myPlayer && Player.whoAmI != Main.myPlayer)
             PlayKillMarker((int)damage);
 
+        // FIXME: We aren't including the damage from this kill probably.
         if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
             ModContent.GetInstance<DeathSummaryManager>().Visualize();
 

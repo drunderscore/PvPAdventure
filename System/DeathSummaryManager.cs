@@ -109,7 +109,7 @@ public class DeathSummaryManager : ModSystem
         }
     }
 
-    public class UIDeathSummary(IEnumerable<Player.HurtInfo> damageTaken, int time) : UIState
+    public class UIDeathSummary(ICollection<Player.HurtInfo> damageTaken, int time) : UIState
     {
         public override void OnInitialize()
         {
@@ -185,11 +185,24 @@ public class DeathSummaryManager : ModSystem
             };
             container.Append(fightTimeText);
 
-            container.Append(new UIText($"Total damage: {total}")
+            var totalDamageText = new UIText($"Total damage: {total}")
             {
                 Top = { Percent = 0.6f },
+                MarginRight = 10.0f,
                 Left = { Pixels = fightTimeText.GetOuterDimensions().Width }
-            });
+            };
+            container.Append(totalDamageText);
+
+            var totalHitsText = new UIText($"Total hits: {damageTaken.Count}")
+            {
+                Top = { Percent = 0.6f },
+                MarginRight = 10.0f,
+                Left =
+                {
+                    Pixels = fightTimeText.GetOuterDimensions().Width + totalDamageText.GetOuterDimensions().Width
+                }
+            };
+            container.Append(totalHitsText);
 
             root.Append(container);
 
