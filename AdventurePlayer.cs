@@ -587,12 +587,17 @@ public class AdventurePlayer : ModPlayer
 
         hadShinyStoneLastFrame = hasShinyStone;
 
-        // Check if wearing full Tiki Armor
-        if (Player.armor[0].type == ItemID.TikiMask &&
-            Player.armor[1].type == ItemID.TikiShirt &&
-            Player.armor[2].type == ItemID.TikiPants)
+        if (Player.beetleOffense)
         {
-            Player.noKnockback = true;
+            Player.GetDamage<MeleeDamageClass>() += 0.10f;
+            Player.GetAttackSpeed<MeleeDamageClass>() += 0.10f;
+        }
+        else
+        {
+            // If we don't have the beetle offense set bonus, remove all possible buffs.
+            Player.ClearBuff(BuffID.BeetleMight1);
+            Player.ClearBuff(BuffID.BeetleMight2);
+            Player.ClearBuff(BuffID.BeetleMight3);
         }
 
     }
@@ -902,21 +907,6 @@ public class AdventurePlayer : ModPlayer
         }
     }
 
-    public override void PostUpdateEquips()
-    {
-        if (Player.beetleOffense)
-        {
-            Player.GetDamage<MeleeDamageClass>() += 0.10f;
-            Player.GetAttackSpeed<MeleeDamageClass>() += 0.10f;
-        }
-        else
-        {
-            // If we don't have the beetle offense set bonus, remove all possible buffs.
-            Player.ClearBuff(BuffID.BeetleMight1);
-            Player.ClearBuff(BuffID.BeetleMight2);
-            Player.ClearBuff(BuffID.BeetleMight3);
-        }
-    }
 
     private void SendPingPong()
     {
