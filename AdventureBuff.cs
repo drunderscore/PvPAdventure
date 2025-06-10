@@ -32,7 +32,7 @@ public class AdventureBuff : GlobalBuff
             if (player.beetleOrbs >= 3)
             {
                 damage += 0.05f;
-                attackSpeed += 0.30f;
+                attackSpeed += 0.20f;
             }
 
             player.GetDamage<MeleeDamageClass>() += damage;
