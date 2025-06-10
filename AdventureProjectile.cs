@@ -457,6 +457,8 @@ public class AdventureProjectile : GlobalProjectile
                        entity.type == ProjectileID.SporeTrap2 ||
                        entity.type == ProjectileID.SporeGas ||
                        entity.type == ProjectileID.SporeGas2 ||
+                       entity.type == ProjectileID.RainCloudRaining ||
+                       entity.type == ProjectileID.BloodCloudRaining ||
                        entity.type == ProjectileID.SporeGas3;
             }
 
