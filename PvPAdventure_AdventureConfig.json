@@ -623,8 +623,8 @@
     "PlayerDamageBalance": {
       "ItemDamageMultipliers": {
         "Terraria/Tsunami": 1.0,
-        "Terraria/StaffofEarth": 0.79999995,
-        "Terraria/ChlorophyteShotbow": 1.2,
+        "Terraria/StaffofEarth": 0.87,
+        "Terraria/ChlorophyteShotbow": 1.0,
         "Terraria/FairyQueenRangedItem": 0.75,
         "Terraria/MaceWhip": 0.55,
         "Terraria/HeatRay": 0.5,
@@ -634,7 +634,7 @@
         "Terraria/LaserMachinegun": 0.79999995,
         "Terraria/Xenopopper": 1.75,
         "Terraria/ProximityMineLauncher": 0.11,
-        "Terraria/ChargedBlasterCannon": 0.0,
+        "Terraria/ChargedBlasterCannon": 0.45,
         "Terraria/TheEyeOfCthulhu": 0.7,
         "Terraria/Kraken": 0.75,
         "Terraria/VenusMagnum": 0.84999996,
@@ -642,7 +642,7 @@
         "Terraria/DaedalusStormbow": 0.65,
         "Terraria/SoulDrain": 0.0,
         "Terraria/MeteorStaff": 0.39999998,
-        "Terraria/DD2SquireBetsySword": 0.0,
+        "Terraria/DD2SquireBetsySword": 1.0,
         "Terraria/StaffoftheFrostHydra": 0.0,
         "Terraria/DD2BallistraTowerT3Popper": 0.0,
         "Terraria/DD2BallistraTowerT2Popper": 0.0,
@@ -677,7 +677,10 @@
         "Terraria/TerraBlade2Shot": 0.5,
         "Terraria/Starfury": 0.0,
         "Terraria/SporeCloud": 1.0,
-        "Terraria/CursedDartFlame": 1.0
+        "Terraria/CursedDartFlame": 1.0,
+        "Terraria/ChlorophyteArrow": 0.0,
+        "Terraria/DD2SquireSonicBoom": 0.0,
+        "Terraria/ChargedBlasterLaser": 0.0
       },
       "ItemFalloff": {
         "Terraria/SniperRifle": {
@@ -713,7 +716,10 @@
         "Coefficient": 1.0,
         "Forward": 58.350002
       }
-    }
+    },
+    "GhostHealMultiplier": 0.79999995,
+    "GhostHealMultiplierWearers": 0.5,
+    "GhostHealMaxDistance": 1500.0
   },
   "PreventUse": [
     {
@@ -721,40 +727,12 @@
       "DisplayName": "Recall Potion"
     },
     {
-      "Name": "TeleportationPotion",
-      "DisplayName": "Teleportation Potion"
-    },
-    {
       "Name": "InvisibilityPotion",
       "DisplayName": "Invisibility Potion"
     },
     {
-      "Name": "PotionOfReturn",
-      "DisplayName": "Potion of Return"
-    },
-    {
-      "Name": "MagicConch",
-      "DisplayName": "Magic Conch"
-    },
-    {
-      "Name": "DemonConch",
-      "DisplayName": "Demon Conch"
-    },
-    {
       "Name": "ChlorophyteArrow",
       "DisplayName": "Chlorophyte Arrow"
-    },
-    {
-      "Name": "StrangeBrew",
-      "DisplayName": "Strange Brew"
-    },
-    {
-      "Name": "SoulDrain",
-      "DisplayName": "Life Drain"
-    },
-    {
-      "Name": "CosmicCarKey",
-      "DisplayName": "Cosmic Car Key"
     },
     {
       "Name": "PumpkinMoonMedallion",
@@ -769,12 +747,20 @@
       "DisplayName": "Flask of Nanites"
     },
     {
-      "Name": "BorealWoodHammer",
-      "DisplayName": "Boreal Wood Hammer"
-    },
-    {
       "Name": "BeetleShell",
       "DisplayName": "Beetle Shell"
+    },
+    {
+      "Name": "PotionOfReturn",
+      "DisplayName": "Potion of Return"
+    },
+    {
+      "Name": "TeleportationPotion",
+      "DisplayName": "Teleportation Potion"
+    },
+    {
+      "Name": "FrozenShield",
+      "DisplayName": "Frozen Shield"
     }
   ],
   "NpcSpawnAnnouncements": [
@@ -880,7 +866,7 @@
         "Value": 150
       },
       "ShootSpeed": {
-        "Value": 20.85
+        "Value": 10.7
       },
       "Scale": {
         "Value": 1.2
@@ -910,15 +896,16 @@
         "Value": 40
       }
     },
-    "Terraria/XenoStaff": {
-      "Damage": {
-        "Value": 26
+    "Terraria/XenoStaff": {},
+    "Terraria/MoneyTrough": {
+      "Value": {
+        "Value": 10000
       }
     }
   },
   "WorldGeneration": {
     "PlanteraBulbChanceDenominator": 20,
-    "ChlorophyteSpreadChanceModifier": 15
+    "ChlorophyteSpreadChanceModifier": 100
   },
   "PreventAutoReuse": [
     {
@@ -965,6 +952,9 @@
       },
       "Terraria/MartianSaucerCore": {
         "Value": 1.25
+      },
+      "Terraria/DukeFishron": {
+        "Value": 1.49
       }
     }
   },
@@ -1023,8 +1013,8 @@
       "Items": [
         {
           "Item": {
-            "Name": "FrozenShield",
-            "DisplayName": "Frozen Shield"
+            "Name": "FrozenTurtleShell",
+            "DisplayName": "Frozen Turtle Shell"
           },
           "Stack": 1
         }
@@ -1162,6 +1152,45 @@
           "Item": {
             "Name": "RecallPotion",
             "DisplayName": "Recall Potion"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/CordageGuide": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "Blowpipe",
+            "DisplayName": "Blowpipe"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "ClimbingClaws",
+            "DisplayName": "Climbing Claws"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "Aglet",
+            "DisplayName": "Aglet"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "Umbrella",
+            "DisplayName": "Umbrella"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "MoonLordLegs",
+            "DisplayName": "Moon Lord Legs"
           },
           "Stack": 1
         }
