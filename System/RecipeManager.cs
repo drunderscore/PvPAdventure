@@ -394,115 +394,161 @@ public class RecipeManager : ModSystem
                 RecipeGroup.RegisterGroup($"PvPAdventure:AnyHallowedMimicPrimaryExclude{itemID}", group);
             }
         }
-    }
 
-    public class RecipeSystem : ModSystem
-    {
-        public override void AddRecipes()
+        public class AnyMimic1 : ModSystem
         {
-            var shimmerCondition = new Condition(
-                Language.GetText("Mods.PvPAdventure.Conditions.NearShimmer"),
-                () => Main.LocalPlayer.adjShimmer
-            );
+            public static RecipeGroup AnyMimicPrimary;
+            public static int[] PrimaryItems => new int[] {
+            ItemID.DeadMansChest,
+            ItemID.TitanGlove,
+            ItemID.CrossNecklace,
+            ItemID.StarCloak,
+            ItemID.PhilosophersStone,
+            ItemID.MagicDagger,
+            ItemID.DualHook,
+        };
 
-            // Primary recipes (trophy remains icon)
-            foreach (int itemID in AnyGolem1.PrimaryItems.Where(id => id != ItemID.GolemMasterTrophy))
+            public override void AddRecipeGroups()
             {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyGolemPrimaryExclude{itemID}", 3)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
+                // Main group with trophy as first item (for icon)
+                AnyMimicPrimary = new RecipeGroup(() => Language.GetTextValue("Any Mimic Primary"), PrimaryItems);
+                RecipeGroup.RegisterGroup("PvPAdventure:AnyMimicPrimary", AnyMimicPrimary);
+
+                // Create exclude subgroups while maintaining icon as first item
+                foreach (int itemID in PrimaryItems.Where(id => id != ItemID.DeadMansChest))
+                {
+                    var validItems = PrimaryItems
+                        .Where(id => id != itemID && id != ItemID.DeadMansChest)
+                        .Prepend(ItemID.DeadMansChest) // Keep item first for icon
+                        .ToArray();
+
+                    RecipeGroup group = new RecipeGroup(
+                        () => Language.GetTextValue("Any Mimic Primary"),
+                        validItems
+                    );
+                    RecipeGroup.RegisterGroup($"PvPAdventure:AnyMimicPrimaryExclude{itemID}", group);
+                }
             }
+        }
 
-            // Secondary recipes (boss bag remains icon)
-            foreach (int itemID in AnyGolem2.SecondaryItems.Where(id => id != ItemID.GolemBossBag))
+        public class RecipeSystem : ModSystem
+        {
+            public override void AddRecipes()
             {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyGolemSecondaryExclude{itemID}", 3)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
-            }
+                var shimmerCondition = new Condition(
+                    Language.GetText("Mods.PvPAdventure.Conditions.NearShimmer"),
+                    () => Main.LocalPlayer.adjShimmer
+                );
 
-            // Primary QS recipes (Relic remains icon)
-            foreach (int itemID in AnyQueenSlime1.PrimaryItems.Where(id => id != ItemID.QueenSlimeMasterTrophy))
-            {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyQueenSlimePrimaryExclude{itemID}", 3)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
-            }
+                // Primary recipes (trophy remains icon)
+                foreach (int itemID in AnyGolem1.PrimaryItems.Where(id => id != ItemID.GolemMasterTrophy))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyGolemPrimaryExclude{itemID}", 3)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
 
-            // Primary Plantera recipes (Relic remains icon)
-            foreach (int itemID in AnyPlantera1.PrimaryItems.Where(id => id != ItemID.PlanteraMasterTrophy))
-            {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyPlanteraPrimaryExclude{itemID}", 4)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
-            }
+                // Secondary recipes (boss bag remains icon)
+                foreach (int itemID in AnyGolem2.SecondaryItems.Where(id => id != ItemID.GolemBossBag))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyGolemSecondaryExclude{itemID}", 3)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
 
-            // Primary Duke recipes (Relic remains icon)
-            foreach (int itemID in AnyDuke1.PrimaryItems.Where(id => id != ItemID.DukeFishronMasterTrophy))
-            {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyDukePrimaryExclude{itemID}", 3)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
-            }
+                // Primary QS recipes (Relic remains icon)
+                foreach (int itemID in AnyQueenSlime1.PrimaryItems.Where(id => id != ItemID.QueenSlimeMasterTrophy))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyQueenSlimePrimaryExclude{itemID}", 3)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
 
-            // Primary Empress recipes (Relic remains icon)
-            foreach (int itemID in AnyEmpress1.PrimaryItems.Where(id => id != ItemID.FairyQueenMasterTrophy))
-            {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyEmpressPrimaryExclude{itemID}", 2)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
-            }
+                // Primary Plantera recipes (Relic remains icon)
+                foreach (int itemID in AnyPlantera1.PrimaryItems.Where(id => id != ItemID.PlanteraMasterTrophy))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyPlanteraPrimaryExclude{itemID}", 3)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
 
-            // Primary Wall recipes (Relic remains icon)
-            foreach (int itemID in AnyWall1.PrimaryItems.Where(id => id != ItemID.WallofFleshMasterTrophy))
-            {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyWallPrimaryExclude{itemID}", 2)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
-            }
+                // Primary Duke recipes (Relic remains icon)
+                foreach (int itemID in AnyDuke1.PrimaryItems.Where(id => id != ItemID.DukeFishronMasterTrophy))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyDukePrimaryExclude{itemID}", 3)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
 
-            // Primary UFO  recipes (Relic remains icon)
-            foreach (int itemID in AnySaucer1.PrimaryItems.Where(id => id != ItemID.UFOMasterTrophy))
-            {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnySaucerPrimaryExclude{itemID}", 3)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
-            }
+                // Primary Empress recipes (Relic remains icon)
+                foreach (int itemID in AnyEmpress1.PrimaryItems.Where(id => id != ItemID.FairyQueenMasterTrophy))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyEmpressPrimaryExclude{itemID}", 2)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
 
-            // Primary Corro mimic recipes (Relic remains icon)
-            foreach (int itemID in AnyCorruptionMimic1.PrimaryItems.Where(id => id != ItemID.Fake_CorruptionChest))
-            {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyCorruptionMimicPrimaryExclude{itemID}", 3)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
-            }
+                // Primary Wall recipes (Relic remains icon)
+                foreach (int itemID in AnyWall1.PrimaryItems.Where(id => id != ItemID.WallofFleshMasterTrophy))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyWallPrimaryExclude{itemID}", 2)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
 
-            // Primary Hallow mimic recipes (Relic remains icon)
-            foreach (int itemID in AnyHallowedMimic1.PrimaryItems.Where(id => id != ItemID.Fake_HallowedChest))
-            {
-                Recipe.Create(itemID)
-                    .AddRecipeGroup($"PvPAdventure:AnyHallowedMimicPrimaryExclude{itemID}", 2)
-                    .AddCondition(shimmerCondition)
-                    .DisableDecraft()
-                    .Register();
+                // Primary UFO  recipes (Relic remains icon)
+                foreach (int itemID in AnySaucer1.PrimaryItems.Where(id => id != ItemID.UFOMasterTrophy))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnySaucerPrimaryExclude{itemID}", 3)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
+
+                // Primary Corro mimic recipes (Relic remains icon)
+                foreach (int itemID in AnyCorruptionMimic1.PrimaryItems.Where(id => id != ItemID.Fake_CorruptionChest))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyCorruptionMimicPrimaryExclude{itemID}", 3)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
+
+                // Primary Hallow mimic recipes (Relic remains icon)
+                foreach (int itemID in AnyHallowedMimic1.PrimaryItems.Where(id => id != ItemID.Fake_HallowedChest))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyHallowedMimicPrimaryExclude{itemID}", 2)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
+
+                // Primary Mimic recipes (Relic remains icon)
+                foreach (int itemID in AnyMimic1.PrimaryItems.Where(id => id != ItemID.DeadMansChest))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyMimicPrimaryExclude{itemID}", 3)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
             }
         }
     }
