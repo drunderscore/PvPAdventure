@@ -313,6 +313,12 @@ public class AdventureConfig : ModConfig
         [DefaultValue(30)] public int PlanteraBulbChanceDenominator { get; set; } = 30;
 
         [DefaultValue(8)] public int ChlorophyteSpreadChanceModifier { get; set; } = 8;
+
+        [Range(1, 1000)]
+        [DefaultValue(300)] public int ChlorophyteGrowChanceModifier { get; set; } = 300;
+
+        [Range(1, 999999)]
+        [DefaultValue(300)] public int ChlorophyteGrowLimitModifier { get; set; } = 300;
     }
 
     public WorldGenerationConfig WorldGeneration { get; set; } = new();

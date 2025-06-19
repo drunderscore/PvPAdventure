@@ -599,6 +599,16 @@ Mods: {
 					Label: Chlorophyte Spread Chance Modifier
 					Tooltip: ""
 				}
+
+				ChlorophyteGrowChanceModifier: {
+					Label: Chlorophyte Grow Chance Modifier
+					Tooltip: ""
+				}
+
+				ChlorophyteGrowLimitModifier: {
+					Label: Chlorophyte Grow Limit Modifier
+					Tooltip: ""
+				}
 			}
 
 			NpcBalanceConfig: {
