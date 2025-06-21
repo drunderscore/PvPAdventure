@@ -606,6 +606,14 @@ public class AdventurePlayer : ModPlayer
             Player.yoraiz0rEye = 33;
         }
 
+        // Check if wearing full Tiki Armor
+        if (Player.armor[0].type == ItemID.TikiMask &&
+            Player.armor[1].type == ItemID.TikiShirt &&
+            Player.armor[2].type == ItemID.TikiPants)
+        {
+            Player.noKnockback = true;
+        }
+
     }
     public override void OnRespawn()
     {
