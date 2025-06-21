@@ -57,7 +57,7 @@ public static class AdventureDropDatabase
 
             case NPCID.GiantTortoise:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 5);
+                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 4);
                 break;
 
             case NPCID.Necromancer:
