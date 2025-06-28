@@ -63,6 +63,14 @@ public class AdventureItem : GlobalItem
 
     public override void SetDefaults(Item item)
     {
+
+        if (item.type == ItemID.LihzahrdPowerCell)
+        {
+
+            item.rare = ItemRarityID.Yellow;
+        }
+
+
         var adventureConfig = ModContent.GetInstance<AdventureConfig>();
 
         if (RecallItems[item.type])
@@ -71,6 +79,8 @@ public class AdventureItem : GlobalItem
             item.useTime = recallTime * 2;
             item.useAnimation = recallTime * 2;
         }
+
+
 
         // Can't construct an ItemDefinition too early -- it'll call GetName and won't be graceful on failure.
         if (ItemID.Search.TryGetName(item.type, out var name) &&
@@ -182,4 +192,5 @@ public class AdventureItem : GlobalItem
 
     // This is likely unnecessary if we are overriding PrefixChance, but might as well.
     public override bool CanReforge(Item item) => !ModContent.GetInstance<AdventureConfig>().RemovePrefixes;
+
 }
