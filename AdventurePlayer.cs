@@ -590,6 +590,77 @@ public class AdventurePlayer : ModPlayer
         return true;
     }
 
+    private bool hadShinyStoneLastFrame;
+
+    public override void PostUpdateEquips()
+    {
+        // Check if Shiny Stone is equipped
+        bool hasShinyStone = IsShinyStoneEquipped();
+
+        // Apply debuff when first equipped or after respawn
+        if (hasShinyStone && !hadShinyStoneLastFrame)
+        {
+            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 3600); // 60 seconds
+        }
+
+        // Disable Shiny Stone effects while debuffed
+        if (Player.HasBuff(ModContent.BuffType<ShinyStoneHotswap>()))
+        {
+            Player.shinyStone = false;
+        }
+
+        hadShinyStoneLastFrame = hasShinyStone;
+
+        if (Player.beetleOffense)
+        {
+            Player.GetDamage<MeleeDamageClass>() += 0;
+            Player.GetAttackSpeed<MeleeDamageClass>() += 0;
+        }
+        else
+        {
+            // If we don't have the beetle offense set bonus, remove all possible buffs.
+            Player.ClearBuff(BuffID.BeetleMight1);
+            Player.ClearBuff(BuffID.BeetleMight2);
+            Player.ClearBuff(BuffID.BeetleMight3);
+        }
+
+        if (Player.HasBuff(BuffID.BeetleMight3))
+        {
+            // we apply the glowing eye effect from Yoraiz0rsSpell item
+            Player.yoraiz0rEye = 33;
+        }
+
+        // Check if wearing full Tiki Armor
+        if (Player.armor[0].type == ItemID.TikiMask &&
+            Player.armor[1].type == ItemID.TikiShirt &&
+            Player.armor[2].type == ItemID.TikiPants)
+        {
+            Player.noKnockback = true;
+        }
+
+    }
+    public override void OnRespawn()
+    {
+        // Re-apply debuff if equipped during respawn
+        if (IsShinyStoneEquipped())
+        {
+            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 900);
+        }
+    }
+
+    private bool IsShinyStoneEquipped()
+    {
+        for (int i = 3; i < 10; i++) // Check all accessory slots
+        {
+            if (Player.armor[i].type == ItemID.ShinyStone &&
+               (i < 7 || !Player.hideVisibleAccessory[i - 3]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         // Only play kill markers on clients that we hurt that aren't ourselves
@@ -874,16 +945,7 @@ public class AdventurePlayer : ModPlayer
         }
     }
 
-    public override void PostUpdateEquips()
-    {
-        if (!Player.beetleOffense)
-        {
-            // If we don't have the beetle offense set bonus, remove all possible buffs.
-            Player.ClearBuff(BuffID.BeetleMight1);
-            Player.ClearBuff(BuffID.BeetleMight2);
-            Player.ClearBuff(BuffID.BeetleMight3);
-        }
-    }
+
 
     private void SendPingPong()
     {
@@ -956,5 +1018,16 @@ public class AdventurePlayer : ModPlayer
     public override string ToString()
     {
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
+    }
+}
+public class ShinyStoneHotswap : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = true;
+        Main.buffNoTimeDisplay[Type] = false; // Show timer
     }
 }

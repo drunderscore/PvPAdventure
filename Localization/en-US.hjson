@@ -599,6 +599,16 @@ Mods: {
 					Label: Chlorophyte Spread Chance Modifier
 					Tooltip: ""
 				}
+
+				ChlorophyteGrowChanceModifier: {
+					Label: Chlorophyte Grow Chance Modifier
+					Tooltip: ""
+				}
+
+				ChlorophyteGrowLimitModifier: {
+					Label: Chlorophyte Grow Limit Modifier
+					Tooltip: ""
+				}
 			}
 
 			NpcBalanceConfig: {
@@ -695,17 +705,25 @@ Mods: {
 			True: "[c/FF0000:The game has been paused.]"
 			False: "[c/00FF00:The game has been resumed.]"
 		}
+
+		Buffs: {
+			ShinyStoneHotswap: {
+				DisplayName: Shiny Stone Hotswap
+				Description: Shiny Stone is charging up!
+			}
+		}
 	}
 }
 
 BuffDescription: {
 	BeetleMight1: Melee damage and speed increase by 15%
 	BeetleMight2: Melee damage and speed increase by 25%
-	BeetleMight3: Melee damage increase by 30% and melee speed increase by 50%
+	BeetleMight3: Melee damage increase by 30% and melee speed increase by 45%
 }
 
 ArmorSetBonus.BeetleDamage:
 	'''
+
 	Gain Beetles from player kills
 	Beetles increase your melee damage and attack speed
 	'''

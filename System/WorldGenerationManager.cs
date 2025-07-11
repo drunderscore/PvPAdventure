@@ -12,6 +12,7 @@ public class WorldGenerationManager : ModSystem
         IL_WorldGen.UpdateWorld_GrassGrowth += EditWorldGenUpdateWorld_GrassGrowth;
         IL_WorldGen.hardUpdateWorld += OnWorldGenhardUpdateWorld;
         IL_WorldGen.AddBuriedChest_int_int_int_bool_int_bool_ushort += EditWorldGenAddBuriedChest;
+        IL_WorldGen.Chlorophyte += OnWorldGenChlorophyte;
     }
 
     private void EditWorldGenUpdateWorld_GrassGrowth(ILContext il)
@@ -66,6 +67,16 @@ public class WorldGenerationManager : ModSystem
     {
         var cursor = new ILCursor(il);
 
+        // Find the call to WorldGen.genRand.Next(300)...
+        cursor.GotoNext(i => i.MatchCallvirt<UnifiedRandom>("Next") && i.Previous.MatchLdcI4(300));
+        //  ...and go back to the constant load...
+        cursor.Index -= 1;
+        // ... to remove it...
+        cursor.Remove()
+            // ...and replace it with a delegate that loads from our config instance.
+            .EmitDelegate(() =>
+                ModContent.GetInstance<AdventureConfig>().WorldGeneration.ChlorophyteGrowChanceModifier);
+
         // Find the call to WorldGen.genRand.Next(3)...
         cursor.GotoNext(i => i.MatchCallvirt<UnifiedRandom>("Next") && i.Previous.MatchLdcI4(3));
         //  ...and go back to the constant load...
@@ -75,6 +86,28 @@ public class WorldGenerationManager : ModSystem
             // ...and replace it with a delegate that loads from our config instance.
             .EmitDelegate(() =>
                 ModContent.GetInstance<AdventureConfig>().WorldGeneration.ChlorophyteSpreadChanceModifier);
+    }
+
+    private void OnWorldGenChlorophyte(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // Find the call to WorldGen.genRand.Next(300)...
+        cursor.GotoNext(i => i.MatchLdcI4(40));
+        // ... to remove it...
+        cursor.Remove()
+            // ...and replace it with a delegate that loads from our config instance.
+            .EmitDelegate(() =>
+                ModContent.GetInstance<AdventureConfig>().WorldGeneration.ChlorophyteGrowLimitModifier);
+        cursor.Index = 0;
+
+        cursor.GotoNext(i => i.MatchLdcI4(130));
+        // ... to remove it...
+        cursor.Remove()
+            // ...and replace it with a delegate that loads from our config instance.
+            .EmitDelegate(() =>
+                ModContent.GetInstance<AdventureConfig>().WorldGeneration.ChlorophyteGrowLimitModifier);
+
     }
 
     private void EditWorldGenAddBuriedChest(ILContext il)

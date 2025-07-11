@@ -1,8 +1,12 @@
 using System.Linq;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
+using System.Reflection;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Mono.Cecil.Cil;
 
 namespace PvPAdventure;
 
@@ -61,6 +65,11 @@ public static class AdventureDropDatabase
             case NPCID.MossHornet:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.Stinger, 1, 1);
+                break;
+
+            case NPCID.GiantTortoise:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 4);
                 break;
 
             case NPCID.Necromancer:
@@ -139,6 +148,11 @@ public static class AdventureDropDatabase
                     ModifyDropRate(drop, ItemID.ButterflyDust, 1, 1);
                 break;
 
+            case NPCID.GiantCursedSkull:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.ShadowJoustingLance, 1, 12);
+                break;
+
             case NPCID.Mothron:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.BrokenHeroSword, 1, 2);
@@ -147,6 +161,11 @@ public static class AdventureDropDatabase
             case NPCID.SkeletonArcher:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.MagicQuiver, 1, 30);
+                break;
+
+            case NPCID.RedDevil:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.UnholyTrident, 1, 10);
                 break;
 
             case NPCID.Lihzahrd:
@@ -263,15 +282,6 @@ public static class AdventureDropDatabase
                     ]));
                 break;
 
-            case NPCID.GiantTortoise:
-                foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 5);
-                break;
-
-            case NPCID.GiantCursedSkull:
-                foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.ShadowJoustingLance, 1, 12);
-                break;
         }
     }
 
@@ -294,5 +304,44 @@ public static class AdventureDropDatabase
             orig(self, entry);
 
         return entry;
+    }
+    public class PlanteraDropEdit : ModSystem
+    {
+        private static ILHook planteraHook;
+
+        public override void PostSetupContent()
+        {
+            // Apply the IL edit to change Plantera's first-time drop from item 758 to 1255
+            MethodInfo method = typeof(Terraria.GameContent.ItemDropRules.ItemDropDatabase).GetMethod("RegisterBoss_Plantera",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            planteraHook = new ILHook(method, PlanteraDropILEdit);
+        }
+
+        public override void Unload()
+        {
+            planteraHook?.Dispose();
+        }
+
+        private static void PlanteraDropILEdit(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            // Look for the instruction that loads the value 758 (Grenade Launcher ID)
+            // This should be: ldc.i4 758 (or ldc.i4.s 758 if it's a short form)
+            if (cursor.TryGotoNext(MoveType.Before,
+                i => i.MatchLdcI4(758))) // Match loading the constant 758
+            {
+                // Replace the 758 with 1255
+                cursor.Remove(); // Remove the ldc.i4 758 instruction
+                cursor.Emit(OpCodes.Ldc_I4, 1255); // Emit ldc.i4 1255 instead
+
+                ModContent.GetInstance<PvPAdventure>().Logger.Info("Successfully changed Plantera's first-time drop from item 758 to 1255");
+            }
+            else
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find item ID 758 in RegisterBoss_Plantera method");
+            }
+        }
     }
 }
