@@ -37,7 +37,7 @@ public class GameManager : ModSystem
 
             _currentPhase = value;
 
-            if (Main.netMode != NetmodeID.MultiplayerClient)
+            if (Main.dedServ)
                 NetMessage.SendData(MessageID.WorldData);
         }
     }
@@ -176,11 +176,15 @@ public class GameManager : ModSystem
         {
             case Phase.Waiting:
             {
-                // NOTE: We currently have one region, which is the spawn region. We'll use this assumption for now.
-                var spawnRegion = ModContent.GetInstance<RegionManager>().Regions[0];
-                spawnRegion.CanRandomTeleport = false;
-                spawnRegion.CanUseWormhole = false;
-                spawnRegion.CanExit = false;
+                var regions = ModContent.GetInstance<RegionManager>().Regions;
+                if (regions.Count >= 1)
+                {
+                    // NOTE: We currently have one region, which is the spawn region. We'll use this assumption for now.
+                    var spawnRegion = regions[0];
+                    spawnRegion.CanRandomTeleport = false;
+                    spawnRegion.CanUseWormhole = false;
+                    spawnRegion.CanExit = false;
+                }
 
                 // Remove everything that is hostile
                 foreach (var npc in Main.ActiveNPCs)
@@ -190,7 +194,9 @@ public class GameManager : ModSystem
 
                     npc.life = 0;
                     npc.netSkip = -1;
-                    NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
+
+                    if (Main.dedServ)
+                        NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
                 }
 
                 var spawnPosition = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
@@ -198,8 +204,10 @@ public class GameManager : ModSystem
                 {
                     player.Teleport(spawnPosition, TeleportationStyleID.RecallPotion);
                     // FIXME: I think this is right-ish?
-                    NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, player.whoAmI, spawnPosition.X,
-                        spawnPosition.Y, 2);
+
+                    if (Main.dedServ)
+                        NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, player.whoAmI, spawnPosition.X,
+                            spawnPosition.Y, 2);
                 }
 
                 UpdateFreezeTime(true);
@@ -225,9 +233,13 @@ public class GameManager : ModSystem
     {
         var freezeTimeModule = CreativePowerManager.Instance.GetPower<CreativePowers.FreezeTime>();
         freezeTimeModule.SetPowerInfo(value);
-        var packet = NetCreativePowersModule.PreparePacket(freezeTimeModule.PowerId, 1);
-        packet.Writer.Write(freezeTimeModule.Enabled);
-        NetManager.Instance.Broadcast(packet);
+
+        if (Main.dedServ)
+        {
+            var packet = NetCreativePowersModule.PreparePacket(freezeTimeModule.PowerId, 1);
+            packet.Writer.Write(freezeTimeModule.Enabled);
+            NetManager.Instance.Broadcast(packet);
+        }
     }
 
     public override void ClearWorld()
@@ -235,19 +247,10 @@ public class GameManager : ModSystem
         _startGameCountdown = null;
         TimeRemaining = 0;
 
-        if (Main.dedServ)
-        {
-            // If we are already waiting, we need to do a subset of things we would have done during phase change.
-            if (CurrentPhase == Phase.Waiting)
-            {
-                UpdateFreezeTime(true);
-            }
-            // ...but otherwise, simply changing our phase will handle it.
-            else
-            {
-                CurrentPhase = Phase.Waiting;
-            }
-        }
+        // Always run the on-change regardless of if it actually changes.
+        if (Main.netMode != NetmodeID.MultiplayerClient && CurrentPhase != Phase.Waiting)
+            OnPhaseChange(Phase.Waiting);
+        CurrentPhase = Phase.Waiting;
     }
 
     public override void NetSend(BinaryWriter writer)
