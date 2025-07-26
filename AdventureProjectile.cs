@@ -523,9 +523,23 @@ public class AdventureProjectile : GlobalProjectile
         }
     }
 
-    
+    public class MorningStarRange : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile projectile, bool lateInstantiation)
+        {
+            return projectile.type == ProjectileID.MaceWhip;
+        }
+        public override void SetDefaults(Projectile projectile)
+        {
+            if (projectile.type == ProjectileID.MaceWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.58f; // this is like 20% range
 
-   
+            }
+        }
+    }
+
+
 
     private void EditProjectileDamage(ILContext il)
     {
