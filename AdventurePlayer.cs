@@ -724,14 +724,6 @@ public class AdventurePlayer : ModPlayer
         }
 
     }
-    public override void OnRespawn()
-    {
-        // Re-apply debuff if equipped during respawn
-        if (IsShinyStoneEquipped())
-        {
-            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 900);
-        }
-    }
 
     private bool IsShinyStoneEquipped()
     {
