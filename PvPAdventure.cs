@@ -213,8 +213,7 @@ public class PvPAdventure : Mod
                 var npc = reader.ReadInt16();
                 var team = (Team)reader.ReadByte();
 
-                Main.npc[npc].GetGlobalNPC<AdventureNpc>()._lastHitTeam = team;
-                Logger.Info($"Strike team {team} from network");
+                Main.npc[npc].GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(team);
 
                 break;
             }

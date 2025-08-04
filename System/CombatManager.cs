@@ -100,8 +100,8 @@ public class CombatManager : ModSystem
 
             try
             {
-                Main.npc[reader.ReadInt16()].GetGlobalNPC<AdventureNpc>()._lastHitTeam =
-                    (Team)Main.player[playerNumber].team;
+                Main.npc[reader.ReadInt16()].GetGlobalNPC<AdventureNpc>()
+                    .MarkNextStrikeForTeam((Team)Main.player[playerNumber].team);
             }
             finally
             {
