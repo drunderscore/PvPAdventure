@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil.Cil;
@@ -20,6 +21,9 @@ public class AdventureNpc : GlobalNPC
 {
     public override bool InstancePerEntity => true;
     public DamageInfo LastDamageFromPlayer { get; set; }
+    private readonly Dictionary<Team, int> _life = new();
+    // FIXME: Not public
+    public Team? _lastHitTeam = Team.None;
 
     public class DamageInfo(byte who)
     {
@@ -49,6 +53,9 @@ public class AdventureNpc : GlobalNPC
         On_Item.CheckLavaDeath += OnItemCheckLavaDeath;
         // Prevent some global drop rules from being registered.
         On_ItemDropDatabase.RegisterToGlobal += AdventureDropDatabase.OnItemDropDatabaseRegisterToGlobal;
+
+        On_NPC.StrikeNPC_HitInfo_bool_bool += OnNPCStrikeNPC;
+        On_NetMessage.SendStrikeNPC += OnNetMessageSendStrikeNPC;
     }
 
     private void OnNPCScaleStats(On_NPC.orig_ScaleStats orig, NPC self, int? activeplayerscount,
@@ -115,6 +122,9 @@ public class AdventureNpc : GlobalNPC
                     entity.damage = (int)(entity.damage * multiplier.Value);
             }
         }
+
+        foreach (var team in Enum.GetValues<Team>())
+            _life[team] = entity.lifeMax;
     }
 
     public override void OnSpawn(NPC npc, IEntitySource source)
@@ -325,6 +335,66 @@ public class AdventureNpc : GlobalNPC
         }
     }
 
+    private int OnNPCStrikeNPC(On_NPC.orig_StrikeNPC_HitInfo_bool_bool orig, NPC self, NPC.HitInfo hit, bool fromNet,
+        bool noPlayerInteraction)
+    {
+        var adventureSelf = self.GetGlobalNPC<AdventureNpc>();
+        Mod.Logger.Info($"StrikeNPC {adventureSelf._lastHitTeam}");
+
+        if (adventureSelf._lastHitTeam == null)
+        {
+            foreach (var team in adventureSelf._life.Keys)
+                adventureSelf._life[team] = Math.Max(0, adventureSelf._life[team] - hit.Damage);
+
+            return orig(self, hit, fromNet, noPlayerInteraction);
+        }
+
+        var previousImmortal = self.immortal;
+
+        try
+        {
+            // FIXME: wrong place to get damage sorta, what abt InstantKill etc?
+            var teamLife = Math.Max(0, adventureSelf._life[adventureSelf._lastHitTeam.Value] - hit.Damage);
+            adventureSelf._life[adventureSelf._lastHitTeam.Value] = teamLife;
+
+            var damage = Math.Max(0, self.life - teamLife);
+            if (damage == 0)
+                self.immortal = true;
+
+            hit.Damage = damage;
+
+            return orig(self, hit, fromNet, noPlayerInteraction);
+        }
+        finally
+        {
+            self.immortal = previousImmortal;
+            if (!fromNet)
+                adventureSelf._lastHitTeam = null;
+            Mod.Logger.Info(string.Join(",", adventureSelf._life));
+        }
+    }
+
+    private void OnNetMessageSendStrikeNPC(On_NetMessage.orig_SendStrikeNPC orig, NPC npc, ref NPC.HitInfo hit,
+        int ignoreClient)
+    {
+        var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
+        Mod.Logger.Info($"SendStrikeNPC {adventureNpc._lastHitTeam}");
+
+        if (Main.dedServ && adventureNpc._lastHitTeam.HasValue)
+        {
+            var packet = Mod.GetPacket();
+            packet.Write((byte)AdventurePacketIdentifier.NpcStrikeTeam);
+            packet.Write((short)npc.whoAmI);
+            packet.Write((byte)adventureNpc._lastHitTeam.Value);
+
+            packet.Send(ignoreClient: ignoreClient);
+
+            adventureNpc._lastHitTeam = null;
+        }
+
+        orig(npc, ref hit, ignoreClient);
+    }
+
     public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
     {
         var config = ModContent.GetInstance<AdventureConfig>();
@@ -415,6 +485,26 @@ public class AdventureNpc : GlobalNPC
         AdventureDropDatabase.ModifyNPCLoot(npc, npcLoot);
     }
 
+    // Although this looks like a side effect (and therefore should use OnHit), the order of operations matters here.
+    // This needs to happen before the strike to the NPC.
+    public override void ModifyHitByItem(NPC npc, Player player, Item item, ref NPC.HitModifiers modifiers)
+    {
+        _lastHitTeam = (Team)player.team;
+        Mod.Logger.Info($"{npc.FullName} last hit by {_lastHitTeam}");
+    }
+
+    // Although this looks like a side effect (and therefore should use OnHit), the order of operations matters here.
+    // This needs to happen before the strike to the NPC.
+    public override void ModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
+    {
+        if (projectile.GetGlobalProjectile<AdventureProjectile>()
+                .EntitySource is EntitySource_Parent parent && parent.Entity is Player player)
+        {
+            _lastHitTeam = (Team)player.team;
+            Mod.Logger.Info($"{npc.FullName} last hit by {_lastHitTeam}");
+        }
+    }
+
     // This only runs on the attacking player
     public override void OnHitByItem(NPC npc, Player player, Item item, NPC.HitInfo hit, int damageDone)
     {
@@ -489,4 +579,17 @@ public class AdventureNpc : GlobalNPC
 
     public static bool IsPartOfTheDestroyer(short type) =>
         type is NPCID.TheDestroyer or NPCID.TheDestroyerBody or NPCID.TheDestroyerTail;
+
+    public class DumpNPCCommand : ModCommand
+    {
+        public override void Action(CommandCaller caller, string input, string[] args)
+        {
+            Mod.Logger.Info($"netMode {Main.netMode}");
+            foreach (var npc in Main.ActiveNPCs)
+                Mod.Logger.Info(string.Join(",", npc.GetGlobalNPC<AdventureNpc>()._life));
+        }
+
+        public override string Command => "dump";
+        public override CommandType Type => CommandType.Server;
+    }
 }
