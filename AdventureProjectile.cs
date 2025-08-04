@@ -11,7 +11,7 @@ namespace PvPAdventure;
 
 public class AdventureProjectile : GlobalProjectile
 {
-    private IEntitySource _entitySource;
+    public IEntitySource EntitySource { get; private set; }
     public override bool InstancePerEntity => true;
 
     public override void Load()
@@ -29,10 +29,10 @@ public class AdventureProjectile : GlobalProjectile
     {
         var adventureProjectile = projectile.GetGlobalProjectile<AdventureProjectile>();
 
-        if (adventureProjectile._entitySource is EntitySource_ItemUse entitySourceItemUse)
+        if (adventureProjectile.EntitySource is EntitySource_ItemUse entitySourceItemUse)
             return entitySourceItemUse;
 
-        if (adventureProjectile._entitySource is EntitySource_Parent entitySourceParent &&
+        if (adventureProjectile.EntitySource is EntitySource_Parent entitySourceParent &&
             entitySourceParent.Entity is Projectile projectileParent && projectileParent != lastProjectile)
             return GetItemUseSource(projectileParent, projectile);
 
@@ -55,7 +55,7 @@ public class AdventureProjectile : GlobalProjectile
 
     public override void OnSpawn(Projectile projectile, IEntitySource source)
     {
-        _entitySource = source;
+        EntitySource = source;
     }
 
     public override bool? CanCutTiles(Projectile projectile)
