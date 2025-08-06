@@ -339,6 +339,9 @@ public class AdventureNpc : GlobalNPC
     private int OnNPCStrikeNPC(On_NPC.orig_StrikeNPC_HitInfo_bool_bool orig, NPC self, NPC.HitInfo hit, bool fromNet,
         bool noPlayerInteraction)
     {
+        if (!Main.dedServ && !fromNet)
+            PlayHitMarker(hit.Damage);
+
         var adventureSelf = self.GetGlobalNPC<AdventureNpc>();
 
         // If this was a non-player strike, treat it as damage for all teams.
@@ -350,7 +353,9 @@ public class AdventureNpc : GlobalNPC
             return orig(self, hit, fromNet, noPlayerInteraction);
         }
 
+        // Always hide PvE combat text with a team, we display our own.
         hit.HideCombatText = true;
+
         CombatText.NewText(new Rectangle(
             (int)self.position.X,
             (int)self.position.Y,
@@ -369,7 +374,7 @@ public class AdventureNpc : GlobalNPC
 
             var damage = Math.Max(0, self.life - teamLife);
 
-            // Can't deal 0 damage, so help the game out a bit.
+            // Can't deal 0 damage!
             if (damage == 0)
                 self.immortal = true;
 
@@ -510,20 +515,6 @@ public class AdventureNpc : GlobalNPC
         if (projectile.GetGlobalProjectile<AdventureProjectile>().EntitySource is EntitySource_Parent parent &&
             parent.Entity is Player player)
             MarkNextStrikeForTeam((Team)player.team);
-    }
-
-    // This only runs on the attacking player
-    public override void OnHitByItem(NPC npc, Player player, Item item, NPC.HitInfo hit, int damageDone)
-    {
-        if (!Main.dedServ)
-            PlayHitMarker(damageDone);
-    }
-
-    // This only runs on the attacking player
-    public override void OnHitByProjectile(NPC npc, Projectile projectile, NPC.HitInfo hit, int damageDone)
-    {
-        if (!Main.dedServ)
-            PlayHitMarker(damageDone);
     }
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
