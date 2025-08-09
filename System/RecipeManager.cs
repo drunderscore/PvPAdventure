@@ -752,6 +752,44 @@ public class RecipeManager : ModSystem
                 }
             }
         }
+
+        public class AnyWood1 : ModSystem
+        {
+            public static RecipeGroup AnyWood;
+            public static int[] PrimaryItems => new int[] {
+            ItemID.Blowpipe,
+            ItemID.ClimbingClaws,
+            ItemID.Aglet,
+            ItemID.PortableStool,
+            ItemID.Umbrella,
+            ItemID.Spear,
+            ItemID.WoodenBoomerang,
+            ItemID.Radar
+
+        };
+
+            public override void AddRecipeGroups()
+            {
+                // Main group with trophy as first item (for icon)
+                AnyWood = new RecipeGroup(() => Language.GetTextValue("Any Wood Chest Item"), PrimaryItems);
+                RecipeGroup.RegisterGroup("PvPAdventure:AnyWood", AnyWood);
+
+                // Create exclude subgroups while maintaining icon as first item
+                foreach (int itemID in PrimaryItems.Where(id => id != ItemID.MimicBanner))
+                {
+                    var validItems = PrimaryItems
+                        .Where(id => id != itemID && id != ItemID.MimicBanner)
+                        .Prepend(ItemID.MimicBanner) // Keep item first for icon
+                        .ToArray();
+
+                    RecipeGroup group = new RecipeGroup(
+                        () => Language.GetTextValue("Any Wood Chest Item"),
+                        validItems
+                    );
+                    RecipeGroup.RegisterGroup($"PvPAdventure:AnyWoodExclude{itemID}", group);
+                }
+            }
+        }
         public class RecipeSystem : ModSystem
         {
             public override void AddRecipes()
@@ -929,6 +967,15 @@ public class RecipeManager : ModSystem
                 {
                     Recipe.Create(itemID)
                         .AddRecipeGroup($"PvPAdventure:AnySkyExclude{itemID}", 2)
+                        .AddCondition(shimmerCondition)
+                        .DisableDecraft()
+                        .Register();
+                }
+                // Primary Mimic recipes (Relic remains icon)
+                foreach (int itemID in AnyWood1.PrimaryItems.Where(id => id != ItemID.MimicBanner))
+                {
+                    Recipe.Create(itemID)
+                        .AddRecipeGroup($"PvPAdventure:AnyWoodExclude{itemID}", 2)
                         .AddCondition(shimmerCondition)
                         .DisableDecraft()
                         .Register();
