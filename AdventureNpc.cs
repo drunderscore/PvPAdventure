@@ -23,7 +23,7 @@ public class AdventureNpc : GlobalNPC
     public override bool InstancePerEntity => true;
     public DamageInfo LastDamageFromPlayer { get; set; }
 
-    private readonly Dictionary<Team, int> _life = new();
+    public Dictionary<Team, int> TeamLife { get; } = new();
     private Team? _strikeTeam;
 
     public class DamageInfo(byte who)
@@ -125,7 +125,18 @@ public class AdventureNpc : GlobalNPC
         }
 
         foreach (var team in Enum.GetValues<Team>())
-            _life[team] = entity.lifeMax;
+        {
+            if (team == Team.None)
+                continue;
+
+            TeamLife[team] = entity.lifeMax;
+        }
+    }
+
+    public override void BossHeadSlot(NPC npc, ref int index)
+    {
+        if (npc.type == NPCID.Paladin)
+            index = NPCID.Sets.BossHeadTextures[NPCID.KingSlime];
     }
 
     public override void OnSpawn(NPC npc, IEntitySource source)
@@ -345,10 +356,10 @@ public class AdventureNpc : GlobalNPC
         var adventureSelf = self.GetGlobalNPC<AdventureNpc>();
 
         // If this was a non-player strike, treat it as damage for all teams.
-        if (adventureSelf._strikeTeam == null)
+        if (adventureSelf._strikeTeam is null or Team.None)
         {
-            foreach (var team in adventureSelf._life.Keys)
-                adventureSelf._life[team] = Math.Max(0, adventureSelf._life[team] - hit.Damage);
+            foreach (var team in adventureSelf.TeamLife.Keys)
+                adventureSelf.TeamLife[team] = Math.Max(0, adventureSelf.TeamLife[team] - hit.Damage);
 
             return orig(self, hit, fromNet, noPlayerInteraction);
         }
@@ -369,8 +380,8 @@ public class AdventureNpc : GlobalNPC
         try
         {
             // FIXME: wrong place to get damage sorta, what abt InstantKill etc?
-            var teamLife = Math.Max(0, adventureSelf._life[adventureSelf._strikeTeam.Value] - hit.Damage);
-            adventureSelf._life[adventureSelf._strikeTeam.Value] = teamLife;
+            var teamLife = Math.Max(0, adventureSelf.TeamLife[adventureSelf._strikeTeam.Value] - hit.Damage);
+            adventureSelf.TeamLife[adventureSelf._strikeTeam.Value] = teamLife;
 
             var damage = Math.Max(0, self.life - teamLife);
 
