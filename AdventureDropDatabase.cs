@@ -313,12 +313,16 @@ public static class AdventureDropDatabase
         var disallowed = false;
 
         disallowed |= entry is MechBossSpawnersDropRule && adventureConfig.NpcBalance.NoMechanicalBossSummonDrops;
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.JungleKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CorruptionKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CrimsonKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.HallowedKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.FrozenKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.DungeonDesertKey };
+
+        if (adventureConfig.NpcBalance.NoBiomeKeyDrops)
+        {
+            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.JungleKey };
+            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CorruptionKey };
+            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CrimsonKey };
+            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.HallowedKey };
+            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.FrozenKey };
+            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.DungeonDesertKey };
+        }
 
         if (!disallowed)
             orig(self, entry);
