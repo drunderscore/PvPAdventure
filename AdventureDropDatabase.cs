@@ -6,7 +6,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure;
 
-public static class AdventureDropDatabase
+public class AdventureDropDatabase : ModSystem
 {
     private class AdventureIsPreHardmode : IItemDropRuleCondition
     {
@@ -19,6 +19,27 @@ public static class AdventureDropDatabase
         public bool CanDrop(DropAttemptInfo info) => !Main.hardMode;
         public bool CanShowItemDropInUI() => true;
         public string GetConditionDescription() => "Drops pre-hardmode";
+    }
+
+    public override void Load()
+    {
+        On_CommonCode._DropItemFromNPC += (orig, npc, id, stack, scattered) =>
+        {
+            // If we are the server, check if the drops should be instanced instead.
+            if (Main.dedServ && npc.boss)
+            {
+                var number = Item.NewItem(npc.GetSource_Loot(), npc.Hitbox, id, stack, true, -1);
+
+                // FIXME: magic time unit
+                Main.timeItemSlotCannotBeReusedFor[number] = 54000;
+                NetMessage.SendData(MessageID.InstancedItem, remoteClient: npc.lastInteraction, number: number);
+                Main.item[number].active = false;
+            }
+            else
+            {
+                orig(npc, id, stack, scattered);
+            }
+        };
     }
 
     private static void ModifyDropRate(IItemDropRule rule, int type, int numerator, int denominator)
