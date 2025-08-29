@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Humanizer;
 using Humanizer.Localisation;
 using Terraria;
@@ -11,6 +12,7 @@ using Terraria.Chat;
 using Terraria.GameContent.Creative;
 using Terraria.GameContent.Events;
 using Terraria.GameContent.NetModules;
+using Terraria.GameContent.UI.BigProgressBar;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.Net;
@@ -23,6 +25,9 @@ public class GameManager : ModSystem
     public int TimeRemaining { get; set; }
     private int? _startGameCountdown = 0;
     private Phase _currentPhase;
+
+    private static readonly FieldInfo _bigProgressBarSystemCurrentBarField =
+        typeof(BigProgressBarSystem).GetField("_currentBar", BindingFlags.NonPublic | BindingFlags.Instance);
 
     public Phase CurrentPhase
     {
@@ -251,6 +256,10 @@ public class GameManager : ModSystem
         if (Main.netMode != NetmodeID.MultiplayerClient && CurrentPhase != Phase.Waiting)
             OnPhaseChange(Phase.Waiting);
         CurrentPhase = Phase.Waiting;
+
+        // Terraria/TML bug: Remove boss bar when clearing the world
+        // FIXME: Don't put this here!
+        _bigProgressBarSystemCurrentBarField.SetValue(Main.BigBossProgressBar, null);
     }
 
     public override void NetSend(BinaryWriter writer)
