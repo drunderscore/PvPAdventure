@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Discord.Rest;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using PvPAdventure.System;
 using PvPAdventure.System.Client;
 using Terraria;
@@ -19,6 +21,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
+using Mono.Cecil.Cil;
 
 namespace PvPAdventure;
 
@@ -1136,6 +1139,49 @@ public class NewIchorPlayer : ModPlayer
         }
     }
 
+    public class TurtleDashPlayer : ModPlayer
+    {
+        private bool isWearingFullTurtleArmor = false;
+        private int dashingTimer = 0;
+
+        // Detect if player is in a dash state
+        public bool IsInADashState => (Player.dashDelay == -1 || dashingTimer > 0) && Player.grapCount <= 0;
+
+        public override void PostUpdateEquips()
+        {
+
+            isWearingFullTurtleArmor = Player.armor[0].type == ItemID.TurtleHelmet &&
+                                       Player.armor[1].type == ItemID.TurtleScaleMail &&
+                                       Player.armor[2].type == ItemID.TurtleLeggings;
+
+            if (isWearingFullTurtleArmor)
+            {
+                Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 15 * 60 * 60);
+            }
+        }
+
+        public override void PostUpdate()
+        {
+
+            if (Player.dashDelay == -1)
+            {
+                dashingTimer = 10;
+            }
+            else if (dashingTimer > 0)
+            {
+                dashingTimer--;
+            }
+
+            // Apply dash speed reduction if player has the debuff and is dashing
+            if (Player.HasBuff(ModContent.BuffType<BROISACHOJ>()) && IsInADashState)
+            {
+                float dashSpeedReduction = Player.velocity.X * 0.2f;
+                Player.velocity.X -= dashSpeedReduction;
+            }
+            //thanks mr fargo
+        }
+    }
+
     public override void PostUpdateEquips()
     {
 
@@ -1149,6 +1195,7 @@ public class NewIchorPlayer : ModPlayer
         }
     }
 }
+
 public class ShinyStoneHotswap : ModBuff
 {
     public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap";
@@ -1183,5 +1230,17 @@ public class NewIchorPlayerDebuff : ModBuff
         Main.buffNoSave[Type] = false;
         Main.buffNoTimeDisplay[Type] = false;
         Main.persistentBuff[Type] = false;
+    }
+}
+public class BROISACHOJ : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/BROISACHOJ";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
     }
 }

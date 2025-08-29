@@ -722,6 +722,11 @@ Mods: {
 				DisplayName: Ichor
 				Description: Defense reduced by one third
 			}
+
+			BROISACHOJ: {
+				DisplayName: BRO IS A CHOJ
+				Description: You are too much of a CHOJ to dash effectively
+			}
 		}
 	}
 }
