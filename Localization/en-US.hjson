@@ -721,12 +721,17 @@ Mods: {
 				DisplayName: Ichor
 				Description: Defense reduced by one third
 			}
+
+			BROISACHOJ: {
+				DisplayName: BRO IS A CHOJ
+				Description: You are too much of a CHOJ to dash effectively
+			}
 		}
 	}
 }
 
 BuffDescription: {
-	BeetleMight1: Melee damage and speed increase by 15% 
+	BeetleMight1: Melee damage and speed increase by 15%
 	BeetleMight2: Melee damage and speed increase by 25%
 	BeetleMight3: Melee damage increase by 30% and melee speed increase by 45%
 }
