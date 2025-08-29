@@ -1156,7 +1156,7 @@ public class NewIchorPlayer : ModPlayer
 
             if (isWearingFullTurtleArmor)
             {
-                Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 15 * 60 * 60);
+                Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
             }
         }
 
@@ -1175,7 +1175,7 @@ public class NewIchorPlayer : ModPlayer
             // Apply dash speed reduction if player has the debuff and is dashing
             if (Player.HasBuff(ModContent.BuffType<BROISACHOJ>()) && IsInADashState)
             {
-                float dashSpeedReduction = Player.velocity.X * 0.2f;
+                float dashSpeedReduction = Player.velocity.X * 0.05f;
                 Player.velocity.X -= dashSpeedReduction;
             }
             //thanks mr fargo
