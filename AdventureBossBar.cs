@@ -26,7 +26,7 @@ public class AdventureBossBar : GlobalBossBar
             if (team == Team.None)
                 continue;
 
-            var lifePercent = (float)life / npc.lifeMax;
+            var lifeRemaining = (float)life / npc.lifeMax;
 
             var frame = TextureAssets.Pvp[1].Value.Frame(6);
             frame.X = frame.Width * (int)team;
@@ -34,12 +34,12 @@ public class AdventureBossBar : GlobalBossBar
             // FIXME: looks silly when overlapping, because alpha colors blend...
             //              maybe stack/stagger them? that takes math.
             var color = Color.White;
-            color *= lifePercent.Remap(0.85f, 1.0f, 1.0f, 0.0f);
+            color *= lifeRemaining.Remap(0.85f, 1.0f, 1.0f, 0.0f);
 
             spriteBatch.Draw(
                 TextureAssets.Pvp[1].Value,
                 rectangle.TopLeft() + new Vector2(
-                    (bossBarPosition.X * lifePercent) - (frame.Height / 2.0f),
+                    (bossBarPosition.X * lifeRemaining) - (frame.Height / 2.0f),
                     -30.0f
                 ),
                 frame,
