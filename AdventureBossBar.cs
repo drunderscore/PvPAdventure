@@ -22,7 +22,7 @@ public class AdventureBossBar : GlobalBossBar
 
         foreach (var (team, life) in npc.GetGlobalNPC<AdventureNpc>().TeamLife)
         {
-            // This isn't normally possibly, but we for sure can't draw this.
+            // Shouldn't be possible, but be sure not to draw this.
             if (team == Team.None)
                 continue;
 
