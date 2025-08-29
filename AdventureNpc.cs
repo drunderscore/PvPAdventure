@@ -385,6 +385,12 @@ public class AdventureNpc : GlobalNPC
 
             var damage = Math.Max(0, self.life - teamLife);
 
+            foreach (var team in adventureSelf.TeamLife.Keys)
+            {
+                if (team != adventureSelf._strikeTeam.Value)
+                    adventureSelf.TeamLife[team] = Math.Max(self.life, adventureSelf.TeamLife[team] - (damage / 2));
+            }
+
             // Can't deal 0 damage!
             if (damage == 0)
                 self.immortal = true;
