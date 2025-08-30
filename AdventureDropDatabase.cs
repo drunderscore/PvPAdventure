@@ -173,6 +173,8 @@ public static class AdventureDropDatabase
             case NPCID.RedDevil:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.UnholyTrident, 1, 10);
+                    npcLoot.Add(ItemDropRule.Common(ItemID.FireFeather, 10, 1, 1));
+
                 break;
 
             case NPCID.Lihzahrd:
@@ -327,15 +329,31 @@ public static class AdventureDropDatabase
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.FishronWings) ||
                     drop is DropBasedOnExpertMode);
 
-                //what does this do?
-                npcLoot.Add(new LeadingConditionRule(AdventureIsPreHardmode.The))
-                    .OnSuccess(ItemDropRule.OneFromOptions(1, [
-                        ItemID.TempestStaff,
-                        ItemID.RazorbladeTyphoon,
-                        ItemID.BubbleGun,
-                        ItemID.Tsunami,
-                        ItemID.Flairon
-                    ]));
+                break;
+
+            case NPCID.TheDestroyer:
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 18, 30));
+
+                break;
+
+            case NPCID.SkeletronPrime:
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 18, 30));
+
+                break;
+
+            case NPCID.Retinazer or NPCID.Spazmatism:
+                {
+                    npcLoot.RemoveWhere(drop => (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
+
+                    LeadingConditionRule noTwin = new(new Conditions.MissingTwin());
+                    npcLoot.Add(noTwin);
+
+                    noTwin.OnSuccess(ItemDropRule.Common(ItemID.HallowedBar, 1, 3, 3));
+                }
                 break;
         }
     }
