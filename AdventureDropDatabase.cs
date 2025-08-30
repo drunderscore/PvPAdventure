@@ -7,6 +7,9 @@ using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Mono.Cecil.Cil;
+using static PvPAdventure.System.BountyManager;
+using static PvPAdventure.AdventureConfig;
+using PvPAdventure.System;
 
 namespace PvPAdventure;
 
@@ -190,14 +193,12 @@ public static class AdventureDropDatabase
                 break;
 
             case NPCID.Golem:
-                // Remove Picksaw drop, and the big loot pool -- we will re-create it ourselves.
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.Picksaw) ||
                     drop is LeadingConditionRule);
 
                 var stynger = ItemDropRule.Common(ItemID.Stynger);
                 stynger.OnSuccess(ItemDropRule.Common(ItemID.StyngerBolt, 1, 60, 99), hideLootReport: true);
-
                 npcLoot.Add(
                     new OneFromRulesRule(1,
                         stynger,
@@ -208,34 +209,39 @@ public static class AdventureDropDatabase
                     )
                 );
 
-                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+
+                var golemFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.Golem));
+                golemFirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.Picksaw, 1));
+                golemFirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
                     ItemID.Picksaw,
                     ItemID.EyeoftheGolem,
                     ItemID.SunStone,
-                    ItemID.ShinyStone)
-                );
+                    ItemID.ShinyStone
+                ));
 
+                npcLoot.Add(golemFirstKillRule);
                 break;
 
             case NPCID.QueenSlimeBoss:
-                // Remove the big loot pool -- we will re-create it ourselves.
+
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
-                // Always get two pieces of the Crystal Ninja set, separate from other drops.
-                npcLoot.Add(ItemDropRule.FewFromOptions(2, 1,
+
+                var firstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.QueenSlimeBoss));
+                firstKillRule.OnSuccess(ItemDropRule.Common(ItemID.QueenSlimeMountSaddle, 1));
+                firstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
+                    ItemID.Smolstar,
+                    ItemID.QueenSlimeHook,
+                    ItemID.QueenSlimeMountSaddle
+                ));
+
+                npcLoot.Add(ItemDropRule.FewFromOptions(3, 1,
                         ItemID.CrystalNinjaHelmet,
                         ItemID.CrystalNinjaChestplate,
                         ItemID.CrystalNinjaLeggings
                     )
                 );
-
-                npcLoot.Add(ItemDropRule.OneFromOptions(1,
-                        ItemID.Smolstar,
-                        ItemID.QueenSlimeHook,
-                        ItemID.QueenSlimeMountSaddle
-                    )
-                );
-
+                npcLoot.Add(firstKillRule);
                 break;
 
             case NPCID.QueenBee:
@@ -277,14 +283,15 @@ public static class AdventureDropDatabase
                 break;
 
             case NPCID.WallofFlesh:
-                npcLoot.Add(new LeadingConditionRule(AdventureIsPreHardmode.The))
-                    .OnSuccess(ItemDropRule.OneFromOptions(1, [
-                        ItemID.WarriorEmblem,
-                        ItemID.RangerEmblem,
-                        ItemID.SorcererEmblem,
-                        ItemID.SummonerEmblem
-                    ]));
 
+                var wofFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.WallofFlesh));
+                wofFirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
+                    ItemID.WarriorEmblem,
+                    ItemID.RangerEmblem,
+                    ItemID.SorcererEmblem,
+                    ItemID.SummonerEmblem
+                ));
+                npcLoot.Add(wofFirstKillRule);
                 break;
 
             case NPCID.DukeFishron:
@@ -293,6 +300,7 @@ public static class AdventureDropDatabase
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.FishronWings) ||
                     drop is DropBasedOnExpertMode);
 
+                //what does this do?
                 npcLoot.Add(new LeadingConditionRule(AdventureIsPreHardmode.The))
                     .OnSuccess(ItemDropRule.OneFromOptions(1, [
                         ItemID.TempestStaff,
