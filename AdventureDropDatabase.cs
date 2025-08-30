@@ -244,6 +244,26 @@ public static class AdventureDropDatabase
                 npcLoot.Add(firstKillRule);
                 break;
 
+            case NPCID.Plantera:
+
+                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
+
+
+                var planteraFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.Plantera));
+                planteraFirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.VenusMagnum, 1));
+                planteraFirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
+                    ItemID.LeafBlower,
+                    ItemID.Seedler,
+                    ItemID.NettleBurst,
+                    ItemID.FlowerPow,
+                    ItemID.GrenadeLauncher,
+                    ItemID.WaspGun
+                    
+                  
+                ));
+                npcLoot.Add(planteraFirstKillRule);
+                break;
+
             case NPCID.QueenBee:
                 // Remove Honey Comb drop, and the big loot pool -- we will re-create it ourselves.
                 npcLoot.RemoveWhere(drop =>
