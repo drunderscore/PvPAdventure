@@ -264,6 +264,13 @@ public static class AdventureDropDatabase
                     ModifyDropRate(drop, ItemID.SkeletronHand, 1, 1);
                 break;
 
+            case NPCID.IceTortoise:
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.FrozenTurtleShell));
+                npcLoot.Add(ItemDropRule.Common(ItemID.FrozenKey, 40, 1, 1));
+                foreach (var drop in drops) ;
+                break;
+
             case NPCID.MartianSaucerCore:
                 foreach (var drop in drops)
                 {
@@ -297,12 +304,6 @@ public static class AdventureDropDatabase
         var disallowed = false;
 
         disallowed |= entry is MechBossSpawnersDropRule && adventureConfig.NpcBalance.NoMechanicalBossSummonDrops;
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.JungleKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CorruptionKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CrimsonKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.HallowedKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.FrozenKey };
-        disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.DungeonDesertKey };
 
         if (!disallowed)
             orig(self, entry);
@@ -345,6 +346,77 @@ public static class AdventureDropDatabase
             else
             {
                 ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find item ID 758 in RegisterBoss_Plantera method");
+            }
+        }
+    }
+
+    public class BiomeKeyDropEdit : ModSystem
+    {
+        private static ILHook globalRulesHook;
+
+        public override void PostSetupContent()
+        {
+            // Apply the IL edit to change biome key drop rates from 2500 to 250
+            MethodInfo method = typeof(Terraria.GameContent.ItemDropRules.ItemDropDatabase).GetMethod("RegisterGlobalRules",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            globalRulesHook = new ILHook(method, BiomeKeyDropILEdit);
+        }
+
+        public override void Unload()
+        {
+            globalRulesHook?.Dispose();
+        }
+
+        private static void BiomeKeyDropILEdit(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            int replacedCount = 0;
+
+            // We need to find all instances of 2500 that are used for biome keys
+            // We'll look for the pattern where 2500 is loaded right before creating ItemDropWithConditionRule
+            while (cursor.TryGotoNext(MoveType.Before,
+                i => i.MatchLdcI4(2500))) // Match loading the constant 2500
+            {
+                // Check if this is followed by the pattern that indicates it's a biome key drop rule
+                // We'll look ahead to see if this leads to ItemDropWithConditionRule construction
+                var nextCursor = cursor.Clone();
+                bool isBiomeKey = false;
+
+                // Look for the ItemDropWithConditionRule constructor call within a reasonable distance
+                for (int j = 0; j < 250; j++) // Look ahead up to 250 instructions
+                {
+                    if (nextCursor.TryGotoNext(MoveType.After,
+                        i => i.MatchNewobj<Terraria.GameContent.ItemDropRules.ItemDropWithConditionRule>()))
+                    {
+                        isBiomeKey = true;
+                        break;
+                    }
+                }
+
+                if (isBiomeKey)
+                {
+                    // Replace the 2500 with 250
+                    cursor.Remove(); // Remove the ldc.i4 2500 instruction
+                    cursor.Emit(OpCodes.Ldc_I4, 250); // Emit ldc.i4 250 instead
+                    replacedCount++;
+
+                    ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced biome key drop rate 2500 with 250 (instance {replacedCount})");
+                }
+                else
+                {
+                    // Move past this 2500 if it's not a biome key
+                    cursor.Index++;
+                }
+            }
+
+            if (replacedCount > 0)
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully changed {replacedCount} biome key drop rates from 2500 to 250");
+            }
+            else
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find any biome key drop rates (2500) in RegisterGlobalRules method");
             }
         }
     }
