@@ -270,6 +270,13 @@ public static class AdventureDropDatabase
                     ModifyDropRate(drop, ItemID.SkeletronHand, 1, 1);
                 break;
 
+            case NPCID.IceTortoise:
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.FrozenTurtleShell));
+                npcLoot.Add(ItemDropRule.Common(ItemID.FrozenKey, 40, 1, 1));
+                foreach (var drop in drops) ;
+                break;
+
             case NPCID.MartianSaucerCore:
                 foreach (var drop in drops)
                 {
@@ -322,57 +329,80 @@ public static class AdventureDropDatabase
 
         disallowed |= entry is MechBossSpawnersDropRule && adventureConfig.NpcBalance.NoMechanicalBossSummonDrops;
 
-        if (adventureConfig.NpcBalance.NoBiomeKeyDrops)
-        {
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.JungleKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CorruptionKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CrimsonKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.HallowedKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.FrozenKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.DungeonDesertKey };
-        }
-
         if (!disallowed)
             orig(self, entry);
 
         return entry;
     }
-    public class PlanteraDropEdit : ModSystem
+
+
+    public class BiomeKeyDropEdit : ModSystem
     {
-        private static ILHook planteraHook;
+        private static ILHook globalRulesHook;
 
         public override void PostSetupContent()
         {
-            // Apply the IL edit to change Plantera's first-time drop from item 758 to 1255
-            MethodInfo method = typeof(Terraria.GameContent.ItemDropRules.ItemDropDatabase).GetMethod("RegisterBoss_Plantera",
+            // Apply the IL edit to change biome key drop rates from 2500 to 250
+            MethodInfo method = typeof(Terraria.GameContent.ItemDropRules.ItemDropDatabase).GetMethod("RegisterGlobalRules",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-
-            planteraHook = new ILHook(method, PlanteraDropILEdit);
+            globalRulesHook = new ILHook(method, BiomeKeyDropILEdit);
         }
 
         public override void Unload()
         {
-            planteraHook?.Dispose();
+            globalRulesHook?.Dispose();
         }
 
-        private static void PlanteraDropILEdit(ILContext il)
+        private static void BiomeKeyDropILEdit(ILContext il)
         {
             ILCursor cursor = new ILCursor(il);
 
-            // Look for the instruction that loads the value 758 (Grenade Launcher ID)
-            // This should be: ldc.i4 758 (or ldc.i4.s 758 if it's a short form)
-            if (cursor.TryGotoNext(MoveType.Before,
-                i => i.MatchLdcI4(758))) // Match loading the constant 758
-            {
-                // Replace the 758 with 1255
-                cursor.Remove(); // Remove the ldc.i4 758 instruction
-                cursor.Emit(OpCodes.Ldc_I4, 1255); // Emit ldc.i4 1255 instead
+            int replacedCount = 0;
 
-                ModContent.GetInstance<PvPAdventure>().Logger.Info("Successfully changed Plantera's first-time drop from item 758 to 1255");
+            // We need to find all instances of 2500 that are used for biome keys
+            // We'll look for the pattern where 2500 is loaded right before creating ItemDropWithConditionRule
+            while (cursor.TryGotoNext(MoveType.Before,
+                i => i.MatchLdcI4(2500))) // Match loading the constant 2500
+            {
+                // Check if this is followed by the pattern that indicates it's a biome key drop rule
+                // We'll look ahead to see if this leads to ItemDropWithConditionRule construction
+                var nextCursor = cursor.Clone();
+                bool isBiomeKey = false;
+
+                // Look for the ItemDropWithConditionRule constructor call within a reasonable distance
+                for (int j = 0; j < 250; j++) // Look ahead up to 250 instructions
+                {
+                    if (nextCursor.TryGotoNext(MoveType.After,
+                        i => i.MatchNewobj<Terraria.GameContent.ItemDropRules.ItemDropWithConditionRule>()))
+                    {
+                        isBiomeKey = true;
+                        break;
+                    }
+                }
+
+                if (isBiomeKey)
+                {
+                    // Replace the 2500 with 250
+                    cursor.Remove(); // Remove the ldc.i4 2500 instruction
+                    cursor.Emit(OpCodes.Ldc_I4, 250); // Emit ldc.i4 250 instead
+                    replacedCount++;
+
+                    ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced biome key drop rate 2500 with 250 (instance {replacedCount})");
+                }
+                else
+                {
+                    // Move past this 2500 if it's not a biome key
+                    cursor.Index++;
+                }
+            }
+
+            if (replacedCount > 0)
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully changed {replacedCount} biome key drop rates from 2500 to 250");
             }
             else
             {
-                ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find item ID 758 in RegisterBoss_Plantera method");
+                ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find any biome key drop rates (2500) in RegisterGlobalRules method");
             }
         }
     }
