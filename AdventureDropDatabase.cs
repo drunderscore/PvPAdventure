@@ -8,6 +8,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Mono.Cecil.Cil;
 
+
 namespace PvPAdventure;
 
 public static class AdventureDropDatabase
@@ -25,8 +26,10 @@ public static class AdventureDropDatabase
         public string GetConditionDescription() => "Drops pre-hardmode";
     }
 
+
     private static void ModifyDropRate(IItemDropRule rule, int type, int numerator, int denominator)
     {
+        
         if (rule is CommonDrop commonDrop && commonDrop.itemId == type)
         {
             commonDrop.chanceNumerator = numerator;
@@ -170,6 +173,7 @@ public static class AdventureDropDatabase
             case NPCID.RedDevil:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.UnholyTrident, 1, 10);
+                    npcLoot.Add(ItemDropRule.Common(ItemID.FireFeather, 8, 1, 1));
                 break;
 
             case NPCID.Lihzahrd:
@@ -286,6 +290,30 @@ public static class AdventureDropDatabase
                     ]));
                 break;
 
+            case NPCID.TheDestroyer:
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 18, 30));
+
+            break;
+
+            case NPCID.SkeletronPrime:
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 18, 30));
+
+            break;
+
+            case NPCID.Retinazer or NPCID.Spazmatism:
+                {
+                    npcLoot.RemoveWhere(drop => (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
+
+                    LeadingConditionRule noTwin = new(new Conditions.MissingTwin());
+                    npcLoot.Add(noTwin);
+
+                    noTwin.OnSuccess(ItemDropRule.Common(ItemID.HallowedBar, 1, 3, 3));
+                }
+                break;
         }
     }
 
