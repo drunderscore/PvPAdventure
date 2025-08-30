@@ -335,7 +335,6 @@ public class AdventureConfig : ModConfig
         public Dictionary<NPCDefinition, FloatStatistic> LifeMaxMultipliers { get; set; } = new();
         public Dictionary<NPCDefinition, FloatStatistic> DamageMultipliers { get; set; } = new();
         public bool NoMechanicalBossSummonDrops { get; set; }
-        public bool NoBiomeKeyDrops { get; set; }
     }
 
     public NpcBalanceConfig NpcBalance { get; set; } = new();
