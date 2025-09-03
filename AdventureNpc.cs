@@ -135,12 +135,6 @@ public class AdventureNpc : GlobalNPC
         }
     }
 
-    public override void BossHeadSlot(NPC npc, ref int index)
-    {
-        if (npc.type == NPCID.Paladin)
-            index = NPCID.Sets.BossHeadTextures[NPCID.KingSlime];
-    }
-
     public override void OnSpawn(NPC npc, IEntitySource source)
     {
         // Due to the new bound NPCs we've added, it's now possible that a town NPC moving in can conflict with a bound
