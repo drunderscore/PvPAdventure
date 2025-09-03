@@ -115,23 +115,28 @@ public class AdventureNpc : GlobalNPC
         // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
         if (NPCID.Search.TryGetName(entity.type, out var name))
         {
+            var definition = new NPCDefinition(name);
+
             {
-                if (adventureConfig.NpcBalance.LifeMaxMultipliers.TryGetValue(new(name), out var multiplier))
+                if (adventureConfig.NpcBalance.LifeMaxMultipliers.TryGetValue(definition, out var multiplier))
                     entity.lifeMax = (int)(entity.lifeMax * multiplier.Value);
             }
 
             {
-                if (adventureConfig.NpcBalance.DamageMultipliers.TryGetValue(new(name), out var multiplier))
+                if (adventureConfig.NpcBalance.DamageMultipliers.TryGetValue(definition, out var multiplier))
                     entity.damage = (int)(entity.damage * multiplier.Value);
             }
-        }
 
-        foreach (var team in Enum.GetValues<Team>())
-        {
-            if (team == Team.None)
-                continue;
+            if (adventureConfig.Combat.TeamLifeNpcs.Contains(definition))
+            {
+                foreach (var team in Enum.GetValues<Team>())
+                {
+                    if (team == Team.None)
+                        continue;
 
-            TeamLife[team] = entity.lifeMax;
+                    TeamLife[team] = entity.lifeMax;
+                }
+            }
         }
     }
 
@@ -343,6 +348,7 @@ public class AdventureNpc : GlobalNPC
         }
     }
 
+    // FIXME: This only covers strikes, would be good to support DOTs/debuffs
     private int OnNPCStrikeNPC(On_NPC.orig_StrikeNPC_HitInfo_bool_bool orig, NPC self, NPC.HitInfo hit, bool fromNet,
         bool noPlayerInteraction)
     {
@@ -354,16 +360,6 @@ public class AdventureNpc : GlobalNPC
         // If this isn't from the network, then we did this ourselves.
         if (!fromNet)
             adventureSelf._lastStrikeTeam = (Team)Main.LocalPlayer.team;
-
-        var message =
-            $"Strike {self.whoAmI}/{self.type}/{self.FullName} for {hit.Damage}, last strike team {adventureSelf._lastStrikeTeam}";
-
-        Mod.Logger.Info(message);
-
-        if (Main.dedServ)
-            Console.WriteLine(message);
-        else
-            ChatHelper.DisplayMessage(NetworkText.FromLiteral(message), Color.White, byte.MaxValue);
 
         // If this was a non-player strike, treat it as damage for all teams.
         if (adventureSelf._lastStrikeTeam == Team.None)
@@ -389,26 +385,29 @@ public class AdventureNpc : GlobalNPC
 
         try
         {
-            // FIXME: wrong place to get damage sorta, what abt InstantKill etc?
-            var teamLife = Math.Max(0, adventureSelf.TeamLife[adventureSelf._lastStrikeTeam] - hit.Damage);
-            adventureSelf.TeamLife[adventureSelf._lastStrikeTeam] = teamLife;
-
-            var damage = Math.Max(0, self.life - teamLife);
-
-            foreach (var team in adventureSelf.TeamLife.Keys)
+            if (adventureSelf.TeamLife.TryGetValue(adventureSelf._lastStrikeTeam, out var life))
             {
-                if (team != adventureSelf._lastStrikeTeam)
-                    adventureSelf.TeamLife[team] = Math.Max(self.life, adventureSelf.TeamLife[team] - (damage / 2));
+                // FIXME: wrong place to get damage sorta, what abt InstantKill etc?
+                var teamLife = Math.Max(0, life - hit.Damage);
+                adventureSelf.TeamLife[adventureSelf._lastStrikeTeam] = teamLife;
+
+                var damage = Math.Max(0, self.life - teamLife);
+
+                foreach (var team in adventureSelf.TeamLife.Keys)
+                {
+                    if (team != adventureSelf._lastStrikeTeam)
+                        adventureSelf.TeamLife[team] = Math.Max(self.life, adventureSelf.TeamLife[team] - (damage / 2));
+                }
+
+                // Can't deal 0 damage!
+                if (damage == 0)
+                    self.immortal = true;
+
+                hit.Damage = damage;
+
+                // FIXME: holy fuck
+                self.netUpdate = true;
             }
-
-            // Can't deal 0 damage!
-            if (damage == 0)
-                self.immortal = true;
-
-            hit.Damage = damage;
-
-            // FIXME: holy fuck
-            self.netUpdate = true;
 
             return orig(self, hit, fromNet, noPlayerInteraction);
         }
