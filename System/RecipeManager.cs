@@ -13,71 +13,6 @@ public class RecipeManager : ModSystem
 
     public override void AddRecipes()
     {
-        CreateDuplicateDropRecipe([
-            ItemID.FlyingKnife,
-            ItemID.DaedalusStormbow,
-            ItemID.CrystalVileShard,
-            ItemID.IlluminantHook
-        ], 3);
-
-        CreateDuplicateDropRecipe([
-            ItemID.ChainGuillotines,
-            ItemID.DartRifle,
-            ItemID.ClingerStaff,
-            ItemID.PutridScent,
-            ItemID.WormHook
-        ], 3);
-
-        CreateDuplicateDropRecipe([
-            ItemID.FetidBaghnakhs,
-            ItemID.DartPistol,
-            ItemID.SoulDrain,
-            ItemID.FleshKnuckles,
-            ItemID.TendonHook
-        ], 3);
-
-        CreateDuplicateDropRecipe([
-            ItemID.TitanGlove,
-            ItemID.MagicDagger,
-            ItemID.StarCloak,
-            ItemID.CrossNecklace,
-            ItemID.PhilosophersStone,
-            ItemID.DualHook
-        ], 3);
-
-        CreateDuplicateDropRecipe([
-            ItemID.RazorbladeTyphoon,
-            ItemID.Flairon,
-            ItemID.BubbleGun,
-            ItemID.Tsunami,
-            ItemID.TempestStaff
-        ], 3);
-
-        CreateDuplicateDropRecipe([
-            ItemID.BreakerBlade,
-            ItemID.ClockworkAssaultRifle,
-            ItemID.LaserRifle,
-            ItemID.FireWhip
-        ], 3);
-
-        CreateDuplicateDropRecipe([
-            ItemID.GolemFist,
-            ItemID.PossessedHatchet,
-            ItemID.Stynger,
-            ItemID.StaffofEarth,
-            ItemID.HeatRay,
-            ItemID.SunStone,
-            ItemID.EyeoftheGolem
-        ], 3);
-
-        CreateDuplicateDropRecipe([
-            ItemID.Flairon,
-            ItemID.Tsunami,
-            ItemID.RazorbladeTyphoon,
-            ItemID.BubbleGun,
-            ItemID.TempestStaff
-        ], 3);
-
         Recipe.Create(ItemID.Headstone)
             .AddIngredient(ItemID.StoneBlock, 50)
             .AddTile(TileID.HeavyWorkBench)
@@ -143,22 +78,6 @@ public class RecipeManager : ModSystem
 
     }
 
-    private static void CreateDuplicateDropRecipe(List<int> lootTable, int amountOfMaterial)
-    {
-        for (var i = 0; i < lootTable.Count; i++)
-        {
-            for (var j = 0; j < lootTable.Count; j++)
-            {
-                if (j == i)
-                    continue;
-
-                Recipe.Create(lootTable[i])
-                    .AddIngredient(lootTable[j], amountOfMaterial)
-                    .DisableDecraft()
-                    .Register();
-            }
-        }
-    }
     public class AnyGolem1 : ModSystem
     {
         public static RecipeGroup AnyGolemPrimary;
@@ -813,7 +732,7 @@ public class RecipeManager : ModSystem
                 foreach (int itemID in AnyQueenSlime1.PrimaryItems.Where(id => id != ItemID.QueenSlimeMasterTrophy))
                 {
                     Recipe.Create(itemID)
-                        .AddRecipeGroup($"PvPAdventure:AnyQueenSlimePrimaryExclude{itemID}", 3)
+                        .AddRecipeGroup($"PvPAdventure:AnyQueenSlimePrimaryExclude{itemID}", 2)
                         .AddCondition(shimmerCondition)
                         .DisableDecraft()
                         .Register();
