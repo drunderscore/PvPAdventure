@@ -64,6 +64,14 @@ public class RecipeManager : ModSystem
             .AddTile(TileID.AdamantiteForge)
             .Register();
 
+        Recipe.Create(ItemID.Megashark)
+            .AddIngredient(ItemID.SharkFin, 1)
+            .AddIngredient(ItemID.IllegalGunParts, 1)
+            .AddIngredient(ItemID.Minishark, 1)
+            .AddIngredient(ItemID.SoulofMight, 20)
+            .AddTile(TileID.MythrilAnvil)
+            .Register();
+
         //temp sudo terrablade
         Recipe.Create(ItemID.TrueNightsEdge)
             .AddIngredient(ItemID.SoulofFright, 20)
