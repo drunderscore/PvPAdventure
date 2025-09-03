@@ -594,42 +594,98 @@ public class AdventurePlayer : ModPlayer
     public class AncientChiselHotswap : ModPlayer
     {
         private bool hadAncientChiselLastFrame;
-        private int ancientChiselSlot = -1; // Track which slot had the Ancient Chisel
+        private int ancientChiselSlot = -1;
         private int disabledSlot = -1; // Track which slot is currently disabled
+        private Item[] lastFrameArmor = new Item[10];
+        private int periodicBuffTimer = 0; // Timer for periodic buff application
 
         public override void PostUpdateEquips()
         {
-            // Check if Ancient Chisel is equipped and in which slot
+            if (lastFrameArmor[3] == null)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    lastFrameArmor[i] = new Item();
+                }
+            }
+
             int currentChiselSlot = GetAncientChiselSlot();
             bool hasAncientChisel = currentChiselSlot != -1;
 
-            // Apply debuff when Ancient Chisel is removed (transition from equipped to not equipped)
-            if (hadAncientChiselLastFrame && !hasAncientChisel)
+            // Check if Ancient Chisel was just equipped (wasn't equipped last frame, but is now)
+            if (!hadAncientChiselLastFrame && hasAncientChisel)
             {
-                Player.AddBuff(ModContent.BuffType<AncientChiselHotswapBuff>(), 15 * 60 * 60); // 60 seconds
-                disabledSlot = ancientChiselSlot; // Remember which slot to disable
+                Player.AddBuff(ModContent.BuffType<AncientChiselHotswapBuff>(), 15 * 60 * 60);
+                disabledSlot = currentChiselSlot;
+                periodicBuffTimer = 0; // Reset timer when first equipped
             }
 
-            // Update tracking variables for next frame
+            // Check if Ancient Chisel was just removed
+            if (hadAncientChiselLastFrame && !hasAncientChisel)
+            {
+                Player.AddBuff(ModContent.BuffType<AncientChiselHotswapBuff>(), 15 * 60 * 60);
+                disabledSlot = ancientChiselSlot;
+                periodicBuffTimer = 0; // Reset timer when removed
+            }
+
+            // Handle periodic buff application while equipped
             if (hasAncientChisel)
             {
+                periodicBuffTimer++;
+
+                // Apply buff every 59 seconds (59 * 60 ticks)
+                if (periodicBuffTimer >= 59 * 60)
+                {
+                    Player.AddBuff(ModContent.BuffType<AncientChiselHotswapBuff>(), 15 * 60 * 60);
+                    disabledSlot = currentChiselSlot;
+                    periodicBuffTimer = 0; // Reset timer
+                }
+
                 ancientChiselSlot = currentChiselSlot;
                 hadAncientChiselLastFrame = true;
             }
             else
             {
                 hadAncientChiselLastFrame = false;
+                periodicBuffTimer = 0; // Reset timer when not equipped
             }
 
-            // Handle disabled slot restrictions
             if (Player.HasBuff(ModContent.BuffType<AncientChiselHotswapBuff>()) && disabledSlot != -1)
             {
-                RestrictDisabledSlot(disabledSlot);
+                PreventSlotPlacement(disabledSlot);
             }
             else if (!Player.HasBuff(ModContent.BuffType<AncientChiselHotswapBuff>()))
             {
-                // Reset disabled slot when debuff expires
                 disabledSlot = -1;
+            }
+
+            for (int i = 3; i < 10; i++)
+            {
+                lastFrameArmor[i] = Player.armor[i].Clone();
+            }
+        }
+
+        private void PreventSlotPlacement(int slotIndex)
+        {
+            if (slotIndex >= 3 && slotIndex < 10)
+            {
+                Item currentItem = Player.armor[slotIndex];
+                Item lastFrameItem = lastFrameArmor[slotIndex];
+                bool slotChanged = currentItem.type != lastFrameItem.type || currentItem.stack != lastFrameItem.stack;
+                bool isNotAncientChisel = currentItem.type != ItemID.AncientChisel;
+                bool wasEmpty = lastFrameItem.IsAir;
+                bool nowHasItem = !currentItem.IsAir;
+
+                if (slotChanged && isNotAncientChisel && (wasEmpty && nowHasItem))
+                {
+                    Item rejectedItem = currentItem.Clone();
+                    Player.armor[slotIndex] = lastFrameItem.Clone(); // Restore previous state
+
+                    if (Main.netMode != NetmodeID.Server) // Only on client/singleplayer
+                    {
+                        Item leftoverItem = Player.GetItem(Player.whoAmI, rejectedItem, GetItemSettings.InventoryEntityToPlayerInventorySettings);
+                    }
+                }
             }
         }
 
@@ -644,30 +700,6 @@ public class AdventurePlayer : ModPlayer
                 }
             }
             return -1;
-        }
-
-        private void RestrictDisabledSlot(int slotIndex)
-        {
-            if (slotIndex >= 3 && slotIndex < 10)
-            {
-                // Check if there's a non-Ancient Chisel item in the disabled slot
-                if (!Player.armor[slotIndex].IsAir && Player.armor[slotIndex].type != ItemID.AncientChisel)
-                {
-                    // Remove non-Ancient Chisel items from the disabled slot
-                    // and return them to the player's inventory
-                    Item removedItem = Player.armor[slotIndex].Clone();
-                    Player.armor[slotIndex] = new Item(); // Clear the slot
-
-                    // Try to add the item to the player's inventory
-                    Item leftoverItem = Player.GetItem(Player.whoAmI, removedItem, GetItemSettings.InventoryEntityToPlayerInventorySettings);
-
-                    // If inventory is full and there are leftovers, drop them on the ground
-                    if (!leftoverItem.IsAir)
-                    {
-                        Player.DropItem(Player.GetSource_Misc("SlotRestriction"), Player.position, ref leftoverItem);
-                    }
-                }
-            }
         }
 
         // Method to check if a slot is disabled (can be used by other systems)
