@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Mono.Cecil.Cil;
@@ -15,6 +16,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
+using Terraria.ModLoader.IO;
 
 namespace PvPAdventure;
 
@@ -24,7 +26,7 @@ public class AdventureNpc : GlobalNPC
     public DamageInfo LastDamageFromPlayer { get; set; }
 
     public Dictionary<Team, int> TeamLife { get; } = new();
-    private Team? _strikeTeam;
+    private Team _lastStrikeTeam;
 
     public class DamageInfo(byte who)
     {
@@ -355,8 +357,22 @@ public class AdventureNpc : GlobalNPC
 
         var adventureSelf = self.GetGlobalNPC<AdventureNpc>();
 
+        // If this isn't from the network, then we did this ourselves.
+        if (!fromNet)
+            adventureSelf._lastStrikeTeam = (Team)Main.LocalPlayer.team;
+
+        var message =
+            $"Strike {self.whoAmI}/{self.type}/{self.FullName} for {hit.Damage}, last strike team {adventureSelf._lastStrikeTeam}";
+
+        Mod.Logger.Info(message);
+
+        if (Main.dedServ)
+            Console.WriteLine(message);
+        else
+            ChatHelper.DisplayMessage(NetworkText.FromLiteral(message), Color.White, byte.MaxValue);
+
         // If this was a non-player strike, treat it as damage for all teams.
-        if (adventureSelf._strikeTeam is null or Team.None)
+        if (adventureSelf._lastStrikeTeam == Team.None)
         {
             foreach (var team in adventureSelf.TeamLife.Keys)
                 adventureSelf.TeamLife[team] = Math.Max(0, adventureSelf.TeamLife[team] - hit.Damage);
@@ -372,7 +388,7 @@ public class AdventureNpc : GlobalNPC
             (int)self.position.Y,
             self.width,
             self.height
-        ), Main.teamColor[(int)adventureSelf._strikeTeam.Value], hit.Damage, hit.Crit);
+        ), Main.teamColor[(int)adventureSelf._lastStrikeTeam], hit.Damage, hit.Crit);
 
         // Save the previous immortal value, we might clobber it later.
         var previousImmortal = self.immortal;
@@ -380,14 +396,14 @@ public class AdventureNpc : GlobalNPC
         try
         {
             // FIXME: wrong place to get damage sorta, what abt InstantKill etc?
-            var teamLife = Math.Max(0, adventureSelf.TeamLife[adventureSelf._strikeTeam.Value] - hit.Damage);
-            adventureSelf.TeamLife[adventureSelf._strikeTeam.Value] = teamLife;
+            var teamLife = Math.Max(0, adventureSelf.TeamLife[adventureSelf._lastStrikeTeam] - hit.Damage);
+            adventureSelf.TeamLife[adventureSelf._lastStrikeTeam] = teamLife;
 
             var damage = Math.Max(0, self.life - teamLife);
 
             foreach (var team in adventureSelf.TeamLife.Keys)
             {
-                if (team != adventureSelf._strikeTeam.Value)
+                if (team != adventureSelf._lastStrikeTeam)
                     adventureSelf.TeamLife[team] = Math.Max(self.life, adventureSelf.TeamLife[team] - (damage / 2));
             }
 
@@ -397,14 +413,14 @@ public class AdventureNpc : GlobalNPC
 
             hit.Damage = damage;
 
+            // FIXME: holy fuck
+            self.netUpdate = true;
+
             return orig(self, hit, fromNet, noPlayerInteraction);
         }
         finally
         {
             self.immortal = previousImmortal;
-
-            if (!fromNet)
-                adventureSelf._strikeTeam = null;
         }
     }
 
@@ -413,16 +429,14 @@ public class AdventureNpc : GlobalNPC
     {
         var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
 
-        if (Main.dedServ && adventureNpc._strikeTeam.HasValue)
+        if (Main.dedServ)
         {
             var packet = Mod.GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.NpcStrikeTeam);
             packet.Write((short)npc.whoAmI);
-            packet.Write((byte)adventureNpc._strikeTeam.Value);
+            packet.Write((byte)adventureNpc._lastStrikeTeam);
 
             packet.Send(ignoreClient: ignoreClient);
-
-            adventureNpc._strikeTeam = null;
         }
 
         orig(npc, ref hit, ignoreClient);
@@ -518,22 +532,6 @@ public class AdventureNpc : GlobalNPC
         AdventureDropDatabase.ModifyNPCLoot(npc, npcLoot);
     }
 
-    // Although this looks like a side effect (and therefore should use OnHit), the order of operations matters here.
-    // This needs to happen before the strike to the NPC.
-    public override void ModifyHitByItem(NPC npc, Player player, Item item, ref NPC.HitModifiers modifiers)
-    {
-        MarkNextStrikeForTeam((Team)player.team);
-    }
-
-    // Although this looks like a side effect (and therefore should use OnHit), the order of operations matters here.
-    // This needs to happen before the strike to the NPC.
-    public override void ModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
-    {
-        if (projectile.GetGlobalProjectile<AdventureProjectile>().EntitySource is EntitySource_Parent parent &&
-            parent.Entity is Player player)
-            MarkNextStrikeForTeam((Team)player.team);
-    }
-
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
     {
         if (ModContent.GetInstance<GameManager>()?.CurrentPhase == GameManager.Phase.Waiting)
@@ -582,9 +580,38 @@ public class AdventureNpc : GlobalNPC
         return true;
     }
 
+    // FIXME: might be costly!
+    public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    {
+        var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
+
+        binaryWriter.Write((byte)adventureNpc.TeamLife.Count);
+        foreach (var (team, life) in adventureNpc.TeamLife)
+        {
+            binaryWriter.Write((byte)team);
+            binaryWriter.Write7BitEncodedInt(life);
+        }
+    }
+
+    // FIXME: might be costly!
+    public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+    {
+        var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
+        adventureNpc.TeamLife.Clear();
+
+        var count = binaryReader.ReadByte();
+        for (var i = 0; i < count; i++)
+        {
+            var team = binaryReader.ReadByte();
+            var life = binaryReader.Read7BitEncodedInt();
+
+            adventureNpc.TeamLife[(Team)team] = life;
+        }
+    }
+
     public void MarkNextStrikeForTeam(Team team)
     {
-        _strikeTeam = team;
+        _lastStrikeTeam = team;
     }
 
     private static void PlayHitMarker(int damage)
