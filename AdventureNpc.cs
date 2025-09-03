@@ -424,6 +424,7 @@ public class AdventureNpc : GlobalNPC
 
         if (Main.dedServ)
         {
+            // FIXME: Proper packet
             var packet = Mod.GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.NpcStrikeTeam);
             packet.Write((short)npc.whoAmI);
