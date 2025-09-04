@@ -127,7 +127,7 @@ public class AdventureNpc : GlobalNPC
                     entity.damage = (int)(entity.damage * multiplier.Value);
             }
 
-            if (adventureConfig.Combat.TeamLifeNpcs.Contains(definition))
+            if (adventureConfig.Combat.TeamLifeNpcs.ContainsKey(definition))
             {
                 foreach (var team in Enum.GetValues<Team>())
                 {
@@ -393,10 +393,15 @@ public class AdventureNpc : GlobalNPC
 
                 var damage = Math.Max(0, self.life - teamLife);
 
+                var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+                var npcDefinition = new NPCDefinition(self.type);
+
                 foreach (var team in adventureSelf.TeamLife.Keys)
                 {
                     if (team != adventureSelf._lastStrikeTeam)
-                        adventureSelf.TeamLife[team] = Math.Max(self.life, adventureSelf.TeamLife[team] - (damage / 2));
+                        adventureSelf.TeamLife[team] = Math.Max(self.life,
+                            (int)(adventureSelf.TeamLife[team] -
+                                  (damage * adventureConfig.Combat.TeamLifeNpcs[npcDefinition].Share)));
                 }
 
                 // Can't deal 0 damage!

@@ -196,8 +196,13 @@ public class AdventureConfig : ModConfig
         [DefaultValue(3000.0f)]
         public float GhostHealMaxDistance { get; set; }
 
+        public class TeamLifeConfig
+        {
+            [DefaultValue(0.5f)] public float Share { get; set; } = 0.5f;
+        }
+
         [Description("Require each team to deal the maximum life in total damage to kill this NPC")]
-        public List<NPCDefinition> TeamLifeNpcs { get; set; } = new();
+        public Dictionary<NPCDefinition, TeamLifeConfig> TeamLifeNpcs { get; set; } = new();
     }
 
     public class Statistics : IEquatable<Statistics>
