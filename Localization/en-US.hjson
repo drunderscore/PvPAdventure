@@ -304,6 +304,11 @@ Mods: {
 					Label: Ghost Heal Multiplier Wearers
 					Tooltip: ""
 				}
+
+				TeamLifeNpcs: {
+					Label: Team Life Npcs
+					Tooltip: ""
+				}
 			}
 
 			AdventureClientConfig: {
@@ -660,6 +665,15 @@ Mods: {
 				}
 
 				Tooltip: ""
+			}
+
+			TeamLifeConfig: {
+				Tooltip: ""
+
+				Share: {
+					Label: Share
+					Tooltip: ""
+				}
 			}
 		}
 

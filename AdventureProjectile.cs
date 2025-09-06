@@ -11,8 +11,8 @@ namespace PvPAdventure;
 
 public class AdventureProjectile : GlobalProjectile
 {
-    private IEntitySource _entitySource;
     public override bool InstancePerEntity => true;
+    private IEntitySource _entitySource;
 
     public override void Load()
     {
