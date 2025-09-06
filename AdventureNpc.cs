@@ -25,7 +25,12 @@ public class AdventureNpc : GlobalNPC
     public override bool InstancePerEntity => true;
     public DamageInfo LastDamageFromPlayer { get; set; }
 
-    public Dictionary<Team, int> TeamLife { get; } = new();
+    private readonly Dictionary<Team, int> _teamLife = new();
+    public IReadOnlyDictionary<Team, int> TeamLife => _teamLife;
+
+    private readonly HashSet<Team> _hasBeenHurtByTeam = new();
+    public IReadOnlySet<Team> HasBeenHurtByTeam => _hasBeenHurtByTeam;
+
     private Team _lastStrikeTeam;
 
     public class DamageInfo(byte who)
@@ -134,7 +139,7 @@ public class AdventureNpc : GlobalNPC
                     if (team == Team.None)
                         continue;
 
-                    TeamLife[team] = entity.lifeMax;
+                    _teamLife[team] = entity.lifeMax;
                 }
             }
         }
@@ -359,13 +364,13 @@ public class AdventureNpc : GlobalNPC
 
         // If this isn't from the network, then we did this ourselves.
         if (!fromNet)
-            adventureSelf._lastStrikeTeam = (Team)Main.LocalPlayer.team;
+            adventureSelf.MarkNextStrikeForTeam((Team)Main.LocalPlayer.team);
 
         // If this was a non-player strike, treat it as damage for all teams.
         if (adventureSelf._lastStrikeTeam == Team.None)
         {
             foreach (var team in adventureSelf.TeamLife.Keys)
-                adventureSelf.TeamLife[team] = Math.Max(0, adventureSelf.TeamLife[team] - hit.Damage);
+                adventureSelf._teamLife[team] = Math.Max(0, adventureSelf._teamLife[team] - hit.Damage);
 
             return orig(self, hit, fromNet, noPlayerInteraction);
         }
@@ -385,11 +390,11 @@ public class AdventureNpc : GlobalNPC
 
         try
         {
-            if (adventureSelf.TeamLife.TryGetValue(adventureSelf._lastStrikeTeam, out var life))
+            if (adventureSelf._teamLife.TryGetValue(adventureSelf._lastStrikeTeam, out var life))
             {
                 // FIXME: wrong place to get damage sorta, what abt InstantKill etc?
                 var teamLife = Math.Max(0, life - hit.Damage);
-                adventureSelf.TeamLife[adventureSelf._lastStrikeTeam] = teamLife;
+                adventureSelf._teamLife[adventureSelf._lastStrikeTeam] = teamLife;
 
                 var damage = Math.Max(0, self.life - teamLife);
 
@@ -399,8 +404,8 @@ public class AdventureNpc : GlobalNPC
                 foreach (var team in adventureSelf.TeamLife.Keys)
                 {
                     if (team != adventureSelf._lastStrikeTeam)
-                        adventureSelf.TeamLife[team] = Math.Max(self.life,
-                            (int)(adventureSelf.TeamLife[team] -
+                        adventureSelf._teamLife[team] = Math.Max(self.life,
+                            (int)(adventureSelf._teamLife[team] -
                                   (damage * adventureConfig.Combat.TeamLifeNpcs[npcDefinition].Share)));
                 }
 
@@ -596,21 +601,24 @@ public class AdventureNpc : GlobalNPC
     public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
     {
         var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
-        adventureNpc.TeamLife.Clear();
+        adventureNpc._teamLife.Clear();
 
-        var count = binaryReader.ReadByte();
-        for (var i = 0; i < count; i++)
         {
-            var team = binaryReader.ReadByte();
-            var life = binaryReader.Read7BitEncodedInt();
+            var count = binaryReader.ReadByte();
+            for (var i = 0; i < count; i++)
+            {
+                var team = (Team)binaryReader.ReadByte();
+                var life = binaryReader.Read7BitEncodedInt();
 
-            adventureNpc.TeamLife[(Team)team] = life;
+                adventureNpc._teamLife[team] = life;
+            }
         }
     }
 
     public void MarkNextStrikeForTeam(Team team)
     {
         _lastStrikeTeam = team;
+        _hasBeenHurtByTeam.Add(team);
     }
 
     private static void PlayHitMarker(int damage)
