@@ -21,28 +21,19 @@ public class AdventureBossBar : GlobalBossBar
             Utils.CenteredRectangle(Main.ScreenSize.ToVector2() * new Vector2(0.5f, 1f) + new Vector2(0f, -50f),
                 bossBarPosition.ToVector2());
 
-        // FIXME: This should just be a sorted dictionary by value so we can render all of them in the correct Z order.
-        var highest = npc.GetGlobalNPC<AdventureNpc>().TeamLife.MinBy(v => v.Value);
+        var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
 
-        foreach (var (team, life) in npc.GetGlobalNPC<AdventureNpc>().TeamLife)
+        // FIXME: This sort order should be pre-calculated for us so we don't need to do it all the time!
+        var teamLife = adventureNpc.TeamLife
+            .Where(kv => adventureNpc.HasBeenHurtByTeam.Contains(kv.Key))
+            .OrderByDescending(kv => kv.Value);
+
+        foreach (var (team, life) in teamLife)
         {
             // Shouldn't be possible, but be sure not to draw this.
             if (team == Team.None)
                 continue;
 
-            // Don't draw the highest team just yet -- ensure it draws in front of everyone else.
-            if (team == highest.Key)
-                continue;
-
-            Draw(team, life);
-        }
-
-        Draw(highest.Key, highest.Value);
-
-        return;
-
-        void Draw(Team team, int life)
-        {
             var lifeRemaining = (float)life / npc.lifeMax;
 
             var frame = TextureAssets.Pvp[1].Value.Frame(6);
