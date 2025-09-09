@@ -154,7 +154,8 @@ public class DeathSummaryManager : ModSystem
             var segments = new UIElement
             {
                 Width = { Percent = 1.0f },
-                Height = { Percent = 0.5f },
+                Height = { Percent = 0.4f },
+                // FIXME: does MinHeight work here??
             };
             // FIXME: Fixed order for damage classes.
             var left = 0.0f;
@@ -165,7 +166,7 @@ public class DeathSummaryManager : ModSystem
                 {
                     Left = { Percent = left },
                     Width = { Percent = percent },
-                    Height = { Percent = 0.80f }
+                    Height = { Percent = 1.0f }
                 };
 
                 segments.Append(segment);
