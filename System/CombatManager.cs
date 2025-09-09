@@ -100,8 +100,8 @@ public class CombatManager : ModSystem
 
             try
             {
-                Main.npc[reader.ReadInt16()].GetGlobalNPC<AdventureNpc>()
-                    .MarkNextStrikeForTeam((Team)Main.player[playerNumber].team);
+                var npc = Main.npc[reader.ReadInt16()];
+                npc.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(npc, (Team)Main.player[playerNumber].team);
             }
             finally
             {

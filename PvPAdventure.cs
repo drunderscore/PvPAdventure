@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
@@ -210,10 +211,17 @@ public class PvPAdventure : Mod
             }
             case AdventurePacketIdentifier.NpcStrikeTeam:
             {
-                var npc = reader.ReadInt16();
-                var team = (Team)reader.ReadByte();
+                var npcIndex = reader.ReadInt16();
+                var team = reader.ReadByte();
 
-                Main.npc[npc].GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(team);
+                if (npcIndex < 0 || npcIndex >= Main.maxNPCs)
+                    return;
+
+                if (team >= Enum.GetValues<Team>().Length)
+                    return;
+
+                var npc = Main.npc[npcIndex];
+                npc.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(npc, (Team)team);
 
                 break;
             }
