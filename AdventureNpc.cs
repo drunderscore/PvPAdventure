@@ -132,6 +132,7 @@ public class AdventureNpc : GlobalNPC
                     entity.damage = (int)(entity.damage * multiplier.Value);
             }
 
+            // FIXME: What if config changes mid game? might desync form the config which might break some contracts?
             if (adventureConfig.Combat.TeamLifeNpcs.ContainsKey(definition))
             {
                 foreach (var team in Enum.GetValues<Team>())
