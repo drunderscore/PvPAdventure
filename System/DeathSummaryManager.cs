@@ -99,12 +99,12 @@ public class DeathSummaryManager : ModSystem
         }
     }
 
-    public class NPCDamageSource : IDamageSource
+    public class NpcDamageSource : IDamageSource
     {
-        public static readonly NPCDamageSource The = new();
+        public static readonly NpcDamageSource The = new();
         public string Name => "NPC damage";
 
-        private NPCDamageSource()
+        private NpcDamageSource()
         {
         }
     }
@@ -140,7 +140,7 @@ public class DeathSummaryManager : ModSystem
                 else if (info.DamageSource.SourceNPCIndex != -1)
                 {
                     total += info.Damage;
-                    var damageSource = NPCDamageSource.The;
+                    var damageSource = NpcDamageSource.The;
                     damageSources[damageSource] = damageSources.GetValueOrDefault(damageSource, 0) + info.Damage;
                 }
             }
