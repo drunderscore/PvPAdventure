@@ -132,6 +132,7 @@ public class AdventureNpc : GlobalNPC
                     entity.damage = (int)(entity.damage * multiplier.Value);
             }
 
+            // FIXME: What if config changes mid game? might desync form the config which might break some contracts?
             if (adventureConfig.Combat.TeamLifeNpcs.ContainsKey(definition))
             {
                 foreach (var team in Enum.GetValues<Team>())
@@ -360,17 +361,21 @@ public class AdventureNpc : GlobalNPC
         if (!Main.dedServ && !fromNet)
             PlayHitMarker(hit.Damage);
 
-        var adventureSelf = self.GetGlobalNPC<AdventureNpc>();
+        var adventureNpc = self.GetGlobalNPC<AdventureNpc>();
+        var realLifeNpc = self.realLife != -1 ? Main.npc[self.realLife] : null;
+        var realLifeAdventureNpc = realLifeNpc?.GetGlobalNPC<AdventureNpc>();
+        var teamLife = realLifeAdventureNpc?._teamLife ?? adventureNpc._teamLife;
+        var currentLife = realLifeNpc?.life ?? self.life;
 
         // If this isn't from the network, then we did this ourselves.
         if (!fromNet)
-            adventureSelf.MarkNextStrikeForTeam((Team)Main.LocalPlayer.team);
+            adventureNpc.MarkNextStrikeForTeam(self, (Team)Main.LocalPlayer.team);
 
         // If this was a non-player strike, treat it as damage for all teams.
-        if (adventureSelf._lastStrikeTeam == Team.None)
+        if (adventureNpc._lastStrikeTeam == Team.None)
         {
-            foreach (var team in adventureSelf.TeamLife.Keys)
-                adventureSelf._teamLife[team] = Math.Max(0, adventureSelf._teamLife[team] - hit.Damage);
+            foreach (var team in teamLife.Keys)
+                teamLife[team] = Math.Max(0, teamLife[team] - hit.Damage);
 
             return orig(self, hit, fromNet, noPlayerInteraction);
         }
@@ -383,29 +388,29 @@ public class AdventureNpc : GlobalNPC
             (int)self.position.Y,
             self.width,
             self.height
-        ), Main.teamColor[(int)adventureSelf._lastStrikeTeam], hit.Damage, hit.Crit);
+        ), Main.teamColor[(int)adventureNpc._lastStrikeTeam], hit.Damage, hit.Crit);
 
         // Save the previous immortal value, we might clobber it later.
         var previousImmortal = self.immortal;
 
         try
         {
-            if (adventureSelf._teamLife.TryGetValue(adventureSelf._lastStrikeTeam, out var life))
+            if (teamLife.TryGetValue(adventureNpc._lastStrikeTeam, out var life))
             {
                 // FIXME: wrong place to get damage sorta, what abt InstantKill etc?
-                var teamLife = Math.Max(0, life - hit.Damage);
-                adventureSelf._teamLife[adventureSelf._lastStrikeTeam] = teamLife;
+                var newTeamLife = Math.Max(0, life - hit.Damage);
+                teamLife[adventureNpc._lastStrikeTeam] = newTeamLife;
 
-                var damage = Math.Max(0, self.life - teamLife);
+                var damage = Math.Max(0, currentLife - newTeamLife);
 
                 var adventureConfig = ModContent.GetInstance<AdventureConfig>();
-                var npcDefinition = new NPCDefinition(self.type);
+                var npcDefinition = new NPCDefinition((realLifeNpc ?? self).type);
 
-                foreach (var team in adventureSelf.TeamLife.Keys)
+                foreach (var team in teamLife.Keys)
                 {
-                    if (team != adventureSelf._lastStrikeTeam)
-                        adventureSelf._teamLife[team] = Math.Max(self.life,
-                            (int)(adventureSelf._teamLife[team] -
+                    if (team != adventureNpc._lastStrikeTeam)
+                        teamLife[team] = Math.Max(currentLife,
+                            (int)(teamLife[team] -
                                   (damage * adventureConfig.Combat.TeamLifeNpcs[npcDefinition].Share)));
                 }
 
@@ -416,7 +421,8 @@ public class AdventureNpc : GlobalNPC
                 hit.Damage = damage;
 
                 // FIXME: holy fuck
-                self.netUpdate = true;
+                // FIXME: i think we want to update whomever teamlife was reduced
+                (realLifeNpc ?? self).netUpdate = true;
             }
 
             return orig(self, hit, fromNet, noPlayerInteraction);
@@ -615,10 +621,17 @@ public class AdventureNpc : GlobalNPC
         }
     }
 
-    public void MarkNextStrikeForTeam(Team team)
+    public void MarkNextStrikeForTeam(NPC npc, Team team)
     {
         _lastStrikeTeam = team;
         _hasBeenHurtByTeam.Add(team);
+
+        // If our life pool is someone else's, count it as hurting them too.
+        if (npc.realLife != -1 && npc.realLife != npc.whoAmI)
+        {
+            var realLife = Main.npc[npc.realLife];
+            realLife.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(realLife, team);
+        }
     }
 
     private static void PlayHitMarker(int damage)
