@@ -288,7 +288,9 @@ public class AdventureDropDatabase : ModSystem
                 break;
 
             case NPCID.SkeletronHead:
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey, 1, 3, 3));
+                npcLoot.Add(ItemDropRule.Common(ItemID.Marrow, 1000, 1000, 1000));
+
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.SkeletronHand, 1, 1);
                 break;
@@ -330,6 +332,21 @@ public class AdventureDropDatabase : ModSystem
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.FishronWings) ||
                     drop is DropBasedOnExpertMode);
 
+                var dukeFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
+                dukeFirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.Tsunami, 1));
+                dukeFirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
+                    ItemID.Tsunami,
+                    ItemID.BubbleGun,
+                    ItemID.RazorbladeTyphoon,
+                    ItemID.Flairon,
+                    ItemID.TempestStaff
+                ));
+            break;
+
+
+            case NPCID.HallowBoss:
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.RainbowWings));
                 break;
 
             case NPCID.TheDestroyer:
