@@ -235,6 +235,11 @@ public class AdventureNpc : GlobalNPC
                     {
                         otherTwin.NPCLoot();
                     }
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, otherTwin.whoAmI);
+                    }
                 }
             }
         }
