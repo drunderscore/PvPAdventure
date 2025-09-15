@@ -184,48 +184,64 @@ public class AdventureNpc : GlobalNPC
     {
         public override bool PreKill(NPC npc)
         {
-            
+
             if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
             {
-                
+
                 NPC otherTwin = FindOtherTwin(npc);
 
-                
                 if (otherTwin != null && otherTwin.life > 1)
                 {
-                    
+
                     npc.life = 1;
-                    return false; 
+                    return false;
                 }
 
-              
                 return true;
             }
-
             return true;
         }
 
         public override bool CheckDead(NPC npc)
         {
-
             if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
             {
                 NPC otherTwin = FindOtherTwin(npc);
-
                 if (otherTwin != null && otherTwin.life > 1)
                 {
                     npc.life = 1;
                     return false;
                 }
             }
-
             return true;
+        }
+
+        public override void OnKill(NPC npc)
+        {
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+                if (otherTwin != null && otherTwin.active && otherTwin.life <= 1)
+                {
+                    if (npc.lastInteraction != 255)
+                    {
+                        otherTwin.lastInteraction = npc.lastInteraction;
+                    }
+
+                    otherTwin.life = 0;
+                    otherTwin.active = false;
+
+                    if (Main.netMode != NetmodeID.MultiplayerClient)
+                    {
+                        otherTwin.NPCLoot();
+                    }
+                }
+            }
         }
 
         private NPC FindOtherTwin(NPC currentTwin)
         {
             int targetType = currentTwin.type == NPCID.Spazmatism ? NPCID.Retinazer : NPCID.Spazmatism;
-
             for (int i = 0; i < Main.maxNPCs; i++)
             {
                 NPC npc = Main.npc[i];
@@ -234,7 +250,6 @@ public class AdventureNpc : GlobalNPC
                     return npc;
                 }
             }
-
             return null;
         }
     }
