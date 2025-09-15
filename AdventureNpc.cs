@@ -180,6 +180,68 @@ public class AdventureNpc : GlobalNPC
                     new(175, 75, 255));
         }
     }
+    public class TwinsDeathPrevention : GlobalNPC
+    {
+        public override bool PreKill(NPC npc)
+        {
+            // Check if the NPC is either Spazmatism or Retinazer
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                // Find the other twin
+                NPC otherTwin = FindOtherTwin(npc);
+
+                // If the other twin exists and is not at 1 HP, prevent this twin from dying
+                if (otherTwin != null && otherTwin.life > 1)
+                {
+                    // Set this twin's life to 1 and prevent death
+                    npc.life = 1;
+                    return false; // Prevent death
+                }
+
+                // If the other twin is at 1 HP or doesn't exist, allow normal death
+                return true;
+            }
+
+            // For all other NPCs, allow normal death behavior
+            return true;
+        }
+
+        public override bool CheckDead(NPC npc)
+        {
+            // Additional check when NPC is about to be marked as dead
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+
+                // If other twin exists and has more than 1 HP, prevent death
+                if (otherTwin != null && otherTwin.life > 1)
+                {
+                    npc.life = 1;
+                    return false; // Prevent being marked as dead
+                }
+            }
+
+            // Allow normal death behavior
+            return true;
+        }
+
+        private NPC FindOtherTwin(NPC currentTwin)
+        {
+            int targetType = currentTwin.type == NPCID.Spazmatism ? NPCID.Retinazer : NPCID.Spazmatism;
+
+            // Search through all active NPCs to find the other twin
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                NPC npc = Main.npc[i];
+                if (npc.active && npc.type == targetType)
+                {
+                    return npc;
+                }
+            }
+
+            return null; // Other twin not found
+        }
+    }
 
     private static void OnNPCPlayerInteraction(On_NPC.orig_PlayerInteraction orig, NPC self, int player)
     {
