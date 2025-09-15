@@ -187,14 +187,11 @@ public class AdventureDropDatabase : ModSystem
                 break;
 
             case NPCID.SkeletonArcher:
-
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.MagicQuiver) ||
                     drop is LeadingConditionRule);
-                if (NPC.downedPlantBoss == true)
-                {
-                    npcLoot.Add(ItemDropRule.Common(ItemID.StalkersQuiver, 7));
-                }
+
+                npcLoot.Add(ItemDropRule.ByCondition(new Conditions.DownedPlantera(), ItemID.MagicQuiver, 7));
                 break;
 
             case NPCID.RedDevil:
