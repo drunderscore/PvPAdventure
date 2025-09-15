@@ -541,6 +541,81 @@ public class AdventureNpc : GlobalNPC
 
         AdventureDropDatabase.ModifyNPCLoot(npc, npcLoot);
     }
+    public class TillDeathDoUsPart : GlobalNPC
+    {
+        public override bool PreKill(NPC npc)
+        {
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+
+                if (otherTwin != null && otherTwin.life > 1)
+                {
+                    npc.life = 1;
+                    npc.netUpdate = true;
+                    return false; 
+                }
+
+                return true;
+            }
+            return true;
+        }
+
+        public override bool CheckDead(NPC npc)
+        {
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+
+                if (otherTwin != null && otherTwin.life > 1)
+                {
+                    npc.life = 1;
+                    npc.netUpdate = true;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public override void ModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
+        {
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+                if (otherTwin != null && otherTwin.life > 1 && npc.life == 1)
+                {
+                    modifiers.SetMaxDamage(0);
+                }
+            }
+        }
+
+        public override void ModifyHitByItem(NPC npc, Player player, Item item, ref NPC.HitModifiers modifiers)
+        {
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+                if (otherTwin != null && otherTwin.life > 1 && npc.life == 1)
+                {
+                    modifiers.SetMaxDamage(0);
+                }
+            }
+        }
+        private NPC FindOtherTwin(NPC currentTwin)
+        {
+            int targetType = currentTwin.type == NPCID.Spazmatism ? NPCID.Retinazer : NPCID.Spazmatism;
+
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                NPC npc = Main.npc[i];
+                if (npc.active && npc.type == targetType)
+                {
+                    return npc;
+                }
+            }
+            return null;
+        }
+    }
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
     {
