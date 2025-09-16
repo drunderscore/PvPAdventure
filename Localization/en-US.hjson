@@ -742,6 +742,13 @@ Mods: {
 				Description: You are too much of a CHOJ to dash effectively
 			}
 		}
+
+		Items: {
+			AdventureBag: {
+				DisplayName: Adventure Bag
+				Tooltip: ""
+			}
+		}
 	}
 }
 
