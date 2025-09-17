@@ -22,7 +22,6 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
 using Mono.Cecil.Cil;
-
 namespace PvPAdventure;
 
 public class AdventurePlayer : ModPlayer
@@ -1224,6 +1223,32 @@ public class NewIchorPlayer : ModPlayer
             int reduction = (int)(originalDefense * 0.33f);
             Player.statDefense -= reduction;
             Player.ichor = true;
+        }
+    }
+}
+
+public class PvPAdventurePlayer : ModPlayer
+{
+    public bool hasReceivedStarterBag = false;
+
+    public override void SaveData(TagCompound tag)
+    {
+        tag["hasReceivedStarterBag"] = hasReceivedStarterBag;
+    }
+
+    public override void LoadData(TagCompound tag)
+    {
+        hasReceivedStarterBag = tag.GetBool("hasReceivedStarterBag");
+    }
+
+    public override void OnEnterWorld()
+    {
+        if (!hasReceivedStarterBag)
+        {
+            Player.QuickSpawnItem(Player.GetSource_GiftOrReward(), ModContent.ItemType<AdventureItem.AdventureBag>(), 1);
+
+            // Set the flag so they don't get another one
+            hasReceivedStarterBag = true;
         }
     }
 }
