@@ -1253,6 +1253,18 @@ public class PvPAdventurePlayer : ModPlayer
     }
 }
 
+public class AetherLuckPlayer : ModPlayer
+{
+    public override void ModifyLuck(ref float luck)
+    {
+        if (Player.ZoneShimmer)
+        {
+            luck += 400; // 400 times the amount of normal luck
+        }
+    }
+}
+
+
 public class ShinyStoneHotswap : ModBuff
 {
     public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap";
