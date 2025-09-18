@@ -239,6 +239,7 @@ public class AdventureItem : GlobalItem
             player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.ManaCrystal, 4);        
             player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MiningPotion, 2);       
             player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.WormholePotion, 4);
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MagicMirror, 1);
         }
 
         public override bool ConsumeItem(Player player)
