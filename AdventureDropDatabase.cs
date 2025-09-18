@@ -250,9 +250,9 @@ public class AdventureDropDatabase : ModSystem
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
 
-                var firstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.QueenSlimeBoss));
-                firstKillRule.OnSuccess(ItemDropRule.Common(ItemID.QueenSlimeMountSaddle, 1));
-                firstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
+                var QSfirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.QueenSlimeBoss));
+                QSfirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.QueenSlimeMountSaddle, 1));
+                QSfirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
                     ItemID.Smolstar,
                     ItemID.QueenSlimeHook,
                     ItemID.QueenSlimeMountSaddle
@@ -264,7 +264,7 @@ public class AdventureDropDatabase : ModSystem
                         ItemID.CrystalNinjaLeggings
                     )
                 );
-                npcLoot.Add(firstKillRule);
+                npcLoot.Add(QSfirstKillRule);
                 break;
 
             case NPCID.QueenBee:
@@ -328,20 +328,20 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.DukeFishron:
 
-                npcLoot.RemoveWhere(drop =>
-                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.FishronWings) ||
-                    drop is DropBasedOnExpertMode);
+                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
-                var dukeFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
-                dukeFirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.Tsunami, 1));
-                dukeFirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
-                    ItemID.Tsunami,
+
+                var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.QueenSlimeBoss));
+                dukefirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.Tsunami, 1));
+                dukefirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
                     ItemID.BubbleGun,
                     ItemID.RazorbladeTyphoon,
-                    ItemID.Flairon,
-                    ItemID.TempestStaff
+                    ItemID.Tsunami,
+                    ItemID.TempestStaff,
+                    ItemID.Flairon
                 ));
-            break;
+                npcLoot.Add(dukefirstKillRule);
+                break;
 
 
             case NPCID.HallowBoss:
