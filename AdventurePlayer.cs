@@ -23,6 +23,7 @@ using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
 using Mono.Cecil.Cil;
 
+
 namespace PvPAdventure;
 
 public class AdventurePlayer : ModPlayer
@@ -1228,6 +1229,26 @@ public class NewIchorPlayer : ModPlayer
     }
 }
 
+public class SpawnProtectionPlayer : ModPlayer
+{
+    public override void PostUpdateMiscEffects()
+    {
+        int playerTileX = (int)(Player.position.X / 16f);
+        int playerTileY = (int)(Player.position.Y / 16f);
+
+        int spawnTileX = Main.spawnTileX;
+        int spawnTileY = Main.spawnTileY;
+
+        int distanceX = Math.Abs(playerTileX - spawnTileX);
+        int distanceY = Math.Abs(playerTileY - spawnTileY);
+
+        if (distanceX <= 25 && distanceY <= 25)
+        {
+            Player.AddBuff(ModContent.BuffType<PlayerInSpawn>(), 2);
+        }
+    }
+}
+
 public class ShinyStoneHotswap : ModBuff
 {
     public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap";
@@ -1274,5 +1295,24 @@ public class BROISACHOJ : ModBuff
         Main.buffNoSave[Type] = false;
         Main.buffNoTimeDisplay[Type] = false;
         Main.persistentBuff[Type] = true;
+    }
+}
+
+public class PlayerInSpawn : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/PlayerInSpawn";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = true;
+        Main.persistentBuff[Type] = true;
+    }
+
+    public override void Update(Player player, ref int buffIndex)
+    {
+        player.GetDamage(DamageClass.Generic) *= -999f;
+
     }
 }
