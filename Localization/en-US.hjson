@@ -1158,6 +1158,11 @@ Mods: {
 				Truffle.DisplayName: Bound. Truffle
 				WitchDoctor.DisplayName: Bound. Witch Doctor
 			}
+
+			PlayerInSpawn: {
+				Description: You cannot do any other creature any harm while inside of the humble yet mysterious veiol of the spawnnyn box!
+				DisplayName: You, yeah, you! Are in SPAWN.
+			}
 		}
 	}
 }
