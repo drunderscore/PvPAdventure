@@ -331,7 +331,7 @@ public class AdventureDropDatabase : ModSystem
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
 
-                var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.QueenSlimeBoss));
+                var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
                 dukefirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.Tsunami, 1));
                 dukefirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
                     ItemID.BubbleGun,
