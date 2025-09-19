@@ -21,20 +21,20 @@ public class AdventureBuff : GlobalBuff
 
             if (player.beetleOrbs >= 1)
             {
-                damage += 0.10f;
-                attackSpeed += 0.10f;
+                damage += 0.8f;
+                attackSpeed += 0.8f;
             }
 
             if (player.beetleOrbs >= 2)
             {
-                damage += 0.10f;
-                attackSpeed += 0.10f;
+                damage += 0.8f;
+                attackSpeed += 0.8f;
             }
 
             if (player.beetleOrbs >= 3)
             {
-                damage += 0.10f;
-                attackSpeed += 0.10f;
+                damage += 0.8f;
+                attackSpeed += 0.8f;
             }
 
             player.GetDamage<MeleeDamageClass>() += damage;
