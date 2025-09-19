@@ -23,6 +23,15 @@ public class AdventureProjectile : GlobalProjectile
 
         // Make Starlight only give 4-iframes (Projectile.playerImmune).
         IL_Projectile.Damage += EditProjectileDamage;
+
+        // Add configurable distance for Ghost Heal when damaging NPCs.
+        IL_Projectile.ghostHeal += EditProjectileghostHeal;
+
+        // Track if the Friendly Shadowbeam Staff has bounced.
+        IL_Projectile.HandleMovement += EditProjectileHandleMovement;
+
+        // Track if the Light Disc has bounced.
+        On_Projectile.LightDisc_Bounce += OnProjectileLightDisc_Bounce;
     }
 
     private static EntitySource_ItemUse GetItemUseSource(Projectile projectile, Projectile lastProjectile)
@@ -147,7 +156,7 @@ public class AdventureProjectile : GlobalProjectile
                 position.Y,
                 0f,
                 0f,
-                298,
+                ProjectileID.SpiritHeal,
                 0,
                 0f,
                 self.owner,
@@ -563,6 +572,93 @@ public class AdventureProjectile : GlobalProjectile
                 return 40;
             });
     }
+
+    private void EditProjectileghostHeal(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // Find a call to Entity.Distance and a float constant load...
+        cursor.GotoNext(i => i.MatchCall<Entity>("Distance") && i.Next.MatchLdcR4(out _));
+        // ...to go back to the float constant load...
+        cursor.Index += 1;
+
+        // ...to remove it...
+        cursor.Remove();
+
+        // ...and emit our own delegate to return the value.
+        cursor.EmitDelegate(() =>
+        {
+            var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+            return adventureConfig.Combat.GhostHealMaxDistanceNpc;
+        });
+    }
+
+    public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+    {
+        // Replicate what vanilla does against NPCs for the Staff of Earth
+        if (projectile.type == ProjectileID.BoulderStaffOfEarth && projectile.velocity.Length() < 3.5f)
+        {
+            modifiers.SourceDamage /= 2;
+            modifiers.Knockback /= 2;
+        }
+
+        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+
+        var bounced =
+            projectile.type == ProjectileID.ShadowBeamFriendly && projectile.localAI[1] > 0
+            || projectile.type == ProjectileID.LightDisc && projectile.localAI[0] > 0;
+
+        if (bounced)
+            modifiers.SourceDamage *= 1.0f - adventureConfig.Combat.ProjectileCollisionDamageReduction;
+
+        if (adventureConfig.Combat.NoLineOfSightDamageReduction.TryGetValue(new(projectile.type),
+                out var damageReduction) && projectile.TryGetOwner(out var owner) && !Collision.CanHit(owner, target))
+            modifiers.SourceDamage *= 1.0f - damageReduction;
+    }
+
+    private void EditProjectileHandleMovement(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // Make sure when we emit we are put inside the respective label.
+        cursor.MoveAfterLabels();
+
+        // First, find a load to Projectile.type and a constant load to the Friendly Shadowbeam Staff projectile ID...
+        cursor.GotoNext(i => i.MatchLdfld<Projectile>("type") && i.Next.MatchLdcI4(ProjectileID.ShadowBeamFriendly));
+
+        // ...then find a load to Vector.X, an add instruction, and a store instruction...
+        cursor.GotoNext(i => i.MatchLdfld<Vector2>("X") && i.Next.MatchAdd() && i.Next.Next.MatchStindR4());
+
+        // ...and go forward to the store instruction...
+        cursor.Index += 3;
+        // ...to prepare a delegate call...
+        cursor.EmitLdarg0();
+        cursor.EmitDelegate(DidBounce);
+
+        // ...then find a load to Vector.Y, an add instruction, and a store instruction...
+        cursor.GotoNext(i => i.MatchLdfld<Vector2>("Y") && i.Next.MatchAdd() && i.Next.Next.MatchStindR4());
+
+        // ...and go forward to the store instruction...
+        cursor.Index += 3;
+        // ...to prepare a delegate call...
+        cursor.EmitLdarg0();
+        cursor.EmitDelegate(DidBounce);
+
+        return;
+
+        void DidBounce(Projectile self)
+        {
+            self.localAI[1] = 1;
+        }
+    }
+
+    private void OnProjectileLightDisc_Bounce(On_Projectile.orig_LightDisc_Bounce orig, Projectile self,
+        Vector2 hitPoint, Vector2 normal)
+    {
+        self.localAI[0] = 1;
+        orig(self, hitPoint, normal);
+    }
+
     public class WhipBuffs : GlobalProjectile
     {
         public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)

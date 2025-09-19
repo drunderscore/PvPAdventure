@@ -305,8 +305,22 @@ Mods: {
 					Tooltip: ""
 				}
 
+
 				TeamLifeNpcs: {
 					Label: Team Life Npcs
+
+				GhostHealMaxDistanceNpc: {
+					Label: Ghost Heal Max Distance Npc
+					Tooltip: ""
+				}
+
+				ProjectileCollisionDamageReduction: {
+					Label: Projectile Collision Damage Reduction
+					Tooltip: ""
+				}
+
+				NoLineOfSightDamageReduction: {
+					Label: No Line Of Sight Damage Reduction
 					Tooltip: ""
 				}
 			}
