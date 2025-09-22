@@ -207,8 +207,8 @@ public class AdventureConfig : ModConfig
 
         public Dictionary<NPCDefinition, TeamLifeConfig> TeamLifeNpcs { get; set; } = new();
 
-        [Range(0.0f, 3000.0f)]
-        [DefaultValue(3000.0f)]
+        [Range(0.0f, 1.0f)]
+        [DefaultValue(0.0f)]
       
 
         [Description("Reduce the damage of certain projectiles after they have collided or bounced")]
