@@ -609,11 +609,11 @@ public class AdventureProjectile : GlobalProjectile
             || projectile.type == ProjectileID.LightDisc && projectile.localAI[0] > 0;
 
         if (bounced)
-            modifiers.SourceDamage *= 1.0f - adventureConfig.Combat.ProjectileCollisionDamageReduction;
+            modifiers.SourceDamage *= adventureConfig.Combat.ProjectileCollisionDamageReduction;
 
         if (adventureConfig.Combat.NoLineOfSightDamageReduction.TryGetValue(new(projectile.type),
                 out var damageReduction) && projectile.TryGetOwner(out var owner) && !Collision.CanHit(owner, target))
-            modifiers.SourceDamage *= 1.0f - damageReduction;
+            modifiers.SourceDamage *= damageReduction;
     }
 
     private void EditProjectileHandleMovement(ILContext il)
