@@ -225,51 +225,35 @@ public class AdventureNpc : GlobalNPC
                     {
                         Player player = Main.player[killingPlayer];
                         // AI slop solution because I can't figure out how kill credit works
-                        
+
                         if (Main.netMode != NetmodeID.MultiplayerClient)
                         {
                             int projectile = Projectile.NewProjectile(
                                 npc.GetSource_Death(),
-                                otherTwin.Center.X,    
-                                otherTwin.Center.Y,    
-                                0f,                  
-                                0f,                    
-                                3,                     
-                                200,                
-                                0f,                    
-                                killingPlayer          
+                                otherTwin.Center.X,
+                                otherTwin.Center.Y,
+                                0f,
+                                0f,
+                                ProjectileID.DD2ExplosiveTrapT3Explosion,
+                                200,
+                                0f,
+                                killingPlayer
                             );
 
-                            
+
                             if (projectile >= 0 && projectile < Main.maxProjectiles)
                             {
                                 Projectile proj = Main.projectile[projectile];
-                                
+
                                 proj.penetrate = 1;
-                                proj.timeLeft = 2;
+                                proj.timeLeft = 120;
                             }
 
-                            
+
                             if (Main.netMode == NetmodeID.Server && projectile >= 0)
                             {
                                 NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, projectile);
                             }
-                        }
-                    }
-                    else
-                    {
-                        
-                        otherTwin.life = 0;
-                        otherTwin.active = false;
-
-                        if (Main.netMode != NetmodeID.MultiplayerClient)
-                        {
-                            otherTwin.NPCLoot();
-                        }
-
-                        if (Main.netMode == NetmodeID.Server)
-                        {
-                            NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, otherTwin.whoAmI);
                         }
                     }
                 }
