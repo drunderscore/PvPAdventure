@@ -184,19 +184,14 @@ public class AdventureNpc : GlobalNPC
     {
         public override bool PreKill(NPC npc)
         {
-
             if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
             {
-
                 NPC otherTwin = FindOtherTwin(npc);
-
                 if (otherTwin != null && otherTwin.life > 1)
                 {
-
                     npc.life = 1;
                     return false;
                 }
-
                 return true;
             }
             return true;
@@ -223,22 +218,43 @@ public class AdventureNpc : GlobalNPC
                 NPC otherTwin = FindOtherTwin(npc);
                 if (otherTwin != null && otherTwin.active && otherTwin.life <= 1)
                 {
-                    if (npc.lastInteraction != 255)
-                    {
-                        otherTwin.lastInteraction = npc.lastInteraction;
-                    }
+                  
+                    int killingPlayer = npc.lastInteraction;
 
-                    otherTwin.life = 0;
-                    otherTwin.active = false;
-
-                    if (Main.netMode != NetmodeID.MultiplayerClient)
+                    if (killingPlayer != 255 && killingPlayer < Main.maxPlayers && Main.player[killingPlayer].active)
                     {
-                        otherTwin.NPCLoot();
-                    }
+                        Player player = Main.player[killingPlayer];
+                        // AI slop solution because I can't figure out how kill credit works
 
-                    if (Main.netMode == NetmodeID.Server)
-                    {
-                        NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, otherTwin.whoAmI);
+                        if (Main.netMode != NetmodeID.MultiplayerClient)
+                        {
+                            int projectile = Projectile.NewProjectile(
+                                npc.GetSource_Death(),
+                                otherTwin.Center.X,
+                                otherTwin.Center.Y,
+                                0f,
+                                0f,
+                                ProjectileID.DD2ExplosiveTrapT3Explosion,
+                                200,
+                                0f,
+                                killingPlayer
+                            );
+
+
+                            if (projectile >= 0 && projectile < Main.maxProjectiles)
+                            {
+                                Projectile proj = Main.projectile[projectile];
+
+                                proj.penetrate = 1;
+                                proj.timeLeft = 120;
+                            }
+
+
+                            if (Main.netMode == NetmodeID.Server && projectile >= 0)
+                            {
+                                NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, projectile);
+                            }
+                        }
                     }
                 }
             }
@@ -263,7 +279,6 @@ public class AdventureNpc : GlobalNPC
     {
         orig(self, player);
 
-        // If this is part of the Eater of Worlds, then mark ALL segments as last damaged by this player.
         if (IsPartOfEaterOfWorlds((short)self.type))
         {
             foreach (var npc in Main.ActiveNPCs)
