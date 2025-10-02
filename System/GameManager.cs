@@ -286,6 +286,10 @@ public class GameManager : ModSystem
     {
         public override void Action(CommandCaller caller, string input, string[] args)
         {
+            // You can only use this command from chat in singleplayer.
+            if (caller.CommandType == CommandType.Chat && Main.netMode != NetmodeID.SinglePlayer)
+                return;
+
             if (args.Length < 2)
                 return;
 
@@ -305,7 +309,7 @@ public class GameManager : ModSystem
         }
 
         public override string Command => "team";
-        public override CommandType Type => CommandType.Console;
+        public override CommandType Type => CommandType.Chat | CommandType.Console;
     }
 
     public class StartGameCommand : ModCommand

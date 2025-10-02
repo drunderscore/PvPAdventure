@@ -24,6 +24,14 @@ public class RandomTeleportManager : ModSystem
         }
     }
 
+    private static void RandomTeleport()
+    {
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            Main.LocalPlayer.TeleportationPotion();
+        else
+            NetMessage.SendData(MessageID.RequestTeleportationByServer);
+    }
+
     private class RandomTeleportGameInterfaceLayer()
         : GameInterfaceLayer("PvPAdventure: Random Teleport", InterfaceScaleType.UI)
     {
@@ -40,8 +48,7 @@ public class RandomTeleportManager : ModSystem
                     .Any(region => region.CanRandomTeleport))
             {
                 Main.DrawSettingButton(ref _mouseOver, ref _scale, Main.screenWidth / 2, Main.screenHeight - 20,
-                    "Random Teleport", "Random Teleport",
-                    () => NetMessage.SendData(MessageID.RequestTeleportationByServer));
+                    "Random Teleport", "Random Teleport", RandomTeleport);
             }
 
             return base.DrawSelf();

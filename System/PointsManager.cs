@@ -233,7 +233,10 @@ public class PointsManager : ModSystem
 
         VisualizePointChange(pointsToAward, team, npc.position, $"[c/F58522:{fullName}]");
 
-        NetMessage.SendData(MessageID.WorldData);
+        if (Main.dedServ)
+            NetMessage.SendData(MessageID.WorldData);
+        else
+            UiScoreboard.Invalidate();
     }
 
     public void AwardPlayerKillToTeam(Player killer, Player victim)
@@ -264,7 +267,10 @@ public class PointsManager : ModSystem
             $"[c/{Main.teamColor[victim.team].Hex3()}:{victim.name}]");
         VisualizePointChange(-pointsToTrade, (Team)victim.team, victim.position);
 
-        NetMessage.SendData(MessageID.WorldData);
+        if (Main.dedServ)
+            NetMessage.SendData(MessageID.WorldData);
+        else
+            UiScoreboard.Invalidate();
     }
 
     public class UIScoreboard(PointsManager pointsManager) : UIState
@@ -524,6 +530,42 @@ public class PointsManager : ModSystem
 
             return base.DrawSelf();
         }
+    }
+
+    public class SetPointsCommand : ModCommand
+    {
+        public override void Action(CommandCaller caller, string input, string[] args)
+        {
+            // You can only use this command from chat in singleplayer.
+            if (caller.CommandType == CommandType.Chat && Main.netMode != NetmodeID.SinglePlayer)
+                return;
+
+            if (args.Length < 2)
+                return;
+
+            if (!Enum.TryParse(args[0], true, out Team team) || (int)team >= Enum.GetValues<Team>().Length)
+            {
+                caller.Reply("Invalid team.", Color.Red);
+                return;
+            }
+
+            if (!int.TryParse(args[1], out var points))
+            {
+                caller.Reply("Invalid points.", Color.Red);
+                return;
+            }
+
+            var pointsManager = ModContent.GetInstance<PointsManager>();
+            pointsManager._points[team] = points;
+
+            if (Main.dedServ)
+                NetMessage.SendData(MessageID.WorldData);
+            else
+                ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
+        }
+
+        public override string Command => "setpoints";
+        public override CommandType Type => CommandType.Chat | CommandType.Console;
     }
 
     private static string FormatPointsVisually(int points) =>
