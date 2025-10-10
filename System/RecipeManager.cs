@@ -27,7 +27,15 @@ public class RecipeManager : ModSystem
             ItemID.ShroomiteBar,
             ItemID.WormFood,
             ItemID.ChlorophyteBar,
+            ItemID.FlaskofCursedFlames,
+            ItemID.FlaskofIchor,
+            ItemID.FlaskofPoison,
+            ItemID.FlaskofVenom,
+            ItemID.FlaskofFire,
+            ItemID.FlaskofNanites,
+            ItemID.FlaskofParty,
             ItemID.SpectreBar
+
     };
 
         for (int i = 0; i < Main.recipe.Length; i++)
