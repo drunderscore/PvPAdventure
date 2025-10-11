@@ -22,6 +22,7 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
 using Mono.Cecil.Cil;
+using static PvPAdventure.AdventurePlayer;
 
 namespace PvPAdventure;
 
@@ -750,14 +751,6 @@ public class AdventurePlayer : ModPlayer
             Player.yoraiz0rEye = 33;
         }
 
-        // Check if wearing full Tiki Armor
-        if (Player.armor[0].type == ItemID.TikiMask &&
-            Player.armor[1].type == ItemID.TikiShirt &&
-            Player.armor[2].type == ItemID.TikiPants)
-        {
-            Player.noKnockback = true;
-        }
-
         if (Player.hasPaladinShield)
         {
             Player.buffImmune[BuffID.PaladinsShield] = true;
@@ -1087,7 +1080,49 @@ public class AdventurePlayer : ModPlayer
         _pingPongCanary++;
     }
 
-    private static bool? ShouldSilenceHurtSound(Player target, Player.HurtInfo info)
+    public class TikiArmorPlayer : ModPlayer
+    {
+        public bool hasTikiSet = false;
+
+        public override void PostUpdateEquips()
+        {
+            // Check if wearing full Tiki Armor
+            if (Player.armor[0].type == ItemID.TikiMask &&
+                Player.armor[1].type == ItemID.TikiShirt &&
+                Player.armor[2].type == ItemID.TikiPants)
+            {
+                hasTikiSet = true;
+            }
+            else
+            {
+                hasTikiSet = false;
+            }
+        }
+    }
+
+    public class WhipRangePlayer : ModPlayer
+    {
+        public bool largeWhipIncrease = false;
+
+        public override void PostUpdateEquips()
+        {
+            largeWhipIncrease = false;
+
+            for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
+            {
+                if (Player.armor[i].type == ItemID.PygmyNecklace || Player.armor[i].type == ItemID.HerculesBeetle)
+                {
+                    largeWhipIncrease = true;
+                    break;
+                }
+            }
+            if (largeWhipIncrease)
+            {
+                Player.whipRangeMultiplier += 0.45f;
+            }
+        }
+    }
+        private static bool? ShouldSilenceHurtSound(Player target, Player.HurtInfo info)
     {
         // Only silence hurt sound on clients that we hurt that aren't ourselves
         if (!Main.dedServ && info.PvP && target.whoAmI != Main.myPlayer &&
@@ -1136,6 +1171,50 @@ public class AdventurePlayer : ModPlayer
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
     }
 }
+
+public class TurtleDashPlayer : ModPlayer
+{
+    private bool isWearingFullTurtleArmor = false;
+    private int dashingTimer = 0;
+
+    // Detect if player is in a dash state
+    public bool IsInADashState => (Player.dashDelay == -1 || dashingTimer > 0) && Player.grapCount <= 0;
+
+    public override void PostUpdateEquips()
+    {
+
+        isWearingFullTurtleArmor = Player.armor[0].type == ItemID.TurtleHelmet &&
+                                   Player.armor[1].type == ItemID.TurtleScaleMail &&
+                                   Player.armor[2].type == ItemID.TurtleLeggings;
+
+        if (isWearingFullTurtleArmor)
+        {
+            Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
+        }
+    }
+
+    public override void PostUpdate()
+    {
+
+        if (Player.dashDelay == -1)
+        {
+            dashingTimer = 10;
+        }
+        else if (dashingTimer > 0)
+        {
+            dashingTimer--;
+        }
+
+        // Apply dash speed reduction if player has the debuff and is dashing
+        if (Player.HasBuff(ModContent.BuffType<BROISACHOJ>()) && IsInADashState)
+        {
+            float dashSpeedReduction = Player.velocity.X * 0.05f;
+            Player.velocity.X -= dashSpeedReduction;
+        }
+        //thanks mr fargo
+    }
+}
+
 public class NewIchorPlayer : ModPlayer
 {
     public bool hasDefenseReduction = false;
@@ -1171,49 +1250,6 @@ public class NewIchorPlayer : ModPlayer
         }
     }
 
-    public class TurtleDashPlayer : ModPlayer
-    {
-        private bool isWearingFullTurtleArmor = false;
-        private int dashingTimer = 0;
-
-        // Detect if player is in a dash state
-        public bool IsInADashState => (Player.dashDelay == -1 || dashingTimer > 0) && Player.grapCount <= 0;
-
-        public override void PostUpdateEquips()
-        {
-
-            isWearingFullTurtleArmor = Player.armor[0].type == ItemID.TurtleHelmet &&
-                                       Player.armor[1].type == ItemID.TurtleScaleMail &&
-                                       Player.armor[2].type == ItemID.TurtleLeggings;
-
-            if (isWearingFullTurtleArmor)
-            {
-                Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
-            }
-        }
-
-        public override void PostUpdate()
-        {
-
-            if (Player.dashDelay == -1)
-            {
-                dashingTimer = 10;
-            }
-            else if (dashingTimer > 0)
-            {
-                dashingTimer--;
-            }
-
-            // Apply dash speed reduction if player has the debuff and is dashing
-            if (Player.HasBuff(ModContent.BuffType<BROISACHOJ>()) && IsInADashState)
-            {
-                float dashSpeedReduction = Player.velocity.X * 0.05f;
-                Player.velocity.X -= dashSpeedReduction;
-            }
-            //thanks mr fargo
-        }
-    }
-
     public override void PostUpdateEquips()
     {
 
@@ -1224,6 +1260,260 @@ public class NewIchorPlayer : ModPlayer
             int reduction = (int)(originalDefense * 0.33f);
             Player.statDefense -= reduction;
             Player.ichor = true;
+        }
+    }
+}
+public class CoolWhipBuff : ModPlayer
+{
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.CoolWhip)
+        {
+            Player.AddBuff(BuffID.ScytheWhipPlayerBuff, 1);
+        }
+    }
+
+
+}
+public class ShatteredArmorPlayer : ModPlayer
+{
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        // Check if hit by MaceWhip projectile
+        if (info.DamageSource.SourceProjectileType == ProjectileID.MaceWhip)
+        {
+            int duration = 420; // 7 seconds base
+
+            // Check if attacker has Tiki set bonus
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 1.5f); // 50% longer = 10.5 seconds
+                    }
+                }
+            }
+
+            Player.AddBuff(ModContent.BuffType<ShatteredArmor>(), duration);
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<ShatteredArmor>())
+        {
+            Player.statDefense -= 16;
+            
+            for (int i = 0; i < 1; i++) 
+            {
+                int dustType = DustID.BatScepter ;
+                Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Vector2 dustVelocity = Player.velocity * 0.3f + new Vector2(Main.rand.NextFloat(-1f, 1f), Main.rand.NextFloat(-1f, 1f));
+                
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, Color.Black, Main.rand.NextFloat(0.8f, 1.5f));
+                dust.noGravity = Main.rand.NextBool(2);
+                dust.fadeIn = 1.2f;
+            }
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<ShatteredArmor>())
+        {
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon)
+            {
+                modifiers.FinalDamage *= 1.12f;
+            }
+        }
+    }
+}
+
+public class HellhexPlayer : ModPlayer
+{
+    public bool hellhexTriggered = false;
+    private int storedDamage = 0;
+    private int lastImmuneTime = 0;
+    
+    public override void PostUpdate()
+    {
+        // Detect when the player takes damage by checking immune time
+        if (Player.HasBuff<Hellhex>() && Player.immuneTime > lastImmuneTime && Player.immuneTime > 0)
+        {
+            // Player just took damage, set flag to remove buff
+            hellhexTriggered = true;
+        }
+        
+        lastImmuneTime = Player.immuneTime;
+    }
+    
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
+        {
+            int duration = 840; // 14 seconds base
+
+            // Check if attacker has Tiki set bonus
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 1.5f);
+                    }
+                }
+            }
+
+            Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
+        }
+
+        // If player has Hellhex and takes non-summon damage, remove it
+        if (Player.HasBuff<Hellhex>())
+        {
+            bool isSummon = false;
+            
+            // Check if damage is from summon projectile
+            if (info.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
+                if (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed))
+                {
+                    isSummon = true;
+                }
+            }
+            
+            // Only remove buff and trigger effects if NOT summon damage
+            if (!isSummon)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                
+                // Spawn explosion projectile
+                if (Main.myPlayer == Player.whoAmI)
+                {
+                    Vector2 spawnPos = Player.Center;
+                    
+                    Projectile.NewProjectile(
+                        Player.GetSource_Buff(buffIndex),
+                        spawnPos,
+                        Vector2.Zero,
+                        ProjectileID.FireWhipProj,
+                        info.Damage,
+                        0f,
+                        Player.whoAmI
+                    );
+                }
+            }
+        }
+    }
+    
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        // Double damage from non-summon sources while having Hellhex
+        if (Player.HasBuff<Hellhex>())
+        {
+            bool isSummon = false;
+            
+            // Check if damage is from summon/whip projectile
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            // Also check by projectile type for whips
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                // Check if it's a whip projectile type
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip || 
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip || 
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+            
+            // Only apply double damage for non-summon damage
+            if (!isSummon)
+            {
+                modifiers.FinalDamage *= 2f; // Double damage
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    storedDamage = info.Damage;
+                };
+                hellhexTriggered = true;
+            }
+        }
+    }
+    
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<Hellhex>())
+        {
+            // Create hellfire particle shower
+            for (int i = 0; i < 2; i++)
+            {
+                int dustType = DustID.Torch; // Orange/red fire dust
+                Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-2f, 0f)); // Upward shower
+                
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, default(Color), Main.rand.NextFloat(1f, 2f));
+                dust.noGravity = true;
+                dust.fadeIn = 1.3f;
+            }
+            
+            // Add some darker fire particles for variety
+            if (Main.rand.NextBool(2))
+            {
+                int dustType = DustID.Smoke;
+                Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-1.5f, 0f));
+                
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, Color.OrangeRed, Main.rand.NextFloat(0.8f, 1.5f));
+                dust.noGravity = true;
+            }
+        }
+        else
+        {
+            // Reset trigger flag when buff is not active
+            hellhexTriggered = false;
         }
     }
 }
@@ -1296,7 +1586,7 @@ public class ShinyStoneHotswap : ModBuff
     {
         Main.debuff[Type] = true;
         Main.buffNoSave[Type] = true;
-        Main.buffNoTimeDisplay[Type] = false; // Show timer
+        Main.buffNoTimeDisplay[Type] = false;
     }
 }
 public class AncientChiselHotswapBuff : ModBuff
@@ -1307,7 +1597,7 @@ public class AncientChiselHotswapBuff : ModBuff
     {
         Main.debuff[Type] = true;
         Main.buffNoSave[Type] = false;
-        Main.buffNoTimeDisplay[Type] = false; // Show timer
+        Main.buffNoTimeDisplay[Type] = false;
         Main.persistentBuff[Type] = true;
     }
 }
@@ -1337,6 +1627,7 @@ public class BROISACHOJ : ModBuff
     }
 }
 
+
 public class PlayerInSpawn : ModBuff
 {
     public override string Texture => $"PvPAdventure/Assets/Buff/PlayerInSpawn";
@@ -1353,5 +1644,52 @@ public class PlayerInSpawn : ModBuff
     {
         player.GetDamage(DamageClass.Generic) *= -999f;
 
+    }
+}
+
+public class ShatteredArmor : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/ShatteredArmor";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = true;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+        BuffID.Sets.IsATagBuff[Type] = false;
+    }
+    public override void Update(Player player, ref int buffIndex)
+    { }
+}
+
+public class Anathema : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/Anathema";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+    }
+}
+public class Hellhex : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/Hellhex";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+    }
+
+    public override void Update(Player player, ref int buffIndex)
+    {
+        // Visual effects and buff management handled in ModPlayer
     }
 }

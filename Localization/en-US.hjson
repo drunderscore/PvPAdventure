@@ -1163,6 +1163,21 @@ Mods: {
 				Description: You cannot do any other creature any harm while inside of the humble yet mysterious veiol of the spawnnyn box!
 				DisplayName: You, yeah, you! Are in SPAWN.
 			}
+
+			ShatteredArmor: {
+				Description: Mods.PvPAdventure.Buffs.ShatteredArmor.Description
+				DisplayName: Shattered Armor
+			}
+
+			Anathema: {
+				Description: Mods.PvPAdventure.Buffs.Anathema.Description
+				DisplayName: Anathema
+			}
+
+			Hellhex: {
+				Description: Mods.PvPAdventure.Buffs.Hellhex.Description
+				DisplayName: Hellhex
+			}
 		}
 	}
 }

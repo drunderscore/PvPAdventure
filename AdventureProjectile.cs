@@ -533,18 +533,45 @@ public class AdventureProjectile : GlobalProjectile
         }
     }
 
-    public class MorningStarRange : GlobalProjectile
+    public class WhipRangeChanges : GlobalProjectile
     {
         public override bool AppliesToEntity(Projectile projectile, bool lateInstantiation)
         {
-            return projectile.type == ProjectileID.MaceWhip;
+            return projectile.type == ProjectileID.MaceWhip ||
+                   projectile.type == ProjectileID.RainbowWhip ||
+                   projectile.type == ProjectileID.CoolWhip ||
+                   projectile.type == ProjectileID.FireWhip ||
+                   projectile.type == ProjectileID.SwordWhip ||
+                   projectile.type == ProjectileID.ScytheWhip ||
+                   projectile.type == ProjectileID.ThornWhip ||
+                   projectile.type == ProjectileID.BoneWhip ||
+                   projectile.type == ProjectileID.BlandWhip;
         }
         public override void SetDefaults(Projectile projectile)
         {
             if (projectile.type == ProjectileID.MaceWhip)
             {
-                projectile.WhipSettings.RangeMultiplier = 1.33f; // this is like 20% range
-
+                projectile.WhipSettings.RangeMultiplier = 1.03f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.RainbowWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.43f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.CoolWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.18f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.FireWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.18f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.SwordWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.4f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.ScytheWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 2f; // this is like 20% range
             }
         }
     }
