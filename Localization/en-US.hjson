@@ -741,6 +741,21 @@ Mods: {
 				DisplayName: BRO IS A CHOJ
 				Description: You are too much of a CHOJ to dash effectively
 			}
+
+			ShatteredArmor: {
+				Description: Mods.PvPAdventure.Buffs.ShatteredArmor.Description
+				DisplayName: Shattered Armor
+			}
+
+			Anathema: {
+				Description: Mods.PvPAdventure.Buffs.Anathema.Description
+				DisplayName: Anathema
+			}
+
+			Hellhex: {
+				Description: Mods.PvPAdventure.Buffs.Hellhex.Description
+				DisplayName: Hellhex
+			}
 		}
 	}
 }
