@@ -1269,9 +1269,7 @@ public class BitingEmbracePlayer : ModPlayer
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.CoolWhip)
         {
-            
             int duration = 300;
-
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
                 Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
@@ -1284,17 +1282,16 @@ public class BitingEmbracePlayer : ModPlayer
                     }
                 }
             }
-
             Player.AddBuff(ModContent.BuffType<BitingEmbrace>(), duration);
             Player.AddBuff(BuffID.Frozen, duration / 75);
         }
     }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         if (Player.HasBuff<BitingEmbrace>())
         {
             bool isSummon = false;
-
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
@@ -1315,10 +1312,11 @@ public class BitingEmbracePlayer : ModPlayer
                     isSummon = true;
                 }
             }
-
             if (!isSummon)
             {
-                modifiers.FinalDamage += 6;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 6;
+                };
             }
         }
     }
@@ -1378,7 +1376,9 @@ public class PressurePointsPlayer : ModPlayer
 
             if (!isSummon)
             {
-                modifiers.FinalDamage += 6;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 6;
+                };
             }
         }
     }
@@ -1438,7 +1438,9 @@ public class BrittleBonesPlayer : ModPlayer
 
             if (!isSummon)
             {
-                modifiers.FinalDamage += 7;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 7;
+                };
             }
         }
     }
@@ -1497,7 +1499,9 @@ public class MarkedPlayer : ModPlayer
 
             if (!isSummon)
             {
-                modifiers.FinalDamage += 9;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 9;
+                };
             }
         }
     }
@@ -1556,8 +1560,11 @@ public class AnathemaPlayer : ModPlayer
 
             if (!isSummon)
             {
-                modifiers.FinalDamage += 8;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 20;
+                };
                 modifiers.FinalDamage *= 1.1f;
+
             }
         }
     }
@@ -1634,8 +1641,11 @@ public class ShatteredArmorPlayer : ModPlayer
 
             if (!isSummon)
             {
-                modifiers.FinalDamage += 8;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 8;
+                };
                 modifiers.FinalDamage *= 1.12f;
+
             }
         }
     }
