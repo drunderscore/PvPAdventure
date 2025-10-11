@@ -1121,23 +1121,63 @@ Mods: {
 
 		Buffs: {
 			AncientChiselHotswapBuff: {
-				DisplayName: Ancient Chisel Hotswap Buff
-				Description: Mods.PvPAdventure.Buffs.AncientChiselHotswapBuff.Description
+				DisplayName: the curse of the ancient chisel
+				Description: Broken ahh debuff
 			}
 
 			BROISACHOJ: {
 				DisplayName: B R O I S A C H O J
-				Description: Mods.PvPAdventure.Buffs.BROISACHOJ.Description
+				Description: bro is a choj
 			}
 
 			NewIchorPlayerDebuff: {
-				DisplayName: New Ichor Player Debuff
-				Description: Mods.PvPAdventure.Buffs.NewIchorPlayerDebuff.Description
+				DisplayName: Ichor
+				Description: Reduces defense by a third.
 			}
 
 			ShinyStoneHotswap: {
 				DisplayName: Shiny Stone Hotswap
-				Description: Mods.PvPAdventure.Buffs.ShinyStoneHotswap.Description
+				Description: The shiny stone is charging up!
+			}
+
+			Anathema: {
+				Description: You are hated by the world.
+				DisplayName: Anathema
+			}
+
+			Hellhex: {
+				Description: You are going to burst with hellfire at any moment!
+				DisplayName: Hellhex
+			}
+
+			ShatteredArmor: {
+				Description: You're armor has been shattered by a brutal blow!
+				DisplayName: Shattered Armor
+			}
+
+			PlayerInSpawn: {
+				DisplayName: spawn
+				Description: You're in spawn bro
+			}
+
+			BitingEmbrace: {
+				DisplayName: Biting Embrace
+				Description: You are weakened by the cold.
+			}
+
+			BrittleBones: {
+				DisplayName: Brittle Bones
+				Description: Your bones are weakened, and so are you.
+			}
+
+			Marked: {
+				DisplayName: Marked
+				Description: You're the target.
+			}
+
+			PressurePoints: {
+				DisplayName: Pressure Points
+				Description: Thorns press into your skin.
 			}
 		}
 
@@ -1157,26 +1197,6 @@ Mods: {
 				Steampunker.DisplayName: Bound. Steampunker
 				Truffle.DisplayName: Bound. Truffle
 				WitchDoctor.DisplayName: Bound. Witch Doctor
-			}
-
-			PlayerInSpawn: {
-				Description: You cannot do any other creature any harm while inside of the humble yet mysterious veiol of the spawnnyn box!
-				DisplayName: You, yeah, you! Are in SPAWN.
-			}
-
-			ShatteredArmor: {
-				Description: Mods.PvPAdventure.Buffs.ShatteredArmor.Description
-				DisplayName: Shattered Armor
-			}
-
-			Anathema: {
-				Description: Mods.PvPAdventure.Buffs.Anathema.Description
-				DisplayName: Anathema
-			}
-
-			Hellhex: {
-				Description: Mods.PvPAdventure.Buffs.Hellhex.Description
-				DisplayName: Hellhex
 			}
 		}
 	}
