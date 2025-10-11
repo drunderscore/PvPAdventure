@@ -1263,28 +1263,13 @@ public class NewIchorPlayer : ModPlayer
         }
     }
 }
-public class CoolWhipBuff : ModPlayer
+public class BitingEmbracePlayer : ModPlayer
 {
     public override void PostHurt(Player.HurtInfo info)
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.CoolWhip)
         {
-            Player.AddBuff(BuffID.ScytheWhipPlayerBuff, 1);
-        }
-    }
-
-
-}
-public class ShatteredArmorPlayer : ModPlayer
-{
-    public override void PostHurt(Player.HurtInfo info)
-    {
-        // Check if hit by MaceWhip projectile
-        if (info.DamageSource.SourceProjectileType == ProjectileID.MaceWhip)
-        {
-            int duration = 420; // 7 seconds base
-
-            // Check if attacker has Tiki set bonus
+            int duration = 300;
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
                 Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
@@ -1293,7 +1278,315 @@ public class ShatteredArmorPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f); // 50% longer = 10.5 seconds
+                        duration = (int)(duration * 1.5f);
+                    }
+                }
+            }
+            Player.AddBuff(ModContent.BuffType<BitingEmbrace>(), duration);
+            Player.AddBuff(BuffID.Frozen, duration / 75);
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<BitingEmbrace>())
+        {
+            bool isSummon = false;
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+            if (!isSummon)
+            {
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 6;
+                };
+            }
+        }
+    }
+}
+
+public class PressurePointsPlayer : ModPlayer
+{
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.ThornWhip)
+        {
+            int duration = 300;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 1.5f);
+                    }
+                }
+            }
+
+            Player.AddBuff(ModContent.BuffType<PressurePoints>(), duration);
+
+        }
+    }
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<PressurePoints>())
+        {
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon)
+            {
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 6;
+                };
+            }
+        }
+    }
+}
+
+public class BrittleBonesPlayer : ModPlayer
+{
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.BoneWhip)
+        {
+            int duration = 300;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 1.5f);
+                    }
+                }
+            }
+
+            Player.AddBuff(ModContent.BuffType<BrittleBones>(), duration);
+
+        }
+    }
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<BrittleBones>())
+        {
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon)
+            {
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 7;
+                };
+            }
+        }
+    }
+}
+public class MarkedPlayer : ModPlayer
+{
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.SwordWhip)
+        {
+            int duration = 300;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 1.5f);
+                    }
+                }
+            }
+
+            Player.AddBuff(ModContent.BuffType<Marked>(), duration);
+
+        }
+    }
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<Marked>())
+        {
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon)
+            {
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 9;
+                };
+            }
+        }
+    }
+}
+public class AnathemaPlayer : ModPlayer
+{ //ts is all temporary
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.RainbowWhip)
+        {
+            int duration = 300;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 1.5f);
+                    }
+                }
+            }
+
+            Player.AddBuff(ModContent.BuffType<Anathema>(), duration);
+
+        }
+    }
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<Anathema>())
+        {
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon)
+            {
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 20;
+                };
+                modifiers.FinalDamage *= 1.1f;
+
+            }
+        }
+    }
+}
+public class ShatteredArmorPlayer : ModPlayer
+{
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        // Check if hit by MaceWhip projectile
+        if (info.DamageSource.SourceProjectileType == ProjectileID.MaceWhip)
+        {
+            int duration = 300;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 1.5f);
                     }
                 }
             }
@@ -1306,8 +1599,6 @@ public class ShatteredArmorPlayer : ModPlayer
     {
         if (Player.HasBuff<ShatteredArmor>())
         {
-            Player.statDefense -= 16;
-            
             for (int i = 0; i < 1; i++) 
             {
                 int dustType = DustID.BatScepter ;
@@ -1350,7 +1641,11 @@ public class ShatteredArmorPlayer : ModPlayer
 
             if (!isSummon)
             {
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 8;
+                };
                 modifiers.FinalDamage *= 1.12f;
+
             }
         }
     }
@@ -1474,7 +1769,7 @@ public class HellhexPlayer : ModPlayer
             // Only apply double damage for non-summon damage
             if (!isSummon)
             {
-                modifiers.FinalDamage *= 2f; // Double damage
+                modifiers.FinalDamage *= 2.75f; // Double damage
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     storedDamage = info.Damage;
                 };
@@ -1691,5 +1986,53 @@ public class Hellhex : ModBuff
     public override void Update(Player player, ref int buffIndex)
     {
         // Visual effects and buff management handled in ModPlayer
+    }
+}
+public class PressurePoints : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/PressurePoints";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+    }
+}
+public class BrittleBones : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/BrittleBones";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+    }
+}
+public class BitingEmbrace : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/BitingEmbrace";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+    }
+}
+public class Marked : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/Marked";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
     }
 }
