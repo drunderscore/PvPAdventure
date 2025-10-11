@@ -96,7 +96,7 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.GiantTortoise:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 4);
+                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 3);
                 break;
 
             case NPCID.Necromancer:
@@ -214,6 +214,13 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.EyeofCthulhu:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.Binoculars, 1, 1);
+                break;
+
+            case NPCID.DungeonSpirit:
+                                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.Ectoplasm) ||
+                    drop is LeadingConditionRule);            
+                    npcLoot.Add(ItemDropRule.Common(ItemID.Ectoplasm, 1, 3, 5));
                 break;
 
             case NPCID.KingSlime:
