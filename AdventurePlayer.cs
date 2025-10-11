@@ -1269,7 +1269,7 @@ public class CoolWhipBuff : ModPlayer
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.CoolWhip)
         {
-            Player.AddBuff(BuffID.ScytheWhipPlayerBuff, 1);
+            Player.AddBuff(BuffID.Frozen, 2);
         }
     }
 
@@ -1282,7 +1282,7 @@ public class ShatteredArmorPlayer : ModPlayer
         // Check if hit by MaceWhip projectile
         if (info.DamageSource.SourceProjectileType == ProjectileID.MaceWhip)
         {
-            int duration = 420; // 7 seconds base
+            int duration = 300; // 5 seconds base
 
             // Check if attacker has Tiki set bonus
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
@@ -1293,7 +1293,7 @@ public class ShatteredArmorPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f); // 50% longer = 10.5 seconds
+                        duration = (int)(duration * 1.5f); // 50% longer = mroes seconds
                     }
                 }
             }

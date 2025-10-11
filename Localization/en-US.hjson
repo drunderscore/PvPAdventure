@@ -1139,6 +1139,26 @@ Mods: {
 				DisplayName: Shiny Stone Hotswap
 				Description: Mods.PvPAdventure.Buffs.ShinyStoneHotswap.Description
 			}
+
+			Anathema: {
+				DisplayName: Anathema
+				Description: Mods.PvPAdventure.Buffs.Anathema.Description
+			}
+
+			Hellhex: {
+				DisplayName: Hellhex
+				Description: Mods.PvPAdventure.Buffs.Hellhex.Description
+			}
+
+			PlayerInSpawn: {
+				DisplayName: Player In Spawn
+				Description: Mods.PvPAdventure.Buffs.PlayerInSpawn.Description
+			}
+
+			ShatteredArmor: {
+				DisplayName: Shattered Armor
+				Description: Mods.PvPAdventure.Buffs.ShatteredArmor.Description
+			}
 		}
 
 		Items: {

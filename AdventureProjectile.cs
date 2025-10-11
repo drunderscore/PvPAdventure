@@ -702,6 +702,7 @@ public class AdventureProjectile : GlobalProjectile
                     }
                 }
             }
+
             if (projectile.type == ProjectileID.ThornWhip && target.hostile)
             {
                 if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
@@ -715,6 +716,7 @@ public class AdventureProjectile : GlobalProjectile
                     }
                 }
             }
+
             if (projectile.type == ProjectileID.ScytheWhip && target.hostile)
             {
                 if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
