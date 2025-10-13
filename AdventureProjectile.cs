@@ -728,6 +728,31 @@ public class AdventureProjectile : GlobalProjectile
                     }
                 }
             }
+            if (projectile.type == ProjectileID.CoolWhip && target.hostile)
+            {
+                if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
+                {
+                    Player attacker = Main.player[projectile.owner];
+
+                    if (attacker != null && attacker.active && attacker != target && attacker.hostile)
+                    {
+                        int buffDuration = 420;
+                        attacker.AddBuff(BuffID.CoolWhipPlayerBuff, buffDuration);
+                    }
+                }
+            }
+        }
+    }
+
+    public class CursedDartDestroyer : GlobalProjectile
+    {
+        public override void ModifyHitNPC(Projectile projectile, NPC target, ref NPC.HitModifiers modifiers)
+        {
+            if (projectile.type == ProjectileID.CursedDartFlame &&
+                (target.type == NPCID.TheDestroyer || target.type == NPCID.TheDestroyerBody || target.type == NPCID.TheDestroyerTail))
+            {
+                modifiers.SourceDamage *= 0.66f;
+            }
         }
     }
 }

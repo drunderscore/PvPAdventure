@@ -1278,12 +1278,56 @@ public class BitingEmbracePlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
             Player.AddBuff(ModContent.BuffType<BitingEmbrace>(), duration);
             Player.AddBuff(BuffID.Frozen, duration / 75);
+        }
+    }
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<BitingEmbrace>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.07f);
+                float distance = 21f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.IceTorch, Vector2.Zero, 100, Color.Teal, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.Teal, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
         }
     }
 
@@ -1338,7 +1382,7 @@ public class PressurePointsPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
@@ -1347,6 +1391,52 @@ public class PressurePointsPlayer : ModPlayer
 
         }
     }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<PressurePoints>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.05f);
+                float distance = 12f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.CursedTorch, Vector2.Zero, 100, Color.LimeGreen, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.LimeGreen, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
+        }
+    }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         if (Player.HasBuff<PressurePoints>())
@@ -1400,13 +1490,57 @@ public class BrittleBonesPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
 
             Player.AddBuff(ModContent.BuffType<BrittleBones>(), duration);
 
+        }
+    }
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<BrittleBones>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.06f);
+                float distance = 19f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.BoneTorch, Vector2.Zero, 100, Color.DarkGray, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.DarkGray, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
         }
     }
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
@@ -1461,7 +1595,7 @@ public class MarkedPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
@@ -1470,6 +1604,52 @@ public class MarkedPlayer : ModPlayer
 
         }
     }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<Marked>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.08f);
+                float distance = 26f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.Blood, Vector2.Zero, 100, Color.Red, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.DarkRed, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
+        }
+    }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         if (Player.HasBuff<Marked>())
@@ -1522,13 +1702,54 @@ public class AnathemaPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
 
             Player.AddBuff(ModContent.BuffType<Anathema>(), duration);
 
+        }
+    }
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<Anathema>())
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                float distance = Main.rand.NextFloat(40f, 80f);
+                float angle = Main.rand.NextFloat(0f, MathHelper.TwoPi);
+
+                Vector2 spawnOffset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + spawnOffset;
+
+                Vector2 towardPlayer = Player.Center - dustPosition;
+                towardPlayer.Normalize();
+                Vector2 dustVelocity = towardPlayer * Main.rand.NextFloat(2f, 4f);
+
+                int dustType;
+                Color dustColor;
+
+                if (Main.rand.NextBool())
+                {
+                    // Light particles
+                    dustType = DustID.PlatinumCoin;
+                    dustColor = Color.White;
+                }
+                else
+                {
+                    // Dark particles
+                    dustType = DustID.Smoke;
+                    dustColor = Color.Black;
+                }
+
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, dustColor, Main.rand.NextFloat(0.6f, 1.2f));
+                dust.noGravity = true;
+                dust.fadeIn = 0.8f;
+            }
         }
     }
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
@@ -1586,7 +1807,7 @@ public class ShatteredArmorPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
@@ -1684,7 +1905,7 @@ public class HellhexPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }

@@ -286,18 +286,20 @@ public class AdventureDropDatabase : ModSystem
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HoneyComb) ||
                     drop is DropBasedOnExpertMode);
 
-                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                npcLoot.Add(ItemDropRule.FewFromOptions(1,
                         ItemID.BeeKeeper,
                         ItemID.BeesKnees
                     )
                 );
 
-                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                npcLoot.Add(ItemDropRule.FewFromOptions(1,
                         ItemID.BeeGun,
                         ItemID.HoneyComb
                     )
                 );
-
+                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 70, 200));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 15));
                 break;
 
             case NPCID.SkeletronHead:
@@ -329,6 +331,8 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.WallofFlesh:
 
+                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
+
                 var wofFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.WallofFlesh));
                 wofFirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
                     ItemID.WarriorEmblem,
@@ -337,12 +341,40 @@ public class AdventureDropDatabase : ModSystem
                     ItemID.SummonerEmblem
                 ));
                 npcLoot.Add(wofFirstKillRule);
+                npcLoot.Add(
+                    new OneFromRulesRule(1,
+                        ItemDropRule.Common(ItemID.WarriorEmblem),
+                        ItemDropRule.Common(ItemID.RangerEmblem),
+                        ItemDropRule.Common(ItemID.SorcererEmblem),
+                        ItemDropRule.Common(ItemID.SummonerEmblem)
+                    )
+                );
+                npcLoot.Add(
+                    new OneFromRulesRule(1,
+                        ItemDropRule.Common(ItemID.FireWhip),
+                        ItemDropRule.Common(ItemID.BreakerBlade)
+                    )
+                );
+                npcLoot.Add(
+                    new OneFromRulesRule(1,
+                        ItemDropRule.Common(ItemID.LaserRifle),
+                        ItemDropRule.Common(ItemID.ClockworkAssaultRifle)
+                    )
+                );
                 break;
 
             case NPCID.DukeFishron:
 
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
+                foreach (var drop in drops)
+                {
+                    if (drop is OneFromOptionsNotScaledWithLuckDropRule oneFromOptionsNotScaledWithLuckDropRule)
+                    {
+                        oneFromOptionsNotScaledWithLuckDropRule.dropIds = oneFromOptionsNotScaledWithLuckDropRule
+                            .dropIds.Where(id => id != ItemID.FishronWings).ToArray();
+                    }
+                }
 
                 var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
                 dukefirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.Tsunami, 1));
