@@ -1179,12 +1179,22 @@ Mods: {
 				DisplayName: Pressure Points
 				Description: Thorns press into your skin.
 			}
+
+			Attuning: {
+				DisplayName: Attuning
+				Description: Your Spectre armor is attuning to your magic & mind!
+			}
 		}
 
 		Items: {
 			AdventureBag: {
 				DisplayName: Adventure Bag
 				Tooltip: ""
+			}
+
+			BlightFruit: {
+				DisplayName: Blight Fruit
+				Tooltip: Permanently decreases maximum life by 5
 			}
 		}
 
