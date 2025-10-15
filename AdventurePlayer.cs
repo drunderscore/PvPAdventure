@@ -482,8 +482,29 @@ public class AdventurePlayer : ModPlayer
             if (PvPImmuneTime[i] > 0)
                 PvPImmuneTime[i]--;
         }
-    }
+        bool hasSpectreSet = IsSpectreSetEquipped();
+        int currentHead = Player.armor[0].type;
+        bool headChanged = IsSpectreHead(currentHead) && currentHead != lastSpectreHead;
 
+        if ((hasSpectreSet && !hadSpectreSetLastFrame) || headChanged)
+        {
+            Player.AddBuff(ModContent.BuffType<Attuning>(), 3600); // 60 seconds
+        }
+
+        hadSpectreSetLastFrame = hasSpectreSet;
+        if (IsSpectreHead(currentHead))
+        {
+            lastSpectreHead = currentHead;
+        }
+    }
+    public override void PostUpdate()
+    {
+        if (Player.HasBuff(ModContent.BuffType<Attuning>()))
+        {
+            Player.ghostHurt = false;
+            Player.ghostHeal = false;
+        }
+    }
     private bool CanRecall()
     {
         var region = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
@@ -713,6 +734,29 @@ public class AdventurePlayer : ModPlayer
                    disabledSlot == slotIndex;
         }
     }
+
+
+    private int lastSpectreHead = 0;
+    private bool hadSpectreSetLastFrame;
+
+    private bool IsSpectreSetEquipped()
+    {
+        int head = Player.armor[0].type;
+        int body = Player.armor[1].type;
+        int legs = Player.armor[2].type;
+
+        bool hasSpectreHead = IsSpectreHead(head);
+        bool hasSpectreBody = body == ItemID.SpectreRobe;
+        bool hasSpectreLegs = legs == ItemID.SpectrePants;
+
+        return hasSpectreHead && hasSpectreBody && hasSpectreLegs;
+    }
+
+    private bool IsSpectreHead(int headType)
+    {
+        return headType == ItemID.SpectreHood || headType == ItemID.SpectreMask;
+    }
+
     public override void PostUpdateEquips()
     {
         // Check if Shiny Stone is equipped
@@ -769,6 +813,8 @@ public class AdventurePlayer : ModPlayer
         }
         return false;
     }
+
+  
 
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
@@ -1278,12 +1324,57 @@ public class BitingEmbracePlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
             Player.AddBuff(ModContent.BuffType<BitingEmbrace>(), duration);
-            Player.AddBuff(BuffID.Frozen, duration / 75);
+            Player.AddBuff(BuffID.Frostburn2, duration);
+
+        }
+    }
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<BitingEmbrace>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.07f);
+                float distance = 21f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.IceTorch, Vector2.Zero, 100, Color.Teal, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.Teal, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
         }
     }
 
@@ -1338,7 +1429,7 @@ public class PressurePointsPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
@@ -1347,6 +1438,52 @@ public class PressurePointsPlayer : ModPlayer
 
         }
     }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<PressurePoints>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.05f);
+                float distance = 12f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.CursedTorch, Vector2.Zero, 100, Color.LimeGreen, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.LimeGreen, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
+        }
+    }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         if (Player.HasBuff<PressurePoints>())
@@ -1400,13 +1537,58 @@ public class BrittleBonesPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
 
             Player.AddBuff(ModContent.BuffType<BrittleBones>(), duration);
+            Player.AddBuff(BuffID.ShadowFlame, duration);
 
+        }
+    }
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<BrittleBones>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.06f);
+                float distance = 19f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.BoneTorch, Vector2.Zero, 100, Color.DarkGray, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.DarkGray, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
         }
     }
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
@@ -1461,7 +1643,7 @@ public class MarkedPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
@@ -1470,6 +1652,52 @@ public class MarkedPlayer : ModPlayer
 
         }
     }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<Marked>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.08f);
+                float distance = 26f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.Blood, Vector2.Zero, 100, Color.Red, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.DarkRed, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
+        }
+    }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         if (Player.HasBuff<Marked>())
@@ -1522,13 +1750,54 @@ public class AnathemaPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
 
             Player.AddBuff(ModContent.BuffType<Anathema>(), duration);
 
+        }
+    }
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<Anathema>())
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                float distance = Main.rand.NextFloat(40f, 80f);
+                float angle = Main.rand.NextFloat(0f, MathHelper.TwoPi);
+
+                Vector2 spawnOffset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + spawnOffset;
+
+                Vector2 towardPlayer = Player.Center - dustPosition;
+                towardPlayer.Normalize();
+                Vector2 dustVelocity = towardPlayer * Main.rand.NextFloat(2f, 4f);
+
+                int dustType;
+                Color dustColor;
+
+                if (Main.rand.NextBool())
+                {
+                    // Light particles
+                    dustType = DustID.PlatinumCoin;
+                    dustColor = Color.White;
+                }
+                else
+                {
+                    // Dark particles
+                    dustType = DustID.Smoke;
+                    dustColor = Color.Black;
+                }
+
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, dustColor, Main.rand.NextFloat(0.6f, 1.2f));
+                dust.noGravity = true;
+                dust.fadeIn = 0.8f;
+            }
         }
     }
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
@@ -1586,7 +1855,7 @@ public class ShatteredArmorPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
@@ -1655,27 +1924,60 @@ public class HellhexPlayer : ModPlayer
 {
     public bool hellhexTriggered = false;
     private int storedDamage = 0;
-    private int lastImmuneTime = 0;
-    
-    public override void PostUpdate()
+
+    public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
     {
-        // Detect when the player takes damage by checking immune time
-        if (Player.HasBuff<Hellhex>() && Player.immuneTime > lastImmuneTime && Player.immuneTime > 0)
+        // If player has Hellhex when they die from non-summon damage, spawn explosion
+        if (Player.HasBuff<Hellhex>())
         {
-            // Player just took damage, set flag to remove buff
-            hellhexTriggered = true;
+            bool isSummon = false;
+
+            // Check if death is from summon/whip damage
+            if (damageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (damageSource.SourceProjectileType > 0)
+            {
+                int projType = damageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            // Spawn explosion on death from non-summon damage
+            if (!isSummon && Main.myPlayer == Player.whoAmI)
+            {
+                Projectile.NewProjectile(
+                    Player.GetSource_Death(),
+                    Player.Center,
+                    Vector2.Zero,
+                    ProjectileID.FireWhipProj,
+                    (int)damage,
+                    0f,
+                    Player.whoAmI
+                );
+            }
         }
-        
-        lastImmuneTime = Player.immuneTime;
+
+        return true; // Allow death
     }
-    
+
     public override void PostHurt(Player.HurtInfo info)
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
         {
-            int duration = 840; // 14 seconds base
+            int duration = 800;
 
-            // Check if attacker has Tiki set bonus
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
                 Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
@@ -1684,7 +1986,7 @@ public class HellhexPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 2.5f);
                     }
                 }
             }
@@ -1692,12 +1994,10 @@ public class HellhexPlayer : ModPlayer
             Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
         }
 
-        // If player has Hellhex and takes non-summon damage, remove it
         if (Player.HasBuff<Hellhex>())
         {
             bool isSummon = false;
-            
-            // Check if damage is from summon projectile
+
             if (info.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
@@ -1706,8 +2006,7 @@ public class HellhexPlayer : ModPlayer
                     isSummon = true;
                 }
             }
-            
-            // Only remove buff and trigger effects if NOT summon damage
+
             if (!isSummon)
             {
                 int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
@@ -1715,12 +2014,11 @@ public class HellhexPlayer : ModPlayer
                 {
                     Player.buffTime[buffIndex] = 0;
                 }
-                
-                // Spawn explosion projectile
+
                 if (Main.myPlayer == Player.whoAmI)
                 {
                     Vector2 spawnPos = Player.Center;
-                    
+
                     Projectile.NewProjectile(
                         Player.GetSource_Buff(buffIndex),
                         spawnPos,
@@ -1734,15 +2032,13 @@ public class HellhexPlayer : ModPlayer
             }
         }
     }
-    
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
-        // Double damage from non-summon sources while having Hellhex
         if (Player.HasBuff<Hellhex>())
         {
             bool isSummon = false;
-            
-            // Check if damage is from summon/whip projectile
+
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
@@ -1751,13 +2047,11 @@ public class HellhexPlayer : ModPlayer
                     isSummon = true;
                 }
             }
-            // Also check by projectile type for whips
             else if (modifiers.DamageSource.SourceProjectileType > 0)
             {
                 int projType = modifiers.DamageSource.SourceProjectileType;
-                // Check if it's a whip projectile type
-                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip || 
-                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip || 
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
                     projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
                     projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
                     projType == ProjectileID.CoolWhip)
@@ -1765,11 +2059,10 @@ public class HellhexPlayer : ModPlayer
                     isSummon = true;
                 }
             }
-            
-            // Only apply double damage for non-summon damage
+
             if (!isSummon)
             {
-                modifiers.FinalDamage *= 2.75f; // Double damage
+                modifiers.FinalDamage *= 2.75f;
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     storedDamage = info.Damage;
                 };
@@ -1777,37 +2070,34 @@ public class HellhexPlayer : ModPlayer
             }
         }
     }
-    
+
     public override void PostUpdateBuffs()
     {
         if (Player.HasBuff<Hellhex>())
         {
-            // Create hellfire particle shower
             for (int i = 0; i < 2; i++)
             {
-                int dustType = DustID.Torch; // Orange/red fire dust
+                int dustType = DustID.Torch;
                 Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
-                Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-2f, 0f)); // Upward shower
-                
+                Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-2f, 0f));
+
                 Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, default(Color), Main.rand.NextFloat(1f, 2f));
                 dust.noGravity = true;
                 dust.fadeIn = 1.3f;
             }
-            
-            // Add some darker fire particles for variety
+
             if (Main.rand.NextBool(2))
             {
                 int dustType = DustID.Smoke;
                 Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
                 Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-1.5f, 0f));
-                
+
                 Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, Color.OrangeRed, Main.rand.NextFloat(0.8f, 1.5f));
                 dust.noGravity = true;
             }
         }
         else
         {
-            // Reset trigger flag when buff is not active
             hellhexTriggered = false;
         }
     }
@@ -1831,9 +2121,14 @@ public class PvPAdventurePlayer : ModPlayer
     {
         if (!hasReceivedStarterBag)
         {
-            Player.QuickSpawnItem(Player.GetSource_GiftOrReward(), ModContent.ItemType<AdventureItem.AdventureBag>(), 1);
+            int itemType = ModContent.ItemType<AdventureItem.AdventureBag>();
+            var item = new Item();
+            item.SetDefaults(itemType);
+            Player.inventory[1] = item; // Adds to second inventory slot
+            var beachBallItem = new Item();
+            beachBallItem.SetDefaults(ItemID.BeachBall);
+            Player.inventory[2] = beachBallItem; // Adds to third inventory slot
 
-            // Set the flag so they don't get another one
             hasReceivedStarterBag = true;
         }
     }
@@ -1870,8 +2165,76 @@ public class AetherLuckPlayer : ModPlayer
         }
     }
 }
+public class ShadowFlamePlayer : ModPlayer
+{
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        int shadowflameDuration = 0;
 
+        if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameArrow)
+        {
+            int maxDuration = 4 * 60;
+            float damageRatio = Math.Min(info.Damage / 47f, 1f);
+            shadowflameDuration = (int)(maxDuration * damageRatio);
+        }
+        else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlame)
+        {
+            shadowflameDuration = 60 * 10;
+        }
+        else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameKnife)
+        {
+            int maxDuration = 60 * 5;
+            float damageRatio = Math.Min(info.Damage / 40f, 1f);
+            shadowflameDuration = (int)(maxDuration * damageRatio);
+        }
+        else if (info.DamageSource.SourceProjectileType == ProjectileID.DarkLance)
+        {
+            shadowflameDuration = 66 * 6; // 6.66 seconds
+        }
 
+        if (shadowflameDuration > 0)
+        {
+            Player.AddBuff(BuffID.ShadowFlame, shadowflameDuration);
+        }
+    }
+
+    public override void UpdateBadLifeRegen()
+    {
+        if (Player.HasBuff(BuffID.ShadowFlame))
+        {
+            if (Player.lifeRegen > 0)
+            {
+                Player.lifeRegen = 0;
+            }
+            Player.lifeRegenTime = 0;
+
+            Player.lifeRegen -= 30;
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff(BuffID.ShadowFlame))
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-1f, 1f), Main.rand.NextFloat(-2f, 0f));
+
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, DustID.Shadowflame, dustVelocity.X, dustVelocity.Y, 100, default(Color), Main.rand.NextFloat(1f, 1.5f));
+                dust.noGravity = true;
+                dust.fadeIn = 1.2f;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                Vector2 smokePos = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Dust smoke = Dust.NewDustDirect(smokePos, 0, 0, DustID.Smoke, 0, -1f, 100, Color.Purple, 0.8f);
+                smoke.noGravity = true;
+            }
+        }
+    }
+}
 
 public class ShinyStoneHotswap : ModBuff
 {
@@ -1950,9 +2313,8 @@ public class ShatteredArmor : ModBuff
     {
         Main.debuff[Type] = true;
         Main.buffNoSave[Type] = false;
-        Main.buffNoTimeDisplay[Type] = true;
         Main.buffNoTimeDisplay[Type] = false;
-        Main.persistentBuff[Type] = true;
+        Main.persistentBuff[Type] = false;
         BuffID.Sets.IsATagBuff[Type] = false;
     }
     public override void Update(Player player, ref int buffIndex)
@@ -1968,7 +2330,7 @@ public class Anathema : ModBuff
         Main.debuff[Type] = true;
         Main.buffNoSave[Type] = false;
         Main.buffNoTimeDisplay[Type] = false;
-        Main.persistentBuff[Type] = true;
+        Main.persistentBuff[Type] = false;
     }
 }
 public class Hellhex : ModBuff
@@ -1980,7 +2342,7 @@ public class Hellhex : ModBuff
         Main.debuff[Type] = true;
         Main.buffNoSave[Type] = false;
         Main.buffNoTimeDisplay[Type] = false;
-        Main.persistentBuff[Type] = true;
+        Main.persistentBuff[Type] = false;
     }
 
     public override void Update(Player player, ref int buffIndex)
@@ -1997,7 +2359,7 @@ public class PressurePoints : ModBuff
         Main.debuff[Type] = true;
         Main.buffNoSave[Type] = false;
         Main.buffNoTimeDisplay[Type] = false;
-        Main.persistentBuff[Type] = true;
+        Main.persistentBuff[Type] = false;
     }
 }
 public class BrittleBones : ModBuff
@@ -2009,7 +2371,7 @@ public class BrittleBones : ModBuff
         Main.debuff[Type] = true;
         Main.buffNoSave[Type] = false;
         Main.buffNoTimeDisplay[Type] = false;
-        Main.persistentBuff[Type] = true;
+        Main.persistentBuff[Type] = false;
     }
 }
 public class BitingEmbrace : ModBuff
@@ -2021,12 +2383,24 @@ public class BitingEmbrace : ModBuff
         Main.debuff[Type] = true;
         Main.buffNoSave[Type] = false;
         Main.buffNoTimeDisplay[Type] = false;
-        Main.persistentBuff[Type] = true;
+        Main.persistentBuff[Type] = false;
     }
 }
 public class Marked : ModBuff
 {
     public override string Texture => $"PvPAdventure/Assets/Buff/Marked";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+    }
+}
+public class Attuning : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/Attuning";
 
     public override void SetStaticDefaults()
     {

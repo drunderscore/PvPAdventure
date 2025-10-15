@@ -252,4 +252,47 @@ public class AdventureItem : GlobalItem
             tooltips.Add(new TooltipLine(Mod, "PvPBagInfo", "Contains essential items for your PvP Adventure"));
         }
     }
+    public class BlightFruit : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/BlightFruit";
+
+        public override void SetDefaults()
+        {
+            Item.width = 18;
+            Item.height = 18;
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Gray;
+            Item.useStyle = ItemUseStyleID.HoldUp;
+            Item.useAnimation = 1;
+            Item.useTime = 1;
+            Item.consumable = true;
+            Item.UseSound = SoundID.Item27;
+        }
+        public override bool CanUseItem(Player player)
+        {
+            return player.ConsumedLifeFruit > 0;
+        }
+
+        public override bool? UseItem(Player player)
+        {
+            if (player.ConsumedLifeFruit > 0)
+            {
+                player.ConsumedLifeFruit--;
+
+                player.statLifeMax = 100 + (player.ConsumedLifeCrystals * 20) + (player.ConsumedLifeFruit * 5);
+
+                if (player.statLife > player.statLifeMax)
+                {
+                    player.statLife = player.statLifeMax;
+                }
+
+                if (Main.myPlayer == player.whoAmI)
+                {
+                    player.HealEffect(-5, true);
+                }
+            }
+
+            return true;
+        }
+    }
 }

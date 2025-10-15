@@ -840,6 +840,11 @@ Mods: {
 				DisplayName: Shattered Armor
 				Description: You're armor has been shattered by a brutal blow!
 			}
+
+			Attuning: {
+				DisplayName: Attuning
+				Description: Your Spectre armor is attuning to your magic & mind!
+			}
 		}
 
 		Items: {
@@ -870,6 +875,11 @@ Mods: {
 			SoundEffect: {
 				Label: Sound Effect
 				Tooltip: ""
+			}
+
+			BlightFruit: {
+				DisplayName: Blight Fruit
+				Tooltip: Permanently decreases maximum life by 5
 			}
 		}
 
