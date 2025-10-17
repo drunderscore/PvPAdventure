@@ -759,7 +759,6 @@ Mods: {
 				}
 
 				Chat: At long last, I'm saved! The strangest people tied me up
-				
 			}
 		}
 
@@ -851,6 +850,11 @@ Mods: {
 			AdventureBag: {
 				DisplayName: Adventure Bag
 				Tooltip: Everything you need to start your PvP Adventure!
+			}
+
+			BlightFruit: {
+				Tooltip: ""
+				DisplayName: Blight Fruit
 			}
 		}
 
@@ -977,6 +981,6 @@ Mods: {
 			Shronker.Label: Shronker
 			FatalCarCrash.Label: Fatal Car Crash
 			Part2.Label: Part2
-		}	
+		}
 	}
 }
