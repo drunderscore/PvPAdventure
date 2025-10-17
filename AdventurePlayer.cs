@@ -1974,6 +1974,7 @@ public class HellhexPlayer : ModPlayer
 
     public override void PostHurt(Player.HurtInfo info)
     {
+        // Apply Hellhex when hit by FireWhip
         if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
         {
             int duration = 800;
@@ -1992,8 +1993,11 @@ public class HellhexPlayer : ModPlayer
             }
 
             Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
+            // Don't process the removal logic on the same hit that applies it
+            return;
         }
 
+        // Only check for removal if player already has Hellhex
         if (Player.HasBuff<Hellhex>())
         {
             bool isSummon = false;
@@ -2001,7 +2005,20 @@ public class HellhexPlayer : ModPlayer
             if (info.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
-                if (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed))
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            // Add whip check here too
+            else if (info.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = info.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
                 {
                     isSummon = true;
                 }
