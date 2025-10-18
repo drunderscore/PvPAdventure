@@ -756,7 +756,7 @@ public class AdventurePlayer : ModPlayer
     {
         return headType == ItemID.SpectreHood || headType == ItemID.SpectreMask;
     }
-
+    private bool hadPhilostoneLastFrame;
     public override void PostUpdateEquips()
     {
         // Check if Shiny Stone is equipped
@@ -773,8 +773,15 @@ public class AdventurePlayer : ModPlayer
         {
             Player.shinyStone = false;
         }
-
+        bool hasPhilostone = IsPhilostoneEquipped();
         hadShinyStoneLastFrame = hasShinyStone;
+        hadPhilostoneLastFrame = hasPhilostone;
+
+        if (hasPhilostone && !hadPhilostoneLastFrame)
+        {
+            Player.AddBuff(ModContent.BuffType<UncouthandBoring>(), 3600); // 60 seconds
+        }
+
 
         if (Player.beetleOffense)
         {
@@ -813,8 +820,19 @@ public class AdventurePlayer : ModPlayer
         }
         return false;
     }
+    private bool IsPhilostoneEquipped()
+    {
+        for (int i = 3; i < 10; i++) // Check all accessory slots
+        {
+            if (Player.armor[i].type == ItemID.PhilosophersStone || (Player.armor[i].type == ItemID.CharmofMyths) &&
+               (i < 7 || !Player.hideVisibleAccessory[i - 3]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
-  
 
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
@@ -2235,7 +2253,48 @@ public class ShadowFlamePlayer : ModPlayer
         }
     }
 }
+public class QuiverNerfPlayer : ModPlayer
+{
+    public bool hasQuiver = false;
 
+    public override void ResetEffects()
+    {
+        hasQuiver = false;
+    }
+
+    public override void PostUpdateEquips()
+    {
+        for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
+        {
+            if (Player.armor[i].type == ItemID.MagicQuiver || Player.armor[i].type == ItemID.MoltenQuiver )
+            {
+                hasQuiver = true;
+                break;
+            }
+        }
+    }
+}
+public class HittheChytty : ModPlayer
+{
+    public override void OnRespawn()
+    {
+        bool hasCharmOfMyths = false;
+
+        for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
+        {
+            if (Player.armor[i].type == ItemID.CharmofMyths)
+            {
+                hasCharmOfMyths = true;
+                break;
+            }
+        }
+
+        if (hasCharmOfMyths && !Player.HasBuff<UncouthandBoring>())
+        {
+            Player.statLife = Player.statLifeMax2;
+        }
+    }
+}
 public class ShinyStoneHotswap : ModBuff
 {
     public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap";
@@ -2401,6 +2460,18 @@ public class Marked : ModBuff
 public class Attuning : ModBuff
 {
     public override string Texture => $"PvPAdventure/Assets/Buff/Attuning";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+    }
+}
+public class UncouthandBoring : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/uncouthandboring";
 
     public override void SetStaticDefaults()
     {

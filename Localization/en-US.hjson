@@ -844,6 +844,11 @@ Mods: {
 				DisplayName: Attuning
 				Description: Your Spectre armor is attuning to your magic & mind!
 			}
+
+			UncouthandBoring: {
+				DisplayName: Uncouthand Boring
+				Description: Mods.PvPAdventure.Buffs.UncouthandBoring.Description
+			}
 		}
 
 		Items: {
