@@ -846,8 +846,8 @@ Mods: {
 			}
 
 			UncouthandBoring: {
-				DisplayName: Uncouthand Boring
-				Description: Mods.PvPAdventure.Buffs.UncouthandBoring.Description
+				DisplayName: Uncouth and Boring
+				Description: You are no longer a charming and mythical philosopher!
 			}
 		}
 

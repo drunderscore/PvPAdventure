@@ -775,12 +775,13 @@ public class AdventurePlayer : ModPlayer
         }
         bool hasPhilostone = IsPhilostoneEquipped();
         hadShinyStoneLastFrame = hasShinyStone;
-        hadPhilostoneLastFrame = hasPhilostone;
 
         if (hasPhilostone && !hadPhilostoneLastFrame)
         {
             Player.AddBuff(ModContent.BuffType<UncouthandBoring>(), 3600); // 60 seconds
         }
+
+        hadPhilostoneLastFrame = hasPhilostone;
 
 
         if (Player.beetleOffense)
@@ -2282,7 +2283,7 @@ public class HittheChytty : ModPlayer
 
         for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
         {
-            if (Player.armor[i].type == ItemID.CharmofMyths)
+            if (Player.armor[i].type == ItemID.CharmofMyths || Player.armor[i].type == ItemID.PhilosophersStone)
             {
                 hasCharmOfMyths = true;
                 break;
