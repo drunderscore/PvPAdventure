@@ -34,7 +34,8 @@ public class RecipeManager : ModSystem
             ItemID.FlaskofFire,
             ItemID.FlaskofNanites,
             ItemID.FlaskofParty,
-            ItemID.SpectreBar
+            ItemID.SpectreBar,
+            ItemID.SuspiciousLookingEye
 
     };
 
@@ -53,6 +54,11 @@ public class RecipeManager : ModSystem
             .AddIngredient(ItemID.GlowingMushroom, 3)
             .AddIngredient(ItemID.ChlorophyteBar, 1)
             .AddTile(TileID.Autohammer)
+            .Register();
+
+        Recipe.Create(ItemID.SuspiciousLookingEye)
+            .AddIngredient(ItemID.Lens, 3)
+            .AddTile(TileID.DemonAltar)
             .Register();
 
         Recipe.Create(ItemID.WormFood)

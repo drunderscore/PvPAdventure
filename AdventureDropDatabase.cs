@@ -191,10 +191,7 @@ public class AdventureDropDatabase : ModSystem
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.MagicQuiver) ||
                     drop is LeadingConditionRule);
-                if (NPC.downedPlantBoss == true)
-                {
-                    npcLoot.Add(ItemDropRule.Common(ItemID.StalkersQuiver, 7));
-                }
+                    npcLoot.Add(ItemDropRule.Common(ItemID.MagicQuiver, 10));
                 break;
 
             case NPCID.RedDevil:
@@ -308,6 +305,11 @@ public class AdventureDropDatabase : ModSystem
 
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.SkeletronHand, 1, 1);
+                break;
+            case NPCID.DemonEye:
+            case NPCID.WanderingEye:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.Lens, 1, 1);
                 break;
 
             case NPCID.IceTortoise:

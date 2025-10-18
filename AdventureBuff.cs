@@ -76,4 +76,14 @@ public class AdventureBuff : GlobalBuff
             }
         }
     }
+    public class ArcheryNerf : GlobalItem
+    {
+        public override void ModifyWeaponDamage(Item item, Player player, ref StatModifier damage)
+        {
+            if (player.HasBuff(BuffID.Archery) && item.useAmmo == AmmoID.Arrow)
+            {
+                damage /= 1.1f;
+            }
+        }
+    }
 }

@@ -755,5 +755,25 @@ public class AdventureProjectile : GlobalProjectile
             }
         }
     }
+
+
+    public class EmpressNerf : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.FairyQueenLance ||
+                   entity.type == ProjectileID.FairyQueenSunDance ||
+                   entity.type == ProjectileID.FairyQueenMagicItemShot ||
+                   entity.type == ProjectileID.FairyQueenRangedItemShot ||
+                   entity.type == ProjectileID.HallowBossRainbowStreak ||
+                   entity.type == ProjectileID.HallowBossSplitShotCore ||
+                   entity.type == ProjectileID.HallowBossLastingRainbow;
+        }
+
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.SourceDamage *= 0.75f;
+        }
+    }
 }
 

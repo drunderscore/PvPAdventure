@@ -70,7 +70,6 @@ public class AdventureItem : GlobalItem
             ItemID.Sets.ShimmerTransformToItem[items[^1]] = items[0];
         }
 
-        AddCircularShimmerTransform(ItemID.CursedFlame, ItemID.Ichor);
         AddCircularShimmerTransform(
             ItemID.CrystalNinjaHelmet,
             ItemID.CrystalNinjaChestplate,
@@ -293,6 +292,18 @@ public class AdventureItem : GlobalItem
             }
 
             return true;
+        }
+    }
+    public class QuiverNerf : GlobalItem
+    {
+        public override void ModifyWeaponDamage(Item item, Player player, ref StatModifier damage)
+        {
+            QuiverNerfPlayer modPlayer = player.GetModPlayer<QuiverNerfPlayer>();
+
+            if (modPlayer.hasQuiver && item.useAmmo == AmmoID.Arrow)
+            {
+                damage += -0.1f;
+            }
         }
     }
 }

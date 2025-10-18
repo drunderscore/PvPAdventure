@@ -844,6 +844,11 @@ Mods: {
 				DisplayName: Attuning
 				Description: Your Spectre armor is attuning to your magic & mind!
 			}
+
+			UncouthandBoring: {
+				DisplayName: Uncouth and Boring
+				Description: You are no longer a charming and mythical philosopher!
+			}
 		}
 
 		Items: {
