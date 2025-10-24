@@ -79,11 +79,6 @@ Mods: {
 					Tooltip: ""
 				}
 
-				ShareWorldMap: {
-					Label: Share World Map
-					Tooltip: ""
-				}
-
 				AllowConfigModification: {
 					Label: Allow Config Modification
 					Tooltip: ""
