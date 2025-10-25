@@ -178,10 +178,16 @@ namespace PvPAdventure.Core.Features.Dash
             int originalDashType = Player.dashType;
             int selectedDashType = overrideDashType.HasValue && overrideDashType.Value > 0
                 ? overrideDashType.Value
-                : (originalDashType != 0 ? originalDashType : DefaultDashType);
+                : originalDashType;
+
+            if (selectedDashType <= 0)
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Info($"PerformDash aborted: player {Player.whoAmI} has no dash-granting item (override={overrideDashType}).");
+                return false;
+            }
 
             if (selectedDashType < 1 || selectedDashType > 5)
-                selectedDashType = DefaultDashType;
+                selectedDashType = Math.Clamp(selectedDashType, 1, 5);
 
             dashTypeUsed = (byte)selectedDashType;
 
@@ -204,7 +210,7 @@ namespace PvPAdventure.Core.Features.Dash
 
             ApplyDashEffects(selectedDashType, direction);
 
-            //Player.netUpdate = true;
+            // Player.netUpdate = true;
             return true;
         }
 
