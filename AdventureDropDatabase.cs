@@ -418,6 +418,36 @@ public class AdventureDropDatabase : ModSystem
                     noTwin.OnSuccess(ItemDropRule.Common(ItemID.HallowedBar, 1, 3, 3));
                 }
                 break;
+
+            case NPCID.Plantera:
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.PygmyStaff) ||
+                    drop is LeadingConditionRule);
+                npcLoot.Add(ItemDropRule.Common(ItemID.TempleKey, 1, 1, 1));
+                npcLoot.Add(
+                    new OneFromRulesRule(1,
+                        ItemDropRule.Common(ItemID.Seedler),
+                        ItemDropRule.Common(ItemID.LeafBlower),
+                        ItemDropRule.Common(ItemID.WaspGun),
+                        ItemDropRule.Common(ItemID.PygmyStaff)
+                    )
+                );
+                var plantFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.Plantera));
+                plantFirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.VenusMagnum, 1));
+
+                var grenadelauncher = ItemDropRule.Common(ItemID.GrenadeLauncher);
+                grenadelauncher.OnSuccess(ItemDropRule.Common(ItemID.RocketIII, 1, 400, 500), hideLootReport: true);
+
+                var afterFirstKill = new OneFromRulesRule(1,
+                    grenadelauncher,
+                    ItemDropRule.Common(ItemID.NettleBurst),
+                    ItemDropRule.Common(ItemID.FlowerPow),
+                    ItemDropRule.Common(ItemID.VenusMagnum)
+                );
+
+                plantFirstKillRule.OnFailedConditions(afterFirstKill);
+                npcLoot.Add(plantFirstKillRule);
+                break;
         }
     }
 
@@ -434,46 +464,6 @@ public class AdventureDropDatabase : ModSystem
             orig(self, entry);
 
         return entry;
-    }
-
-    public class PlanteraDropEdit : ModSystem
-    {
-        private static ILHook planteraHook;
-
-        public override void PostSetupContent()
-        {
-            // Apply the IL edit to change Plantera's first-time drop from item 758 to 1255
-            MethodInfo method = typeof(Terraria.GameContent.ItemDropRules.ItemDropDatabase).GetMethod("RegisterBoss_Plantera",
-                BindingFlags.NonPublic | BindingFlags.Instance);
-
-            planteraHook = new ILHook(method, PlanteraDropILEdit);
-        }
-
-        public override void Unload()
-        {
-            planteraHook?.Dispose();
-        }
-
-        private static void PlanteraDropILEdit(ILContext il)
-        {
-            ILCursor cursor = new ILCursor(il);
-
-            // Look for the instruction that loads the value 758 (Grenade Launcher ID)
-            // This should be: ldc.i4 758 (or ldc.i4.s 758 if it's a short form)
-            if (cursor.TryGotoNext(MoveType.Before,
-                i => i.MatchLdcI4(758))) // Match loading the constant 758
-            {
-                // Replace the 758 with 1255
-                cursor.Remove(); // Remove the ldc.i4 758 instruction
-                cursor.Emit(OpCodes.Ldc_I4, 1255); // Emit ldc.i4 1255 instead
-
-                ModContent.GetInstance<PvPAdventure>().Logger.Info("Successfully changed Plantera's first-time drop from item 758 to 1255");
-            }
-            else
-            {
-                ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find item ID 758 in RegisterBoss_Plantera method");
-            }
-        }
     }
 
     public class BiomeKeyDropEdit : ModSystem
