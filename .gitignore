@@ -2,3 +2,6 @@
 .vs
 bin
 obj
+
+# we don't need to add the solution to version control
+PvPAdventure.sln
