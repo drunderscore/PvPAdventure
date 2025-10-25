@@ -1943,6 +1943,7 @@ public class HellhexPlayer : ModPlayer
 {
     public bool hellhexTriggered = false;
     private int storedDamage = 0;
+    public int hellhexApplierIndex = -1; // Track who applied the Hellhex debuff
 
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
     {
@@ -1973,22 +1974,31 @@ public class HellhexPlayer : ModPlayer
                 }
             }
 
-            // Spawn explosion on death from non-summon damage
-            if (!isSummon && Main.myPlayer == Player.whoAmI)
+            if (!isSummon && Main.myPlayer == Player.whoAmI && damage >= 60)
             {
-                Projectile.NewProjectile(
+                float scale = (float)damage / 100f; // Scale based on damage
+                int owner = hellhexApplierIndex >= 0 ? hellhexApplierIndex : Player.whoAmI;
+
+                int proj = Projectile.NewProjectile(
                     Player.GetSource_Death(),
                     Player.Center,
                     Vector2.Zero,
                     ProjectileID.FireWhipProj,
                     (int)damage,
                     0f,
-                    Player.whoAmI
+                    owner,
+                    0f,
+                    scale 
                 );
+
+                if (proj >= 0 && proj < Main.maxProjectiles)
+                {
+                    Main.projectile[proj].scale = scale;
+                }
             }
         }
 
-        return true; // Allow death
+        return true;
     }
 
     public override void PostHurt(Player.HurtInfo info)
@@ -2008,11 +2018,14 @@ public class HellhexPlayer : ModPlayer
                     {
                         duration = (int)(duration * 2.5f);
                     }
+
+                    hellhexApplierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
             Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
             // Don't process the removal logic on the same hit that applies it
+
             return;
         }
 
@@ -2030,6 +2043,7 @@ public class HellhexPlayer : ModPlayer
                 }
             }
             // Add whip check here too
+
             else if (info.DamageSource.SourceProjectileType > 0)
             {
                 int projType = info.DamageSource.SourceProjectileType;
@@ -2043,7 +2057,8 @@ public class HellhexPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            // Only trigger if damage >= 60 and not summon damage
+            if (!isSummon && info.Damage >= 60)
             {
                 int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
                 if (buffIndex >= 0)
@@ -2051,19 +2066,31 @@ public class HellhexPlayer : ModPlayer
                     Player.buffTime[buffIndex] = 0;
                 }
 
-                if (Main.myPlayer == Player.whoAmI)
+                if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 spawnPos = Player.Center;
+                    float scale = info.Damage / 100f; // Scale based on damage
+                    int owner = hellhexApplierIndex >= 0 ? hellhexApplierIndex : Player.whoAmI;
 
-                    Projectile.NewProjectile(
+                    int proj = Projectile.NewProjectile(
                         Player.GetSource_Buff(buffIndex),
                         spawnPos,
                         Vector2.Zero,
                         ProjectileID.FireWhipProj,
                         info.Damage,
                         0f,
-                        Player.whoAmI
+                        owner // Owned by the attacker who applied Hellhex
                     );
+
+                    if (proj >= 0 && proj < Main.maxProjectiles)
+                    {
+                        Main.projectile[proj].scale = scale;
+
+                        if (Main.netMode == NetmodeID.Server)
+                        {
+                            NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+                        }
+                    }
                 }
             }
         }
@@ -2098,11 +2125,13 @@ public class HellhexPlayer : ModPlayer
 
             if (!isSummon)
             {
+                // Always apply damage multiplier
                 modifiers.FinalDamage *= 2.75f;
+
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     storedDamage = info.Damage;
+                    hellhexTriggered = true;
                 };
-                hellhexTriggered = true;
             }
         }
     }
@@ -2135,6 +2164,7 @@ public class HellhexPlayer : ModPlayer
         else
         {
             hellhexTriggered = false;
+            hellhexApplierIndex = -1; // Reset when buff expires
         }
     }
 }
@@ -2209,8 +2239,8 @@ public class ShadowFlamePlayer : ModPlayer
 
         if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameArrow)
         {
-            int maxDuration = 4 * 60;
-            float damageRatio = Math.Min(info.Damage / 47f, 1f);
+            int maxDuration = 3 * 60;
+            float damageRatio = Math.Min(info.Damage / 30f, 1f);
             shadowflameDuration = (int)(maxDuration * damageRatio);
         }
         else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlame)
@@ -2219,8 +2249,8 @@ public class ShadowFlamePlayer : ModPlayer
         }
         else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameKnife)
         {
-            int maxDuration = 60 * 5;
-            float damageRatio = Math.Min(info.Damage / 40f, 1f);
+            int maxDuration = 60 * 3;
+            float damageRatio = Math.Min(info.Damage / 25f, 1f);
             shadowflameDuration = (int)(maxDuration * damageRatio);
         }
         else if (info.DamageSource.SourceProjectileType == ProjectileID.DarkLance)
