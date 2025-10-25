@@ -7,5 +7,6 @@ public enum AdventurePacketIdentifier : byte
     WorldMapLighting,
     PingPong,
     PlayerItemPickup,
-    PlayerTeam
+    PlayerTeam,
+    Dash
 }
