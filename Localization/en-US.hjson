@@ -13,6 +13,7 @@ Mods: {
 			Scoreboard.DisplayName: Scoreboard
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
+			Dash.DisplayName: Dash
 		}
 
 		Configs: {
