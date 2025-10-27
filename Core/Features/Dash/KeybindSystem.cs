@@ -77,6 +77,10 @@ namespace PvPAdventure.Core.Features.Dash
                         if (playerIndex >= Main.maxPlayers)
                             break;
 
+                        // <-- ignore self to prevent double application
+                        //if (playerIndex == Main.myPlayer)
+                            //break;
+
                         Player remotePlayer = Main.player[playerIndex];
                         if (!remotePlayer.active)
                             break;
@@ -351,7 +355,12 @@ namespace PvPAdventure.Core.Features.Dash
             packet.Write((byte)Player.whoAmI);
             packet.Write((sbyte)direction);
             packet.Write(dashTypeUsed);
-            packet.Send();
+
+            // <-- exclude the origin so it won’t double-apply
+            packet.Send(toClient: -1, ignoreClient: Player.whoAmI);
+
+            // old 
+            //packet.Send();
         }
 
         internal void PostDashMovementCleanup()
