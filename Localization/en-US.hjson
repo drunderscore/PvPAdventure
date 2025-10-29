@@ -795,12 +795,6 @@ Mods: {
 				BeetleMight3: Melee damage and speed increase by 8%
 			}
 
-			ArmorSetBonus.BeetleDamage:
-				'''
-				Gain Beetles from player kills Beetles
-				increase your melee damage and attack speed
-				'''
-
 			Anathema: {
 				DisplayName: Anathema
 				Description: Enemy attacks can seek you out
@@ -817,7 +811,7 @@ Mods: {
 			}
 
 			Hellhex: {
-				DisplayName: Hellhexed
+				DisplayName: Firecracked
 				Description: You are going to burst with hellfire at any moment!
 			}
 

@@ -86,4 +86,14 @@ public class AdventureBuff : GlobalBuff
             }
         }
     }
+    public class BuffTextChange : GlobalBuff
+    {
+   public override void ModifyBuffText(int type, ref string buffName, ref string tip, ref int rare)
+        {
+            if (type == BuffID.Archery)
+            {
+                tip = "20% increased arrow speed\nNo longer grants bow damage";
+            }
+        }
+    }
 }

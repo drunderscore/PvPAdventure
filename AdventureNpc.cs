@@ -650,16 +650,18 @@ public class AdventureNpc : GlobalNPC
 
     public override void ModifyShop(NPCShop shop)
     {
+        // NOT USING TS FOR NOW
         // The Steampunker sells the Jetpack at moon phase 4 and after during hardmode.
         // Change it to be during moon phase 5 and later.
-        if (shop.NpcType == NPCID.Steampunker && shop.TryGetEntry(ItemID.Jetpack, out var entry))
-        {
-            if (((List<Condition>)entry.Conditions).Remove(Condition.MoonPhasesHalf1))
-                entry.AddCondition(Condition.MoonPhaseWaxingCrescent);
-            else
-                Mod.Logger.Warn(
-                    "Failed to remove moon phase condition for Steampunker's Jetpack shop entry -- not changing it any further.");
-        }
+        //if (shop.NpcType == NPCID.Steampunker && shop.TryGetEntry(ItemID.Jetpack, out var entry))
+        //{
+        //    if (((List<Condition>)entry.Conditions).Remove(Condition.MoonPhasesHalf1))
+        //        entry.AddCondition(Condition.MoonPhaseWaxingCrescent);
+        //    else
+        //        Mod.Logger.Warn(
+        //            "Failed to remove moon phase condition for Steampunker's Jetpack shop entry -- not changing it any further.");
+        //}
+
     }
 
     public override bool CheckDead(NPC npc)

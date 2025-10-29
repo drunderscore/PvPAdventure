@@ -133,6 +133,10 @@ public class AdventureDropDatabase : ModSystem
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.RocketLauncher, 1, 1);
                 break;
+            case NPCID.Vampire:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.MoonStone, 1, 5);
+                break;
 
             case NPCID.RustyArmoredBonesAxe:
             case NPCID.RustyArmoredBonesFlail:
@@ -278,25 +282,25 @@ public class AdventureDropDatabase : ModSystem
                 break;
 
             case NPCID.QueenBee:
-                // Remove Honey Comb drop, and the big loot pool -- we will re-create it ourselves.
+                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 70, 200));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 15));
+                npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 22, 32));
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HoneyComb) ||
                     drop is DropBasedOnExpertMode);
 
-                npcLoot.Add(ItemDropRule.FewFromOptions(1,
+                npcLoot.Add(ItemDropRule.OneFromOptions(1,
                         ItemID.BeeKeeper,
                         ItemID.BeesKnees
                     )
                 );
 
-                npcLoot.Add(ItemDropRule.FewFromOptions(1,
+                npcLoot.Add(ItemDropRule.OneFromOptions(1,
                         ItemID.BeeGun,
                         ItemID.HoneyComb
                     )
                 );
-                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 70, 200));
-                npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 15));
                 break;
 
             case NPCID.SkeletronHead:
@@ -379,12 +383,15 @@ public class AdventureDropDatabase : ModSystem
                 }
 
                 var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
-                dukefirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.Tsunami, 1));
-                dukefirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
+                dukefirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
                     ItemID.BubbleGun,
+                    ItemID.Tsunami
+                ));
+                dukefirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
                     ItemID.RazorbladeTyphoon,
                     ItemID.Tsunami,
                     ItemID.TempestStaff,
+                    ItemID.BubbleGun,
                     ItemID.Flairon
                 ));
                 npcLoot.Add(dukefirstKillRule);
