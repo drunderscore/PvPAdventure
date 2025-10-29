@@ -2005,7 +2005,7 @@ public class HellhexPlayer : ModPlayer
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
         {
-            int duration = 800;
+            int duration = 420;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
