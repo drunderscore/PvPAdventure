@@ -1187,7 +1187,7 @@ public class AdventurePlayer : ModPlayer
             }
         }
     }
-        private static bool? ShouldSilenceHurtSound(Player target, Player.HurtInfo info)
+    private static bool? ShouldSilenceHurtSound(Player target, Player.HurtInfo info)
     {
         // Only silence hurt sound on clients that we hurt that aren't ourselves
         if (!Main.dedServ && info.PvP && target.whoAmI != Main.myPlayer &&
@@ -1279,7 +1279,6 @@ public class TurtleDashPlayer : ModPlayer
         //thanks mr fargo
     }
 }
-
 public class NewIchorPlayer : ModPlayer
 {
     public bool hasDefenseReduction = false;
@@ -1887,12 +1886,12 @@ public class ShatteredArmorPlayer : ModPlayer
     {
         if (Player.HasBuff<ShatteredArmor>())
         {
-            for (int i = 0; i < 1; i++) 
+            for (int i = 0; i < 1; i++)
             {
-                int dustType = DustID.BatScepter ;
+                int dustType = DustID.BatScepter;
                 Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
                 Vector2 dustVelocity = Player.velocity * 0.3f + new Vector2(Main.rand.NextFloat(-1f, 1f), Main.rand.NextFloat(-1f, 1f));
-                
+
                 Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, Color.Black, Main.rand.NextFloat(0.8f, 1.5f));
                 dust.noGravity = Main.rand.NextBool(2);
                 dust.fadeIn = 1.2f;
@@ -1974,6 +1973,7 @@ public class HellhexPlayer : ModPlayer
                 }
             }
 
+            // Spawn explosion on death from non-summon damage (if damage >= 60)
             if (!isSummon && Main.myPlayer == Player.whoAmI && damage >= 60)
             {
                 float scale = (float)damage / 100f; // Scale based on damage
@@ -1986,9 +1986,9 @@ public class HellhexPlayer : ModPlayer
                     ProjectileID.FireWhipProj,
                     (int)damage,
                     0f,
-                    owner,
+                    owner, // Owned by the attacker who applied Hellhex
                     0f,
-                    scale 
+                    scale // ai[1] for scale
                 );
 
                 if (proj >= 0 && proj < Main.maxProjectiles)
@@ -1998,15 +1998,14 @@ public class HellhexPlayer : ModPlayer
             }
         }
 
-        return true;
+        return true; // Allow death
     }
 
     public override void PostHurt(Player.HurtInfo info)
     {
-        // Apply Hellhex when hit by FireWhip
         if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
         {
-            int duration = 800;
+            int duration = 420;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
@@ -2019,17 +2018,16 @@ public class HellhexPlayer : ModPlayer
                         duration = (int)(duration * 2.5f);
                     }
 
+                    // Store who applied the debuff
                     hellhexApplierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
             Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
             // Don't process the removal logic on the same hit that applies it
-
             return;
         }
 
-        // Only check for removal if player already has Hellhex
         if (Player.HasBuff<Hellhex>())
         {
             bool isSummon = false;
@@ -2042,8 +2040,6 @@ public class HellhexPlayer : ModPlayer
                     isSummon = true;
                 }
             }
-            // Add whip check here too
-
             else if (info.DamageSource.SourceProjectileType > 0)
             {
                 int projType = info.DamageSource.SourceProjectileType;
@@ -2066,6 +2062,7 @@ public class HellhexPlayer : ModPlayer
                     Player.buffTime[buffIndex] = 0;
                 }
 
+                // Spawn on server or singleplayer for proper syncing
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 spawnPos = Player.Center;
@@ -2086,6 +2083,7 @@ public class HellhexPlayer : ModPlayer
                     {
                         Main.projectile[proj].scale = scale;
 
+                        // Sync the projectile to all clients
                         if (Main.netMode == NetmodeID.Server)
                         {
                             NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
@@ -2314,7 +2312,7 @@ public class QuiverNerfPlayer : ModPlayer
     {
         for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
         {
-            if (Player.armor[i].type == ItemID.MagicQuiver || Player.armor[i].type == ItemID.MoltenQuiver )
+            if (Player.armor[i].type == ItemID.MagicQuiver || Player.armor[i].type == ItemID.MoltenQuiver)
             {
                 hasQuiver = true;
                 break;

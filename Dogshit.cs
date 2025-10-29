@@ -11,6 +11,9 @@ using MonoMod.RuntimeDetour;
 using System.Reflection;
 using System;
 using Mono.Cecil.Cil;
+using Terraria.GameContent.Generation;
+using Terraria.IO;
+using Terraria.WorldBuilding;
 namespace PvPAdventure
 {
     public class RainSystem : ModSystem
@@ -105,13 +108,13 @@ namespace PvPAdventure
         private bool ShouldSpawnMechBoss()
         {
             return !Main.dayTime &&
-                   Main.hardMode && 
+                   Main.hardMode &&
                    !NPC.AnyNPCs(NPCID.TheDestroyer) &&
                    !NPC.AnyNPCs(NPCID.Retinazer) &&
                    !NPC.AnyNPCs(NPCID.Spazmatism) &&
                    !NPC.AnyNPCs(NPCID.SkeletronPrime) &&
-                   HasUndefeatedMechBoss() && 
-                   FindClosestPlayerToSpawn() != null; 
+                   HasUndefeatedMechBoss() &&
+                   FindClosestPlayerToSpawn() != null;
         }
 
         private bool HasUndefeatedMechBoss()
@@ -147,7 +150,7 @@ namespace PvPAdventure
             var availableBosses = new List<int>();
 
             if (!NPC.downedMechBoss1) availableBosses.Add(NPCID.TheDestroyer);
-            if (!NPC.downedMechBoss2) availableBosses.Add(NPCID.Retinazer); 
+            if (!NPC.downedMechBoss2) availableBosses.Add(NPCID.Retinazer);
             if (!NPC.downedMechBoss3) availableBosses.Add(NPCID.SkeletronPrime);
 
             return availableBosses.Count > 0 ? availableBosses[Main.rand.Next(availableBosses.Count)] : -1;
@@ -330,4 +333,132 @@ namespace PvPAdventure
             }
         }
     }
+    public class RemoveTownNPCInvasionSpawns : ModSystem
+    {
+        private static ILHook spawnNPCHook;
+
+        public override void Load()
+        {
+            MethodInfo method = typeof(Terraria.NPC).GetMethod("SpawnNPC",
+                BindingFlags.Public | BindingFlags.Static);
+            spawnNPCHook = new ILHook(method, RemoveTownNPCCheck);
+        }
+
+        public override void Unload()
+        {
+            spawnNPCHook?.Dispose();
+        }
+
+        private static void RemoveTownNPCCheck(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+
+            try
+            {
+                // Find where townNPC field is loaded for invasion check
+                if (cursor.TryGotoNext(MoveType.After,
+                    i => i.MatchLdsfld(typeof(Terraria.Main).GetField("npc")),
+                    i => i.MatchLdloc(out _),
+                    i => i.MatchLdelemRef(),
+                    i => i.MatchLdfld(typeof(Terraria.NPC).GetField("townNPC"))
+                ))
+                {
+                    ModContent.GetInstance<PvPAdventure>().Logger.Info("Found townNPC field load in invasion code");
+
+                    // Right after loading townNPC, replace the value with false
+                    cursor.Emit(OpCodes.Pop);      // Remove the townNPC value from stack
+                    cursor.Emit(OpCodes.Ldc_I4_0); // Push false (0)
+
+                    ModContent.GetInstance<PvPAdventure>().Logger.Info("Successfully made townNPC always false for invasions");
+                }
+                else
+                {
+                    ModContent.GetInstance<PvPAdventure>().Logger.Error("Could not find townNPC field in SpawnNPC");
+                }
+            }
+            catch (Exception e)
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Error($"Error in IL edit: {e}");
+            }
+        }
+    }
+//    public class ExtraWorldGen : ModSystem
+//    {
+//        public override void ModifyWorldGenTasks(List<GenPass> tasks, ref double totalWeight)
+//        {
+//            // Find the original passes to insert after them
+//            int lifeCrystalIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Life Crystals"));
+//            int minecartIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Minecart Tracks"));
+//            int undergroundChestIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Buried Chests"));
+
+//            // Add extra life crystals (2x more)
+//            if (lifeCrystalIndex != -1)
+//            {
+//                tasks.Insert(lifeCrystalIndex + 1, new PassLegacy("Extra Life Crystals", delegate (GenerationProgress progress, GameConfiguration passConfig)
+//                {
+//                    progress.Message = "Adding extra life crystals...";
+
+//                    double num = (double)(Main.maxTilesX * Main.maxTilesY) * 2E-05; // Same formula as vanilla but e5 for now
+
+//                    for (int i = 0; i < (int)num; i++)
+//                    {
+//                        progress.Set((double)i / num);
+
+//                        bool placed = false;
+//                        int attempts = 0;
+
+//                        while (!placed && attempts < 10000)
+//                        {
+//                            int x = WorldGen.genRand.Next(Main.offLimitBorderTiles, Main.maxTilesX - Main.offLimitBorderTiles);
+//                            int y = WorldGen.genRand.Next((int)(Main.worldSurface * 2.0 + Main.rockLayer) / 3, Main.maxTilesY - 300);
+
+//                            if (WorldGen.getGoodWorldGen) //for the worthy
+//                            {
+//                                y = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 400);
+//                            }
+
+//                            if (WorldGen.AddLifeCrystal(x, y))
+//                            {
+//                                placed = true;
+//                            }
+//                            attempts++;
+//                        }
+//                    }
+//                }));
+//            }
+//            // Add extra underground chests (2x more)
+//            if (undergroundChestIndex != -1)
+//            {
+//                tasks.Insert(undergroundChestIndex + 1, new PassLegacy("Extra Underground Chests", delegate (GenerationProgress progress, GameConfiguration passConfig)
+//                {
+//                    progress.Message = "Adding extra underground chests...";
+
+//                    // Vanilla formula is roughly maxTilesX / 34
+//                    int extraChests = Main.maxTilesX / 34;
+
+//                    for (int i = 0; i < extraChests; i++)
+//                    {
+//                        progress.Set((double)i / extraChests);
+
+//                        bool placed = false;
+//                        int attempts = 0;
+
+//                        while (!placed && attempts < 1000)
+//                        {
+//                            int x = WorldGen.genRand.Next(Main.offLimitBorderTiles, Main.maxTilesX - Main.offLimitBorderTiles);
+//                            int y = WorldGen.genRand.Next((int)Main.worldSurface + 50, Main.maxTilesY - 350);
+
+//                            if (WorldGen.AddBuriedChest(x, y, 0, false, 1))
+//                            {
+//                                placed = true;
+//                            }
+//                            attempts++;
+//                        }
+//                    }
+//                }));
+//            }
+
+//            ModContent.GetInstance<PvPAdventure>().Logger.Info("Added extra worldgen passes for life crystals, and underground chests");
+//        }
+//    }
 }

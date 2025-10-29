@@ -755,6 +755,17 @@ public class AdventureProjectile : GlobalProjectile
             }
         }
     }
+    public class NoMoreDynaWoF : GlobalProjectile
+    {
+        public override void ModifyHitNPC(Projectile projectile, NPC target, ref NPC.HitModifiers modifiers)
+        {
+            if ((projectile.type == ProjectileID.Dynamite || projectile.type == ProjectileID.StickyDynamite) &&
+                (target.type == NPCID.WallofFlesh || target.type == NPCID.WallofFleshEye))
+            {
+                modifiers.SourceDamage *= 0f;
+            }
+        }
+    }
 
 
     public class EmpressNerf : GlobalProjectile

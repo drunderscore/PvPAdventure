@@ -12,6 +12,9 @@
     <Folder Include="lib\Native\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MonoMod" Version="22.7.31.1" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Discord.Net.Core">
       <HintPath>lib\Discord.Net.Core.dll</HintPath>
     </Reference>
