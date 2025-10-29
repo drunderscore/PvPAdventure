@@ -306,4 +306,108 @@ public class AdventureItem : GlobalItem
             }
         }
     }
+    public class ItemTextChanges : GlobalItem
+    {
+        public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
+        {
+            if (item.type == ItemID.BeetleScaleMail || item.type == ItemID.BeetleShell)
+            {
+                TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
+                if (setBonusLine != null)
+                {
+                    setBonusLine.Text = "Set bonus:\nGain Beetles from player kills\nBeetles increase your melee damage and attack speed";
+                }
+            }
+
+            if (item.type == ItemID.TikiMask || item.type == ItemID.TikiShirt || item.type == ItemID.TikiPants)
+            {
+                TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
+                if (setBonusLine != null)
+                {
+                    setBonusLine.Text = "Set bonus:\nIncreases your max number of minions\nIncreases whip range by 20%\nIncreases whip debuff duration against players by 150%";
+                }
+            }
+            if (item.type == ItemID.BlandWhip || item.type == ItemID.ThornWhip ||
+            item.type == ItemID.BoneWhip || item.type == ItemID.FireWhip ||
+            item.type == ItemID.CoolWhip || item.type == ItemID.SwordWhip ||
+            item.type == ItemID.ScytheWhip || item.type == ItemID.MaceWhip ||
+            item.type == ItemID.RainbowWhip)
+            {
+                tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without Pygmy Necklace or Hercules Beetle")
+                {
+                    OverrideColor = new Color(255, 100, 100)
+                });
+                tooltips.Add(new TooltipLine(Mod, "SummonsArePlayers", "All whip debuffs apply to players, and effect all non-summon damage")
+                {
+                    OverrideColor = new Color(100, 255, 100)
+                });
+            }
+            
+
+            if (item.type == ItemID.PygmyNecklace || item.type == ItemID.HerculesBeetle)
+            {
+                tooltips.Add(new TooltipLine(Mod, "WhipRangeFix", "Prevents whip range penalty"));
+            }
+            if (item.type == ItemID.SpectrePickaxe || item.type == ItemID.ShroomiteDiggingClaw)
+            {
+                tooltips.Add(new TooltipLine(Mod, "MiningPowerChange", "Capable of mining Lihzahrd Bricks"));
+            }
+            if (item.type == ItemID.PhilosophersStone || item.type == ItemID.CharmofMyths)
+            {
+                tooltips.Add(new TooltipLine(Mod, "FullHPRespawn", "Gain full health upon returning to the land of the living"));
+            }
+            if (item.type == ItemID.MagicQuiver || item.type == ItemID.MoltenQuiver)
+            {
+                for (int i = 0; i < tooltips.Count; i++)
+                {
+                    if (tooltips[i].Text.Contains("Increases arrow damage by 10%") ||
+                        tooltips[i].Text.Contains("arrow damage"))
+                    {
+                        tooltips[i].Text = "Greatly increases arrow speed";
+                        break;
+                    }
+                }
+                tooltips.Add(new TooltipLine(Mod, "QuiverNerf", "No longer grants arrow damage.\nPerhaps if it was a little more sneaky?")
+                {
+                    OverrideColor = new Color(255, 100, 100)
+                });
+            }
+            if (item.type == ItemID.ArcheryPotion)
+            {
+                for (int i = 0; i < tooltips.Count; i++)
+                {
+                    if (tooltips[i].Text.Contains("10% increased bow damage") ||
+                        tooltips[i].Text.Contains("bow damage and 20%"))
+                    {
+                        tooltips[i].Text = "20% increased arrow speed";
+                        break;
+                    }
+                }
+                tooltips.Add(new TooltipLine(Mod, "ArcheryNerf", "No longer grants bow damage")
+                {
+                    OverrideColor = new Color(255, 100, 100)
+                });
+            }
+            if (item.type == ItemID.TempleKey)
+            {
+                for (int i = 0; i < tooltips.Count; i++)
+                {
+                    if (tooltips[i].Text.Contains("Opens the jungle temple door") ||
+                        tooltips[i].Text.Contains("temple door"))
+                    {
+                        tooltips[i].Text = "Opens the jungle temple";
+                        break;
+                    }
+                }
+                tooltips.Add(new TooltipLine(Mod, "LihzahrdKey", "Opens the jungle temple's chests")
+                {
+                    OverrideColor = new Color(255, 100, 100)
+                });
+            }
+            if (item.type == ItemID.LunarCraftingStation)
+            {
+                tooltips.Add(new TooltipLine(Mod, "AllCraftTiles", "Counts as all crafting stations"));
+            }
+        }
+    }
 }
