@@ -1561,8 +1561,6 @@ public class BrittleBonesPlayer : ModPlayer
             }
 
             Player.AddBuff(ModContent.BuffType<BrittleBones>(), duration);
-            Player.AddBuff(BuffID.ShadowFlame, duration);
-
         }
     }
     public override void PostUpdateBuffs()
@@ -1944,40 +1942,108 @@ public class HellhexPlayer : ModPlayer
     private int storedDamage = 0;
     public int hellhexApplierIndex = -1; // Track who applied the Hellhex debuff
 
+    // Helper method to check if damage source is from summon/whip (for HurtInfo)
+    private bool IsSummonOrWhipDamage(Player.HurtInfo info)
+    {
+        // Check projectile instance
+        if (info.DamageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        // Check projectile type for whips
+        if (info.DamageSource.SourceProjectileType > 0)
+        {
+            int projType = info.DamageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Helper method to check if damage source is from summon/whip (for HurtModifiers)
+    private bool IsSummonOrWhipDamage(ref Player.HurtModifiers modifiers)
+    {
+        // Check projectile instance
+        if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        // Check projectile type for whips
+        if (modifiers.DamageSource.SourceProjectileType > 0)
+        {
+            int projType = modifiers.DamageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Helper method to check if death reason is from summon/whip (for PlayerDeathReason)
+    private bool IsSummonOrWhipDeath(PlayerDeathReason damageSource)
+    {
+        // Check projectile instance
+        if (damageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        // Check projectile type for whips
+        if (damageSource.SourceProjectileType > 0)
+        {
+            int projType = damageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
     {
         // If player has Hellhex when they die from non-summon damage, spawn explosion
         if (Player.HasBuff<Hellhex>())
         {
-            bool isSummon = false;
+            bool isSummon = IsSummonOrWhipDeath(damageSource);
 
-            // Check if death is from summon/whip damage
-            if (damageSource.SourceProjectileLocalIndex >= 0)
-            {
-                Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
-                {
-                    isSummon = true;
-                }
-            }
-            else if (damageSource.SourceProjectileType > 0)
-            {
-                int projType = damageSource.SourceProjectileType;
-                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
-                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
-                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
-                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
-                    projType == ProjectileID.CoolWhip)
-                {
-                    isSummon = true;
-                }
-            }
-
-            // Spawn explosion on death from non-summon damage (if damage >= 60)
             if (!isSummon && Main.myPlayer == Player.whoAmI && damage >= 60)
             {
                 float scale = (float)damage / 100f; // Scale based on damage
-                int owner = hellhexApplierIndex >= 0 ? hellhexApplierIndex : Player.whoAmI;
+                // Use stored applier index, fallback to -1 (no owner) if not set
+                int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
 
                 int proj = Projectile.NewProjectile(
                     Player.GetSource_Death(),
@@ -1986,9 +2052,9 @@ public class HellhexPlayer : ModPlayer
                     ProjectileID.FireWhipProj,
                     (int)damage,
                     0f,
-                    owner, // Owned by the attacker who applied Hellhex
+                    owner,
                     0f,
-                    scale // ai[1] for scale
+                    scale
                 );
 
                 if (proj >= 0 && proj < Main.maxProjectiles)
@@ -1998,11 +2064,12 @@ public class HellhexPlayer : ModPlayer
             }
         }
 
-        return true; // Allow death
+        return true;
     }
 
     public override void PostHurt(Player.HurtInfo info)
     {
+        // Apply Hellhex when hit by FireWhip
         if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
         {
             int duration = 420;
@@ -2018,42 +2085,20 @@ public class HellhexPlayer : ModPlayer
                         duration = (int)(duration * 2.5f);
                     }
 
-                    // Store who applied the debuff
                     hellhexApplierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
             Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
-            // Don't process the removal logic on the same hit that applies it
             return;
         }
 
+        // Only check for removal if player already has Hellhex
         if (Player.HasBuff<Hellhex>())
         {
-            bool isSummon = false;
+            bool isSummon = IsSummonOrWhipDamage(info);
 
-            if (info.DamageSource.SourceProjectileLocalIndex >= 0)
-            {
-                Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
-                {
-                    isSummon = true;
-                }
-            }
-            else if (info.DamageSource.SourceProjectileType > 0)
-            {
-                int projType = info.DamageSource.SourceProjectileType;
-                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
-                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
-                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
-                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
-                    projType == ProjectileID.CoolWhip)
-                {
-                    isSummon = true;
-                }
-            }
-
-            // Only trigger if damage >= 60 and not summon damage
+            // Only trigger if damage >= 60 and not summon/whip damage
             if (!isSummon && info.Damage >= 60)
             {
                 int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
@@ -2062,12 +2107,12 @@ public class HellhexPlayer : ModPlayer
                     Player.buffTime[buffIndex] = 0;
                 }
 
-                // Spawn on server or singleplayer for proper syncing
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 spawnPos = Player.Center;
                     float scale = info.Damage / 100f; // Scale based on damage
-                    int owner = hellhexApplierIndex >= 0 ? hellhexApplierIndex : Player.whoAmI;
+                    // Use stored applier index, fallback to -1 (no owner) if not set
+                    int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
 
                     int proj = Projectile.NewProjectile(
                         Player.GetSource_Buff(buffIndex),
@@ -2083,7 +2128,6 @@ public class HellhexPlayer : ModPlayer
                     {
                         Main.projectile[proj].scale = scale;
 
-                        // Sync the projectile to all clients
                         if (Main.netMode == NetmodeID.Server)
                         {
                             NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
@@ -2098,29 +2142,9 @@ public class HellhexPlayer : ModPlayer
     {
         if (Player.HasBuff<Hellhex>())
         {
-            bool isSummon = false;
+            bool isSummon = IsSummonOrWhipDamage(ref modifiers);
 
-            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
-            {
-                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
-                {
-                    isSummon = true;
-                }
-            }
-            else if (modifiers.DamageSource.SourceProjectileType > 0)
-            {
-                int projType = modifiers.DamageSource.SourceProjectileType;
-                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
-                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
-                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
-                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
-                    projType == ProjectileID.CoolWhip)
-                {
-                    isSummon = true;
-                }
-            }
-
+            // Only apply multiplier if NOT summon/whip damage
             if (!isSummon)
             {
                 // Always apply damage multiplier
