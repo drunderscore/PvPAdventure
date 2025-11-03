@@ -1559,7 +1559,6 @@ public class BrittleBonesPlayer : ModPlayer
                     }
                 }
             }
-
             Player.AddBuff(ModContent.BuffType<BrittleBones>(), duration);
         }
     }
