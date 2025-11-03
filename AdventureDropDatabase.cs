@@ -1,5 +1,6 @@
 using System.Linq;
 using Terraria;
+using Terraria.Enums;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -30,10 +31,14 @@ public class AdventureDropDatabase : ModSystem
             {
                 var number = Item.NewItem(npc.GetSource_Loot(), npc.Hitbox, id, stack, true, -1);
 
-                // FIXME: magic time unit
-                Main.timeItemSlotCannotBeReusedFor[number] = 54000;
-                NetMessage.SendData(MessageID.InstancedItem, remoteClient: npc.lastInteraction, number: number);
-                Main.item[number].active = false;
+                // FIXME: Not consistent with how the rest of the codebase determines the last hit.
+                if (npc.lastInteraction != 255)
+                {
+                    var player = Main.player[npc.lastInteraction];
+                    Main.item[number].GetGlobalItem<AdventureItem>()._team = (Team)player.team;
+                }
+
+                NetMessage.SendData(MessageID.SyncItem, number: number);
             }
             else
             {
