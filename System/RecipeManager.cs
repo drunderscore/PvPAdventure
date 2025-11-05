@@ -22,7 +22,6 @@ public class RecipeManager : ModSystem
 
         int[] itemsToRemove = new int[]
     {
-            ItemID.TrueNightsEdge,
             ItemID.MoonlordArrow,
             ItemID.ShroomiteBar,
             ItemID.WormFood,
@@ -86,16 +85,16 @@ public class RecipeManager : ModSystem
             .AddTile(TileID.MythrilAnvil)
             .Register();
 
-        //temp sudo terrablade
-        Recipe.Create(ItemID.TrueNightsEdge)
-            .AddIngredient(ItemID.SoulofFright, 20)
-            .AddIngredient(ItemID.SoulofMight, 20)
-            .AddIngredient(ItemID.SoulofSight, 20)
-            .AddIngredient(ItemID.NightsEdge)
-            .AddIngredient(ItemID.TrueExcalibur)
-            .AddIngredient(ItemID.BrokenHeroSword)
-            .AddTile(TileID.MythrilAnvil)
-            .Register();
+        //temp sudo terrablade (no longer used)
+        //Recipe.Create(ItemID.TrueNightsEdge)
+        //    .AddIngredient(ItemID.SoulofFright, 20)
+        //    .AddIngredient(ItemID.SoulofMight, 20)
+        //    .AddIngredient(ItemID.SoulofSight, 20)
+        //    .AddIngredient(ItemID.NightsEdge)
+        //    .AddIngredient(ItemID.TrueExcalibur)
+        //    .AddIngredient(ItemID.BrokenHeroSword)
+        //    .AddTile(TileID.MythrilAnvil)
+        //    .Register();
 
 
     }
