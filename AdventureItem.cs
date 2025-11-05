@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.Enums;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -12,6 +14,9 @@ namespace PvPAdventure;
 
 public class AdventureItem : GlobalItem
 {
+    public override bool InstancePerEntity => true;
+    public Team? _team;
+
     public static readonly bool[] RecallItems =
         ItemID.Sets.Factory.CreateBoolSet(ItemID.MagicMirror, ItemID.CellPhone, ItemID.IceMirror, ItemID.Shellphone,
             ItemID.ShellphoneSpawn);
@@ -189,6 +194,39 @@ public class AdventureItem : GlobalItem
                 }
             }
         }
+    }
+
+    public override void NetSend(Item item, BinaryWriter writer)
+    {
+        var adventureItem = item.GetGlobalItem<AdventureItem>();
+        var has = adventureItem._team != null;
+
+        writer.Write(has);
+
+        if (has)
+            writer.Write7BitEncodedInt((int)adventureItem._team);
+    }
+
+    public override void NetReceive(Item item, BinaryReader reader)
+    {
+        var has = reader.ReadBoolean();
+        var adventureItem = item.GetGlobalItem<AdventureItem>();
+
+        adventureItem._team = has ? (Team)reader.Read7BitEncodedInt() : null;
+    }
+
+    public override bool CanPickup(Item item, Player player)
+    {
+        var team = item.GetGlobalItem<AdventureItem>()._team;
+
+        return team == null || team == (Team)player.team;
+    }
+
+    public override bool OnPickup(Item item, Player player)
+    {
+        item.GetGlobalItem<AdventureItem>()._team = null;
+
+        return true;
     }
 
     public override bool? PrefixChance(Item item, int pre, UnifiedRandom rand)
