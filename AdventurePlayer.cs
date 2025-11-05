@@ -1175,7 +1175,7 @@ public class AdventurePlayer : ModPlayer
 
             for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
             {
-                if (Player.armor[i].type == ItemID.PygmyNecklace || Player.armor[i].type == ItemID.HerculesBeetle)
+                if (Player.armor[i].type == ItemID.PygmyNecklace || Player.armor[i].type == ItemID.HerculesBeetle || (Player.armor[0].type == ItemID.TikiMask && Player.armor[1].type == ItemID.TikiShirt &&Player.armor[2].type == ItemID.TikiPants) || (Player.armor[0].type == ItemID.ObsidianHelm && Player.armor[1].type == ItemID.ObsidianShirt && Player.armor[2].type == ItemID.ObsidianPants))
                 {
                     largeWhipIncrease = true;
                     break;
@@ -1327,13 +1327,20 @@ public class NewIchorPlayer : ModPlayer
         }
     }
 }
+// Add this to each ModPlayer class that handles a debuff
+
+// For BitingEmbracePlayer:
 public class BitingEmbracePlayer : ModPlayer
 {
+    public int bitingEmbraceApplierIndex = -1; // Track who applied the debuff
+
     public override void PostHurt(Player.HurtInfo info)
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.CoolWhip)
         {
             int duration = 300;
+            int applierIndex = -1;
+
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
                 Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
@@ -1344,15 +1351,35 @@ public class BitingEmbracePlayer : ModPlayer
                     {
                         duration = (int)(duration * 2.5f);
                     }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
+
+            bitingEmbraceApplierIndex = applierIndex;
             Player.AddBuff(ModContent.BuffType<BitingEmbrace>(), duration);
             Player.AddBuff(BuffID.Frostburn2, duration);
-
         }
     }
+
     public override void PostUpdateBuffs()
     {
+        // Check if applier died - remove buff if so
+        if (Player.HasBuff<BitingEmbrace>() && bitingEmbraceApplierIndex >= 0 && bitingEmbraceApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[bitingEmbraceApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<BitingEmbrace>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                Player.ClearBuff(BuffID.Frostburn2);
+                bitingEmbraceApplierIndex = -1;
+                return;
+            }
+        }
+
         if (Player.HasBuff<BitingEmbrace>())
         {
             float pulseTime = Main.GameUpdateCount % 60f / 60f;
@@ -1394,6 +1421,10 @@ public class BitingEmbracePlayer : ModPlayer
                 }
             }
         }
+        else
+        {
+            bitingEmbraceApplierIndex = -1; // Reset when buff expires
+        }
     }
 
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
@@ -1431,13 +1462,17 @@ public class BitingEmbracePlayer : ModPlayer
     }
 }
 
+// For PressurePointsPlayer:
 public class PressurePointsPlayer : ModPlayer
 {
+    public int pressurePointsApplierIndex = -1;
+
     public override void PostHurt(Player.HurtInfo info)
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.ThornWhip)
         {
             int duration = 300;
+            int applierIndex = -1;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
@@ -1449,16 +1484,33 @@ public class PressurePointsPlayer : ModPlayer
                     {
                         duration = (int)(duration * 2.5f);
                     }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
+            pressurePointsApplierIndex = applierIndex;
             Player.AddBuff(ModContent.BuffType<PressurePoints>(), duration);
-
         }
     }
 
     public override void PostUpdateBuffs()
     {
+        // Check if applier died - remove buff if so
+        if (Player.HasBuff<PressurePoints>() && pressurePointsApplierIndex >= 0 && pressurePointsApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[pressurePointsApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<PressurePoints>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                pressurePointsApplierIndex = -1;
+                return;
+            }
+        }
+
         if (Player.HasBuff<PressurePoints>())
         {
             float pulseTime = Main.GameUpdateCount % 60f / 60f;
@@ -1500,6 +1552,10 @@ public class PressurePointsPlayer : ModPlayer
                 }
             }
         }
+        else
+        {
+            pressurePointsApplierIndex = -1;
+        }
     }
 
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
@@ -1539,13 +1595,17 @@ public class PressurePointsPlayer : ModPlayer
     }
 }
 
+// For BrittleBonesPlayer:
 public class BrittleBonesPlayer : ModPlayer
 {
+    public int brittleBonesApplierIndex = -1;
+
     public override void PostHurt(Player.HurtInfo info)
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.BoneWhip)
         {
             int duration = 300;
+            int applierIndex = -1;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
@@ -1557,16 +1617,33 @@ public class BrittleBonesPlayer : ModPlayer
                     {
                         duration = (int)(duration * 2.5f);
                     }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
+            brittleBonesApplierIndex = applierIndex;
             Player.AddBuff(ModContent.BuffType<BrittleBones>(), duration);
-            Player.AddBuff(BuffID.ShadowFlame, duration);
-
         }
     }
+
     public override void PostUpdateBuffs()
     {
+        // Check if applier died - remove buff if so
+        if (Player.HasBuff<BrittleBones>() && brittleBonesApplierIndex >= 0 && brittleBonesApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[brittleBonesApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<BrittleBones>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                brittleBonesApplierIndex = -1;
+                return;
+            }
+        }
+
         if (Player.HasBuff<BrittleBones>())
         {
             float pulseTime = Main.GameUpdateCount % 60f / 60f;
@@ -1608,7 +1685,12 @@ public class BrittleBonesPlayer : ModPlayer
                 }
             }
         }
+        else
+        {
+            brittleBonesApplierIndex = -1;
+        }
     }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         if (Player.HasBuff<BrittleBones>())
@@ -1645,13 +1727,18 @@ public class BrittleBonesPlayer : ModPlayer
         }
     }
 }
+
+// For MarkedPlayer:
 public class MarkedPlayer : ModPlayer
 {
+    public int markedApplierIndex = -1;
+
     public override void PostHurt(Player.HurtInfo info)
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.SwordWhip)
         {
             int duration = 300;
+            int applierIndex = -1;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
@@ -1663,16 +1750,33 @@ public class MarkedPlayer : ModPlayer
                     {
                         duration = (int)(duration * 2.5f);
                     }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
+            markedApplierIndex = applierIndex;
             Player.AddBuff(ModContent.BuffType<Marked>(), duration);
-
         }
     }
 
     public override void PostUpdateBuffs()
     {
+        // Check if applier died - remove buff if so
+        if (Player.HasBuff<Marked>() && markedApplierIndex >= 0 && markedApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[markedApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Marked>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                markedApplierIndex = -1;
+                return;
+            }
+        }
+
         if (Player.HasBuff<Marked>())
         {
             float pulseTime = Main.GameUpdateCount % 60f / 60f;
@@ -1714,6 +1818,10 @@ public class MarkedPlayer : ModPlayer
                 }
             }
         }
+        else
+        {
+            markedApplierIndex = -1;
+        }
     }
 
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
@@ -1752,13 +1860,18 @@ public class MarkedPlayer : ModPlayer
         }
     }
 }
+
+// For AnathemaPlayer:
 public class AnathemaPlayer : ModPlayer
-{ //ts is all temporary
+{
+    public int anathemaApplierIndex = -1;
+
     public override void PostHurt(Player.HurtInfo info)
     {
         if (info.DamageSource.SourceProjectileType == ProjectileID.RainbowWhip)
         {
             int duration = 300;
+            int applierIndex = -1;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
@@ -1770,15 +1883,33 @@ public class AnathemaPlayer : ModPlayer
                     {
                         duration = (int)(duration * 2.5f);
                     }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
+            anathemaApplierIndex = applierIndex;
             Player.AddBuff(ModContent.BuffType<Anathema>(), duration);
-
         }
     }
+
     public override void PostUpdateBuffs()
     {
+        // Check if applier died - remove buff if so
+        if (Player.HasBuff<Anathema>() && anathemaApplierIndex >= 0 && anathemaApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[anathemaApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Anathema>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                anathemaApplierIndex = -1;
+                return;
+            }
+        }
+
         if (Player.HasBuff<Anathema>())
         {
             for (int i = 0; i < 3; i++)
@@ -1801,13 +1932,11 @@ public class AnathemaPlayer : ModPlayer
 
                 if (Main.rand.NextBool())
                 {
-                    // Light particles
                     dustType = DustID.PlatinumCoin;
                     dustColor = Color.White;
                 }
                 else
                 {
-                    // Dark particles
                     dustType = DustID.Smoke;
                     dustColor = Color.Black;
                 }
@@ -1817,7 +1946,12 @@ public class AnathemaPlayer : ModPlayer
                 dust.fadeIn = 0.8f;
             }
         }
+        else
+        {
+            anathemaApplierIndex = -1;
+        }
     }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         if (Player.HasBuff<Anathema>())
@@ -1851,19 +1985,22 @@ public class AnathemaPlayer : ModPlayer
                     info.Damage += 20;
                 };
                 modifiers.FinalDamage *= 1.1f;
-
             }
         }
     }
 }
+
+// For ShatteredArmorPlayer:
 public class ShatteredArmorPlayer : ModPlayer
 {
+    public int shatteredArmorApplierIndex = -1;
+
     public override void PostHurt(Player.HurtInfo info)
     {
-        // Check if hit by MaceWhip projectile
         if (info.DamageSource.SourceProjectileType == ProjectileID.MaceWhip)
         {
             int duration = 300;
+            int applierIndex = -1;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
@@ -1875,15 +2012,33 @@ public class ShatteredArmorPlayer : ModPlayer
                     {
                         duration = (int)(duration * 2.5f);
                     }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
+            shatteredArmorApplierIndex = applierIndex;
             Player.AddBuff(ModContent.BuffType<ShatteredArmor>(), duration);
         }
     }
 
     public override void PostUpdateBuffs()
     {
+        // Check if applier died - remove buff if so
+        if (Player.HasBuff<ShatteredArmor>() && shatteredArmorApplierIndex >= 0 && shatteredArmorApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[shatteredArmorApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<ShatteredArmor>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                shatteredArmorApplierIndex = -1;
+                return;
+            }
+        }
+
         if (Player.HasBuff<ShatteredArmor>())
         {
             for (int i = 0; i < 1; i++)
@@ -1896,6 +2051,10 @@ public class ShatteredArmorPlayer : ModPlayer
                 dust.noGravity = Main.rand.NextBool(2);
                 dust.fadeIn = 1.2f;
             }
+        }
+        else
+        {
+            shatteredArmorApplierIndex = -1;
         }
     }
 
@@ -1932,80 +2091,158 @@ public class ShatteredArmorPlayer : ModPlayer
                     info.Damage += 8;
                 };
                 modifiers.FinalDamage *= 1.12f;
-
             }
         }
     }
 }
-
 public class HellhexPlayer : ModPlayer
 {
     public bool hellhexTriggered = false;
     private int storedDamage = 0;
     public int hellhexApplierIndex = -1; // Track who applied the Hellhex debuff
 
+    // Helper method to check if damage source is from summon/whip (for HurtInfo)
+    private bool IsSummonOrWhipDamage(Player.HurtInfo info)
+    {
+        // Check projectile instance
+        if (info.DamageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        // Check projectile type for whips
+        if (info.DamageSource.SourceProjectileType > 0)
+        {
+            int projType = info.DamageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Helper method to check if damage source is from summon/whip (for HurtModifiers)
+    private bool IsSummonOrWhipDamage(ref Player.HurtModifiers modifiers)
+    {
+        // Check projectile instance
+        if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        // Check projectile type for whips
+        if (modifiers.DamageSource.SourceProjectileType > 0)
+        {
+            int projType = modifiers.DamageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Helper method to check if death reason is from summon/whip (for PlayerDeathReason)
+    private bool IsSummonOrWhipDeath(PlayerDeathReason damageSource)
+    {
+        // Check projectile instance
+        if (damageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        // Check projectile type for whips
+        if (damageSource.SourceProjectileType > 0)
+        {
+            int projType = damageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
     {
         // If player has Hellhex when they die from non-summon damage, spawn explosion
         if (Player.HasBuff<Hellhex>())
         {
-            bool isSummon = false;
+            bool isSummon = IsSummonOrWhipDeath(damageSource);
 
-            // Check if death is from summon/whip damage
-            if (damageSource.SourceProjectileLocalIndex >= 0)
+            if (!isSummon && damage >= 30)
             {
-                Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                // Only spawn on server or singleplayer
+                if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
-                    isSummon = true;
-                }
-            }
-            else if (damageSource.SourceProjectileType > 0)
-            {
-                int projType = damageSource.SourceProjectileType;
-                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
-                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
-                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
-                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
-                    projType == ProjectileID.CoolWhip)
-                {
-                    isSummon = true;
-                }
-            }
+                    float scale = (float)damage / 100f;
+                    int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
+                    int explosionDamage = (int)(damage * 2.75f);
 
-            // Spawn explosion on death from non-summon damage (if damage >= 60)
-            if (!isSummon && Main.myPlayer == Player.whoAmI && damage >= 60)
-            {
-                float scale = (float)damage / 100f; // Scale based on damage
-                int owner = hellhexApplierIndex >= 0 ? hellhexApplierIndex : Player.whoAmI;
+                    int proj = Projectile.NewProjectile(
+                        Player.GetSource_Death(),
+                        Player.Center,
+                        Vector2.Zero,
+                        ProjectileID.FireWhipProj,
+                        explosionDamage,
+                        0f,
+                        owner,
+                        0f,
+                        scale
+                    );
 
-                int proj = Projectile.NewProjectile(
-                    Player.GetSource_Death(),
-                    Player.Center,
-                    Vector2.Zero,
-                    ProjectileID.FireWhipProj,
-                    (int)damage,
-                    0f,
-                    owner, // Owned by the attacker who applied Hellhex
-                    0f,
-                    scale // ai[1] for scale
-                );
+                    if (proj >= 0 && proj < Main.maxProjectiles)
+                    {
+                        Main.projectile[proj].scale = scale;
 
-                if (proj >= 0 && proj < Main.maxProjectiles)
-                {
-                    Main.projectile[proj].scale = scale;
+                        // Sync projectile to all clients
+                        if (Main.netMode == NetmodeID.Server)
+                        {
+                            NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+                        }
+                    }
                 }
             }
         }
 
-        return true; // Allow death
+        return true;
     }
 
     public override void PostHurt(Player.HurtInfo info)
     {
+        // Apply Hellhex when hit by FireWhip
         if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
         {
-            int duration = 420;
+            int duration = 450;
+            int applierIndex = -1;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
@@ -2018,43 +2255,33 @@ public class HellhexPlayer : ModPlayer
                         duration = (int)(duration * 2.5f);
                     }
 
-                    // Store who applied the debuff
-                    hellhexApplierIndex = info.DamageSource.SourcePlayerIndex;
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
+            hellhexApplierIndex = applierIndex;
             Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
-            // Don't process the removal logic on the same hit that applies it
+
+            // Sync the applier index to all clients
+            if (Main.netMode == NetmodeID.Server)
+            {
+                ModPacket packet = Mod.GetPacket();
+                packet.Write((byte)0); // Message type for Hellhex application
+                packet.Write((byte)Player.whoAmI);
+                packet.Write((byte)applierIndex);
+                packet.Send();
+            }
+
             return;
         }
 
+        // Only check for removal if player already has Hellhex
         if (Player.HasBuff<Hellhex>())
         {
-            bool isSummon = false;
+            bool isSummon = IsSummonOrWhipDamage(info);
 
-            if (info.DamageSource.SourceProjectileLocalIndex >= 0)
-            {
-                Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
-                {
-                    isSummon = true;
-                }
-            }
-            else if (info.DamageSource.SourceProjectileType > 0)
-            {
-                int projType = info.DamageSource.SourceProjectileType;
-                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
-                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
-                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
-                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
-                    projType == ProjectileID.CoolWhip)
-                {
-                    isSummon = true;
-                }
-            }
-
-            // Only trigger if damage >= 60 and not summon damage
-            if (!isSummon && info.Damage >= 60)
+            // Only trigger if damage >= 30 and not summon/whip damage
+            if (!isSummon && info.Damage >= 30)
             {
                 int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
                 if (buffIndex >= 0)
@@ -2062,28 +2289,29 @@ public class HellhexPlayer : ModPlayer
                     Player.buffTime[buffIndex] = 0;
                 }
 
-                // Spawn on server or singleplayer for proper syncing
+                // Only spawn on server or singleplayer
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 spawnPos = Player.Center;
-                    float scale = info.Damage / 100f; // Scale based on damage
-                    int owner = hellhexApplierIndex >= 0 ? hellhexApplierIndex : Player.whoAmI;
+                    float scale = info.Damage / 100f;
+                    int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
+                    int explosionDamage = (int)(info.Damage * 2.75f);
 
                     int proj = Projectile.NewProjectile(
                         Player.GetSource_Buff(buffIndex),
                         spawnPos,
                         Vector2.Zero,
                         ProjectileID.FireWhipProj,
-                        info.Damage,
+                        explosionDamage,
                         0f,
-                        owner // Owned by the attacker who applied Hellhex
+                        owner
                     );
 
                     if (proj >= 0 && proj < Main.maxProjectiles)
                     {
                         Main.projectile[proj].scale = scale;
 
-                        // Sync the projectile to all clients
+                        // Sync projectile to all clients
                         if (Main.netMode == NetmodeID.Server)
                         {
                             NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
@@ -2098,34 +2326,11 @@ public class HellhexPlayer : ModPlayer
     {
         if (Player.HasBuff<Hellhex>())
         {
-            bool isSummon = false;
+            bool isSummon = IsSummonOrWhipDamage(ref modifiers);
 
-            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
-            {
-                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
-                {
-                    isSummon = true;
-                }
-            }
-            else if (modifiers.DamageSource.SourceProjectileType > 0)
-            {
-                int projType = modifiers.DamageSource.SourceProjectileType;
-                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
-                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
-                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
-                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
-                    projType == ProjectileID.CoolWhip)
-                {
-                    isSummon = true;
-                }
-            }
-
+            // Track that Hellhex triggered for UI/effects purposes
             if (!isSummon)
             {
-                // Always apply damage multiplier
-                modifiers.FinalDamage *= 2.75f;
-
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     storedDamage = info.Damage;
                     hellhexTriggered = true;
@@ -2136,6 +2341,22 @@ public class HellhexPlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
+        if (Player.HasBuff<Hellhex>() && hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[hellhexApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                hellhexApplierIndex = -1;
+                hellhexTriggered = false;
+                return;
+            }
+        }
+
         if (Player.HasBuff<Hellhex>())
         {
             for (int i = 0; i < 2; i++)
@@ -2166,7 +2387,6 @@ public class HellhexPlayer : ModPlayer
         }
     }
 }
-
 public class PvPAdventurePlayer : ModPlayer
 {
     public bool hasReceivedStarterBag = false;
