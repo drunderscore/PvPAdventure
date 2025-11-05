@@ -324,7 +324,15 @@ public class AdventureItem : GlobalItem
                 TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
                 if (setBonusLine != null)
                 {
-                    setBonusLine.Text = "Set bonus:\nIncreases your max number of minions\nIncreases whip range by 20%\nIncreases whip debuff duration against players by 150%";
+                    setBonusLine.Text = "Set bonus:\nIncreases your max number of minions\nIncreases whip range by 20%\nIncreases whip debuff duration against players by 150%\nPrevents whip range penalty";
+                }
+            }
+            if (item.type == ItemID.ObsidianHelm || item.type == ItemID.ObsidianShirt || item.type == ItemID.ObsidianPants)
+            {
+                TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
+                if (setBonusLine != null)
+                {
+                    setBonusLine.Text = "Set bonus:\n\tIncreases whip range by 30% and speed by 15%\nIncreases summon damage by 15%\nPrevents whip range penalty";
                 }
             }
             if (item.type == ItemID.BlandWhip || item.type == ItemID.ThornWhip ||
@@ -333,7 +341,7 @@ public class AdventureItem : GlobalItem
             item.type == ItemID.ScytheWhip || item.type == ItemID.MaceWhip ||
             item.type == ItemID.RainbowWhip)
             {
-                tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without Pygmy Necklace or Hercules Beetle")
+                tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without Pygmy Necklace, Hercules Beetle, or certain Set Bonuses")
                 {
                     OverrideColor = new Color(255, 100, 100)
                 });
