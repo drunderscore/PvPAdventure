@@ -2100,6 +2100,7 @@ public class HellhexPlayer : ModPlayer
     public bool hellhexTriggered = false;
     private int storedDamage = 0;
     public int hellhexApplierIndex = -1; // Track who applied the Hellhex debuff
+    private bool explosionSpawned = false; // Prevent duplicate explosions
 
     // Helper method to check if damage source is from summon/whip (for HurtInfo)
     private bool IsSummonOrWhipDamage(Player.HurtInfo info)
@@ -2275,28 +2276,34 @@ public class HellhexPlayer : ModPlayer
             return;
         }
 
-        // Only check for removal if player already has Hellhex
-        if (Player.HasBuff<Hellhex>())
+        // Only check for removal if player already has Hellhex and explosion hasn't spawned yet
+        if (Player.HasBuff<Hellhex>() && !explosionSpawned)
         {
             bool isSummon = IsSummonOrWhipDamage(info);
 
             // Only trigger if damage >= 30 and not summon/whip damage
             if (!isSummon && info.Damage >= 30)
             {
+                explosionSpawned = true; // Mark that explosion is being spawned
+
+                // Remove the buff immediately on all sides
                 int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
                 if (buffIndex >= 0)
                 {
                     Player.buffTime[buffIndex] = 0;
                 }
 
-                // Only spawn on server or singleplayer
-                if (Main.netMode != NetmodeID.MultiplayerClient)
-                {
-                    Vector2 spawnPos = Player.Center;
-                    float scale = info.Damage / 100f;
-                    int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
-                    int explosionDamage = (int)(info.Damage * 2.75f);
+                // Calculate explosion parameters
+                Vector2 spawnPos = Player.Center;
+                float scale = info.Damage / 100f;
+                int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
+                int explosionDamage = (int)(info.Damage * 2.75f);
 
+                // On attacker's client or server: spawn the explosion immediately
+                if (Main.netMode == NetmodeID.SinglePlayer ||
+                    (info.DamageSource.SourcePlayerIndex >= 0 && Main.myPlayer == info.DamageSource.SourcePlayerIndex))
+                {
+                    // Attacker's client - spawn locally
                     int proj = Projectile.NewProjectile(
                         Player.GetSource_Buff(buffIndex),
                         spawnPos,
@@ -2310,14 +2317,43 @@ public class HellhexPlayer : ModPlayer
                     if (proj >= 0 && proj < Main.maxProjectiles)
                     {
                         Main.projectile[proj].scale = scale;
+                    }
 
-                        // Sync projectile to all clients
-                        if (Main.netMode == NetmodeID.Server)
-                        {
-                            NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
-                        }
+                    // If this is multiplayer, send a packet to server to spawn for everyone else
+                    if (Main.netMode == NetmodeID.MultiplayerClient)
+                    {
+                        ModPacket packet = Mod.GetPacket();
+                        packet.Write((byte)1); // Message type for Hellhex explosion
+                        packet.Write((byte)Player.whoAmI);
+                        packet.Write(spawnPos.X);
+                        packet.Write(spawnPos.Y);
+                        packet.Write(explosionDamage);
+                        packet.Write(scale);
+                        packet.Write((sbyte)owner);
+                        packet.Send();
                     }
                 }
+                // On server: spawn and sync to all clients
+                else if (Main.netMode == NetmodeID.Server)
+                {
+                    int proj = Projectile.NewProjectile(
+                        Player.GetSource_Buff(buffIndex),
+                        spawnPos,
+                        Vector2.Zero,
+                        ProjectileID.FireWhipProj,
+                        explosionDamage,
+                        0f,
+                        owner
+                    );
+
+                    if (proj >= 0 && proj < Main.maxProjectiles)
+                    {
+                        Main.projectile[proj].scale = scale;
+                        NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+                    }
+                }
+                // Victim's client (not attacker): don't spawn, wait for server sync
+                // This prevents double spawning
             }
         }
     }
@@ -2341,6 +2377,7 @@ public class HellhexPlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
+        // Check if applier died - remove buff if so
         if (Player.HasBuff<Hellhex>() && hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[hellhexApplierIndex];
@@ -2353,6 +2390,7 @@ public class HellhexPlayer : ModPlayer
                 }
                 hellhexApplierIndex = -1;
                 hellhexTriggered = false;
+                explosionSpawned = false;
                 return;
             }
         }
@@ -2383,7 +2421,8 @@ public class HellhexPlayer : ModPlayer
         else
         {
             hellhexTriggered = false;
-            hellhexApplierIndex = -1; // Reset when buff expires
+            hellhexApplierIndex = -1;
+            explosionSpawned = false;
         }
     }
 }

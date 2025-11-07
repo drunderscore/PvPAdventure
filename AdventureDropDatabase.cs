@@ -96,12 +96,26 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.MossHornet:
                 foreach (var drop in drops)
+                {
                     ModifyDropRate(drop, ItemID.Stinger, 1, 1);
+                    ModifyDropRate(drop, ItemID.TatteredBeeWing, 1, 33);
+                }
                 break;
-
             case NPCID.GiantTortoise:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.TurtleShell, 1, 3);
+                break;
+            case NPCID.Psycho:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.PsychoKnife, 1, 4);
+                break;
+            case NPCID.Harpy:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.GiantHarpyFeather, 1, 75);
+                break;
+            case NPCID.IceGolem:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.IceFeather, 1, 1);
                 break;
 
             case NPCID.Necromancer:
@@ -156,7 +170,10 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.HellArmoredBonesMace:
             case NPCID.HellArmoredBonesSword:
                 foreach (var drop in drops)
+                {
                     ModifyDropRate(drop, ItemID.MaceWhip, 1, 10);
+                    ModifyDropRate(drop, ItemID.BoneFeather, 1, 150);
+                }
                 break;
 
             case NPCID.BlackRecluse:

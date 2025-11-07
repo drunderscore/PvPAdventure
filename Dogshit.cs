@@ -16,39 +16,45 @@ using Terraria.IO;
 using Terraria.WorldBuilding;
 namespace PvPAdventure
 {
-    public class RainSystem : ModSystem
+    public class IncreasedRainSystem : ModSystem
     {
-        private bool triggeredToday;
+        private int rainCheckTimer = 0;
+        private const int RainCheckInterval = 60;
 
-        public override void PreUpdateWorld()
+        public override void PostUpdateWorld()
         {
-            if (Main.netMode == NetmodeID.Server) return;
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
 
-            if (Main.dayTime && Main.time == 0)
+            rainCheckTimer++;
+
+            if (rainCheckTimer >= RainCheckInterval)
             {
-                triggeredToday = false;
-            }
+                rainCheckTimer = 0;
 
-            if (Main.dayTime &&
-                !triggeredToday &&
-                Main.time >= 17524)
-            {
-
-                if (Main.rand.NextBool(3))
+                if (!Main.raining && !Main.bloodMoon && !Main.eclipse)
                 {
-                    StartRain();
+                    if (Main.rand.NextBool(1200)) //this is just the chance each second that rain starts, so basically 1/20 every minute, so 1 rain every 20 mins
+                    {
+                        StartRain();
+                    }
                 }
-                triggeredToday = true;
             }
         }
 
         private void StartRain()
         {
-            Main.rainTime = Main.rand.Next(3600, 18000);
-            Main.raining = true;
+            Main.StartRain();
 
-            if (Main.netMode == NetmodeID.MultiplayerClient)
+            // Set a reasonable rain duration
+            Main.rainTime = Main.rand.Next(18000, 54000); // 5-15 minutes
+            Main.maxRaining = Main.rand.NextFloat(0.3f, 0.9f);
+
+            // Sync to clients in multiplayer
+            if (Main.netMode == NetmodeID.Server)
+            {
                 NetMessage.SendData(MessageID.WorldData);
+            }
         }
     }
     public class MechBossSpawnSystem : ModSystem
