@@ -1,3 +1,4 @@
+using PvPAdventure.Content.Items;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -64,6 +65,18 @@ public class AdventureConfig : ModConfig
     [Range(0, 60 * 60)]
     [DefaultValue(4 * 60)]
     public int RecallFrames { get; set; }
+
+    [Range(0, 60 * 60)]
+    [DefaultValue(4 * 60)]
+    public int RTPRecallFrames { get; set; }
+
+    public override void OnChanged()
+    {
+        base.OnChanged();
+
+        // Update RTPMirror use time
+        //ModItem rtpMirrorItemType = ModContent.GetModItem(ModContent.GetInstance<RTPMirror>());
+    }
 
     [Range(0, 30 * 60)]
     [DefaultValue(1.5 * 60)]
