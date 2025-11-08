@@ -238,9 +238,21 @@ Mods: {
 
 			WorldProgressionState: {
 				Tooltip: ""
-				Any.Label: Any
-				PreHardmode.Label: Pre Hardmode
-				Hardmode.Label: Hardmode
+
+				Any: {
+					Label: Any
+					Tooltip: ""
+				}
+
+				PreHardmode: {
+					Label: Pre Hardmode
+					Tooltip: ""
+				}
+
+				Hardmode: {
+					Label: Hardmode
+					Tooltip: ""
+				}
 			}
 
 			ConfigItem: {
@@ -567,23 +579,75 @@ Mods: {
 			}
 
 			Killsound: {
-				Part2.Label: Part2
-				FatalCarCrash.Label: Fatal Car Crash
-				Shronker.Label: Shronker
-				Sharkron.Label: Sharkron
-				Ronaldoz.Label: Ronaldoz
-				Zacharry.Label: Zacharry
+				Part2: {
+					Label: Part2
+					Tooltip: ""
+				}
+
+				FatalCarCrash: {
+					Label: Fatal Car Crash
+					Tooltip: ""
+				}
+
+				Shronker: {
+					Label: Shronker
+					Tooltip: ""
+				}
+
+				Sharkron: {
+					Label: Sharkron
+					Tooltip: ""
+				}
+
+				Ronaldoz: {
+					Label: Ronaldoz
+					Tooltip: ""
+				}
+
+				Zacharry: {
+					Label: Zacharry
+					Tooltip: ""
+				}
+
 				Tooltip: ""
 			}
 
 			Hitsound: {
-				Part1.Label: Part1
-				MarrowMurder.Label: Marrow Murder
-				Squelchy.Label: Squelchy
-				Crash.Label: Crash
-				Blip.Label: Blip
-				Buwee.Label: BuWEEEEE
-				OlBetsy.Label: Ol' Betsy
+				Part1: {
+					Label: Part1
+					Tooltip: ""
+				}
+
+				MarrowMurder: {
+					Label: Marrow Murder
+					Tooltip: ""
+				}
+
+				Squelchy: {
+					Label: Squelchy
+					Tooltip: ""
+				}
+
+				Crash: {
+					Label: Crash
+					Tooltip: ""
+				}
+
+				Blip: {
+					Label: Blip
+					Tooltip: ""
+				}
+
+				Buwee: {
+					Label: BuWEEEEE
+					Tooltip: ""
+				}
+
+				OlBetsy: {
+					Label: Ol' Betsy
+					Tooltip: ""
+				}
+
 				Tooltip: ""
 			}
 
