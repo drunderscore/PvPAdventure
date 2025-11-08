@@ -9,6 +9,11 @@ namespace PvPAdventure.Core.Features
     {
         public override void PostUpdate()
         {
+            if (Main.dedServ || Player.whoAmI != Main.myPlayer)
+            {
+                return;
+            }
+
             // Check if player is using RTPMirror
             Item currentItem = Main.LocalPlayer.HeldItem;
             int rtpMirrorItemType = ModContent.ItemType<RTPMirror>();
@@ -21,7 +26,7 @@ namespace PvPAdventure.Core.Features
                 Main.LocalPlayer.itemAnimation > 0 && 
                 Main.LocalPlayer.itemAnimation % 60 == 0)
             {
-                int itemUseTimeLeft = Main.LocalPlayer.itemAnimation / 60 - 1;
+                int itemUseTimeLeft = Main.LocalPlayer.itemAnimation / 60;
                 string timeLeft = itemUseTimeLeft.ToString();
 
                 // Old combat text

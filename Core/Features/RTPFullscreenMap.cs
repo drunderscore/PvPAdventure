@@ -17,12 +17,18 @@ public class TeleportMapSystem : ModSystem
 
     public override void Load()
     {
-        Main.OnPostFullscreenMapDraw += TP_Map;
+        Main.QueueMainThreadAction(() =>
+        {
+            Main.OnPostFullscreenMapDraw += TP_Map;
+        });
     }
 
     public override void Unload()
     {
-        Main.OnPostFullscreenMapDraw -= TP_Map;
+        Main.QueueMainThreadAction(() =>
+        {
+            Main.OnPostFullscreenMapDraw -= TP_Map;
+        });
     }
 
     public override void PostDrawFullscreenMap(ref string mouseText)
@@ -30,7 +36,11 @@ public class TeleportMapSystem : ModSystem
         if (!RTPSpawnSelectorSettings.IsEnabled)
             return;
 
-        string teleportText = "PvP Adventure Teleport Options\n1. Click here to random teleport\n2. Click teammate to teleport";
+        string teleportText = "" +
+            "PvP Adventure Teleport Options \n" +
+            "1. Click here to random teleport \n" +
+            "2. Click teammate to teleport \n" +
+            "(Upcoming) Click team bed to teleport";
 
         // Load panel
         Texture2D panelTexture = Main.Assets.Request<Texture2D>("Images/UI/PanelBackground").Value;
@@ -53,7 +63,7 @@ public class TeleportMapSystem : ModSystem
         // Draw text with hover color
         Utils.DrawBorderString(Main.spriteBatch, teleportText, textPosition, textColor);
 
-        // Optional: set mouseText to show tooltip
+        // set mouseText to show tooltip
         if (isHovering)
         {
             mouseText = "Click to teleport";
@@ -68,12 +78,16 @@ public class TeleportMapSystem : ModSystem
             NetMessage.SendData(MessageID.RequestTeleportationByServer);
     }
 
+    /// <summary>
+    /// Main functionality for teleporting.
+    /// Executed every frame.
+    /// </summary>
     private void TP_Map(Vector2 arg1, float arg2)
     {
         if (!RTPSpawnSelectorSettings.IsEnabled)
             return;
 
-        string teleportText = "PvP Adventure Teleport Options\n1. Click here to random teleport\n2. Click teammate to teleport";
+        string teleportText = "PvP Adventure Teleport Options\n1. Click here to random teleport\n2. Click teammate to teleport\n3. (Future) Click team bed to teleport";
         Vector2 textSize = FontAssets.MouseText.Value.MeasureString(teleportText);
         Vector2 textPosition = new(Main.screenWidth / 2 - textSize.X / 2, 20f);
         Rectangle panelBounds = new((int)textPosition.X - 10, (int)textPosition.Y - 8, (int)textSize.X + 20, (int)textSize.Y + 12);
@@ -81,7 +95,7 @@ public class TeleportMapSystem : ModSystem
         // Check if mouse clicked inside panel bounds
         if (Main.mouseLeft && Main.mouseLeftRelease && panelBounds.Contains(Main.mouseX, Main.mouseY))
         {
-            RandomTeleport(); // Trigger teleport
+            RandomTeleport();
 
             // Close the map after teleporting
             Main.mapFullscreen = false;

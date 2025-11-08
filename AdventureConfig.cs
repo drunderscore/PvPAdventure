@@ -70,14 +70,6 @@ public class AdventureConfig : ModConfig
     [DefaultValue(4 * 60)]
     public int RTPRecallFrames { get; set; }
 
-    public override void OnChanged()
-    {
-        base.OnChanged();
-
-        // Update RTPMirror use time
-        //ModItem rtpMirrorItemType = ModContent.GetModItem(ModContent.GetInstance<RTPMirror>());
-    }
-
     [Range(0, 30 * 60)]
     [DefaultValue(1.5 * 60)]
     public int SpawnImmuneFrames { get; set; }
