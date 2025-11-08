@@ -12,6 +12,9 @@ public class AdventureClientConfig : ModConfig
 
     public PlayerOutlineConfig PlayerOutline { get; set; } = new();
     public bool ShiftEnterOpensAllChat { get; set; }
+
+    [DefaultValue(true)]
+    public bool IsVanillaDashEnabled { get; set; }
     [DefaultValue(true)] public bool ShowPauseMessage { get; set; }
 
     public class PlayerOutlineConfig
