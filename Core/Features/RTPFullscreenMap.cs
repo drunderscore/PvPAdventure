@@ -10,16 +10,11 @@ namespace PvPAdventure.Core.Features;
 
 public class TeleportMapSystem : ModSystem
 {
-    public static class RTPSpawnSelectorSettings
-    {
-        public static bool IsEnabled = false;
-    }
-
     public override void Load()
     {
         Main.QueueMainThreadAction(() =>
         {
-            Main.OnPostFullscreenMapDraw += TP_Map;
+            Main.OnPostFullscreenMapDraw += InjectMapDraw;
         });
     }
 
@@ -27,13 +22,13 @@ public class TeleportMapSystem : ModSystem
     {
         Main.QueueMainThreadAction(() =>
         {
-            Main.OnPostFullscreenMapDraw -= TP_Map;
+            Main.OnPostFullscreenMapDraw -= InjectMapDraw;
         });
     }
 
     public override void PostDrawFullscreenMap(ref string mouseText)
     {
-        if (!RTPSpawnSelectorSettings.IsEnabled)
+        if (!RTPSpawnSelectorSettings.GetIsEnabled())
             return;
 
         string teleportText = "" +
@@ -82,9 +77,9 @@ public class TeleportMapSystem : ModSystem
     /// Main functionality for teleporting.
     /// Executed every frame.
     /// </summary>
-    private void TP_Map(Vector2 arg1, float arg2)
+    private void InjectMapDraw(Vector2 arg1, float arg2)
     {
-        if (!RTPSpawnSelectorSettings.IsEnabled)
+        if (!RTPSpawnSelectorSettings.GetIsEnabled())
             return;
 
         string teleportText = "PvP Adventure Teleport Options\n1. Click here to random teleport\n2. Click teammate to teleport\n3. (Future) Click team bed to teleport";
@@ -99,7 +94,7 @@ public class TeleportMapSystem : ModSystem
 
             // Close the map after teleporting
             Main.mapFullscreen = false;
-            RTPSpawnSelectorSettings.IsEnabled = false;
+            RTPSpawnSelectorSettings.SetIsEnabled(false);
         }
     }
 

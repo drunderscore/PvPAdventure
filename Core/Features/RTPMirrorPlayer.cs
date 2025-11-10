@@ -16,10 +16,7 @@ namespace PvPAdventure.Core.Features
 
             // Check if player is using RTPMirror
             Item currentItem = Main.LocalPlayer.HeldItem;
-            int rtpMirrorItemType = ModContent.ItemType<RTPMirror>();
-
-            // Debug: item use time
-            //Main.NewText(Main.LocalPlayer.itemAnimation);
+            int rtpMirrorItemType = ModContent.ItemType<AdventureMirror>();
 
             if (currentItem != null &&
                 currentItem.type == rtpMirrorItemType &&
@@ -28,9 +25,6 @@ namespace PvPAdventure.Core.Features
             {
                 int itemUseTimeLeft = Main.LocalPlayer.itemAnimation / 60;
                 string timeLeft = itemUseTimeLeft.ToString();
-
-                // Old combat text
-                //CombatText.NewText(Player.getRect(), Color.Cyan, itemUseTimeLeft);
 
                 // Display text above the player every second
                 PopupText.NewText(new AdvancedPopupRequest

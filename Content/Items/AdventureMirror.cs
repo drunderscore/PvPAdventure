@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Microsoft.Xna.Framework;
 using PvPAdventure.Core.Features;
+using PvPAdventure.Core.Helpers;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -8,7 +9,7 @@ using static PvPAdventure.Core.Features.TeleportMapSystem;
 
 namespace PvPAdventure.Content.Items;
 
-internal class RTPMirror : ModItem
+internal class AdventureMirror : ModItem
 {
     public override bool CanUseItem(Player player)
     {
@@ -23,6 +24,9 @@ internal class RTPMirror : ModItem
 
     public override bool? UseItem(Player player)
     {
+        Log.Debug("Adventure mirror used.");
+        Log.Debug("is rtp menu enabled: " + RTPSpawnSelectorSettings.GetIsEnabled());
+
         for (int d = 0; d < 70; d++)
         {
             Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror, 0f, 0f, 150, default(Microsoft.Xna.Framework.Color), 1.5f);
@@ -51,11 +55,15 @@ internal class RTPMirror : ModItem
     {
         if (player.itemAnimation == 1 && player.HeldItem.type == Item.type)
         {
+            Log.Debug("Adventure mirror time is up, opening map!");
+
             // This is the last frame of use animation
             if (Main.myPlayer == player.whoAmI)
             {
                 Main.mapFullscreen = true;
-                RTPSpawnSelectorSettings.IsEnabled = true;
+                RTPSpawnSelectorSettings.SetIsEnabled(true);
+
+                Log.Debug("Main.mapFullscreen set to: " + Main.mapFullscreen);
             }
         }
     }
@@ -70,13 +78,9 @@ internal class RTPMirror : ModItem
                 player.itemAnimation = 0;
                 player.itemTime = 0;
                 //SoundEngine.PlaySound(SoundID.MenuClose, player.position);
+
+                Log.Debug("cancelled RTP mirror");
             }
         }
     }
-
-    public override void PostUpdate()
-    {
-        base.PostUpdate();
-    }
-
 }

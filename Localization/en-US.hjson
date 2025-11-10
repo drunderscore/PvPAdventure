@@ -780,6 +780,11 @@ Mods: {
 				Tooltip: ""
 				DisplayName: Adventure Mirror
 			}
+
+			AdventureMirror: {
+				DisplayName: Adventure Mirror
+				Tooltip: ""
+			}
 		}
 	}
 }
