@@ -87,9 +87,15 @@ public class TeleportMapSystem : ModSystem
         Vector2 textPosition = new(Main.screenWidth / 2 - textSize.X / 2, 20f);
         Rectangle panelBounds = new((int)textPosition.X - 10, (int)textPosition.Y - 8, (int)textSize.X + 20, (int)textSize.Y + 12);
 
+        if (panelBounds.Contains(Main.mouseX, Main.mouseY))
+        {
+            Main.NewText("Hovering TPVPA Panel");
+        }
+
         // Check if mouse clicked inside panel bounds
         if (Main.mouseLeft && Main.mouseLeftRelease && panelBounds.Contains(Main.mouseX, Main.mouseY))
         {
+            Main.NewText("Clicked TPVPA Panel");
             RandomTeleport();
 
             // Close the map after teleporting
