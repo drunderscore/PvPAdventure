@@ -87,13 +87,14 @@ internal class AdventureMirror : ModItem
         }
         else if (player.itemTime <= 10)
         {
+            Main.playerInventory = false;
             if (!Main.mapFullscreen)
             {
                 Main.NewText("Opened RTP spawn options at <10 frames");
                 Main.mapFullscreen = true;
                 Main.resetMapFull = true;
-                RTPSpawnSelectorSettings.SetIsEnabled(true);
             }
+            RTPSpawnSelectorSettings.SetIsEnabled(true);
 
             // This code releases all grappling hooks and kills/despawns them.
             player.RemoveAllGrapplingHooks();
@@ -119,7 +120,10 @@ internal class AdventureMirror : ModItem
     {
         if (!Main.mapFullscreen)
         {
-            RTPSpawnSelectorSettings.SetIsEnabled(false);
+            if (!RTPSpawnSelectorSettings.GetIsEnabled())
+            {
+                RTPSpawnSelectorSettings.SetIsEnabled(false);
+            }
         }
 
         if (player.HeldItem.type == Item.type && player.itemAnimation > 0)
