@@ -1,12 +1,8 @@
-﻿using Discord;
-using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Features;
-using PvPAdventure.Core.Helpers;
-using System;
+﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.Features.AdventureTeleport;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static PvPAdventure.Core.Features.TeleportMapSystem;
 
 namespace PvPAdventure.Content.Items;
 
@@ -25,9 +21,6 @@ internal class AdventureMirror : ModItem
 
     public override bool? UseItem(Player player)
     {
-        Log.Debug("Adventure mirror used.");
-        Log.Debug("is rtp menu enabled: " + RTPSpawnSelectorSettings.GetIsEnabled());
-
         //for (int d = 0; d < 70; d++)
         //{
         //    Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror, 0f, 0f, 150, default(Microsoft.Xna.Framework.Color), 1.5f);
@@ -46,28 +39,11 @@ internal class AdventureMirror : ModItem
         Item.useTime = recallFrames;
         Item.useAnimation = recallFrames;
         Item.useStyle = ItemUseStyleID.HoldUp;
-        Item.UseSound = SoundID.Item6;
+        Item.UseSound = SoundID.Item6; // MAGIC MIRROR SOUND
         Item.rare = ItemRarityID.Blue;
         Item.value = Item.buyPrice(gold: 5);
         Item.noUseGraphic = false;
     }
-
-    // public override void HoldItem(Player player)
-    // {
-    //     if (player.itemAnimation == 1 && player.HeldItem.type == Item.type)
-    //     {
-    //         Log.Debug("Adventure mirror time is up, opening map!");
-
-    //         // This is the last frame of use animation
-    //         if (Main.myPlayer == player.whoAmI)
-    //         {
-    //             Main.mapFullscreen = true;
-    //             RTPSpawnSelectorSettings.SetIsEnabled(true);
-
-    //             Log.Debug("Main.mapFullscreen set to: " + Main.mapFullscreen);
-    //         }
-    //     }
-    // }
 
     // UseStyle is called each frame that the item is being actively used.
     public override void UseStyle(Player player, Rectangle heldItemFrame)
@@ -78,7 +54,7 @@ internal class AdventureMirror : ModItem
         }
 
         // debug 
-        Main.NewText(player.itemTime);
+        //Main.NewText(player.itemTime);
 
         // This sets up the itemTime correctly.
         if (player.itemTime == 0)
@@ -90,11 +66,10 @@ internal class AdventureMirror : ModItem
             Main.playerInventory = false;
             if (!Main.mapFullscreen)
             {
-                Main.NewText("Opened RTP spawn options at <10 frames");
                 Main.mapFullscreen = true;
                 Main.resetMapFull = true;
             }
-            RTPSpawnSelectorSettings.SetIsEnabled(true);
+            AdventureTeleportStateSettings.SetIsEnabled(true);
 
             // This code releases all grappling hooks and kills/despawns them.
             player.RemoveAllGrapplingHooks();
@@ -120,9 +95,9 @@ internal class AdventureMirror : ModItem
     {
         if (!Main.mapFullscreen)
         {
-            if (!RTPSpawnSelectorSettings.GetIsEnabled())
+            if (!AdventureTeleportStateSettings.GetIsEnabled())
             {
-                RTPSpawnSelectorSettings.SetIsEnabled(false);
+                AdventureTeleportStateSettings.SetIsEnabled(false);
             }
         }
 
@@ -135,7 +110,7 @@ internal class AdventureMirror : ModItem
                 player.itemTime = 0;
                 //SoundEngine.PlaySound(SoundID.MenuClose, player.position);
 
-                Log.Debug("cancelled RTP mirror");
+                //Log.Debug("cancelled RTP mirror");
             }
         }
     }

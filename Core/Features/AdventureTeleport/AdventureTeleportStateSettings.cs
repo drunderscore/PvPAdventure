@@ -1,6 +1,6 @@
-﻿namespace PvPAdventure.Core.Features;
+﻿namespace PvPAdventure.Core.Features.AdventureTeleport;
 
-public static class RTPSpawnSelectorSettings
+public static class AdventureTeleportStateSettings
 {
     private static bool IsEnabled = false;
 

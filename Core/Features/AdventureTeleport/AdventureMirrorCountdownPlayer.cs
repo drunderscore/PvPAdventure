@@ -3,9 +3,9 @@ using PvPAdventure.Content.Items;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Features
+namespace PvPAdventure.Core.Features.AdventureTeleport
 {
-    public class RTPMirrorPlayer : ModPlayer
+    public class AdventureMirrorCountdownPlayer : ModPlayer
     {
         public override void PostUpdate()
         {
