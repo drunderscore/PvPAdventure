@@ -355,6 +355,16 @@ Mods: {
 					Label: No Line Of Sight Damage Reduction
 					Tooltip: ""
 				}
+
+				NoKnockbackItems: {
+					Label: No Knockback Items
+					Tooltip: ""
+				}
+
+				NoKnockbackProjectiles: {
+					Label: No Knockback Projectiles
+					Tooltip: ""
+				}
 			}
 
 			AdventureClientConfig: {

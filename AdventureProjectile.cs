@@ -7,7 +7,9 @@ using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
+using static PvPAdventure.AdventureConfig;
 
 namespace PvPAdventure;
 
@@ -788,7 +790,7 @@ public class AdventureProjectile : GlobalProjectile
             modifiers.SourceDamage *= 0.75f;
         }
     }
-    public class PiranhaGunPvPSystem : GlobalProjectile
+    public class VanillaPirahinaGun : GlobalProjectile
     {
         public override bool InstancePerEntity => true;
 
@@ -802,26 +804,27 @@ public class AdventureProjectile : GlobalProjectile
 
         public override void SetDefaults(Projectile projectile)
         {
-            // Enable player collision for PvP
             projectile.friendly = true;
         }
 
         public override void AI(Projectile projectile)
         {
-            // Manual collision check with players if not attached
             if (attachedPlayerIndex < 0)
             {
                 Player owner = Main.player[projectile.owner];
                 if (!owner.hostile)
                     return;
 
-                // Check collision with hostile players
                 for (int i = 0; i < Main.maxPlayers; i++)
                 {
                     if (i == projectile.owner)
                         continue;
 
                     Player target = Main.player[i];
+
+                    if (target.HasBuff(ModContent.BuffType<PlayerInSpawn>()))
+                        continue;
+
                     if (target.active && !target.dead && target.hostile && target.team != owner.team)
                     {
                         Rectangle projHitbox = new Rectangle((int)projectile.position.X, (int)projectile.position.Y,
@@ -831,14 +834,12 @@ public class AdventureProjectile : GlobalProjectile
 
                         if (projHitbox.Intersects(playerHitbox))
                         {
-                            // Latch onto the player
                             attachedPlayerIndex = target.whoAmI;
                             attachOffset = projectile.Center - target.Center;
                             projectile.ai[0] = 1f;
                             projectile.ai[1] = target.whoAmI;
                             projectile.netUpdate = true;
 
-                            // Deal initial hit damage
                             if (Main.myPlayer == projectile.owner)
                             {
                                 int hitDirection = (target.Center.X > owner.Center.X) ? 1 : -1;
@@ -852,9 +853,13 @@ public class AdventureProjectile : GlobalProjectile
             }
         }
 
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.Knockback *= 0f;
+        }
+
         public override void OnHitPlayer(Projectile projectile, Player target, Player.HurtInfo info)
         {
-            // Latch onto player when hit in PvP
             Player owner = Main.player[projectile.owner];
             if (owner.hostile && target.hostile && owner.team != target.team && attachedPlayerIndex < 0)
             {
@@ -868,28 +873,24 @@ public class AdventureProjectile : GlobalProjectile
 
         public override bool PreAI(Projectile projectile)
         {
-            // Only apply custom AI when attached to a player
             if (attachedPlayerIndex < 0)
-                return true; // Use vanilla AI for seeking/returning
+                return true;
 
             Player owner = Main.player[projectile.owner];
             Player target = Main.player[attachedPlayerIndex];
 
-            // Check if we should detach
             bool shouldDetach = false;
 
-            // Detach if target is invalid
             if (!target.active || target.dead || !target.hostile || target.team == owner.team)
             {
                 shouldDetach = true;
             }
-            // Detach if owner isn't channeling the piranha gun
+
             else if (!owner.channel || owner.HeldItem.type != ItemID.PiranhaGun)
             {
                 shouldDetach = true;
             }
-            // Detach if too far from owner
-            else if (Vector2.Distance(projectile.Center, owner.Center) > 2000f)
+            else if (Vector2.Distance(projectile.Center, owner.Center) > 2000f) // this will detach the pirahinas if theyre too far away when attached to a player, we can change this
             {
                 shouldDetach = true;
             }
@@ -901,25 +902,21 @@ public class AdventureProjectile : GlobalProjectile
                 projectile.ai[0] = 0f;
                 projectile.ai[1] = 0f;
                 projectile.netUpdate = true;
-                return true; // Resume vanilla AI
+                return true;
             }
 
-            // Stick to the player with offset
             projectile.Center = target.Center + attachOffset;
             projectile.velocity = Vector2.Zero;
 
-            // Make piranha face the target
             Vector2 directionToTarget = target.Center - owner.Center;
             projectile.rotation = directionToTarget.ToRotation() + MathHelper.PiOver2;
 
-            // Keep the projectile visible and active
             projectile.timeLeft = 300;
             projectile.ai[0] = 1f;
 
-            // Damage the player periodically
             if (projectile.localAI[0] <= 0f)
             {
-                projectile.localAI[0] = 15f; // Attack every 15 frames (4 times per second)
+                projectile.localAI[0] = 1f; // Attack every frame (temp), we can change ts
 
                 if (Main.myPlayer == projectile.owner)
                 {
@@ -935,16 +932,14 @@ public class AdventureProjectile : GlobalProjectile
                 projectile.localAI[0]--;
             }
 
-            return false; // Don't run vanilla AI while attached
+            return false; // Don't run vanilla AI
         }
 
         public override bool CanHitPlayer(Projectile projectile, Player target)
         {
-            // Prevent continuous collision damage when latched
             if (attachedPlayerIndex == target.whoAmI)
                 return false;
 
-            // Only allow hitting hostile players
             Player owner = Main.player[projectile.owner];
             if (!owner.hostile || !target.hostile || owner.team == target.team)
                 return false;
@@ -967,8 +962,8 @@ public class AdventureProjectile : GlobalProjectile
         }
     }
 
-    // GlobalItem to keep the weapon channeling while piranhas are attached
-    public class PiranhaGunItemSystem : GlobalItem
+    // GlobalItem even though in adventureprojectile because FUCK YOU
+    public class PiranhaGunItem : GlobalItem
     {
         public override bool AppliesToEntity(Item entity, bool lateInstantiation)
         {
@@ -977,14 +972,13 @@ public class AdventureProjectile : GlobalProjectile
 
         public override void HoldItem(Item item, Player player)
         {
-            // Check if any of the player's piranhas are attached to a player
             bool hasAttachedPiranha = false;
             for (int i = 0; i < Main.maxProjectiles; i++)
             {
                 Projectile proj = Main.projectile[i];
                 if (proj.active && proj.owner == player.whoAmI && proj.type == ProjectileID.MechanicalPiranha)
                 {
-                    var modProj = proj.GetGlobalProjectile<PiranhaGunPvPSystem>();
+                    var modProj = proj.GetGlobalProjectile<VanillaPirahinaGun>();
                     if (modProj != null && modProj.attachedPlayerIndex >= 0)
                     {
                         hasAttachedPiranha = true;
@@ -993,7 +987,6 @@ public class AdventureProjectile : GlobalProjectile
                 }
             }
 
-            // If piranhas are attached, keep the item in use state
             if (hasAttachedPiranha && player.controlUseItem)
             {
                 player.channel = true;
@@ -1004,16 +997,14 @@ public class AdventureProjectile : GlobalProjectile
 
         public override bool CanUseItem(Item item, Player player)
         {
-            // Check if any piranhas are attached - if so, prevent switching items
             for (int i = 0; i < Main.maxProjectiles; i++)
             {
                 Projectile proj = Main.projectile[i];
                 if (proj.active && proj.owner == player.whoAmI && proj.type == ProjectileID.MechanicalPiranha)
                 {
-                    var modProj = proj.GetGlobalProjectile<PiranhaGunPvPSystem>();
+                    var modProj = proj.GetGlobalProjectile<VanillaPirahinaGun>();
                     if (modProj != null && modProj.attachedPlayerIndex >= 0)
                     {
-                        // Keep weapon locked in use
                         return true;
                     }
                 }
@@ -1021,5 +1012,22 @@ public class AdventureProjectile : GlobalProjectile
             return base.CanUseItem(item, player);
         }
     }
-}
+    public class NoKnockbackProjectiles : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            int projType = entity.type;
 
+            return projType == ProjectileID.Meteor1 ||
+                   projType == ProjectileID.Meteor2 ||
+                   projType == ProjectileID.Meteor3 ||
+                   projType == ProjectileID.HeatRay ||
+                   projType == ProjectileID.FlyingKnife ||
+                   projType == ProjectileID.LaserMachinegunLaser;
+        }
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.Knockback *= 0f;
+        }
+    }
+}

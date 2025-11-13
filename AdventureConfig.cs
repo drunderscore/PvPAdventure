@@ -176,6 +176,8 @@ public class AdventureConfig : ModConfig
             [DefaultValue(null)] [NullAllowed] public Falloff DefaultFalloff { get; set; }
         }
 
+        [Description("Projectiles that deal no knockback in PvP")]
+        public List<ProjectileDefinition> NoKnockbackProjectiles { get; set; } = new();
         [Range(0, 5 * 60)] [DefaultValue(8)] public int MeleeInvincibilityFrames { get; set; }
 
         [Range(0, 60 * 2 * 60)]
