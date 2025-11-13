@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\tModLoader.targets" />
   <PropertyGroup>
     <AssemblyName>PvPAdventure</AssemblyName>
@@ -22,4 +22,10 @@
       <HintPath>lib\System.Linq.Async.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->
+	<ItemGroup>
+		<PackageReference Include="Krafs.Publicizer" PrivateAssets="true" Version="2.2.1" />
+		<Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+	</ItemGroup>
 </Project>

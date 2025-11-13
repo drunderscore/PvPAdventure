@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Features.SpawnSelector.Structures;
+using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using Terraria;
+using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -13,6 +14,14 @@ internal class AdventureMirror : ModItem
         // Prevent item use if the player is moving
         if (player.velocity.Length() > 0f)
         {
+            // Display text above the player every second
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.Crimson,
+                Text = "Cannot use while moving!",
+                Velocity = new(0.0f, -4.0f),
+                DurationInFrames = 60 * 1
+            }, player.Top);
             return false;
         }
 
@@ -66,10 +75,31 @@ internal class AdventureMirror : ModItem
             Main.playerInventory = false;
             if (!Main.mapFullscreen)
             {
-                Main.mapFullscreen = true;
-                Main.resetMapFull = true;
+                SoundEngine.PlaySound(SoundID.MenuOpen);
+                Main.mapFullscreen = true; // open the fullscreen map
+
+                //Main.resetMapFull = true; // reset the map view position to be zoomed out and centered on the player
+
+                // center map
+                float worldCenterX = Main.maxTilesX / 2f;
+                float worldCenterY = Main.maxTilesY / 2f;
+                Main.mapFullscreenPos.X = worldCenterX;
+                Main.mapFullscreenPos.Y = worldCenterY;
+
+                // zoom out
+                Main.mapFullscreenScale = 0.21f;
+
+                // teleport to spawn
+                Vector2 spawnPos = new(Main.spawnTileX*16, Main.spawnTileY*16-100);
+
+                Main.LocalPlayer.Teleport(spawnPos);
+
+                if (Main.netMode == NetmodeID.MultiplayerClient)
+                {
+                    // ?
+                }
             }
-            AdventureTeleportStateSettings.SetIsEnabled(true);
+            SpawnSelectorSystem.SetEnabled(true);
 
             // This code releases all grappling hooks and kills/despawns them.
             player.RemoveAllGrapplingHooks();
@@ -93,13 +123,13 @@ internal class AdventureMirror : ModItem
 
     public override void UpdateInventory(Player player)
     {
-        if (!Main.mapFullscreen)
-        {
-            if (!AdventureTeleportStateSettings.GetIsEnabled())
-            {
-                AdventureTeleportStateSettings.SetIsEnabled(false);
-            }
-        }
+        //if (!Main.mapFullscreen)
+        //{
+        //    if (!SpawnSelectorSettings.GetIsEnabled())
+        //    {
+        //        SpawnSelectorSettings.SetIsEnabled(false);
+        //    }
+        //}
 
         if (player.HeldItem.type == Item.type && player.itemAnimation > 0)
         {
@@ -108,9 +138,15 @@ internal class AdventureMirror : ModItem
                 // Cancel item use
                 player.itemAnimation = 0;
                 player.itemTime = 0;
-                //SoundEngine.PlaySound(SoundID.MenuClose, player.position);
 
-                //Log.Debug("cancelled RTP mirror");
+                // Display text above the player every second
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = "Cancelled!",
+                    Velocity = new(0.0f, -4.0f),
+                    DurationInFrames = 60 * 1
+                }, player.Top);
             }
         }
     }
