@@ -38,12 +38,14 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             randomButton.OnLeftClick += (_, _) => PerformRandomTeleport();
             Append(randomButton);
 
-            var p1 = new UISpawnSelectorCharacterListItem(Main.LocalPlayer, isSelf: true);
-            p1.Width.Set(-20f, 1f);
-            p1.Left.Set(10, 0f);
-            p1.Top.Set(74, 0f);
-            Append(p1);
+            // Debug: add test entry
+            //var p1 = new UISpawnSelectorCharacterListItem(Main.LocalPlayer);
+            //p1.Width.Set(-20f, 1f);
+            //p1.Left.Set(10, 0f);
+            //p1.Top.Set(74, 0f);
+            //Append(p1);
 
+            // Add teammates
             var players = new List<Player>();
             if (Main.LocalPlayer.team != 0)
             {
@@ -58,9 +60,10 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 }
             }
 
+            // Add UI elements for each teammate
             for (int i = 0; i < players.Count; i++)
             {
-                var row = new UISpawnSelectorCharacterListItem(players[i], isSelf: false);
+                var row = new UISpawnSelectorCharacterListItem(players[i]);
                 row.Width.Set(-20f, 1f);
                 row.Left.Set(10, 0f);
                 row.Top.Set(74 + i * 70, 0f);
@@ -84,11 +87,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             else
                 Main.LocalPlayer.TeleportationPotion();
 
-            CloseAndExitMap();
-        }
-
-        private void CloseAndExitMap()
-        {
             Main.mapFullscreen = false;
             SpawnSelectorSystem.SetEnabled(false);
         }

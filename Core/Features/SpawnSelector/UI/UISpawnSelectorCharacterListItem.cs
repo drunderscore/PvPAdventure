@@ -9,7 +9,6 @@ using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
@@ -26,13 +25,13 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         private readonly int _playerIndex;
         private Rectangle _bedHitbox;
 
-        public UISpawnSelectorCharacterListItem(Terraria.Player player, bool isSelf)
+        public UISpawnSelectorCharacterListItem(Player player)
         {
             _dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
             _innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
             _playerBGTexture = Main.Assets.Request<Texture2D>("Images/UI/PlayerBackground");
 
-            _playerIndex = isSelf ? Main.myPlayer : player.whoAmI;
+            _playerIndex = player.whoAmI;
         }
 
         public override void OnInitialize()
@@ -66,21 +65,21 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             sb.Draw(_playerBGTexture.Value, pos, Color.White);
 
             // Right "bed" background
-            Vector2 bedBGPos = new(pos.X + dims.Width - 73, pos.Y);
-            sb.Draw(_playerBGTexture.Value, bedBGPos, Color.White);
+            //Vector2 bedBGPos = new(pos.X + dims.Width - 73, pos.Y);
+            //sb.Draw(_playerBGTexture.Value, bedBGPos, Color.White);
 
-            // Bed icon position (same as before)
-            Vector2 bedIconPos = bedBGPos + new Vector2(31, 31);
-            Item icon = new(ItemID.Bed);
-            ItemSlot.DrawItemIcon(icon, 31, sb, bedIconPos, 1.0f, 32f, Color.White);
+            // Bed icon
+            //Vector2 bedIconPos = bedBGPos + new Vector2(31, 31);
+            //Item icon = new(ItemID.Bed);
+            //ItemSlot.DrawItemIcon(icon, 31, sb, bedIconPos, 1.0f, 32f, Color.White);
 
             // Update clickable bed hitbox (approx 32x32 centered on icon pos)
-            _bedHitbox = new Rectangle(
-                (int)(bedIconPos.X - 16),
-                (int)(bedIconPos.Y - 16),
-                32,
-                32
-            );
+            //_bedHitbox = new Rectangle(
+            //    (int)(bedIconPos.X - 16),
+            //    (int)(bedIconPos.Y - 16),
+            //    32,
+            //    32
+            //);
 
             // Draw player sprite (switch to point-clamp batch)
             sb.End();
@@ -187,11 +186,14 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             base.LeftClick(evt);
 
             // Only react if the BED area was clicked, not the whole row
-            if (!_bedHitbox.Contains(evt.MousePosition.ToPoint()))
-                return;
+            //if (!_bedHitbox.Contains(evt.MousePosition.ToPoint()))
+                //return;
 
             Terraria.Player player = Main.player[_playerIndex];
-            TeleportToPlayerBed(player);
+
+            Main.LocalPlayer.UnityTeleport(player.position);
+
+            //TeleportToPlayerBed(player);
         }
 
         private static void TeleportToPlayerBed(Terraria.Player target)
@@ -207,14 +209,14 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             int spawnX = target.SpawnX;
             int spawnY = target.SpawnY;
 
-            // Fallback: world spawn if no personal spawn
+            // Fallback: player position if no personal spawn
             if (spawnX <= 0 || spawnY <= 0)
             {
-                spawnX = Main.spawnTileX;
-                spawnY = Main.spawnTileY;
+                spawnX = (int) target.position.X;
+                spawnY = (int)target.position.Y;
             }
 
-            // Convert tile coords to world coords (put feet on the ground)
+            // Convert tile coords to world coords
             Vector2 dest = new Vector2(
                 spawnX * 16 + local.width / 2f,
                 spawnY * 16 - local.height
@@ -223,13 +225,10 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             if (Main.netMode == NetmodeID.SinglePlayer)
             {
                 local.Teleport(dest);
-                SoundEngine.PlaySound(SoundID.Item6, dest); // magic mirror sound
             }
             else
             {
-                // Multiplayer: you'd normally send a custom packet to your mod's server-side logic
-                // to perform a server-authoritative teleport.
-                // Example (pseudo):
+                // TODO Multiplayer: send teleport request to server
                 // ModContent.GetInstance<MyMod>().SendBedTeleportPacket(target.whoAmI);
             }
 
