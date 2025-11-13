@@ -57,6 +57,10 @@ internal class AdventureMirror : ModItem
     // UseStyle is called each frame that the item is being actively used.
     public override void UseStyle(Player player, Rectangle heldItemFrame)
     {
+        // Only run for the client who is actually using the item.
+        if (player.whoAmI != Main.myPlayer)
+            return;
+
         if (Main.rand.NextBool())
         {
             SpawnMirrorDust(player);

@@ -17,15 +17,13 @@ public class SpawnSelectorPlayer : ModPlayer
             return;
         }
 
+        // Force SSS to be enabled when player is within the spawn region.
         var regionManager = ModContent.GetInstance<RegionManager>();
         Point tilePos = Player.Center.ToTileCoordinates();
         var region = regionManager.GetRegionContaining(tilePos);
         bool inRegion = region != null;
-
         if (inRegion)
-        {
             SpawnSelectorSystem.SetEnabled(true);
-        }
 
         // Unsure if this causes any bugs.
         // It may be too forcing to always set it to false whenever map is closed.
@@ -61,7 +59,12 @@ public class SpawnSelectorPlayer : ModPlayer
         // Keeps the player from respawning until they have selected a spawn.
         if (Player.respawnTimer <= 10 && !hasSelectedSpawnPoint)
         {
-            Player.respawnTimer = 10;
+            //Player.respawnTimer = 10;
+            if (!Main.mapFullscreen)
+            {
+                Main.mapFullscreen = true;
+                SpawnSelectorSystem.SetEnabled(true);
+            }
         }
     }
 }

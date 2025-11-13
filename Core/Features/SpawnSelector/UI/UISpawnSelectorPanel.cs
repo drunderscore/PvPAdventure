@@ -1,13 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Features.SpawnSelector.Systems;
-using System;
+using PvPAdventure.Core.Helpers;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
-using Terraria.ModLoader.UI;
-using Terraria.UI;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
 {
@@ -25,7 +23,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             BackgroundColor = new Color(33, 43, 79) * 0.8f;
             SetPadding(6f);
 
-            // --- Random teleport button ---
             randomButton = new UITextPanel<string>("Random");
             randomButton.Width.Set(-20f, 1f);
             randomButton.Left.Set(10f, 0f);
@@ -41,17 +38,43 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             randomButton.OnLeftClick += (_, _) => PerformRandomTeleport();
             Append(randomButton);
 
-            var item1 = new UISpawnSelectorCharacterListItem();
-            item1.Width.Set(-20f, 1f);
-            item1.Left.Set(10, 0f);
-            item1.Top.Set(74, 0f);
-            Append(item1);
+            var p1 = new UISpawnSelectorCharacterListItem(Main.LocalPlayer, isSelf: true);
+            p1.Width.Set(-20f, 1f);
+            p1.Left.Set(10, 0f);
+            p1.Top.Set(74, 0f);
+            Append(p1);
 
-            var item2 = new UISpawnSelectorCharacterListItem();
-            item2.Width.Set(-20f, 1f);
-            item2.Left.Set(10, 0f);
-            item2.Top.Set(74 + 72 + 4, 0f);
-            Append(item2);
+            var players = new List<Player>();
+            if (Main.LocalPlayer.team != 0)
+            {
+                for (int i = 0; i < Main.maxPlayers; i++)
+                {
+                    Player p = Main.player[i];
+                    if (p != null && p.active && p.whoAmI != Main.LocalPlayer.whoAmI && p.team == Main.LocalPlayer.team)
+                    {
+                        Main.NewText("Adding teammate: " + p.name);
+                        players.Add(p);
+                    }
+                }
+            }
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                var row = new UISpawnSelectorCharacterListItem(players[i], isSelf: false);
+                row.Width.Set(-20f, 1f);
+                row.Left.Set(10, 0f);
+                row.Top.Set(74 + i * 70, 0f);
+                Append(row);
+            }
+
+            Log.Info($"UISpawnSelectorPanel.OnInitialize: team={Main.LocalPlayer.team}, teammates={players.Count}");
+        }
+
+        public void Rebuild()
+        {
+            RemoveAllChildren();
+            OnInitialize();
+            Log.Info("UISpawnSelectorPanel.Rebuild: UI rebuilt");
         }
 
         private void PerformRandomTeleport()
@@ -70,12 +93,8 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             SpawnSelectorSystem.SetEnabled(false);
         }
 
-
         public override void Draw(SpriteBatch spriteBatch)
         {
-            //RemoveAllChildren();
-            //OnInitialize();
-
             base.Draw(spriteBatch);
         }
     }

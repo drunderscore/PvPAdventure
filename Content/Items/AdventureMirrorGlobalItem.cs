@@ -1,20 +1,20 @@
-﻿using PvPAdventure.Content.Items;
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-public class AdventureMirrorGlobalItem : GlobalItem
+namespace PvPAdventure.Content.Items
 {
-    public override bool InstancePerEntity => true;
-
-    // Force the item to always be favorited
-    public override void UpdateInventory(Item item, Player player)
+    public class AdventureMirrorGlobalItem : GlobalItem
     {
-        if (item.type == ModContent.ItemType<AdventureMirror>())
+        public override bool InstancePerEntity => true;
+
+        // Force the item to always be favorited
+        public override void UpdateInventory(Item item, Player player)
         {
-            item.favorited = true; // Force on every tick
-
-            
+            if (item.type == ModContent.ItemType<AdventureMirror>())
+            {
+                item.favorited = true; // Force on every tick
+            }
         }
-    }
 
+    }
 }

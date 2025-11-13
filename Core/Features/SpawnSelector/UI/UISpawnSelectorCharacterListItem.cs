@@ -1,9 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using PvPAdventure.Core.Helpers;
 using ReLogic.Content;
 using System;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
@@ -13,7 +15,7 @@ using Terraria.UI;
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
 {
     /// <summary>
-    /// Vanilla-like character row:
+    /// Vanilla-like character row.
     /// </summary>
     internal class UISpawnSelectorCharacterListItem : UIPanel
     {
@@ -21,29 +23,219 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         private readonly Asset<Texture2D> _innerPanelTexture;
         private readonly Asset<Texture2D> _playerBGTexture;
 
-        private readonly string _name;
-        private readonly string _hpText;
-        private readonly string _manaText;
+        private readonly int _playerIndex;
+        private Rectangle _bedHitbox;
 
-        public UISpawnSelectorCharacterListItem()
+        public UISpawnSelectorCharacterListItem(Terraria.Player player, bool isSelf)
         {
             _dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
             _innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
             _playerBGTexture = Main.Assets.Request<Texture2D>("Images/UI/PlayerBackground");
 
-            _name = "Teammate";
-            _hpText = "500 " + Language.GetTextValue("GameUI.PlayerLifeMax");
-            _manaText = "200 " + Language.GetTextValue("GameUI.PlayerManaMax");
+            _playerIndex = isSelf ? Main.myPlayer : player.whoAmI;
         }
 
         public override void OnInitialize()
         {
-            //BorderColor = new Color(89, 116, 213) * 0.7f;
             BorderColor = Color.Black;
             BackgroundColor = new Color(63, 82, 151) * 0.7f;
             Height.Set(72f, 0f);
             Width.Set(-20f, 1f);
             SetPadding(6f);
+        }
+
+        protected override void DrawSelf(SpriteBatch sb)
+        {
+            base.DrawSelf(sb);
+
+            CalculatedStyle inner = GetInnerDimensions();
+            var dims = GetDimensions();
+            var rect = dims.ToRectangle();
+
+            Player player = Main.player[_playerIndex];
+            if (player == null || !player.active)
+            {
+                Utils.DrawBorderString(sb, "Unable to find player :(", rect.Location.ToVector2() + new Vector2(50, 0), Color.White);
+                return;
+            }
+
+            DrawMapFullscreenBackground(sb, rect, player);
+
+            // Left "player" background
+            Vector2 pos = new(inner.X, inner.Y);
+            sb.Draw(_playerBGTexture.Value, pos, Color.White);
+
+            // Right "bed" background
+            Vector2 bedBGPos = new(pos.X + dims.Width - 73, pos.Y);
+            sb.Draw(_playerBGTexture.Value, bedBGPos, Color.White);
+
+            // Bed icon position (same as before)
+            Vector2 bedIconPos = bedBGPos + new Vector2(31, 31);
+            Item icon = new(ItemID.Bed);
+            ItemSlot.DrawItemIcon(icon, 31, sb, bedIconPos, 1.0f, 32f, Color.White);
+
+            // Update clickable bed hitbox (approx 32x32 centered on icon pos)
+            _bedHitbox = new Rectangle(
+                (int)(bedIconPos.X - 16),
+                (int)(bedIconPos.Y - 16),
+                32,
+                32
+            );
+
+            // Draw player sprite (switch to point-clamp batch)
+            sb.End();
+            sb.Begin(SpriteSortMode.Deferred,
+                     BlendState.AlphaBlend,
+                     SamplerState.PointClamp,
+                     DepthStencilState.Default,
+                     RasterizerState.CullNone,
+                     null,
+                     Main.UIScaleMatrix);
+
+            try
+            {
+                Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(16, 8);
+
+                Main.PlayerRenderer.DrawPlayer(
+                    Main.Camera,
+                    player,
+                    playerDrawPos,
+                    player.fullRotation,
+                    player.fullRotationOrigin,
+                    0f,
+                    0.9f
+                );
+            }
+            catch (Exception e)
+            {
+                Log.Error("Failed to draw player: " + e);
+            }
+
+            // Switch back to "normal" UI batch
+            sb.End();
+            sb.Begin(SpriteSortMode.Deferred,
+                     BlendState.AlphaBlend,
+                     SamplerState.LinearClamp,
+                     DepthStencilState.None,
+                     RasterizerState.CullCounterClockwise,
+                     null,
+                     Main.UIScaleMatrix);
+
+            float leftColumnWidth = _playerBGTexture.Width();
+            float startX = inner.X + leftColumnWidth;
+
+            // Name centered
+            string name = string.IsNullOrEmpty(player.name) ? "Teammate" : player.name;
+            Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name);
+            float centerX = inner.X + inner.Width * 0.5f;
+
+            Utils.DrawBorderString(
+                sb,
+                name,
+                new Vector2(centerX - nameSize.X * 0.5f, inner.Y - 2f),
+                Color.White
+            );
+
+            // Divider
+            sb.Draw(
+                _dividerTexture.Value,
+                new Vector2(startX + 1, inner.Y + 21f),
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                new Vector2((dims.X + dims.Width - startX) / 8 - 10, 1f),
+                SpriteEffects.None,
+                0f
+            );
+
+            // HP / MP panel
+            Vector2 panelPos = new(startX + 6f, inner.Y + 29f);
+            float panelWidth = 220f;
+            DrawPanel(sb, panelPos, panelWidth);
+
+            Vector2 cursor = panelPos;
+
+            // HP
+            sb.Draw(TextureAssets.Heart.Value, cursor + new Vector2(5f, 2f), Color.White);
+            cursor.X += 10f + TextureAssets.Heart.Width();
+            string hpText = $"{player.statLife}/{player.statLifeMax}";
+            Utils.DrawBorderString(sb, hpText, cursor + new Vector2(0f, 3f), Color.White);
+
+            // MP
+            cursor.X += 80f;
+            sb.Draw(TextureAssets.Mana.Value, cursor + new Vector2(5f, 2f), Color.White);
+            cursor.X += 10f + TextureAssets.Mana.Width();
+            string manaText = $"{player.statMana}/{player.statManaMax}";
+            Utils.DrawBorderString(sb, manaText, cursor + new Vector2(0f, 3f), Color.White);
+        }
+
+        public override void MouseOver(UIMouseEvent evt)
+        {
+            base.MouseOver(evt);
+            BackgroundColor = new Color(73, 92, 161);
+        }
+
+        public override void MouseOut(UIMouseEvent evt)
+        {
+            base.MouseOut(evt);
+            BackgroundColor = new Color(63, 82, 151) * 0.8f;
+        }
+
+        public override void LeftClick(UIMouseEvent evt)
+        {
+            base.LeftClick(evt);
+
+            // Only react if the BED area was clicked, not the whole row
+            if (!_bedHitbox.Contains(evt.MousePosition.ToPoint()))
+                return;
+
+            Terraria.Player player = Main.player[_playerIndex];
+            TeleportToPlayerBed(player);
+        }
+
+        private static void TeleportToPlayerBed(Terraria.Player target)
+        {
+            if (target == null || !target.active)
+                return;
+
+            Terraria.Player local = Main.LocalPlayer;
+            if (local == null || !local.active)
+                return;
+
+            // Figure out target spawn (bed) tile
+            int spawnX = target.SpawnX;
+            int spawnY = target.SpawnY;
+
+            // Fallback: world spawn if no personal spawn
+            if (spawnX <= 0 || spawnY <= 0)
+            {
+                spawnX = Main.spawnTileX;
+                spawnY = Main.spawnTileY;
+            }
+
+            // Convert tile coords to world coords (put feet on the ground)
+            Vector2 dest = new Vector2(
+                spawnX * 16 + local.width / 2f,
+                spawnY * 16 - local.height
+            );
+
+            if (Main.netMode == NetmodeID.SinglePlayer)
+            {
+                local.Teleport(dest);
+                SoundEngine.PlaySound(SoundID.Item6, dest); // magic mirror sound
+            }
+            else
+            {
+                // Multiplayer: you'd normally send a custom packet to your mod's server-side logic
+                // to perform a server-authoritative teleport.
+                // Example (pseudo):
+                // ModContent.GetInstance<MyMod>().SendBedTeleportPacket(target.whoAmI);
+            }
+
+            // Close fullscreen map + spawn selector
+            Main.mapFullscreen = false;
+            SpawnSelectorSystem.SetEnabled(false);
         }
 
         private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
@@ -71,107 +263,73 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             );
         }
 
-        protected override void DrawSelf(SpriteBatch sb)
+        public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Player player)
         {
-            base.DrawSelf(sb);
+            if (player == null || !player.active)
+                return;
 
-            CalculatedStyle inner = GetInnerDimensions();
-            var dims = GetDimensions();
+            var screenPos = Main.screenPosition;
+            var tile = Main.tile[(int)(player.Center.X / 16f), (int)(player.Center.Y / 16f)];
+            if (tile == null) return;
 
-            // Left "player" background
-            Vector2 pos = new(inner.X, inner.Y);
-            sb.Draw(_playerBGTexture.Value, pos, Color.White);
+            int wall = tile.wall;
+            int bgIndex = -1;
+            Color color = Color.White;
 
-            // Right "bed" background
-            Vector2 bedPos = new(pos.X+dims.Width-73, pos.Y);
-            sb.Draw(_playerBGTexture.Value, bedPos, Color.White);
-
-            // Draw bed (placeholder)
-            // Future: Draw section of map with the bed
-            bedPos += new Vector2(31, 31);
-            Item icon = new(ItemID.Bed);
-            ItemSlot.DrawItemIcon(icon, 31, sb, bedPos, 1.0f, 32f, Color.White);
-
-
-            // Draw player
-            sb.End();
-            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.UIScaleMatrix);
-
-            try
+            if (screenPos.Y > (Main.maxTilesY - 232) * 16)
+                bgIndex = 2;
+            else if (player.ZoneDungeon)
+                bgIndex = 4;
+            else if (wall == 87)
+                bgIndex = 13;
+            else if (screenPos.Y > Main.worldSurface * 16.0)
             {
-                // Draw player
-                pos += Main.screenPosition + new Vector2(16, 8);
-
-                Player player = Main.LocalPlayer;
-
-                // Celestial starboard (45) sucks
-                if (player.wings == 45) player.wings = 0;
-
-                Main.PlayerRenderer.DrawPlayer(Main.Camera, player, pos, player.fullRotation, player.fullRotationOrigin, 0f, 0.9f);
+                bgIndex = wall switch
+                {
+                    86 or 108 => 15,
+                    180 or 184 => 16,
+                    178 or 183 => 17,
+                    62 or 263 => 18,
+                    _ => player.ZoneGlowshroom ? 20 :
+                         player.ZoneCorrupt ? player.ZoneDesert ? 39 : player.ZoneSnow ? 33 : 22 :
+                         player.ZoneCrimson ? player.ZoneDesert ? 40 : player.ZoneSnow ? 34 : 23 :
+                         player.ZoneHallow ? player.ZoneDesert ? 41 : player.ZoneSnow ? 35 : 21 :
+                         player.ZoneSnow ? 3 :
+                         player.ZoneJungle ? 12 :
+                         player.ZoneDesert ? 14 :
+                         player.ZoneRockLayerHeight ? 31 : 1
+                };
             }
-            catch (Exception e)
+            else if (player.ZoneGlowshroom)
+                bgIndex = 19;
+            else
             {
-                //Main.NewText("Failed to draw player", Color.Red);
-                Log.Error("Failed to draw player: " + e);
+                color = Main.ColorOfTheSkies;
+                int midTileX = (int)((screenPos.X + Main.screenWidth / 2f) / 16f);
+
+                if (player.ZoneSkyHeight) bgIndex = 32;
+                else if (player.ZoneCorrupt) bgIndex = player.ZoneDesert ? 36 : 5;
+                else if (player.ZoneCrimson) bgIndex = player.ZoneDesert ? 37 : 6;
+                else if (player.ZoneHallow) bgIndex = player.ZoneDesert ? 38 : 7;
+                else if (screenPos.Y / 16f < Main.worldSurface + 10.0 && (midTileX < 380 || midTileX > Main.maxTilesX - 380))
+                    bgIndex = 10;
+                else if (player.ZoneSnow) bgIndex = 11;
+                else if (player.ZoneJungle) bgIndex = 8;
+                else if (player.ZoneDesert) bgIndex = 9;
+                else if (Main.bloodMoon) { bgIndex = 25; color *= 2f; }
+                else if (player.ZoneGraveyard) bgIndex = 26;
             }
 
-            float leftColumnWidth = _playerBGTexture.Width(); // keep aligned to texture
-            float startX = inner.X + leftColumnWidth;
+            var asset = bgIndex >= 0 && bgIndex < TextureAssets.MapBGs.Length
+                ? TextureAssets.MapBGs[bgIndex]
+                : TextureAssets.MapBGs[0];
 
-            // Measure text width
-            Vector2 textSize = FontAssets.MouseText.Value.MeasureString(_name);
-            float centerX = inner.X + inner.Width * 0.5f;
+            rect.X += 10;
+            rect.Y += 10;
+            rect.Width -= 20;
+            rect.Height -= 20;
 
-            // Draw player name centered
-            Utils.DrawBorderString(
-                sb,
-                _name,
-                new Vector2(centerX - textSize.X * 0.5f, inner.Y - 2f),
-                Color.White
-            );
-
-            // Divider
-            sb.Draw(
-                _dividerTexture.Value,
-                new Vector2(startX+1, inner.Y + 21f),
-                null,
-                Color.White,
-                0f,
-                Vector2.Zero,
-                new Vector2((dims.X + dims.Width - startX) / 8 - 10, 1f),
-                SpriteEffects.None,
-                0f
-            );
-
-            // HP / MP panel
-            Vector2 panelPos = new(startX + 6f, inner.Y + 29f);
-            float panelWidth = 220f;
-            DrawPanel(sb, panelPos, panelWidth);
-
-            Vector2 cursor = panelPos;
-
-            // HP
-            sb.Draw(TextureAssets.Heart.Value, cursor + new Vector2(5f, 2f), Color.White);
-            cursor.X += 10f + TextureAssets.Heart.Width();
-            Utils.DrawBorderString(sb, _hpText, cursor + new Vector2(0f, 3f), Color.White);
-
-            // MP
-            cursor.X += 80f;
-            sb.Draw(TextureAssets.Mana.Value, cursor + new Vector2(5f, 2f), Color.White);
-            cursor.X += 10f + TextureAssets.Mana.Width();
-            Utils.DrawBorderString(sb, _manaText, cursor + new Vector2(0f, 3f), Color.White);
-        }
-
-        public override void MouseOut(UIMouseEvent evt)
-        {
-            base.MouseOut(evt);
-            BackgroundColor = new Color(63, 82, 151) * 0.8f;
-        }
-
-        public override void MouseOver(UIMouseEvent evt)
-        {
-            base.MouseOver(evt);
-            BackgroundColor = new Color(73, 92, 161);
+            sb.Draw(asset.Value, rect, color);
         }
     }
 }
