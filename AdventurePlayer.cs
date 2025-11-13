@@ -1332,7 +1332,7 @@ public class NewIchorPlayer : ModPlayer
 // For BitingEmbracePlayer:
 public class BitingEmbracePlayer : ModPlayer
 {
-    public int bitingEmbraceApplierIndex = -1; // Track who applied the debuff
+    public int bitingEmbraceApplierIndex = -1;
 
     public override void PostHurt(Player.HurtInfo info)
     {
@@ -1363,7 +1363,6 @@ public class BitingEmbracePlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
-        // Check if applier died - remove buff if so
         if (Player.HasBuff<BitingEmbrace>() && bitingEmbraceApplierIndex >= 0 && bitingEmbraceApplierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[bitingEmbraceApplierIndex];
@@ -1423,7 +1422,7 @@ public class BitingEmbracePlayer : ModPlayer
         }
         else
         {
-            bitingEmbraceApplierIndex = -1; // Reset when buff expires
+            bitingEmbraceApplierIndex = -1;
         }
     }
 
@@ -1431,6 +1430,9 @@ public class BitingEmbracePlayer : ModPlayer
     {
         if (Player.HasBuff<BitingEmbrace>())
         {
+            // Check if the current attacker is the same player who applied the debuff
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == bitingEmbraceApplierIndex;
+
             bool isSummon = false;
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
@@ -1452,7 +1454,9 @@ public class BitingEmbracePlayer : ModPlayer
                     isSummon = true;
                 }
             }
-            if (!isSummon)
+
+            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 6;
@@ -1462,7 +1466,6 @@ public class BitingEmbracePlayer : ModPlayer
     }
 }
 
-// For PressurePointsPlayer:
 public class PressurePointsPlayer : ModPlayer
 {
     public int pressurePointsApplierIndex = -1;
@@ -1495,7 +1498,6 @@ public class PressurePointsPlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
-        // Check if applier died - remove buff if so
         if (Player.HasBuff<PressurePoints>() && pressurePointsApplierIndex >= 0 && pressurePointsApplierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[pressurePointsApplierIndex];
@@ -1562,6 +1564,9 @@ public class PressurePointsPlayer : ModPlayer
     {
         if (Player.HasBuff<PressurePoints>())
         {
+            // Check if the current attacker is the same player who applied the debuff
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == pressurePointsApplierIndex;
+
             bool isSummon = false;
 
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
@@ -1585,7 +1590,8 @@ public class PressurePointsPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 6;
@@ -1595,7 +1601,6 @@ public class PressurePointsPlayer : ModPlayer
     }
 }
 
-// For BrittleBonesPlayer:
 public class BrittleBonesPlayer : ModPlayer
 {
     public int brittleBonesApplierIndex = -1;
@@ -1628,7 +1633,6 @@ public class BrittleBonesPlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
-        // Check if applier died - remove buff if so
         if (Player.HasBuff<BrittleBones>() && brittleBonesApplierIndex >= 0 && brittleBonesApplierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[brittleBonesApplierIndex];
@@ -1695,6 +1699,9 @@ public class BrittleBonesPlayer : ModPlayer
     {
         if (Player.HasBuff<BrittleBones>())
         {
+            // Check if the current attacker is the same player who applied the debuff
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == brittleBonesApplierIndex;
+
             bool isSummon = false;
 
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
@@ -1718,7 +1725,8 @@ public class BrittleBonesPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 7;
@@ -1728,7 +1736,6 @@ public class BrittleBonesPlayer : ModPlayer
     }
 }
 
-// For MarkedPlayer:
 public class MarkedPlayer : ModPlayer
 {
     public int markedApplierIndex = -1;
@@ -1761,7 +1768,6 @@ public class MarkedPlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
-        // Check if applier died - remove buff if so
         if (Player.HasBuff<Marked>() && markedApplierIndex >= 0 && markedApplierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[markedApplierIndex];
@@ -1828,6 +1834,9 @@ public class MarkedPlayer : ModPlayer
     {
         if (Player.HasBuff<Marked>())
         {
+            // Check if the current attacker is the same player who applied the debuff
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == markedApplierIndex;
+
             bool isSummon = false;
 
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
@@ -1851,7 +1860,8 @@ public class MarkedPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 9;
@@ -1861,7 +1871,6 @@ public class MarkedPlayer : ModPlayer
     }
 }
 
-// For AnathemaPlayer:
 public class AnathemaPlayer : ModPlayer
 {
     public int anathemaApplierIndex = -1;
@@ -1894,7 +1903,6 @@ public class AnathemaPlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
-        // Check if applier died - remove buff if so
         if (Player.HasBuff<Anathema>() && anathemaApplierIndex >= 0 && anathemaApplierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[anathemaApplierIndex];
@@ -1956,6 +1964,9 @@ public class AnathemaPlayer : ModPlayer
     {
         if (Player.HasBuff<Anathema>())
         {
+            // Check if the current attacker is the same player who applied the debuff
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == anathemaApplierIndex;
+
             bool isSummon = false;
 
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
@@ -1979,7 +1990,8 @@ public class AnathemaPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 20;
@@ -1990,7 +2002,6 @@ public class AnathemaPlayer : ModPlayer
     }
 }
 
-// For ShatteredArmorPlayer:
 public class ShatteredArmorPlayer : ModPlayer
 {
     public int shatteredArmorApplierIndex = -1;
@@ -2023,7 +2034,6 @@ public class ShatteredArmorPlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
-        // Check if applier died - remove buff if so
         if (Player.HasBuff<ShatteredArmor>() && shatteredArmorApplierIndex >= 0 && shatteredArmorApplierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[shatteredArmorApplierIndex];
@@ -2062,6 +2072,9 @@ public class ShatteredArmorPlayer : ModPlayer
     {
         if (Player.HasBuff<ShatteredArmor>())
         {
+            // Check if the current attacker is the same player who applied the debuff
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == shatteredArmorApplierIndex;
+
             bool isSummon = false;
 
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
@@ -2085,7 +2098,8 @@ public class ShatteredArmorPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 8;
@@ -2198,8 +2212,11 @@ public class HellhexPlayer : ModPlayer
         if (Player.HasBuff<Hellhex>())
         {
             bool isSummon = IsSummonOrWhipDeath(damageSource);
+            // Check if killed by the debuff applier
+            bool isDebuffApplier = damageSource.SourcePlayerIndex == hellhexApplierIndex;
 
-            if (!isSummon && damage >= 30)
+            // Only spawn explosion if NOT from summon/whip AND NOT from the debuff applier
+            if (!isSummon && !isDebuffApplier && damage >= 30)
             {
                 // Only spawn on server or singleplayer
                 if (Main.netMode != NetmodeID.MultiplayerClient)
@@ -2280,9 +2297,11 @@ public class HellhexPlayer : ModPlayer
         if (Player.HasBuff<Hellhex>() && !explosionSpawned)
         {
             bool isSummon = IsSummonOrWhipDamage(info);
+            // Check if hit by the debuff applier
+            bool isDebuffApplier = info.DamageSource.SourcePlayerIndex == hellhexApplierIndex;
 
-            // Only trigger if damage >= 30 and not summon/whip damage
-            if (!isSummon && info.Damage >= 30)
+            // Only trigger if damage >= 30 and NOT summon/whip AND NOT from the debuff applier
+            if (!isSummon && !isDebuffApplier && info.Damage >= 30)
             {
                 explosionSpawned = true; // Mark that explosion is being spawned
 

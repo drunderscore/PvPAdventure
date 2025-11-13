@@ -430,6 +430,10 @@ public class AdventureDropDatabase : ModSystem
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 18, 30));
 
+                // Remove existing soul drops
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.SoulofMight));
+                npcLoot.Add(ItemDropRule.Common(ItemID.SoulofMight, 1, 31, 31));
                 break;
 
             case NPCID.SkeletronPrime:
@@ -437,17 +441,22 @@ public class AdventureDropDatabase : ModSystem
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 18, 30));
 
+                npcLoot.RemoveWhere(drop =>
+                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.SoulofFright));
+                npcLoot.Add(ItemDropRule.Common(ItemID.SoulofFright, 1, 31, 31));
                 break;
 
-            case NPCID.Retinazer or NPCID.Spazmatism:
-                {
-                    npcLoot.RemoveWhere(drop => (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
+            case NPCID.Retinazer:
+            case NPCID.Spazmatism:
+                npcLoot.RemoveWhere(rule => true);
 
-                    LeadingConditionRule noTwin = new(new Conditions.MissingTwin());
-                    npcLoot.Add(noTwin);
+                npcLoot.Add(ItemDropRule.ByCondition(
+                    new Conditions.LegacyHack_IsBossAndNotExpert(),
+                    ItemID.HallowedBar, 1, 18, 30));
 
-                    noTwin.OnSuccess(ItemDropRule.Common(ItemID.HallowedBar, 1, 3, 3));
-                }
+                npcLoot.Add(ItemDropRule.ByCondition(
+                    new Conditions.LegacyHack_IsBossAndNotExpert(),
+                    ItemID.SoulofSight, 1, 31, 31));
                 break;
 
             case NPCID.Plantera:
