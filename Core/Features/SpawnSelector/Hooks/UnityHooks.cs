@@ -1,11 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.Features.SpawnSelector.Structures;
 using System;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Features.AdventureTeleport;
+namespace PvPAdventure.Core.Features.SpawnSelector.Hooks;
 
-public class UnityChecks : ModSystem
+public class UnityHooks : ModSystem
 {
     public override void Load()
     {
@@ -26,13 +27,13 @@ public class UnityChecks : ModSystem
     }
 
     [Obsolete("This method is redundant since we always set this variable to false whenever map is closed.")]
-    private void DisableRTPMenuAfterTeleport(On_Player.orig_UnityTeleport orig, Player self, Vector2 telePos)
+    private void DisableRTPMenuAfterTeleport(On_Player.orig_UnityTeleport orig, Terraria.Player self, Vector2 telePos)
     {
         AdventureTeleportStateSettings.SetIsEnabled(false);
         orig(self, telePos);
     }
 
-    private static bool OverrideUnityPotionCheck(On_Player.orig_HasUnityPotion orig, Player self)
+    private static bool OverrideUnityPotionCheck(On_Player.orig_HasUnityPotion orig, Terraria.Player self)
     {
         if (AdventureTeleportStateSettings.GetIsEnabled())
             return true;

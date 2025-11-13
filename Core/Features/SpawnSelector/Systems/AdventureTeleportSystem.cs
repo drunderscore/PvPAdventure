@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics; 
+using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.Features.SpawnSelector.Structures;
+using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Features.AdventureTeleport;
+namespace PvPAdventure.Core.Features.AdventureTeleport.System;
 
 [Autoload(Side = ModSide.Client)]
 public class AdventureTeleportSystem : ModSystem
@@ -22,12 +24,25 @@ public class AdventureTeleportSystem : ModSystem
 
             Main.OnPostFullscreenMapDraw += DrawOverFullscreenMap;
         }
+
+        On_Main.TriggerPing += OverridePing;
     }
 
     public override void Unload()
     {
         if (!Main.dedServ)
             Main.OnPostFullscreenMapDraw -= DrawOverFullscreenMap;
+
+        On_Main.TriggerPing -= OverridePing;
+    }
+
+    private void OverridePing(On_Main.orig_TriggerPing orig, Vector2 position)
+    {
+        if (adventureTeleportState.IsMouseOverUI)
+        {
+            return;
+        }
+        orig(position);
     }
 
     public override void UpdateUI(GameTime gameTime)
@@ -44,7 +59,9 @@ public class AdventureTeleportSystem : ModSystem
             ui.Update(gameTime);
 
             if (adventureTeleportState.IsMouseOverUI)
+            {
                 Main.LocalPlayer.mouseInterface = true;
+            }
         }
         else if (ui.CurrentState != null)
         {

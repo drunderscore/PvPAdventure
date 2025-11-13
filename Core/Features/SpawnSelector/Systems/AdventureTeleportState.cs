@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.Features.SpawnSelector.Structures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Features.AdventureTeleport;
+namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
 
 public class AdventureTeleportState : UIState
 {
@@ -191,7 +192,7 @@ public class AdventureTeleportState : UIState
         bg.Append(head);
 
         // Name text
-        var name = new UIText(isSelf ? $"You ({p?.name ?? "Player"})" : (p?.name ?? "Player"), 0.9f);
+        var name = new UIText(isSelf ? $"You ({p?.name ?? "Player"})" : p?.name ?? "Player", 0.9f);
         name.Left.Set(36, 0f);
         name.Top.Set(5f, 0f);
         name.TextColor = Color.White;

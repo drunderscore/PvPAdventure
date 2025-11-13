@@ -1,4 +1,4 @@
-﻿namespace PvPAdventure.Core.Features.AdventureTeleport;
+﻿namespace PvPAdventure.Core.Features.SpawnSelector.Structures;
 
 public static class AdventureTeleportStateSettings
 {

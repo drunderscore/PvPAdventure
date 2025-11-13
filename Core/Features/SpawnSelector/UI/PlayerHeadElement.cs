@@ -1,14 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Features.AdventureTeleport;
+namespace PvPAdventure.Core.Features.SpawnSelector.UI;
 
 public class PlayerHeadElement : UIElement
 {
@@ -28,7 +23,6 @@ public class PlayerHeadElement : UIElement
         // Only draw if we have a player
         if (player == null || !player.active) return;
 
-        // Where to draw (top-left of this element)
         var dims = GetDimensions();
         Vector2 pos = new Vector2(dims.X + dims.Width * 0.5f, dims.Y + dims.Height * 0.5f); // center on the element
         float scale = 0.75f;  

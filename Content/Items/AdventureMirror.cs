@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Features.AdventureTeleport;
+using PvPAdventure.Core.Features.SpawnSelector.Structures;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
