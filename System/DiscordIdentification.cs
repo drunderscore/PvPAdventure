@@ -15,7 +15,7 @@ namespace PvPAdventure.System;
 [Autoload(Side = ModSide.Both)]
 public class DiscordIdentification : ModSystem
 {
-    private const bool Enabled = true;
+    private const bool Enabled = false;
 
     public delegate void PlayerJoinEventHandler(DiscordIdentification source, PlayerJoinArgs args);
 
