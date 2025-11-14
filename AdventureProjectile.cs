@@ -916,7 +916,7 @@ public class AdventureProjectile : GlobalProjectile
 
             if (projectile.localAI[0] <= 0f)
             {
-                projectile.localAI[0] = 1f; // Attack every frame (temp), we can change ts
+                projectile.localAI[0] = 40f; // Attack every frame (temp), we can change ts
 
                 if (Main.myPlayer == projectile.owner)
                 {
