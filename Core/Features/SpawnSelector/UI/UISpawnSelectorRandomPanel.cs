@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using PvPAdventure.Core.Helpers;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -55,19 +56,33 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             BackgroundColor = new Color(63, 82, 151) * 0.8f;
         }
 
-        public override void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch sb)
         {
-            base.Draw(spriteBatch);
+            base.Draw(sb);
 
             if (IsMouseHovering)
             {
-                Main.instance.MouseText("Random");
+                Main.instance.MouseText("Random Teleport");
             }
 
             // Draw question mark
-            var dims = GetDimensions();
-            var rect = dims.ToRectangle();
-            spriteBatch.Draw(Ass.Question_Mark.Value, rect, Color.White);
+            var d = GetDimensions();
+            var tex = Ass.Question_Mark.Value;
+            var rect = new Rectangle(
+                (int)(d.X + (d.Width - tex.Width) * 0.5f),
+                (int)(d.Y + (d.Height - tex.Height) * 0.5f),
+                tex.Width,
+                tex.Height
+            );
+            sb.Draw(tex, rect, Color.White);
+
+            // debug
+            //sb.Draw(TextureAssets.MagicPixel.Value, rect, Color.Red * 0.45f);
+
+            // Draw teleportation potion
+            Item icon = new(ItemID.TeleportationPotion);
+            Vector2 pos = new(rect.X + 37, rect.Y + 36);
+            //ItemSlot.DrawItemIcon(icon, 31, sb, pos, 1.0f, 32f, Color.White);
         }
 
         public override void Update(GameTime gameTime)

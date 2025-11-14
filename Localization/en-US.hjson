@@ -782,14 +782,13 @@ Mods: {
 		}
 
 		Items: {
-			RTPMirror: {
-				Tooltip: ""
-				DisplayName: Adventure Mirror
-			}
-
 			AdventureMirror: {
 				DisplayName: Adventure Mirror
-				Tooltip: ""
+				Tooltip: 
+				'''
+				Gaze in the mirror to go on adventures
+				Right click to use
+				'''
 			}
 		}
 	}

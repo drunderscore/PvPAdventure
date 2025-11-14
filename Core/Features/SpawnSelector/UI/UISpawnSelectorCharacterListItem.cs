@@ -46,6 +46,30 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             SetPadding(6f);
         }
 
+        private void DrawHeadOnMap(Player p)
+        {
+            float scale = Main.mapFullscreenScale;
+
+            Vector2 headPos = new(
+                ((p.position.X + p.width / 2f) / 16f - Main.mapFullscreenPos.X) * scale
+                    + Main.screenWidth / 2f - 14f * scale+48,
+
+                ((p.position.Y + p.gfxOffY + p.height / 2f) / 16f - Main.mapFullscreenPos.Y) * scale
+                    + Main.screenHeight / 2f - 14f * scale+58
+            );
+
+            Color color = Main.teamColor[p.team];
+
+            //Main.PlayerRenderer.DrawPlayerHead(
+            //    Main.Camera,
+            //    p,
+            //    headPos,
+            //    scale: 1.3f,
+            //    borderColor: color
+            //);
+            Utils.DrawBorderString(Main.spriteBatch, p.name, headPos, Color.White);
+        }
+
         protected override void DrawSelf(SpriteBatch sb)
         {
             base.DrawSelf(sb);
@@ -65,9 +89,9 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
             // Left player background
             Vector2 pos = new(inner.X, inner.Y);
-            sb.Draw(_playerBGTexture.Value, pos, Color.White);
+            //sb.Draw(_playerBGTexture.Value, pos, Color.White);
 
-            Rectangle rect = new((int)pos.X-5, (int)pos.Y-5, 68,68);
+            Rectangle rect = new((int)pos.X-5, (int)pos.Y-5, 106,72);
 
             DrawMapFullscreenBackground(sb, rect, player);
 
@@ -83,17 +107,13 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             ModifyPlayerDrawInfo.ForceFullBrightOnce = true;
             try
             {
-                Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(16, 8);
+                Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(32, 8);
 
-                Main.PlayerRenderer.DrawPlayer(
-                    Main.Camera,
-                    player,
-                    playerDrawPos,
-                    player.fullRotation,
-                    player.fullRotationOrigin,
-                    0f,
-                    0.9f
-                );
+                //Main.PlayerRenderer.DrawPlayer(Main.Camera,player,playerDrawPos,player.fullRotation,player.fullRotationOrigin,0f,0.9f);
+
+                Color myTeamColor = Main.teamColor[Main.LocalPlayer.team];
+
+                Main.PlayerRenderer.DrawPlayerHead(Main.Camera, player, pos+ new Vector2(40,37), scale: 1.3f, borderColor: myTeamColor);
             }
             catch (Exception e)
             {
@@ -120,7 +140,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             // Name centered
             string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
             Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name);
-            float centerX = inner.X + inner.Width * 0.5f;
+            float centerX = inner.X + inner.Width * 0.5f+20;
 
             Utils.DrawBorderString(
                 sb,
@@ -133,19 +153,19 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             // Divider
             sb.Draw(
                 _dividerTexture.Value,
-                new Vector2(startX + 1, inner.Y + 21f),
+                new Vector2(startX + 44, inner.Y + 21f),
                 null,
                 Color.White,
                 0f,
                 Vector2.Zero,
-                new Vector2((dims.X + dims.Width - startX) / 8-0.5f, 1f),
+                new Vector2((dims.X + dims.Width - startX) / 8-7, 1f),
                 SpriteEffects.None,
                 0f
             );
 
             // HP / MP panel
-            Vector2 panelPos = new(startX + 0f, inner.Y + 29f);
-            float panelWidth = 190f;
+            Vector2 panelPos = new(startX + 60f, inner.Y + 29f);
+            float panelWidth = 90f;
             DrawPanel(sb, panelPos, panelWidth);
 
             Vector2 cursor = panelPos;
@@ -157,17 +177,44 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Utils.DrawBorderString(sb, hpText, cursor + new Vector2(0f, 3f), Color.White);
 
             // MP
-            cursor.X += 80f;
-            sb.Draw(TextureAssets.Mana.Value, cursor + new Vector2(-15f, 0f), Color.White);
-            cursor.X += -11f + TextureAssets.Mana.Width();
-            string manaText = $"{player.statMana} MP";
-            Utils.DrawBorderString(sb, manaText, cursor + new Vector2(0f, 3f), Color.White);
+            //cursor.X += 80f;
+            //sb.Draw(TextureAssets.Mana.Value, cursor + new Vector2(-15f, 0f), Color.White);
+            //cursor.X += -11f + TextureAssets.Mana.Width();
+            //string manaText = $"{player.statMana} MP";
+            //Utils.DrawBorderString(sb, manaText, cursor + new Vector2(0f, 3f), Color.White);
 
             // Set hover teleport tooltip
             if (IsMouseHovering)
             {
                 Main.instance.MouseText("Teleport to " + name);
+                var old = Main.UIScaleMatrix;
+
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(
+                    SpriteSortMode.Immediate,
+                    BlendState.AlphaBlend,
+                    SamplerState.PointClamp,
+                    DepthStencilState.None,
+                    RasterizerState.CullCounterClockwise,
+                    null,
+                    Matrix.Identity
+                );
+
+                DrawHeadOnMap(player); 
+
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(
+                    SpriteSortMode.Deferred,
+                    BlendState.AlphaBlend,
+                    SamplerState.PointClamp,
+                    DepthStencilState.None,
+                    RasterizerState.CullCounterClockwise,
+                    null,
+                    old   
+                );
             }
+            //Main.NewText(Main.mouseY); // 482,435 is spawn
+
         }
 
         public override void MouseOver(UIMouseEvent evt)

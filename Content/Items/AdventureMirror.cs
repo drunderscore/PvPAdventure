@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure;
 using PvPAdventure.Core.Features.SpawnSelector.Players;
 using Terraria;
 using Terraria.ID;
@@ -14,8 +13,8 @@ internal class AdventureMirror : ModItem
         var config = ModContent.GetInstance<AdventureConfig>();
         int recallFrames = config.AdventureMirrorRecallFrames; // 5 seconds = 60 * 5
 
-        Item.useTime = 10;
-        Item.useAnimation = 10;
+        Item.useTime = recallFrames;
+        Item.useAnimation = recallFrames;
         Item.useStyle = ItemUseStyleID.HoldUp;
         Item.UseSound = SoundID.Item6;
         Item.rare = ItemRarityID.Blue;
@@ -25,33 +24,43 @@ internal class AdventureMirror : ModItem
 
     public override bool CanUseItem(Player player)
     {
-        if (player.velocity.Length() > 0f)
-        {
-            PopupText.NewText(new AdvancedPopupRequest
-            {
-                Color = Color.Crimson,
-                Text = "Cannot use while moving!",
-                Velocity = new(0f, -4f),
-                DurationInFrames = 60
-            }, player.Top);
-            return false;
-        }
+        var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
 
-        // Don’t allow starting a second mirror while one is active
-        var mp = player.GetModPlayer<AdventureMirrorPlayer>();
-        if (mp.MirrorActive)
+        if (adventureMirrorPlayer.CancelIfPlayerMoves())
+            return false;
+
+        if (adventureMirrorPlayer.MirrorActive)
             return false;
 
         return true;
     }
 
+    public override bool CanRightClick() => true;
+    public override bool ConsumeItem(Player player) => false;
+
+    public override void RightClick(Player player)
+    {
+        var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
+
+        if (adventureMirrorPlayer.CancelIfPlayerMoves())
+            return;
+
+        if (adventureMirrorPlayer.MirrorActive)
+            return;
+
+        var config = ModContent.GetInstance<AdventureConfig>();
+        int recallFrames = config.AdventureMirrorRecallFrames + 1;
+
+        adventureMirrorPlayer.StartMirrorUse(recallFrames);
+    }
+
     public override bool? UseItem(Player player)
     {
         var config = ModContent.GetInstance<AdventureConfig>();
-        int recallFrames = config.AdventureMirrorRecallFrames;
+        int recallFrames = config.AdventureMirrorRecallFrames + 1;
 
-        player.GetModPlayer<AdventureMirrorPlayer>()
-              .StartMirrorUse(recallFrames);
+        var mp = player.GetModPlayer<AdventureMirrorPlayer>();
+        mp.StartMirrorUse(recallFrames);
 
         return true;
     }
