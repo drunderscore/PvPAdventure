@@ -1,8 +1,6 @@
 ﻿using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
-using Terraria.Audio;
-using Terraria.ID;
 using PvPAdventure.Content.Items;
 
 public class ItemSlotHooks : ModSystem
@@ -35,7 +33,7 @@ public class ItemSlotHooks : ModSystem
 
         if (!item.IsAir && item.type == ModContent.ItemType<AdventureMirror>())
         {
-            SoundEngine.PlaySound(SoundID.MenuClose);
+            //SoundEngine.PlaySound(SoundID.MenuClose);
             return false; // skip SellOrTrash completely
         }
 
@@ -51,7 +49,7 @@ public class ItemSlotHooks : ModSystem
             && !Main.mouseItem.IsAir
             && Main.mouseItem.type == ModContent.ItemType<AdventureMirror>())
         {
-            SoundEngine.PlaySound(SoundID.MenuClose);
+            //SoundEngine.PlaySound(SoundID.MenuClose);
             return; // do NOT process the trash slot
         }
 
@@ -67,7 +65,7 @@ public class ItemSlotHooks : ModSystem
     {
         if (!item.IsAir && item.type == ModContent.ItemType<AdventureMirror>())
         {
-            SoundEngine.PlaySound(SoundID.MenuClose);
+            //SoundEngine.PlaySound(SoundID.MenuClose);
             return false; // selling fails, nothing is removed
         }
 

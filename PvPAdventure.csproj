@@ -1,27 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\tModLoader.targets" />
-  <PropertyGroup>
-    <AssemblyName>PvPAdventure</AssemblyName>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Assets\" />
-    <Folder Include="Discord" />
-    <Folder Include="lib\Native\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Discord.Net.Core">
-      <HintPath>lib\Discord.Net.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Discord.Net.Rest">
-      <HintPath>lib\Discord.Net.Rest.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Linq.Async">
-      <HintPath>lib\System.Linq.Async.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<Import Project="..\tModLoader.targets" />
+	<PropertyGroup>
+		<AssemblyName>PvPAdventure</AssemblyName>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+	<ItemGroup>
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Assets\SpawnSelector\" />
+		<Folder Include="Discord" />
+		<Folder Include="lib\Native\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="Discord.Net.Core">
+			<HintPath>lib\Discord.Net.Core.dll</HintPath>
+		</Reference>
+		<Reference Include="Discord.Net.Rest">
+			<HintPath>lib\Discord.Net.Rest.dll</HintPath>
+		</Reference>
+		<Reference Include="System.Linq.Async">
+			<HintPath>lib\System.Linq.Async.dll</HintPath>
+		</Reference>
+	</ItemGroup>
 
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->
 	<ItemGroup>

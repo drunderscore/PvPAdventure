@@ -13,6 +13,7 @@ Mods: {
 			Scoreboard.DisplayName: Scoreboard
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
+			AdventureMirror.DisplayName: Adventure Mirror
 		}
 
 		Configs: {
@@ -131,6 +132,11 @@ Mods: {
 
 				RTPRecallFrames: {
 					Label: RTP Recall Frames
+					Tooltip: ""
+				}
+
+				AdventureMirrorRecallFrames: {
+					Label: Adventure Mirror Recall Frames
 					Tooltip: ""
 				}
 			}

@@ -11,7 +11,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
 public class SpawnSelectorSystem : ModSystem
 {
     private UserInterface ui;
-    private SpawnSelectorState state;
+    public SpawnSelectorState state;
     private UISpawnSelectorPanel teleportPanel;
 
     // Track whether the spawn selector is enabled

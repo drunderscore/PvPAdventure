@@ -1,14 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.Features.SpawnSelector.Players;
 using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using PvPAdventure.Core.Helpers;
 using ReLogic.Content;
 using System;
 using Terraria;
-using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ID;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
@@ -18,12 +17,14 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
     /// </summary>
     internal class UISpawnSelectorCharacterListItem : UIPanel
     {
+        internal const float ItemWidth = 260f;
+        internal const float ItemHeight = 72f;
+
         private readonly Asset<Texture2D> _dividerTexture;
         private readonly Asset<Texture2D> _innerPanelTexture;
         private readonly Asset<Texture2D> _playerBGTexture;
 
         private readonly int _playerIndex;
-        private Rectangle _bedHitbox;
 
         public UISpawnSelectorCharacterListItem(Player player)
         {
@@ -38,8 +39,10 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         {
             BorderColor = Color.Black;
             BackgroundColor = new Color(63, 82, 151) * 0.7f;
-            Height.Set(72f, 0f);
-            Width.Set(-20f, 1f);
+
+            Height.Set(ItemHeight, 0f);
+            Width.Set(ItemWidth, 0f);
+
             SetPadding(6f);
         }
 
@@ -48,40 +51,26 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             base.DrawSelf(sb);
 
             CalculatedStyle inner = GetInnerDimensions();
-            var dims = GetDimensions();
-            var rect = dims.ToRectangle();
 
             Player player = Main.player[_playerIndex];
+            var dims = GetDimensions();
+
             if (player == null || !player.active)
             {
-                Utils.DrawBorderString(sb, "Unable to find player :(", rect.Location.ToVector2() + new Vector2(50, 0), Color.White);
+                var rect2 = dims.ToRectangle();
+
+                Utils.DrawBorderString(sb, "Unable to find player :(", rect2.Location.ToVector2() + new Vector2(50, 0), Color.White);
                 return;
             }
 
-            DrawMapFullscreenBackground(sb, rect, player);
-
-            // Left "player" background
+            // Left player background
             Vector2 pos = new(inner.X, inner.Y);
             sb.Draw(_playerBGTexture.Value, pos, Color.White);
 
-            // Right "bed" background
-            //Vector2 bedBGPos = new(pos.X + dims.Width - 73, pos.Y);
-            //sb.Draw(_playerBGTexture.Value, bedBGPos, Color.White);
+            Rectangle rect = new((int)pos.X-5, (int)pos.Y-5, 68,68);
 
-            // Bed icon
-            //Vector2 bedIconPos = bedBGPos + new Vector2(31, 31);
-            //Item icon = new(ItemID.Bed);
-            //ItemSlot.DrawItemIcon(icon, 31, sb, bedIconPos, 1.0f, 32f, Color.White);
+            DrawMapFullscreenBackground(sb, rect, player);
 
-            // Update clickable bed hitbox (approx 32x32 centered on icon pos)
-            //_bedHitbox = new Rectangle(
-            //    (int)(bedIconPos.X - 16),
-            //    (int)(bedIconPos.Y - 16),
-            //    32,
-            //    32
-            //);
-
-            // Draw player sprite (switch to point-clamp batch)
             sb.End();
             sb.Begin(SpriteSortMode.Deferred,
                      BlendState.AlphaBlend,
@@ -91,6 +80,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                      null,
                      Main.UIScaleMatrix);
 
+            ModifyPlayerDrawInfo.ForceFullBrightOnce = true;
             try
             {
                 Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(16, 8);
@@ -109,6 +99,10 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             {
                 Log.Error("Failed to draw player: " + e);
             }
+            finally
+            {
+                ModifyPlayerDrawInfo.ForceFullBrightOnce = false;
+            }
 
             // Switch back to "normal" UI batch
             sb.End();
@@ -124,15 +118,16 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             float startX = inner.X + leftColumnWidth;
 
             // Name centered
-            string name = string.IsNullOrEmpty(player.name) ? "Teammate" : player.name;
+            string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
             Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name);
             float centerX = inner.X + inner.Width * 0.5f;
 
             Utils.DrawBorderString(
                 sb,
                 name,
-                new Vector2(centerX - nameSize.X * 0.5f, inner.Y - 2f),
-                Color.White
+                new Vector2(centerX, inner.Y),
+                Color.White,
+                scale: 1.1f
             );
 
             // Divider
@@ -143,35 +138,42 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 Color.White,
                 0f,
                 Vector2.Zero,
-                new Vector2((dims.X + dims.Width - startX) / 8 - 10, 1f),
+                new Vector2((dims.X + dims.Width - startX) / 8-0.5f, 1f),
                 SpriteEffects.None,
                 0f
             );
 
             // HP / MP panel
-            Vector2 panelPos = new(startX + 6f, inner.Y + 29f);
-            float panelWidth = 220f;
+            Vector2 panelPos = new(startX + 0f, inner.Y + 29f);
+            float panelWidth = 190f;
             DrawPanel(sb, panelPos, panelWidth);
 
             Vector2 cursor = panelPos;
 
             // HP
-            sb.Draw(TextureAssets.Heart.Value, cursor + new Vector2(5f, 2f), Color.White);
-            cursor.X += 10f + TextureAssets.Heart.Width();
-            string hpText = $"{player.statLife}/{player.statLifeMax}";
+            sb.Draw(TextureAssets.Heart.Value, cursor + new Vector2(4f, 2f), Color.White);
+            cursor.X += 6f + TextureAssets.Heart.Width();
+            string hpText = $"{player.statLife} HP";
             Utils.DrawBorderString(sb, hpText, cursor + new Vector2(0f, 3f), Color.White);
 
             // MP
             cursor.X += 80f;
-            sb.Draw(TextureAssets.Mana.Value, cursor + new Vector2(5f, 2f), Color.White);
-            cursor.X += 10f + TextureAssets.Mana.Width();
-            string manaText = $"{player.statMana}/{player.statManaMax}";
+            sb.Draw(TextureAssets.Mana.Value, cursor + new Vector2(-15f, 0f), Color.White);
+            cursor.X += -11f + TextureAssets.Mana.Width();
+            string manaText = $"{player.statMana} MP";
             Utils.DrawBorderString(sb, manaText, cursor + new Vector2(0f, 3f), Color.White);
+
+            // Set hover teleport tooltip
+            if (IsMouseHovering)
+            {
+                Main.instance.MouseText("Teleport to " + name);
+            }
         }
 
         public override void MouseOver(UIMouseEvent evt)
         {
             base.MouseOver(evt);
+
             BackgroundColor = new Color(73, 92, 161);
         }
 
@@ -185,54 +187,11 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         {
             base.LeftClick(evt);
 
-            // Only react if the BED area was clicked, not the whole row
-            //if (!_bedHitbox.Contains(evt.MousePosition.ToPoint()))
-                //return;
-
-            Terraria.Player player = Main.player[_playerIndex];
+            Player player = Main.player[_playerIndex];
 
             Main.LocalPlayer.UnityTeleport(player.position);
 
-            //TeleportToPlayerBed(player);
-        }
-
-        private static void TeleportToPlayerBed(Terraria.Player target)
-        {
-            if (target == null || !target.active)
-                return;
-
-            Terraria.Player local = Main.LocalPlayer;
-            if (local == null || !local.active)
-                return;
-
-            // Figure out target spawn (bed) tile
-            int spawnX = target.SpawnX;
-            int spawnY = target.SpawnY;
-
-            // Fallback: player position if no personal spawn
-            if (spawnX <= 0 || spawnY <= 0)
-            {
-                spawnX = (int) target.position.X;
-                spawnY = (int)target.position.Y;
-            }
-
-            // Convert tile coords to world coords
-            Vector2 dest = new Vector2(
-                spawnX * 16 + local.width / 2f,
-                spawnY * 16 - local.height
-            );
-
-            if (Main.netMode == NetmodeID.SinglePlayer)
-            {
-                local.Teleport(dest);
-            }
-            else
-            {
-                // TODO Multiplayer: send teleport request to server
-                // ModContent.GetInstance<MyMod>().SendBedTeleportPacket(target.whoAmI);
-            }
-
-            // Close fullscreen map + spawn selector
+            // close map and SSS
             Main.mapFullscreen = false;
             SpawnSelectorSystem.SetEnabled(false);
         }
