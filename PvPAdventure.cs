@@ -124,58 +124,6 @@ public class PvPAdventure : Mod
 
                 break;
             }
-            case AdventurePacketIdentifier.WorldMapLighting:
-            {
-                var worldMapSyncLighting = WorldMapSyncManager.Lighting.Deserialize(reader);
-
-                if (!ModContent.GetInstance<AdventureConfig>().ShareWorldMap)
-                    break;
-
-                // On the server, we just forward this to everyone else.
-                if (Main.dedServ)
-                {
-                    var packet = GetPacket();
-                    packet.Write((byte)AdventurePacketIdentifier.WorldMapLighting);
-                    worldMapSyncLighting.Serialize(packet);
-
-                    var team = Main.player[whoAmI].team;
-                    foreach (var player in Main.ActivePlayers)
-                    {
-                        // Map will sync to teammates and everyone without a team.
-                        if (player.team == (int)Team.None || player.team == team)
-                            packet.Send(player.whoAmI);
-                    }
-                }
-                // On the client, we use it to update the lighting of the world map tiles.
-                else
-                {
-                    try
-                    {
-                        ModContent.GetInstance<WorldMapSyncManager>().ignore = true;
-                        foreach (var (point, light) in worldMapSyncLighting.TileLight)
-                        {
-                            Main.Map.UpdateLighting(point.X, point.Y, light);
-
-                            if (MapHelper.numUpdateTile < MapHelper.maxUpdateTile - 1)
-                            {
-                                MapHelper.updateTileX[MapHelper.numUpdateTile] = point.X;
-                                MapHelper.updateTileY[MapHelper.numUpdateTile] = point.Y;
-                                MapHelper.numUpdateTile++;
-                            }
-                            else
-                            {
-                                Main.refreshMap = true;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        ModContent.GetInstance<WorldMapSyncManager>().ignore = false;
-                    }
-                }
-
-                break;
-            }
             case AdventurePacketIdentifier.PingPong:
             {
                 var pingPong = AdventurePlayer.PingPong.Deserialize(reader);

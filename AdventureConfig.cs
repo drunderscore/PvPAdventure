@@ -79,8 +79,6 @@ public class AdventureConfig : ModConfig
         "Too many surface RTPs"
     ];
 
-    [DefaultValue(true)] public bool ShareWorldMap { get; set; }
-
     [Description("Discord IDs that are allowed to modify the server configuration")]
     public List<string> AllowConfigModification { get; set; } = new();
 
