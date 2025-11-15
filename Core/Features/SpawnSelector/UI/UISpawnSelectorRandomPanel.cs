@@ -3,10 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using PvPAdventure.Core.Helpers;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
-using Terraria.ModLoader;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI

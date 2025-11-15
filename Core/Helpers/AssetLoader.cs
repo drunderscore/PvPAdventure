@@ -5,37 +5,39 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Helpers;
 
-/// <summary>
-/// Static class to hold all assets used in the mod.
-/// </summary>
 public static class Ass
 {
-    // Add assets here
     public static Asset<Texture2D> Question_Mark;
+    public static Asset<Texture2D>[] MapBG;
 
-    // This bool automatically initializes all specified assets
     public static bool Initialized { get; set; }
 
     static Ass()
     {
-        foreach (FieldInfo field in typeof(Ass).GetFields())
+        // Load MapBG1..MapBG42
+        MapBG = new Asset<Texture2D>[42];
+        for (int i = 1; i <= 42; i++)
         {
-            if (field.FieldType == typeof(Asset<Texture2D>))
+            MapBG[i - 1] = ModContent.Request<Texture2D>(
+                $"PvPAdventure/Assets/SpawnSelector/MapBG{i}",
+                AssetRequestMode.AsyncLoad);
+        }
+
+        // Load single texture fields (NOT MapBG array)
+        foreach (FieldInfo f in typeof(Ass).GetFields())
+        {
+            if (f.FieldType == typeof(Asset<Texture2D>))
             {
-                var asset = ModContent.Request<Texture2D>($"PvPAdventure/Assets/SpawnSelector/{field.Name}", AssetRequestMode.AsyncLoad);
-                field.SetValue(null, asset);
+                var asset = ModContent.Request<Texture2D>(
+                    $"PvPAdventure/Assets/SpawnSelector/{f.Name}",
+                    AssetRequestMode.AsyncLoad);
+                f.SetValue(null, asset);
             }
         }
     }
 }
 
-/// <summary>
-/// System that automatically initializes assets
-/// </summary>
 public class LoadAssets : ModSystem
 {
-    public override void Load()
-    {
-        _ = Ass.Initialized;
-    }
+    public override void Load() => _ = Ass.Initialized;
 }

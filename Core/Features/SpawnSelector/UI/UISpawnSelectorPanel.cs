@@ -35,28 +35,33 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             RemoveAllChildren();
             _playerItems.Clear();
 
-            // === ADD TEAMMATES
             var players = new List<Player>();
             var local = Main.LocalPlayer;
 
-            if (local.team != 0)
+#if DEBUG
+            // If we have debug players, use them instead of scanning teammates
+            if (_debugPlayers.Count > 0)
             {
-                for (int i = 0; i < Main.maxPlayers; i++)
-                {
-                    Player p = Main.player[i];
-                    if (p == null || !p.active || p.whoAmI == local.whoAmI || p.team != local.team)
-                        continue;
-
-                    players.Add(p);
-                }
+                players.AddRange(_debugPlayers);
             }
-
-            // === TEST DATA: add 3 self player copies for singleplayer testing
-            if (players.Count == 0)
+            else
+#endif
             {
-                for (int i = 0; i < 3; i++)
+                // ADD TEAMMATES
+                if (local.team != 0)
                 {
-                    players.Add(local);
+                    for (int i = 0; i < Main.maxPlayers; i++)
+                    {
+                        Player p = Main.player[i];
+
+                        if (p == null || !p.active)
+                            continue;
+
+                        if (p.whoAmI == local.whoAmI || p.team != local.team)
+                            continue;
+
+                        players.Add(p);
+                    }
                 }
             }
 
@@ -92,8 +97,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 _playerItems.Add(row);
             }
 
-            // Square random panel to the right of the last player,
-            // with exactly one Spacing after the last player.
+            // Square random panel to the right of the last player
             _randomPanel = new UISpawnSelectorRandomPanel(
                 startX,
                 itemHeight,
@@ -117,5 +121,30 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         {
             base.Draw(spriteBatch);
         }
+
+        #region Debug
+#if DEBUG
+        private readonly List<Player> _debugPlayers = new();
+#endif
+        public void DebugAddPlayer()
+        {
+#if DEBUG
+            _debugPlayers.Add(Main.LocalPlayer);
+            BuildLayout();
+            Log.Debug($"SpawnSelector DebugAddPlayer: debugPlayers={_debugPlayers.Count}");
+#endif
+        }
+
+        public void DebugClearPlayers()
+        {
+#if DEBUG
+            _debugPlayers.Clear();
+            BuildLayout();
+            Log.Debug("SpawnSelector DebugClearPlayers: cleared debug players");
+#endif
+        }
+        #endregion
+
+
     }
 }

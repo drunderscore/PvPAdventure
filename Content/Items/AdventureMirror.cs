@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Core.Features.SpawnSelector.Players;
 using Terraria;
+using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -26,6 +27,19 @@ internal class AdventureMirror : ModItem
     {
         var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
 
+        if (adventureMirrorPlayer.IsPlayerInSpawnRegion())
+        {
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.Crimson,
+                Text = "Cannot use in spawn!",
+                Velocity = new(0f, -4f),
+                DurationInFrames = 60
+            }, player.Top);
+
+            return false;
+        };
+
         if (adventureMirrorPlayer.CancelIfPlayerMoves())
             return false;
 
@@ -37,7 +51,6 @@ internal class AdventureMirror : ModItem
 
     public override bool CanRightClick() => true;
     public override bool ConsumeItem(Player player) => false;
-
     public override void RightClick(Player player)
     {
         var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
@@ -50,6 +63,8 @@ internal class AdventureMirror : ModItem
 
         var config = ModContent.GetInstance<AdventureConfig>();
         int recallFrames = config.AdventureMirrorRecallFrames + 1;
+
+        SoundEngine.PlaySound(SoundID.Item6); // magic mirror
 
         adventureMirrorPlayer.StartMirrorUse(recallFrames);
     }

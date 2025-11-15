@@ -9,6 +9,7 @@ using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static PvPAdventure.System.RegionManager;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.Players;
 
@@ -26,20 +27,19 @@ public class AdventureMirrorPlayer : ModPlayer
         MirrorTimer = durationFrames;
     }
 
-    private void UpdateSpawnSelectorEnabledState()
+    public bool IsPlayerInSpawnRegion()
     {
         // Force SSS to be enabled when player is within the spawn region.
         var regionManager = ModContent.GetInstance<RegionManager>();
         Point tilePos = Player.Center.ToTileCoordinates();
         var region = regionManager.GetRegionContaining(tilePos);
-        bool inRegion = region != null;
-        if (inRegion)
-            SpawnSelectorSystem.SetEnabled(true);
-
-        // Force closes SSS whenever map is closed.
-        if (!Main.mapFullscreen)
-            SpawnSelectorSystem.SetEnabled(false);
+        if (region != null)
+        {
+            return true;
+        }
+        return false;
     }
+
     public bool CancelIfPlayerMoves()
     {
         if (Player.velocity.LengthSquared() <= 0f)
@@ -75,7 +75,13 @@ public class AdventureMirrorPlayer : ModPlayer
 
     public override void PostUpdate()
     {
-        UpdateSpawnSelectorEnabledState();
+        // Open SSS whenever player is in spawn region.
+        if (IsPlayerInSpawnRegion())
+            SpawnSelectorSystem.SetEnabled(true);
+
+        // Closes SSS whenever map is closed.
+        if (!Main.mapFullscreen)
+            SpawnSelectorSystem.SetEnabled(false);
 
         if (!MirrorActive)
             return;
@@ -107,16 +113,16 @@ public class AdventureMirrorPlayer : ModPlayer
             }, Player.Top);
         }
 
-        // End of channel, teleport once
+        // Teleport to spawn
         if (MirrorTimer <= 0)
         {
             // Close player inventory
-            Main.playerInventory = false;
+            //Main.playerInventory = false;
 
             if (!Main.mapFullscreen)
             {
-                SoundEngine.PlaySound(SoundID.MenuOpen);
-                Main.mapFullscreen = true;
+                //SoundEngine.PlaySound(SoundID.MenuOpen);
+                //Main.mapFullscreen = true;
 
                 float worldCenterX = Main.maxTilesX / 2f;
                 float worldCenterY = Main.maxTilesY / 2f;
@@ -130,7 +136,9 @@ public class AdventureMirrorPlayer : ModPlayer
                 CustomTeleportWithoutSound(spawnPos);
             }
 
-            SpawnSelectorSystem.SetEnabled(true);
+            SpawnSelectorSystem.SetEnabled(true); // This is redundant because spawn region already sets it to true
+            ModContent.GetInstance<SpawnSelectorSystem>().state.spawnSelectorPanel.Rebuild();
+
             Player.RemoveAllGrapplingHooks();
 
             MirrorActive = false;

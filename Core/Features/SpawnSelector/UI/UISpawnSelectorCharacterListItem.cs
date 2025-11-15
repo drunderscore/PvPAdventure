@@ -8,6 +8,8 @@ using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
+using Terraria.ModLoader;
+using Terraria.ModLoader.UI;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
@@ -70,6 +72,25 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Utils.DrawBorderString(Main.spriteBatch, p.name, headPos, Color.White);
         }
 
+        private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
+        {
+            x += inset; y += inset; w -= inset * 2; h -= inset * 2;
+            int ew = tex.Width - c * 2;
+            int eh = tex.Height - c * 2;
+
+            sb.Draw(tex, new Rectangle(x, y, c, c), new Rectangle(0, 0, c, c), color);
+            sb.Draw(tex, new Rectangle(x + c, y, w - c * 2, c), new Rectangle(c, 0, ew, c), color);
+            sb.Draw(tex, new Rectangle(x + w - c, y, c, c), new Rectangle(tex.Width - c, 0, c, c), color);
+
+            sb.Draw(tex, new Rectangle(x, y + c, c, h - c * 2), new Rectangle(0, c, c, eh), color);
+            sb.Draw(tex, new Rectangle(x + c, y + c, w - c * 2, h - c * 2), new Rectangle(c, c, ew, eh), color);
+            sb.Draw(tex, new Rectangle(x + w - c, y + c, c, h - c * 2), new Rectangle(tex.Width - c, c, c, eh), color);
+
+            sb.Draw(tex, new Rectangle(x, y + h - c, c, c), new Rectangle(0, tex.Height - c, c, c), color);
+            sb.Draw(tex, new Rectangle(x + c, y + h - c, w - c * 2, c), new Rectangle(c, tex.Height - c, ew, c), color);
+            sb.Draw(tex, new Rectangle(x + w - c, y + h - c, c, c), new Rectangle(tex.Width - c, tex.Height - c, c, c), color);
+        }
+
         protected override void DrawSelf(SpriteBatch sb)
         {
             base.DrawSelf(sb);
@@ -89,10 +110,17 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
             // Left player background
             Vector2 pos = new(inner.X, inner.Y);
-            //sb.Draw(_playerBGTexture.Value, pos, Color.White);
+            //sb.Draw(_playerBGTexture.Value, pos, Color.White*0.5f);
 
-            Rectangle rect = new((int)pos.X-5, (int)pos.Y-5, 106,72);
+            Rectangle rect = new(
+                x: (int)pos.X-6, 
+                y: (int)pos.Y-6, 
+                width: 100,
+                height: 72);
 
+
+            //DrawMask(sb, Ass.CornerMask4px.Value, rect, 9);
+            DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, _playerBGTexture.Value, Color.White, 5);
             DrawMapFullscreenBackground(sb, rect, player);
 
             sb.End();
@@ -112,8 +140,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 //Main.PlayerRenderer.DrawPlayer(Main.Camera,player,playerDrawPos,player.fullRotation,player.fullRotationOrigin,0f,0.9f);
 
                 Color myTeamColor = Main.teamColor[Main.LocalPlayer.team];
-
-                Main.PlayerRenderer.DrawPlayerHead(Main.Camera, player, pos+ new Vector2(40,37), scale: 1.3f, borderColor: myTeamColor);
+                Main.PlayerRenderer.DrawPlayerHead(Main.Camera, player, pos+ new Vector2(40,37), scale: 1.3f, borderColor: Color.Yellow);
             }
             catch (Exception e)
             {
@@ -134,84 +161,91 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                      null,
                      Main.UIScaleMatrix);
 
-            float leftColumnWidth = _playerBGTexture.Width();
-            float startX = inner.X + leftColumnWidth;
+            // Use the actual layout widths, not the texture width
+            const float leftColumnWidth = 106f;              // player background column
+            const float rightAreaWidth = ItemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
 
-            // Name centered
-            string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
-            Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name);
-            float centerX = inner.X + inner.Width * 0.5f+20;
+            float rightAreaLeft = inner.X + leftColumnWidth;
+            float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
 
-            Utils.DrawBorderString(
-                sb,
-                name,
-                new Vector2(centerX, inner.Y),
-                Color.White,
-                scale: 1.1f
+            // Name centered in the right-area
+            string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name + "";
+            float nameScale = 1f;
+            if (player.name.Length > 16) nameScale = 0.85f;
+            Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
+
+            Vector2 namePos = new(
+                rightAreaCenterX - nameSize.X * 0.5f,
+                inner.Y
             );
 
-            // Divider
+            // Draw name
+            Utils.DrawBorderString(sb,name,namePos,Color.White,nameScale);
+
+            // Draw divider
             sb.Draw(
                 _dividerTexture.Value,
-                new Vector2(startX + 44, inner.Y + 21f),
+                new Vector2(rightAreaLeft-12, inner.Y + 21f),
                 null,
                 Color.White,
                 0f,
                 Vector2.Zero,
-                new Vector2((dims.X + dims.Width - startX) / 8-7, 1f),
+                new Vector2(rightAreaWidth/8+2.2f, 1f),
                 SpriteEffects.None,
                 0f
             );
 
-            // HP / MP panel
-            Vector2 panelPos = new(startX + 60f, inner.Y + 29f);
-            float panelWidth = 90f;
+            // Stat panel settings
+            float statScale = 0.88f;
+            float statGap = 5f * statScale;
+
+            // Draw stat panel
+            float panelWidth = rightAreaWidth+24;
+            Vector2 panelPos = new(rightAreaLeft-14, inner.Y + 29f);
             DrawPanel(sb, panelPos, panelWidth);
 
-            Vector2 cursor = panelPos;
-
-            // HP
-            sb.Draw(TextureAssets.Heart.Value, cursor + new Vector2(4f, 2f), Color.White);
-            cursor.X += 6f + TextureAssets.Heart.Width();
             string hpText = $"{player.statLife} HP";
-            Utils.DrawBorderString(sb, hpText, cursor + new Vector2(0f, 3f), Color.White);
+            string mpText = $"{player.statMana} MP";
 
-            // MP
-            //cursor.X += 80f;
-            //sb.Draw(TextureAssets.Mana.Value, cursor + new Vector2(-15f, 0f), Color.White);
-            //cursor.X += -11f + TextureAssets.Mana.Width();
-            //string manaText = $"{player.statMana} MP";
-            //Utils.DrawBorderString(sb, manaText, cursor + new Vector2(0f, 3f), Color.White);
+            Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hpText) * statScale;
+            Vector2 mpSize = FontAssets.MouseText.Value.MeasureString(mpText) * statScale;
 
+            var heart = TextureAssets.Heart;
+            var mana = TextureAssets.Mana;
+
+            float heartW = heart.Width() * statScale;
+            float manaW = mana.Width() * statScale;
+            float hpBlockW = heartW + hpSize.X;
+            float mpBlockW = manaW + mpSize.X;
+            float totalWidth = hpBlockW + statGap + mpBlockW;
+            float startX = panelPos.X + (panelWidth - totalWidth) * 0.5f;
+            float y = panelPos.Y + 4f;
+
+            // Draw health
+            sb.Draw(heart.Value, new Vector2(startX, y), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
+            startX += heartW;
+            Utils.DrawBorderString(sb, hpText, new Vector2(startX+1, y + 1f), Color.White, statScale);
+            startX += hpSize.X;
+            startX += statGap;
+
+            // Draw mana
+            sb.Draw(mana.Value, new Vector2(startX, y - 2), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
+            startX += manaW;
+            Utils.DrawBorderString(sb, mpText, new Vector2(startX+1, y + 1f), Color.White, statScale);
+            
             // Set hover teleport tooltip
             if (IsMouseHovering)
             {
                 Main.instance.MouseText("Teleport to " + name);
                 var old = Main.UIScaleMatrix;
 
-                Main.spriteBatch.End();
-                Main.spriteBatch.Begin(
-                    SpriteSortMode.Immediate,
-                    BlendState.AlphaBlend,
-                    SamplerState.PointClamp,
-                    DepthStencilState.None,
-                    RasterizerState.CullCounterClockwise,
-                    null,
-                    Matrix.Identity
-                );
+                //Main.spriteBatch.End();
+                //Main.spriteBatch.Begin(SpriteSortMode.Immediate,BlendState.AlphaBlend,SamplerState.PointClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise,null,Matrix.Identity);
 
-                DrawHeadOnMap(player); 
+                //DrawHeadOnMap(player); 
 
-                Main.spriteBatch.End();
-                Main.spriteBatch.Begin(
-                    SpriteSortMode.Deferred,
-                    BlendState.AlphaBlend,
-                    SamplerState.PointClamp,
-                    DepthStencilState.None,
-                    RasterizerState.CullCounterClockwise,
-                    null,
-                    old   
-                );
+                //Main.spriteBatch.End();
+                //Main.spriteBatch.Begin(SpriteSortMode.Deferred,BlendState.AlphaBlend,SamplerState.PointClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise,null,old);
             }
             //Main.NewText(Main.mouseY); // 482,435 is spawn
 
@@ -325,15 +359,19 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 else if (player.ZoneGraveyard) bgIndex = 26;
             }
 
-            var asset = bgIndex >= 0 && bgIndex < TextureAssets.MapBGs.Length
-                ? TextureAssets.MapBGs[bgIndex]
-                : TextureAssets.MapBGs[0];
+            // Vanilla
+            //var asset = bgIndex >= 0 && bgIndex < TextureAssets.MapBGs.Length? TextureAssets.MapBGs[bgIndex]: TextureAssets.MapBGs[0];
+
+            // Our textures with rounded corners
+            int safeIndex = (bgIndex >= 0 && bgIndex < Ass.MapBG.Length) ? bgIndex: 0;
+            var asset = Ass.MapBG[safeIndex];
 
             rect.X += 10;
             rect.Y += 10;
             rect.Width -= 20;
             rect.Height -= 20;
 
+            if (asset == null || asset.Value == null) return;
             sb.Draw(asset.Value, rect, color);
         }
     }

@@ -45,10 +45,11 @@ public class SpawnSelectorSystem : ModSystem
     private void OnTriggerPing(On_Main.orig_TriggerPing orig, Vector2 position)
     {
         // Skip ping execution if our panel is being hovered
-        if (teleportPanel != null && !teleportPanel.IsMouseHovering)
+        if (state.spawnSelectorPanel != null && state.spawnSelectorPanel.IsMouseHovering)
         {
-            orig(position);
+            return;
         }
+        orig(position);
     }
 
     public override void UpdateUI(GameTime gameTime)

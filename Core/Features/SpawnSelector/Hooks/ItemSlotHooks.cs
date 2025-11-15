@@ -40,6 +40,7 @@ public class ItemSlotHooks : ModSystem
         On_ItemSlot.orig_LeftClick_ItemArray_int_int orig,
         Item[] inv, int context, int slot)
     {
+
         if (context == ItemSlot.Context.TrashItem
             && !Main.mouseItem.IsAir
             && Main.mouseItem.type == ModContent.ItemType<AdventureMirror>())
