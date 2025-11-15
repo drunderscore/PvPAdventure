@@ -21,7 +21,7 @@ namespace PvPAdventure.System;
 public class GameManager : ModSystem
 {
     public int TimeRemaining { get; set; }
-    private int? _startGameCountdown = 0;
+    public int? _startGameCountdown = null;
     private Phase _currentPhase;
 
     public Phase CurrentPhase
@@ -120,6 +120,7 @@ public class GameManager : ModSystem
         orig();
         ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Rain"), Color.White);
     }
+    private bool hasPrintedGameOver = false;
 
     public override void PostUpdateTime()
     {
@@ -143,7 +144,7 @@ public class GameManager : ModSystem
                     else if (_startGameCountdown <= (60 * 3) && _startGameCountdown % 60 == 0)
                     {
                         ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{_startGameCountdown / 60}..."),
-                            Color.Green);
+                            Color.Crimson);
                     }
                 }
 
@@ -152,13 +153,21 @@ public class GameManager : ModSystem
             case Phase.Playing:
             {
                 if (--TimeRemaining <= 0)
+                {
                     CurrentPhase = Phase.Waiting;
+                    
+                        //if (!hasPrintedGameOver)
+                        {
+                            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"The game is over!"),
+                            Color.Green);
+                            //hasPrintedGameOver = true;
+                        }
+                }
 
                 break;
             }
         }
     }
-
     public void StartGame(int time)
     {
         CurrentPhase = Phase.Waiting;
@@ -168,6 +177,18 @@ public class GameManager : ModSystem
         ChatHelper.BroadcastChatMessage(
             NetworkText.FromLiteral($"The game will begin in {_startGameCountdown / 60} seconds."), Color.Green);
     }
+
+#if DEBUG
+    public void DebugStartGame(int time)
+    {
+        CurrentPhase = Phase.Waiting;
+        TimeRemaining = time;
+        _startGameCountdown = 1;
+
+        ChatHelper.BroadcastChatMessage(
+            NetworkText.FromLiteral($"[DEBUG] The game has started (GameMananger.Phase=Playing)"), Color.Green);
+    }
+#endif
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
     private void OnPhaseChange(Phase newPhase)

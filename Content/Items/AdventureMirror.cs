@@ -26,26 +26,34 @@ internal class AdventureMirror : ModItem
 
     public override bool CanUseItem(Player player)
     {
-        //var gm = ModContent.GetInstance<GameManager>();
-        //if (gm.CurrentPhase != GameManager.Phase.Playing)
-        //    return false;
-
         var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
 
-        if (player.whoAmI == Main.myPlayer)
+        // BLOCK BEFORE GAME STARTS
+        if (!adventureMirrorPlayer.IsGameStarted())
+            return false;
+
+        // BLOCK IN SPAWN
+        if (adventureMirrorPlayer.IsPlayerInSpawnRegion())
         {
-            PopupText.NewText(new AdvancedPopupRequest
+            if (player.whoAmI == Main.myPlayer)
             {
-                Color = Color.Crimson,
-                Text = "Cannot use in spawn!",
-                Velocity = new(0f, -4f),
-                DurationInFrames = 60
-            }, player.Top);
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = "Cannot use in spawn!",
+                    Velocity = new(0f, -4f),
+                    DurationInFrames = 60
+                }, player.Top);
+            }
+
+            return false;
         }
 
+        // BLOCK IF MOVING
         if (adventureMirrorPlayer.CancelIfPlayerMoves())
             return false;
 
+        // BLOCK IF ALREADY CHANNELING
         if (adventureMirrorPlayer.MirrorActive)
             return false;
 
@@ -56,16 +64,30 @@ internal class AdventureMirror : ModItem
     public override bool ConsumeItem(Player player) => false;
     public override void RightClick(Player player)
     {
-        var gm = ModContent.GetInstance<GameManager>();
-        if (gm.CurrentPhase != GameManager.Phase.Playing)
-            return;
-
         var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
 
-        if (adventureMirrorPlayer.CancelIfPlayerMoves())
+        // BLOCK BEFORE GAME STARTS
+        if (!adventureMirrorPlayer.IsGameStarted())
             return;
 
+        // BLOCK IN SPAWN
         if (adventureMirrorPlayer.IsPlayerInSpawnRegion())
+        {
+            if (player.whoAmI == Main.myPlayer)
+            {
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = "Cannot use in spawn!",
+                    Velocity = new(0f, -4f),
+                    DurationInFrames = 60
+                }, player.Top);
+            }
+
+            return;
+        }
+
+        if (adventureMirrorPlayer.CancelIfPlayerMoves())
             return;
 
         if (adventureMirrorPlayer.MirrorActive)

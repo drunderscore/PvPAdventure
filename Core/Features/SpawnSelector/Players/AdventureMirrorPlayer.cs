@@ -28,6 +28,24 @@ public class AdventureMirrorPlayer : ModPlayer
         MirrorTimer = durationFrames;
     }
 
+    public bool IsGameStarted()
+    {
+        var gm = ModContent.GetInstance<GameManager>();
+        if (gm.CurrentPhase != GameManager.Phase.Playing)
+        {
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.Crimson,
+                Text = "Cannot use before game starts!",
+                Velocity = new(0f, -4f),
+                DurationInFrames = 60
+            }, Player.Top);
+
+            return false;
+        }
+        return true;
+    }
+
     public bool IsPlayerInSpawnRegion()
     {
         // Force SSS to be enabled when player is within the spawn region.
@@ -43,6 +61,9 @@ public class AdventureMirrorPlayer : ModPlayer
 
     public bool CancelIfPlayerMoves()
     {
+        if (Player.whoAmI != Main.myPlayer)
+            return false;
+
         if (Player.velocity.LengthSquared() <= 0f)
             return false;
 
@@ -63,25 +84,22 @@ public class AdventureMirrorPlayer : ModPlayer
             Player.reuseDelay = 0;
         }
 
-        if (Player.whoAmI == Main.myPlayer)
+        PopupText.NewText(new AdvancedPopupRequest
         {
-            PopupText.NewText(new AdvancedPopupRequest
-            {
-                Color = Color.Crimson,
-                Text = "Cannot use while moving!",
-                Velocity = new(0f, -4f),
-                DurationInFrames = 60
-            }, Player.Top);
-        }
+            Color = Color.Crimson,
+            Text = "Cannot use while moving!",
+            Velocity = new(0f, -4f),
+            DurationInFrames = 60
+        }, Player.Top);
 
         return true;
     }
 
     public override void PostUpdate()
     {
-        //var gm = ModContent.GetInstance<GameManager>();
-        //if (gm.CurrentPhase != GameManager.Phase.Playing)
-        //    SpawnSelectorSystem.SetEnabled(false);
+        var gm = ModContent.GetInstance<GameManager>();
+        if (gm.CurrentPhase == GameManager.Phase.Waiting)
+            SpawnSelectorSystem.SetEnabled(false);
 
         if (!Main.mapFullscreen)
             SpawnSelectorSystem.SetEnabled(false);
@@ -231,19 +249,21 @@ public class AdventureMirrorPlayer : ModPlayer
 
     public override void UpdateDead()
     {
+        base.UpdateDead();
+
         // debug
         //Main.NewText(Player.respawnTimer);
 
         // Keeps the player from respawning until they have selected a spawn.
-        if (Player.respawnTimer <= 10)
-        {
-            //Player.respawnTimer = 10;
-            if (!Main.mapFullscreen)
-            {
-                Main.mapFullscreen = true;
-                SpawnSelectorSystem.SetEnabled(true);
-            }
-        }
+        //if (Player.respawnTimer <= 10)
+        //{
+        //    //Player.respawnTimer = 10;
+        //    if (!Main.mapFullscreen)
+        //    {
+        //        Main.mapFullscreen = true;
+        //        SpawnSelectorSystem.SetEnabled(true);
+        //    }
+        //}
     }
 
     public override void ProcessTriggers(TriggersSet triggersSet)
