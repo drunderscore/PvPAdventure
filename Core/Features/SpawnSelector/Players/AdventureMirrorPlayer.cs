@@ -10,6 +10,7 @@ using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static PvPAdventure.System.RegionManager;
+using static Terraria.ModLoader.BackupIO;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.Players;
 
@@ -62,13 +63,16 @@ public class AdventureMirrorPlayer : ModPlayer
             Player.reuseDelay = 0;
         }
 
-        PopupText.NewText(new AdvancedPopupRequest
+        if (Player.whoAmI == Main.myPlayer)
         {
-            Color = Color.Crimson,
-            Text = "Cannot use while moving!",
-            Velocity = new(0f, -4f),
-            DurationInFrames = 60
-        }, Player.Top);
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.Crimson,
+                Text = "Cannot use while moving!",
+                Velocity = new(0f, -4f),
+                DurationInFrames = 60
+            }, Player.Top);
+        }
 
         return true;
     }
