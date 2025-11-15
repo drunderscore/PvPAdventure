@@ -62,13 +62,13 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
             Color color = Main.teamColor[p.team];
 
-            //Main.PlayerRenderer.DrawPlayerHead(
-            //    Main.Camera,
-            //    p,
-            //    headPos,
-            //    scale: 1.3f,
-            //    borderColor: color
-            //);
+            Main.PlayerRenderer.DrawPlayerHead(
+                Main.Camera,
+                p,
+                headPos,
+                scale: 1.3f,
+                borderColor: color
+            );
             Utils.DrawBorderString(Main.spriteBatch, p.name, headPos, Color.White);
         }
 
@@ -135,12 +135,13 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             ModifyPlayerDrawInfo.ForceFullBrightOnce = true;
             try
             {
-                Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(32, 8);
-
-                //Main.PlayerRenderer.DrawPlayer(Main.Camera,player,playerDrawPos,player.fullRotation,player.fullRotationOrigin,0f,0.9f);
+                Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
+                Vector2 headDrawPos = pos + new Vector2(38, 28);
 
                 Color myTeamColor = Main.teamColor[Main.LocalPlayer.team];
-                Main.PlayerRenderer.DrawPlayerHead(Main.Camera, player, pos+ new Vector2(40,37), scale: 1.3f, borderColor: Color.Yellow);
+
+                //Main.PlayerRenderer.DrawPlayer(Main.Camera,player,playerDrawPos,player.fullRotation,player.fullRotationOrigin,0f,0.9f);
+                Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, headDrawPos, scale: 1.0f, borderColor: myTeamColor);
             }
             catch (Exception e)
             {

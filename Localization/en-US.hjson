@@ -366,6 +366,11 @@ Mods: {
 					Label: Sound Effect
 					Tooltip: ""
 				}
+
+				OpenMapAfterRecall: {
+					Label: Open Map After Recall
+					Tooltip: ""
+				}
 			}
 
 			PlayerOutlineConfig: {

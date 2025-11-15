@@ -42,23 +42,26 @@ public class DebugKeybindsPlayer : ModPlayer
         if (key.SwitchTeams.JustPressed)
         {
             Player.team = (Player.team + 1) % 6; // Cycle through teams 0-5
-            Main.NewText(Player.name + " switched to team: " + (Terraria.Enums.Team)Player.team);
+            Main.NewText("[DEBUG] " + Player.name + " switched to team: " + (Terraria.Enums.Team)Player.team);
         }
 
         if (key.AddPlayerToSpawnSelector.JustPressed)
         {
             var sys = ModContent.GetInstance<SpawnSelectorSystem>();
             sys.state.spawnSelectorPanel.DebugAddPlayer();
-            Main.NewText("Added SpawnSelectorSystem player");
-            //sys.state.spawnSelectorPanel.Rebuild();
+            sys.state.spawnSelectorPanel.Rebuild();
+
+            sys.ui.SetState(null);
+            sys.ui.SetState(sys.state);
+            Main.NewText("[DEBUG] Added player to UISpawnSelectorPanel");
         }
 
         if (key.ClearPlayersFromSpawnSelector.JustPressed)
         {
             var sys = ModContent.GetInstance<SpawnSelectorSystem>();
             sys.state.spawnSelectorPanel.DebugClearPlayers();
-            Main.NewText("Cleared SpawnSelectorSystem players");
-            //sys.state.spawnSelectorPanel.Rebuild();
+            Main.NewText("[DEBUG] Cleared all players from UISpawnSelectorPanel");
+            sys.state.spawnSelectorPanel.Rebuild();
         }
     }
 }

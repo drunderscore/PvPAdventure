@@ -75,12 +75,13 @@ public class AdventureMirrorPlayer : ModPlayer
 
     public override void PostUpdate()
     {
-        // Open SSS whenever player is in spawn region.
+        if (!Main.mapFullscreen)
+            SpawnSelectorSystem.SetEnabled(false);
+
+        // Open SSS when player is in spawn region, and close it when player is outside spawn region.
         if (IsPlayerInSpawnRegion())
             SpawnSelectorSystem.SetEnabled(true);
-
-        // Closes SSS whenever map is closed.
-        if (!Main.mapFullscreen)
+        else
             SpawnSelectorSystem.SetEnabled(false);
 
         if (!MirrorActive)
@@ -117,19 +118,23 @@ public class AdventureMirrorPlayer : ModPlayer
         if (MirrorTimer <= 0)
         {
             // Close player inventory
-            //Main.playerInventory = false;
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            if (config.OpenMapAfterRecall) Main.playerInventory = false;
 
             if (!Main.mapFullscreen)
             {
-                //SoundEngine.PlaySound(SoundID.MenuOpen);
-                //Main.mapFullscreen = true;
+                if (config.OpenMapAfterRecall)
+                {
+                    //SoundEngine.PlaySound(SoundID.MenuOpen);
+                    //Main.mapFullscreen = true;
+                }
 
                 float worldCenterX = Main.maxTilesX / 2f;
                 float worldCenterY = Main.maxTilesY / 2f;
                 Main.mapFullscreenPos.X = worldCenterX;
                 Main.mapFullscreenPos.Y = worldCenterY;
 
-                Main.mapFullscreenScale = 0.21f;
+                Main.mapFullscreenScale = 0.21f; // arbitrary zoom out value that fits the entire map
 
                 Vector2 spawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - 48);
                 //Main.LocalPlayer.Teleport(spawnPos, 0);

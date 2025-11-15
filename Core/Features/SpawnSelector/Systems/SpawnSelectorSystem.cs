@@ -10,7 +10,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
 [Autoload(Side = ModSide.Client)]
 public class SpawnSelectorSystem : ModSystem
 {
-    private UserInterface ui;
+    public UserInterface ui;
     public SpawnSelectorState state;
     private UISpawnSelectorPanel teleportPanel;
 

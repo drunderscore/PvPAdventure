@@ -2,6 +2,9 @@
 using Terraria.ModLoader;
 using Terraria.UI;
 using PvPAdventure.Content.Items;
+using Terraria.Audio;
+using Terraria.ID;
+using Microsoft.Xna.Framework;
 
 public class ItemSlotHooks : ModSystem
 {
@@ -45,7 +48,18 @@ public class ItemSlotHooks : ModSystem
             && !Main.mouseItem.IsAir
             && Main.mouseItem.type == ModContent.ItemType<AdventureMirror>())
         {
-            //SoundEngine.PlaySound(SoundID.MenuClose);
+
+            if (Main.mouseLeft && Main.mouseLeftRelease)
+            {
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = "Cannot trash Adventure Mirror!",
+                    Velocity = new(0f, -4f),
+                    DurationInFrames = 60
+                }, Main.LocalPlayer.Top);
+            }
+
             return; 
         }
 

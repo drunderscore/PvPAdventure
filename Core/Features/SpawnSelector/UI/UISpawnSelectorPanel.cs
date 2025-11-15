@@ -84,7 +84,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             float startX = HorizontalPadding;
             float y = VerticalPadding;
 
-            // Players in a row
+            // Add players in a row
             for (int i = 0; i < playerCount; i++)
             {
                 float x = startX + i * (itemWidth + Spacing);
@@ -114,6 +114,8 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         public void Rebuild()
         {
             BuildLayout();
+            Recalculate();
+            RecalculateChildren();
             Log.Debug("UISpawnSelectorPanel.Rebuild: UI rebuilt");
         }
 

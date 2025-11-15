@@ -11,6 +11,9 @@ public class ModifyPlayerDrawInfo : ModPlayer
     public static bool ForceFullBrightOnce;
     public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
     {
+        if (drawInfo.headOnlyRender)
+            return;
+
         if (!ForceFullBrightOnce)
             return;
 

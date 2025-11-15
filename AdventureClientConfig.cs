@@ -14,6 +14,8 @@ public class AdventureClientConfig : ModConfig
     public bool ShiftEnterOpensAllChat { get; set; }
     [DefaultValue(true)] public bool ShowPauseMessage { get; set; }
 
+    [DefaultValue(false)] public bool OpenMapAfterRecall;
+
     public class PlayerOutlineConfig
     {
         public bool Self { get; set; } = true;
@@ -125,6 +127,8 @@ public class AdventureClientConfig : ModConfig
         [DefaultValue(null)] [NullAllowed] public HitMarkerConfig NpcHitMarker { get; set; }
         [DefaultValue(null)] [NullAllowed] public PlayerHitMarkerConfig PlayerHitMarker { get; set; }
         [DefaultValue(null)] [NullAllowed] public PlayerKillMarkerConfig PlayerKillMarker { get; set; }
+
+        
     }
 
     public SoundEffectConfig SoundEffect { get; set; } = new();
