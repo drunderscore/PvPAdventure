@@ -12,7 +12,6 @@ public class SpawnSelectorSystem : ModSystem
 {
     public UserInterface ui;
     public SpawnSelectorState state;
-    private UISpawnSelectorPanel teleportPanel;
 
     // Track whether the spawn selector is enabled
     private static bool Enabled; // whether the spawn selector is currently showing in the fullscreen map

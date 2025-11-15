@@ -79,6 +79,10 @@ public class AdventureMirrorPlayer : ModPlayer
 
     public override void PostUpdate()
     {
+        //var gm = ModContent.GetInstance<GameManager>();
+        //if (gm.CurrentPhase != GameManager.Phase.Playing)
+        //    SpawnSelectorSystem.SetEnabled(false);
+
         if (!Main.mapFullscreen)
             SpawnSelectorSystem.SetEnabled(false);
 

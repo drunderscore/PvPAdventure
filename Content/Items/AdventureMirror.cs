@@ -26,9 +26,9 @@ internal class AdventureMirror : ModItem
 
     public override bool CanUseItem(Player player)
     {
-        var gm = ModContent.GetInstance<GameManager>();
-        if (gm.CurrentPhase != GameManager.Phase.Playing)
-            return false;
+        //var gm = ModContent.GetInstance<GameManager>();
+        //if (gm.CurrentPhase != GameManager.Phase.Playing)
+        //    return false;
 
         var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
 

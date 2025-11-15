@@ -20,10 +20,10 @@ namespace PvPAdventure.Content.Items
         public override bool CanPickup(Item item, Player player)
         {
             // Disallow item pickup while timer is on
-            if (player.GetModPlayer<AdventureMirrorPlayer>().MirrorTimer > 0)
-            {
-                return false;
-            }
+            //if (player.GetModPlayer<AdventureMirrorPlayer>().MirrorTimer > 0)
+            //{
+            //    return false;
+            //}
 
             return base.CanPickup(item, player);
         }

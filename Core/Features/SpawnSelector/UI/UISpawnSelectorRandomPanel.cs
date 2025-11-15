@@ -2,9 +2,11 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using PvPAdventure.Core.Helpers;
+using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.ModLoader;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
@@ -27,6 +29,10 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         public override void LeftClick(UIMouseEvent evt)
         {
             base.LeftClick(evt);
+
+            //var gm = ModContent.GetInstance<GameManager>();
+            //if (gm.CurrentPhase != GameManager.Phase.Playing)
+            //    return;
 
             if (Main.netMode == NetmodeID.MultiplayerClient)
             {
