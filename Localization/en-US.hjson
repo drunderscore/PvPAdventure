@@ -14,6 +14,12 @@ Mods: {
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
+			AdventureMirror.DisplayName: Adventure Mirror
+			OpenControls.DisplayName: Open Controls
+			SwitchTeams.DisplayName: Switch Teams
+			AddPlayerToSpawnSelector.DisplayName: Add Player To Spawn Selector
+			RemovePlayerFromSpawnSelector.DisplayName: Remove Player From Spawn Selector
+			ClearPlayersFromSpawnSelector.DisplayName: Clear Players From Spawn Selector
 		}
 
 		Configs: {
@@ -128,6 +134,16 @@ Mods: {
 				MinimumDamageReceivedByPlayersFromPlayer: {
 					Tooltip: ""
 					Label: Minimum Damage Received By Players From Player
+				}
+
+				RTPRecallFrames: {
+					Label: RTP Recall Frames
+					Tooltip: ""
+				}
+
+				AdventureMirrorRecallFrames: {
+					Label: Adventure Mirror Recall Frames
+					Tooltip: ""
 				}
 			}
 
@@ -1059,6 +1075,16 @@ Mods: {
 			Shronker.Label: Shronker
 			FatalCarCrash.Label: Fatal Car Crash
 			Part2.Label: Part2
+		}
+		Items: {
+			AdventureMirror: {
+				DisplayName: Adventure Mirror
+				Tooltip:
+					'''
+					Gaze in the mirror to go on adventures
+					Right click to use
+					'''
+			}
 		}
 	}
 }
