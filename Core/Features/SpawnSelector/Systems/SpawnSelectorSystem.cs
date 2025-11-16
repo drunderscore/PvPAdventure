@@ -78,7 +78,13 @@ public class SpawnSelectorSystem : ModSystem
 
         try
         {
-            sb.Begin(SpriteSortMode.Deferred,BlendState.AlphaBlend,SamplerState.LinearClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise,null,Main.UIScaleMatrix);
+            sb.Begin(SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.LinearClamp,
+                DepthStencilState.None,
+                RasterizerState.CullCounterClockwise
+                ,null,
+                Main.UIScaleMatrix);
             began = true;
             ui.Draw(sb, Main._drawInterfaceGameTime);
         }
