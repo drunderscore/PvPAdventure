@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Features.SpawnSelector.Players;
+﻿using PvPAdventure.Core.Features.SpawnSelector.Players;
+using PvPAdventure.Core.Features.SpawnSelector.UI;
+using PvPAdventure.System;
 using Terraria;
-using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -25,58 +25,54 @@ internal class AdventureMirror : ModItem
 
     public override bool CanUseItem(Player player)
     {
-        var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
+        var amp = player.GetModPlayer<AdventureMirrorPlayer>();
+        var gm = ModContent.GetInstance<GameManager>();
 
-        if (adventureMirrorPlayer.IsPlayerInSpawnRegion())
+        if (gm.CurrentPhase != GameManager.Phase.Playing)
         {
-            PopupText.NewText(new AdvancedPopupRequest
-            {
-                Color = Color.Crimson,
-                Text = "Cannot use in spawn!",
-                Velocity = new(0f, -4f),
-                DurationInFrames = 60
-            }, player.Top);
-
+            if (player.whoAmI == Main.myPlayer)
+                PopupTextHelper.NewText("Cannot use before game has started!");
             return false;
-        };
+        }
 
-        if (adventureMirrorPlayer.CancelIfPlayerMoves())
+        if (amp.IsPlayerInSpawnRegion())
+        {
+            if (player.whoAmI == Main.myPlayer)
+                PopupTextHelper.NewText("Cannot use in spawn region!");
+            return false;
+        }
+
+        if (amp.MirrorActive)
             return false;
 
-        if (adventureMirrorPlayer.MirrorActive)
+        if (player.whoAmI == Main.myPlayer && player.velocity.LengthSquared() > 0f)
+        {
+            //PopupTextHelper.NewText("Cannot use while moving!");
             return false;
+        }
 
         return true;
     }
 
+    public override bool AltFunctionUse(Player player) => true; 
     public override bool CanRightClick() => true;
     public override bool ConsumeItem(Player player) => false;
     public override void RightClick(Player player)
     {
-        var adventureMirrorPlayer = player.GetModPlayer<AdventureMirrorPlayer>();
-
-        if (adventureMirrorPlayer.CancelIfPlayerMoves())
+        if (!player.GetModPlayer<AdventureMirrorPlayer>().TryStartMirrorChannel())
             return;
-
-        if (adventureMirrorPlayer.MirrorActive)
-            return;
-
-        var config = ModContent.GetInstance<AdventureConfig>();
-        int recallFrames = config.AdventureMirrorRecallFrames + 1;
-
-        SoundEngine.PlaySound(SoundID.Item6); // magic mirror
-
-        adventureMirrorPlayer.StartMirrorUse(recallFrames);
     }
 
     public override bool? UseItem(Player player)
     {
-        var config = ModContent.GetInstance<AdventureConfig>();
-        int recallFrames = config.AdventureMirrorRecallFrames + 1;
-
-        var mp = player.GetModPlayer<AdventureMirrorPlayer>();
-        mp.StartMirrorUse(recallFrames);
-
+        var amp = player.GetModPlayer<AdventureMirrorPlayer>();
+        amp.TryStartMirrorChannel();
         return true;
+    }
+
+    public override void UpdateInventory(Player player)
+    {
+        // Force favorite every tick
+        Item.favorited = true;
     }
 }
