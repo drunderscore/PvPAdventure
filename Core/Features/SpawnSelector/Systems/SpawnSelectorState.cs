@@ -17,6 +17,7 @@ public class SpawnSelectorState : UIState
 
         UITextPanel<string> chooseYourSpawnPanel = new("Choose Your Spawn", 0.8f, true);
         chooseYourSpawnPanel.HAlign = 0.5f;
+        chooseYourSpawnPanel.VAlign = 0f;
         chooseYourSpawnPanel.Top.Set(10, 0);
         chooseYourSpawnPanel.BackgroundColor = new Color(73, 94, 171);
         Append(chooseYourSpawnPanel);

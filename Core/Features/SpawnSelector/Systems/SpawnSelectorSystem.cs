@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.Features.SpawnSelector.UI;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
@@ -9,14 +10,16 @@ namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
 [Autoload(Side = ModSide.Client)]
 public class SpawnSelectorSystem : ModSystem
 {
-    public UserInterface ui;
+    private UserInterface ui;
     public SpawnSelectorState state;
+    private UISpawnSelectorPanel teleportPanel;
 
     // Track whether the spawn selector is enabled
-    private static bool Enabled;
+    private static bool Enabled; // whether the spawn selector is currently showing in the fullscreen map
     public static void SetEnabled(bool newValue) => Enabled = newValue;
     public static bool GetEnabled() => Enabled;
 
+    // Load and unload hooks
     public override void Load()
     {
         if (!Main.dedServ)

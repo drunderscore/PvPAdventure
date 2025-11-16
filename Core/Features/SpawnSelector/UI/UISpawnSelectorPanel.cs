@@ -38,19 +38,30 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             var players = new List<Player>();
             var local = Main.LocalPlayer;
 
-            if (local.team != 0)
+#if DEBUG
+            // If we have debug players, use them instead of scanning teammates
+            if (_debugPlayers.Count > 0)
             {
-                for (int i = 0; i < Main.maxPlayers; i++)
+                players.AddRange(_debugPlayers);
+            }
+            else
+#endif
+            {
+                // ADD TEAMMATES
+                if (local.team != 0)
                 {
-                    Player p = Main.player[i];
+                    for (int i = 0; i < Main.maxPlayers; i++)
+                    {
+                        Player p = Main.player[i];
 
-                    if (p == null || !p.active || p.dead || p.statLife <= 0)
-                        continue;
+                        if (p == null || !p.active)
+                            continue;
 
-                    if (p.whoAmI == local.whoAmI || p.team != local.team)
-                        continue;
+                        if (p.whoAmI == local.whoAmI || p.team != local.team)
+                            continue;
 
-                    players.Add(p);
+                        players.Add(p);
+                    }
                 }
             }
 
@@ -58,7 +69,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
             float itemWidth = UISpawnSelectorCharacterListItem.ItemWidth;
             float itemHeight = UISpawnSelectorCharacterListItem.ItemHeight;
-            float randomWidth = itemHeight;
+            float randomWidth = itemHeight; // square random panel
 
             float contentWidth = playerCount * itemWidth
                                  + playerCount * Spacing
@@ -67,18 +78,13 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             float panelWidth = contentWidth + HorizontalPadding * 2f;
             float panelHeight = itemHeight + VerticalPadding * 2f;
 
-            if (panelWidth <= 0f)
-                panelWidth = itemWidth + HorizontalPadding * 2f;
-
-            if (panelHeight <= 0f)
-                panelHeight = itemHeight + VerticalPadding * 2f;
-
             Width.Set(panelWidth, 0f);
             Height.Set(panelHeight, 0f);
 
             float startX = HorizontalPadding;
             float y = VerticalPadding;
 
+            // Players in a row
             for (int i = 0; i < playerCount; i++)
             {
                 float x = startX + i * (itemWidth + Spacing);
@@ -91,6 +97,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 _playerItems.Add(row);
             }
 
+            // Square random panel to the right of the last player
             _randomPanel = new UISpawnSelectorRandomPanel(
                 startX,
                 itemHeight,
@@ -101,9 +108,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             );
             Append(_randomPanel);
 
-            Recalculate();
-            RecalculateChildren();
-
             Log.Debug($"UISpawnSelectorPanel.BuildLayout: players={playerCount}, panelWidth={panelWidth}");
         }
 
@@ -113,58 +117,34 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Log.Debug("UISpawnSelectorPanel.Rebuild: UI rebuilt");
         }
 
-        public override void Update(GameTime gameTime)
-        {
-            if (NeedsRebuild())
-            {
-                Rebuild();
-            }
-
-            base.Update(gameTime);
-        }
-
         public override void Draw(SpriteBatch spriteBatch)
         {
             base.Draw(spriteBatch);
         }
 
-        private bool NeedsRebuild()
+        #region Debug
+#if DEBUG
+        private readonly List<Player> _debugPlayers = new();
+#endif
+        public void DebugAddPlayer()
         {
-            var dims = GetDimensions();
-            if (dims.Width <= 0f || dims.Height <= 0f)
-                return true;
-
-            if (_randomPanel == null)
-                return true;
-
-            var randomDims = _randomPanel.GetDimensions();
-            if (randomDims.Width <= 0f || randomDims.Height <= 0f)
-                return true;
-
-            var local = Main.LocalPlayer;
-            var players = new List<int>();
-
-            for (int i = 0; i < Main.maxPlayers; i++)
-            {
-                var p = Main.player[i];
-                if (p == null || !p.active || p.dead || p.statLife <= 0)
-                    continue;
-                if (p.whoAmI == local.whoAmI || p.team != local.team)
-                    continue;
-
-                players.Add(p.whoAmI);
-            }
-
-            if (players.Count != _playerItems.Count)
-                return true;
-
-            for (int i = 0; i < players.Count; i++)
-            {
-                if (_playerItems[i] == null) return true;
-                if (_playerItems[i].PlayerIndex != players[i]) return true;
-            }
-
-            return false;
+#if DEBUG
+            _debugPlayers.Add(Main.LocalPlayer);
+            BuildLayout();
+            Log.Debug($"SpawnSelector DebugAddPlayer: debugPlayers={_debugPlayers.Count}");
+#endif
         }
+
+        public void DebugClearPlayers()
+        {
+#if DEBUG
+            _debugPlayers.Clear();
+            BuildLayout();
+            Log.Debug("SpawnSelector DebugClearPlayers: cleared debug players");
+#endif
+        }
+        #endregion
+
+
     }
 }

@@ -23,7 +23,7 @@ namespace PvPAdventure.System;
 public class GameManager : ModSystem
 {
     public int TimeRemaining { get; set; }
-    public int? _startGameCountdown = null;
+    private int? _startGameCountdown = 0;
     private Phase _currentPhase;
 
     private static readonly FieldInfo _bigProgressBarSystemCurrentBarField =
@@ -125,6 +125,7 @@ public class GameManager : ModSystem
         orig();
         ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Rain"), Color.White);
     }
+
     public override void PostUpdateTime()
     {
         // The Nurse is never allowed to spawn.
@@ -147,7 +148,7 @@ public class GameManager : ModSystem
                     else if (_startGameCountdown <= (60 * 3) && _startGameCountdown % 60 == 0)
                     {
                         ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{_startGameCountdown / 60}..."),
-                            Color.Crimson);
+                            Color.Green);
                     }
                 }
 
@@ -156,14 +157,13 @@ public class GameManager : ModSystem
             case Phase.Playing:
             {
                 if (--TimeRemaining <= 0)
-                {
                     CurrentPhase = Phase.Waiting;
-                }
 
                 break;
             }
         }
     }
+
     public void StartGame(int time)
     {
         CurrentPhase = Phase.Waiting;

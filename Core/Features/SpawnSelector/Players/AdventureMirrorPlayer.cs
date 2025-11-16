@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Features.SpawnSelector.Systems;
-using PvPAdventure.Core.Features.SpawnSelector.UI;
 using PvPAdventure.System;
 using PvPAdventure.System.Client;
 using Terraria;
@@ -10,49 +9,22 @@ using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static Terraria.ModLoader.BackupIO;
+using static PvPAdventure.System.RegionManager;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.Players;
 
 public class AdventureMirrorPlayer : ModPlayer
 {
     public int MirrorTimer; // frames left
-    public bool MirrorActive; // currently channeling
-    public int MirrorCountdownLastSecond = -1;
-    private bool didRebuildOnDeath;
-    public bool TryStartMirrorChannel()
+    public bool MirrorActive;
+
+    public void StartMirrorUse(int durationFrames)
     {
-        if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
-        {
-            if (Player.whoAmI == Main.myPlayer)
-                PopupTextHelper.NewText("Cannot use before game has started!");
-            return false;
-        }
-
-        if (IsPlayerInSpawnRegion())
-        {
-            if (Player.whoAmI == Main.myPlayer)
-                PopupTextHelper.NewText("Cannot use in spawn region!");
-            return false;
-        }
-
         if (MirrorActive)
-            return false;
-
-        if (Player.whoAmI == Main.myPlayer && IsMoving())
-        {
-            CancelMirrorUse();
-            PopupTextHelper.NewText("Cannot use while moving!");
-            return false;
-        }
-
-        SoundEngine.PlaySound(SoundID.Item6);
-        var config = ModContent.GetInstance<AdventureConfig>();
-        int recallFrames = config.AdventureMirrorRecallFrames + 1;
+            return;
 
         MirrorActive = true;
-        MirrorTimer = recallFrames;
-        return true;
+        MirrorTimer = durationFrames;
     }
 
     public bool IsPlayerInSpawnRegion()
@@ -68,16 +40,20 @@ public class AdventureMirrorPlayer : ModPlayer
         return false;
     }
 
-    private bool IsMoving() => Player.velocity.LengthSquared() > 0f;
-
-    private void CancelMirrorUse()
+    public bool CancelIfPlayerMoves()
     {
-        MirrorActive = false;
-        MirrorTimer = 0;
-        MirrorCountdownLastSecond = -1;
+        if (Player.velocity.LengthSquared() <= 0f)
+            return false;
 
-        if (Player.itemAnimation > 0 &&
-            Player.HeldItem.type == ModContent.ItemType<AdventureMirror>())
+        // stop the mirror channel
+        if (MirrorActive)
+        {
+            MirrorActive = false;
+            MirrorTimer = 0;
+        }
+
+        // stop the actual item use / animation too
+        if (Player.itemAnimation > 0 && Player.HeldItem.type == ModContent.ItemType<AdventureMirror>())
         {
             Player.controlUseItem = false;
             Player.channel = false;
@@ -85,42 +61,32 @@ public class AdventureMirrorPlayer : ModPlayer
             Player.itemTime = 0;
             Player.reuseDelay = 0;
         }
-    }
 
-    public bool CancelIfPlayerMoves()
-    {
-        if (Player.whoAmI != Main.myPlayer)
-            return false;
+        PopupText.NewText(new AdvancedPopupRequest
+        {
+            Color = Color.Crimson,
+            Text = "Cannot use while moving!",
+            Velocity = new(0f, -4f),
+            DurationInFrames = 60
+        }, Player.Top);
 
-        if (!IsMoving())
-            return false;
-
-        CancelMirrorUse();
-        PopupTextHelper.NewText("Cannot use while moving!");
         return true;
     }
 
     public override void PostUpdate()
     {
-        if (!Player.dead)
-        {
-            didRebuildOnDeath = false;
-        }
-
-        if (Main.dedServ || Player.whoAmI != Main.myPlayer)
-            return;
-
-
-        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing && Main.mapFullscreen && IsPlayerInSpawnRegion())
-        {
+        // Open SSS whenever player is in spawn region.
+        if (IsPlayerInSpawnRegion())
             SpawnSelectorSystem.SetEnabled(true);
-        }
-        else
-        {
+
+        // Closes SSS whenever map is closed.
+        if (!Main.mapFullscreen)
             SpawnSelectorSystem.SetEnabled(false);
-        }
 
         if (!MirrorActive)
+            return;
+
+        if (Main.dedServ || Player.whoAmI != Main.myPlayer)
             return;
 
         if (CancelIfPlayerMoves())
@@ -138,37 +104,43 @@ public class AdventureMirrorPlayer : ModPlayer
         if (MirrorTimer > 0 && MirrorTimer % 60 == 0)
         {
             int secondsLeft = MirrorTimer / 60;
-            PopupTextHelper.NewText(secondsLeft.ToString(), Color.LightGreen, showInMultiplayer: true);
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.Crimson,
+                Text = secondsLeft.ToString(),
+                Velocity = new(0f, -4f),
+                DurationInFrames = 60
+            }, Player.Top);
         }
 
-        // Ready to teleport to spawn
+        // Teleport to spawn
         if (MirrorTimer <= 0)
         {
-            var config = ModContent.GetInstance<AdventureClientConfig>();
-            if (config.OpenMapAfterRecall)
+            // Close player inventory
+            //Main.playerInventory = false;
+
+            if (!Main.mapFullscreen)
             {
-                // Close player inventory
-                Main.playerInventory = false;
+                //SoundEngine.PlaySound(SoundID.MenuOpen);
+                //Main.mapFullscreen = true;
 
-                // Open fullscreen map
-                Main.mapFullscreen = true;
-
-                // center the map
                 float worldCenterX = Main.maxTilesX / 2f;
                 float worldCenterY = Main.maxTilesY / 2f;
                 Main.mapFullscreenPos.X = worldCenterX;
                 Main.mapFullscreenPos.Y = worldCenterY;
-                Main.mapFullscreenScale = 0.21f; // arbitrary value to zoom out that fits the entire map
-            }
 
-            // Teleport to spawn
-            Vector2 spawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - 48);
-            //Main.LocalPlayer.Teleport(spawnPos, 0);
-            CustomTeleportWithoutSound(spawnPos);
+                Main.mapFullscreenScale = 0.21f;
+
+                Vector2 spawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - 48);
+                //Main.LocalPlayer.Teleport(spawnPos, 0);
+                CustomTeleportWithoutSound(spawnPos);
+            }
 
             SpawnSelectorSystem.SetEnabled(true); // This is redundant because spawn region already sets it to true
             ModContent.GetInstance<SpawnSelectorSystem>().state.spawnSelectorPanel.Rebuild();
+
             Player.RemoveAllGrapplingHooks();
+
             MirrorActive = false;
         }
     }
@@ -244,7 +216,23 @@ public class AdventureMirrorPlayer : ModPlayer
         }
     }
 
-    #region Keybind Handling
+    public override void UpdateDead()
+    {
+        // debug
+        //Main.NewText(Player.respawnTimer);
+
+        // Keeps the player from respawning until they have selected a spawn.
+        if (Player.respawnTimer <= 10)
+        {
+            //Player.respawnTimer = 10;
+            if (!Main.mapFullscreen)
+            {
+                Main.mapFullscreen = true;
+                SpawnSelectorSystem.SetEnabled(true);
+            }
+        }
+    }
+
     public override void ProcessTriggers(TriggersSet triggersSet)
     {
         var keybinds = ModContent.GetInstance<Keybinds>();
@@ -257,96 +245,29 @@ public class AdventureMirrorPlayer : ModPlayer
 
     public void TryUseAdventureMirror()
     {
-        int mirrorIndex = EnsureMirrorInInventory();
+        // Find a mirror in the player's inventory
+        int mirrorIndex = -1;
+
+        for (int i = 0; i < Player.inventory.Length; i++)
+        {
+            if (Player.inventory[i].type == ModContent.ItemType<AdventureMirror>())
+            {
+                mirrorIndex = i;
+                break;
+            }
+        }
 
         if (mirrorIndex == -1)
         {
-            PopupTextHelper.NewText("No Adventure Mirror found in inventory or banks!");
+            Main.NewText("You don't have an Adventure Mirror!", Color.Red);
             return;
         }
 
-        if (CancelIfPlayerMoves())
-            return;
+        CancelIfPlayerMoves();
 
+        // Force the player to use the item
         Player.selectedItem = mirrorIndex;
         Player.controlUseItem = true;
         Player.ItemCheck();
     }
-
-    private int EnsureMirrorInInventory()
-    {
-        int mirrorType = ModContent.ItemType<AdventureMirror>();
-
-        // 1. Look in main inventory first
-        for (int i = 0; i < Player.inventory.Length; i++)
-        {
-            Item item = Player.inventory[i];
-            if (!item.IsAir && item.type == mirrorType)
-                return i;
-        }
-
-        // 2. Try to pull from personal banks
-        if (TryPullMirrorFromBank(Player.bank, mirrorType, out int invIndex))
-            return invIndex;
-
-        if (TryPullMirrorFromBank(Player.bank2, mirrorType, out invIndex))
-            return invIndex;
-
-        if (TryPullMirrorFromBank(Player.bank3, mirrorType, out invIndex))
-            return invIndex;
-
-        if (TryPullMirrorFromBank(Player.bank4, mirrorType, out invIndex)) // void vault
-            return invIndex;
-
-        return -1;
-    }
-
-    private bool TryPullMirrorFromBank(Chest bank, int mirrorType, out int inventoryIndex)
-    {
-        inventoryIndex = -1;
-
-        if (bank == null)
-            return false;
-
-        // Find the mirror inside this bank
-        int bankSlot = -1;
-        for (int i = 0; i < bank.item.Length; i++)
-        {
-            Item item = bank.item[i];
-            if (!item.IsAir && item.type == mirrorType)
-            {
-                bankSlot = i;
-                break;
-            }
-        }
-
-        if (bankSlot == -1)
-            return false;
-
-        // Find a free inventory slot
-        int freeInvSlot = -1;
-        for (int i = 0; i < Player.inventory.Length; i++)
-        {
-            if (Player.inventory[i].IsAir)
-            {
-                freeInvSlot = i;
-                break;
-            }
-        }
-
-        if (freeInvSlot == -1)
-        {
-            if (Player.whoAmI == Main.myPlayer)
-                Main.NewText("No free inventory slot for Adventure Mirror!", Color.Red);
-            return false;
-        }
-
-        // Move the item from bank → inventory
-        Player.inventory[freeInvSlot] = bank.item[bankSlot].Clone();
-        bank.item[bankSlot].TurnToAir();
-
-        inventoryIndex = freeInvSlot;
-        return true;
-    }
-    #endregion
 }
