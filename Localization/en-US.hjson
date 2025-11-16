@@ -16,9 +16,6 @@ Mods: {
 			AdventureMirror.DisplayName: Adventure Mirror
 			OpenControls.DisplayName: Open Controls
 			SwitchTeams.DisplayName: Switch Teams
-			AddPlayerToSpawnSelector.DisplayName: Add Player To Spawn Selector
-			RemovePlayerFromSpawnSelector.DisplayName: Remove Player From Spawn Selector
-			ClearPlayersFromSpawnSelector.DisplayName: Clear Players From Spawn Selector
 			"[DEBUG] OpenControls.DisplayName": "[ D E B U G]  Open Controls"
 			"[DEBUG] SwitchTeams.DisplayName": "[ D E B U G]  Switch Teams"
 		}
@@ -144,8 +141,10 @@ Mods: {
 
 				AdventureMirrorRecallFrames: {
 					Label: Adventure Mirror Recall Frames
-					Tooltip: ""
+					Tooltip: The number of frames it takes to use the item until it executes its action
 				}
+
+				Headers.AdventureMirror: Adventure Mirror
 			}
 
 			PointsConfig: {
@@ -376,7 +375,14 @@ Mods: {
 
 				ShowPopupText: {
 					Label: Show Popup Text
-					Tooltip: ""
+					Tooltip: Shows popup text related to item
+				}
+
+				Headers.AdventureMirror: Adventure Mirror
+
+				ShowPlayerIndicationWhenWhenHovering: {
+					Label: Show Player Indication When When Hovering
+					Tooltip: Shows arrow and player head on the fullscreen map when hovering the teleport option above a player
 				}
 			}
 
@@ -801,11 +807,7 @@ Mods: {
 		Items: {
 			AdventureMirror: {
 				DisplayName: Adventure Mirror
-				Tooltip:
-					'''
-					Gaze in the mirror to go on adventures
-					Right click to use
-					'''
+				Tooltip: Gaze in the mirror to go on adventures
 			}
 		}
 	}

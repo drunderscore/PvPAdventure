@@ -48,20 +48,21 @@ public class ItemSlotHooks : ModSystem
     }
 
     private static bool IsAdventureMirror(Item item)
-            => !item.IsAir && item.type == ModContent.ItemType<AdventureMirror>();
+    => !item.IsAir && item.type == ModContent.ItemType<AdventureMirror>();
 
-    // DRAGGING ONTO THE TRASH SLOT
+    // DRAGGING ONTO THE TRASH SLOT / CHESTS / BANKS
     private static void Hook_LeftClick_ItemArray(
         On_ItemSlot.orig_LeftClick_ItemArray_int_int orig,
         Item[] inv, int context, int slot)
     {
-        // 1) Hard block: putting mirror into any chest/bank slot
+        bool isMirrorOnMouse = IsAdventureMirror(Main.mouseItem);
+
+        // 1) Block putting mirror into any storage (chest / banks)
         bool isStorageSlot =
             context == ItemSlot.Context.ChestItem ||
-            context == ItemSlot.Context.BankItem;   // Piggy bank
+            context == ItemSlot.Context.BankItem; // Piggy Bank
 
-        if (isStorageSlot &&
-            IsAdventureMirror(Main.mouseItem)) // we are dragging the mirror onto this slot
+        if (isStorageSlot && isMirrorOnMouse)
         {
             if (Main.mouseLeft && Main.mouseLeftRelease)
                 PopupTextHelper.NewText("Cannot store Adventure Mirror!");
@@ -70,7 +71,16 @@ public class ItemSlotHooks : ModSystem
             return;
         }
 
-        // Fallback to vanilla behavior
+        // 2) Block dragging mirror onto trash slot
+        if (context == ItemSlot.Context.TrashItem && isMirrorOnMouse)
+        {
+            if (Main.mouseLeft && Main.mouseLeftRelease)
+                PopupTextHelper.NewText("Cannot trash Adventure Mirror!");
+
+            return; // cancel trashing
+        }
+
+        // Otherwise, normal behavior
         orig(inv, context, slot);
     }
 

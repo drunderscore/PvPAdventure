@@ -10,7 +10,6 @@ using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static Terraria.ModLoader.BackupIO;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.Players;
 
@@ -20,6 +19,7 @@ public class AdventureMirrorPlayer : ModPlayer
     public bool MirrorActive; // currently channeling
     public int MirrorCountdownLastSecond = -1;
     private bool didRebuildOnDeath;
+
     public bool TryStartMirrorChannel()
     {
         if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
@@ -53,6 +53,18 @@ public class AdventureMirrorPlayer : ModPlayer
         MirrorActive = true;
         MirrorTimer = recallFrames;
         return true;
+    }
+
+    public override void OnHurt(Terraria.Player.HurtInfo info)
+    {
+        // Only care if mirror is currently channeling
+        if (!MirrorActive)
+            return;
+
+        // Stop the channel + reset animation
+        CancelMirrorUse();
+
+        PopupTextHelper.NewText("Mirror interrupted!", Color.Crimson);
     }
 
     public bool IsPlayerInSpawnRegion()

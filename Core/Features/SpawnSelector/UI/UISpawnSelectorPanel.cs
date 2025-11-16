@@ -54,6 +54,12 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 }
             }
 
+            // DEBUG: ADD LOCAL PLAYER
+            if (players.Count == 0 && local != null && local.active && !local.dead && local.statLife > 0)
+            {
+                players.Add(local);
+            }
+
             int playerCount = players.Count;
 
             float itemWidth = UISpawnSelectorCharacterListItem.ItemWidth;
@@ -155,6 +161,11 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 players.Add(p.whoAmI);
             }
 
+            if (players.Count == 0 && local != null && local.active && !local.dead && local.statLife > 0)
+            {
+                players.Add(local.whoAmI);
+            }
+
             if (players.Count != _playerItems.Count)
                 return true;
 
@@ -166,5 +177,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
             return false;
         }
+
     }
 }

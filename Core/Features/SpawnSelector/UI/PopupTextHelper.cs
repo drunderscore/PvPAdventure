@@ -23,7 +23,7 @@ public static class PopupTextHelper
                 Color = color,
                 Text = text,
                 Velocity = new(0f, -4f),
-                DurationInFrames = 60
+                DurationInFrames = 30
             }, Main.LocalPlayer.Top);
             return;
         }

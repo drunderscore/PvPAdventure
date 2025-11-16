@@ -14,9 +14,6 @@ public class AdventureClientConfig : ModConfig
     public bool ShiftEnterOpensAllChat { get; set; }
     [DefaultValue(true)] public bool ShowPauseMessage { get; set; }
 
-    [DefaultValue(false)] public bool OpenMapAfterRecall;
-    [DefaultValue(false)] public bool ShowPopupText;
-
     public class PlayerOutlineConfig
     {
         public bool Self { get; set; } = true;
@@ -133,4 +130,9 @@ public class AdventureClientConfig : ModConfig
     }
 
     public SoundEffectConfig SoundEffect { get; set; } = new();
+
+    [Header("AdventureMirror")]
+    [DefaultValue(true)] public bool OpenMapAfterRecall;
+    [DefaultValue(true)] public bool ShowPopupText;
+    [DefaultValue(true)] public bool ShowPlayerIndicationWhenWhenHovering;
 }
