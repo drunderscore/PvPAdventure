@@ -790,7 +790,7 @@ public class AdventureProjectile : GlobalProjectile
             modifiers.SourceDamage *= 0.75f;
         }
     }
-    public class VanillaPiranhaGun : GlobalProjectile
+    public class VanillaPirahinaGun : GlobalProjectile
     {
         public override bool InstancePerEntity => true;
 
@@ -805,12 +805,6 @@ public class AdventureProjectile : GlobalProjectile
         public override void SetDefaults(Projectile projectile)
         {
             projectile.friendly = true;
-        }
-
-        public override void OnSpawn(Projectile projectile, IEntitySource source)
-        {
-            attachedPlayerIndex = -1;
-            attachOffset = Vector2.Zero;
         }
 
         public override void AI(Projectile projectile)
@@ -871,7 +865,7 @@ public class AdventureProjectile : GlobalProjectile
             {
                 attachedPlayerIndex = target.whoAmI;
                 attachOffset = projectile.Center - target.Center;
-                projectile.ai[0] = 1f;
+                projectile.ai[0] = 1f; // Set to "attached" state
                 projectile.ai[1] = target.whoAmI;
                 projectile.netUpdate = true;
             }
@@ -891,11 +885,12 @@ public class AdventureProjectile : GlobalProjectile
             {
                 shouldDetach = true;
             }
+
             else if (!owner.channel || owner.HeldItem.type != ItemID.PiranhaGun)
             {
                 shouldDetach = true;
             }
-            else if (Vector2.Distance(projectile.Center, owner.Center) > 2000f) //distance until detatch
+            else if (Vector2.Distance(projectile.Center, owner.Center) > 2000f) // this will detach the pirahinas if theyre too far away when attached to a player, we can change this
             {
                 shouldDetach = true;
             }
@@ -921,7 +916,7 @@ public class AdventureProjectile : GlobalProjectile
 
             if (projectile.localAI[0] <= 0f)
             {
-                projectile.localAI[0] = 40f; // amount of frames it hits
+                projectile.localAI[0] = 40f; // Attack every frame (temp), we can change ts
 
                 if (Main.myPlayer == projectile.owner)
                 {
@@ -937,7 +932,7 @@ public class AdventureProjectile : GlobalProjectile
                 projectile.localAI[0]--;
             }
 
-            return false;
+            return false; // Don't run vanilla AI
         }
 
         public override bool CanHitPlayer(Projectile projectile, Player target)
@@ -966,7 +961,9 @@ public class AdventureProjectile : GlobalProjectile
             attachOffset.Y = binaryReader.ReadSingle();
         }
     }
-    public class PiranhaGunItemSystem : GlobalItem
+
+    // GlobalItem even though in adventureprojectile because FUCK YOU
+    public class PiranhaGunItem : GlobalItem
     {
         public override bool AppliesToEntity(Item entity, bool lateInstantiation)
         {
@@ -981,7 +978,7 @@ public class AdventureProjectile : GlobalProjectile
                 Projectile proj = Main.projectile[i];
                 if (proj.active && proj.owner == player.whoAmI && proj.type == ProjectileID.MechanicalPiranha)
                 {
-                    var modProj = proj.GetGlobalProjectile<VanillaPiranhaGun>();
+                    var modProj = proj.GetGlobalProjectile<VanillaPirahinaGun>();
                     if (modProj != null && modProj.attachedPlayerIndex >= 0)
                     {
                         hasAttachedPiranha = true;
@@ -1005,7 +1002,7 @@ public class AdventureProjectile : GlobalProjectile
                 Projectile proj = Main.projectile[i];
                 if (proj.active && proj.owner == player.whoAmI && proj.type == ProjectileID.MechanicalPiranha)
                 {
-                    var modProj = proj.GetGlobalProjectile<VanillaPiranhaGun>();
+                    var modProj = proj.GetGlobalProjectile<VanillaPirahinaGun>();
                     if (modProj != null && modProj.attachedPlayerIndex >= 0)
                     {
                         return true;
@@ -1013,6 +1010,24 @@ public class AdventureProjectile : GlobalProjectile
                 }
             }
             return base.CanUseItem(item, player);
+        }
+    }
+    public class NoKnockbackProjectiles : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            int projType = entity.type;
+
+            return projType == ProjectileID.Meteor1 ||
+                   projType == ProjectileID.Meteor2 ||
+                   projType == ProjectileID.Meteor3 ||
+                   projType == ProjectileID.HeatRay ||
+                   projType == ProjectileID.FlyingKnife ||
+                   projType == ProjectileID.LaserMachinegunLaser;
+        }
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.Knockback *= 0f;
         }
     }
 }
