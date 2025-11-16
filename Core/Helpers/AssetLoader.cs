@@ -9,6 +9,8 @@ public static class Ass
 {
     public static Asset<Texture2D> Question_Mark;
     public static Asset<Texture2D>[] MapBG;
+    public static Asset<Texture2D> Arrow;
+    public static Asset<Texture2D> CustomPlayerBackground;
 
     public static bool Initialized { get; set; }
 

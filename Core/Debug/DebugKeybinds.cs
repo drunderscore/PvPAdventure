@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Core.Features.SpawnSelector.Systems;
+﻿using Microsoft.Xna.Framework.Input;
 using Terraria;
 using Terraria.GameInput;
 using Terraria.ModLoader;
@@ -14,15 +12,11 @@ public class DebugKeybinds : ModSystem
 {
     public ModKeybind OpenControls { get; private set; }
     public ModKeybind SwitchTeams { get; private set; }
-    public ModKeybind AddPlayerToSpawnSelector { get; private set; }
-    public ModKeybind ClearPlayersFromSpawnSelector { get; private set; }
 
     public override void Load()
     {
-        OpenControls = KeybindLoader.RegisterKeybind(Mod, "OpenControls", Keys.NumPad0);
-        SwitchTeams = KeybindLoader.RegisterKeybind(Mod, "SwitchTeams", Keys.NumPad1);
-        AddPlayerToSpawnSelector = KeybindLoader.RegisterKeybind(Mod, "AddPlayerToSpawnSelector", Keys.NumPad2);
-        ClearPlayersFromSpawnSelector = KeybindLoader.RegisterKeybind(Mod, "ClearPlayersFromSpawnSelector", Keys.NumPad3);
+        OpenControls = KeybindLoader.RegisterKeybind(Mod, "[DEBUG] OpenControls", Keys.NumPad0);
+        SwitchTeams = KeybindLoader.RegisterKeybind(Mod, "[DEBUG] SwitchTeams", Keys.NumPad1);
     }
 }
 
@@ -42,23 +36,7 @@ public class DebugKeybindsPlayer : ModPlayer
         if (key.SwitchTeams.JustPressed)
         {
             Player.team = (Player.team + 1) % 6; // Cycle through teams 0-5
-            Main.NewText(Player.name + " switched to team: " + (Terraria.Enums.Team)Player.team);
-        }
-
-        if (key.AddPlayerToSpawnSelector.JustPressed)
-        {
-            var sys = ModContent.GetInstance<SpawnSelectorSystem>();
-            sys.state.spawnSelectorPanel.DebugAddPlayer();
-            Main.NewText("Added SpawnSelectorSystem player");
-            //sys.state.spawnSelectorPanel.Rebuild();
-        }
-
-        if (key.ClearPlayersFromSpawnSelector.JustPressed)
-        {
-            var sys = ModContent.GetInstance<SpawnSelectorSystem>();
-            sys.state.spawnSelectorPanel.DebugClearPlayers();
-            Main.NewText("Cleared SpawnSelectorSystem players");
-            //sys.state.spawnSelectorPanel.Rebuild();
+            Main.NewText("[DEBUG] " + Player.name + " switched to team: " + (Terraria.Enums.Team)Player.team);
         }
     }
 }

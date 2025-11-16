@@ -66,10 +66,6 @@ public class AdventureConfig : ModConfig
     [DefaultValue(4 * 60)]
     public int RecallFrames { get; set; }
 
-    [Range(0, 60 * 60)]
-    [DefaultValue(4 * 60)]
-    public int AdventureMirrorRecallFrames { get; set; }
-
     [Range(0, 30 * 60)]
     [DefaultValue(1.5 * 60)]
     public int SpawnImmuneFrames { get; set; }
@@ -374,6 +370,11 @@ public class AdventureConfig : ModConfig
 
     [Range(0, 600)] public int MinimumDamageReceivedByPlayers { get; set; }
     [Range(0, 600)] public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
+
+    [Header("AdventureMirror")]
+    [Range(0, 60 * 60)]
+    [DefaultValue(4 * 60)]
+    public int AdventureMirrorRecallFrames { get; set; }
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
