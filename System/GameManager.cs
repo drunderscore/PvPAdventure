@@ -120,8 +120,6 @@ public class GameManager : ModSystem
         orig();
         ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Rain"), Color.White);
     }
-    private bool hasPrintedGameOver = false;
-
     public override void PostUpdateTime()
     {
         // The Nurse is never allowed to spawn.
@@ -155,13 +153,6 @@ public class GameManager : ModSystem
                 if (--TimeRemaining <= 0)
                 {
                     CurrentPhase = Phase.Waiting;
-                    
-                        //if (!hasPrintedGameOver)
-                        {
-                            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"The game is over!"),
-                            Color.Green);
-                            //hasPrintedGameOver = true;
-                        }
                 }
 
                 break;
@@ -177,18 +168,6 @@ public class GameManager : ModSystem
         ChatHelper.BroadcastChatMessage(
             NetworkText.FromLiteral($"The game will begin in {_startGameCountdown / 60} seconds."), Color.Green);
     }
-
-#if DEBUG
-    public void DebugStartGame(int time)
-    {
-        CurrentPhase = Phase.Waiting;
-        TimeRemaining = time;
-        _startGameCountdown = 1;
-
-        ChatHelper.BroadcastChatMessage(
-            NetworkText.FromLiteral($"[DEBUG] The game has started (GameMananger.Phase=Playing)"), Color.Green);
-    }
-#endif
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
     private void OnPhaseChange(Phase newPhase)

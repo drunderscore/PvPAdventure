@@ -4,13 +4,15 @@ using PvPAdventure.Core.Features.SpawnSelector.Players;
 using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using PvPAdventure.Core.Helpers;
 using ReLogic.Content;
+using ReLogic.Graphics;
 using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
+using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
+using tModPorter;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
 {
@@ -27,6 +29,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         private readonly Asset<Texture2D> _playerBGTexture;
 
         private readonly int _playerIndex;
+        public int PlayerIndex => _playerIndex;
 
         public UISpawnSelectorCharacterListItem(Player player)
         {
@@ -52,24 +55,61 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         {
             float scale = Main.mapFullscreenScale;
 
-            Vector2 headPos = new(
-                ((p.position.X + p.width / 2f) / 16f - Main.mapFullscreenPos.X) * scale
-                    + Main.screenWidth / 2f - 14f * scale+48,
-
-                ((p.position.Y + p.gfxOffY + p.height / 2f) / 16f - Main.mapFullscreenPos.Y) * scale
-                    + Main.screenHeight / 2f - 14f * scale+58
+            Vector2 mapPos = new(
+                (p.position.X + p.width / 2f) / 16f,
+                (p.position.Y + p.gfxOffY + p.height / 2f) / 16f
             );
+
+            Vector2 headPos = new(
+                (mapPos.X - Main.mapFullscreenPos.X) * scale + Main.screenWidth / 2f,
+                (mapPos.Y - Main.mapFullscreenPos.Y) * scale + Main.screenHeight / 2f
+            );
+            headPos += new Vector2(34f, 44f);
+
+            CalculatedStyle inner = GetInnerDimensions();
+            Rectangle rect = new(
+                (int)inner.X - 6,
+                (int)inner.Y - 6,
+                100,
+                72
+            );
+
+            Vector2 arrowStart = new(rect.X + rect.Width / 2f, rect.Bottom + 8f);
+
+            Texture2D arrowTex = Ass.Arrow.Value;
+            Vector2 arrowOrigin = arrowTex.Size() * 0.5f;
+
+            Vector2 dir = headPos - arrowStart;
+            if (dir.LengthSquared() > 0.001f)
+            {
+                dir.Normalize();
+                float rotation = dir.ToRotation(); // adjust with +- PiOver2 if your texture points up
+                Vector2 arrowPos = arrowStart;
+
+                Main.spriteBatch.Draw(
+                    arrowTex,
+                    arrowPos,
+                    null,
+                    Color.White,
+                    rotation,
+                    arrowOrigin,
+                    1f,
+                    SpriteEffects.None,
+                    0f
+                );
+            }
 
             Color color = Main.teamColor[p.team];
 
-            Main.PlayerRenderer.DrawPlayerHead(
+            Main.MapPlayerRenderer.DrawPlayerHead(
                 Main.Camera,
                 p,
                 headPos,
-                scale: 1.3f,
+                scale: 1.6f,
                 borderColor: color
             );
-            Utils.DrawBorderString(Main.spriteBatch, p.name, headPos, Color.White);
+
+            Utils.DrawBorderString(Main.spriteBatch, p.name, headPos + new Vector2(-20f, 20f), Color.White);
         }
 
         private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
@@ -132,7 +172,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                      null,
                      Main.UIScaleMatrix);
 
-            ModifyPlayerDrawInfo.ForceFullBrightOnce = true;
+            ModifyDrawInfoPlayer.ForceFullBrightOnce = true;
             try
             {
                 Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
@@ -149,7 +189,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             }
             finally
             {
-                ModifyPlayerDrawInfo.ForceFullBrightOnce = false;
+                ModifyDrawInfoPlayer.ForceFullBrightOnce = false;
             }
 
             // Switch back to "normal" UI batch
@@ -238,15 +278,15 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             if (IsMouseHovering)
             {
                 Main.instance.MouseText("Teleport to " + name);
-                var old = Main.UIScaleMatrix;
 
-                //Main.spriteBatch.End();
-                //Main.spriteBatch.Begin(SpriteSortMode.Immediate,BlendState.AlphaBlend,SamplerState.PointClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise,null,Matrix.Identity);
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(SpriteSortMode.Immediate,BlendState.AlphaBlend,SamplerState.PointClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise,null,Matrix.Identity);
 
-                //DrawHeadOnMap(player); 
+                DrawHeadOnMap(player); 
+                //DrawGuideMarkerOnMap(Main.spriteBatch);
 
-                //Main.spriteBatch.End();
-                //Main.spriteBatch.Begin(SpriteSortMode.Deferred,BlendState.AlphaBlend,SamplerState.PointClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise,null,old);
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred,BlendState.AlphaBlend,SamplerState.PointClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise,null,Main.UIScaleMatrix);
             }
             //Main.NewText(Main.mouseY); // 482,435 is spawn
 

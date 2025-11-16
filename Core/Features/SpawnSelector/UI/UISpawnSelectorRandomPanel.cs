@@ -30,9 +30,10 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         {
             base.LeftClick(evt);
 
-            //var gm = ModContent.GetInstance<GameManager>();
-            //if (gm.CurrentPhase != GameManager.Phase.Playing)
-            //    return;
+            // Redundant check, just to be sure we don't allow any shenanigans
+            var gm = ModContent.GetInstance<GameManager>();
+            if (gm.CurrentPhase != GameManager.Phase.Playing)
+                return;
 
             if (Main.netMode == NetmodeID.MultiplayerClient)
             {

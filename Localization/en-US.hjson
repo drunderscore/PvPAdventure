@@ -19,6 +19,8 @@ Mods: {
 			AddPlayerToSpawnSelector.DisplayName: Add Player To Spawn Selector
 			RemovePlayerFromSpawnSelector.DisplayName: Remove Player From Spawn Selector
 			ClearPlayersFromSpawnSelector.DisplayName: Clear Players From Spawn Selector
+			"[DEBUG] OpenControls.DisplayName": "[ D E B U G]  Open Controls"
+			"[DEBUG] SwitchTeams.DisplayName": "[ D E B U G]  Switch Teams"
 		}
 
 		Configs: {
@@ -369,6 +371,11 @@ Mods: {
 
 				OpenMapAfterRecall: {
 					Label: Open Map After Recall
+					Tooltip: Opens the map instantly after the mirror has finished channeling
+				}
+
+				ShowPopupText: {
+					Label: Show Popup Text
 					Tooltip: ""
 				}
 			}

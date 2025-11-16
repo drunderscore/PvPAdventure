@@ -15,6 +15,7 @@ public class AdventureClientConfig : ModConfig
     [DefaultValue(true)] public bool ShowPauseMessage { get; set; }
 
     [DefaultValue(false)] public bool OpenMapAfterRecall;
+    [DefaultValue(false)] public bool ShowPopupText;
 
     public class PlayerOutlineConfig
     {

@@ -1,12 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
-using Terraria;
 using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.Players;
 
-public class ModifyPlayerDrawInfo : ModPlayer
+/// <summary>
+/// Useful for forcing the player to be drawn with full brightness even when in player is in darkness.
+/// </summary>
+public class ModifyDrawInfoPlayer : ModPlayer
 {
     public static bool ForceFullBrightOnce;
     public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
