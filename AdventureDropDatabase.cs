@@ -304,7 +304,7 @@ public class AdventureDropDatabase : ModSystem
                 break;
 
             case NPCID.QueenBee:
-                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 70, 200));
+                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 51, 87));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 15));
                 npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 22, 32));
