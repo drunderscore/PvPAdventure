@@ -941,14 +941,23 @@ Mods: {
 		}
 
 		Items: {
+			AdventureMirror: {
+				DisplayName: Adventure Mirror
+				Tooltip:
+					'''
+					Gaze in the mirror to go on adventures
+					Right click to use
+					'''
+			}
+
 			AdventureBag: {
 				DisplayName: Adventure Bag
-				Tooltip: Everything you need to start your PvP Adventure!
+				Tooltip: ""
 			}
 
 			BlightFruit: {
-				Tooltip: ""
 				DisplayName: Blight Fruit
+				Tooltip: ""
 			}
 		}
 
@@ -1075,16 +1084,6 @@ Mods: {
 			Shronker.Label: Shronker
 			FatalCarCrash.Label: Fatal Car Crash
 			Part2.Label: Part2
-		}
-		Items: {
-			AdventureMirror: {
-				DisplayName: Adventure Mirror
-				Tooltip:
-					'''
-					Gaze in the mirror to go on adventures
-					Right click to use
-					'''
-			}
 		}
 	}
 }
