@@ -167,7 +167,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             try
             {
                 Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
-                Vector2 headDrawPos = pos + new Vector2(38, 20);
+                Vector2 headDrawPos = pos + new Vector2(38, 30);
 
                 Color myTeamColor = Main.teamColor[Main.LocalPlayer.team];
 
@@ -277,53 +277,44 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             if (p == null || !p.active)
                 return;
 
-            // Set hover teleport tooltip
             var config = ModContent.GetInstance<AdventureClientConfig>();
-            if (IsMouseHovering && config.ShowPlayerIndicationWhenWhenHovering)
-            {
-                Main.instance.MouseText("Teleport to " + p.name);
+            if (!IsMouseHovering || !config.ShowPlayerIndicationWhenWhenHovering)
+                return;
 
-                Main.spriteBatch.End();
-                Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Matrix.Identity);
+            Main.instance.MouseText("Teleport to " + p.name);
 
-                float mapScale = Main.mapFullscreenScale;
+            float mapScale = Main.mapFullscreenScale;
 
-                // World center in tile coordinates
-                Vector2 tilePos = p.Center / 16f;
+            // Player in tile coords
+            Vector2 tilePos = p.Center / 16f;
 
-                // Fullscreen map's visual center in screen pixels
-                Vector2 mapScreenCenter = new(
-                    Main.screenWidth / 2f,
-                    Main.screenHeight / 2f
-                );
+            // Screen-space position on the fullscreen map (pixels)
+            Vector2 mapScreenCenter = new(
+                Main.screenWidth / 2f,
+                Main.screenHeight / 2f
+            );
+            Vector2 headPosScreen = (tilePos - Main.mapFullscreenPos) * mapScale + mapScreenCenter;
+            //headPosScreen += new Vector2(80, 40); // your offset
+            headPosScreen *= Main.UIScale;
 
-                // Screen coordinates of the player on the fullscreen map
-                Vector2 headPos = (tilePos - Main.mapFullscreenPos) * mapScale + mapScreenCenter;
+            Matrix invUi = Matrix.Invert(Main.UIScaleMatrix);
+            Vector2 headPosUI = Vector2.Transform(headPosScreen, invUi);
 
-                headPos += new Vector2(80, 40);
+            Color c = Main.teamColor[p.team];
 
-                Color c = Main.teamColor[p.team];
+            // Draw head in UI-space
+            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, p, headPosUI, scale: 1.8f, borderColor: c);
 
-                // Draw on the fullscreen map
-                Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera,p,headPos,scale: 1.8f,borderColor: c);
-
-                // Draw text centered below the player head
-                string name = p.name + "" ?? string.Empty;
-                float textScale = 1f;
-                Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * textScale;
-                Vector2 namePos = new(
-                    headPos.X - nameSize.X * 0.5f + 5,
-                    headPos.Y + 30f
-                );
-                Utils.DrawBorderString(Main.spriteBatch, name, namePos, Color.White, textScale);
-
-                // Restart sb
-                Main.spriteBatch.End();
-                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
-
-            }
+            // Text centered below head, also in UI-space
+            string name = p.name ?? string.Empty;
+            float textScale = 1f;
+            Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * textScale;
+            Vector2 namePos = new(
+                headPosUI.X - nameSize.X * 0.5f,
+                headPosUI.Y + 30f
+            );
+            Utils.DrawBorderString(Main.spriteBatch, name, namePos, Color.White, textScale);
         }
-
 
         public override void MouseOver(UIMouseEvent evt)
         {
