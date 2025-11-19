@@ -1327,9 +1327,6 @@ public class NewIchorPlayer : ModPlayer
         }
     }
 }
-// Add this to each ModPlayer class that handles a debuff
-
-// For BitingEmbracePlayer:
 public class BitingEmbracePlayer : ModPlayer
 {
     public int bitingEmbraceApplierIndex = -1;
@@ -1430,7 +1427,6 @@ public class BitingEmbracePlayer : ModPlayer
     {
         if (Player.HasBuff<BitingEmbrace>())
         {
-            // Check if the current attacker is the same player who applied the debuff
             bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == bitingEmbraceApplierIndex;
 
             bool isSummon = false;
@@ -1455,12 +1451,9 @@ public class BitingEmbracePlayer : ModPlayer
                 }
             }
 
-            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
             if (!isSummon && !isDebuffApplier)
             {
-                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
-                    info.Damage += 6;
-                };
+                modifiers.SourceDamage.Flat += 6;
             }
         }
     }
@@ -1564,7 +1557,6 @@ public class PressurePointsPlayer : ModPlayer
     {
         if (Player.HasBuff<PressurePoints>())
         {
-            // Check if the current attacker is the same player who applied the debuff
             bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == pressurePointsApplierIndex;
 
             bool isSummon = false;
@@ -1590,12 +1582,9 @@ public class PressurePointsPlayer : ModPlayer
                 }
             }
 
-            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
             if (!isSummon && !isDebuffApplier)
             {
-                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
-                    info.Damage += 6;
-                };
+                modifiers.SourceDamage.Flat += 6;
             }
         }
     }
@@ -1699,7 +1688,6 @@ public class BrittleBonesPlayer : ModPlayer
     {
         if (Player.HasBuff<BrittleBones>())
         {
-            // Check if the current attacker is the same player who applied the debuff
             bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == brittleBonesApplierIndex;
 
             bool isSummon = false;
@@ -1725,12 +1713,9 @@ public class BrittleBonesPlayer : ModPlayer
                 }
             }
 
-            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
             if (!isSummon && !isDebuffApplier)
             {
-                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
-                    info.Damage += 7;
-                };
+                modifiers.SourceDamage.Flat += 7;
             }
         }
     }
@@ -1834,7 +1819,6 @@ public class MarkedPlayer : ModPlayer
     {
         if (Player.HasBuff<Marked>())
         {
-            // Check if the current attacker is the same player who applied the debuff
             bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == markedApplierIndex;
 
             bool isSummon = false;
@@ -1860,12 +1844,9 @@ public class MarkedPlayer : ModPlayer
                 }
             }
 
-            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
             if (!isSummon && !isDebuffApplier)
             {
-                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
-                    info.Damage += 9;
-                };
+                modifiers.SourceDamage.Flat += 9;
             }
         }
     }
@@ -1964,7 +1945,6 @@ public class AnathemaPlayer : ModPlayer
     {
         if (Player.HasBuff<Anathema>())
         {
-            // Check if the current attacker is the same player who applied the debuff
             bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == anathemaApplierIndex;
 
             bool isSummon = false;
@@ -1990,12 +1970,9 @@ public class AnathemaPlayer : ModPlayer
                 }
             }
 
-            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
             if (!isSummon && !isDebuffApplier)
             {
-                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
-                    info.Damage += 20;
-                };
+                modifiers.SourceDamage.Flat += 20;
                 modifiers.FinalDamage *= 1.1f;
             }
         }
@@ -2072,7 +2049,6 @@ public class ShatteredArmorPlayer : ModPlayer
     {
         if (Player.HasBuff<ShatteredArmor>())
         {
-            // Check if the current attacker is the same player who applied the debuff
             bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == shatteredArmorApplierIndex;
 
             bool isSummon = false;
@@ -2098,28 +2074,24 @@ public class ShatteredArmorPlayer : ModPlayer
                 }
             }
 
-            // Only apply bonus if NOT from summon/whip AND NOT from the debuff applier
             if (!isSummon && !isDebuffApplier)
             {
-                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
-                    info.Damage += 8;
-                };
+                modifiers.SourceDamage.Flat += 8;
                 modifiers.FinalDamage *= 1.12f;
             }
         }
     }
 }
+
 public class HellhexPlayer : ModPlayer
 {
     public bool hellhexTriggered = false;
     private int storedDamage = 0;
-    public int hellhexApplierIndex = -1; // Track who applied the Hellhex debuff
-    private bool explosionSpawned = false; // Prevent duplicate explosions
+    public int hellhexApplierIndex = -1;
+    private bool explosionSpawned = false;
 
-    // Helper method to check if damage source is from summon/whip (for HurtInfo)
     private bool IsSummonOrWhipDamage(Player.HurtInfo info)
     {
-        // Check projectile instance
         if (info.DamageSource.SourceProjectileLocalIndex >= 0)
         {
             Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
@@ -2129,7 +2101,6 @@ public class HellhexPlayer : ModPlayer
             }
         }
 
-        // Check projectile type for whips
         if (info.DamageSource.SourceProjectileType > 0)
         {
             int projType = info.DamageSource.SourceProjectileType;
@@ -2146,10 +2117,8 @@ public class HellhexPlayer : ModPlayer
         return false;
     }
 
-    // Helper method to check if damage source is from summon/whip (for HurtModifiers)
     private bool IsSummonOrWhipDamage(ref Player.HurtModifiers modifiers)
     {
-        // Check projectile instance
         if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
         {
             Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
@@ -2159,7 +2128,6 @@ public class HellhexPlayer : ModPlayer
             }
         }
 
-        // Check projectile type for whips
         if (modifiers.DamageSource.SourceProjectileType > 0)
         {
             int projType = modifiers.DamageSource.SourceProjectileType;
@@ -2176,10 +2144,8 @@ public class HellhexPlayer : ModPlayer
         return false;
     }
 
-    // Helper method to check if death reason is from summon/whip (for PlayerDeathReason)
     private bool IsSummonOrWhipDeath(PlayerDeathReason damageSource)
     {
-        // Check projectile instance
         if (damageSource.SourceProjectileLocalIndex >= 0)
         {
             Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
@@ -2189,7 +2155,6 @@ public class HellhexPlayer : ModPlayer
             }
         }
 
-        // Check projectile type for whips
         if (damageSource.SourceProjectileType > 0)
         {
             int projType = damageSource.SourceProjectileType;
@@ -2208,20 +2173,17 @@ public class HellhexPlayer : ModPlayer
 
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
     {
-        // If player has Hellhex when they die from non-summon damage, spawn explosion
         if (Player.HasBuff<Hellhex>())
         {
             bool isSummon = IsSummonOrWhipDeath(damageSource);
-            // Check if killed by the debuff applier
             bool isDebuffApplier = damageSource.SourcePlayerIndex == hellhexApplierIndex;
 
-            // Only spawn explosion if NOT from summon/whip AND NOT from the debuff applier
-            if (!isSummon && !isDebuffApplier && damage >= 30)
+            if (!isSummon && !isDebuffApplier && damage >= 30 && !explosionSpawned)
             {
-                // Only spawn on server or singleplayer
+                explosionSpawned = true;
+
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
-                    float scale = (float)damage / 100f;
                     int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
                     int explosionDamage = (int)(damage * 2.75f);
 
@@ -2234,14 +2196,11 @@ public class HellhexPlayer : ModPlayer
                         0f,
                         owner,
                         0f,
-                        scale
+                        0f
                     );
 
                     if (proj >= 0 && proj < Main.maxProjectiles)
                     {
-                        Main.projectile[proj].scale = scale;
-
-                        // Sync projectile to all clients
                         if (Main.netMode == NetmodeID.Server)
                         {
                             NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
@@ -2256,7 +2215,6 @@ public class HellhexPlayer : ModPlayer
 
     public override void PostHurt(Player.HurtInfo info)
     {
-        // Apply Hellhex when hit by FireWhip
         if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
         {
             int duration = 450;
@@ -2280,11 +2238,10 @@ public class HellhexPlayer : ModPlayer
             hellhexApplierIndex = applierIndex;
             Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
 
-            // Sync the applier index to all clients
             if (Main.netMode == NetmodeID.Server)
             {
                 ModPacket packet = Mod.GetPacket();
-                packet.Write((byte)0); // Message type for Hellhex application
+                packet.Write((byte)0);
                 packet.Write((byte)Player.whoAmI);
                 packet.Write((byte)applierIndex);
                 packet.Send();
@@ -2293,36 +2250,29 @@ public class HellhexPlayer : ModPlayer
             return;
         }
 
-        // Only check for removal if player already has Hellhex and explosion hasn't spawned yet
         if (Player.HasBuff<Hellhex>() && !explosionSpawned)
         {
             bool isSummon = IsSummonOrWhipDamage(info);
-            // Check if hit by the debuff applier
             bool isDebuffApplier = info.DamageSource.SourcePlayerIndex == hellhexApplierIndex;
 
-            // Only trigger if damage >= 30 and NOT summon/whip AND NOT from the debuff applier
             if (!isSummon && !isDebuffApplier && info.Damage >= 30)
             {
-                explosionSpawned = true; // Mark that explosion is being spawned
+                explosionSpawned = true;
 
-                // Remove the buff immediately on all sides
                 int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
                 if (buffIndex >= 0)
                 {
                     Player.buffTime[buffIndex] = 0;
                 }
 
-                // Calculate explosion parameters
                 Vector2 spawnPos = Player.Center;
                 float scale = info.Damage / 100f;
                 int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
                 int explosionDamage = (int)(info.Damage * 2.75f);
 
-                // On attacker's client or server: spawn the explosion immediately
                 if (Main.netMode == NetmodeID.SinglePlayer ||
                     (info.DamageSource.SourcePlayerIndex >= 0 && Main.myPlayer == info.DamageSource.SourcePlayerIndex))
                 {
-                    // Attacker's client - spawn locally
                     int proj = Projectile.NewProjectile(
                         Player.GetSource_Buff(buffIndex),
                         spawnPos,
@@ -2338,11 +2288,10 @@ public class HellhexPlayer : ModPlayer
                         Main.projectile[proj].scale = scale;
                     }
 
-                    // If this is multiplayer, send a packet to server to spawn for everyone else
                     if (Main.netMode == NetmodeID.MultiplayerClient)
                     {
                         ModPacket packet = Mod.GetPacket();
-                        packet.Write((byte)1); // Message type for Hellhex explosion
+                        packet.Write((byte)1);
                         packet.Write((byte)Player.whoAmI);
                         packet.Write(spawnPos.X);
                         packet.Write(spawnPos.Y);
@@ -2352,7 +2301,6 @@ public class HellhexPlayer : ModPlayer
                         packet.Send();
                     }
                 }
-                // On server: spawn and sync to all clients
                 else if (Main.netMode == NetmodeID.Server)
                 {
                     int proj = Projectile.NewProjectile(
@@ -2371,8 +2319,6 @@ public class HellhexPlayer : ModPlayer
                         NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
                     }
                 }
-                // Victim's client (not attacker): don't spawn, wait for server sync
-                // This prevents double spawning
             }
         }
     }
@@ -2383,20 +2329,15 @@ public class HellhexPlayer : ModPlayer
         {
             bool isSummon = IsSummonOrWhipDamage(ref modifiers);
 
-            // Track that Hellhex triggered for UI/effects purposes
             if (!isSummon)
             {
-                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
-                    storedDamage = info.Damage;
-                    hellhexTriggered = true;
-                };
+                hellhexTriggered = true;
             }
         }
     }
 
     public override void PostUpdateBuffs()
     {
-        // Check if applier died - remove buff if so
         if (Player.HasBuff<Hellhex>() && hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[hellhexApplierIndex];
