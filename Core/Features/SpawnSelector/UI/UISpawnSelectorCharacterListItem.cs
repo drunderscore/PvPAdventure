@@ -303,7 +303,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Color c = Main.teamColor[p.team];
 
             // Draw head in UI-space
-            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, p, headPosUI, scale: 1.8f, borderColor: c);
+            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, p, headPosUI, scale: 1.6f, borderColor: c);
 
             // Text centered below head, also in UI-space
             string name = p.name ?? string.Empty;
