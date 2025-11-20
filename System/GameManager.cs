@@ -159,11 +159,11 @@ public class GameManager : ModSystem
             }
         }
     }
-    public void StartGame(int time)
+    public void StartGame(int time, int countdownTimeInSeconds = 10)
     {
         CurrentPhase = Phase.Waiting;
         TimeRemaining = time;
-        _startGameCountdown = 60 * 10;
+        _startGameCountdown = 60 * countdownTimeInSeconds;
 
         ChatHelper.BroadcastChatMessage(
             NetworkText.FromLiteral($"The game will begin in {_startGameCountdown / 60} seconds."), Color.Green);

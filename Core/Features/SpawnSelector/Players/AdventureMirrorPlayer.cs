@@ -15,61 +15,16 @@ namespace PvPAdventure.Core.Features.SpawnSelector.Players;
 
 public class AdventureMirrorPlayer : ModPlayer
 {
-    public int MirrorTimer; // frames left
-    public bool MirrorActive; // currently channeling
-    public int MirrorCountdownLastSecond = -1;
-    private bool didRebuildOnDeath;
-
-    public bool TryStartMirrorChannel()
+    public override void OnHurt(Player.HurtInfo info)
     {
-        if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
-        {
-            if (Player.whoAmI == Main.myPlayer)
-                PopupTextHelper.NewText("Cannot use before game has started!");
-            return false;
-        }
-
-        if (IsPlayerInSpawnRegion())
-        {
-            if (Player.whoAmI == Main.myPlayer)
-                PopupTextHelper.NewText("Cannot use in spawn region!");
-            return false;
-        }
-
-        if (MirrorActive)
-            return false;
-
-        if (Player.whoAmI == Main.myPlayer && IsMoving())
-        {
-            CancelMirrorUse();
-            PopupTextHelper.NewText("Cannot use while moving!");
-            return false;
-        }
-
-        SoundEngine.PlaySound(SoundID.Item6);
-        var config = ModContent.GetInstance<AdventureConfig>();
-        int recallFrames = config.AdventureMirrorRecallFrames + 1;
-
-        MirrorActive = true;
-        MirrorTimer = recallFrames;
-        return true;
-    }
-
-    public override void OnHurt(Terraria.Player.HurtInfo info)
-    {
-        // Only care if mirror is currently channeling
-        if (!MirrorActive)
-            return;
-
-        // Stop the channel + reset animation
-        CancelMirrorUse();
-
-        PopupTextHelper.NewText("Mirror interrupted!", Color.Crimson);
+        base.OnHurt(info);
+        // TODO Stop the channel + reset animation
+        //PopupTextHelper.NewText("Mirror interrupted!", Color.Crimson);
     }
 
     public bool IsPlayerInSpawnRegion()
     {
-        // Force SSS to be enabled when player is within the spawn region.
+        // Is player in spawn region?
         var regionManager = ModContent.GetInstance<RegionManager>();
         Point tilePos = Player.Center.ToTileCoordinates();
         var region = regionManager.GetRegionContaining(tilePos);
@@ -77,52 +32,29 @@ public class AdventureMirrorPlayer : ModPlayer
         {
             return true;
         }
-        return false;
-    }
 
-    private bool IsMoving() => Player.velocity.LengthSquared() > 0f;
-
-    private void CancelMirrorUse()
-    {
-        MirrorActive = false;
-        MirrorTimer = 0;
-        MirrorCountdownLastSecond = -1;
-
-        if (Player.itemAnimation > 0 &&
-            Player.HeldItem.type == ModContent.ItemType<AdventureMirror>())
+        // Is player in bed spawn region?
+        Vector2 bedSpawnPoint = new(Player.SpawnX, Player.SpawnY);
+        float distanceToBedSpawn = Vector2.Distance(bedSpawnPoint * 16f, Player.Center);
+        if (distanceToBedSpawn <= 25 * 16f)
         {
-            Player.controlUseItem = false;
-            Player.channel = false;
-            Player.itemAnimation = 0;
-            Player.itemTime = 0;
-            Player.reuseDelay = 0;
+            return true;
         }
-    }
 
-    public bool CancelIfPlayerMoves()
-    {
-        if (Player.whoAmI != Main.myPlayer)
-            return false;
-
-        if (!IsMoving())
-            return false;
-
-        CancelMirrorUse();
-        PopupTextHelper.NewText("Cannot use while moving!");
-        return true;
+        return false;
     }
 
     public override void PostUpdate()
     {
-        if (!Player.dead)
-        {
-            didRebuildOnDeath = false;
-        }
-
-        if (Main.dedServ || Player.whoAmI != Main.myPlayer)
+        // Only run on clients
+        if (Main.dedServ)
             return;
 
+        // Only run on this client
+        if (Player.whoAmI != Main.myPlayer)
+            return;
 
+        // Update spawn selector UI state every frame
         if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing && Main.mapFullscreen && IsPlayerInSpawnRegion())
         {
             SpawnSelectorSystem.SetEnabled(true);
@@ -131,61 +63,9 @@ public class AdventureMirrorPlayer : ModPlayer
         {
             SpawnSelectorSystem.SetEnabled(false);
         }
-
-        if (!MirrorActive)
-            return;
-
-        if (CancelIfPlayerMoves())
-            return;
-
-        // spawn dust
-        if (Main.rand.NextBool())
-            Dust.NewDust(Player.position, Player.width, Player.height,DustID.MagicMirror, Player.velocity.X * 0.5f,Player.velocity.Y * 0.5f,150,default,1.5f);
-
-        // countdown tick
-        MirrorTimer--;
-        //Main.NewText(MirrorTimer);
-
-        // Show countdown every full second
-        if (MirrorTimer > 0 && MirrorTimer % 60 == 0)
-        {
-            int secondsLeft = MirrorTimer / 60;
-            PopupTextHelper.NewText(secondsLeft.ToString(), Color.LightGreen, showInMultiplayer: true);
-        }
-
-        // Ready to teleport to spawn
-        if (MirrorTimer <= 0)
-        {
-            var config = ModContent.GetInstance<AdventureClientConfig>();
-            if (config.OpenMapAfterRecall)
-            {
-                // Close player inventory
-                Main.playerInventory = false;
-
-                // Open fullscreen map
-                Main.mapFullscreen = true;
-
-                // center the map
-                float worldCenterX = Main.maxTilesX / 2f;
-                float worldCenterY = Main.maxTilesY / 2f;
-                Main.mapFullscreenPos.X = worldCenterX;
-                Main.mapFullscreenPos.Y = worldCenterY;
-                Main.mapFullscreenScale = 0.21f; // arbitrary value to zoom out that fits the entire map
-            }
-
-            // Teleport to spawn
-            Vector2 spawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - 48);
-            //Main.LocalPlayer.Teleport(spawnPos, 0);
-            CustomTeleportWithoutSound(spawnPos);
-
-            SpawnSelectorSystem.SetEnabled(true); // This is redundant because spawn region already sets it to true
-            ModContent.GetInstance<SpawnSelectorSystem>().state.spawnSelectorPanel.Rebuild();
-            Player.RemoveAllGrapplingHooks();
-            MirrorActive = false;
-        }
     }
 
-    private void CustomTeleportWithoutSound(Vector2 newPos)
+    public void CustomTeleportWithoutSound(Vector2 newPos)
     {
         try
         {
@@ -263,22 +143,19 @@ public class AdventureMirrorPlayer : ModPlayer
 
         if (keybinds.AdventureMirrorKeybind.JustPressed)
         {
-            TryUseAdventureMirror();
+            TryUseAdventureMirrorKeybind();
         }
     }
 
-    public void TryUseAdventureMirror()
+    public void TryUseAdventureMirrorKeybind()
     {
         int mirrorIndex = EnsureMirrorInInventory();
 
         if (mirrorIndex == -1)
         {
-            PopupTextHelper.NewText("No Adventure Mirror found in inventory or banks!");
+            PopupTextHelper.NewText("No Adventure Mirror found in inventory or banks!", Player);
             return;
         }
-
-        if (CancelIfPlayerMoves())
-            return;
 
         Player.selectedItem = mirrorIndex;
         Player.controlUseItem = true;

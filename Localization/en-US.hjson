@@ -18,6 +18,7 @@ Mods: {
 			SwitchTeams.DisplayName: Switch Teams
 			"[DEBUG] OpenControls.DisplayName": "[ D E B U G]  Open Controls"
 			"[DEBUG] SwitchTeams.DisplayName": "[ D E B U G]  Switch Teams"
+			"[DEBUG] StartGame.DisplayName": "[ D E B U G]  Start Game"
 		}
 
 		Configs: {
