@@ -21,8 +21,8 @@ public static class PopupTextHelper
         {
             Color = color,
             Text = text,
-            Velocity = new(0f, -4f),
-            DurationInFrames = 60
-        }, player.Top + new Vector2(0,-12));
+            Velocity = new(0f, -4),
+            DurationInFrames = 120
+        }, player.Top + new Vector2(0,-4));
     }
 }

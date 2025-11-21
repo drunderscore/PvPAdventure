@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Features.SpawnSelector.Players;
 using PvPAdventure.Core.Features.SpawnSelector.UI;
 using PvPAdventure.System;
 using Terraria;
@@ -25,15 +24,57 @@ internal class AdventureMirror : ModItem
         Item.value = Item.buyPrice(gold: 5);
         Item.noUseGraphic = false;
     }
-
-    //public override bool AltFunctionUse(Player player) => true; 
-    //public override bool CanRightClick() => true;
     public override bool ConsumeItem(Player player) => false;
-    //public override void RightClick(Player player)
-    //{
-    //    if (!player.GetModPlayer<AdventureMirrorPlayer>().TryStartMirrorChannel())
-    //        return;
-    //}
+
+    #region Right click use
+    public override bool AltFunctionUse(Player player) => true; 
+    public override bool CanRightClick() => true;
+
+    public override void RightClick(Player player)
+    {
+        // Find this item in the player's inventory
+        int index = -1;
+        for (int i = 0; i < player.inventory.Length; i++)
+        {
+            if (player.inventory[i] == Item)  // 'Item' is this ModItem's backing Item
+            {
+                index = i;
+                break;
+            }
+        }
+
+        if (index == -1)
+            return;
+
+        // Make it the selected hotbar item
+        player.selectedItem = index;
+
+        // Simulate pressing the use button so vanilla + your UseStyle/UseItem run
+        player.controlUseItem = true;
+        player.ItemCheck();   // runs use logic, respects useTime/useAnimation
+    }
+    #endregion
+    public override bool CanUseItem(Player player)
+    {
+        // If this player moves, cancel their use
+        if (player.velocity.LengthSquared() > 0)
+        {
+            //if (player.whoAmI == Main.myPlayer)
+                //PopupTextHelper.NewText("stay still!", player);
+            return false;
+        }
+
+        // Redundant check, just to be sure we don't allow any shenanigans
+        var gm = ModContent.GetInstance<GameManager>();
+        if (gm.CurrentPhase != GameManager.Phase.Playing)
+        {
+            if (player.whoAmI == Main.myPlayer)
+                PopupTextHelper.NewText("wait until game starts!", player);
+            return false;
+        }
+
+        return true;
+    }
 
     private void CancelItemUse(Player player)
     {
@@ -66,6 +107,9 @@ internal class AdventureMirror : ModItem
         return false;
     }
 
+    /// <summary>
+    /// Main logic for using the Adventure Mirror
+    /// </summary>
     public override void UseStyle(Player player, Rectangle heldItemFrame)
     {
         base.UseStyle(player, heldItemFrame);
@@ -80,8 +124,8 @@ internal class AdventureMirror : ModItem
         // If this player moves, cancel their use
         if (player.velocity.LengthSquared() > 0)
         {
-            if (player.whoAmI == Main.myPlayer)
-                PopupTextHelper.NewText("stay still!", player);
+            //if (player.whoAmI == Main.myPlayer)
+                //PopupTextHelper.NewText("stay still!", player);
             CancelItemUse(player);
             return;
         }

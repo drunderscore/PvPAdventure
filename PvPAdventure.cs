@@ -51,6 +51,30 @@ public class PvPAdventure : Mod
 
         switch (id)
         {
+            case AdventurePacketIdentifier.PlayerBed:
+            {
+                byte playerId = reader.ReadByte();
+                int spawnX = reader.ReadInt32();
+                int spawnY = reader.ReadInt32();
+
+                Player p = Main.player[playerId];
+                p.SpawnX = spawnX;
+                p.SpawnY = spawnY;
+
+                if (Main.dedServ)
+                {
+                    // Re-broadcast to all clients except the original sender (whoAmI)
+                    var packet = GetPacket();
+                    packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
+                    packet.Write(playerId);
+                    packet.Write(spawnX);
+                    packet.Write(spawnY);
+                    packet.Send(-1, whoAmI);
+                }
+
+                break;
+            }
+
             case AdventurePacketIdentifier.BountyTransaction:
             {
                 var bountyTransaction = BountyManager.Transaction.Deserialize(reader);

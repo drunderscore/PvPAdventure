@@ -7,10 +7,10 @@ using Terraria.GameContent.UI.Elements;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
 {
-    public class UISpawnSelectorPanel : UIPanel
+    public class SpawnSelectorBasePanel : UIPanel
     {
         private UIPanel _randomPanel;
-        private readonly List<UISpawnSelectorCharacterListItem> _playerItems = new();
+        private readonly List<SpawnSelectorCharacter> _playerItems = new();
 
         private const float Spacing = 8f;
         private const float HorizontalPadding = 16f;
@@ -62,8 +62,8 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
             int playerCount = players.Count;
 
-            float itemWidth = UISpawnSelectorCharacterListItem.ItemWidth;
-            float itemHeight = UISpawnSelectorCharacterListItem.ItemHeight;
+            float itemWidth = SpawnSelectorCharacter.ItemWidth;
+            float itemHeight = SpawnSelectorCharacter.ItemHeight;
             float randomWidth = itemHeight;
 
             float contentWidth = playerCount * itemWidth
@@ -89,7 +89,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             {
                 float x = startX + i * (itemWidth + Spacing);
 
-                var row = new UISpawnSelectorCharacterListItem(players[i]);
+                var row = new SpawnSelectorCharacter(players[i]);
                 row.Left.Set(x, 0f);
                 row.Top.Set(y, 0f);
 
@@ -97,7 +97,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 _playerItems.Add(row);
             }
 
-            _randomPanel = new UISpawnSelectorRandomPanel(
+            _randomPanel = new SpawnSelectorQuestionMark(
                 startX,
                 itemHeight,
                 playerCount,

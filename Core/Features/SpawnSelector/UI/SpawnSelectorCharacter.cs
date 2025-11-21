@@ -16,7 +16,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
     /// <summary>
     /// Vanilla-like character row.
     /// </summary>
-    internal class UISpawnSelectorCharacterListItem : UIPanel
+    internal class SpawnSelectorCharacter : UIPanel
     {
         internal const float ItemWidth = 260f;
         internal const float ItemHeight = 72f;
@@ -28,7 +28,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         private readonly int _playerIndex;
         public int PlayerIndex => _playerIndex;
 
-        public UISpawnSelectorCharacterListItem(Player player)
+        public SpawnSelectorCharacter(Player player)
         {
             _dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
             _innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
@@ -47,60 +47,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Width.Set(ItemWidth, 0f);
 
             SetPadding(6f);
-        }
-
-
-        private void DrawArrow(Player p)
-        {
-            float scale = Main.mapFullscreenScale;
-
-            Vector2 mapPos = new(
-                (p.position.X + p.width / 2f) / 16f,
-                (p.position.Y + p.gfxOffY + p.height / 2f) / 16f
-            );
-
-            Vector2 headPos = new(
-                (mapPos.X - Main.mapFullscreenPos.X) * scale + Main.screenWidth / 2f,
-                (mapPos.Y - Main.mapFullscreenPos.Y) * scale + Main.screenHeight / 2f
-            );
-            headPos += new Vector2(34f, 44f);
-
-            CalculatedStyle inner = GetInnerDimensions();
-            Rectangle rect = new(
-                (int)inner.X - 6,
-                (int)inner.Y - 6,
-                100,
-                72
-            );
-
-            Texture2D arrowTex = Ass.Arrow.Value;
-            Vector2 arrowCenter = new(
-                rect.X + rect.Width / 2f -1,
-                rect.Bottom - 20f
-            );
-
-            Vector2 arrowOrigin = arrowTex.Size() * 0.5f;
-
-            Vector2 dir = headPos - arrowCenter;
-
-            if (dir.LengthSquared() > 0.001f)
-            {
-                dir.Normalize();
-
-                float rotation = dir.ToRotation();
-
-                Main.spriteBatch.Draw(
-                    arrowTex,
-                    arrowCenter,   // stays the same, no matter angle
-                    null,
-                    Color.White,
-                    rotation,
-                    arrowOrigin,   // rotate around center
-                    0.9f,
-                    SpriteEffects.None,
-                    0f
-                );
-            }
         }
 
         private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
@@ -319,7 +265,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         public override void MouseOver(UIMouseEvent evt)
         {
             base.MouseOver(evt);
-
             BackgroundColor = new Color(73, 92, 161);
         }
 
@@ -337,9 +282,8 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
             Main.LocalPlayer.UnityTeleport(player.position);
 
-            // close map and SSS
+            // close map
             Main.mapFullscreen = false;
-            SpawnSelectorSystem.SetEnabled(false);
         }
 
         private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
@@ -367,6 +311,9 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             );
         }
 
+        /// <summary>
+        /// Draws a biome-looking BG behind the player
+        /// </summary>
         public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Player player)
         {
             if (player == null || !player.active)

@@ -2,9 +2,6 @@
 using Terraria.ModLoader;
 using Terraria.UI;
 using PvPAdventure.Content.Items;
-using PvPAdventure.Core.Features.SpawnSelector.UI;
-using PvPAdventure.System.Client;
-using Microsoft.Xna.Framework.Input;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
 
