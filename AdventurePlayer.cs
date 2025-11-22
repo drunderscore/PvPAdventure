@@ -33,6 +33,8 @@ public class AdventurePlayer : ModPlayer
     public int Kills { get; private set; }
     public int Deaths { get; private set; }
 
+    private bool deathProcessedThisLife = false;
+
     private readonly int[] _playerMeleeInvincibleTime = new int[Main.maxPlayers];
 
     public HashSet<int> ItemPickups { get; private set; } = new();
@@ -616,126 +618,6 @@ public class AdventurePlayer : ModPlayer
     }
 
     private bool hadShinyStoneLastFrame;
-    public class AncientChiselHotswap : ModPlayer
-    {
-        private bool hadAncientChiselLastFrame;
-        private int ancientChiselSlot = -1;
-        private int disabledSlot = -1; // Track which slot is currently disabled
-        private Item[] lastFrameArmor = new Item[10];
-        private int periodicBuffTimer = 0; // Timer for periodic buff application
-
-        public override void PostUpdateEquips()
-        {
-            if (lastFrameArmor[3] == null)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    lastFrameArmor[i] = new Item();
-                }
-            }
-
-            int currentChiselSlot = GetAncientChiselSlot();
-            bool hasAncientChisel = currentChiselSlot != -1;
-
-            // Check if Ancient Chisel was just equipped (wasn't equipped last frame, but is now)
-            if (!hadAncientChiselLastFrame && hasAncientChisel)
-            {
-                Player.AddBuff(ModContent.BuffType<AncientChiselHotswapBuff>(), 15 * 60 * 60);
-                disabledSlot = currentChiselSlot;
-                periodicBuffTimer = 0; // Reset timer when first equipped
-            }
-
-            // Check if Ancient Chisel was just removed
-            if (hadAncientChiselLastFrame && !hasAncientChisel)
-            {
-                Player.AddBuff(ModContent.BuffType<AncientChiselHotswapBuff>(), 15 * 60 * 60);
-                disabledSlot = ancientChiselSlot;
-                periodicBuffTimer = 0; // Reset timer when removed
-            }
-
-            // Handle periodic buff application while equipped
-            if (hasAncientChisel)
-            {
-                periodicBuffTimer++;
-
-                // Apply buff every 59 seconds (59 * 60 ticks)
-                if (periodicBuffTimer >= 59 * 60)
-                {
-                    Player.AddBuff(ModContent.BuffType<AncientChiselHotswapBuff>(), 15 * 60 * 60);
-                    disabledSlot = currentChiselSlot;
-                    periodicBuffTimer = 0; // Reset timer
-                }
-
-                ancientChiselSlot = currentChiselSlot;
-                hadAncientChiselLastFrame = true;
-            }
-            else
-            {
-                hadAncientChiselLastFrame = false;
-                periodicBuffTimer = 0; // Reset timer when not equipped
-            }
-
-            if (Player.HasBuff(ModContent.BuffType<AncientChiselHotswapBuff>()) && disabledSlot != -1)
-            {
-                PreventSlotPlacement(disabledSlot);
-            }
-            else if (!Player.HasBuff(ModContent.BuffType<AncientChiselHotswapBuff>()))
-            {
-                disabledSlot = -1;
-            }
-
-            for (int i = 3; i < 10; i++)
-            {
-                lastFrameArmor[i] = Player.armor[i].Clone();
-            }
-        }
-
-        private void PreventSlotPlacement(int slotIndex)
-        {
-            if (slotIndex >= 3 && slotIndex < 10)
-            {
-                Item currentItem = Player.armor[slotIndex];
-                Item lastFrameItem = lastFrameArmor[slotIndex];
-                bool slotChanged = currentItem.type != lastFrameItem.type || currentItem.stack != lastFrameItem.stack;
-                bool isNotAncientChisel = currentItem.type != ItemID.AncientChisel;
-                bool wasEmpty = lastFrameItem.IsAir;
-                bool nowHasItem = !currentItem.IsAir;
-
-                if (slotChanged && isNotAncientChisel && (wasEmpty && nowHasItem))
-                {
-                    Item rejectedItem = currentItem.Clone();
-                    Player.armor[slotIndex] = lastFrameItem.Clone(); // Restore previous state
-
-                    if (Main.netMode != NetmodeID.Server) // Only on client/singleplayer
-                    {
-                        Item leftoverItem = Player.GetItem(Player.whoAmI, rejectedItem, GetItemSettings.InventoryEntityToPlayerInventorySettings);
-                    }
-                }
-            }
-        }
-
-        private int GetAncientChiselSlot()
-        {
-            for (int i = 3; i < 10; i++) // Check all accessory slots
-            {
-                if (Player.armor[i].type == ItemID.AncientChisel &&
-                   (i < 7 || !Player.hideVisibleAccessory[i - 3]))
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        // Method to check if a slot is disabled (can be used by other systems)
-        public bool IsSlotDisabled(int slotIndex)
-        {
-            return Player.HasBuff(ModContent.BuffType<AncientChiselHotswapBuff>()) &&
-                   disabledSlot == slotIndex;
-        }
-    }
-
-
     private int lastSpectreHead = 0;
     private bool hadSpectreSetLastFrame;
 
@@ -840,25 +722,20 @@ public class AdventurePlayer : ModPlayer
         // Only play kill markers on clients that we hurt that aren't ourselves
         if (!Main.dedServ && pvp && damageSource.SourcePlayerIndex == Main.myPlayer && Player.whoAmI != Main.myPlayer)
             PlayKillMarker((int)damage);
-
         // Only for non-suicide PvP deaths, apply Beetle Might as needed to the attacker.
         if (pvp && damageSource.SourcePlayerIndex != Player.whoAmI)
         {
             var attacker = Main.player[damageSource.SourcePlayerIndex];
-
             if (attacker.beetleOffense && attacker.beetleOrbs < 3)
             {
                 // First, make sure to clear any previous buff if applicable.
                 if (attacker.beetleOrbs > 0)
                     attacker.ClearBuff(BuffID.BeetleMight1 + attacker.beetleOrbs - 1);
-
                 attacker.AddBuff(BuffID.BeetleMight1 + attacker.beetleOrbs, 5);
             }
         }
-
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
-
         // Remove the Dungeon Guardian when it kills a player.
         if (damageSource.SourceNPCIndex != -1)
         {
@@ -874,31 +751,35 @@ public class AdventurePlayer : ModPlayer
 
         try
         {
-            Player killer = null;
+            if (deathProcessedThisLife)
+            {
+                Mod.Logger.Warn($"Death already processed for {Player.name} this life, skipping duplicate K/D increment");
+                return;
+            }
+            deathProcessedThisLife = true;
 
-            // If you killed yourself, we should delegate to the recent damage.
+            Player killer = null;
             if (pvp && damageSource.SourcePlayerIndex != -1 && damageSource.SourcePlayerIndex != Player.whoAmI)
             {
                 killer = Main.player[damageSource.SourcePlayerIndex];
             }
             else
             {
-                // We checked this earlier, but let's check again for logging purposes.
                 if (pvp && damageSource.SourcePlayerIndex == -1)
                     Mod.Logger.Warn($"PvP kill without a valid SourcePlayerIndex ({this} killed)");
-
                 if (RecentDamageFromPlayer != null)
                     killer = Main.player[RecentDamageFromPlayer.Who];
             }
-
             // Nothing should happen for suicide
             if (killer == null || !killer.active || killer.whoAmI == Player.whoAmI)
                 return;
 
             ModContent.GetInstance<PointsManager>().AwardPlayerKillToTeam(killer, Player);
-            killer.GetModPlayer<AdventurePlayer>().Kills += 1;
-            killer.GetModPlayer<AdventurePlayer>().SyncStatistics();
 
+            // Increment and sync
+            var killerAdventurePlayer = killer.GetModPlayer<AdventurePlayer>();
+            killerAdventurePlayer.Kills += 1;
+            killerAdventurePlayer.SyncStatistics();
             Deaths += 1;
             SyncStatistics();
 
@@ -909,7 +790,6 @@ public class AdventurePlayer : ModPlayer
         {
             // PvP or not, reset whom we last took damage from.
             RecentDamageFromPlayer = null;
-
             // Remove recent damage for ALL players we've attacked after we die.
             // These are indirect post-mortem kills, which we don't want.
             // FIXME: We would still like to attribute this to the next recent damager, which would require a stack of
@@ -923,6 +803,11 @@ public class AdventurePlayer : ModPlayer
         }
     }
 
+    public override void OnRespawn()
+    {
+        deathProcessedThisLife = false;
+    }
+    
     public override void ProcessTriggers(TriggersSet triggersSet)
     {
         var pointsManager = ModContent.GetInstance<PointsManager>();
@@ -2571,19 +2456,6 @@ public class ShinyStoneHotswap : ModBuff
         Main.buffNoTimeDisplay[Type] = false;
     }
 }
-public class AncientChiselHotswapBuff : ModBuff
-{
-    public override string Texture => $"PvPAdventure/Assets/Buff/AncientChiselHotswapBuff";
-
-    public override void SetStaticDefaults()
-    {
-        Main.debuff[Type] = true;
-        Main.buffNoSave[Type] = false;
-        Main.buffNoTimeDisplay[Type] = false;
-        Main.persistentBuff[Type] = true;
-    }
-}
-
 public class NewIchorPlayerDebuff : ModBuff
 {
     public override string Texture => $"PvPAdventure/Assets/Buff/NewIchorPlayerDebuff";

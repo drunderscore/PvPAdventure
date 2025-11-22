@@ -961,8 +961,6 @@ public class AdventureProjectile : GlobalProjectile
             attachOffset.Y = binaryReader.ReadSingle();
         }
     }
-
-    // GlobalItem even though in adventureprojectile because FUCK YOU
     public class PiranhaGunItem : GlobalItem
     {
         public override bool AppliesToEntity(Item entity, bool lateInstantiation)

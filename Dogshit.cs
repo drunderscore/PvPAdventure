@@ -14,6 +14,9 @@ using Mono.Cecil.Cil;
 using Terraria.GameContent.Generation;
 using Terraria.IO;
 using Terraria.WorldBuilding;
+using System.IO;
+using Terraria.DataStructures;
+using Terraria.GameContent.Biomes;
 namespace PvPAdventure
 {
     public class IncreasedRainSystem : ModSystem
@@ -386,83 +389,411 @@ namespace PvPAdventure
             }
         }
     }
-    //    public class ExtraWorldGen : ModSystem
+    internal class RemoveBanners : GlobalItem
+    {
+        public override void OnSpawn(Item item, IEntitySource source)
+        {
+            if (item.createTile == TileID.Banners)
+            {
+                item.active = false;
+                item.TurnToAir();
+            }
+        }
+
+        public override void UpdateInventory(Item item, Player player)
+        {
+            if (item.createTile == TileID.Banners)
+            {
+                item.TurnToAir();
+            }
+        }
+    }
+    //public class ExtraWorldGen : ModSystem
+    //{
+    //    public override void ModifyWorldGenTasks(List<GenPass> tasks, ref double totalWeight)
     //    {
-    //        public override void ModifyWorldGenTasks(List<GenPass> tasks, ref double totalWeight)
+    //        // We need to run AFTER most worldgen, so let's find later passes to insert after
+    //        int shiniesIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Shinies"));
+    //        int finalCleanupIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Final Cleanup"));
+
+    //        // If we can't find those, use a safe default (near the end)
+    //        int insertIndex = finalCleanupIndex != -1 ? finalCleanupIndex : tasks.Count - 1;
+
+    //        // Add all our extra generation as a single pass that runs late
+    //        tasks.Insert(insertIndex, new PassLegacy("Extra Structures Late Pass", delegate (GenerationProgress progress, GameConfiguration passConfig)
     //        {
-    //            // Find the original passes to insert after them
-    //            int lifeCrystalIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Life Crystals"));
-    //            int minecartIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Minecart Tracks"));
-    //            int undergroundChestIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Buried Chests"));
+    //            progress.Message = "Adding extra structures...";
 
-    //            // Add extra life crystals (2x more)
-    //            if (lifeCrystalIndex != -1)
+    //            // Add extra pyramids
+    //            progress.Set(0.1);
+    //            int extraPyramids = WorldGen.genRand.Next(1, 1);
+    //            for (int i = 0; i < extraPyramids; i++)
     //            {
-    //                tasks.Insert(lifeCrystalIndex + 1, new PassLegacy("Extra Life Crystals", delegate (GenerationProgress progress, GameConfiguration passConfig)
+    //                int attempts = 0;
+    //                bool placed = false;
+    //                while (!placed && attempts < 1000)
     //                {
-    //                    progress.Message = "Adding extra life crystals...";
-
-    //                    double num = (double)(Main.maxTilesX * Main.maxTilesY) * 2E-05; // Same formula as vanilla but e5 for now
-
-    //                    for (int i = 0; i < (int)num; i++)
+    //                    int x = WorldGen.genRand.Next(300, Main.maxTilesX - 300);
+    //                    int y = (int)Main.worldSurface - 10;
+    //                    if (WorldGen.InWorld(x, y) && Main.tile[x, y].TileType == TileID.Sand)
     //                    {
-    //                        progress.Set((double)i / num);
-
-    //                        bool placed = false;
-    //                        int attempts = 0;
-
-    //                        while (!placed && attempts < 10000)
-    //                        {
-    //                            int x = WorldGen.genRand.Next(Main.offLimitBorderTiles, Main.maxTilesX - Main.offLimitBorderTiles);
-    //                            int y = WorldGen.genRand.Next((int)(Main.worldSurface * 2.0 + Main.rockLayer) / 3, Main.maxTilesY - 300);
-
-    //                            if (WorldGen.getGoodWorldGen) //for the worthy
-    //                            {
-    //                                y = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 400);
-    //                            }
-
-    //                            if (WorldGen.AddLifeCrystal(x, y))
-    //                            {
-    //                                placed = true;
-    //                            }
-    //                            attempts++;
-    //                        }
+    //                        placed = WorldGen.Pyramid(x, y);
     //                    }
-    //                }));
-    //            }
-    //            // Add extra underground chests (2x more)
-    //            if (undergroundChestIndex != -1)
-    //            {
-    //                tasks.Insert(undergroundChestIndex + 1, new PassLegacy("Extra Underground Chests", delegate (GenerationProgress progress, GameConfiguration passConfig)
-    //                {
-    //                    progress.Message = "Adding extra underground chests...";
-
-    //                    // Vanilla formula is roughly maxTilesX / 34
-    //                    int extraChests = Main.maxTilesX / 34;
-
-    //                    for (int i = 0; i < extraChests; i++)
-    //                    {
-    //                        progress.Set((double)i / extraChests);
-
-    //                        bool placed = false;
-    //                        int attempts = 0;
-
-    //                        while (!placed && attempts < 1000)
-    //                        {
-    //                            int x = WorldGen.genRand.Next(Main.offLimitBorderTiles, Main.maxTilesX - Main.offLimitBorderTiles);
-    //                            int y = WorldGen.genRand.Next((int)Main.worldSurface + 50, Main.maxTilesY - 350);
-
-    //                            if (WorldGen.AddBuriedChest(x, y, 0, false, 1))
-    //                            {
-    //                                placed = true;
-    //                            }
-    //                            attempts++;
-    //                        }
-    //                    }
-    //                }));
+    //                    attempts++;
+    //                }
     //            }
 
-    //            ModContent.GetInstance<PvPAdventure>().Logger.Info("Added extra worldgen passes for life crystals, and underground chests");
-    //        }
+    //            // Add extra pyramids
+    //            progress.Set(0.2);
+    //            int extraPatches = WorldGen.genRand.Next(3, 7);
+
+    //            for (int i = 0; i < extraPatches; i++)
+    //            {
+    //                progress.Set((double)i / extraPatches);
+    //                int attempts = 0;
+    //                bool placed = false;
+
+    //                while (!placed && attempts < 1000)
+    //                {
+    //                    int x = WorldGen.genRand.Next((int)(Main.maxTilesX * 0.2), (int)(Main.maxTilesX * 0.8));
+    //                    int y = WorldGen.genRand.Next((int)Main.rockLayer + 50, Main.maxTilesY - 300);
+
+    //                    if (WorldGen.InWorld(x, y))
+    //                    {
+    //                        WorldGen.ShroomPatch(x, y);
+    //                        placed = true;
+    //                    }
+    //                    attempts++;
+    //                }
+    //            }
+
+    //            // Add extra rich mahogany trees using the proper biome system
+    //            progress.Set(0.3);
+    //            try
+    //            {
+    //                var mahoganyTreeBiome = GenVars.configuration.CreateBiome<MahoganyTreeBiome>();
+    //                int extraMahoganyTrees = WorldGen.genRand.Next(4, 6);
+    //                int mahoganyPlaced = 0;
+    //                int mahoganyAttempts = 0;
+
+    //                while (mahoganyPlaced < extraMahoganyTrees && mahoganyAttempts < 20000)
+    //                {
+    //                    Point point = WorldGen.RandomWorldPoint((int)Main.worldSurface + 50, 50, 500, 50);
+    //                    if (mahoganyTreeBiome.Place(point, GenVars.structures))
+    //                    {
+    //                        mahoganyPlaced++;
+    //                    }
+    //                    mahoganyAttempts++;
+    //                }
+    //            }
+    //            catch
+    //            {
+    //                // Fallback if MahoganyTreeBiome isn't available
+    //                ModContent.GetInstance<PvPAdventure>().Logger.Info("MahoganyTreeBiome not available, skipping extra mahogany trees");
+    //            }
+
+    //            // Add extra minecart tracks using TrackGenerator
+    //            progress.Set(0.5);
+    //            try
+    //            {
+    //                var trackGenerator = new TrackGenerator();
+
+    //                // Add long tracks
+    //                int extraLongTracks = WorldGen.genRand.Next(15, 20);
+    //                int longTrackPlaced = 0;
+    //                int longTrackAttempts = 0;
+
+    //                while (longTrackPlaced < extraLongTracks && longTrackAttempts < Main.maxTilesX)
+    //                {
+    //                    Point point = WorldGen.RandomWorldPoint((int)Main.worldSurface, 10, 200, 10);
+    //                    if (trackGenerator.Place(point, 300, 2000)) // Long track length range
+    //                    {
+    //                        longTrackPlaced++;
+    //                        longTrackAttempts = 0;
+    //                    }
+    //                    else
+    //                    {
+    //                        longTrackAttempts++;
+    //                    }
+    //                }
+
+    //                // Add standard tracks
+    //                int extraStandardTracks = WorldGen.genRand.Next(15, 22);
+    //                int standardTrackPlaced = 0;
+    //                int standardTrackAttempts = 0;
+
+    //                while (standardTrackPlaced < extraStandardTracks && standardTrackAttempts < Main.maxTilesX)
+    //                {
+    //                    Point point = WorldGen.RandomWorldPoint((int)Main.worldSurface, 10, 200, 10);
+    //                    if (trackGenerator.Place(point, 100, 300)) // Standard track length range
+    //                    {
+    //                        standardTrackPlaced++;
+    //                        standardTrackAttempts = 0;
+    //                    }
+    //                    else
+    //                    {
+    //                        standardTrackAttempts++;
+    //                    }
+    //                }
+    //            }
+    //            catch
+    //            {
+    //                // Fallback if TrackGenerator isn't available
+    //                ModContent.GetInstance<PvPAdventure>().Logger.Info("TrackGenerator not available, using alternative minecart track generation");
+
+    //                // Alternative minecart track generation
+    //                int extraTracks = WorldGen.genRand.Next(10, 18);
+    //                for (int i = 0; i < extraTracks; i++)
+    //                {
+    //                    int attempts = 0;
+    //                    bool placed = false;
+    //                    while (!placed && attempts < 500)
+    //                    {
+    //                        int x = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
+    //                        int y = WorldGen.genRand.Next((int)Main.worldSurface + 50, (int)Main.rockLayer + 100);
+
+    //                        if (WorldGen.InWorld(x, y))
+    //                        {
+    //                            // Create underground tunnel with minecart tracks
+    //                            WorldGen.TileRunner(x, y, (double)WorldGen.genRand.Next(8, 15), WorldGen.genRand.Next(50, 100),
+    //                                -1, false, 0f, 0f, true, true);
+
+    //                            // Place minecart tracks in the tunnel
+    //                            for (int trackX = x - 5; trackX <= x + 5; trackX++)
+    //                            {
+    //                                if (WorldGen.InWorld(trackX, y) && !Main.tile[trackX, y].HasTile)
+    //                                {
+    //                                    WorldGen.PlaceTile(trackX, y, TileID.MinecartTrack, true, false);
+    //                                }
+    //                            }
+
+    //                            placed = true;
+    //                        }
+    //                        attempts++;
+    //                    }
+    //                }
+    //            }
+
+    //            // Add extra hives using HiveBiome
+    //            progress.Set(0.6);
+    //            try
+    //            {
+    //                var hiveBiome = GenVars.configuration.CreateBiome<HiveBiome>();
+    //                var honeyPatchBiome = GenVars.configuration.CreateBiome<HoneyPatchBiome>();
+    //                double hiveNum = (double)Main.maxTilesX / 4200.0;
+    //                int extraHives = WorldGen.genRand.Next((int)(7.0 * hiveNum), (int)(11.0 * hiveNum));
+
+    //                for (int i = 0; i < extraHives; i++)
+    //                {
+    //                    int attempts = 0;
+    //                    bool placed = false;
+    //                    while (!placed && attempts < 1000)
+    //                    {
+    //                        Point point = WorldGen.RandomWorldPoint((int)(Main.worldSurface + Main.rockLayer) >> 1, 20, 300, 20);
+    //                        if (hiveBiome.Place(point, GenVars.structures))
+    //                        {
+    //                            placed = true;
+    //                            int honeyPatches = WorldGen.genRand.Next(3);
+    //                            int honeyPlaced = 0;
+    //                            int honeyAttempts = 0;
+
+    //                            while (honeyPlaced < honeyPatches && honeyAttempts < 100)
+    //                            {
+    //                                double distance = WorldGen.genRand.NextDouble() * 60.0 + 30.0;
+    //                                double angle = WorldGen.genRand.NextDouble() * 6.2831854820251465;
+    //                                int honeyX = (int)(Math.Cos(angle) * distance) + point.X;
+    //                                int honeyY = (int)(Math.Sin(angle) * distance) + point.Y;
+    //                                honeyAttempts++;
+
+    //                                if (honeyPatchBiome.Place(new Point(honeyX, honeyY), GenVars.structures))
+    //                                {
+    //                                    honeyPlaced++;
+    //                                }
+    //                            }
+    //                        }
+    //                        attempts++;
+    //                    }
+    //                }
+    //            }
+    //            catch
+    //            {
+    //                // Fallback if HiveBiome isn't available
+    //                ModContent.GetInstance<PvPAdventure>().Logger.Info("HiveBiome not available, using alternative hive generation");
+
+    //                // Alternative hive generation
+    //                int extraHives = WorldGen.genRand.Next(4, 8);
+    //                for (int i = 0; i < extraHives; i++)
+    //                {
+    //                    int attempts = 0;
+    //                    bool placed = false;
+    //                    while (!placed && attempts < 500)
+    //                    {
+    //                        int x = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
+    //                        int y = WorldGen.genRand.Next((int)((Main.worldSurface + Main.rockLayer) / 2), (int)Main.rockLayer + 200);
+
+    //                        // Check if we're in jungle (mud blocks)
+    //                        if (Main.tile[x, y].TileType == TileID.Mud || Main.tile[x, y].TileType == TileID.JungleGrass)
+    //                        {
+    //                            // Create a hive using TileRunner with Hive block (225)
+    //                            int hiveSize = WorldGen.genRand.Next(30, 60);
+    //                            WorldGen.TileRunner(x, y, (double)hiveSize, 1, TileID.Hive, false, 0f, 0f, true, true);
+
+    //                            // Carve out the interior
+    //                            WorldGen.TileRunner(x, y, (double)(hiveSize - 10), 1, -1, false, 0f, 0f, true, true);
+
+    //                            // Add some honey
+    //                            if (WorldGen.genRand.NextBool(3))
+    //                            {
+    //                                WorldGen.TileRunner(x, y, (double)WorldGen.genRand.Next(5, 15), 1, TileID.HoneyBlock, false, 0f, 0f, true, true);
+    //                            }
+
+    //                            placed = true;
+    //                        }
+    //                        attempts++;
+    //                    }
+    //                }
+    //            }
+
+    //            // Add extra sky islands with houses
+    //            progress.Set(0.8);
+    //            int extraIslands = WorldGen.genRand.Next(2, 4);
+    //            for (int i = 0; i < extraIslands; i++)
+    //            {
+    //                int attempts = 0;
+    //                bool placed = false;
+    //                while (!placed && attempts < 1000)
+    //                {
+    //                    int x = WorldGen.genRand.Next((int)(Main.maxTilesX * 0.1), (int)(Main.maxTilesX * 0.9));
+    //                    int y = WorldGen.genRand.Next(90, (int)Main.worldSurface - 150);
+
+    //                    if (x > Main.maxTilesX / 2 - 150 && x < Main.maxTilesX / 2 + 150)
+    //                    {
+    //                        attempts++;
+    //                        continue;
+    //                    }
+
+    //                    if (WorldGen.InWorld(x, y))
+    //                    {
+    //                        WorldGen.CloudIsland(x, y);
+
+    //                        int islandStyle = 0;
+    //                        if (WorldGen.remixWorldGen && WorldGen.drunkWorldGen)
+    //                        {
+    //                            bool flag = (GenVars.crimsonLeft && x < Main.maxTilesX / 2) || (!GenVars.crimsonLeft && x > Main.maxTilesX / 2);
+    //                            islandStyle = flag ? 5 : 4;
+    //                        }
+    //                        else if (WorldGen.getGoodWorldGen || WorldGen.remixWorldGen)
+    //                        {
+    //                            islandStyle = WorldGen.crimson ? 5 : 4;
+    //                        }
+    //                        else if (Main.tenthAnniversaryWorld)
+    //                        {
+    //                            islandStyle = 6;
+    //                        }
+
+    //                        WorldGen.IslandHouse(x, y, islandStyle);
+    //                        placed = true;
+    //                    }
+    //                    attempts++;
+    //                }
+    //            }
+
+    //            // Add extra mine houses with buried chests
+    //            progress.Set(0.9);
+    //            int extraHouses = WorldGen.genRand.Next(40, 80);
+    //            for (int i = 0; i < extraHouses; i++)
+    //            {
+    //                int attempts = 0;
+    //                bool placed = false;
+    //                while (!placed && attempts < 1000)
+    //                {
+    //                    int x = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
+    //                    int y = WorldGen.genRand.Next((int)Main.worldSurface + 100, (int)Main.rockLayer + 200);
+
+    //                    if (WorldGen.InWorld(x, y) && !Main.tile[x, y].HasTile && Main.tile[x, y].WallType == 0)
+    //                    {
+    //                        // Generate the mine house
+    //                        WorldGen.MineHouse(x, y);
+
+    //                        // Now try to place a buried chest inside the mine house
+    //                        bool chestPlaced = false;
+    //                        int chestAttempts = 0;
+
+    //                        // Search for a suitable spot inside the mine house area for the chest
+    //                        while (!chestPlaced && chestAttempts < 100)
+    //                        {
+    //                            // Look within a 15 tile radius of the original placement point
+    //                            int chestX = x + WorldGen.genRand.Next(-10, 11);
+    //                            int chestY = y + WorldGen.genRand.Next(-5, 6);
+
+    //                            if (WorldGen.InWorld(chestX, chestY))
+    //                            {
+    //                                // Check if this position is inside the mine house structure
+    //                                // Mine houses typically have wooden walls (wall ID 27) and wood/stone tiles
+    //                                if (Main.tile[chestX, chestY].WallType == 27 ||
+    //                                    (Main.tile[chestX, chestY].HasTile &&
+    //                                     (Main.tile[chestX, chestY].TileType == TileID.WoodBlock ||
+    //                                      Main.tile[chestX, chestY].TileType == TileID.Stone)))
+    //                                {
+    //                                    // Try to place a buried chest with random style
+    //                                    int chestStyle = WorldGen.genRand.Next(1, 11); // Regular underground chest styles
+    //                                    if (WorldGen.AddBuriedChest(chestX, chestY, 0, false, 1))
+    //                                    {
+    //                                        chestPlaced = true;
+    //                                        ModContent.GetInstance<PvPAdventure>().Logger.Info($"Placed buried chest at {chestX}, {chestY} in mine house");
+    //                                    }
+    //                                }
+    //                            }
+    //                            chestAttempts++;
+    //                        }
+
+    //                        placed = true;
+    //                    }
+    //                    attempts++;
+    //                }
+    //            }
+
+    //            // Add extra life crystals and underground chests
+    //            progress.Set(0.95);
+    //            int extraLifeCrystals = Main.maxTilesX / 15;
+    //            for (int i = 0; i < extraLifeCrystals; i++)
+    //            {
+    //                int attempts = 0;
+    //                bool placed = false;
+    //                while (!placed && attempts < 1000)
+    //                {
+    //                    int x = WorldGen.genRand.Next(Main.offLimitBorderTiles, Main.maxTilesX - Main.offLimitBorderTiles);
+    //                    int y = WorldGen.genRand.Next((int)(Main.worldSurface * 2.0 + Main.rockLayer) / 3, Main.maxTilesY - 300);
+    //                    if (WorldGen.AddLifeCrystal(x, y))
+    //                    {
+    //                        placed = true;
+    //                    }
+    //                    attempts++;
+    //                }
+    //            }
+
+    //            int extraChests = Main.maxTilesX / 30;
+    //            for (int i = 0; i < extraChests; i++)
+    //            {
+    //                int attempts = 0;
+    //                bool placed = false;
+    //                while (!placed && attempts < 1000)
+    //                {
+    //                    int x = WorldGen.genRand.Next(Main.offLimitBorderTiles, Main.maxTilesX - Main.offLimitBorderTiles);
+    //                    int y = WorldGen.genRand.Next((int)Main.worldSurface + 50, Main.maxTilesY - 350);
+    //                    if (WorldGen.AddBuriedChest(x, y, 0, false, 1))
+    //                    {
+    //                        placed = true;
+    //                    }
+    //                    attempts++;
+    //                }
+    //            }
+
+    //            progress.Set(1.0);
+
+    //        }));
+
+    //        ModContent.GetInstance<PvPAdventure>().Logger.Info("Added extra worldgen pass for multiple structures");
     //    }
+    //}
 }
