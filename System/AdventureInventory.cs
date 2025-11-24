@@ -45,6 +45,10 @@ public class AdventureInventory : ModSystem
     private static bool IsPlayerDyeContext(int context) => context is ItemSlot.Context.EquipDye
         or ItemSlot.Context.EquipMiscDye or ItemSlot.Context.ModdedDyeSlot;
 
+
+    private static bool IsUnusableContext(int context) => IsPlayerDyeContext(context);
+
+
     private void OnAccessorySlotLoaderDrawSlot(AccessorySlotLoaderDrawSlotDelegate orig, AccessorySlotLoader self,
         Item[] items, int context, int slot, bool flag3, int xLoc, int yLoc, bool skipCheck)
     {

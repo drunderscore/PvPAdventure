@@ -367,6 +367,7 @@ Mods: {
 					Tooltip: ""
 				}
 
+
 				NoKnockbackItems: {
 					Label: No Knockback Items
 					Tooltip: ""
@@ -374,6 +375,10 @@ Mods: {
 
 				NoKnockbackProjectiles: {
 					Label: No Knockback Projectiles
+
+				AwardBountyEveryKill: {
+					Label: Award Bounty Every Kill
+
 					Tooltip: ""
 				}
 			}

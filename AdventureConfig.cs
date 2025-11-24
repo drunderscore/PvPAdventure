@@ -214,6 +214,7 @@ public class AdventureConfig : ModConfig
         public float ProjectileCollisionDamageReduction { get; set; }
 
         public Dictionary<ProjectileDefinition, float> NoLineOfSightDamageReduction { get; set; } = new();
+        public bool AwardBountyEveryKill { get; set; }
 
     }
 
