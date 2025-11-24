@@ -1,8 +1,9 @@
+﻿using Microsoft.Xna.Framework;
+using MonoMod.Cil;
+using PvPAdventure.Content.Items;
+using PvPAdventure.System;
 using System.IO;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using MonoMod.Cil;
-using PvPAdventure.System;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
@@ -51,6 +52,59 @@ public class PvPAdventure : Mod
 
         switch (id)
         {
+            case AdventurePacketIdentifier.AdventureMirrorRightClickUse:
+                {
+                    byte playerId = reader.ReadByte();
+                    byte slot = reader.ReadByte();
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        if (playerId != whoAmI)
+                            return;
+
+                        if (playerId < 0 || playerId >= Main.maxPlayers)
+                            return;
+
+                        Player player = Main.player[playerId];
+                        if (player is null || !player.active)
+                            return;
+
+                        if (slot < 0 || slot >= player.inventory.Length)
+                            return;
+
+                        Item item = player.inventory[slot];
+                        if (item?.ModItem is not AdventureMirror)
+                            return;
+
+                        ModPacket p = GetPacket();
+                        p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
+                        p.Write(playerId);
+                        p.Write(slot);
+                        p.Send();
+                    }
+                    else if (Main.netMode == NetmodeID.MultiplayerClient)
+                    {
+                        Player player = Main.player[playerId];
+                        if (player is null || !player.active)
+                            return;
+
+                        if (slot < 0 || slot >= player.inventory.Length)
+                            return;
+
+                        Item item = player.inventory[slot];
+                        if (item?.ModItem is not AdventureMirror)
+                            return;
+
+                        // Visual state only
+                        player.selectedItem = slot;
+                        player.itemAnimation = item.useAnimation;
+                        player.itemAnimationMax = item.useAnimation;
+                        player.itemTime = item.useTime;
+                        player.itemTimeMax = item.useTime;
+                    }
+
+                break;
+            }
             case AdventurePacketIdentifier.PlayerBed:
             {
                 byte playerId = reader.ReadByte();
@@ -63,7 +117,6 @@ public class PvPAdventure : Mod
 
                 if (Main.dedServ)
                 {
-                    // Re-broadcast to all clients except the original sender (whoAmI)
                     var packet = GetPacket();
                     packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
                     packet.Write(playerId);

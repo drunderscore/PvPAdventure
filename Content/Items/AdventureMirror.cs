@@ -27,33 +27,52 @@ internal class AdventureMirror : ModItem
     public override bool ConsumeItem(Player player) => false;
 
     #region Right click use
-    public override bool AltFunctionUse(Player player) => true; 
+    public override bool AltFunctionUse(Player player) => true;
     public override bool CanRightClick() => true;
 
     public override void RightClick(Player player)
     {
-        // Find this item in the player's inventory
+        if (player.whoAmI != Main.myPlayer)
+            return;
+
+        // Find the slot of this item
         int index = -1;
         for (int i = 0; i < player.inventory.Length; i++)
         {
-            if (player.inventory[i] == Item)  // 'Item' is this ModItem's backing Item
+            if (player.inventory[i] == Item)
             {
                 index = i;
                 break;
             }
         }
-
         if (index == -1)
             return;
 
-        // Make it the selected hotbar item
-        player.selectedItem = index;
+        if (player.CCed || player.itemAnimation > 0 || player.reuseDelay > 0)
+            return;
 
-        // Simulate pressing the use button so vanilla + your UseStyle/UseItem run
-        player.controlUseItem = true;
-        player.ItemCheck();   // runs use logic, respects useTime/useAnimation
+        if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            player.selectedItem = index;
+            player.controlUseItem = true;
+            player.releaseUseItem = true;
+            player.ItemCheck();
+            player.controlUseItem = false;
+            player.releaseUseItem = false;
+            return;
+        }
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            ModPacket p = Mod.GetPacket();
+            p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
+            p.Write((byte)player.whoAmI);
+            p.Write((byte)index);
+            p.Send(); // to server
+        }
     }
     #endregion
+
     public override bool CanUseItem(Player player)
     {
         // If this player moves, cancel their use
@@ -107,9 +126,6 @@ internal class AdventureMirror : ModItem
         return false;
     }
 
-    /// <summary>
-    /// Main logic for using the Adventure Mirror
-    /// </summary>
     public override void UseStyle(Player player, Rectangle heldItemFrame)
     {
         base.UseStyle(player, heldItemFrame);
@@ -153,11 +169,11 @@ internal class AdventureMirror : ModItem
     {
         // Get player spawn pos
         int twoTilesAbove = 2 * 16;
-        Vector2 playerSpawnPos = new Vector2(player.SpawnX * 16, player.SpawnY * 16 - twoTilesAbove);
-        if (player.SpawnX == -1 && player.SpawnY == -1)
-        {
-            playerSpawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - 48);
-        }
+        //Vector2 playerSpawnPos = new Vector2(player.SpawnX * 16, player.SpawnY * 16 - twoTilesAbove);
+        //if (player.SpawnX == -1 && player.SpawnY == -1)
+        //{
+            Vector2 playerSpawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - twoTilesAbove);
+        //}
 
         player.Teleport(playerSpawnPos);
     }

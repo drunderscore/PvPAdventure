@@ -93,6 +93,10 @@ internal class DrawBedsOnMapHook : ModSystem
             {
                 if (Main.netMode == NetmodeID.MultiplayerClient)
                 {
+                    // Singleplayer: teleport directly to bed spawn
+                    Vector2 spawn = new Vector2(p.SpawnX * 16, p.SpawnY * 16 - 48);
+                    p.Teleport(spawn);
+
                     // Ask server to teleport this player to their spawn position
                     NetMessage.SendData(MessageID.TeleportEntity, number: Main.myPlayer);
                 }

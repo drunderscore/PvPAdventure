@@ -370,12 +370,12 @@ Mods: {
 				}
 
 				OpenMapAfterRecall: {
-					Label: Open Map After Recall
+					Label: "[i:2435] Open Map After Recall"
 					Tooltip: Opens the map instantly after the mirror has finished channeling
 				}
 
 				ShowPopupText: {
-					Label: Show Popup Text
+					Label: "[i:159] Show Popup Text"
 					Tooltip: Shows popup text related to item
 				}
 

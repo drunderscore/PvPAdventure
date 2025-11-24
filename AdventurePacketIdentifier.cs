@@ -7,5 +7,6 @@ public enum AdventurePacketIdentifier : byte
     PingPong,
     PlayerItemPickup,
     PlayerTeam,
-    PlayerBed
+    PlayerBed,
+    AdventureMirrorRightClickUse
 }
