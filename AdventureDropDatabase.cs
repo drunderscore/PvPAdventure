@@ -98,9 +98,10 @@ public class AdventureDropDatabase : ModSystem
                 foreach (var drop in drops)
                 {
                     ModifyDropRate(drop, ItemID.Stinger, 1, 1);
-                    ModifyDropRate(drop, ItemID.TatteredBeeWing, 1, 33);
+                    ModifyDropRate(drop, ItemID.TatteredBeeWing, 1, 1);
                 }
                 break;
+
             case NPCID.GiantTortoise:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.TurtleShell, 1, 3);
@@ -209,7 +210,11 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.Mothron:
                 foreach (var drop in drops)
+                {
                     ModifyDropRate(drop, ItemID.BrokenHeroSword, 1, 2);
+                    ModifyDropRate(drop, ItemID.TheEyeOfCthulhu, 1, 2);
+                    ModifyDropRate(drop, ItemID.MothronWings, 1, 6);
+                }
                 break;
 
             case NPCID.SkeletonArcher:
@@ -233,6 +238,85 @@ public class AdventureDropDatabase : ModSystem
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.LihzahrdPowerCell, 1, 75);
                 break;
+
+            case NPCID.MartianEngineer:
+            case NPCID.MartianOfficer:
+            case NPCID.BrainScrambler:
+            case NPCID.MartianWalker:
+            case NPCID.GrayGrunt:
+            case NPCID.GigaZapper:
+            case NPCID.RayGunner:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.ChargedBlasterCannon, 1, 300);
+                    ModifyDropRate(drop, ItemID.LaserDrill, 1, 300);
+                }
+                break;
+
+            case NPCID.AngryNimbus:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.NimbusRod, 1, 6);
+                }
+                break;
+
+            case NPCID.AngryTrapper:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.Vine, 1, 1);
+                }
+                break;
+
+            case NPCID.Hornet:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.Stinger, 1, 1);
+                }
+                break;
+
+            case NPCID.Nailhead:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.NailGun, 1, 6);
+                }
+                break;
+
+            case NPCID.Reaper:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.DeathSickle, 1, 20);
+                }
+                break;
+
+            case NPCID.DeadlySphere:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.DeadlySphereStaff, 1, 10);
+                }
+                break;
+
+            case NPCID.DrManFly:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.ToxicFlask, 1, 6);
+                }
+                break;
+
+            case NPCID.PirateCaptain:
+                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                     ItemID.CoinGun,
+                     ItemID.LuckyCoin,
+                     ItemID.DiscountCard,
+                     ItemID.PirateStaff
+                            )
+                );
+                foreach (var drop in drops)
+                {
+
+                   ModifyDropRate(drop, ItemID.Cutlass, 1, 10);
+                   ModifyDropRate(drop, ItemID.GoldRing, 1, 10);
+                }
+                    break;
 
             case NPCID.EyeofCthulhu:
                 foreach (var drop in drops)
