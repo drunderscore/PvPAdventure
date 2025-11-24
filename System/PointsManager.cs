@@ -250,27 +250,27 @@ public class PointsManager : ModSystem
 
         var victimTeamPoints = _points[(Team)victim.team];
         var killerTeamPints = _points[killerTeam];
+
         // Find the lowest denomination of points we can take (can't take more than the other team has!)
         var pointsToTrade = Math.Min(victimTeamPoints, config.Points.PlayerKill);
 
-        // If they had no points, then there isn't any work to do.
-        if (pointsToTrade <= 0)
-            return;
+        if (pointsToTrade > 0)
+        {
+            _points[(Team)victim.team] -= pointsToTrade;
+            _points[killerTeam] += pointsToTrade;
 
-        _points[(Team)victim.team] -= pointsToTrade;
-        _points[killerTeam] += pointsToTrade;
+            VisualizePointChange(pointsToTrade, (Team)killer.team, killer.position,
+                $"[c/{Main.teamColor[victim.team].Hex3()}:{victim.name}]");
+            VisualizePointChange(-pointsToTrade, (Team)victim.team, victim.position);
 
-        if (victimTeamPoints > killerTeamPints)
+            if (Main.dedServ)
+                NetMessage.SendData(MessageID.WorldData);
+            else
+                UiScoreboard.Invalidate();
+        }
+
+        if (config.Combat.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
             ModContent.GetInstance<BountyManager>().Award(killer, victim);
-
-        VisualizePointChange(pointsToTrade, (Team)killer.team, killer.position,
-            $"[c/{Main.teamColor[victim.team].Hex3()}:{victim.name}]");
-        VisualizePointChange(-pointsToTrade, (Team)victim.team, victim.position);
-
-        if (Main.dedServ)
-            NetMessage.SendData(MessageID.WorldData);
-        else
-            UiScoreboard.Invalidate();
     }
 
     public class UIScoreboard(PointsManager pointsManager) : UIState

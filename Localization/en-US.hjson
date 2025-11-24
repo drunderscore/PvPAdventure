@@ -314,6 +314,11 @@ Mods: {
 					Label: No Line Of Sight Damage Reduction
 					Tooltip: ""
 				}
+
+				AwardBountyEveryKill: {
+					Label: Award Bounty Every Kill
+					Tooltip: ""
+				}
 			}
 
 			AdventureClientConfig: {
