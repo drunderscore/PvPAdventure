@@ -196,6 +196,8 @@ public class AdventurePlayer : ModPlayer
         IL_Player.UpdateBuffs += EditPlayerUpdateBuffs;
         // Simplify logic for handling Beetle Scale Mail set bonus to do the bare minimum required.
         IL_Player.UpdateArmorSets += EditPlayerUpdateArmorSets;
+        // Prevent social armor slots from being drawn.
+        IL_Player.PlayerFrame += EditPlayerFrame;
     }
 
     public override void SetStaticDefaults()
@@ -907,6 +909,26 @@ public class AdventurePlayer : ModPlayer
         Latency = _pingPongStopwatch.Elapsed / 2;
         _pingPongStopwatch = null;
         _pingPongCanary++;
+    }
+
+    private void EditPlayerFrame(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        RemoveSocialArmor(10);
+        RemoveSocialArmor(11);
+        RemoveSocialArmor(12);
+
+        return;
+
+        void RemoveSocialArmor(int slot)
+        {
+            cursor.Index = 0;
+
+            cursor.GotoNext(i => i.MatchLdfld<Player>("armor") && i.Next.MatchLdcI4(slot));
+            cursor.Index -= 1;
+            cursor.RemoveRange(14);
+        }
     }
 
     private static bool? ShouldSilenceHurtSound(Player target, Player.HurtInfo info)
