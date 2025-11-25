@@ -26,8 +26,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             SetPadding(0f);
 
             BuildLayout();
-
-            Log.Info("UISpawnSelectorPanel.OnInitialize: layout built");
         }
 
         private void BuildLayout()
@@ -44,7 +42,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 {
                     Player p = Main.player[i];
 
-                    if (p == null || !p.active || p.dead || p.statLife <= 0)
+                    if (p == null)
                         continue;
 
                     if (p.whoAmI == local.whoAmI || p.team != local.team)
@@ -52,12 +50,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
                     players.Add(p);
                 }
-            }
-
-            // DEBUG: ADD LOCAL PLAYER
-            if (players.Count == 0 && local != null && local.active && !local.dead && local.statLife > 0)
-            {
-                players.Add(local);
             }
 
             int playerCount = players.Count;
@@ -110,13 +102,12 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Recalculate();
             RecalculateChildren();
 
-            Log.Debug($"UISpawnSelectorPanel.BuildLayout: players={playerCount}, panelWidth={panelWidth}");
+            Log.Debug($"UISpawnSelectorPanel.BuildLayout: players={playerCount}");
         }
 
         public void Rebuild()
         {
             BuildLayout();
-            Log.Debug("UISpawnSelectorPanel.Rebuild: UI rebuilt");
         }
 
         public override void Update(GameTime gameTime)
@@ -153,17 +144,12 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             for (int i = 0; i < Main.maxPlayers; i++)
             {
                 var p = Main.player[i];
-                if (p == null || !p.active || p.dead || p.statLife <= 0)
+                if (p == null)
                     continue;
                 if (p.whoAmI == local.whoAmI || p.team != local.team)
                     continue;
 
                 players.Add(p.whoAmI);
-            }
-
-            if (players.Count == 0 && local != null && local.active && !local.dead && local.statLife > 0)
-            {
-                players.Add(local.whoAmI);
             }
 
             if (players.Count != _playerItems.Count)

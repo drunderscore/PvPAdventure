@@ -16,12 +16,14 @@ internal class DrawBedsOnMapHook : ModSystem
     public override void Load()
     {
         On_Player.ChangeSpawn += OnPlayerChangeSpawn;
+        On_Player.RemoveSpawn += OnPlayerRemoveSpawn;
         On_SpawnMapLayer.Draw += OnSpawnMapLayer;
     }
 
     public override void Unload()
     {
         On_Player.ChangeSpawn -= OnPlayerChangeSpawn;
+        On_Player.RemoveSpawn -= OnPlayerRemoveSpawn;
         On_SpawnMapLayer.Draw -= OnSpawnMapLayer;
     }
 
@@ -41,17 +43,26 @@ internal class DrawBedsOnMapHook : ModSystem
         }
     }
 
-    private void OnSpawnMapLayer(On_SpawnMapLayer.orig_Draw orig,
-        SpawnMapLayer self,
-        ref MapOverlayDrawContext context,
-        ref string text)
+    private void OnPlayerRemoveSpawn(On_Player.orig_RemoveSpawn orig, Player self)
+    {
+        orig(self);
+
+        // Send packet to server, notifying the server of a removed player spawn position for a player.
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            var packet = Mod.GetPacket();
+            packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
+            packet.Write((byte)self.whoAmI);
+            packet.Write(-1);
+            packet.Write(-1);
+            packet.Send();
+        }
+    }
+
+    private void OnSpawnMapLayer(On_SpawnMapLayer.orig_Draw orig,SpawnMapLayer self,ref MapOverlayDrawContext context, ref string text)
     {
         // Let vanilla draw spawn point + local bed first
         orig(self, ref context, ref text);
-
-        // If spawn selector state is not active, skip
-        if (!SpawnSelectorSystem.GetEnabled())
-            return;
 
         Texture2D bedTex = TextureAssets.SpawnBed.Value;
 
@@ -66,8 +77,10 @@ internal class DrawBedsOnMapHook : ModSystem
 
             //Main.NewText(p.SpawnX);
 
-        // No bed set for this player
-        if (p.SpawnX == -1 || p.SpawnY == -1)
+            bool selectorEnabled = SpawnSelectorSystem.GetEnabled();
+
+            // No bed set for this player
+            if (p.SpawnX == -1 || p.SpawnY == -1)
                 continue;
 
             Vector2 bedTilePos = new Vector2(p.SpawnX, p.SpawnY);
@@ -82,6 +95,15 @@ internal class DrawBedsOnMapHook : ModSystem
                 alignment: Alignment.Bottom,
                 spriteEffects: SpriteEffects.None
             );
+
+            if (!selectorEnabled)
+            {
+                if (hoverCheck.IsMouseOver)
+                {
+                    text = $"{p.name}'s Bed";
+                }
+                continue;
+            }
 
             if (!hoverCheck.IsMouseOver)
                 continue;
@@ -109,6 +131,37 @@ internal class DrawBedsOnMapHook : ModSystem
 
                 Main.mapFullscreen = false;
             }
+
         }
+        DrawSpawnBoxOnMap(ref context);
+    }
+
+    private void DrawSpawnBoxOnMap(ref MapOverlayDrawContext context)
+    {
+        if (!Main.mapFullscreen) return;
+
+        if (Main.mapFullscreenScale < 0.5) return;
+
+        // spawn region in tiles (same as RegionManager)
+        Rectangle area = new(Main.spawnTileX - 25, Main.spawnTileY - 25, 50, 50);
+
+        // tile → map screen
+        Vector2 topLeft = (new Vector2(area.X, area.Y) - context.MapPosition) * context.MapScale + context.MapOffset;
+        Vector2 size = new(area.Width * context.MapScale, area.Height * context.MapScale);
+
+        Texture2D pix = TextureAssets.MagicPixel.Value;
+        Color col = Color.Black * 0.7f;
+        int t = 10;
+
+        int x = (int)topLeft.X;
+        int y = (int)topLeft.Y;
+        int w = (int)size.X;
+        int h = (int)size.Y;
+
+        // top, bottom, left, right
+        Main.spriteBatch.Draw(pix, new Rectangle(x, y, w, t), col);
+        Main.spriteBatch.Draw(pix, new Rectangle(x, y + h - t, w, t), col);
+        Main.spriteBatch.Draw(pix, new Rectangle(x, y, t, h), col);
+        Main.spriteBatch.Draw(pix, new Rectangle(x + w - t, y, t, h), col);
     }
 }

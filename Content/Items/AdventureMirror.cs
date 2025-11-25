@@ -27,8 +27,11 @@ internal class AdventureMirror : ModItem
     public override bool ConsumeItem(Player player) => false;
 
     #region Right click use
-    public override bool AltFunctionUse(Player player) => true;
     public override bool CanRightClick() => true;
+    public override bool AltFunctionUse(Player player)
+    {
+        return false;
+    }
 
     public override void RightClick(Player player)
     {

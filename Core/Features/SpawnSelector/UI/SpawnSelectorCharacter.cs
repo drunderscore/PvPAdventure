@@ -1,15 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Features.SpawnSelector.Players;
-using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using PvPAdventure.Core.Helpers;
 using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
+using Terraria.UI.Chat;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
 {
@@ -81,7 +82,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             {
                 var rect2 = dims.ToRectangle();
 
-                Utils.DrawBorderString(sb, "Unable to find player :(", rect2.Location.ToVector2() + new Vector2(50, 0), Color.White);
+                Utils.DrawBorderString(sb, "Unable to find p :(", rect2.Location.ToVector2() + new Vector2(50, 0), Color.White);
                 return;
             }
 
@@ -122,7 +123,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             }
             catch (Exception e)
             {
-                Log.Error("Failed to draw player: " + e);
+                Log.Error("Failed to draw p: " + e);
             }
             finally
             {
@@ -147,7 +148,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
 
             // Name centered in the right-area
-            string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name + "";
+            string name = string.IsNullOrEmpty(player.name) ? "Unknown p" : player.name + "";
             float nameScale = 1f;
             if (player.name.Length > 16) nameScale = 0.85f;
             Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
@@ -216,11 +217,18 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
             // Draw player head if hovering
             DrawPlayerHeadOnMap(player);
+
+            // Draw player respawn timer if it exists
+            string respawnTimeInSeconds = ((player.respawnTimer / 60) + 1).ToString();
+            if (player.respawnTimer != 0)
+            {
+                Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, pos + new Vector2(31, 4), Color.Gray, scale: 1f);
+            }
         }
 
         private void DrawPlayerHeadOnMap(Player p)
         {
-            if (p == null || !p.active)
+            if (p == null || !p.active || p.dead)
                 return;
 
             var config = ModContent.GetInstance<AdventureClientConfig>();
@@ -234,13 +242,13 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             // Player in tile coords
             Vector2 tilePos = p.Center / 16f;
 
-            // Screen-space position on the fullscreen map (pixels)
+            // Screen-space position on the fullscreen map (pixels) 
             Vector2 mapScreenCenter = new(
                 Main.screenWidth / 2f,
                 Main.screenHeight / 2f
             );
             Vector2 headPosScreen = (tilePos - Main.mapFullscreenPos) * mapScale + mapScreenCenter;
-            //headPosScreen += new Vector2(80, 40); // your offset
+            //headPosScreen += new Vector2(80, 40); // offset
             headPosScreen *= Main.UIScale;
 
             Matrix invUi = Matrix.Invert(Main.UIScaleMatrix);
@@ -249,7 +257,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Color c = Main.teamColor[p.team];
 
             // Draw head in UI-space
-            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, p, headPosUI, scale: 1.6f, borderColor: c);
+            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, p, headPosUI, scale: 1.3f, borderColor: c);
 
             // Text centered below head, also in UI-space
             string name = p.name ?? string.Empty;
@@ -259,18 +267,27 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 headPosUI.X - nameSize.X * 0.5f,
                 headPosUI.Y + 30f
             );
-            Utils.DrawBorderString(Main.spriteBatch, name, namePos, Color.White, textScale);
+            Utils.DrawBorderString(Main.spriteBatch, "Teleport to " + name, namePos, Color.White, textScale);
         }
 
         public override void MouseOver(UIMouseEvent evt)
         {
             base.MouseOver(evt);
+
+            Player p = Main.player[_playerIndex];
+            if (p == null || !p.active || p.dead)
+                return;
             BackgroundColor = new Color(73, 92, 161);
         }
 
         public override void MouseOut(UIMouseEvent evt)
         {
             base.MouseOut(evt);
+
+            Player p = Main.player[_playerIndex];
+            if (p == null || !p.active || p.dead)
+                return;
+
             BackgroundColor = new Color(63, 82, 151) * 0.8f;
         }
 
@@ -278,8 +295,16 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         {
             base.LeftClick(evt);
 
+            // Get the target player to teleport to
             Player player = Main.player[_playerIndex];
 
+            if (player.dead)
+            {
+                // DONT allow teleporting to a dead player
+                return;
+            }
+
+            // Teleport to the target player
             Main.LocalPlayer.UnityTeleport(player.position);
 
             // close map
@@ -311,29 +336,130 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             );
         }
 
-        /// <summary>
-        /// Draws a biome-looking BG behind the player
-        /// </summary>
+
+        public static void DrawMapFullscreenBackground_BadMP(SpriteBatch sb, Rectangle rect, Player player)
+        {
+            if (player == null || !player.active)
+                return;
+
+            int tx = (int)(player.Center.X / 16f);
+            int ty = (int)(player.Center.Y / 16f);
+
+            if (!WorldGen.InWorld(tx, ty, 5))
+                return;
+
+            Tile tile = Framing.GetTileSafely(tx, ty);
+            ushort type = tile.TileType;
+            int wall = tile.WallType;
+
+            float py = player.Center.Y / 16f;
+            Log.Debug(player.name + ", y: " + py);
+
+            bool inUnderworld = py >= Main.maxTilesY - 230;
+            bool inCavern = py >= Main.rockLayer && py < Main.maxTilesY - 230;
+            bool inUnderground = py >= Main.worldSurface && py < Main.rockLayer;
+            bool inSurface = py < Main.worldSurface;
+
+            bool isJungle = TileID.Sets.JungleBiome[type] > 0;
+            bool isMushroom = TileID.Sets.MushroomBiome[type] > 0;
+            bool isDesert = TileID.Sets.SandBiome[type] > 0;
+            bool isSnow = TileID.Sets.SnowBiome[type] > 0;
+            bool isCorrupt = TileID.Sets.Corrupt[type];
+            bool isCrimson = TileID.Sets.Crimson[type];
+            bool isHallow = TileID.Sets.Hallow[type];
+            bool isDungeon = TileID.Sets.DungeonBiome[type] > 0;
+
+            Color color = Color.White;
+            if (player.dead)
+                color = new Color(100, 100, 100);
+
+            int bgIndex = 1;
+
+            if (inUnderworld)
+            {
+                bgIndex = 2;
+            }
+            else if (isDungeon)
+            {
+                bgIndex = 4;
+            }
+            else if (isMushroom)
+            {
+                bgIndex = inUnderground ? 20 : 19;
+            }
+            else if (inUnderground)
+            {
+                if (isCorrupt) bgIndex = 22;
+                else if (isCrimson) bgIndex = 23;
+                else if (isHallow) bgIndex = 21;
+                else if (isSnow) bgIndex = 3;
+                else if (isJungle) bgIndex = 12;
+                else if (isDesert) bgIndex = 14;
+                else if (inCavern) bgIndex = 31;
+                else bgIndex = 1;
+            }
+            else if (inSurface)
+            {
+                if (player.ZoneSkyHeight) bgIndex = 32;
+                else if (isCorrupt) bgIndex = 5;
+                else if (isCrimson) bgIndex = 6;
+                else if (isHallow) bgIndex = 7;
+                else if (isSnow) bgIndex = 11;
+                else if (isJungle) bgIndex = 8;
+                else if (isDesert) bgIndex = 9;
+                else if (player.ZoneGraveyard) bgIndex = 26;
+                else if (Main.bloodMoon) { bgIndex = 25; color *= 2f; }
+                else bgIndex = 1;
+            }
+
+            // Draw
+            int safeIndex = (bgIndex >= 0 && bgIndex < Ass.MapBG.Length) ? bgIndex : 0;
+            var asset = Ass.MapBG[safeIndex];
+            if (asset?.Value == null)
+                return;
+
+            rect = new Rectangle(rect.X + 10, rect.Y + 10, rect.Width - 20, rect.Height - 20);
+            sb.Draw(asset.Value, rect, color);
+        }
+
         public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Player player)
         {
             if (player == null || !player.active)
                 return;
 
-            var screenPos = Main.screenPosition;
-            var tile = Main.tile[(int)(player.Center.X / 16f), (int)(player.Center.Y / 16f)];
-            if (tile == null) return;
+            // Player tile coordinates
+            int tileX = (int)(player.Center.X / 16f);
+            int tileY = (int)(player.Center.Y / 16f);
 
-            int wall = tile.wall;
+            Tile tile = Main.tile[tileX, tileY];
+            if (tile == null)
+                return;
+
+            int wall = tile.wall; // or tile.WallType in 1.4.4 tModLoader
             int bgIndex = -1;
             Color color = Color.White;
 
-            if (screenPos.Y > (Main.maxTilesY - 232) * 16)
+            // Use *player depth* instead of screenPos
+            float playerYWorld = player.Center.Y;
+            float playerYTiles = playerYWorld / 16f;
+
+            // Hell layer
+            if (playerYWorld > (Main.maxTilesY - 232) * 16)
+            {
                 bgIndex = 2;
+            }
+            // Dungeon
             else if (player.ZoneDungeon)
+            {
                 bgIndex = 4;
+            }
+            // Spider cave (?) wall
             else if (wall == 87)
+            {
                 bgIndex = 13;
-            else if (screenPos.Y > Main.worldSurface * 16.0)
+            }
+            // Underground / cavern backgrounds
+            else if (playerYWorld > Main.worldSurface * 16.0)
             {
                 bgIndex = wall switch
                 {
@@ -342,41 +468,58 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                     178 or 183 => 17,
                     62 or 263 => 18,
                     _ => player.ZoneGlowshroom ? 20 :
-                         player.ZoneCorrupt ? player.ZoneDesert ? 39 : player.ZoneSnow ? 33 : 22 :
-                         player.ZoneCrimson ? player.ZoneDesert ? 40 : player.ZoneSnow ? 34 : 23 :
-                         player.ZoneHallow ? player.ZoneDesert ? 41 : player.ZoneSnow ? 35 : 21 :
+                         player.ZoneCorrupt ? (player.ZoneDesert ? 39 : (player.ZoneSnow ? 33 : 22)) :
+                         player.ZoneCrimson ? (player.ZoneDesert ? 40 : (player.ZoneSnow ? 34 : 23)) :
+                         player.ZoneHallow ? (player.ZoneDesert ? 41 : (player.ZoneSnow ? 35 : 21)) :
                          player.ZoneSnow ? 3 :
                          player.ZoneJungle ? 12 :
                          player.ZoneDesert ? 14 :
                          player.ZoneRockLayerHeight ? 31 : 1
                 };
             }
+            // Surface mushroom biome
             else if (player.ZoneGlowshroom)
+            {
                 bgIndex = 19;
+            }
             else
             {
-                //color = Main.ColorOfTheSkies;
                 color = Color.White;
-                int midTileX = (int)((screenPos.X + Main.screenWidth / 2f) / 16f);
 
-                if (player.ZoneSkyHeight) bgIndex = 32;
-                else if (player.ZoneCorrupt) bgIndex = player.ZoneDesert ? 36 : 5;
-                else if (player.ZoneCrimson) bgIndex = player.ZoneDesert ? 37 : 6;
-                else if (player.ZoneHallow) bgIndex = player.ZoneDesert ? 38 : 7;
-                else if (screenPos.Y / 16f < Main.worldSurface + 10.0 && (midTileX < 380 || midTileX > Main.maxTilesX - 380))
+                if (player.dead)
+                    color = new Color(100, 100, 100, 255);
+
+                // Use the *player’s* X position instead of camera center
+                int midTileX = tileX;
+
+                if (player.ZoneSkyHeight)
+                    bgIndex = 32;
+                else if (player.ZoneCorrupt)
+                    bgIndex = player.ZoneDesert ? 36 : 5;
+                else if (player.ZoneCrimson)
+                    bgIndex = player.ZoneDesert ? 37 : 6;
+                else if (player.ZoneHallow)
+                    bgIndex = player.ZoneDesert ? 38 : 7;
+                // "Ocean" style edges: use player’s tileY + tileX instead of screenPos
+                else if (playerYTiles < Main.worldSurface + 10.0 &&
+                         (midTileX < 380 || midTileX > Main.maxTilesX - 380))
                     bgIndex = 10;
-                else if (player.ZoneSnow) bgIndex = 11;
-                else if (player.ZoneJungle) bgIndex = 8;
-                else if (player.ZoneDesert) bgIndex = 9;
-                else if (Main.bloodMoon) { bgIndex = 25; color *= 2f; }
-                else if (player.ZoneGraveyard) bgIndex = 26;
+                else if (player.ZoneSnow)
+                    bgIndex = 11;
+                else if (player.ZoneJungle)
+                    bgIndex = 8;
+                else if (player.ZoneDesert)
+                    bgIndex = 9;
+                else if (Main.bloodMoon)
+                {
+                    bgIndex = 25;
+                    color *= 2f;
+                }
+                else if (player.ZoneGraveyard)
+                    bgIndex = 26;
             }
 
-            // Vanilla
-            //var asset = bgIndex >= 0 && bgIndex < TextureAssets.MapBGs.Length? TextureAssets.MapBGs[bgIndex]: TextureAssets.MapBGs[0];
-
-            // Our textures with rounded corners
-            int safeIndex = (bgIndex >= 0 && bgIndex < Ass.MapBG.Length) ? bgIndex: 0;
+            int safeIndex = (bgIndex >= 0 && bgIndex < Ass.MapBG.Length) ? bgIndex : 0;
             var asset = Ass.MapBG[safeIndex];
 
             rect.X += 10;
@@ -384,8 +527,11 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             rect.Width -= 20;
             rect.Height -= 20;
 
-            if (asset == null || asset.Value == null) return;
+            if (asset == null || asset.Value == null)
+                return;
+
             sb.Draw(asset.Value, rect, color);
         }
+
     }
 }

@@ -42,7 +42,6 @@ public class AdventureMirrorPlayer : ModPlayer
         return false;
     }
 
-    private int _timer; // temp debug todo
     public override void PostUpdate()
     {
         // Only run on clients
@@ -62,21 +61,6 @@ public class AdventureMirrorPlayer : ModPlayer
         {
             SpawnSelectorSystem.SetEnabled(false);
         }
-
-        // Run every 3 seconds (60 ticks * 3)
-        //_timer++;
-        //if (_timer < 60 * 3)
-        //    return;
-
-        //_timer = 0;
-
-        //foreach (var player in Main.player)
-        //{
-        //    if (player == null || !player.active)
-        //        continue;
-
-        //    Main.NewText($"Player {player.whoAmI} ({player.name}) - SpawnX:{player.SpawnX}, SpawnY:{player.SpawnY}"));
-        //}
     }
 
     public void CustomTeleportWithoutSound(Vector2 newPos)
