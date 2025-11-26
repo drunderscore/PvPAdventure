@@ -49,16 +49,31 @@ public class RegionManager : ModSystem
         //return;
 
         if (_regions.Count == 0 || _playerBGTexture == null)
+        {
             return;
+        }
 
-        var region = _regions[0];      
-        var area = region.Area;      
+        Region region = _regions[0];
+        Rectangle area = region.Area;
 
-        Rectangle screenRect = new(
-            (int)(area.X * 16 - Main.screenPosition.X),
-            (int)(area.Y * 16 - Main.screenPosition.Y),
-            area.Width * 16,
-            area.Height * 16
+        // World (tiles) -> world pixels
+        Vector2 worldTopLeft = new Vector2(area.X * 16, area.Y * 16);
+        Vector2 worldSize = new Vector2(area.Width * 16, area.Height * 16);
+
+        // Convert to screen pixel coords
+        Vector2 screenTopLeft = worldTopLeft - Main.screenPosition;
+
+        float uiScale = Main.UIScale;
+
+        // Compensate for UI scaling (PostDrawInterface uses Main.UIScaleMatrix)
+        screenTopLeft /= uiScale;
+        worldSize /= uiScale;
+
+        Rectangle screenRect = new Rectangle(
+            (int)screenTopLeft.X,
+            (int)screenTopLeft.Y,
+            (int)worldSize.X,
+            (int)worldSize.Y
         );
 
         DrawNineSliceBorder(
@@ -73,6 +88,7 @@ public class RegionManager : ModSystem
             c: 10
         );
     }
+
 
     private void DrawNineSliceBorder(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
     {
