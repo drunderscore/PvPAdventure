@@ -7,10 +7,10 @@ using Terraria.GameContent.UI.Elements;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
 {
-    public class UISpawnSelectorPanel : UIPanel
+    public class SpawnSelectorBasePanel : UIPanel
     {
         private UIPanel _randomPanel;
-        private readonly List<UISpawnSelectorCharacterListItem> _playerItems = new();
+        private readonly List<SpawnSelectorCharacter> _playerItems = new();
 
         private const float Spacing = 8f;
         private const float HorizontalPadding = 16f;
@@ -26,8 +26,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             SetPadding(0f);
 
             BuildLayout();
-
-            Log.Info("UISpawnSelectorPanel.OnInitialize: layout built");
         }
 
         private void BuildLayout()
@@ -44,7 +42,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 {
                     Player p = Main.player[i];
 
-                    if (p == null || !p.active || p.dead || p.statLife <= 0)
+                    if (p == null)
                         continue;
 
                     if (p.whoAmI == local.whoAmI || p.team != local.team)
@@ -54,16 +52,10 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 }
             }
 
-            // DEBUG: ADD LOCAL PLAYER
-            if (players.Count == 0 && local != null && local.active && !local.dead && local.statLife > 0)
-            {
-                players.Add(local);
-            }
-
             int playerCount = players.Count;
 
-            float itemWidth = UISpawnSelectorCharacterListItem.ItemWidth;
-            float itemHeight = UISpawnSelectorCharacterListItem.ItemHeight;
+            float itemWidth = SpawnSelectorCharacter.ItemWidth;
+            float itemHeight = SpawnSelectorCharacter.ItemHeight;
             float randomWidth = itemHeight;
 
             float contentWidth = playerCount * itemWidth
@@ -89,7 +81,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             {
                 float x = startX + i * (itemWidth + Spacing);
 
-                var row = new UISpawnSelectorCharacterListItem(players[i]);
+                var row = new SpawnSelectorCharacter(players[i]);
                 row.Left.Set(x, 0f);
                 row.Top.Set(y, 0f);
 
@@ -97,7 +89,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                 _playerItems.Add(row);
             }
 
-            _randomPanel = new UISpawnSelectorRandomPanel(
+            _randomPanel = new SpawnSelectorQuestionMark(
                 startX,
                 itemHeight,
                 playerCount,
@@ -110,13 +102,12 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Recalculate();
             RecalculateChildren();
 
-            Log.Debug($"UISpawnSelectorPanel.BuildLayout: players={playerCount}, panelWidth={panelWidth}");
+            Log.Debug($"UISpawnSelectorPanel.BuildLayout: players={playerCount}");
         }
 
         public void Rebuild()
         {
             BuildLayout();
-            Log.Debug("UISpawnSelectorPanel.Rebuild: UI rebuilt");
         }
 
         public override void Update(GameTime gameTime)
@@ -153,17 +144,12 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             for (int i = 0; i < Main.maxPlayers; i++)
             {
                 var p = Main.player[i];
-                if (p == null || !p.active || p.dead || p.statLife <= 0)
+                if (p == null)
                     continue;
                 if (p.whoAmI == local.whoAmI || p.team != local.team)
                     continue;
 
                 players.Add(p.whoAmI);
-            }
-
-            if (players.Count == 0 && local != null && local.active && !local.dead && local.statLife > 0)
-            {
-                players.Add(local.whoAmI);
             }
 
             if (players.Count != _playerItems.Count)

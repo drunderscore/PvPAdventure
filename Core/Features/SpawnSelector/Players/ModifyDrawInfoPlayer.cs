@@ -6,6 +6,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.Players;
 
 /// <summary>
 /// Useful for forcing the player to be drawn with full brightness even when in player is in darkness.
+/// DONT DELETE, its still used
 /// </summary>
 public class ModifyDrawInfoPlayer : ModPlayer
 {

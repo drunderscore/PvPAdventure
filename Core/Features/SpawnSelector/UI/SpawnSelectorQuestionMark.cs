@@ -11,9 +11,9 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.UI
 {
-    internal class UISpawnSelectorRandomPanel : UIPanel
+    internal class SpawnSelectorQuestionMark : UIPanel
     {
-        public UISpawnSelectorRandomPanel(float startX, float itemHeight, int playerCount, float itemWidth, float Spacing, float y)
+        public SpawnSelectorQuestionMark(float startX, float itemHeight, int playerCount, float itemWidth, float Spacing, float y)
         {
             Width.Set(itemHeight, 0f);
             Height.Set(itemHeight, 0f);

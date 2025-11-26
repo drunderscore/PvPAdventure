@@ -2,9 +2,6 @@
 using Terraria.ModLoader;
 using Terraria.UI;
 using PvPAdventure.Content.Items;
-using PvPAdventure.Core.Features.SpawnSelector.UI;
-using PvPAdventure.System.Client;
-using Microsoft.Xna.Framework.Input;
 
 namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
 
@@ -36,10 +33,9 @@ public class ItemSlotHooks : ModSystem
 
         if (!item.IsAir && item.type == ModContent.ItemType<AdventureMirror>())
         {
-            if (Main.keyState.IsKeyDown(Keys.LeftShift) && Main.mouseLeft && Main.mouseLeftRelease)
-            {
-                PopupTextHelper.NewText("Cannot quick trash Adventure Mirror!");
-            }
+            //if (Main.keyState.IsKeyDown(Keys.LeftShift) && Main.mouseLeft && Main.mouseLeftRelease)
+                //PopupTextHelper.NewText("Cannot quick trash Adventure Mirror!");
+            
             //SoundEngine.PlaySound(SoundID.MenuClose);
             return false; // skip SellOrTrash completely
         }
@@ -64,8 +60,8 @@ public class ItemSlotHooks : ModSystem
 
         if (isStorageSlot && isMirrorOnMouse)
         {
-            if (Main.mouseLeft && Main.mouseLeftRelease)
-                PopupTextHelper.NewText("Cannot store Adventure Mirror!");
+            //if (Main.mouseLeft && Main.mouseLeftRelease)
+                //PopupTextHelper.NewText("Cannot store Adventure Mirror!");
 
             // Do NOT call orig -> cancel the placement
             return;
@@ -74,8 +70,8 @@ public class ItemSlotHooks : ModSystem
         // 2) Block dragging mirror onto trash slot
         if (context == ItemSlot.Context.TrashItem && isMirrorOnMouse)
         {
-            if (Main.mouseLeft && Main.mouseLeftRelease)
-                PopupTextHelper.NewText("Cannot trash Adventure Mirror!");
+            //if (Main.mouseLeft && Main.mouseLeftRelease)
+                //PopupTextHelper.NewText("Cannot trash Adventure Mirror!");
 
             return; // cancel trashing
         }
@@ -93,8 +89,8 @@ public class ItemSlotHooks : ModSystem
     {
         if (IsAdventureMirror(item))
         {
-            if (Main.mouseLeft && Main.mouseLeftRelease)
-                PopupTextHelper.NewText("Cannot sell Adventure Mirror!");
+            //if (Main.mouseLeft && Main.mouseLeftRelease)
+                //PopupTextHelper.NewText("Cannot sell Adventure Mirror!", self);
 
             return false;
         }
