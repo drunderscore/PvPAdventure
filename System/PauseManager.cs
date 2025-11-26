@@ -15,6 +15,7 @@ namespace PvPAdventure.System;
 public class PauseManager : ModSystem
 {
     private bool _paused;
+    public bool IsPaused => _paused;
     private Interface _interface;
 
     public override void Load()
@@ -103,5 +104,16 @@ public class PauseManager : ModSystem
 
         public override string Command => "pause";
         public override CommandType Type => CommandType.Console;
+    }
+
+    public void PauseGame()
+    {
+        var pause = ModContent.GetInstance<PauseManager>();
+        pause._paused = !pause._paused;
+
+        ChatHelper.BroadcastChatMessage(NetworkText.FromKey($"Mods.PvPAdventure.Pause.{pause._paused}"),
+            Color.White);
+
+        NetMessage.SendData(MessageID.WorldData);
     }
 }
