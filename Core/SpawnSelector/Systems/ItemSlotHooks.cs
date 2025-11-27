@@ -33,7 +33,8 @@ public class ItemSlotHooks : ModSystem
         // If the mouse is holding the Adventure Mirror, just block the drop.
         if (IsAdventureMirror(Main.mouseItem))
         {
-            return;
+            // Note, this makes the item unusable out of the inventory
+            //return; 
         }
         orig(self);
     }
@@ -44,7 +45,7 @@ public class ItemSlotHooks : ModSystem
         Item selectedItem = self.inventory[self.selectedItem];
         if (IsAdventureMirror(selectedItem))
         {
-            return; 
+            return;
         }
         orig(self);
     }

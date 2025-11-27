@@ -20,6 +20,11 @@
 		<Reference Include="System.Linq.Async">
 			<HintPath>lib\System.Linq.Async.dll</HintPath>
 		</Reference>
+		
+		<!-- Add StructureHelper for generating a spawn box -->
+		<Reference Include="StructureHelper">
+			<HintPath>lib\StructureHelper.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->

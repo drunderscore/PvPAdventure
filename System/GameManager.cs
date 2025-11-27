@@ -32,7 +32,7 @@ public class GameManager : ModSystem
     public Phase CurrentPhase
     {
         get => _currentPhase;
-        private set
+        set
         {
             if (_currentPhase == value)
                 return;
