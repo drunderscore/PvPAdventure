@@ -3,7 +3,7 @@ using Terraria.ModLoader;
 using Terraria.UI;
 using PvPAdventure.Content.Items;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 /// <summary>
 /// Prevents the Adventure Mirror from being removed from the player inventory via trashing or selling.
@@ -15,6 +15,8 @@ public class ItemSlotHooks : ModSystem
         On_ItemSlot.LeftClick_SellOrTrash += Hook_LeftClick_SellOrTrash;
         On_ItemSlot.LeftClick_ItemArray_int_int += Hook_LeftClick_ItemArray;
         On_Player.SellItem += Hook_SellItem;
+        On_Player.DropSelectedItem += Hook_DropSelectedItem;
+        On_Player.dropItemCheck += Hook_DropItemCheck;
     }
 
     public override void Unload()
@@ -22,6 +24,29 @@ public class ItemSlotHooks : ModSystem
         On_ItemSlot.LeftClick_SellOrTrash -= Hook_LeftClick_SellOrTrash;
         On_ItemSlot.LeftClick_ItemArray_int_int -= Hook_LeftClick_ItemArray;
         On_Player.SellItem -= Hook_SellItem;
+        On_Player.DropSelectedItem -= Hook_DropSelectedItem;
+        On_Player.dropItemCheck -= Hook_DropItemCheck;
+    }
+
+    private void Hook_DropItemCheck(On_Player.orig_dropItemCheck orig, Player self)
+    {
+        // If the mouse is holding the Adventure Mirror, just block the drop.
+        if (IsAdventureMirror(Main.mouseItem))
+        {
+            return;
+        }
+        orig(self);
+    }
+
+    private void Hook_DropSelectedItem(On_Player.orig_DropSelectedItem orig,Player self)
+    {
+        // If the selected item is the Adventure Mirror, block the drop.
+        Item selectedItem = self.inventory[self.selectedItem];
+        if (IsAdventureMirror(selectedItem))
+        {
+            return; 
+        }
+        orig(self);
     }
 
     // QUICK TRASH / QUICK SELL (Shift + click)
@@ -43,6 +68,7 @@ public class ItemSlotHooks : ModSystem
         return orig(inv, context, slot);
     }
 
+    // Helper method to identify Adventure Mirror
     private static bool IsAdventureMirror(Item item)
     => !item.IsAir && item.type == ModContent.ItemType<AdventureMirror>();
 

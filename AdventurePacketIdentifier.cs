@@ -10,5 +10,6 @@ public enum AdventurePacketIdentifier : byte
     NpcStrikeTeam,
     Dash,
     PlayerBed,
-    AdventureMirrorRightClickUse
+    AdventureMirrorRightClickUse,
+    BedTeleport,
 }

@@ -1,11 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Features.SpawnSelector.UI;
 using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.SpawnSelector.UI;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 public class SpawnSelectorState : UIState
 {

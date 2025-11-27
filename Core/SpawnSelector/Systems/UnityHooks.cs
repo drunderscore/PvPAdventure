@@ -1,7 +1,7 @@
 ﻿using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 /// <summary>
 /// This allows the player to click on teammates to teleport to them.

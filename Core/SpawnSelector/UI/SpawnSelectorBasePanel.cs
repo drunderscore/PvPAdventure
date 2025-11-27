@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.UI
+namespace PvPAdventure.Core.SpawnSelector.UI
 {
     public class SpawnSelectorBasePanel : UIPanel
     {
@@ -51,6 +51,11 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                     players.Add(p);
                 }
             }
+
+#if DEBUG
+            players.Add(Main.LocalPlayer);
+            Main.NewText($"[DEBUG] Added local player '{Main.LocalPlayer.name}' to SpawnSelectorBasePanel");
+#endif
 
             int playerCount = players.Count;
 
@@ -151,6 +156,10 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
 
                 players.Add(p.whoAmI);
             }
+
+#if DEBUG
+            players.Add(local.whoAmI);
+#endif
 
             if (players.Count != _playerItems.Count)
                 return true;

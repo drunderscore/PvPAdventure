@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Features.SpawnSelector.Players;
 using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.SpawnSelector.Players;
 using ReLogic.Content;
 using System;
 using Terraria;
@@ -12,7 +12,7 @@ using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Chat;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.UI
+namespace PvPAdventure.Core.SpawnSelector.UI
 {
     /// <summary>
     /// Vanilla-like character row.
@@ -82,7 +82,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             {
                 var rect2 = dims.ToRectangle();
 
-                Utils.DrawBorderString(sb, "Unable to find p :(", rect2.Location.ToVector2() + new Vector2(50, 0), Color.White);
+                Utils.DrawBorderString(sb, "Unable to find player :(", rect2.Location.ToVector2() + new Vector2(50, 0), Color.White);
                 return;
             }
 
@@ -110,7 +110,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                      null,
                      Main.UIScaleMatrix);
 
-            ModifyDrawInfoPlayer.ForceFullBrightOnce = true;
+            AdventureMirrorPlayer.ForceFullBrightOnce = true;
             try
             {
                 Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
@@ -127,7 +127,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             }
             finally
             {
-                ModifyDrawInfoPlayer.ForceFullBrightOnce = false;
+                AdventureMirrorPlayer.ForceFullBrightOnce = false;
             }
 
             // Switch back to "normal" UI batch
@@ -219,7 +219,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             DrawPlayerHeadOnMap(player);
 
             // Draw player respawn timer if it exists
-            string respawnTimeInSeconds = ((player.respawnTimer / 60) + 1).ToString();
+            string respawnTimeInSeconds = (player.respawnTimer / 60 + 1).ToString();
             if (player.respawnTimer != 0)
             {
                 Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, pos + new Vector2(31, 4), Color.Gray, scale: 1f);
@@ -277,7 +277,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             Player p = Main.player[_playerIndex];
             if (p == null || !p.active || p.dead)
                 return;
-            BackgroundColor = new Color(73, 92, 161);
+            BackgroundColor = new Color(73, 92, 161, 150);
         }
 
         public override void MouseOut(UIMouseEvent evt)
@@ -413,7 +413,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             }
 
             // Draw
-            int safeIndex = (bgIndex >= 0 && bgIndex < Ass.MapBG.Length) ? bgIndex : 0;
+            int safeIndex = bgIndex >= 0 && bgIndex < Ass.MapBG.Length ? bgIndex : 0;
             var asset = Ass.MapBG[safeIndex];
             if (asset?.Value == null)
                 return;
@@ -468,9 +468,9 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                     178 or 183 => 17,
                     62 or 263 => 18,
                     _ => player.ZoneGlowshroom ? 20 :
-                         player.ZoneCorrupt ? (player.ZoneDesert ? 39 : (player.ZoneSnow ? 33 : 22)) :
-                         player.ZoneCrimson ? (player.ZoneDesert ? 40 : (player.ZoneSnow ? 34 : 23)) :
-                         player.ZoneHallow ? (player.ZoneDesert ? 41 : (player.ZoneSnow ? 35 : 21)) :
+                         player.ZoneCorrupt ? player.ZoneDesert ? 39 : player.ZoneSnow ? 33 : 22 :
+                         player.ZoneCrimson ? player.ZoneDesert ? 40 : player.ZoneSnow ? 34 : 23 :
+                         player.ZoneHallow ? player.ZoneDesert ? 41 : player.ZoneSnow ? 35 : 21 :
                          player.ZoneSnow ? 3 :
                          player.ZoneJungle ? 12 :
                          player.ZoneDesert ? 14 :
@@ -519,7 +519,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
                     bgIndex = 26;
             }
 
-            int safeIndex = (bgIndex >= 0 && bgIndex < Ass.MapBG.Length) ? bgIndex : 0;
+            int safeIndex = bgIndex >= 0 && bgIndex < Ass.MapBG.Length ? bgIndex : 0;
             var asset = Ass.MapBG[safeIndex];
 
             rect.X += 10;
