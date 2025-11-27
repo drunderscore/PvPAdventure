@@ -98,7 +98,7 @@ public class AdventureDropDatabase : ModSystem
                 foreach (var drop in drops)
                 {
                     ModifyDropRate(drop, ItemID.Stinger, 1, 1);
-                    ModifyDropRate(drop, ItemID.TatteredBeeWing, 1, 1);
+                    ModifyDropRate(drop, ItemID.TatteredBeeWing, 1, 15);
                 }
                 break;
 
