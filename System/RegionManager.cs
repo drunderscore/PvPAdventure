@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Helpers;
 using ReLogic.Content;
@@ -31,6 +31,8 @@ public class RegionManager : ModSystem
         public bool CanRecall { get; set; }
         public bool CanEnter { get; set; }
         public bool CanExit { get; set; }
+        public Rectangle CollisionRingBounds =>
+        new(Area.X - 1, Area.Y - 1, Area.Width + 2, Area.Height + 2);
     }
 
     public override void Load()
@@ -39,7 +41,7 @@ public class RegionManager : ModSystem
     }
 
     private Vector2 OnCollisionTileCollision(On_Collision.orig_TileCollision orig, Vector2 position, Vector2 velocity,
-        int width, int height, bool fallthrough, bool fall2, int gravdir)
+    int width, int height, bool fallthrough, bool fall2, int gravdir)
     {
         // Always call to the original to ensure we set Collision.up and Collision.down, and collide with real tiles
         // as expected.
@@ -60,6 +62,27 @@ public class RegionManager : ModSystem
 
         if (ShouldPrevent(sourceIntersections, GetRegionsIntersecting(verticalDestinationHitbox).ToHashSet()))
             collisionVelocity.Y = 0.0f;
+
+        // extra tightening from inside: stop 1 tile earlier than the outer ring
+        var destHitboxX = new Rectangle((int)(position.X + collisionVelocity.X), (int)position.Y, width, height)
+            .ToTileRectangle();
+        var destHitboxY = new Rectangle((int)position.X, (int)(position.Y + collisionVelocity.Y), width, height)
+            .ToTileRectangle();
+
+        foreach (var region in sourceIntersections)
+        {
+            if (!region.CanExit)
+            {
+                var innerBounds = region.CollisionRingBounds;
+                innerBounds.Inflate(-1, -1); // shrink 1 tile on all sides
+
+                if (innerBounds.Contains(sourceHitbox) && !innerBounds.Contains(destHitboxX))
+                    collisionVelocity.X = 0.0f;
+
+                if (innerBounds.Contains(sourceHitbox) && !innerBounds.Contains(destHitboxY))
+                    collisionVelocity.Y = 0.0f;
+            }
+        }
 
         return collisionVelocity;
 
@@ -164,7 +187,7 @@ public class RegionManager : ModSystem
         _regions.Where(region => region.Area.Contains(point));
 
     public IEnumerable<Region> GetRegionsIntersecting(Rectangle rectangle) =>
-        _regions.Where(region => region.Area.Intersects(rectangle));
+    _regions.Where(region => region.CollisionRingBounds.Intersects(rectangle));
 
     public override void ClearWorld()
     {

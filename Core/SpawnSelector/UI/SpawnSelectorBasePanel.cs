@@ -52,10 +52,10 @@ namespace PvPAdventure.Core.SpawnSelector.UI
                 }
             }
 
-#if DEBUG
-            players.Add(Main.LocalPlayer);
-            Main.NewText($"[DEBUG] Added local player '{Main.LocalPlayer.name}' to SpawnSelectorBasePanel");
-#endif
+//#if DEBUG
+//            players.Add(Main.LocalPlayer);
+//            Main.NewText($"[DEBUG] Added local player '{Main.LocalPlayer.name}' to SpawnSelectorBasePanel");
+//#endif
 
             int playerCount = players.Count;
 
@@ -157,9 +157,9 @@ namespace PvPAdventure.Core.SpawnSelector.UI
                 players.Add(p.whoAmI);
             }
 
-#if DEBUG
-            players.Add(local.whoAmI);
-#endif
+//#if DEBUG
+//            players.Add(local.whoAmI);
+//#endif
 
             if (players.Count != _playerItems.Count)
                 return true;

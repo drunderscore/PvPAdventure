@@ -808,7 +808,11 @@ Mods: {
 		Items: {
 			AdventureMirror: {
 				DisplayName: Adventure Mirror
-				Tooltip: Gaze in the mirror to go on adventures
+				Tooltip:
+					'''
+					Gaze in the mirror to go on adventures
+					Right click to use
+					'''
 			}
 		}
 	}

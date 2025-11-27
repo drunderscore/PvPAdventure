@@ -36,6 +36,29 @@ internal class AdventureMirror : ModItem
 
     public override void RightClick(Player player)
     {
+        // Redundant check, just to be sure we don't allow any shenanigans
+        var gm = ModContent.GetInstance<GameManager>();
+        if (gm.CurrentPhase != GameManager.Phase.Playing)
+        {
+            // Check if the config allows popup text
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            if (!config.ShowPopupText)
+                return;
+
+            // Create and display the popup text (locally)
+            if (player.whoAmI == Main.myPlayer)
+            {
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = "wait until game starts!",
+                    Velocity = new(0f, -4),
+                    DurationInFrames = 120
+                }, player.Top + new Vector2(0, -4));
+            }
+            return;
+        }
+
         if (player.whoAmI != Main.myPlayer)
             return;
 
@@ -96,15 +119,19 @@ internal class AdventureMirror : ModItem
             if (!config.ShowPopupText)
                 return false;
 
-            // Create and display the popup text
-            PopupText.NewText(new AdvancedPopupRequest
+            // Create and display the popup text (locally)
+            if (player.whoAmI == Main.myPlayer)
             {
-                Color = Color.Crimson,
-                Text = "wait until game starts!",
-                Velocity = new(0f, -4),
-                DurationInFrames = 120
-            }, player.Top + new Vector2(0, -4));
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = "wait until game starts!",
+                    Velocity = new(0f, -4),
+                    DurationInFrames = 120
+                }, player.Top + new Vector2(0, -4));
+            }
             return false;
+
         }
 
         return true;
