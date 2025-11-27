@@ -1,9 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Features.SpawnSelector.UI;
+using PvPAdventure.Core.SpawnSelector.UI;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PvPAdventure.Content.Items;
 
@@ -90,15 +91,26 @@ internal class AdventureMirror : ModItem
         var gm = ModContent.GetInstance<GameManager>();
         if (gm.CurrentPhase != GameManager.Phase.Playing)
         {
-            if (player.whoAmI == Main.myPlayer)
-                PopupTextHelper.NewText("wait until game starts!", player);
+            // Check if the config allows popup text
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            if (!config.ShowPopupText)
+                return false;
+
+            // Create and display the popup text
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.Crimson,
+                Text = "wait until game starts!",
+                Velocity = new(0f, -4),
+                DurationInFrames = 120
+            }, player.Top + new Vector2(0, -4));
             return false;
         }
 
         return true;
     }
 
-    private void CancelItemUse(Player player)
+    internal void CancelItemUse(Player player)
     {
         player.controlUseItem = false;
         player.channel = false;
@@ -157,7 +169,20 @@ internal class AdventureMirror : ModItem
         int secondsLeft = (player.itemTime + 59) / 60;
         if (player.itemTime % 60 == 0 && secondsLeft > 0)
         {
-            PopupTextHelper.NewText(secondsLeft.ToString(), player, Color.GreenYellow);
+            // Check if the config allows popup text
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            if (!config.ShowPopupText)
+                return;
+
+            // Create and display the popup text
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.GreenYellow,
+                Text = secondsLeft.ToString(),
+                Velocity = new(0f, -4),
+                DurationInFrames = 120
+            }, player.Top + new Vector2(0, -4));
+            return;
         }
 
         // Teleport the player who used the item to their spawn and open their map 

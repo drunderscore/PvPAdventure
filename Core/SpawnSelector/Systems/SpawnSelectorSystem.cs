@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 [Autoload(Side = ModSide.Client)]
 public class SpawnSelectorSystem : ModSystem
