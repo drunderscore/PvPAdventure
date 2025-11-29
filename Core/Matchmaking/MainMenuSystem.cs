@@ -175,8 +175,8 @@ public class MainMenuSystem : ModSystem
             return;
         }
 
-        // When we’re back to the default menu, clear our UI and unblock mouse
-        if (Main.menuMode == 0 && ui?.CurrentState != null)
+        // If we're no longer in our custom empty-background menu, kill the matchmaking UI.
+        if (ui?.CurrentState != null && Main.menuMode != 888)
         {
             ui.SetState(null);
             Main.blockMouse = false;

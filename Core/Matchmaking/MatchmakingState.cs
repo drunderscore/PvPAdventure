@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Core.Helpers;
 using ReLogic.Content;
-using System;
+using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
@@ -18,6 +18,8 @@ namespace PvPAdventure.Core.Matchmaking;
 /// </summary>
 public class MatchmakingState : UIState
 {
+    private UIPanel _selectedRow;
+
     public override void OnInitialize()
     {
         // Dimensions
@@ -38,7 +40,7 @@ public class MatchmakingState : UIState
         panel.BackgroundColor = new Color(38, 66, 58) * 0.8f; // muted forest-teal tone
         panel.Width.Set(0f, 1f);
         panel.Height.Set(screenH - topOffset - footerHeight - bottomMargin * 2, 0f);
-        panel.SetPadding(12);
+        panel.SetPadding(6);
         panel.OverflowHidden = false;
         root.Append(panel);
 
@@ -54,7 +56,7 @@ public class MatchmakingState : UIState
         var headerBar = new UIElement();
         headerBar.Width.Set(0, 1);
         headerBar.Height.Set(32f, 0);
-        headerBar.Top.Set(0, 0f);
+        headerBar.Top.Set(6, 0f);
         panel.Append(headerBar);
 
         // Header
@@ -69,20 +71,19 @@ public class MatchmakingState : UIState
             };
             panel.Append(header);
 
-            var label = new UIText(text, 0.8f);
-            label.HAlign = 0.5f;
-            label.VAlign = 0.5f;
+            var label = new UIText(text, 1.0f);
+            label.HAlign = 0.5f; // centered horizontally
+            label.VAlign = 0.4f;
             label.TextOriginX = 0;
             label.TextOriginY = 0;
-            label.Left.Set(6, 0);
 
             header.Append(label);
         }
 
-        // Headers
+        // Headers (centered)
         AddHeader(Ass.Button, "Server Name", 0, 200);
         AddHeader(Ass.Button, "IP and Port", 200, 200);
-        AddHeader(Ass.Button_Small, "Players", 400, 60);
+        AddHeader(Ass.Button_Small, "#", 400, 60);
         AddHeader(Ass.Button_Small, "Ping", 460, 60);
         AddHeader(Ass.Button_Small, "Status", 520, 60);
 
@@ -96,7 +97,7 @@ public class MatchmakingState : UIState
         var contentList = new UIList();
         contentList.Width.Set(-20f, 1f);
         contentList.Height.Set(-30f, 1f);
-        contentList.ListPadding = 6f;
+        contentList.ListPadding = 0f;
         contentList.ManualSortMethod = _ => { };
         contentRoot.Append(contentList);
 
@@ -111,25 +112,59 @@ public class MatchmakingState : UIState
 
         contentList.SetScrollbar(scrollbar);
 
-        void AddText(UIElement row, string text, float x)
+        void AddText(UIElement row, string text, float colLeft, float colWidth)
         {
             var uiText = new UIText(text, 0.8f);
-            uiText.Left.Set(x, 0f);
+            uiText.Left.Set(colLeft, 0f);     
+            uiText.Width.Set(colWidth, 0f);  
             uiText.VAlign = 0.5f;
             row.Append(uiText);
         }
+
+        // Content rows
         for (int i = 1; i < 30; i++)
         {
-            var row = new UIElement();
-            row.Width.Set(0f, 1f);
+            var row = new UIPanel();
+            row.Width.Set(6f, 1f);
+            row.MaxWidth.Set(6, 1);
             row.Height.Set(32f, 0f);
-            row.HAlign = 0.5f;
+            row.SetPadding(0);
+            row.BackgroundColor = Color.Transparent;
+            row.BorderColor = new Color(20, 20, 20);
 
-            AddText(row, $"Terraria PvP Adventure #{i}", 5);   // Name
-            AddText(row, $"123.123.123.{i}:5555", 205);  // Server
-            AddText(row, $"{Main.rand.Next(1, 8)}/8", 405); // Players
-            AddText(row, $"{Main.rand.Next(20, 120)}", 465); // Ping
-            AddText(row, (Main.rand.NextBool() ? "Up" : "-"), 525); // Status
+            // Fake border by drawing over background on hover/selection
+            row.OnMouseOver += (_, __) =>
+            {
+                if (row != _selectedRow)
+                    row.BackgroundColor = new Color(255, 255, 255) * 0.08f; // light hover
+            };
+
+            row.OnMouseOut += (_, __) =>
+            {
+                if (row != _selectedRow)
+                    row.BackgroundColor = Color.Transparent;
+            };
+
+            // Selection logic
+            row.OnLeftClick += (_, __) =>
+            {
+                if (_selectedRow != null)
+                    _selectedRow.BackgroundColor = Color.Transparent;
+
+                _selectedRow = row;
+                _selectedRow.BackgroundColor = new Color(120, 180, 120) * 0.45f; // selection tint
+            };
+            row.OnLeftDoubleClick += (_, __) =>
+            {
+                JoinServer("127.0.0.1", 5555); // temporary
+            };
+
+            // Centered text
+            AddText(row, $"Terraria PvP Adventure #{i}", 0, 200);
+            AddText(row, $"123.123.123.{i}:5555", 200, 200);
+            AddText(row, $"{Main.rand.Next(1, 8)}/8", 400, 60);
+            AddText(row, $"{Main.rand.Next(20, 120)}", 460, 60);
+            AddText(row, Main.rand.NextBool() ? "Up" : "-", 520, 60);
 
             contentList.Add(row);
         }
@@ -173,7 +208,7 @@ public class MatchmakingState : UIState
         }
 
         // Back button
-        var backButton = CreateButton(Language.GetTextValue("UI.Back"),new Color(86, 122, 78) * 0.70f,new Color(156, 188, 132));
+        var backButton = CreateButton(Language.GetTextValue("UI.Back"), new Color(86, 122, 78) * 0.70f, new Color(156, 188, 132));
         backButton.HAlign = 0f;
         backButton.OnLeftClick += (_, __) =>
         {
@@ -183,16 +218,41 @@ public class MatchmakingState : UIState
         root.Append(backButton);
 
         // Play button
-        var playButton = CreateButton("Join",new Color(76, 175, 80),new Color(102, 187, 106));
+        var playButton = CreateButton("Join", new Color(76, 175, 80), new Color(102, 187, 106));
         playButton.HAlign = 1f;
         playButton.OnLeftClick += (_, __) =>
         {
             SoundEngine.PlaySound(SoundID.MenuOpen);
             // TODO: Implement matchmaking logic here
+            JoinServer("127.0.0.1", 5555); // temporary
+
         };
         root.Append(playButton);
 
         Append(root);
+    }
+
+    private void JoinServer(string host, int port)
+    {
+        Main.menuMode = 0; 
+
+        Main.LoadPlayers();
+        var player = Main.PlayerList.FirstOrDefault();
+        if (player != null) Main.SelectPlayer(player);
+
+        Main.menuMultiplayer = true;
+        Main.menuServer = false;
+        Main.autoPass = true;
+
+        Netplay.ListenPort = port;
+        Main.getIP = (host ?? "").Trim();
+
+        Netplay.SetRemoteIPAsync(Main.getIP, () =>
+        {
+            Main.menuMode = 14;
+            Main.statusText = $"Connecting to {host}:{port}";
+            Netplay.StartTcpClient();
+        });
     }
 
     public override void Update(GameTime gameTime)
