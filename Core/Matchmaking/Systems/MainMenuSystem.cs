@@ -84,7 +84,7 @@ namespace PvPAdventure.Core.Matchmaking.Systems
                         if (num11 < 0 || num11 >= labels.Length)
                             break;
 
-                        labels[num11] = "PvP Adventure Matchmaking";
+                        labels[num11] = "Matchmaking";
                         num11++;
                         num5++;
                     }

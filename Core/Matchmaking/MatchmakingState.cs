@@ -1,202 +1,104 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Core.Matchmaking.UI;
 using System;
-using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.Matchmaking;
 
-public sealed class MatchmakingState : UIState
+public class MatchmakingState : UIState
 {
-    private const string Hostname = "Tpvpa.terraria.sh";
-    private const int Port = 7777;
-    private const int QueueTarget = 3;
-    private const float ConnectDelaySeconds = 1f;
+    private UIElement _buttonBack;
 
-    private UIText title;
-    private HoverButton matchmakingButton;
-    private HoverButton backButton;
-    private readonly Action onBackButtonPressed;
-    private readonly Action onCloseUi;
-    private UIText debugText;
-
-    private bool isQueuing;
-    private bool isConnecting;
-    private float connectTimer = -1f;
-    private string host;
-    private int port;
-    private int playersOnlineCount = 1;
-    private int playersQueuingCount = 0;
-
-    public MatchmakingState(Action onBack, Action onCloseUi)
-    {
-        onBackButtonPressed = onBack;
-        this.onCloseUi = onCloseUi;
-    }
+    private UIElement _buttonLogs;
 
     public override void OnInitialize()
     {
-        // Add title button
-        title = new("PvP Adventure", 1.1f, true) { HAlign = 0.5f };
-        title.Top.Set(200, 0f);
-        Append(title);
-
-        // Add matchmaking button
-        matchmakingButton = new("Play Ranked");
-        matchmakingButton.HAlign = 0.5f;
-        matchmakingButton.Top.Set(400, 0f);
-        Append(matchmakingButton);
-
-        // Add matchmaking button
-        backButton = new("Back");
-        backButton.HAlign = 0.5f;
-        backButton.Top.Set(700, 0f);
-        Append(backButton);
-
-        matchmakingButton.OnLeftClick += (_, __) => OnMatchmakingPressed();
-        backButton.OnLeftClick += (_, __) => OnBackPressed();
-
-        debugText = new UIText("PvP Adventure Info", 1, false) { HAlign = 0.5f };
-        debugText.Top.Set(255, 0);
-        Append(debugText);
-
-        UpdateDebug();
+        base.OnInitialize();
+        int num = 20;
+        int num2 = 250;
+        int num3 = 50 + num * 2;
+        int num4 = Main.minScreenH;
+        int num5 = num4 - num2 - num3;
+        UIElement uIElement = new UIElement();
+        uIElement.Width.Set(600f, 0f);
+        uIElement.Top.Set(num2, 0f);
+        uIElement.Height.Set(num4 - num2, 0f);
+        uIElement.HAlign = 0.5f;
+        int num6 = 284;
+        UIPanel uIPanel = new UIPanel();
+        uIPanel.Width.Set(0f, 1f);
+        uIPanel.Height.Set(num5, 0f);
+        uIPanel.BackgroundColor = new Color(33, 43, 79) * 0.8f;
+        UIElement uIElement2 = new UIElement();
+        uIElement2.Width.Set(0f, 1f);
+        uIElement2.Height.Set(num6, 0f);
+        uIElement2.SetPadding(0f);
+        UITextPanel<string> uITextPanel = new UITextPanel<string>("Matchmaking", 0.8f, large: true);
+        uITextPanel.HAlign = 0.5f;
+        uITextPanel.Top.Set(-46f, 0f);
+        uITextPanel.SetPadding(15f);
+        uITextPanel.BackgroundColor = new Color(73, 94, 171);
+        UITextPanel<LocalizedText> uITextPanel2 = new UITextPanel<LocalizedText>(Language.GetText("UI.Back"), 0.7f, large: true);
+        uITextPanel2.Width.Set(-10f, 0.5f);
+        uITextPanel2.Height.Set(50f, 0f);
+        uITextPanel2.VAlign = 1f;
+        uITextPanel2.HAlign = 0f;
+        uITextPanel2.Top.Set(-num, 0f);
+        uITextPanel2.OnMouseOver += FadedMouseOver;
+        uITextPanel2.OnMouseOut += FadedMouseOut;
+        uITextPanel2.OnLeftClick += GoBackClick;
+        //uITextPanel2.SetSnapPoint("Back", 0);
+        uIElement.Append(uITextPanel2);
+        this._buttonBack = uITextPanel2;
+        UITextPanel<string> uITextPanel3 = new("Play", 0.7f, large: true);
+        uITextPanel3.Width.Set(-10f, 0.5f);
+        uITextPanel3.Height.Set(50f, 0f);
+        uITextPanel3.VAlign = 1f;
+        uITextPanel3.HAlign = 1f;
+        uITextPanel3.Top.Set(-num, 0f);
+        uITextPanel3.OnMouseOver += FadedMouseOver;
+        uITextPanel3.OnMouseOut += FadedMouseOut;
+        uITextPanel3.OnLeftClick += GoLogsClick;
+        //uITextPanel3.SetSnapPoint("Logs", 0);
+        uIElement.Append(uITextPanel3);
+        this._buttonLogs = uITextPanel3;
+        uIPanel.Append(uIElement2);
+        uIElement.Append(uIPanel);
+        uIElement.Append(uITextPanel);
+        base.Append(uIElement);
+    }
+  
+    private void GoBackClick(UIMouseEvent evt, UIElement listeningElement)
+    {
+        Main.menuMode = 0;
     }
 
-    private void OnMatchmakingPressed()
+    private void GoLogsClick(UIMouseEvent evt, UIElement listeningElement)
     {
-        if (isConnecting)
-        {
-            isConnecting = false;
-            connectTimer = -1f;
-
-            if (isQueuing)
-            {
-                isQueuing = false;
-                playersQueuingCount--;
-                if (playersQueuingCount < 0) playersQueuingCount = 0;
-                //MatchmakingClient.SendToggle(false);
-            }
-
-            matchmakingButton.SetLabel("Play Ranked");
-            SoundEngine.PlaySound(SoundID.MenuClose);
-            UpdateDebug();
-            return;
-        }
-
-        isQueuing = !isQueuing;
-        matchmakingButton.SetLabel(isQueuing ? "Cancel" : "Play Ranked");
-        SoundEngine.PlaySound(isQueuing ? SoundID.MenuOpen : SoundID.MenuClose);
-
-        playersQueuingCount += isQueuing ? 1 : -1;
-        if (playersQueuingCount < 0) playersQueuingCount = 0;
-
-        //MatchmakingClient.SendToggle(isQueuing);
-        UpdateDebug();
-
-        if (isQueuing && playersQueuingCount >= QueueTarget)
-        {
-            isConnecting = true;
-            connectTimer = ConnectDelaySeconds;
-            host = Hostname;
-
-            // TODO temp fix
-            host = "94.130.143.111";
-
-            port = Port;
-        }
+        Main.IssueReporterIndicator.Hide();
+        Main.OpenReportsMenu();
+        SoundEngine.PlaySound(SoundID.MenuOpen);
     }
 
-    public override void Draw(SpriteBatch sb)
+    private void FadedMouseOver(UIMouseEvent evt, UIElement listeningElement)
     {
-        base.Draw(sb);
+        SoundEngine.PlaySound(SoundID.MenuTick);
+        ((UIPanel)evt.Target).BackgroundColor = new Color(73, 94, 171);
+        ((UIPanel)evt.Target).BorderColor = Colors.FancyUIFatButtonMouseOver;
     }
 
-    public override void Update(GameTime gameTime)
+    private void FadedMouseOut(UIMouseEvent evt, UIElement listeningElement)
     {
-        base.Update(gameTime);
-
-        if (Main.menuMode == 14 || Main.menuMode == 10)
-            onCloseUi?.Invoke();
-
-        if (Main.hasFocus && Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
-        {
-            OnBackPressed();
-            return;
-        }
-
-        if (isConnecting && connectTimer > 0f)
-        {
-            connectTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (connectTimer <= 0f)
-            {
-                connectTimer = 0f;
-                isConnecting = false;
-                matchmakingButton.SetLabel("Play Ranked");
-                AutoConnect(host, port);
-            }
-            UpdateDebug();
-        }
+        ((UIPanel)evt.Target).BackgroundColor = new Color(63, 82, 151) * 0.8f;
+        ((UIPanel)evt.Target).BorderColor = Color.Black;
     }
-
-    private void UpdateDebug()
+    public override void Draw(SpriteBatch spriteBatch)
     {
-        var phase = isConnecting && connectTimer > 0f
-            ? $"Connecting in {(int)Math.Ceiling(connectTimer)}…"
-            : (isQueuing ? "Searching…" : "Idle");
-
-        debugText?.SetText(
-            $"Server: {Hostname}:{Port}\n" +
-            $"Players Online: {playersOnlineCount}\n" +
-            $"Players Queuing: {playersQueuingCount} / {QueueTarget}\n" +
-            phase
-        );
-    }
-
-    private void OnBackPressed()
-    {
-        if (isQueuing)
-        {
-            isQueuing = false;
-            matchmakingButton.SetLabel("Play Ranked");
-            playersQueuingCount--;
-            if (playersQueuingCount < 0) playersQueuingCount = 0;
-            //MatchmakingClient.SendToggle(false);
-            UpdateDebug();
-        }
-
-        isConnecting = false;
-        connectTimer = -1f;
-        SoundEngine.PlaySound(SoundID.MenuClose);
-        onBackButtonPressed?.Invoke();
-    }
-
-    private void AutoConnect(string h, int p)
-    {
-        onCloseUi?.Invoke();
-
-        Main.LoadPlayers();
-        var player = Main.PlayerList.FirstOrDefault();
-        if (player != null) Main.SelectPlayer(player);
-
-        Main.menuMultiplayer = true;
-        Main.menuServer = false;
-        Main.autoPass = true;
-
-        Netplay.ListenPort = p;
-        Main.getIP = (h ?? "").Trim();
-
-        Netplay.SetRemoteIPAsync(Main.getIP, () =>
-        {
-            Main.menuMode = 14;
-            Main.statusText = $"Connecting to {h}:{p}";
-            Netplay.StartTcpClient();
-        });
+        base.Draw(spriteBatch);
     }
 }
