@@ -7,7 +7,6 @@ using PvPAdventure.System;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
-using Terraria.Map;
 using Terraria.ModLoader;
 
 namespace PvPAdventure;
@@ -50,60 +49,6 @@ public class PvPAdventure : Mod
     {
         base.PostSetupContent();
     }
-
-    #region Matchmaking
-    private readonly HashSet<int> _queuedPlayers = new();
-
-    internal void BroadcastQueueCounts()
-    {
-        if (Main.netMode != NetmodeID.Server) return;
-
-        var p = GetPacket();
-        p.Write((byte)AdventurePacketIdentifier.QueueCounts);
-        p.Write(GetOnlineCount());
-        p.Write(_queuedPlayers.Count);
-        p.Send();
-    }
-
-    internal void PruneQueueInactive()
-    {
-        if (Main.netMode != NetmodeID.Server) return;
-
-        // remove any queued indices that are no longer active
-        var toRemove = new List<int>();
-        foreach (var who in _queuedPlayers)
-        {
-            var plr = who >= 0 && who < Main.maxPlayers ? Main.player[who] : null;
-            if (plr == null || !plr.active) toRemove.Add(who);
-        }
-        if (toRemove.Count > 0)
-        {
-            foreach (var who in toRemove) _queuedPlayers.Remove(who);
-            BroadcastQueueCounts();
-        }
-    }
-    private void BroadcastCounts()
-    {
-        if (!Main.dedServ) return;
-
-        var p = GetPacket();
-        p.Write((byte)AdventurePacketIdentifier.QueueCounts);
-        p.Write(GetOnlineCount());
-        p.Write(_queuedPlayers.Count);
-        p.Send(); // to all
-    }
-
-    private static int GetOnlineCount()
-    {
-        int c = 0;
-        for (int i = 0; i < Main.maxPlayers; i++)
-        {
-            var p = Main.player[i];
-            if (p != null && p.active) c++;
-        }
-        return c;
-    }
-    #endregion Matchmaking
 
     public override void HandlePacket(BinaryReader reader, int whoAmI)
     {

@@ -13,6 +13,13 @@ Mods: {
 			Scoreboard.DisplayName: Scoreboard
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
+			Dash.DisplayName: Dash
+			AdventureMirror.DisplayName: Adventure Mirror
+			OpenControls.DisplayName: Open Controls
+			SwitchTeams.DisplayName: Switch Teams
+			"[DEBUG] OpenControls.DisplayName": "[ D E B U G]  Open Controls"
+			"[DEBUG] SwitchTeams.DisplayName": "[ D E B U G]  Switch Teams"
+			"[DEBUG] StartGame.DisplayName": "[ D E B U G]  Start Game"
 		}
 
 		Configs: {
@@ -128,8 +135,6 @@ Mods: {
 					Tooltip: ""
 					Label: Minimum Damage Received By Players From Player
 				}
-<<<<<<< Updated upstream
-=======
 
 				RTPRecallFrames: {
 					Label: RTP Recall Frames
@@ -140,9 +145,6 @@ Mods: {
 					Label: Adventure Mirror Recall Frames
 					Tooltip: ""
 				}
-
-				Headers.AdventureMirror: Adventure Mirror Header
->>>>>>> Stashed changes
 			}
 
 			PointsConfig: {
@@ -205,6 +207,8 @@ Mods: {
 					Label: Conditions
 					Tooltip: ""
 				}
+
+				CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
 			}
 
 			Condition: {
@@ -327,6 +331,27 @@ Mods: {
 					Tooltip: ""
 				}
 
+				TeamLifeNpcs: {
+					Label: Team Life Npcs
+
+					GhostHealMaxDistanceNpc: {
+						Label: Ghost Heal Max Distance Npc
+						Tooltip: ""
+					}
+
+					ProjectileCollisionDamageReduction: {
+						Label: Projectile Collision Damage Reduction
+						Tooltip: ""
+					}
+
+					NoLineOfSightDamageReduction: {
+						Label: No Line Of Sight Damage Reduction
+						Tooltip: ""
+					}
+
+					Tooltip: ""
+				}
+
 				GhostHealMaxDistanceNpc: {
 					Label: Ghost Heal Max Distance Npc
 					Tooltip: ""
@@ -342,8 +367,6 @@ Mods: {
 					Tooltip: ""
 				}
 
-<<<<<<< Updated upstream
-=======
 				NoKnockbackItems: {
 					Label: No Knockback Items
 					Tooltip: ""
@@ -801,7 +824,6 @@ Mods: {
 					}
 				}
 
->>>>>>> Stashed changes
 				AwardBountyEveryKill: {
 					Label: Award Bounty Every Kill
 					Tooltip: ""
@@ -961,36 +983,11 @@ Mods: {
 					Label: Sound Effect
 					Tooltip: ""
 				}
-<<<<<<< Updated upstream
-=======
 
 				BlightFruit: {
 					DisplayName: Blight Fruit
 					Tooltip: Permanently decreases maximum life by 5
 				}
-
-				Headers.AdventureMirror: Adventure Mirror Header
-
-				OpenMapAfterRecall: {
-					Label: Open Map After Recall
-					Tooltip: ""
-				}
-
-				ShowPopupText: {
-					Label: Show Popup Text
-					Tooltip: ""
-				}
-
-				ShowPlayerIndicationWhenWhenHovering: {
-					Label: Show Player Indication When When Hovering
-					Tooltip: ""
-				}
-
-				IsVanillaDashEnabled: {
-					Label: Is Vanilla Dash Enabled
-					Tooltip: ""
-				}
->>>>>>> Stashed changes
 			}
 
 			PlayerOutlineConfig: {
@@ -1184,15 +1181,6 @@ Mods: {
 				}
 			}
 
-			TeamLifeConfig: {
-				Tooltip: ""
-
-				Share: {
-					Label: Share
-					Tooltip: ""
-				}
-			}
-
 			InvasionSizeValue: {
 				Tooltip: ""
 
@@ -1315,6 +1303,11 @@ Mods: {
 					Label: No Mechanical Boss Summon Drops
 					Tooltip: ""
 				}
+
+				NoBiomeKeyDrops: {
+					Label: No Biome Key Drops
+					Tooltip: ""
+				}
 			}
 
 			FloatStatistic: {
@@ -1334,168 +1327,14 @@ Mods: {
 					Tooltip: ""
 				}
 			}
-<<<<<<< Updated upstream
-
-			InvasionSizeValue: {
-				Value: {
-					Tooltip: ""
-					Label: Value
-				}
-
-				Tooltip: ""
-			}
-		}
-
-		Item: {
-			Disabled: Cannot be used in this gamemode
-			NoUndergroundEmpressButterfly: Cannot be released here underground
-			NoUndergroundQueenSlimeCrystal: Cannot be summoned here underground
-		}
-
-		Player.CannotRecall: Cannot recall!
-		Tiles.LockedLihzahrdChest.MapEntry: Locked Lihzahrd Chest
-		Sandstorm: "[c/FFC864:Desert winds are picking up...]"
-		Rain: "[c/6496FF:A storm is brewing overhead...]"
-
-		NPCs: {
-			Bound: {
-				Merchant.DisplayName: Bound Merchant
-				ArmsDealer.DisplayName: Bound Arms Dealer
-				WitchDoctor.DisplayName: Bound Witch Doctor
-
-				Steampunker: {
-					DisplayName: Chained Steampunker
-					Chat: At long last, I'm saved! The strangest people chained me up, they mentioned something about a hardcore challenge...
-				}
-
-				Truffle: {
-					DisplayName: Buried Truffle
-					Chat: At long last, I'm saved! The strangest people buried me here, they mentioned something about a hardcore challenge...
-				}
-
-				Cyborg: {
-					DisplayName: Deactivated Cyborg
-					Chat: At long last, I'm saved! The strangest people turned me off, they mentioned something about a hardcore challenge...
-				}
-
-				Chat: At long last, I'm saved! The strangest people tied me up, they mentioned something about a hardcore challenge...
-			}
-		}
-
-		Bounty.CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
-
-		Pause: {
-			True: "[c/FF0000:The game has been paused.]"
-			False: "[c/00FF00:The game has been resumed.]"
-		}
-	}
-}
-
-BuffDescription: {
-	BeetleMight1: Melee damage and speed increase by 15%
-	BeetleMight2: Melee damage and speed increase by 25%
-	BeetleMight3: Melee damage increase by 30% and melee speed increase by 50%
-}
-
-ArmorSetBonus.BeetleDamage:
-	'''
-	Gain Beetles from player kills
-	Beetles increase your melee damage and attack speed
-	'''
-=======
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
-
-		Buffs: {
-			Anathema: {
-				DisplayName: Anathema
-				Description: Mods.PvPAdventure.Buffs.Anathema.Description
-			}
-
-			Attuning: {
-				DisplayName: Attuning
-				Description: Mods.PvPAdventure.Buffs.Attuning.Description
-			}
-
-			BitingEmbrace: {
-				DisplayName: Biting Embrace
-				Description: Mods.PvPAdventure.Buffs.BitingEmbrace.Description
-			}
-
-			BrittleBones: {
-				DisplayName: Brittle Bones
-				Description: Mods.PvPAdventure.Buffs.BrittleBones.Description
-			}
-
-			BROISACHOJ: {
-				DisplayName: B R O I S A C H O J
-				Description: Mods.PvPAdventure.Buffs.BROISACHOJ.Description
-			}
-
-			Hellhex: {
-				DisplayName: Hellhex
-				Description: Mods.PvPAdventure.Buffs.Hellhex.Description
-			}
-
-			Marked: {
-				DisplayName: Marked
-				Description: Mods.PvPAdventure.Buffs.Marked.Description
-			}
-
-			NewIchorPlayerDebuff: {
-				DisplayName: New Ichor Player Debuff
-				Description: Mods.PvPAdventure.Buffs.NewIchorPlayerDebuff.Description
-			}
-
-			PlayerInSpawn: {
-				DisplayName: Player In Spawn
-				Description: Mods.PvPAdventure.Buffs.PlayerInSpawn.Description
-			}
-
-			PressurePoints: {
-				DisplayName: Pressure Points
-				Description: Mods.PvPAdventure.Buffs.PressurePoints.Description
-			}
-
-			ShatteredArmor: {
-				DisplayName: Shattered Armor
-				Description: Mods.PvPAdventure.Buffs.ShatteredArmor.Description
-			}
-
-			ShinyStoneHotswap: {
-				DisplayName: Shiny Stone Hotswap
-				Description: Mods.PvPAdventure.Buffs.ShinyStoneHotswap.Description
-			}
-
-			UncouthandBoring: {
-				DisplayName: Uncouthand Boring
-				Description: Mods.PvPAdventure.Buffs.UncouthandBoring.Description
-			}
-		}
-
-		Items: {
-			AdventureBag: {
-				DisplayName: Adventure Bag
-				Tooltip: ""
-			}
-
-			BlightFruit: {
-				DisplayName: Blight Fruit
-				Tooltip: ""
-			}
-
-			AdventureMirror: {
-				DisplayName: Adventure Mirror
-				Tooltip: ""
-			}
-		}
 
 		NPCs: {
 			Bound: {
 				ArmsDealer.DisplayName: Bound. Arms Dealer
 				Cyborg.DisplayName: Bound. Cyborg
-				Demolitionist.DisplayName: Bound. Demolitionist
 				Merchant.DisplayName: Bound. Merchant
 				Steampunker.DisplayName: Bound. Steampunker
 				Truffle.DisplayName: Bound. Truffle
@@ -1504,4 +1343,3 @@ ArmorSetBonus.BeetleDamage:
 		}
 	}
 }
->>>>>>> Stashed changes

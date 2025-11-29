@@ -7,12 +7,5 @@ public enum AdventurePacketIdentifier : byte
     PingPong,
     PlayerItemPickup,
     PlayerTeam,
-    NpcStrikeTeam,
-    Dash,
-    PlayerBed,
-    AdventureMirrorRightClickUse,
-    BedTeleport,
-    QueueToggle,        
-    QueueCounts,        
-    QueueCountsRequest
+    NpcStrikeTeam      
 }
