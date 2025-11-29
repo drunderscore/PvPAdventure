@@ -145,6 +145,8 @@ Mods: {
 					Label: Adventure Mirror Recall Frames
 					Tooltip: ""
 				}
+
+				Headers.AdventureMirror: Adventure Mirror Header
 			}
 
 			PointsConfig: {
@@ -408,6 +410,23 @@ Mods: {
 						On: Dash as usual with double tap
 						Off: Disables double tap dash. Use keybind instead
 						'''
+				}
+
+				Headers.AdventureMirror: Adventure Mirror Header
+
+				OpenMapAfterRecall: {
+					Label: Open Map After Recall
+					Tooltip: ""
+				}
+
+				ShowPopupText: {
+					Label: Show Popup Text
+					Tooltip: ""
+				}
+
+				ShowPlayerIndicationWhenWhenHovering: {
+					Label: Show Player Indication When When Hovering
+					Tooltip: ""
 				}
 			}
 
@@ -941,14 +960,23 @@ Mods: {
 		}
 
 		Items: {
+			AdventureMirror: {
+				DisplayName: Adventure Mirror
+				Tooltip:
+					'''
+					Gaze in the mirror to go on adventures
+					Right click to use
+					'''
+			}
+
 			AdventureBag: {
 				DisplayName: Adventure Bag
-				Tooltip: Everything you need to start your PvP Adventure!
+				Tooltip: ""
 			}
 
 			BlightFruit: {
-				Tooltip: ""
 				DisplayName: Blight Fruit
+				Tooltip: ""
 			}
 		}
 
@@ -1075,16 +1103,6 @@ Mods: {
 			Shronker.Label: Shronker
 			FatalCarCrash.Label: Fatal Car Crash
 			Part2.Label: Part2
-		}
-		Items: {
-			AdventureMirror: {
-				DisplayName: Adventure Mirror
-				Tooltip:
-					'''
-					Gaze in the mirror to go on adventures
-					Right click to use
-					'''
-			}
 		}
 	}
 }
