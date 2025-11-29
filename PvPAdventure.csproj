@@ -5,6 +5,10 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <AdditionalFiles Remove="Core\Matchmaking\Systems\**" />
+    <Compile Remove="Core\Matchmaking\Systems\**" />
+    <EmbeddedResource Remove="Core\Matchmaking\Systems\**" />
+    <None Remove="Core\Matchmaking\Systems\**" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Assets\" />
