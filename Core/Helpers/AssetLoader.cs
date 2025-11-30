@@ -9,7 +9,9 @@ public static class Ass
 {
     // Matchmaking assets
     public static Asset<Texture2D> Button;
+    public static Asset<Texture2D> Button_Border;
     public static Asset<Texture2D> Button_Small;
+    public static Asset<Texture2D> Button_Small_Border;
     public static Asset<Texture2D> Map_Icon_Guide;
 
     public static bool Initialized { get; set; }

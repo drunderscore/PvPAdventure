@@ -94,7 +94,7 @@ public class MainMenuSystem : ModSystem
                 if (labels == null)
                     return;
 
-                labels[num11] = "Matchmaking";
+                labels[num11] = "Server Browser";
                 num11++;
                 num5++;
             });
@@ -110,7 +110,10 @@ public class MainMenuSystem : ModSystem
 
         if (ui?.CurrentState != null)
         {
+            var old = UserInterface.ActiveInstance;
+            UserInterface.ActiveInstance = ui;
             ui.Draw(Main.spriteBatch, new GameTime());
+            UserInterface.ActiveInstance = old;
             return;
         }
 
@@ -166,23 +169,30 @@ public class MainMenuSystem : ModSystem
 
     private void PostUpdateUIStates(On_Main.orig_UpdateUIStates orig, GameTime gameTime)
     {
+        if (Main.gameMenu && ui?.CurrentState != null)
+        {
+            var old = UserInterface.ActiveInstance;
+            UserInterface.ActiveInstance = ui;
+            ui.Update(gameTime);
+            UserInterface.ActiveInstance = old;
+        }
+
         orig(gameTime);
 
         if (!Main.gameMenu)
         {
             if (ui?.CurrentState != null)
                 ui.SetState(null);
+
             return;
         }
 
-        // If we're no longer in our custom empty-background menu, kill the matchmaking UI.
+        // If we left our custom empty-background menu, kill matchmaking UI
         if (ui?.CurrentState != null && Main.menuMode != 888)
         {
             ui.SetState(null);
             Main.blockMouse = false;
         }
-
-        if (ui?.CurrentState != null)
-            ui.Update(gameTime);
     }
+
 }
