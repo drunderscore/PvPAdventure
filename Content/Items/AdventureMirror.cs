@@ -146,38 +146,16 @@ internal class AdventureMirror : ModItem
         player.reuseDelay = 0;
     }
 
-    public bool IsPlayerInSpawnRegion(Player player)
-    {
-        // Is player in resin's spawn region?
-        var regionManager = ModContent.GetInstance<RegionManager>();
-        Point tilePos = player.Center.ToTileCoordinates();
-        var region = regionManager.GetRegionContaining(tilePos);
-        if (region != null)
-        {
-            return true;
-        }
-
-        // Is player in bed spawn region?
-        Vector2 bedSpawnPoint = new(player.SpawnX, player.SpawnY);
-        float distanceToBedSpawn = Vector2.Distance(bedSpawnPoint * 16f, player.Center);
-        if (distanceToBedSpawn <= 25 * 16f)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
     public override void UseStyle(Player player, Rectangle heldItemFrame)
     {
         base.UseStyle(player, heldItemFrame);
 
-        if (IsPlayerInSpawnRegion(player))
-        {
-            //PopupTextHelper.NewText("cannot use in spawn!", player);
-            //CancelItemUse(player);
-            //return;
-        }
+        //if (IsPlayerInSpawnRegion(player))
+        //{
+        //    //PopupTextHelper.NewText("cannot use in spawn!", player);
+        //    //CancelItemUse(player);
+        //    //return;
+        //}
 
         // If this player moves, cancel their use
         if (player.velocity.LengthSquared() > 0)
@@ -253,7 +231,7 @@ internal class AdventureMirror : ModItem
         Main.mapFullscreenPos.Y = worldCenterY;
 
         // Zoom out a bit to see the whole map
-        Main.mapFullscreenScale = 0.01f; 
+        //Main.mapFullscreenScale = 0.01f; 
     }
 
     public override void UseAnimation(Player player)

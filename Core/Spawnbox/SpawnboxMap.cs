@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.SpawnSelector.Players;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.Map;
 using Terraria.ModLoader;
+using Terraria.WorldBuilding;
 using static PvPAdventure.System.RegionManager;
 
 namespace PvPAdventure.Core.Spawnbox;
@@ -66,9 +68,15 @@ public class SpawnboxMap : ModMapLayer
             h = spawnRect.Height;
         }
 
+        var gm = ModContent.GetInstance<GameManager>();
+        var am = Main.LocalPlayer.GetModPlayer<AdventureMirrorPlayer>();
+        bool canPass = gm.CurrentPhase == GameManager.Phase.Playing
+          && am.IsPlayerInSpawnRegion();
+
         // now draw using the (possibly clipped) rect
         Texture2D pix = TextureAssets.MagicPixel.Value;
-        Color col = Color.Black * 0.7f;
+        Color col = Color.Black;
+        if (canPass) col = Color.Black * 0.5f;
         int thickness = 2; 
 
         if (Main.mapFullscreen)

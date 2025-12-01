@@ -19,7 +19,6 @@ internal class BedsOnMap : ModSystem
     public override void Load()
     {
         On_SpawnMapLayer.Draw += OnSpawnMapLayer;
-        
     }
 
     public override void Unload()

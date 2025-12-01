@@ -35,9 +35,9 @@ public class AdventureMirrorPlayer : ModPlayer
         }
     }
 
-    public bool IsPlayerInSpawnRegion(int extraTileOffset=0)
+    public bool IsPlayerInSpawnRegion()
     {
-        // Is player in spawn region?
+        // Is player in resin's spawn region?
         var regionManager = ModContent.GetInstance<RegionManager>();
         Point tilePos = Player.Center.ToTileCoordinates();
         var region = regionManager.GetRegionContaining(tilePos);
@@ -54,8 +54,40 @@ public class AdventureMirrorPlayer : ModPlayer
             return true;
         }
 
+        // Is player in any bed spawn region?
+        for (int i = 0; i < Main.maxPlayers; i++)
+        {
+            Player other = Main.player[i];
+
+            if (other == null || !other.active || other.whoAmI == Player.whoAmI)
+                continue;
+
+            // Only care about same team and non-zero team
+            if (other.team == 0 || other.team != Player.team)
+                continue;
+
+            // No bed set for this teammate
+            if (other.SpawnX == -1 || other.SpawnY == -1)
+                continue;
+
+            Vector2 teammateBedTile = new Vector2(other.SpawnX, other.SpawnY);
+            float distanceToTeammateBed = Vector2.Distance(teammateBedTile * 16f, Player.Center);
+
+            if (distanceToTeammateBed <= 25*16f)
+            {
+                return true;
+            }
+        }
         return false;
     }
+
+#if DEBUG
+    public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
+    {
+        Player.respawnTimer = 0;
+        base.Kill(damage, hitDirection, pvp, damageSource);
+    }
+#endif
 
     public override void PostUpdate()
     {
