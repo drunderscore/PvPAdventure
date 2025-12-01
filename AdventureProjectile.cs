@@ -243,7 +243,7 @@ public class AdventureProjectile : GlobalProjectile
     {
         public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
         {
-            return entity.type == ProjectileID.RainNimbus;
+            return entity.type == ProjectileID.RainCloudRaining;
         }
 
         public override void PostAI(Projectile projectile)

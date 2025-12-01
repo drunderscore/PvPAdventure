@@ -17,6 +17,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
+using static PvPAdventure.AdventureItem;
 
 namespace PvPAdventure;
 

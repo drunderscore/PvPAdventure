@@ -517,7 +517,7 @@ public class AdventureDropDatabase : ModSystem
                 // Remove existing soul drops
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.SoulofMight));
-                npcLoot.Add(ItemDropRule.Common(ItemID.SoulofMight, 1, 31, 31));
+                npcLoot.Add(ItemDropRule.Common(ItemID.SoulofMight, 1, 40, 40));
                 break;
 
             case NPCID.SkeletronPrime:
@@ -527,7 +527,7 @@ public class AdventureDropDatabase : ModSystem
 
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.SoulofFright));
-                npcLoot.Add(ItemDropRule.Common(ItemID.SoulofFright, 1, 31, 31));
+                npcLoot.Add(ItemDropRule.Common(ItemID.SoulofFright, 1, 40, 40));
                 break;
 
             case NPCID.Retinazer:
@@ -540,7 +540,7 @@ public class AdventureDropDatabase : ModSystem
 
                 npcLoot.Add(ItemDropRule.ByCondition(
                     new Conditions.LegacyHack_IsBossAndNotExpert(),
-                    ItemID.SoulofSight, 1, 31, 31));
+                    ItemID.SoulofSight, 1, 40, 40));
                 break;
 
             case NPCID.Plantera:

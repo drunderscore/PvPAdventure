@@ -369,7 +369,6 @@ Mods: {
 					Tooltip: ""
 				}
 
-
 				NoKnockbackItems: {
 					Label: No Knockback Items
 					Tooltip: ""
@@ -378,15 +377,604 @@ Mods: {
 				NoKnockbackProjectiles: {
 					Label: No Knockback Projectiles
 
+					AwardBountyEveryKill: {
+						Label: Award Bounty Every Kill
+						Tooltip: ""
+					}
+				}
+
+				AdventureClientConfig: {
+					DisplayName: Client
+
+					PlayerOutline: {
+						Label: Player Outline
+						Tooltip: ""
+					}
+
+					ShiftEnterOpensAllChat: {
+						Label: Shift Enter Opens All Chat
+						Tooltip: ""
+					}
+
+					ShowPauseMessage: {
+						Tooltip: ""
+						Label: Show Pause Message
+					}
+
+					SoundEffect: {
+						Label: Sound Effect
+						Tooltip: ""
+					}
+
+					IsVanillaDashEnabled: {
+						Label: Is Vanilla Dash Enabled
+						Tooltip:
+							'''
+							On: Dash as usual with double tap
+							Off: Disables double tap dash. Use keybind instead
+							'''
+					}
+
+					OpenMapAfterRecall: {
+						Label: "[i:2435] Open Map After Recall"
+						Tooltip: Opens the map instantly after the mirror has finished channeling
+					}
+
+					ShowPopupText: {
+						Label: "[i:159] Show Popup Text"
+						Tooltip: Shows popup text related to item
+					}
+
+					Headers.AdventureMirror: Adventure Mirror
+
+					ShowPlayerIndicationWhenWhenHovering: {
+						Label: Show Player Indication When When Hovering
+						Tooltip: Shows arrow and player head on the fullscreen map when hovering the teleport option above a player
+					}
+				}
+
+				PlayerOutlineConfig: {
+					Tooltip: ""
+
+					Self: {
+						Label: Self
+						Tooltip: ""
+					}
+
+					Team: {
+						Label: Team
+						Tooltip: ""
+					}
+				}
+
+				CannotModify: You are not permitted to modify this config.
+
+				PlayerDamageBalanceConfig: {
+					Tooltip: ""
+
+					ItemDamageMultipliers: {
+						Label: Item Damage Multipliers
+						Tooltip: ""
+					}
+
+					ProjectileDamageMultipliers: {
+						Label: Projectile Damage Multipliers
+						Tooltip: ""
+					}
+
+					ItemFalloff: {
+						Label: Item Falloff
+						Tooltip: ""
+					}
+
+					ProjectileFalloff: {
+						Label: Projectile Falloff
+						Tooltip: ""
+					}
+
+					DefaultFalloff: {
+						Tooltip: ""
+						Label: Default Falloff
+					}
+				}
+
+				Falloff: {
+					Coefficient: {
+						Tooltip: ""
+						Label: Coefficient
+					}
+
+					Forward: {
+						Label: Forward
+						Tooltip: ""
+					}
+
+					Tooltip: ""
+				}
+
+				Statistics: {
+					Tooltip: ""
+
+					Damage: {
+						Label: Damage
+						Tooltip: ""
+					}
+
+					UseTime: {
+						Label: Use Time
+						Tooltip: ""
+					}
+
+					UseAnimation: {
+						Label: Use Animation
+						Tooltip: ""
+					}
+
+					ShootSpeed: {
+						Label: Shoot Speed
+						Tooltip: ""
+					}
+
+					Crit: {
+						Label: Crit
+						Tooltip: ""
+					}
+
+					Mana: {
+						Label: Mana
+						Tooltip: ""
+					}
+
+					Scale: {
+						Label: Scale
+						Tooltip: ""
+					}
+
+					Knockback: {
+						Label: Knockback
+						Tooltip: ""
+					}
+
+					Value: {
+						Tooltip: ""
+						Label: Value
+					}
+				}
+
+				OptionalInt: {
+					Tooltip: ""
+
+					Value: {
+						Label: Value
+						Tooltip: ""
+					}
+				}
+
+				OptionalFloat: {
+					Tooltip: ""
+
+					Value: {
+						Label: Value
+						Tooltip: ""
+					}
+				}
+
+				HitMarkerConfig: {
+					Sound: {
+						Label: Sound
+						Tooltip: ""
+					}
+
+					Volume: {
+						Label: Volume
+						Tooltip: ""
+					}
+
+					PitchMinimum: {
+						Label: Pitch Minimum
+						Tooltip: ""
+					}
+
+					PitchMaximum: {
+						Label: Pitch Maximum
+						Tooltip: ""
+					}
+
+					Tooltip: ""
+
+					SoundPath: {
+						Tooltip: ""
+						Label: Sound Path
+					}
+				}
+
+				SoundEffectConfig: {
+					Tooltip: ""
+
+					NpcHitMarker: {
+						Label: Npc Hit Marker
+						Tooltip: ""
+					}
+
+					PlayerHitMarker: {
+						Label: Player Hit Marker
+						Tooltip: ""
+					}
+
+					PlayerKillMarker: {
+						Label: Player Kill Marker
+						Tooltip: ""
+					}
+				}
+
+				PlayerHitMarkerConfig: {
+					Tooltip: ""
+
+					SilenceVanilla: {
+						Label: Silence Vanilla
+						Tooltip: ""
+					}
+				}
+
+				KillMarkerConfig: {
+					SoundPath: {
+						Tooltip: ""
+						Label: Sound Path
+					}
+				}
+
+				PlayerKillMarkerConfig: {
+					SilenceVanilla: {
+						Tooltip: ""
+						Label: Silence Vanilla
+					}
+
+					Tooltip: ""
+				}
+
+				MarkerConfig`1: {
+					PitchMaximum: {
+						Tooltip: ""
+						Label: Pitch Maximum
+					}
+
+					PitchMinimum: {
+						Tooltip: ""
+						Label: Pitch Minimum
+					}
+
+					Volume: {
+						Tooltip: ""
+						Label: Volume
+					}
+
+					Sound: {
+						Tooltip: ""
+						Label: Sound
+					}
+				}
+
+				Killsound: {
+					Part2: {
+						Label: Part2
+						Tooltip: ""
+					}
+
+					FatalCarCrash: {
+						Label: Fatal Car Crash
+						Tooltip: ""
+					}
+
+					Shronker: {
+						Label: Shronker
+						Tooltip: ""
+					}
+
+					Sharkron: {
+						Label: Sharkron
+						Tooltip: ""
+					}
+
+					Ronaldoz: {
+						Label: Ronaldoz
+						Tooltip: ""
+					}
+
+					Zacharry: {
+						Label: Zacharry
+						Tooltip: ""
+					}
+
+					Tooltip: ""
+				}
+
+				Hitsound: {
+					Part1: {
+						Label: Part1
+						Tooltip: ""
+					}
+
+					MarrowMurder: {
+						Label: Marrow Murder
+						Tooltip: ""
+					}
+
+					Squelchy: {
+						Label: Squelchy
+						Tooltip: ""
+					}
+
+					Crash: {
+						Label: Crash
+						Tooltip: ""
+					}
+
+					Blip: {
+						Label: Blip
+						Tooltip: ""
+					}
+
+					Buwee: {
+						Label: BuWEEEEE
+						Tooltip: ""
+					}
+
+					OlBetsy: {
+						Label: Ol' Betsy
+						Tooltip: ""
+					}
+
+					Tooltip: ""
+				}
+
+				WorldGenerationConfig: {
+					LifeFruitMinimumDistanceBetween: {
+						Tooltip: ""
+						Label: Life Fruit Minimum Distance Between
+					}
+
+					LifeFruitExpertChanceDenominator: {
+						Tooltip: ""
+						Label: Life Fruit Expert Chance Denominator
+					}
+
+					LifeFruitChanceDenominator: {
+						Tooltip: ""
+						Label: Life Fruit Chance Denominator
+					}
+
+					Tooltip: ""
+
+					PlanteraBulbChanceDenominator: {
+						Label: Plantera Bulb Chance Denominator
+						Tooltip: ""
+					}
+
+					ChlorophyteSpreadChanceModifier: {
+						Label: Chlorophyte Spread Chance Modifier
+						Tooltip: ""
+					}
+
+					ChlorophyteGrowChanceModifier: {
+						Label: Chlorophyte Grow Chance Modifier
+						Tooltip: ""
+					}
+
+					ChlorophyteGrowLimitModifier: {
+						Label: Chlorophyte Grow Limit Modifier
+						Tooltip: ""
+					}
+				}
+
+				NpcBalanceConfig: {
+					Tooltip: ""
+
+					LifeMaxMultipliers: {
+						Label: Life Max Multipliers
+						Tooltip: ""
+					}
+
+					DamageMultipliers: {
+						Label: Damage Multipliers
+						Tooltip: ""
+					}
+
+					NoMechanicalBossSummonDrops: {
+						Label: No Mechanical Boss Summon Drops
+						Tooltip: ""
+					}
+
+					NoBiomeKeyDrops: {
+						Label: No Biome Key Drops
+						Tooltip: ""
+					}
+				}
+
+				FloatStatistic: {
+					Tooltip: ""
+
+					Value: {
+						Label: Value
+						Tooltip: ""
+					}
+				}
+
+				ChestItemReplacement: {
+					Tooltip: ""
+
+					Items: {
+						Label: Items
+						Tooltip: ""
+					}
+				}
+
+				InvasionSizeValue: {
+					Value: {
+						Tooltip: ""
+						Label: Value
+					}
+
+					Tooltip: ""
+				}
+
+				TeamLifeConfig: {
+					Tooltip: ""
+
+					Share: {
+						Label: Share
+						Tooltip: ""
+					}
+				}
+
 				AwardBountyEveryKill: {
 					Label: Award Bounty Every Kill
+					Tooltip: ""
+				}
+			}
 
+			Item: {
+				Disabled: Cannot be used in this gamemode
+				NoUndergroundEmpressButterfly: Cannot be released here underground
+				NoUndergroundQueenSlimeCrystal: Cannot be summoned here underground
+			}
+
+			Player.CannotRecall: Cannot recall!
+			Tiles.LockedLihzahrdChest.MapEntry: Locked Lihzahrd Chest
+			Sandstorm: "[c/FFC864:Desert winds are picking up...]"
+			Rain: "[c/6496FF:A storm is brewing overhead...]"
+
+			NPCs: {
+				Bound: {
+					Merchant.DisplayName: Bound Merchant
+					ArmsDealer.DisplayName: Bound Arms Dealer
+					WitchDoctor.DisplayName: Bound Witch Doctor
+					Demolitionist.DisplayName: Bound. Demolitionist
+
+					Steampunker: {
+						DisplayName: Chained Steampunker
+						Chat: At long last, I'm saved! The strangest people chained me up, they mentioned something about a hardcore challenge...
+					}
+
+					Truffle: {
+						DisplayName: Buried Truffle
+						Chat: You woke me up. Dont eat children.
+					}
+
+					Cyborg: {
+						DisplayName: Deactivated Cyborg
+						Chat: Press F2 to Enter Setup
+					}
+
+					Chat: At long last, I'm saved! The strangest people tied me up
+				}
+			}
+
+			Pause: {
+				True: "[c/FF0000:The game has been paused.]"
+				False: "[c/00FF00:The game has been resumed.]"
+			}
+
+			Buffs: {
+				ShinyStoneHotswap: {
+					DisplayName: Shiny Stone Hotswap
+					Description: Shiny Stone is charging up!
+				}
+
+				AncientChiselHotswapBuff: {
+					DisplayName: THE CURSE OF THE ANCIENT CHISEL
+					Description: YOU CAN'T USE THAT ACCESSORY SLOT!
+				}
+
+				NewIchorPlayerDebuff: {
+					DisplayName: Ichor
+					Description: Defense reduced by one third
+				}
+
+				BROISACHOJ: {
+					DisplayName: BRO IS A CHOJ
+					Description: You are too much of a CHOJ to dash effectively
+				}
+
+				BuffDescription: {
+					BeetleMight1: Melee damage and speed increase by 8%
+					BeetleMight2: Melee damage and speed increase by 8%
+					BeetleMight3: Melee damage and speed increase by 8%
+				}
+
+				Anathema: {
+					DisplayName: Anathema
+					Description: Enemy attacks can seek you out
+				}
+
+				BitingEmbrace: {
+					DisplayName: Summon Tagged
+					Description: Take 7 more damage from enemies
+				}
+
+				BrittleBones: {
+					DisplayName: Summon Tagged
+					Description: Take 6 more damage from enemies
+				}
+
+				Hellhex: {
+					DisplayName: Firecracked
+					Description: You are going to burst with hellfire at any moment!
+				}
+
+				Marked: {
+					DisplayName: Summon Tagged
+					Description: Take 9 more damage from enemies
+				}
+
+				PlayerInSpawn: {
+					DisplayName: Spawn
+					Description: You're in spawn bro
+				}
+
+				PressurePoints: {
+					DisplayName: Summon Tagged
+					Description: Take 6 more damage from enemies
+				}
+
+				ShatteredArmor: {
+					DisplayName: Shattered Armor
+					Description: You're armor has been shattered by a brutal blow!
+				}
+
+				Attuning: {
+					DisplayName: Attuning
+					Description: Your Spectre armor is attuning to your magic & mind!
+				}
+
+				UncouthandBoring: {
+					DisplayName: Uncouth and Boring
+					Description: You are no longer a charming and mythical philosopher!
+				}
+			}
+
+			Items: {
+				AdventureMirror: {
+					DisplayName: Adventure Mirror
+					Tooltip:
+						'''
+						Gaze in the mirror to go on adventures
+						Right click to use
+						'''
+				}
+
+				AdventureBag: {
+					DisplayName: Adventure Bag
+					Tooltip: ""
+				}
+
+				BlightFruit: {
+					DisplayName: Blight Fruit
 					Tooltip: ""
 				}
 			}
 
 			AdventureClientConfig: {
-				DisplayName: Client
+				DisplayName: Adventure Client Config
 
 				PlayerOutline: {
 					Label: Player Outline
@@ -399,39 +987,40 @@ Mods: {
 				}
 
 				ShowPauseMessage: {
-					Tooltip: ""
 					Label: Show Pause Message
+					Tooltip: ""
 				}
 
 				SoundEffect: {
 					Label: Sound Effect
 					Tooltip: ""
 				}
-				
-				IsVanillaDashEnabled: {
-					Label: Is Vanilla Dash Enabled
-					Tooltip:
-						'''
-						On: Dash as usual with double tap
-						Off: Disables double tap dash. Use keybind instead
-						'''
+
+				BlightFruit: {
+					DisplayName: Blight Fruit
+					Tooltip: Permanently decreases maximum life by 5
 				}
 
+				Headers.AdventureMirror: Adventure Mirror Header
+
 				OpenMapAfterRecall: {
-					Label: "[i:2435] Open Map After Recall"
-					Tooltip: Opens the map instantly after the mirror has finished channeling
+					Label: Open Map After Recall
+					Tooltip: ""
 				}
 
 				ShowPopupText: {
-					Label: "[i:159] Show Popup Text"
-					Tooltip: Shows popup text related to item
+					Label: Show Popup Text
+					Tooltip: ""
 				}
-
-				Headers.AdventureMirror: Adventure Mirror
 
 				ShowPlayerIndicationWhenWhenHovering: {
 					Label: Show Player Indication When When Hovering
-					Tooltip: Shows arrow and player head on the fullscreen map when hovering the teleport option above a player
+					Tooltip: ""
+				}
+
+				IsVanillaDashEnabled: {
+					Label: Is Vanilla Dash Enabled
+					Tooltip: ""
 				}
 			}
 
@@ -449,7 +1038,139 @@ Mods: {
 				}
 			}
 
-			CannotModify: You are not permitted to modify this config.
+			SoundEffectConfig: {
+				Tooltip: ""
+
+				NpcHitMarker: {
+					Label: Npc Hit Marker
+					Tooltip: ""
+				}
+
+				PlayerHitMarker: {
+					Label: Player Hit Marker
+					Tooltip: ""
+				}
+
+				PlayerKillMarker: {
+					Label: Player Kill Marker
+					Tooltip: ""
+				}
+			}
+
+			HitMarkerConfig.Tooltip: ""
+
+			Hitsound: {
+				Tooltip: ""
+
+				OlBetsy: {
+					Label: Ol Betsy
+					Tooltip: ""
+				}
+
+				Buwee: {
+					Label: Buwee
+					Tooltip: ""
+				}
+
+				Blip: {
+					Label: Blip
+					Tooltip: ""
+				}
+
+				Crash: {
+					Label: Crash
+					Tooltip: ""
+				}
+
+				Squelchy: {
+					Label: Squelchy
+					Tooltip: ""
+				}
+
+				MarrowMurder: {
+					Label: Marrow Murder
+					Tooltip: ""
+				}
+
+				Part1: {
+					Label: Part1
+					Tooltip: ""
+				}
+			}
+
+			MarkerConfig`1: {
+				Sound: {
+					Label: Sound
+					Tooltip: ""
+				}
+
+				Volume: {
+					Label: Volume
+					Tooltip: ""
+				}
+
+				PitchMinimum: {
+					Label: Pitch Minimum
+					Tooltip: ""
+				}
+
+				PitchMaximum: {
+					Label: Pitch Maximum
+					Tooltip: ""
+				}
+			}
+
+			PlayerHitMarkerConfig: {
+				Tooltip: ""
+
+				SilenceVanilla: {
+					Label: Silence Vanilla
+					Tooltip: ""
+				}
+			}
+
+			PlayerKillMarkerConfig: {
+				Tooltip: ""
+
+				SilenceVanilla: {
+					Label: Silence Vanilla
+					Tooltip: ""
+				}
+			}
+
+			Killsound: {
+				Tooltip: ""
+
+				Zacharry: {
+					Label: Zacharry
+					Tooltip: ""
+				}
+
+				Ronaldoz: {
+					Label: Ronaldoz
+					Tooltip: ""
+				}
+
+				Sharkron: {
+					Label: Sharkron
+					Tooltip: ""
+				}
+
+				Shronker: {
+					Label: Shronker
+					Tooltip: ""
+				}
+
+				FatalCarCrash: {
+					Label: Fatal Car Crash
+					Tooltip: ""
+				}
+
+				Part2: {
+					Label: Part2
+					Tooltip: ""
+				}
+			}
 
 			PlayerDamageBalanceConfig: {
 				Tooltip: ""
@@ -475,23 +1196,41 @@ Mods: {
 				}
 
 				DefaultFalloff: {
-					Tooltip: ""
 					Label: Default Falloff
+					Tooltip: ""
 				}
 			}
 
 			Falloff: {
+				Tooltip: ""
+
 				Coefficient: {
-					Tooltip: ""
 					Label: Coefficient
+					Tooltip: ""
 				}
 
 				Forward: {
 					Label: Forward
 					Tooltip: ""
 				}
+			}
 
+			TeamLifeConfig: {
 				Tooltip: ""
+
+				Share: {
+					Label: Share
+					Tooltip: ""
+				}
+			}
+
+			InvasionSizeValue: {
+				Tooltip: ""
+
+				Value: {
+					Label: Value
+					Tooltip: ""
+				}
 			}
 
 			Statistics: {
@@ -538,8 +1277,8 @@ Mods: {
 				}
 
 				Value: {
-					Tooltip: ""
 					Label: Value
+					Tooltip: ""
 				}
 			}
 
@@ -561,191 +1300,23 @@ Mods: {
 				}
 			}
 
-			HitMarkerConfig: {
-				Sound: {
-					Label: Sound
-					Tooltip: ""
-				}
-
-				Volume: {
-					Label: Volume
-					Tooltip: ""
-				}
-
-				PitchMinimum: {
-					Label: Pitch Minimum
-					Tooltip: ""
-				}
-
-				PitchMaximum: {
-					Label: Pitch Maximum
-					Tooltip: ""
-				}
-
-				Tooltip: ""
-
-				SoundPath: {
-					Tooltip: ""
-					Label: Sound Path
-				}
-			}
-
-			SoundEffectConfig: {
-				Tooltip: ""
-
-				NpcHitMarker: {
-					Label: Npc Hit Marker
-					Tooltip: ""
-				}
-
-				PlayerHitMarker: {
-					Label: Player Hit Marker
-					Tooltip: ""
-				}
-
-				PlayerKillMarker: {
-					Label: Player Kill Marker
-					Tooltip: ""
-				}
-			}
-
-			PlayerHitMarkerConfig: {
-				Tooltip: ""
-
-				SilenceVanilla: {
-					Label: Silence Vanilla
-					Tooltip: ""
-				}
-			}
-
-			KillMarkerConfig: {
-				SoundPath: {
-					Tooltip: ""
-					Label: Sound Path
-				}
-			}
-
-			PlayerKillMarkerConfig: {
-				SilenceVanilla: {
-					Tooltip: ""
-					Label: Silence Vanilla
-				}
-
-				Tooltip: ""
-			}
-
-			MarkerConfig`1: {
-				PitchMaximum: {
-					Tooltip: ""
-					Label: Pitch Maximum
-				}
-
-				PitchMinimum: {
-					Tooltip: ""
-					Label: Pitch Minimum
-				}
-
-				Volume: {
-					Tooltip: ""
-					Label: Volume
-				}
-
-				Sound: {
-					Tooltip: ""
-					Label: Sound
-				}
-			}
-
-			Killsound: {
-				Part2: {
-					Label: Part2
-					Tooltip: ""
-				}
-
-				FatalCarCrash: {
-					Label: Fatal Car Crash
-					Tooltip: ""
-				}
-
-				Shronker: {
-					Label: Shronker
-					Tooltip: ""
-				}
-
-				Sharkron: {
-					Label: Sharkron
-					Tooltip: ""
-				}
-
-				Ronaldoz: {
-					Label: Ronaldoz
-					Tooltip: ""
-				}
-
-				Zacharry: {
-					Label: Zacharry
-					Tooltip: ""
-				}
-
-				Tooltip: ""
-			}
-
-			Hitsound: {
-				Part1: {
-					Label: Part1
-					Tooltip: ""
-				}
-
-				MarrowMurder: {
-					Label: Marrow Murder
-					Tooltip: ""
-				}
-
-				Squelchy: {
-					Label: Squelchy
-					Tooltip: ""
-				}
-
-				Crash: {
-					Label: Crash
-					Tooltip: ""
-				}
-
-				Blip: {
-					Label: Blip
-					Tooltip: ""
-				}
-
-				Buwee: {
-					Label: BuWEEEEE
-					Tooltip: ""
-				}
-
-				OlBetsy: {
-					Label: Ol' Betsy
-					Tooltip: ""
-				}
-
-				Tooltip: ""
-			}
-
 			WorldGenerationConfig: {
-				LifeFruitMinimumDistanceBetween: {
+				Tooltip: ""
+
+				LifeFruitChanceDenominator: {
+					Label: Life Fruit Chance Denominator
 					Tooltip: ""
-					Label: Life Fruit Minimum Distance Between
 				}
 
 				LifeFruitExpertChanceDenominator: {
-					Tooltip: ""
 					Label: Life Fruit Expert Chance Denominator
-				}
-
-				LifeFruitChanceDenominator: {
 					Tooltip: ""
-					Label: Life Fruit Chance Denominator
 				}
 
-				Tooltip: ""
+				LifeFruitMinimumDistanceBetween: {
+					Label: Life Fruit Minimum Distance Between
+					Tooltip: ""
+				}
 
 				PlanteraBulbChanceDenominator: {
 					Label: Plantera Bulb Chance Denominator
@@ -785,11 +1356,6 @@ Mods: {
 					Label: No Mechanical Boss Summon Drops
 					Tooltip: ""
 				}
-
-				NoBiomeKeyDrops: {
-					Label: No Biome Key Drops
-					Tooltip: ""
-				}
 			}
 
 			FloatStatistic: {
@@ -809,171 +1375,78 @@ Mods: {
 					Tooltip: ""
 				}
 			}
-
-			InvasionSizeValue: {
-				Value: {
-					Tooltip: ""
-					Label: Value
-				}
-
-				Tooltip: ""
-			}
-
-			TeamLifeConfig: {
-				Tooltip: ""
-
-				Share: {
-					Label: Share
-					Tooltip: ""
-				}
-			}
-
-			GhostHealMaxDistanceNpc: {
-				Label: Ghost Heal Max Distance Npc
-				Tooltip: ""
-			}
-
-			ProjectileCollisionDamageReduction: {
-				Label: Projectile Collision Damage Reduction
-				Tooltip: ""
-			}
-
-			NoLineOfSightDamageReduction: {
-				Label: No Line Of Sight Damage Reduction
-				Tooltip: ""
-			}
 		}
 
-		Item: {
-			Disabled: Cannot be used in this gamemode
-			NoUndergroundEmpressButterfly: Cannot be released here underground
-			NoUndergroundQueenSlimeCrystal: Cannot be summoned here underground
-		}
-
-		Player.CannotRecall: Cannot recall!
-		Tiles.LockedLihzahrdChest.MapEntry: Locked Lihzahrd Chest
-		Sandstorm: "[c/FFC864:Desert winds are picking up...]"
-		Rain: "[c/6496FF:A storm is brewing overhead...]"
-
-		NPCs: {
-			Bound: {
-				Merchant.DisplayName: Bound Merchant
-				ArmsDealer.DisplayName: Bound Arms Dealer
-				WitchDoctor.DisplayName: Bound Witch Doctor
-				Demolitionist.DisplayName: Bound. Demolitionist
-
-				Steampunker: {
-					DisplayName: Chained Steampunker
-					Chat: At long last, I'm saved! The strangest people chained me up, they mentioned something about a hardcore challenge...
-				}
-
-				Truffle: {
-					DisplayName: Buried Truffle
-					Chat: You woke me up. Dont eat children.
-				}
-
-				Cyborg: {
-					DisplayName: Deactivated Cyborg
-					Chat: Press F2 to Enter Setup
-				}
-
-				Chat: At long last, I'm saved! The strangest people tied me up
-			}
-		}
-
-		Pause: {
-			True: "[c/FF0000:The game has been paused.]"
-			False: "[c/00FF00:The game has been resumed.]"
-		}
+		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
 
 		Buffs: {
-			ShinyStoneHotswap: {
-				DisplayName: Shiny Stone Hotswap
-				Description: Shiny Stone is charging up!
-			}
-
-			AncientChiselHotswapBuff: {
-				DisplayName: THE CURSE OF THE ANCIENT CHISEL
-				Description: YOU CAN'T USE THAT ACCESSORY SLOT!
-			}
-
-			NewIchorPlayerDebuff: {
-				DisplayName: Ichor
-				Description: Defense reduced by one third
-			}
-
-			BROISACHOJ: {
-				DisplayName: BRO IS A CHOJ
-				Description: You are too much of a CHOJ to dash effectively
-			}
-
-			BuffDescription: {
-				BeetleMight1: Melee damage and speed increase by 8%
-				BeetleMight2: Melee damage and speed increase by 8%
-				BeetleMight3: Melee damage and speed increase by 8%
-			}
-
 			Anathema: {
 				DisplayName: Anathema
-				Description: Enemy attacks can seek you out
-			}
-
-			BitingEmbrace: {
-				DisplayName: Summon Tagged
-				Description: Take 7 more damage from enemies
-			}
-
-			BrittleBones: {
-				DisplayName: Summon Tagged
-				Description: Take 6 more damage from enemies
-			}
-
-			Hellhex: {
-				DisplayName: Firecracked
-				Description: You are going to burst with hellfire at any moment!
-			}
-
-			Marked: {
-				DisplayName: Summon Tagged
-				Description: Take 9 more damage from enemies
-			}
-
-			PlayerInSpawn: {
-				DisplayName: Spawn
-				Description: You're in spawn bro
-			}
-
-			PressurePoints: {
-				DisplayName: Summon Tagged
-				Description: Take 6 more damage from enemies
-			}
-
-			ShatteredArmor: {
-				DisplayName: Shattered Armor
-				Description: You're armor has been shattered by a brutal blow!
+				Description: Mods.PvPAdventure.Buffs.Anathema.Description
 			}
 
 			Attuning: {
 				DisplayName: Attuning
-				Description: Your Spectre armor is attuning to your magic & mind!
+				Description: Mods.PvPAdventure.Buffs.Attuning.Description
+			}
+
+			BitingEmbrace: {
+				DisplayName: Biting Embrace
+				Description: Mods.PvPAdventure.Buffs.BitingEmbrace.Description
+			}
+
+			BrittleBones: {
+				DisplayName: Brittle Bones
+				Description: Mods.PvPAdventure.Buffs.BrittleBones.Description
+			}
+
+			BROISACHOJ: {
+				DisplayName: B R O I S A C H O J
+				Description: Mods.PvPAdventure.Buffs.BROISACHOJ.Description
+			}
+
+			Hellhex: {
+				DisplayName: Hellhex
+				Description: Mods.PvPAdventure.Buffs.Hellhex.Description
+			}
+
+			Marked: {
+				DisplayName: Marked
+				Description: Mods.PvPAdventure.Buffs.Marked.Description
+			}
+
+			NewIchorPlayerDebuff: {
+				DisplayName: New Ichor Player Debuff
+				Description: Mods.PvPAdventure.Buffs.NewIchorPlayerDebuff.Description
+			}
+
+			PlayerInSpawn: {
+				DisplayName: Player In Spawn
+				Description: Mods.PvPAdventure.Buffs.PlayerInSpawn.Description
+			}
+
+			PressurePoints: {
+				DisplayName: Pressure Points
+				Description: Mods.PvPAdventure.Buffs.PressurePoints.Description
+			}
+
+			ShatteredArmor: {
+				DisplayName: Shattered Armor
+				Description: Mods.PvPAdventure.Buffs.ShatteredArmor.Description
+			}
+
+			ShinyStoneHotswap: {
+				DisplayName: Shiny Stone Hotswap
+				Description: Mods.PvPAdventure.Buffs.ShinyStoneHotswap.Description
 			}
 
 			UncouthandBoring: {
-				DisplayName: Uncouth and Boring
-				Description: You are no longer a charming and mythical philosopher!
+				DisplayName: Uncouthand Boring
+				Description: Mods.PvPAdventure.Buffs.UncouthandBoring.Description
 			}
 		}
 
 		Items: {
-			AdventureMirror: {
-				DisplayName: Adventure Mirror
-				Tooltip:
-					'''
-					Gaze in the mirror to go on adventures
-					Right click to use
-					'''
-			}
-
 			AdventureBag: {
 				DisplayName: Adventure Bag
 				Tooltip: ""
@@ -983,132 +1456,48 @@ Mods: {
 				DisplayName: Blight Fruit
 				Tooltip: ""
 			}
-		}
 
-		AdventureClientConfig: {
-			DisplayName: Adventure Client Config
-
-			PlayerOutline: {
-				Label: Player Outline
+			AdventureMirror: {
+				DisplayName: Adventure Mirror
 				Tooltip: ""
 			}
 
-			ShiftEnterOpensAllChat: {
-				Label: Shift Enter Opens All Chat
-				Tooltip: ""
+			JungleKeyMold: {
+				Tooltip: Used for crafting a Jungle Key
+				DisplayName: Jungle Key Mold
 			}
 
-			ShowPauseMessage: {
-				Label: Show Pause Message
-				Tooltip: ""
+			HallowedKeyMold: {
+				Tooltip: Used for crafting a Hallowed Key
+				DisplayName: Hallowed Key Mold
 			}
 
-			SoundEffect: {
-				Label: Sound Effect
-				Tooltip: ""
+			FrozenKeyMold: {
+				Tooltip: Used for crafting a Frozen Key
+				DisplayName: Frozen Key Mold
 			}
 
-			BlightFruit: {
-				DisplayName: Blight Fruit
-				Tooltip: Permanently decreases maximum life by 5
-			}
-		}
-
-		PlayerOutlineConfig: {
-			Tooltip: ""
-
-			Self: {
-				Label: Self
-				Tooltip: ""
+			DesertKeyMold: {
+				Tooltip: Used for crafting a Desert Key
+				DisplayName: Desert Key Mold
 			}
 
-			Team: {
-				Label: Team
-				Tooltip: ""
+			CorruptionKeyMold: {
+				Tooltip: Used for crafting a Corruption Key
+				DisplayName: Corruption Key Mold
 			}
 		}
 
-		SoundEffectConfig: {
-			Tooltip: ""
-
-			NpcHitMarker: {
-				Label: Npc Hit Marker
-				Tooltip: ""
+		NPCs: {
+			Bound: {
+				ArmsDealer.DisplayName: Bound. Arms Dealer
+				Cyborg.DisplayName: Bound. Cyborg
+				Demolitionist.DisplayName: Bound. Demolitionist
+				Merchant.DisplayName: Bound. Merchant
+				Steampunker.DisplayName: Bound. Steampunker
+				Truffle.DisplayName: Bound. Truffle
+				WitchDoctor.DisplayName: Bound. Witch Doctor
 			}
-
-			PlayerHitMarker: {
-				Label: Player Hit Marker
-				Tooltip: ""
-			}
-
-			PlayerKillMarker: {
-				Label: Player Kill Marker
-				Tooltip: ""
-			}
-		}
-
-		HitMarkerConfig.Tooltip: ""
-
-		Hitsound: {
-			Tooltip: ""
-			OlBetsy.Label: Ol Betsy
-			Buwee.Label: Buwee
-			Blip.Label: Blip
-			Crash.Label: Crash
-			Squelchy.Label: Squelchy
-			MarrowMurder.Label: Marrow Murder
-			Part1.Label: Part1
-		}
-
-		MarkerConfig`1: {
-			Sound: {
-				Label: Sound
-				Tooltip: ""
-			}
-
-			Volume: {
-				Label: Volume
-				Tooltip: ""
-			}
-
-			PitchMinimum: {
-				Label: Pitch Minimum
-				Tooltip: ""
-			}
-
-			PitchMaximum: {
-				Label: Pitch Maximum
-				Tooltip: ""
-			}
-		}
-
-		PlayerHitMarkerConfig: {
-			Tooltip: ""
-
-			SilenceVanilla: {
-				Label: Silence Vanilla
-				Tooltip: ""
-			}
-		}
-
-		PlayerKillMarkerConfig: {
-			Tooltip: ""
-
-			SilenceVanilla: {
-				Label: Silence Vanilla
-				Tooltip: ""
-			}
-		}
-
-		Killsound: {
-			Tooltip: ""
-			Zacharry.Label: Zacharry
-			Ronaldoz.Label: Ronaldoz
-			Sharkron.Label: Sharkron
-			Shronker.Label: Shronker
-			FatalCarCrash.Label: Fatal Car Crash
-			Part2.Label: Part2
 		}
 	}
-}
 }

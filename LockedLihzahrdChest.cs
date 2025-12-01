@@ -57,10 +57,9 @@ public class LockedLihzahrdChest : ModTile
 
         ModContent.GetInstance<PvPAdventure>().Logger.Info($"Adding extra chests to temple: {tLeft},{tTop} to {tRight},{tBottom}, rooms: {tRooms}");
 
-        int extraChests = tRooms * 30; // Reasonable amount
+        int extraChests = tRooms * 3;
         int chestsPlaced = 0;
 
-        // Place locked chests directly, just like the vanilla temple generation does
         for (int i = 0; i < extraChests; i++)
         {
             int attempts = 0;

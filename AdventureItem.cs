@@ -3,13 +3,15 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.Enums;
+using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.Utilities;
-
+using static PvPAdventure.AdventureNpc;
 namespace PvPAdventure;
 
 public class AdventureItem : GlobalItem
@@ -332,7 +334,115 @@ public class AdventureItem : GlobalItem
             return true;
         }
     }
-    public class QuiverNerf : GlobalItem
+    public class CorruptionKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Corruption_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+
+    public class FrozenKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Frozen_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+
+    public class JungleKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Jungle_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+
+    public class HallowedKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Hallowed_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+
+    public class DesertKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Desert_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+    public class BiomeKeyReplacer : GlobalItem
+    {
+        public override void OnSpawn(Item item, IEntitySource source)
+        {
+            switch (item.type)
+            {
+                case ItemID.CorruptionKey:
+                    item.SetDefaults(ModContent.ItemType<CorruptionKeyMold>());
+                    break;
+                case ItemID.HallowedKey:
+                    item.SetDefaults(ModContent.ItemType<HallowedKeyMold>());
+                    break;
+                case ItemID.FrozenKey:
+                    item.SetDefaults(ModContent.ItemType<FrozenKeyMold>());
+                    break;
+                case ItemID.JungleKey:
+                    item.SetDefaults(ModContent.ItemType<JungleKeyMold>());
+                    break;
+                case ItemID.DungeonDesertKey:
+                    item.SetDefaults(ModContent.ItemType<DesertKeyMold>());
+                    break;
+            }
+
+            if (item.type == ModContent.ItemType<CorruptionKeyMold>() ||
+                item.type == ModContent.ItemType<HallowedKeyMold>() ||
+                item.type == ModContent.ItemType<FrozenKeyMold>() ||
+                item.type == ModContent.ItemType<JungleKeyMold>() ||
+                item.type == ModContent.ItemType<DesertKeyMold>())
+            {
+                item.stack = 1;
+            }
+        }
+    }
+}
+public class QuiverNerf : GlobalItem
     {
         public override void ModifyWeaponDamage(Item item, Player player, ref StatModifier damage)
         {
@@ -456,4 +566,3 @@ public class AdventureItem : GlobalItem
             }
         }
     }
-}

@@ -4,6 +4,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using static PvPAdventure.AdventureItem;
 
 namespace PvPAdventure.System;
 
@@ -47,7 +48,56 @@ public class RecipeManager : ModSystem
             }
         }
 
-        //shroomite bar crafting cost reduction
+
+        // Corruption Key Recipe
+        Recipe.Create(ItemID.CorruptionKey)
+            .AddIngredient(ItemID.TempleKey, 1)
+            .AddIngredient(ModContent.ItemType<CorruptionKeyMold>())
+            .AddIngredient(ItemID.SoulofFright, 5)
+            .AddIngredient(ItemID.SoulofSight, 5)
+            .AddIngredient(ItemID.SoulofMight, 5)
+            .AddTile(TileID.MythrilAnvil)
+            .Register();
+
+        // Frozen Key Recipe
+        Recipe.Create(ItemID.FrozenKey)
+            .AddIngredient(ItemID.TempleKey, 1)
+            .AddIngredient(ModContent.ItemType<FrozenKeyMold>())
+            .AddIngredient(ItemID.SoulofFright, 5)
+            .AddIngredient(ItemID.SoulofSight, 5)
+            .AddIngredient(ItemID.SoulofMight, 5)
+            .AddTile(TileID.MythrilAnvil)
+            .Register();
+
+        // Jungle Key Recipe
+        Recipe.Create(ItemID.JungleKey)
+            .AddIngredient(ItemID.TempleKey, 1)
+            .AddIngredient(ModContent.ItemType<JungleKeyMold>())
+            .AddIngredient(ItemID.SoulofFright, 5)
+            .AddIngredient(ItemID.SoulofSight, 5)
+            .AddIngredient(ItemID.SoulofMight, 5)
+            .AddTile(TileID.MythrilAnvil)
+            .Register();
+
+        // Hallowed Key Recipe
+        Recipe.Create(ItemID.HallowedKey)
+            .AddIngredient(ItemID.TempleKey, 1)
+            .AddIngredient(ModContent.ItemType<HallowedKeyMold>())
+            .AddIngredient(ItemID.SoulofFright, 5)
+            .AddIngredient(ItemID.SoulofSight, 5)
+            .AddIngredient(ItemID.SoulofMight, 5)
+            .AddTile(TileID.MythrilAnvil)
+            .Register();
+
+        // Desert Key Recipe
+        Recipe.Create(ItemID.DungeonDesertKey)
+            .AddIngredient(ItemID.TempleKey, 1)
+            .AddIngredient(ModContent.ItemType<DesertKeyMold>())
+            .AddIngredient(ItemID.SoulofFright, 5)
+            .AddIngredient(ItemID.SoulofSight, 5)
+            .AddIngredient(ItemID.SoulofMight, 5)
+            .AddTile(TileID.MythrilAnvil)
+            .Register();
 
         Recipe.Create(ItemID.ShroomiteBar)
             .AddIngredient(ItemID.GlowingMushroom, 3)
