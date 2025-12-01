@@ -2,11 +2,11 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.SpawnSelector.Players;
 using PvPAdventure.System;
+using ReLogic.Graphics;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.Map;
 using Terraria.ModLoader;
-using Terraria.WorldBuilding;
 using static PvPAdventure.System.RegionManager;
 
 namespace PvPAdventure.Core.Spawnbox;
@@ -83,9 +83,40 @@ public class SpawnboxMap : ModMapLayer
             thickness = (int)(1 * Main.mapFullscreenScale); // match 1 pixel at scale 1
 
         // top, bottom, left, right
-        Main.spriteBatch.Draw(pix, new Rectangle(x, y, w, thickness), col);
-        Main.spriteBatch.Draw(pix, new Rectangle(x, y + h - thickness, w, thickness), col);
-        Main.spriteBatch.Draw(pix, new Rectangle(x, y, thickness, h), col);
-        Main.spriteBatch.Draw(pix, new Rectangle(x + w - thickness, y, thickness, h), col);
+        Main.spriteBatch.Draw(pix,new Rectangle(x + thickness, y, w - thickness * 2, thickness),col);
+        Main.spriteBatch.Draw(pix,new Rectangle(x + thickness, y + h - thickness, w - thickness * 2, thickness),col);
+        Main.spriteBatch.Draw(pix,new Rectangle(x, y, thickness, h),col);
+        Main.spriteBatch.Draw(pix,new Rectangle(x + w - thickness, y, thickness, h),col);
+
+        var font = FontAssets.DeathText.Value;
+
+        float scale = context.MapScale * context.DrawScale*0.3f;
+
+        Vector2 textSize = font.MeasureString("SPAWN") * scale;
+
+        Vector2 textPos = new Vector2(
+            x + w / 2f - textSize.X / 2f,
+            y + h / 2f - textSize.Y / 2f
+        );
+        textPos.Y -= 50*scale;
+
+        // Helper to draw text
+        void drawSpawnText(Vector2 offset, Color c)
+        {
+            Main.spriteBatch.DrawString(
+                font,
+                "SPAWN",
+                textPos + offset,
+                c,
+                0f,
+                Vector2.Zero,
+                scale,
+                SpriteEffects.None,
+                0f
+            );
+        }
+
+        //drawSpawnText(new Vector2(2, 2) * scale, Color.Black * 0.75f);
+        //drawSpawnText(Vector2.Zero, Color.White);
     }
 }

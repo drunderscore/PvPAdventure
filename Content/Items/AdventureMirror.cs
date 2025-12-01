@@ -231,7 +231,7 @@ internal class AdventureMirror : ModItem
         Main.mapFullscreenPos.Y = worldCenterY;
 
         // Zoom out a bit to see the whole map
-        //Main.mapFullscreenScale = 0.01f; 
+        Main.mapFullscreenScale = 0.01f; 
     }
 
     public override void UseAnimation(Player player)

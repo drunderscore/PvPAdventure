@@ -11,6 +11,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Chat;
+using tModPorter;
 
 namespace PvPAdventure.Core.SpawnSelector.UI
 {
@@ -216,7 +217,9 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             //DrawArrow(player);
 
             // Draw player head if hovering
-            DrawPlayerHeadOnMap(player);
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            if (IsMouseHovering && !config.ShowPlayerIndicationWhenWhenHovering)
+                DrawPlayerHeadOnMap(player);
 
             // Draw player respawn timer if it exists
             string respawnTimeInSeconds = (player.respawnTimer / 60 + 1).ToString();
@@ -228,12 +231,7 @@ namespace PvPAdventure.Core.SpawnSelector.UI
 
         private void DrawPlayerHeadOnMap(Player p)
         {
-            if (p == null || !p.active || p.dead)
-                return;
-
-            var config = ModContent.GetInstance<AdventureClientConfig>();
-            if (!IsMouseHovering || !config.ShowPlayerIndicationWhenWhenHovering)
-                return;
+            
 
             Main.instance.MouseText("Teleport to " + p.name);
 

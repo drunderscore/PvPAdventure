@@ -81,14 +81,6 @@ public class AdventureMirrorPlayer : ModPlayer
         return false;
     }
 
-#if DEBUG
-    public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
-    {
-        Player.respawnTimer = 0;
-        base.Kill(damage, hitDirection, pvp, damageSource);
-    }
-#endif
-
     public override void PostUpdate()
     {
         if (Main.dedServ)
