@@ -12,6 +12,7 @@ namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 /// <summary>
 /// Prevents the Adventure Mirror from being removed from the player inventory via trashing or selling.
+/// Various inventory hooks are used to achieve this.
 /// </summary>
 public class ItemSlotHooks : ModSystem
 {
@@ -34,6 +35,7 @@ public class ItemSlotHooks : ModSystem
         On_Player.dropItemCheck -= Hook_DropItemCheck;
     }
 
+    // Vanilla method with the item animation check removed for Adventure Mirror.
     private static void Hook_RightClick(
         On_ItemSlot.orig_RightClick_ItemArray_int_int orig,
         Item[] inv, int context, int slot)
@@ -193,6 +195,7 @@ public class ItemSlotHooks : ModSystem
     private static bool IsAdventureMirror(Item item)
     => !item.IsAir && item.type == ModContent.ItemType<AdventureMirror>();
 
+    // Vanilla method with the item animation check removed for Adventure Mirror.
     // DRAGGING ONTO THE TRASH SLOT / CHESTS / BANKS
     private static void Hook_LeftClick_ItemArray(
         On_ItemSlot.orig_LeftClick_ItemArray_int_int orig,

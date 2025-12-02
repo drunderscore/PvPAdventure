@@ -17,6 +17,9 @@ public class SpawnSelectorSystem : ModSystem
     public static void SetEnabled(bool newValue) => Enabled = newValue;
     public static bool GetEnabled() => Enabled;
 
+    // Hovering players
+    internal static int HoveredPlayerIndex = -1;
+
     public override void Load()
     {
         if (!Main.dedServ)

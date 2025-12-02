@@ -10,7 +10,7 @@ using Terraria.UI;
 namespace PvPAdventure.Core.Spawnbox;
 
 /// <summary>
-/// Draws "PvP forbidden icons" above players when players are in the spawn region.
+/// Draws PvP icons above players when players are in the spawn region.
 /// </summary>
 [Autoload(Side = ModSide.Client)]
 public class PvPIconDrawerLayer : ModSystem
