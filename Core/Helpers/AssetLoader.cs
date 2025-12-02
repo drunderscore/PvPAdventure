@@ -12,6 +12,11 @@ public static class Ass
     public static Asset<Texture2D> Arrow;
     public static Asset<Texture2D> CustomPlayerBackground;
     public static Asset<Texture2D> Pause;
+    public static Asset<Texture2D> Play;
+    public static Asset<Texture2D> Reset;
+
+    // Team selector
+    public static Asset<Texture2D> TeamSelectorIcon;
 
     public static bool Initialized { get; set; }
 

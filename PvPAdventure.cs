@@ -1,8 +1,9 @@
-using System.IO;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
+using PvPAdventure.Core.TeamSelector;
 using PvPAdventure.System;
+using System.IO;
+using System.Linq;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
@@ -149,13 +150,51 @@ public class PvPAdventure : Mod
                 break;
             }
             case AdventurePacketIdentifier.PlayerTeam:
-            {
-                var team = AdventurePlayer.Team.Deserialize(reader);
-                var player = Main.player[Main.dedServ ? whoAmI : team.Player];
+                {
+                    var team = AdventurePlayer.Team.Deserialize(reader);
 
-                player.team = (int)team.Value;
-                break;
-            }
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        if (team.Player < Main.maxPlayers)
+                        {
+                            Player target = Main.player[team.Player];
+                            if (target != null && target.active)
+                            {
+                                target.team = (int)team.Value;
+
+                                // broadcast EXACT same struct to all clients
+                                var packet = GetPacket();
+                                packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
+                                team.Serialize(packet);
+                                packet.Send(-1); // everyone
+                            }
+                        }
+                    }
+                    else // client
+                    {
+                        if (team.Player < Main.maxPlayers)
+                        {
+                            Player target = Main.player[team.Player];
+                            target?.team = (int)team.Value;
+                        }
+
+                        // Rebuild team selector
+                        var system = ModContent.GetInstance<TeamSelectorSystem>();
+                        if (system?.teamSelectorState != null)
+                        {
+                            foreach (var child in system.teamSelectorState.Children)
+                            {
+                                if (child is TeamSelectorPanel panel)
+                                {
+                                    panel.needsRebuild = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+                }
         }
     }
 }

@@ -1,6 +1,11 @@
-﻿using PvPAdventure.Core.Helpers;
+﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.TeamSelector;
 using PvPAdventure.System;
 using System;
+using Terraria;
+using Terraria.Chat;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Integrations;
@@ -9,49 +14,117 @@ namespace PvPAdventure.Common.Integrations;
 public sealed class HerosModIntegration : ModSystem
 {
     private const string PauseGamePermissionKey = "PauseGame";
+    private const string PlayGamePermissionKey = "PlayGame";
+    private const string TeamSelectorPermissionKey = "TeamSelector";
 
     public override void PostSetupContent()
     {
         if (ModLoader.TryGetMod("HEROsMod", out Mod herosMod))
         {
-            AddButtons(herosMod);
+            // Add permissions
+            herosMod.Call("AddPermission",PauseGamePermissionKey,"Pause / resume game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)));
+            herosMod.Call("AddPermission",PlayGamePermissionKey,"Start / end game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PlayGamePermissionKey)));
+            herosMod.Call("AddPermission",TeamSelectorPermissionKey,"Open team assigner",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamSelectorPermissionKey)));
+
+            // Add buttons
+            AddPauseButton(herosMod);
+            AddPlayButton(herosMod);
+            AddTeamSelectorButton(herosMod);
         }
     }
 
-    private void AddButtons(Mod herosMod)
+    private void AddPauseButton(Mod herosMod)
     {
+        // Pause game
         herosMod.Call("AddSimpleButton",
             PauseGamePermissionKey,
             Ass.Pause,
             (Action)(() =>
             {
-                var mgr = ModContent.GetInstance<PauseManager>();
-                if (mgr != null)
-                    mgr.PauseGame();
-                else
-                    Log.Info("PauseManager not loaded yet.");
+                var pm = ModContent.GetInstance<PauseManager>();
+                pm.PauseGame();
             }),
             (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)),
             (Func<string>)(() =>
             {
-                var mgr = ModContent.GetInstance<PauseManager>();
-                return (mgr != null && mgr.IsPaused)
-                    ? "Continue game"
-                    : "Play game";
+                var pm = ModContent.GetInstance<PauseManager>();
+                return (pm != null && pm.IsPaused)
+                    ? "Resume"
+                    : "Pause";
             })
         );
     }
-
+    private void AddPlayButton(Mod herosMod)
+    {
+        herosMod.Call("AddSimpleButton",
+            PlayGamePermissionKey,
+            Ass.Play,
+            (Action)(() =>
+            {
+                var gm = ModContent.GetInstance<GameManager>();
+                if (gm.CurrentPhase == GameManager.Phase.Playing)
+                {
+                    gm._startGameCountdown = null;
+                    gm.TimeRemaining = 0;
+                    gm.CurrentPhase = GameManager.Phase.Waiting;
+                }
+                else if (gm._startGameCountdown.HasValue)
+                {
+                    gm._startGameCountdown = null;
+                    gm.TimeRemaining = 0;
+                    gm.CurrentPhase = GameManager.Phase.Waiting;
+                    ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("Cancelled countdown."), Color.Red);
+                }
+                else
+                {
+                    gm.StartGame(702000); // 3 hours 15 minutes
+                }
+            }),
+            (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PlayGamePermissionKey)),
+            (Func<string>)(() =>
+            {
+                var gm = ModContent.GetInstance<GameManager>();
+                return (gm != null && gm.CurrentPhase == GameManager.Phase.Playing)
+                    ? "End game"
+                    : "Start game";
+            })
+        );
+    }
+    private void AddTeamSelectorButton(Mod herosMod)
+    {
+        herosMod.Call("AddSimpleButton",
+            TeamSelectorPermissionKey,
+            Ass.TeamSelectorIcon,
+            () =>
+            {
+                // Toggle active state of team selector
+                var teamSelectorSystem = ModContent.GetInstance<TeamSelectorSystem>();
+                ModContent.GetInstance<TeamSelectorSystem>().ToggleActive();
+            },
+            (Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamSelectorPermissionKey)),
+            () =>
+            {
+                // Update text depending on state
+                var teamSelectorSystem = ModContent.GetInstance<TeamSelectorSystem>();
+                return (teamSelectorSystem != null && teamSelectorSystem.IsActive())
+                    ? "Close team assigner"
+                    : "Open team assigner";
+            }
+        );
+    }
+    /// <summary>
+    /// Called when the player's permission changes
+    /// </summary>
     private static void PermissionChanged(bool hasPerm, string permissionName)
     {
         if (!hasPerm)
         {
-            //Main.NewText($"⛔ You lost permission to use the {permissionName} button!", ColorHelper.CalamityRed);
+            //Main.NewText($"⛔ You lost permission to use the {permissionName} button!", Color.Red);
             Log.Info($"You lost permission for {permissionName} button. You cannot use it anymore.");
         }
         else
         {
-            //Main.NewText($"✅ You regained permission to use the {permissionName} button!", OutlineColor.LightGreen);
+            //Main.NewText($"✅ You regained permission to use the {permissionName} button!", Color.Green);
             Log.Info($"You regained permission for {permissionName} button. You can use it again.");
         }
     }
