@@ -10,149 +10,101 @@ using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
 using Terraria.UI;
-using static PvPAdventure.System.RegionManager;
 
-namespace PvPAdventure.Core.Spawnbox;
-
-[Autoload(Side = ModSide.Client)]
-public class SpawnBoxWorld : ModSystem
+namespace PvPAdventure.Core.Spawnbox
 {
-    // Initialize the interface layer.
-    private readonly SpawnBoxInterfaceLayer _spawnBoxInterfaceLayer = new();
-    public Asset<Texture2D> _playerBGTexture;
-
-    // Load the texture.
-    public override void Load()
+    [Autoload(Side = ModSide.Client)]
+    public class SpawnBoxWorld : ModSystem
     {
-        if (!Main.dedServ)
-            _playerBGTexture = Ass.CustomPlayerBackground;
-    }
+        public Asset<Texture2D> _playerBGTexture;
 
-    // Add the layer.
-    public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
-    {
-        if (!layers.Contains(_spawnBoxInterfaceLayer))
+        public override void Load()
         {
-            // add at the bottom interface layer
-            // https://github.com/tModLoader/tModLoader/wiki/Vanilla-Interface-layers-values
-            var layerIndex = layers.FindIndex(layer => layer.Name == "Vanilla: Interface Logic 1");
-
-            if (layerIndex != -1)
-                layers.Insert(layerIndex + 1, _spawnBoxInterfaceLayer);
-        }
-    }
-
-    private class SpawnBoxInterfaceLayer() : GameInterfaceLayer("PvPAdventure: Spawn Box", InterfaceScaleType.UI)
-    {
-        protected override bool DrawSelf()
-        {
-            // To see how to draw coordinates properly, see the wiki on Coordinates.
-            // https://github.com/tModLoader/tModLoader/wiki/Coordinates
-
-            // Draw the spawn box.
-            DrawSpawnBox(Main.spriteBatch);
-            return base.DrawSelf();
+            if (!Main.dedServ)
+                _playerBGTexture = Ass.CustomPlayerBackground;
         }
 
-        private void DrawSpawnBox(SpriteBatch sb)
+        public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
         {
-            var rm = ModContent.GetInstance<RegionManager>();
-            if (rm.Regions.Count == 0)
-                return;
-
-            Region region = rm.Regions[0];
-
-            // 🔹 this is the “solid ring” bounds in TILE space
-            Rectangle ring = region.CollisionRingBounds;
-
-            int leftTile = ring.X;
-            int rightTile = ring.X + ring.Width;   // exclusive
-            int topTile = ring.Y;
-            int bottomTile = ring.Y + ring.Height;  // exclusive
-
-            // Tile -> world
-            float leftWorld = leftTile * 16f;
-            float rightWorld = rightTile * 16f;
-            float topWorld = topTile * 16f;
-            float bottomWorld = bottomTile * 16f;
-
-            // World -> screen
-            float uiScale = Main.UIScale;
-
-            float leftScreen = (leftWorld - Main.screenPosition.X) / uiScale;
-            float rightScreen = (rightWorld - Main.screenPosition.X) / uiScale;
-            float topScreen = (topWorld - Main.screenPosition.Y) / uiScale;
-            float bottomScreen = (bottomWorld - Main.screenPosition.Y) / uiScale;
-
-
-            var gm = ModContent.GetInstance<GameManager>();
-            var am = Main.LocalPlayer.GetModPlayer<AdventureMirrorPlayer>();
-
-            float solidOpacity = 1.0f;
-            float lightOpacity = 0.5f;
-
-            float opacity = gm.CurrentPhase == GameManager.Phase.Playing
-                ? (am.IsPlayerInSpawnRegion() ? lightOpacity : solidOpacity)
-                : solidOpacity;
-
-            int l = (int)leftScreen;
-            int r = (int)rightScreen;
-            int t = (int)topScreen;
-            int b = (int)bottomScreen;
-
-            int thickness = (int)Math.Max(1f, 16f / uiScale);
-            //Texture2D pix = TextureAssets.MagicPixel.Value;
-            //Color col = Color.Gray * 0.7f;
-
-            // vanilla borders (top,left,bottom,right)
-            //sb.Draw(pix, new Rectangle(l, t, r - l, thickness), col);
-            //sb.Draw(pix, new Rectangle(l, b - thickness, r - l, thickness), col);
-            //sb.Draw(pix, new Rectangle(l, t, thickness, b - t), col);
-            //sb.Draw(pix, new Rectangle(r - thickness, t, thickness, b - t), col);
-
-            Rectangle screenRect = new(l,t,r - l, b - t);
-            DrawNineSliceBorder(sb, screenRect, Color.White * opacity);
+            // Insert just after a vanilla UI layer so it's always on top of the world.
+            int idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
+            if (idx != -1)
+            {
+                layers.Insert(idx + 1, new SpawnBoxInterfaceLayer());
+            }
         }
 
-        private void DrawNineSliceBorder(SpriteBatch sb, Rectangle rect, Color color)
+        private sealed class SpawnBoxInterfaceLayer : GameInterfaceLayer
         {
-            Texture2D tex = ModContent.GetInstance<SpawnBoxWorld>()._playerBGTexture.Value;
+            public SpawnBoxInterfaceLayer()
+                : base("PvPAdventure: SpawnBox", InterfaceScaleType.Game)
+            {
+            }
 
+            protected override bool DrawSelf()
+            {
+                DrawSpawnBox(Main.spriteBatch);
+                return true;
+            }
 
-            tex = Ass.Spawnbox.Value;
+            private void DrawSpawnBox(SpriteBatch spriteBatch)
+            {
+                if (Main.dedServ)
+                    return;
 
-            int c = 16; // corner size
-            int x = rect.X;
-            int y = rect.Y;
-            int w = rect.Width;
-            int h = rect.Height;
+                // Set the spawnbox size.
+                int leftTile = Main.spawnTileX - 25;
+                int topTile = Main.spawnTileY - 25;
+                int rightTile = leftTile + 50;
+                int bottomTile = topTile + 50;
 
-            int ew = tex.Width - c * 2;
-            int eh = tex.Height - c * 2;
+                // Get world coordinates.
+                Vector2 worldTopLeft = new(leftTile * 16f, topTile * 16f);
+                Vector2 worldBottomRight = new(rightTile * 16f, bottomTile * 16f);
 
-            // top-left
-            sb.Draw(tex, new Rectangle(x, y, c, c), new Rectangle(0, 0, c, c), color);
+                // Convert world coordinates to screen cordinates.
+                Vector2 screenTopLeft = worldTopLeft - Main.screenPosition;
+                Vector2 screenBottomRight = worldBottomRight - Main.screenPosition;
 
-            // top
-            sb.Draw(tex, new Rectangle(x + c, y, w - c * 2, c), new Rectangle(c, 0, ew, c), color);
+                int x = (int)Math.Floor(screenTopLeft.X);
+                int y = (int)Math.Floor(screenTopLeft.Y);
+                int w = (int)Math.Round(screenBottomRight.X - screenTopLeft.X);
+                int h = (int)Math.Round(screenBottomRight.Y - screenTopLeft.Y);
+                if (w <= 0 || h <= 0)
+                    return;
 
-            // top-right
-            sb.Draw(tex, new Rectangle(x + w - c, y, c, c), new Rectangle(tex.Width - c, 0, c, c), color);
+                Rectangle rect = new(x, y, w, h);
+                rect.Inflate(16, 16);
 
-            // left
-            sb.Draw(tex, new Rectangle(x, y + c, c, h - c * 2), new Rectangle(0, c, c, eh), color);
+                DrawNineSliceBorder(spriteBatch, rect);
+            }
 
-            // right
-            sb.Draw(tex, new Rectangle(x + w - c, y + c, c, h - c * 2), new Rectangle(tex.Width - c, c, c, eh), color);
+            private void DrawNineSliceBorder(SpriteBatch sb, Rectangle rect)
+            {
+                // Set color
+                var gm = ModContent.GetInstance<GameManager>();
+                var am = Main.LocalPlayer.GetModPlayer<AdventureMirrorPlayer>();
+                bool canPass = gm.CurrentPhase == GameManager.Phase.Playing && am.IsPlayerInSpawnRegion();
+                Color color = Color.Black * (canPass ? 0.5f : 1f);
 
-            // bottom-left
-            sb.Draw(tex, new Rectangle(x, y + h - c, c, c), new Rectangle(0, tex.Height - c, c, c), color);
+                Texture2D tex = Ass.Spawnbox.Value;
+                const int srcCorner = 16;
+                int x = rect.X, y = rect.Y, w = rect.Width, h = rect.Height;
+                int srcEdgeWidth = tex.Width - srcCorner * 2;
+                int srcEdgeHeight = tex.Height - srcCorner * 2;
+                int dstCorner = srcCorner;
 
-            // bottom
-            sb.Draw(tex, new Rectangle(x + c, y + h - c, w - c * 2, c),new Rectangle(c, tex.Height - c, ew, c), color);
+                sb.Draw(tex, new Rectangle(x, y, dstCorner, dstCorner), new Rectangle(0, 0, srcCorner, srcCorner), color);
+                sb.Draw(tex, new Rectangle(x + dstCorner, y, w - dstCorner * 2, dstCorner), new Rectangle(srcCorner, 0, srcEdgeWidth, srcCorner), color);
+                sb.Draw(tex, new Rectangle(x + w - dstCorner, y, dstCorner, dstCorner), new Rectangle(tex.Width - srcCorner, 0, srcCorner, srcCorner), color);
 
-            // bottom-right
-            sb.Draw(tex, new Rectangle(x + w - c, y + h - c, c, c),new Rectangle(tex.Width - c, tex.Height - c, c, c), color);
+                sb.Draw(tex, new Rectangle(x, y + dstCorner, dstCorner, h - dstCorner * 2), new Rectangle(0, srcCorner, srcCorner, srcEdgeHeight), color);
+                sb.Draw(tex, new Rectangle(x + w - dstCorner, y + dstCorner, dstCorner, h - dstCorner * 2), new Rectangle(tex.Width - srcCorner, srcCorner, srcCorner, srcEdgeHeight), color);
+
+                sb.Draw(tex, new Rectangle(x, y + h - dstCorner, dstCorner, dstCorner), new Rectangle(0, tex.Height - srcCorner, srcCorner, srcCorner), color);
+                sb.Draw(tex, new Rectangle(x + dstCorner, y + h - dstCorner, w - dstCorner * 2, dstCorner), new Rectangle(srcCorner, tex.Height - srcCorner, srcEdgeWidth, srcCorner), color);
+                sb.Draw(tex, new Rectangle(x + w - dstCorner, y + h - dstCorner, dstCorner, dstCorner), new Rectangle(tex.Width - srcCorner, tex.Height - srcCorner, srcCorner, srcCorner), color);
+            }
         }
     }
 }
