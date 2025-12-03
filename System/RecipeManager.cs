@@ -433,11 +433,9 @@ public class RecipeManager : ModSystem
         public static RecipeGroup AnyCorruptionMimicPrimary;
         public static int[] PrimaryItems => new int[] {
             ItemID.Fake_CorruptionChest,
-            ItemID.PutridScent,
             ItemID.DartRifle,
             ItemID.ClingerStaff,
             ItemID.ChainGuillotines,
-            ItemID.WormHook,
         };
 
         public override void AddRecipeGroups()
@@ -471,7 +469,6 @@ public class RecipeManager : ModSystem
             ItemID.DaedalusStormbow,
             ItemID.CrystalVileShard,
             ItemID.FlyingKnife,
-            ItemID.IlluminantHook,
         };
 
         public override void AddRecipeGroups()
@@ -863,7 +860,7 @@ public class RecipeManager : ModSystem
                 foreach (int itemID in AnyCorruptionMimic1.PrimaryItems.Where(id => id != ItemID.Fake_CorruptionChest))
                 {
                     Recipe.Create(itemID)
-                        .AddRecipeGroup($"PvPAdventure:AnyCorruptionMimicPrimaryExclude{itemID}", 3)
+                        .AddRecipeGroup($"PvPAdventure:AnyCorruptionMimicPrimaryExclude{itemID}", 2)
                         .AddCondition(shimmerCondition)
                         .DisableDecraft()
                         .Register();
