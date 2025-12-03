@@ -4,30 +4,33 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.TeamSelector;
+namespace PvPAdventure.Common.Integrations.HerosMod.StartGame;
 
 [Autoload(Side = ModSide.Client)]
-internal class TeamSelectorSystem : ModSystem
+internal class StartGameSystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState teamSelectorState;
+    public UIState endGameUIState;
+    public UIState startGameUIState;
 
     // State
-    private bool Active { get; set; }
-    public bool IsActive() => Active;
-    public bool ToggleActive() => Active = !Active;
+    public bool IsActive() => ui?.CurrentState != null;
+
+    public void ShowEndDialog() => ui.SetState(endGameUIState);
+    public void ShowStartDialog() => ui.SetState(startGameUIState);
+    public void Hide() => ui.SetState(null);
 
     public override void OnWorldLoad()
     {
-        // Initialize UI and state
         ui = new();
-        teamSelectorState = new();
+        endGameUIState = new();
+        endGameUIState.Append(new EndGameElement());
 
-        // Initialize content in the state
-        TeamSelectorPanel teamSelectorPanel = new();
-        teamSelectorState.Append(teamSelectorPanel);
-        ui.SetState(teamSelectorState);
+        startGameUIState = new();
+        startGameUIState.Append(new StartGameElement());
+
+        ui.SetState(null);
     }
     public override void UpdateUI(GameTime gameTime)
     {
@@ -41,13 +44,16 @@ internal class TeamSelectorSystem : ModSystem
         if (index != -1)
         {
             layers.Insert(index, new LegacyGameInterfaceLayer(
-                name: "PvPAdventure: TeamSelectorSystem",
-                drawMethod: () => 
-                { 
+                name: "PvPAdventure: StartGameSystem",
+                drawMethod: () =>
+                {
                     if (IsActive())
                     {
                         ui?.Draw(Main.spriteBatch, Main._drawInterfaceGameTime);
+
+                        // Debug
                         //Main.spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.Red * 0.5f);
+
                         return true;
                     }
                     return true;
@@ -57,3 +63,5 @@ internal class TeamSelectorSystem : ModSystem
         }
     }
 }
+
+

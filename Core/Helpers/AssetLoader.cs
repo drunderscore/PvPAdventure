@@ -14,6 +14,9 @@ public static class Ass
     public static Asset<Texture2D> Pause;
     public static Asset<Texture2D> Play;
     public static Asset<Texture2D> Reset;
+    public static Asset<Texture2D> Slider;
+    public static Asset<Texture2D> SliderHighlight;
+    public static Asset<Texture2D> SliderGradient;
 
     // Team selector
     public static Asset<Texture2D> TeamSelectorIcon;

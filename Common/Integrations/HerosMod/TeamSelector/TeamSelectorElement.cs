@@ -5,14 +5,13 @@ using ReLogic.Content;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.TeamSelector;
+namespace PvPAdventure.Common.Integrations.HerosMod.TeamSelector;
 
-internal class TeamSelectorPanel : UIPanel
+internal class TeamSelectorElement : UIElement
 {
     // Team colors: 0–5
     internal static readonly Color[] TeamColors =
@@ -29,8 +28,13 @@ internal class TeamSelectorPanel : UIPanel
     private Vector2 dragOffset;
 
     private UIPanel titlePanel;
+    private UIPanel contentPanel;
+    private UIPanel refreshPanel;
     public bool needsRebuild = false;
-    private List<int> players;
+    private readonly List<int> players = new();
+    private readonly int[] lastTeams = new int[Main.maxPlayers];
+    private readonly bool[] lastActive = new bool[Main.maxPlayers];
+
 
     private Asset<Texture2D> pvpAsset;
     private Asset<Texture2D> pvpAssetHover;
@@ -39,15 +43,17 @@ internal class TeamSelectorPanel : UIPanel
     {
         Width.Set(350, 0);
         Height.Set(460, 0);
-        Left.Set(Main.screenWidth * 0.8f - Width.Pixels / 2f, 0f);
-        Top.Set(Main.screenHeight * 0.8f - Height.Pixels / 2f, 0f);
-        BackgroundColor = new Color(27, 29, 85);
+        Top.Set(0, 0);
+        Left.Set(0, 0);
+        VAlign = 0.7f;
+        HAlign = 0.9f;
         SetPadding(0);
 
         titlePanel = new();
         titlePanel.Height.Set(40, 0);
         titlePanel.Width.Set(0, 1);
         titlePanel.SetPadding(0);
+        titlePanel.BackgroundColor = new Color(63, 82, 151) * 0.7f;
 
         UIText titleText = new("Assign Teams", large: true, textScale: 0.7f)
         {
@@ -55,6 +61,17 @@ internal class TeamSelectorPanel : UIPanel
             VAlign = 0.5f
         };
         titlePanel.Append(titleText);
+
+        contentPanel = new UIPanel
+        {
+            Top = new StyleDimension(40, 0),
+            Width = new StyleDimension(0, 1),
+            Height = new StyleDimension(-40, 1),
+            BackgroundColor = new Color(20, 20, 60)*0.7f,
+            BorderColor = Color.Black
+        };
+        contentPanel.SetPadding(0);
+        Append(contentPanel);
 
         UIPanel closePanel = new()
         {
@@ -73,15 +90,15 @@ internal class TeamSelectorPanel : UIPanel
         };
         closePanel.Append(closeText);
         titlePanel.Append(closePanel);
+
         titlePanel.SetPadding(0);
         Append(titlePanel);
 
         // Refresh panel
-        UIPanel refreshPanel = new()
+        refreshPanel = new()
         {
             Height = new StyleDimension(0, 1),
             Width = new StyleDimension(40, 0),
-            Left = new StyleDimension(0, 0),
             VAlign = 0.5f
         };
         refreshPanel.OnLeftClick += (_, _) =>
@@ -95,8 +112,6 @@ internal class TeamSelectorPanel : UIPanel
         refreshPanel.OnMouseOver += (_, _) =>
         {
             refreshPanel.BorderColor = Color.Yellow;
-            //Main.instance.MouseText("Refresh");
-            UICommon.TooltipMouseText("Refresh");
         };
         refreshPanel.OnMouseOut += (_, _) => refreshPanel.BorderColor = Color.Black;
         refreshPanel.SetPadding(0);
@@ -107,9 +122,6 @@ internal class TeamSelectorPanel : UIPanel
         });
         titlePanel.Append(refreshPanel);
 
-        // Refresh debug
-        
-
         // Assets
         pvpAsset = Main.Assets.Request<Texture2D>("Images/UI/PVP_1");
         pvpAssetHover = Main.Assets.Request<Texture2D>("Images/UI/PVP_2");
@@ -119,33 +131,48 @@ internal class TeamSelectorPanel : UIPanel
     {
         base.Update(gameTime);
 
-        if (ContainsPoint(Main.MouseScreen))
+        if (IsMouseHovering)
             Main.LocalPlayer.mouseInterface = true;
+
+        if (refreshPanel.IsMouseHovering)
+            Main.instance.MouseText("Refresh");
 
         UpdateDragging();
 
+        // Check if we need to rebuild
+        players.Clear();
         for (int i = 0; i < Main.maxPlayers; i++)
         {
-            Player player = Main.player[i];
-            if (player.active && (players == null || !players.Contains(i)))
-            {
-                players ??= [];
+            var p = Main.player[i];
+
+            bool wasActive = lastActive[i];
+            bool isActive = p.active;
+
+            if (isActive)
                 players.Add(i);
+
+            if (wasActive != isActive || lastTeams[i] != p.team)
+            {
+                lastActive[i] = isActive;
+                lastTeams[i] = p.team;
                 needsRebuild = true;
+                break;
             }
         }
 
-        if (needsRebuild)
+        // Rebuild if needed
+        //if (needsRebuild)
         {
             needsRebuild = false;
 
             RemoveAllChildren();
+            contentPanel.RemoveAllChildren();
+
+            Append(titlePanel);
+            Append(contentPanel);
 
             if (pvpAsset == null || pvpAssetHover == null)
                 return;
-
-            if (titlePanel != null)
-                Append(titlePanel);
 
             Texture2D sheetTex = pvpAsset.Value;
 
@@ -168,8 +195,6 @@ internal class TeamSelectorPanel : UIPanel
 
             UIPanel summaryRow = new()
             {
-                Top = new StyleDimension(40, 0),
-                Left = new StyleDimension(0, 0),
                 Width = new StyleDimension(0, 1),
                 Height = new StyleDimension(24, 0),
                 BackgroundColor = new Color(10, 10, 10) * 0.9f,
@@ -186,14 +211,14 @@ internal class TeamSelectorPanel : UIPanel
                 Left = new StyleDimension(10, 0)
             };
             summaryRow.Append(summaryTextElement);
-            Append(summaryRow);
+            contentPanel.Append(summaryRow);
 
             var panelDims = GetDimensions();
             int spacing = 4;
             float totalIconsWidth = iconCount * iconWidth + (iconCount - 1) * spacing;
-            int iconsLeft = (int)(panelDims.Width - totalIconsWidth - 10); 
+            int iconsLeft = (int)(panelDims.Width - totalIconsWidth - 10);
 
-            int rowTopStart = 40 + 20;
+            int rowTopStart = 20;
 
             if (players != null)
             {
@@ -210,7 +235,6 @@ internal class TeamSelectorPanel : UIPanel
                     UIPanel playerRow = new()
                     {
                         Top = new StyleDimension(rowTopStart + i * 30, 0),
-                        Left = new StyleDimension(0, 0),
                         Width = new StyleDimension(0, 1),
                         Height = new StyleDimension(30, 0),
                         BackgroundColor = rowColor,
@@ -241,7 +265,7 @@ internal class TeamSelectorPanel : UIPanel
                         playerRow.Append(icon);
                     }
 
-                    Append(playerRow);
+                    contentPanel.Append(playerRow);
                 }
             }
         }
@@ -258,11 +282,11 @@ internal class TeamSelectorPanel : UIPanel
             float w = d.Width;
             float h = d.Height;
 
-            if (x < 0) x = 0;
-            else if (x + w > Main.screenWidth) x = Main.screenWidth - w;
+            //if (x < 0) x = 0;
+            //else if (x + w > Main.screenWidth) x = Main.screenWidth - w;
 
-            if (y < 0) y = 0;
-            else if (y + h > Main.screenHeight) y = Main.screenHeight - h;
+            //if (y < 0) y = 0;
+            //else if (y + h > Main.screenHeight) y = Main.screenHeight - h;
 
             Left.Pixels = x;
             Top.Pixels = y;
@@ -280,8 +304,11 @@ internal class TeamSelectorPanel : UIPanel
 
     public override void LeftMouseDown(UIMouseEvent evt)
     {
-        dragging = true;
-        dragOffset = evt.MousePosition - new Vector2(Left.Pixels, Top.Pixels);
+        if (titlePanel != null && titlePanel.ContainsPoint(evt.MousePosition))
+        {
+            dragging = true;
+            dragOffset = evt.MousePosition - new Vector2(Left.Pixels, Top.Pixels);
+        }
     }
 
     public override void LeftMouseUp(UIMouseEvent evt)
@@ -291,85 +318,3 @@ internal class TeamSelectorPanel : UIPanel
     }
 }
 
-internal class TeamIconElement : UIElement
-{
-    private readonly Texture2D sheet;
-    private readonly Texture2D hover;
-    private readonly Rectangle src;
-    private readonly Player player;
-    private readonly int teamIndex;
-
-    public TeamIconElement(Asset<Texture2D> sheetAsset, Asset<Texture2D> hoverAsset, Rectangle src, Player player, int teamIndex)
-    {
-        sheet = sheetAsset.Value;
-        hover = hoverAsset.Value;
-        this.src = src;
-        this.player = player;
-        this.teamIndex = teamIndex;
-
-        Width.Set(src.Width, 0f);
-        Height.Set(src.Height, 0f);
-    }
-
-    protected override void DrawSelf(SpriteBatch spriteBatch)
-    {
-        var d = GetDimensions();
-        var dest = new Rectangle((int)d.X, (int)d.Y, src.Width, src.Height);
-
-        spriteBatch.Draw(sheet, dest, src, Color.White);
-
-        bool selected = player.team == teamIndex;
-        if (IsMouseHovering || selected)
-        {
-            int hoverSize = hover.Width;
-            var hoverDest = new Rectangle(
-                dest.Center.X - hoverSize / 2,
-                dest.Center.Y - hoverSize / 2,
-                hoverSize,
-                hoverSize
-            );
-            spriteBatch.Draw(hover, hoverDest, Color.White);
-        }
-    }
-
-    public override void LeftClick(UIMouseEvent evt)
-    {
-        base.LeftClick(evt);
-
-        if (teamIndex < 0 || teamIndex >= TeamSelectorPanel.TeamColors.Length)
-            return;
-
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
-            new AdventurePlayer.Team((byte)player.whoAmI, (Terraria.Enums.Team)teamIndex).Serialize(packet);
-            packet.Send();
-
-            player.team = teamIndex;
-
-            if (Parent is UIPanel row)
-                row.BackgroundColor = TeamSelectorPanel.TeamColors[teamIndex];
-
-            if (Parent?.Parent is TeamSelectorPanel panel)
-                panel.needsRebuild = true;
-
-            return;
-        }
-
-        // singleplayer / server-side local change
-        player.team = teamIndex;
-
-        if (Parent is UIPanel row2)
-            row2.BackgroundColor = TeamSelectorPanel.TeamColors[teamIndex];
-
-        if (Main.netMode == NetmodeID.Server)
-        {
-            var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
-            new AdventurePlayer.Team((byte)player.whoAmI, (Terraria.Enums.Team)teamIndex).Serialize(packet);
-            packet.Send(-1, player.whoAmI);
-        }
-    }
-
-}

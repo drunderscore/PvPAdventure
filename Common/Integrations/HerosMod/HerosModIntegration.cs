@@ -1,14 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Integrations.HerosMod.StartGame;
+using PvPAdventure.Common.Integrations.HerosMod.TeamSelector;
 using PvPAdventure.Core.Helpers;
-using PvPAdventure.Core.TeamSelector;
 using PvPAdventure.System;
 using System;
 using Terraria;
 using Terraria.Chat;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Integrations;
+namespace PvPAdventure.Common.Integrations.HerosMod;
 
 [JITWhenModsEnabled("HEROsMod")]
 public sealed class HerosModIntegration : ModSystem
@@ -64,11 +66,9 @@ public sealed class HerosModIntegration : ModSystem
                 var gm = ModContent.GetInstance<GameManager>();
                 if (gm.CurrentPhase == GameManager.Phase.Playing)
                 {
-                    gm._startGameCountdown = null;
-                    gm.TimeRemaining = 0;
-                    gm.CurrentPhase = GameManager.Phase.Waiting;
+                    ModContent.GetInstance<StartGameSystem>().ShowEndDialog();
                 }
-                else if (gm._startGameCountdown.HasValue)
+                else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
                 {
                     gm._startGameCountdown = null;
                     gm.TimeRemaining = 0;
@@ -77,16 +77,41 @@ public sealed class HerosModIntegration : ModSystem
                 }
                 else
                 {
-                    gm.StartGame(702000); // 3 hours 15 minutes
+                    var sgs = ModContent.GetInstance<StartGameSystem>();
+                    if (sgs.IsActive())
+                    {
+                        sgs.Hide();
+                    }
+                    else
+                    {
+                        sgs.ShowStartDialog();
+                    }
                 }
             }),
             (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PlayGamePermissionKey)),
             (Func<string>)(() =>
             {
                 var gm = ModContent.GetInstance<GameManager>();
-                return (gm != null && gm.CurrentPhase == GameManager.Phase.Playing)
-                    ? "End game"
-                    : "Start game";
+                if (gm.CurrentPhase == GameManager.Phase.Playing)
+                {
+                    return "End game";
+                }
+                else if (gm._startGameCountdown.HasValue)
+                {
+                    return "Cancel countdown";
+                }
+                else
+                {
+                    var sgs = ModContent.GetInstance<StartGameSystem>();
+                    if (sgs.IsActive())
+                    {
+                        return "Close game starter";
+                    }
+                    else
+                    {
+                        return "Open game starter";
+                    }
+                }
             })
         );
     }
@@ -98,17 +123,22 @@ public sealed class HerosModIntegration : ModSystem
             () =>
             {
                 // Toggle active state of team selector
-                var teamSelectorSystem = ModContent.GetInstance<TeamSelectorSystem>();
-                ModContent.GetInstance<TeamSelectorSystem>().ToggleActive();
+                var tss = ModContent.GetInstance<TeamSelectorSystem>();
+                tss.ToggleActive();
             },
             (Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamSelectorPermissionKey)),
             () =>
             {
                 // Update text depending on state
-                var teamSelectorSystem = ModContent.GetInstance<TeamSelectorSystem>();
-                return (teamSelectorSystem != null && teamSelectorSystem.IsActive())
-                    ? "Close team assigner"
-                    : "Open team assigner";
+                var tss = ModContent.GetInstance<TeamSelectorSystem>();
+                if (!tss.IsActive())
+                {
+                    return "Open team assigner";
+                }
+                else
+                {
+                    return "Close team assigner";
+                }
             }
         );
     }
