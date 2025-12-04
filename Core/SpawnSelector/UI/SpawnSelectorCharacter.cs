@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.Core.SpawnSelector.Players;
-using PvPAdventure.Core.SpawnSelector.Systems;
 using ReLogic.Content;
 using System;
 using Terraria;
@@ -10,8 +9,8 @@ using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
+using Terraria.UI.Chat;
 
 namespace PvPAdventure.Core.SpawnSelector.UI
 {
@@ -92,8 +91,8 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             //sb.Draw(_playerBGTexture.Value, pos, Color.White*0.5f);
 
             Rectangle rect = new(
-                x: (int)pos.X - 6,
-                y: (int)pos.Y - 6,
+                x: (int)pos.X-6, 
+                y: (int)pos.Y-6, 
                 width: 100,
                 height: 72);
 
@@ -101,6 +100,15 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             //DrawMask(sb, Ass.CornerMask4px.Value, rect, 9);
             DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, _playerBGTexture.Value, Color.White, 5);
             DrawMapFullscreenBackground(sb, rect, player);
+
+            sb.End();
+            sb.Begin(SpriteSortMode.Deferred,
+                     BlendState.AlphaBlend,
+                     SamplerState.PointClamp,
+                     DepthStencilState.Default,
+                     RasterizerState.CullNone,
+                     null,
+                     Main.UIScaleMatrix);
 
             AdventureMirrorPlayer.ForceFullBrightOnce = true;
             try
@@ -122,6 +130,16 @@ namespace PvPAdventure.Core.SpawnSelector.UI
                 AdventureMirrorPlayer.ForceFullBrightOnce = false;
             }
 
+            // Switch back to "normal" UI batch
+            sb.End();
+            sb.Begin(SpriteSortMode.Deferred,
+                     BlendState.AlphaBlend,
+                     SamplerState.LinearClamp,
+                     DepthStencilState.None,
+                     RasterizerState.CullCounterClockwise,
+                     null,
+                     Main.UIScaleMatrix);
+
             // Use the actual layout widths, not the texture width
             const float leftColumnWidth = 106f;              // player background column
             const float rightAreaWidth = ItemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
@@ -141,18 +159,28 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             );
 
             // Draw name
-            Utils.DrawBorderString(sb, name, namePos, Color.White, nameScale);
+            Utils.DrawBorderString(sb,name,namePos,Color.White,nameScale);
 
             // Draw divider
-            sb.Draw(_dividerTexture.Value, new Vector2(rightAreaLeft - 12, inner.Y + 21f), null, Color.White, 0f, Vector2.Zero, new Vector2(rightAreaWidth / 8 + 2.2f, 1f), SpriteEffects.None, 0f);
+            sb.Draw(
+                _dividerTexture.Value,
+                new Vector2(rightAreaLeft-12, inner.Y + 21f),
+                null,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                new Vector2(rightAreaWidth/8+2.2f, 1f),
+                SpriteEffects.None,
+                0f
+            );
 
             // Stat panel settings
             float statScale = 0.88f;
             float statGap = 5f * statScale;
 
             // Draw stat panel
-            float panelWidth = rightAreaWidth + 24;
-            Vector2 panelPos = new(rightAreaLeft - 14, inner.Y + 29f);
+            float panelWidth = rightAreaWidth+24;
+            Vector2 panelPos = new(rightAreaLeft-14, inner.Y + 29f);
             DrawPanel(sb, panelPos, panelWidth);
 
             string hpText = $"{player.statLife} HP";
@@ -175,14 +203,20 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             // Draw health
             sb.Draw(heart.Value, new Vector2(startX, y), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
             startX += heartW;
-            Utils.DrawBorderString(sb, hpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
+            Utils.DrawBorderString(sb, hpText, new Vector2(startX+1, y + 1f), Color.White, statScale);
             startX += hpSize.X;
             startX += statGap;
 
             // Draw mana
             sb.Draw(mana.Value, new Vector2(startX, y - 2), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
             startX += manaW;
-            Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
+            Utils.DrawBorderString(sb, mpText, new Vector2(startX+1, y + 1f), Color.White, statScale);
+
+            // Draw arrow
+            //DrawArrow(player);
+
+            // Draw player head if hovering
+            DrawPlayerHeadOnMap(player);
 
             // Draw player respawn timer if it exists
             string respawnTimeInSeconds = (player.respawnTimer / 60 + 1).ToString();
@@ -190,12 +224,50 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             {
                 Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, pos + new Vector2(31, 4), Color.Gray, scale: 1f);
             }
+        }
 
-            // Draw teleport to if it exists
-            if (!player.dead && IsMouseHovering)
-            {
-                Main.instance.MouseText("Teleport to " + player.name);
-            }
+        private void DrawPlayerHeadOnMap(Player p)
+        {
+            if (p == null || !p.active || p.dead)
+                return;
+
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            if (!IsMouseHovering || !config.ShowPlayerIndicationWhenWhenHovering)
+                return;
+
+            Main.instance.MouseText("Teleport to " + p.name);
+
+            float mapScale = Main.mapFullscreenScale;
+
+            // Player in tile coords
+            Vector2 tilePos = p.Center / 16f;
+
+            // Screen-space position on the fullscreen map (pixels) 
+            Vector2 mapScreenCenter = new(
+                Main.screenWidth / 2f,
+                Main.screenHeight / 2f
+            );
+            Vector2 headPosScreen = (tilePos - Main.mapFullscreenPos) * mapScale + mapScreenCenter;
+            //headPosScreen += new Vector2(80, 40); // offset
+            headPosScreen *= Main.UIScale;
+
+            Matrix invUi = Matrix.Invert(Main.UIScaleMatrix);
+            Vector2 headPosUI = Vector2.Transform(headPosScreen, invUi);
+
+            Color c = Main.teamColor[p.team];
+
+            // Draw head in UI-space
+            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, p, headPosUI, scale: 1.3f, borderColor: c);
+
+            // Text centered below head, also in UI-space
+            string name = p.name ?? string.Empty;
+            float textScale = 1f;
+            Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * textScale;
+            Vector2 namePos = new(
+                headPosUI.X - nameSize.X * 0.5f,
+                headPosUI.Y + 30f
+            );
+            Utils.DrawBorderString(Main.spriteBatch, "Teleport to " + name, namePos, Color.White, textScale);
         }
 
         public override void MouseOver(UIMouseEvent evt)
@@ -206,7 +278,6 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             if (p == null || !p.active || p.dead)
                 return;
             BackgroundColor = new Color(73, 92, 161, 150);
-            SpawnSelectorSystem.HoveredPlayerIndex = _playerIndex;
         }
 
         public override void MouseOut(UIMouseEvent evt)
@@ -218,8 +289,6 @@ namespace PvPAdventure.Core.SpawnSelector.UI
                 return;
 
             BackgroundColor = new Color(63, 82, 151) * 0.8f;
-            if (SpawnSelectorSystem.HoveredPlayerIndex == _playerIndex)
-                SpawnSelectorSystem.HoveredPlayerIndex = -1;
         }
 
         public override void LeftClick(UIMouseEvent evt)
@@ -267,7 +336,7 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             );
         }
 
-        [Obsolete("Doesn't work in MP. Use the new method instead.")]
+
         public static void DrawMapFullscreenBackground_BadMP(SpriteBatch sb, Rectangle rect, Player player)
         {
             if (player == null || !player.active)
@@ -353,7 +422,6 @@ namespace PvPAdventure.Core.SpawnSelector.UI
             sb.Draw(asset.Value, rect, color);
         }
 
-        // Finds the biome of the given player and draws it.
         public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Player player)
         {
             if (player == null || !player.active)

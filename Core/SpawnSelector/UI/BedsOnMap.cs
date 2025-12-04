@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.SpawnSelector.Systems;
 using ReLogic.Content;
 using Terraria;
 using Terraria.DataStructures;
@@ -9,7 +10,7 @@ using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector.UI;
 
 internal class BedsOnMap : ModSystem
 {
@@ -18,6 +19,7 @@ internal class BedsOnMap : ModSystem
     public override void Load()
     {
         On_SpawnMapLayer.Draw += OnSpawnMapLayer;
+        
     }
 
     public override void Unload()
@@ -33,7 +35,7 @@ internal class BedsOnMap : ModSystem
         }
     }
 
-    private void OnSpawnMapLayer(On_SpawnMapLayer.orig_Draw orig, SpawnMapLayer self, ref MapOverlayDrawContext context, ref string text)
+    private void OnSpawnMapLayer(On_SpawnMapLayer.orig_Draw orig,SpawnMapLayer self,ref MapOverlayDrawContext context, ref string text)
     {
         // Let vanilla draw spawn point + local bed first
         orig(self, ref context, ref text);
@@ -50,6 +52,10 @@ internal class BedsOnMap : ModSystem
                 continue;
 
             Vector2 bedTilePos = new(player.SpawnX, player.SpawnY);
+
+#if DEBUG
+            DrawBedSpawnDebugRect(player, bedTilePos);
+#endif
 
             // Safety check and load texture if needed
             spawnBedTexture ??= TextureAssets.SpawnBed;
@@ -107,10 +113,51 @@ internal class BedsOnMap : ModSystem
 #endif
                         }
                     }
-
+            
                 }
             }
 
         }
     }
+
+#if DEBUG
+    private static void DrawBedSpawnDebugRect(Player player, Vector2 bedTilePos)
+    {
+        if (!Main.mapFullscreen)
+        {
+            return;
+        }
+
+        // World-space center of the bed (pixels)
+        Vector2 bedWorld = bedTilePos * 16f;
+
+        // Convert world -> fullscreen map screen coordinates
+        Vector2 screenCenter = new(Main.screenWidth / 2f, Main.screenHeight / 2f);
+        Vector2 bedOnMap = (bedWorld - Main.mapFullscreenPos) * Main.mapFullscreenScale + screenCenter;
+
+        float radiusWorld = 25 * 16f; // 25 tiles in world space
+        float radiusOnMap = radiusWorld * Main.mapFullscreenScale;
+
+        Texture2D pixel = TextureAssets.MagicPixel.Value;
+        float thickness = 2f;
+
+        Rectangle rect = new(
+            (int)(bedOnMap.X - radiusOnMap),
+            (int)(bedOnMap.Y - radiusOnMap),
+            (int)(radiusOnMap * 2f),
+            (int)(radiusOnMap * 2f)
+        );
+
+        Color color = Main.teamColor[player.team] * 0.75f;
+
+        // Top
+        Main.spriteBatch.Draw(pixel, new Rectangle(rect.Left, rect.Top, rect.Width, (int)thickness), color);
+        // Bottom
+        Main.spriteBatch.Draw(pixel, new Rectangle(rect.Left, rect.Bottom - (int)thickness, rect.Width, (int)thickness), color);
+        // Left
+        Main.spriteBatch.Draw(pixel, new Rectangle(rect.Left, rect.Top, (int)thickness, rect.Height), color);
+        // Right
+        Main.spriteBatch.Draw(pixel, new Rectangle(rect.Right - (int)thickness, rect.Top, (int)thickness, rect.Height), color);
+    }
+#endif
 }
