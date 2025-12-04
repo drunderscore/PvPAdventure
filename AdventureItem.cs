@@ -32,6 +32,10 @@ public class AdventureItem : GlobalItem
 
             item.rare = ItemRarityID.Yellow;
         }
+        if (item.type == ItemID.ShadowKey)
+        {
+            item.maxStack = 9999;
+        }
 
         if (RecallItems[item.type])
         {
@@ -560,7 +564,23 @@ public class QuiverNerf : GlobalItem
                     OverrideColor = new Color(255, 100, 100)
                 });
             }
-            if (item.type == ItemID.LunarCraftingStation)
+        if (item.type == ItemID.ShadowKey)
+        {
+            for (int i = 0; i < tooltips.Count; i++)
+            {
+                if (tooltips[i].Text.Contains("Opens all Shadow Chests and Obsidian Lock Boxes") ||
+                    tooltips[i].Text.Contains("all"))
+                {
+                    tooltips[i].Text = "Opens Shadow Chests and Obsidian Lock Boxes";
+                    break;
+                }
+            }
+            tooltips.Add(new TooltipLine(Mod, "ShadowKey", "Only opens a single Shadow Chest")
+            {
+                OverrideColor = new Color(255, 100, 100)
+            });
+        }
+        if (item.type == ItemID.LunarCraftingStation)
             {
                 tooltips.Add(new TooltipLine(Mod, "AllCraftTiles", "Counts as all crafting stations"));
             }

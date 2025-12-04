@@ -11,6 +11,7 @@ using Mono.Cecil.Cil;
 using static PvPAdventure.System.BountyManager;
 using static PvPAdventure.AdventureConfig;
 using PvPAdventure.System;
+using System.Collections.Generic;
 
 namespace PvPAdventure;
 
@@ -222,13 +223,13 @@ public class AdventureDropDatabase : ModSystem
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.MagicQuiver) ||
                     drop is LeadingConditionRule);
-                    npcLoot.Add(ItemDropRule.Common(ItemID.MagicQuiver, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.MagicQuiver, 10));
                 break;
 
             case NPCID.RedDevil:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.UnholyTrident, 1, 10);
-                    npcLoot.Add(ItemDropRule.Common(ItemID.FireFeather, 10, 1, 1));
+                npcLoot.Add(ItemDropRule.Common(ItemID.FireFeather, 10, 1, 1));
 
                 break;
 
@@ -313,10 +314,10 @@ public class AdventureDropDatabase : ModSystem
                 foreach (var drop in drops)
                 {
 
-                   ModifyDropRate(drop, ItemID.Cutlass, 1, 10);
-                   ModifyDropRate(drop, ItemID.GoldRing, 1, 10);
+                    ModifyDropRate(drop, ItemID.Cutlass, 1, 10);
+                    ModifyDropRate(drop, ItemID.GoldRing, 1, 10);
                 }
-                    break;
+                break;
 
             case NPCID.EyeofCthulhu:
                 foreach (var drop in drops)
@@ -324,10 +325,10 @@ public class AdventureDropDatabase : ModSystem
                 break;
 
             case NPCID.DungeonSpirit:
-                                npcLoot.RemoveWhere(drop =>
-                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.Ectoplasm) ||
-                    drop is LeadingConditionRule);            
-                    npcLoot.Add(ItemDropRule.Common(ItemID.Ectoplasm, 1, 3, 5));
+                npcLoot.RemoveWhere(drop =>
+    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.Ectoplasm) ||
+    drop is LeadingConditionRule);
+                npcLoot.Add(ItemDropRule.Common(ItemID.Ectoplasm, 1, 3, 5));
                 break;
 
             case NPCID.KingSlime:
@@ -407,6 +408,35 @@ public class AdventureDropDatabase : ModSystem
                         ItemID.HoneyComb
                     )
                 );
+                break;
+
+            case NPCID.BigMimicHallow:
+                npcLoot.RemoveWhere(drop => true); // Removes all drops
+                npcLoot.Add(ItemDropRule.Common(ItemID.IlluminantHook, 4, 1, 1));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 25));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 20, 30));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 75, 150));
+
+                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                    ItemID.DaedalusStormbow,
+                    ItemID.CrystalVileShard,
+                    ItemID.FlyingKnife
+                ));
+                break;
+            case NPCID.BigMimicCorruption:
+                npcLoot.RemoveWhere(drop => true); // Removes all drops
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 25));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 20, 30));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 75, 150));
+                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                    ItemID.ClingerStaff,
+                    ItemID.DartRifle,
+                    ItemID.ChainGuillotines
+                ));
+                npcLoot.Add(ItemDropRule.OneFromOptionsWithNumerator(5, 2,
+                    ItemID.PutridScent,
+                    ItemID.WormHook
+                ));
                 break;
 
             case NPCID.SkeletronHead:
@@ -544,9 +574,7 @@ public class AdventureDropDatabase : ModSystem
                 break;
 
             case NPCID.Plantera:
-                npcLoot.RemoveWhere(drop =>
-                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.PygmyStaff) ||
-                    drop is LeadingConditionRule);
+                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
                 npcLoot.Add(ItemDropRule.Common(ItemID.TempleKey, 1, 1, 1));
                 npcLoot.Add(
                     new OneFromRulesRule(1,
@@ -556,21 +584,16 @@ public class AdventureDropDatabase : ModSystem
                         ItemDropRule.Common(ItemID.PygmyStaff)
                     )
                 );
-                var plantFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.Plantera));
-                plantFirstKillRule.OnSuccess(ItemDropRule.Common(ItemID.VenusMagnum, 1));
-
                 var grenadelauncher = ItemDropRule.Common(ItemID.GrenadeLauncher);
                 grenadelauncher.OnSuccess(ItemDropRule.Common(ItemID.RocketIII, 1, 400, 500), hideLootReport: true);
-
-                var afterFirstKill = new OneFromRulesRule(1,
-                    grenadelauncher,
-                    ItemDropRule.Common(ItemID.NettleBurst),
-                    ItemDropRule.Common(ItemID.FlowerPow),
-                    ItemDropRule.Common(ItemID.VenusMagnum)
+                npcLoot.Add(
+                    new OneFromRulesRule(1,
+                        grenadelauncher,
+                        ItemDropRule.Common(ItemID.NettleBurst),
+                        ItemDropRule.Common(ItemID.FlowerPow),
+                        ItemDropRule.Common(ItemID.VenusMagnum)
+                    )
                 );
-
-                plantFirstKillRule.OnFailedConditions(afterFirstKill);
-                npcLoot.Add(plantFirstKillRule);
                 break;
         }
     }
