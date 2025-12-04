@@ -32,7 +32,12 @@ public class SpawnHooks : ModSystem
         //{
         //Player.Spawn_ForceClearArea(floorX, floorY);
         //}
-        Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;
-        Main.LocalPlayer.position.Y = spawnY * 16 - Main.LocalPlayer.height;
+
+        if (self == Main.LocalPlayer)
+        {
+            Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;
+            Main.LocalPlayer.position.Y = spawnY * 16 - Main.LocalPlayer.height;
+        }
+        
     }
 }
