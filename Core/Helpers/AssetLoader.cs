@@ -7,12 +7,15 @@ namespace PvPAdventure.Core.Helpers;
 
 public static class Ass
 {
-    public static Asset<Texture2D> Question_Mark;
+    // Spawn selector assets
     public static Asset<Texture2D>[] MapBG;
     public static Asset<Texture2D> Arrow;
     public static Asset<Texture2D> CustomPlayerBackground;
     public static Asset<Texture2D> Spawnbox;
     public static Asset<Texture2D> Pause;
+    public static Asset<Texture2D> Stop_Icon;
+    public static Asset<Texture2D> Question_Mark;
+
 
     public static bool Initialized { get; set; }
 

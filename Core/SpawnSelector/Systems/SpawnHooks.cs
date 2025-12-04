@@ -35,9 +35,9 @@ public class SpawnHooks : ModSystem
 
         if (self == Main.LocalPlayer)
         {
-            Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;
-            Main.LocalPlayer.position.Y = spawnY * 16 - Main.LocalPlayer.height;
-        }
+        Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;
+        Main.LocalPlayer.position.Y = spawnY * 16 - Main.LocalPlayer.height;
+    }
         
     }
 }

@@ -7,6 +7,7 @@ using Terraria.UI.Chat;
 
 namespace PvPAdventure.Core.Debug;
 
+#if DEBUG
 internal class DebugChat : ModSystem
 {
     public override void Load()
@@ -41,3 +42,4 @@ internal class DebugChat : ModSystem
         timeLeftField?.SetValue(msg, 60 * 60);
     }
 }
+#endif

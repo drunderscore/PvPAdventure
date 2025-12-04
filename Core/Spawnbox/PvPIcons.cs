@@ -112,7 +112,7 @@ public class PvPIconDrawerLayer : ModSystem
 
                 // Draw cooldown icon
                 //if (isPlaying)
-                sb.Draw(cooldownTex.Value, cdRect, Color.White * 0.8f);
+                sb.Draw(cooldownTex.Value, cdRect, Color.White * 1f);
             }
 
             return true;
