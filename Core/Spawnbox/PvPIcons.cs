@@ -105,7 +105,7 @@ public class PvPIconDrawerLayer : ModSystem
 
                 Rectangle cdRect = new(
                     (int)(screenPos.X + (iconW - cooldownWidth) * 0.5f),
-                    (int)(screenPos.Y + (iconH - cooldownHeight) * 0.5f),
+                    (int)(screenPos.Y + (iconH - cooldownHeight) * 0.5f-2),
                     (int)cooldownWidth,
                     (int)cooldownHeight
                 );

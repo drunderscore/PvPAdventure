@@ -7,7 +7,6 @@ using Terraria.GameContent.UI.Elements;
 
 namespace PvPAdventure.Core.SpawnSelector.UI;
 
-// 
 public class SpawnSelectorBasePanel : UIPanel
 {
     private UIPanel _randomPanel;
