@@ -79,6 +79,9 @@ public class AdventureDropDatabase : ModSystem
         foreach (var drop in drops)
             ModifyDropRate(drop, ItemID.Kraken, 1, 20);
 
+        foreach (var drop in drops)
+            ModifyDropRate(drop, ItemID., 1, 20);
+
         switch (npc.type)
         {
             case NPCID.BoneLee:
@@ -147,7 +150,6 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.TacticalSkeleton:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.TacticalShotgun, 1, 1);
-                npcLoot.Add(ItemDropRule.Common(ItemID.RifleScope, 1));
                 break;
 
             case NPCID.SkeletonCommando:
@@ -265,6 +267,20 @@ public class AdventureDropDatabase : ModSystem
                 foreach (var drop in drops)
                 {
                     ModifyDropRate(drop, ItemID.Vine, 1, 1);
+                }
+                break;
+
+            case NPCID.ManEater:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.Vine, 1, 1);
+                }
+                break;
+
+            case NPCID.SpikedJungleSlime:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.Stinger, 1, 1);
                 }
                 break;
 
@@ -413,9 +429,9 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.BigMimicHallow:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
                 npcLoot.Add(ItemDropRule.Common(ItemID.IlluminantHook, 4, 1, 1));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 25));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 20, 30));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 75, 150));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 5, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
 
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
                     ItemID.DaedalusStormbow,
@@ -425,9 +441,9 @@ public class AdventureDropDatabase : ModSystem
                 break;
             case NPCID.BigMimicCorruption:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 25));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 20, 30));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 75, 150));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 5, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
                     ItemID.ClingerStaff,
                     ItemID.DartRifle,
