@@ -413,9 +413,9 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.BigMimicHallow:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
                 npcLoot.Add(ItemDropRule.Common(ItemID.IlluminantHook, 4, 1, 1));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 25));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 20, 30));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 75, 150));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 7, 7));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 8, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 6, 14));
 
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
                     ItemID.DaedalusStormbow,
@@ -425,9 +425,9 @@ public class AdventureDropDatabase : ModSystem
                 break;
             case NPCID.BigMimicCorruption:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 25));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 20, 30));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 75, 150));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 7, 7));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 8, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 6, 14));
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
                     ItemID.ClingerStaff,
                     ItemID.DartRifle,
