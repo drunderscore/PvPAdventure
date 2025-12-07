@@ -80,7 +80,7 @@ public class AdventureDropDatabase : ModSystem
             ModifyDropRate(drop, ItemID.Kraken, 1, 20);
 
         foreach (var drop in drops)
-            ModifyDropRate(drop, ItemID., 1, 20);
+            ModifyDropRate(drop, ItemID.MagnetSphere, 1, 20);
 
         switch (npc.type)
         {
