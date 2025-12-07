@@ -1,13 +1,14 @@
-using System;
-using System.IO;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.Content.Items;
+using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.System;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO;
+using System.Linq;
 using System.Linq;
 using Terraria;
 using Terraria.Chat;
@@ -308,6 +309,9 @@ public class PvPAdventure : Mod
 
                 break;
             }
+            case AdventurePacketIdentifier.Dash:
+                DashKeybindSystem.HandlePacket(reader, whoAmI);
+                break;
         }
     }
 }
