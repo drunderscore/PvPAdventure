@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Features.SpawnSelector.Systems;
 using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.SpawnSelector.Systems;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
@@ -9,11 +9,11 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.UI
+namespace PvPAdventure.Core.SpawnSelector.UI
 {
-    internal class UISpawnSelectorRandomPanel : UIPanel
+    internal class SpawnSelectorQuestionMark : UIPanel
     {
-        public UISpawnSelectorRandomPanel(float startX, float itemHeight, int playerCount, float itemWidth, float Spacing, float y)
+        public SpawnSelectorQuestionMark(float startX, float itemHeight, int playerCount, float itemWidth, float Spacing, float y)
         {
             Width.Set(itemHeight, 0f);
             Height.Set(itemHeight, 0f);
@@ -51,8 +51,7 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
         public override void MouseOver(UIMouseEvent evt)
         {
             base.MouseOver(evt);
-            BackgroundColor = new Color(73, 92, 161);
-
+            BackgroundColor = new Color(73, 92, 161, 150);
         }
 
         public override void MouseOut(UIMouseEvent evt)

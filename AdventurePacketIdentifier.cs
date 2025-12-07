@@ -8,5 +8,10 @@ public enum AdventurePacketIdentifier : byte
     PlayerItemPickup,
     PlayerTeam,
     StartGame,
-    EndGame
+    EndGame,
+    NpcStrikeTeam,
+    Dash,
+    PlayerBed,
+    AdventureMirrorRightClickUse,
+    BedTeleport,
 }

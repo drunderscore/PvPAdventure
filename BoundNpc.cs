@@ -3,6 +3,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
+
 namespace PvPAdventure;
 
 public abstract class BoundNpc : ModNPC
@@ -254,6 +255,42 @@ public abstract class BoundNpc : ModNPC
         {
             base.Transform(whoAmI);
             NPC.unlockedTruffleSpawn = true;
+            NetMessage.SendData(MessageID.WorldData);
+        }
+    }
+    public class Demolitionist : BoundNpc
+    {
+        public override int TransformInto => NPCID.Demolitionist;
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            NPC.width = 26;
+            NPC.height = 46;
+            NPC.dontTakeDamage = false;
+        }
+
+        public override float SpawnChance(NPCSpawnInfo spawnInfo)
+        {
+            // Don't spawn if we shouldn't.
+            if (!NPC.SpawnAllowed_Demolitionist())
+                return 0.0f;
+
+            // Don't spawn if we aren't in the caverns layer.
+            if (!spawnInfo.Player.ZoneRockLayerHeight)
+                return 0.0f;
+            // FIXME: What is this doing...? this is what bound goblin does!
+            if (spawnInfo.SpawnTileY >= Main.maxTilesY - 210)
+                return 0.0f;
+
+            return base.SpawnChance(spawnInfo);
+        }
+
+        protected override void Transform(int whoAmI)
+        {
+            base.Transform(whoAmI);
+            NPC.unlockedDemolitionistSpawn = true;
             NetMessage.SendData(MessageID.WorldData);
         }
     }

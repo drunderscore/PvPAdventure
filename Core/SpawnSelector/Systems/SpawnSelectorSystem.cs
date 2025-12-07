@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 [Autoload(Side = ModSide.Client)]
 public class SpawnSelectorSystem : ModSystem
@@ -16,6 +16,9 @@ public class SpawnSelectorSystem : ModSystem
     private static bool Enabled;
     public static void SetEnabled(bool newValue) => Enabled = newValue;
     public static bool GetEnabled() => Enabled;
+
+    // Hovering players
+    internal static int HoveredPlayerIndex = -1;
 
     public override void Load()
     {

@@ -1,10 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+
+<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\tModLoader.targets" />
 	<PropertyGroup>
 		<AssemblyName>PvPAdventure</AssemblyName>
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
+	  <AdditionalFiles Remove="Assets\SpawnSelector\**" />
+	  <Compile Remove="Assets\SpawnSelector\**" />
+	  <EmbeddedResource Remove="Assets\SpawnSelector\**" />
+	  <None Remove="Assets\SpawnSelector\**" />
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Discord" />
@@ -21,10 +26,15 @@
 			<HintPath>lib\System.Linq.Async.dll</HintPath>
 		</Reference>
 
+		<!-- Add DragonLens for adding tools -->
 		<Reference Include="DragonLens">
 			<HintPath>lib\DragonLens.dll</HintPath>
 		</Reference>
-
+		
+		<!-- Add StructureHelper for generating a spawn box -->
+		<Reference Include="StructureHelper">
+			<HintPath>lib\StructureHelper.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->

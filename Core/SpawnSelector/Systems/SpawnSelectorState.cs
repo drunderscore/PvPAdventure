@@ -1,15 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Features.SpawnSelector.UI;
 using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.SpawnSelector.UI;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Features.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 public class SpawnSelectorState : UIState
 {
-    public UISpawnSelectorPanel spawnSelectorPanel;
+    public SpawnSelectorBasePanel spawnSelectorPanel;
     public override void OnInitialize()
     {
         spawnSelectorPanel = new();
@@ -25,10 +25,10 @@ public class SpawnSelectorState : UIState
     public override void OnActivate()
     {
         base.OnActivate();
-        UISpawnSelectorPanel panel = null;
+        SpawnSelectorBasePanel panel = null;
         foreach (var element in Elements)
         {
-            panel = element as UISpawnSelectorPanel;
+            panel = element as SpawnSelectorBasePanel;
             if (panel != null)
                 break;
         }

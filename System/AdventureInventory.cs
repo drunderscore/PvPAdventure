@@ -45,13 +45,14 @@ public class AdventureInventory : ModSystem
     private static bool IsPlayerDyeContext(int context) => context is ItemSlot.Context.EquipDye
         or ItemSlot.Context.EquipMiscDye or ItemSlot.Context.ModdedDyeSlot;
 
-    private static bool IsUnusableContext(int context) =>
-        IsPlayerDyeContext(context) || context == ItemSlot.Context.EquipArmorVanity;
+
+    private static bool IsUnusableContext(int context) => IsPlayerDyeContext(context);
+
 
     private void OnAccessorySlotLoaderDrawSlot(AccessorySlotLoaderDrawSlotDelegate orig, AccessorySlotLoader self,
         Item[] items, int context, int slot, bool flag3, int xLoc, int yLoc, bool skipCheck)
     {
-        if (IsUnusableContext(context))
+        if (IsPlayerDyeContext(context))
             return;
 
         orig(self, items, context, slot, flag3, xLoc, yLoc, skipCheck);
@@ -60,7 +61,7 @@ public class AdventureInventory : ModSystem
     private void OnItemSlotDraw(On_ItemSlot.orig_Draw_SpriteBatch_ItemArray_int_int_Vector2_Color orig,
         SpriteBatch spriteBatch, Item[] inv, int context, int slot, Vector2 position, Color lightColor)
     {
-        if (IsUnusableContext(context))
+        if (IsPlayerDyeContext(context))
             return;
 
         orig(spriteBatch, inv, context, slot, position, lightColor);
@@ -68,7 +69,7 @@ public class AdventureInventory : ModSystem
 
     private void OnItemSlotHandle(On_ItemSlot.orig_Handle_ItemArray_int_int orig, Item[] inv, int context, int slot)
     {
-        if (IsUnusableContext(context))
+        if (IsPlayerDyeContext(context))
             return;
 
         orig(inv, context, slot);
@@ -77,7 +78,7 @@ public class AdventureInventory : ModSystem
     private void OnItemSlotOverrideHover(On_ItemSlot.orig_OverrideHover_ItemArray_int_int orig, Item[] inv, int context,
         int slot)
     {
-        if (IsUnusableContext(context))
+        if (IsPlayerDyeContext(context))
             return;
 
         orig(inv, context, slot);
@@ -86,7 +87,7 @@ public class AdventureInventory : ModSystem
     private void OnItemSlotRightClick(On_ItemSlot.orig_RightClick_ItemArray_int_int orig, Item[] inv, int context,
         int slot)
     {
-        if (IsUnusableContext(context))
+        if (IsPlayerDyeContext(context))
             return;
 
         orig(inv, context, slot);
@@ -95,7 +96,7 @@ public class AdventureInventory : ModSystem
     private void OnItemSlotLeftClick(On_ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context,
         int slot)
     {
-        if (IsUnusableContext(context))
+        if (IsPlayerDyeContext(context))
             return;
 
         orig(inv, context, slot);
@@ -104,7 +105,7 @@ public class AdventureInventory : ModSystem
     private void OnItemSlotMouseHover(On_ItemSlot.orig_MouseHover_ItemArray_int_int orig, Item[] inv, int context,
         int slot)
     {
-        if (IsUnusableContext(context))
+        if (IsPlayerDyeContext(context))
             return;
 
         orig(inv, context, slot);

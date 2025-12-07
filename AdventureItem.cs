@@ -1,17 +1,24 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.DataStructures;
+using Terraria.Enums;
+using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.Utilities;
-
+using static PvPAdventure.AdventureNpc;
 namespace PvPAdventure;
 
 public class AdventureItem : GlobalItem
 {
+    public override bool InstancePerEntity => true;
+    public Team? _team;
+
     public static readonly bool[] RecallItems =
         ItemID.Sets.Factory.CreateBoolSet(ItemID.MagicMirror, ItemID.CellPhone, ItemID.IceMirror, ItemID.Shellphone,
             ItemID.ShellphoneSpawn);
@@ -19,6 +26,16 @@ public class AdventureItem : GlobalItem
     public override void SetDefaults(Item item)
     {
         var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+
+        if (item.type == ItemID.LihzahrdPowerCell)
+        {
+
+            item.rare = ItemRarityID.Yellow;
+        }
+        if (item.type == ItemID.ShadowKey)
+        {
+            item.maxStack = 9999;
+        }
 
         if (RecallItems[item.type])
         {
@@ -50,7 +67,6 @@ public class AdventureItem : GlobalItem
             if (statistics.Value != null)
                 item.value = statistics.Value.Value;
         }
-
         if (item.type == ItemID.SpectrePickaxe || item.type == ItemID.ShroomiteDiggingClaw)
             item.pick = 210;
     }
@@ -65,7 +81,6 @@ public class AdventureItem : GlobalItem
             ItemID.Sets.ShimmerTransformToItem[items[^1]] = items[0];
         }
 
-        AddCircularShimmerTransform(ItemID.CursedFlame, ItemID.Ichor);
         AddCircularShimmerTransform(
             ItemID.CrystalNinjaHelmet,
             ItemID.CrystalNinjaChestplate,
@@ -95,7 +110,22 @@ public class AdventureItem : GlobalItem
         }
         else if (item.type == ItemID.QueenSlimeCrystal)
         {
-            if (isUnderground && isHallow)
+            if (isUnderground)
+                return false;
+        }
+        else if (item.type == ItemID.MechanicalEye)
+        {
+            if (isUnderground)
+                return false;
+        }
+        else if (item.type == ItemID.MechanicalSkull)
+        {
+            if (isUnderground)
+                return false;
+        }
+        else if (item.type == ItemID.MechanicalWorm)
+        {
+            if (isUnderground)
                 return false;
         }
 
@@ -172,6 +202,39 @@ public class AdventureItem : GlobalItem
         }
     }
 
+    public override void NetSend(Item item, BinaryWriter writer)
+    {
+        var adventureItem = item.GetGlobalItem<AdventureItem>();
+        var has = adventureItem._team != null;
+
+        writer.Write(has);
+
+        if (has)
+            writer.Write7BitEncodedInt((int)adventureItem._team);
+    }
+
+    public override void NetReceive(Item item, BinaryReader reader)
+    {
+        var has = reader.ReadBoolean();
+        var adventureItem = item.GetGlobalItem<AdventureItem>();
+
+        adventureItem._team = has ? (Team)reader.Read7BitEncodedInt() : null;
+    }
+
+    public override bool CanPickup(Item item, Player player)
+    {
+        var team = item.GetGlobalItem<AdventureItem>()._team;
+
+        return team == null || team == (Team)player.team;
+    }
+
+    public override bool OnPickup(Item item, Player player)
+    {
+        item.GetGlobalItem<AdventureItem>()._team = null;
+
+        return true;
+    }
+
     public override bool? PrefixChance(Item item, int pre, UnifiedRandom rand)
     {
         // Prevent the item from spawning with a prefix, being placed into a reforge window, and loading with a prefix.
@@ -183,4 +246,343 @@ public class AdventureItem : GlobalItem
 
     // This is likely unnecessary if we are overriding PrefixChance, but might as well.
     public override bool CanReforge(Item item) => !ModContent.GetInstance<AdventureConfig>().RemovePrefixes;
+
+
+    public class AdventureBag : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/AdventureBag";
+        public override void SetStaticDefaults()
+        {
+            ItemID.Sets.OpenableBag[Type] = true;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.width = 32;
+            Item.height = 32;
+            Item.rare = ItemRarityID.Orange;
+            Item.maxStack = 1;
+            Item.consumable = true;
+        }
+
+        public override bool CanRightClick()
+        {
+            return true;
+        }
+
+        public override void RightClick(Player player)
+        {
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SilverPickaxe, 1);    
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SilverAxe, 1);        
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Ambrosia, 1);         
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SlimeBed, 1);        
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Torch, 15);          
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Wood, 20);             
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.LifeCrystal, 5);       
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.ManaCrystal, 4);        
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MiningPotion, 2);       
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.WormholePotion, 4);
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MagicMirror, 1);
+        }
+
+        public override bool ConsumeItem(Player player)
+        {
+            return true;
+        }
+        public override void ModifyTooltips(List<TooltipLine> tooltips)
+        {
+            // Add custom tooltip line
+            tooltips.Add(new TooltipLine(Mod, "PvPBagInfo", "Contains essential items for your PvP Adventure"));
+        }
+    }
+    public class BlightFruit : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/BlightFruit";
+
+        public override void SetDefaults()
+        {
+            Item.width = 18;
+            Item.height = 18;
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Gray;
+            Item.useStyle = ItemUseStyleID.HoldUp;
+            Item.useAnimation = 1;
+            Item.useTime = 1;
+            Item.consumable = true;
+            Item.UseSound = SoundID.Item27;
+        }
+        public override bool CanUseItem(Player player)
+        {
+            return player.ConsumedLifeFruit > 0;
+        }
+
+        public override bool? UseItem(Player player)
+        {
+            if (player.ConsumedLifeFruit > 0)
+            {
+                player.ConsumedLifeFruit--;
+
+                player.statLifeMax = 100 + (player.ConsumedLifeCrystals * 20) + (player.ConsumedLifeFruit * 5);
+
+                if (player.statLife > player.statLifeMax)
+                {
+                    player.statLife = player.statLifeMax;
+                }
+
+                if (Main.myPlayer == player.whoAmI)
+                {
+                    player.HealEffect(-5, true);
+                }
+            }
+
+            return true;
+        }
+    }
+    public class CorruptionKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Corruption_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+
+    public class FrozenKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Frozen_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+
+    public class JungleKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Jungle_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+
+    public class HallowedKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Hallowed_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+
+    public class DesertKeyMold : ModItem
+    {
+        public override string Texture => $"PvPAdventure/Assets/Item/Desert_Key_Mold";
+
+        public override void SetStaticDefaults()
+        {
+        }
+
+        public override void SetDefaults()
+        {
+            Item.maxStack = 9999;
+            Item.rare = ItemRarityID.Green;
+        }
+    }
+    public class BiomeKeyReplacer : GlobalItem
+    {
+        public override void OnSpawn(Item item, IEntitySource source)
+        {
+            switch (item.type)
+            {
+                case ItemID.CorruptionKey:
+                    item.SetDefaults(ModContent.ItemType<CorruptionKeyMold>());
+                    break;
+                case ItemID.HallowedKey:
+                    item.SetDefaults(ModContent.ItemType<HallowedKeyMold>());
+                    break;
+                case ItemID.FrozenKey:
+                    item.SetDefaults(ModContent.ItemType<FrozenKeyMold>());
+                    break;
+                case ItemID.JungleKey:
+                    item.SetDefaults(ModContent.ItemType<JungleKeyMold>());
+                    break;
+                case ItemID.DungeonDesertKey:
+                    item.SetDefaults(ModContent.ItemType<DesertKeyMold>());
+                    break;
+            }
+
+            if (item.type == ModContent.ItemType<CorruptionKeyMold>() ||
+                item.type == ModContent.ItemType<HallowedKeyMold>() ||
+                item.type == ModContent.ItemType<FrozenKeyMold>() ||
+                item.type == ModContent.ItemType<JungleKeyMold>() ||
+                item.type == ModContent.ItemType<DesertKeyMold>())
+            {
+                item.stack = 1;
+            }
+        }
+    }
 }
+public class QuiverNerf : GlobalItem
+    {
+        public override void ModifyWeaponDamage(Item item, Player player, ref StatModifier damage)
+        {
+            QuiverNerfPlayer modPlayer = player.GetModPlayer<QuiverNerfPlayer>();
+
+            if (modPlayer.hasQuiver && item.useAmmo == AmmoID.Arrow)
+            {
+                damage += -0.1f;
+            }
+        }
+    }
+    public class ItemTextChanges : GlobalItem
+    {
+        public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
+        {
+            if (item.type == ItemID.BeetleScaleMail || item.type == ItemID.BeetleShell)
+            {
+                TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
+                if (setBonusLine != null)
+                {
+                    setBonusLine.Text = "Set bonus:\nGain Beetles from player kills\nBeetles increase your melee damage and attack speed";
+                }
+            }
+
+            if (item.type == ItemID.TikiMask || item.type == ItemID.TikiShirt || item.type == ItemID.TikiPants)
+            {
+                TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
+                if (setBonusLine != null)
+                {
+                    setBonusLine.Text = "Set bonus:\nIncreases your max number of minions\nIncreases whip range by 20%\nIncreases whip debuff duration against players by 150%\nPrevents whip range penalty";
+                }
+            }
+            if (item.type == ItemID.ObsidianHelm || item.type == ItemID.ObsidianShirt || item.type == ItemID.ObsidianPants)
+            {
+                TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
+                if (setBonusLine != null)
+                {
+                    setBonusLine.Text = "Set bonus:\n\tIncreases whip range by 30% and speed by 15%\nIncreases summon damage by 15%\nPrevents whip range penalty";
+                }
+            }
+            if (item.type == ItemID.BlandWhip || item.type == ItemID.ThornWhip ||
+            item.type == ItemID.BoneWhip || item.type == ItemID.FireWhip ||
+            item.type == ItemID.CoolWhip || item.type == ItemID.SwordWhip ||
+            item.type == ItemID.ScytheWhip || item.type == ItemID.MaceWhip ||
+            item.type == ItemID.RainbowWhip)
+            {
+                tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without Pygmy Necklace, Hercules Beetle, or certain Set Bonuses")
+                {
+                    OverrideColor = new Color(255, 100, 100)
+                });
+                tooltips.Add(new TooltipLine(Mod, "SummonsArePlayers", "All whip debuffs apply to players, and effect all non-summon damage")
+                {
+                    OverrideColor = new Color(100, 255, 100)
+                });
+            }
+            
+
+            if (item.type == ItemID.PygmyNecklace || item.type == ItemID.HerculesBeetle)
+            {
+                tooltips.Add(new TooltipLine(Mod, "WhipRangeFix", "Prevents whip range penalty"));
+            }
+            if (item.type == ItemID.SpectrePickaxe || item.type == ItemID.ShroomiteDiggingClaw)
+            {
+                tooltips.Add(new TooltipLine(Mod, "MiningPowerChange", "Capable of mining Lihzahrd Bricks"));
+            }
+            if (item.type == ItemID.PhilosophersStone || item.type == ItemID.CharmofMyths)
+            {
+                tooltips.Add(new TooltipLine(Mod, "FullHPRespawn", "Gain full health upon returning to the land of the living"));
+            }
+            if (item.type == ItemID.MagicQuiver || item.type == ItemID.MoltenQuiver)
+            {
+                for (int i = 0; i < tooltips.Count; i++)
+                {
+                    if (tooltips[i].Text.Contains("Increases arrow damage by 10%") ||
+                        tooltips[i].Text.Contains("arrow damage"))
+                    {
+                        tooltips[i].Text = "Greatly increases arrow speed";
+                        break;
+                    }
+                }
+                tooltips.Add(new TooltipLine(Mod, "QuiverNerf", "No longer grants arrow damage.\nPerhaps if it was a little more sneaky?")
+                {
+                    OverrideColor = new Color(255, 100, 100)
+                });
+            }
+            if (item.type == ItemID.ArcheryPotion)
+            {
+                for (int i = 0; i < tooltips.Count; i++)
+                {
+                    if (tooltips[i].Text.Contains("10% increased bow damage") ||
+                        tooltips[i].Text.Contains("bow damage and 20%"))
+                    {
+                        tooltips[i].Text = "20% increased arrow speed";
+                        break;
+                    }
+                }
+                tooltips.Add(new TooltipLine(Mod, "ArcheryNerf", "No longer grants bow damage")
+                {
+                    OverrideColor = new Color(255, 100, 100)
+                });
+            }
+            if (item.type == ItemID.TempleKey)
+            {
+                for (int i = 0; i < tooltips.Count; i++)
+                {
+                    if (tooltips[i].Text.Contains("Opens the jungle temple door") ||
+                        tooltips[i].Text.Contains("temple door"))
+                    {
+                        tooltips[i].Text = "Opens the jungle temple";
+                        break;
+                    }
+                }
+                tooltips.Add(new TooltipLine(Mod, "LihzahrdKey", "Opens the jungle temple's chests")
+                {
+                    OverrideColor = new Color(255, 100, 100)
+                });
+            }
+        if (item.type == ItemID.ShadowKey)
+        {
+            for (int i = 0; i < tooltips.Count; i++)
+            {
+                if (tooltips[i].Text.Contains("Opens all Shadow Chests and Obsidian Lock Boxes") ||
+                    tooltips[i].Text.Contains("all"))
+                {
+                    tooltips[i].Text = "Opens Shadow Chests and Obsidian Lock Boxes";
+                    break;
+                }
+            }
+            tooltips.Add(new TooltipLine(Mod, "ShadowKey", "Only opens a single Shadow Chest")
+            {
+                OverrideColor = new Color(255, 100, 100)
+            });
+        }
+        if (item.type == ItemID.LunarCraftingStation)
+            {
+                tooltips.Add(new TooltipLine(Mod, "AllCraftTiles", "Counts as all crafting stations"));
+            }
+        }
+    }

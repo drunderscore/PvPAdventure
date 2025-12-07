@@ -2,12 +2,15 @@ using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.System;
+using System;
 using System.IO;
 using System.Linq;
+using PvPAdventure.Content.Items;
 using Terraria;
+using Terraria.Chat;
 using Terraria.Enums;
 using Terraria.ID;
-using Terraria.Map;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure;
@@ -46,12 +49,139 @@ public class PvPAdventure : Mod
         cursor.RemoveRange(5);
     }
 
+    public override void PostSetupContent()
+    {
+        base.PostSetupContent();
+    }
+
     public override void HandlePacket(BinaryReader reader, int whoAmI)
     {
         var id = (AdventurePacketIdentifier)reader.ReadByte();
 
         switch (id)
         {
+            case AdventurePacketIdentifier.BedTeleport:
+            {
+                byte playerId = reader.ReadByte();
+                short bedX = reader.ReadInt16();
+                short bedY = reader.ReadInt16();
+
+                if (Main.netMode != NetmodeID.Server)
+                    break;
+
+                // optional anti-cheat: ensure bedX/bedY matches what server knows for this player
+                if (playerId != whoAmI)
+                    return;
+
+                Player player = Main.player[playerId];
+                if (player is null || !player.active)
+                    return;
+
+                // If you trust bedX/bedY, use those:
+                Vector2 spawnWorld = new Vector2(bedX, bedY - 3).ToWorldCoordinates();
+
+                player.Teleport(spawnWorld, TeleportationStyleID.RecallPotion);
+
+                NetMessage.SendData(
+                    MessageID.TeleportEntity,
+                    -1, -1, null,
+                    number: 0,
+                    number2: player.whoAmI,
+                    number3: spawnWorld.X,
+                    number4: spawnWorld.Y,
+                    number5: TeleportationStyleID.RecallPotion
+                );
+
+#if DEBUG
+                ChatHelper.BroadcastChatMessage(
+                    NetworkText.FromLiteral($"[DEBUG/SERVER] Player {player.name} teleported to bed ({bedX}, {bedY})."),
+                    Color.White
+                );
+#endif
+
+                break;
+            }
+
+            case AdventurePacketIdentifier.AdventureMirrorRightClickUse:
+            {
+                byte playerId = reader.ReadByte();
+                byte slot = reader.ReadByte();
+
+                if (Main.netMode == NetmodeID.Server)
+                {
+                    if (playerId != whoAmI)
+                        return;
+
+                    if (playerId < 0 || playerId >= Main.maxPlayers)
+                        return;
+
+                    Player player = Main.player[playerId];
+                    if (player is null || !player.active)
+                        return;
+
+                    if (slot < 0 || slot >= player.inventory.Length)
+                        return;
+
+                    Item item = player.inventory[slot];
+                    if (item?.ModItem is not AdventureMirror)
+                        return;
+
+                    ModPacket p = GetPacket();
+                    p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
+                    p.Write(playerId);
+                    p.Write(slot);
+                    p.Send();
+                }
+                else if (Main.netMode == NetmodeID.MultiplayerClient)
+                {
+                    Player player = Main.player[playerId];
+                    if (player is null || !player.active)
+                        return;
+
+                    if (slot < 0 || slot >= player.inventory.Length)
+                        return;
+
+                    Item item = player.inventory[slot];
+                    if (item?.ModItem is not AdventureMirror)
+                        return;
+
+                    // Visual state only
+                    player.selectedItem = slot;
+                    player.itemAnimation = item.useAnimation;
+                    player.itemAnimationMax = item.useAnimation;
+                    player.itemTime = item.useTime;
+                    player.itemTimeMax = item.useTime;
+                }
+                break;
+            }
+            case AdventurePacketIdentifier.PlayerBed:
+            {
+                byte playerId = reader.ReadByte();
+                int spawnX = reader.ReadInt32();
+                int spawnY = reader.ReadInt32();
+
+                Player p = Main.player[playerId];
+                p.SpawnX = spawnX;
+                p.SpawnY = spawnY;
+
+                    if (Main.dedServ)
+                    {
+                        var packet = GetPacket();
+                        packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
+                        packet.Write(playerId);
+                        packet.Write(spawnX);
+                        packet.Write(spawnY);
+                        packet.Send(-1, whoAmI);
+
+#if DEBUG
+                        ChatHelper.BroadcastChatMessage(
+                            NetworkText.FromLiteral($"[DEBUG/SERVER] Player {p.name} set spawn to ({spawnX}, {spawnY})"), Color.White);
+#endif
+                    }
+
+                break;
+            }
+
             case AdventurePacketIdentifier.BountyTransaction:
                 {
                     var bountyTransaction = BountyManager.Transaction.Deserialize(reader);
@@ -224,6 +354,22 @@ public class PvPAdventure : Mod
 
                     break;
                 }
+            case AdventurePacketIdentifier.NpcStrikeTeam:
+            {
+                var npcIndex = reader.ReadInt16();
+                var team = reader.ReadByte();
+
+                if (npcIndex < 0 || npcIndex >= Main.maxNPCs)
+                    return;
+
+                if (team >= Enum.GetValues<Team>().Length)
+                    return;
+
+                var npc = Main.npc[npcIndex];
+                npc.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(npc, (Team)team);
+
+                break;
+            }
         }
     }
 }

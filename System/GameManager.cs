@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Humanizer;
 using Humanizer.Localisation;
 using Terraria;
@@ -11,6 +12,7 @@ using Terraria.Chat;
 using Terraria.GameContent.Creative;
 using Terraria.GameContent.Events;
 using Terraria.GameContent.NetModules;
+using Terraria.GameContent.UI.BigProgressBar;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.Net;
@@ -23,6 +25,9 @@ public class GameManager : ModSystem
     public int TimeRemaining { get; set; }
     public int? _startGameCountdown = null;
     private Phase _currentPhase;
+
+    private static readonly FieldInfo _bigProgressBarSystemCurrentBarField =
+        typeof(BigProgressBarSystem).GetField("_currentBar", BindingFlags.NonPublic | BindingFlags.Instance);
 
     public Phase CurrentPhase
     {
@@ -177,7 +182,7 @@ public class GameManager : ModSystem
         }
     }
 
-    public void StartGame(int time, int countdownTimeInSeconds=10)
+    public void StartGame(int time, int countdownTimeInSeconds = 10)
     {
         CurrentPhase = Phase.Waiting;
         TimeRemaining = time;
@@ -267,6 +272,7 @@ public class GameManager : ModSystem
             packet.Writer.Write(freezeTimeModule.Enabled);
             NetManager.Instance.Broadcast(packet);
         }
+
     }
 
     public override void OnWorldLoad()
@@ -278,6 +284,16 @@ public class GameManager : ModSystem
     {
         _startGameCountdown = null;
         TimeRemaining = 0;
+
+        // Always run the on-change regardless of if it actually changes.
+        if (Main.netMode != NetmodeID.MultiplayerClient && CurrentPhase != Phase.Waiting)
+            OnPhaseChange(Phase.Waiting);
+        CurrentPhase = Phase.Waiting;
+
+        // Terraria/TML bug: Remove boss bar when clearing the world
+        // FIXME: Don't put this here!
+        _bigProgressBarSystemCurrentBarField.SetValue(Main.BigBossProgressBar, null);
+
         CurrentPhase = Phase.Waiting;
     }
 

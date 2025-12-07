@@ -11,6 +11,8 @@ public static class Ass
     public static Asset<Texture2D> Question_Mark;
     public static Asset<Texture2D>[] MapBG;
     public static Asset<Texture2D> CustomPlayerBackground;
+    public static Asset<Texture2D> Spawnbox;
+    public static Asset<Texture2D> Stop_Icon;
 
     // Admin tools
     public static Asset<Texture2D> TeamAssignerIcon;
