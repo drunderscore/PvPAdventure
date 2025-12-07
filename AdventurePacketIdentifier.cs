@@ -7,6 +7,8 @@ public enum AdventurePacketIdentifier : byte
     PingPong,
     PlayerItemPickup,
     PlayerTeam,
+    StartGame,
+    EndGame,
     NpcStrikeTeam,
     Dash,
     PlayerBed,

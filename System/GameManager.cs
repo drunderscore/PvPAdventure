@@ -133,45 +133,72 @@ public class GameManager : ModSystem
         switch (CurrentPhase)
         {
             case Phase.Waiting:
-            {
-                if (Main.netMode == NetmodeID.MultiplayerClient)
+                {
+                    if (Main.netMode == NetmodeID.MultiplayerClient)
+                        break;
+
+                    if (_startGameCountdown.HasValue)
+                    {
+                        _startGameCountdown--;
+
+                        if (_startGameCountdown <= 0)
+                        {
+                            _startGameCountdown = null;
+                            CurrentPhase = Phase.Playing;
+
+                            if (Main.dedServ)
+                                NetMessage.SendData(MessageID.WorldData); // sync phase + reset countdown
+                        }
+                        else
+                        {
+                            // Every second
+                            if (_startGameCountdown % 60 == 0)
+                            {
+                                if (_startGameCountdown <= 60 * 3)
+                                {
+                                    ChatHelper.BroadcastChatMessage(
+                                        NetworkText.FromLiteral($"{_startGameCountdown / 60}..."),
+                                        Color.Crimson);
+                                }
+
+                                if (Main.dedServ)
+                                    NetMessage.SendData(MessageID.WorldData); // sync current countdown
+                            }
+                        }
+                    }
+
                     break;
-
-                if (_startGameCountdown.HasValue)
-                {
-                    if (--_startGameCountdown <= 0)
-                    {
-                        _startGameCountdown = null;
-                        CurrentPhase = Phase.Playing;
-                    }
-                    else if (_startGameCountdown <= (60 * 3) && _startGameCountdown % 60 == 0)
-                    {
-                        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{_startGameCountdown / 60}..."),
-                            Color.Crimson);
-                    }
                 }
 
-                break;
-            }
             case Phase.Playing:
-            {
-                if (--TimeRemaining <= 0)
                 {
-                    CurrentPhase = Phase.Waiting;
-                }
+                    if (--TimeRemaining <= 0)
+                    {
+                        CurrentPhase = Phase.Waiting;
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
+
     public void StartGame(int time, int countdownTimeInSeconds = 10)
     {
         CurrentPhase = Phase.Waiting;
         TimeRemaining = time;
         _startGameCountdown = 60 * countdownTimeInSeconds;
 
+        if (Main.dedServ)
+            NetMessage.SendData(MessageID.WorldData);
+
         ChatHelper.BroadcastChatMessage(
             NetworkText.FromLiteral($"The game will begin in {_startGameCountdown / 60} seconds."), Color.Green);
+    }
+    public void EndGame()
+    {
+        _startGameCountdown = null;
+        TimeRemaining = 0;
+        CurrentPhase = Phase.Waiting;
     }
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
@@ -217,7 +244,7 @@ public class GameManager : ModSystem
 
                 UpdateFreezeTime(true);
 
-                break;
+                    break;
             }
             case Phase.Playing:
             {
@@ -274,12 +301,19 @@ public class GameManager : ModSystem
     {
         writer.Write(TimeRemaining);
         writer.Write((int)CurrentPhase);
+        writer.Write(_startGameCountdown.HasValue);
+        if (_startGameCountdown.HasValue)
+            writer.Write(_startGameCountdown.Value);
     }
 
     public override void NetReceive(BinaryReader reader)
     {
         TimeRemaining = reader.ReadInt32();
         CurrentPhase = (Phase)reader.ReadInt32();
+        if (reader.ReadBoolean())
+            _startGameCountdown = reader.ReadInt32();
+        else
+            _startGameCountdown = null;
     }
 
     public class TeamCommand : ModCommand

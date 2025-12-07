@@ -6,7 +6,12 @@
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 	<ItemGroup>
-		<Folder Include="Assets\SpawnSelector\" />
+	  <AdditionalFiles Remove="Assets\SpawnSelector\**" />
+	  <Compile Remove="Assets\SpawnSelector\**" />
+	  <EmbeddedResource Remove="Assets\SpawnSelector\**" />
+	  <None Remove="Assets\SpawnSelector\**" />
+	</ItemGroup>
+	<ItemGroup>
 		<Folder Include="Discord" />
 		<Folder Include="lib\Native\" />
 	</ItemGroup>
@@ -20,6 +25,11 @@
 		<Reference Include="System.Linq.Async">
 			<HintPath>lib\System.Linq.Async.dll</HintPath>
 		</Reference>
+
+		<!-- Add DragonLens for adding tools -->
+		<Reference Include="DragonLens">
+			<HintPath>lib\DragonLens.dll</HintPath>
+		</Reference>
 		
 		<!-- Add StructureHelper for generating a spawn box -->
 		<Reference Include="StructureHelper">
@@ -31,5 +41,6 @@
 	<ItemGroup>
 		<PackageReference Include="Krafs.Publicizer" PrivateAssets="true" Version="2.2.1" />
 		<Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+		<Publicize Include="DragonLens" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
 	</ItemGroup>
 </Project>

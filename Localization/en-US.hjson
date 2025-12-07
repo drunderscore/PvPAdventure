@@ -15,11 +15,10 @@ Mods: {
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
 			AdventureMirror.DisplayName: Adventure Mirror
-			OpenControls.DisplayName: Open Controls
-			SwitchTeams.DisplayName: Switch Teams
-			"[DEBUG] OpenControls.DisplayName": "[ D E B U G]  Open Controls"
-			"[DEBUG] SwitchTeams.DisplayName": "[ D E B U G]  Switch Teams"
-			"[DEBUG] StartGame.DisplayName": "[ D E B U G]  Start Game"
+			DLStartGameTool.DisplayName: D L Start Game Tool
+			DLTeamAssignerTool.DisplayName: D L Team Assigner Tool
+			DLPauseTool.DisplayName: D L Pause Tool
+			DLStartGameToolRightClick.DisplayName: D L Start Game Tool Right Click
 		}
 
 		Configs: {
@@ -1497,6 +1496,24 @@ Mods: {
 				Steampunker.DisplayName: Bound. Steampunker
 				Truffle.DisplayName: Bound. Truffle
 				WitchDoctor.DisplayName: Bound. Witch Doctor
+			}
+		}
+
+		Tools: {
+			DLStartGameTool: {
+				DisplayName: DLStartGameTool
+				Description: The tool has no description! Add one in .hjson files!
+				RightClickName: DLStartGameTool Right Click
+			}
+
+			DLTeamAssignerTool: {
+				DisplayName: DLTeamAssignerTool
+				Description: The tool has no description! Add one in .hjson files!
+			}
+
+			DLPauseTool: {
+				DisplayName: DLPauseTool
+				Description: The tool has no description! Add one in .hjson files!
 			}
 		}
 	}
