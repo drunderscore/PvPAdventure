@@ -359,11 +359,11 @@ Mods: {
 
 				IsVanillaDashEnabled: {
 					Label: Is Vanilla Dash Enabled
-					Tooltip: 
-					'''
-					On: Dash as usual with double tap
-					Off: Disables double tap dash. Use keybind instead
-					'''
+					Tooltip:
+						'''
+						On: Dash as usual with double tap
+						Off: Disables double tap dash. Use keybind instead
+						'''
 				}
 			}
 

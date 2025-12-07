@@ -2,7 +2,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.Core.Features.Dash;
+using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.Enums;
@@ -53,7 +53,7 @@ public class PvPAdventure : Mod
         switch (id)
         {
             case AdventurePacketIdentifier.Dash:
-                KeybindSystem.HandlePacket(reader, whoAmI);
+                DashKeybindSystem.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.BountyTransaction:

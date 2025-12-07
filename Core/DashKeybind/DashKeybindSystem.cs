@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
+using PvPAdventure.System.Client;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameInput;
@@ -9,31 +9,51 @@ using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Features.Dash
+namespace PvPAdventure.Core.DashKeybind
 {
-    internal enum PvPAdventureMessageType : byte
-    {
-        Dash = 0
-    }
-
     internal enum DashPacketType : byte
     {
         Request = 0,
         Perform = 1
     }
 
-    public class KeybindSystem : ModSystem
+    public class DashKeybindSystem : ModSystem
     {
-        public static ModKeybind DashKB;
-
         public override void Load()
         {
-            DashKB = KeybindLoader.RegisterKeybind(Mod, "Dash", Keys.Z);
+            On_Player.DoCommonDashHandle += VanillaDashDetour;
+            On_Player.DashMovement += CustomDashHandle;
         }
-
         public override void Unload()
         {
-            DashKB = null;
+            On_Player.DoCommonDashHandle -= VanillaDashDetour;
+            On_Player.DashMovement -= CustomDashHandle;
+        }
+        private static void VanillaDashDetour(On_Player.orig_DoCommonDashHandle orig, Player self, out int dir, out bool dashing, Player.DashStartAction dashStartAction)
+        {
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+
+            // Execute vanilla dash only if enabled in config
+            if (config.IsVanillaDashEnabled)
+            {
+                orig.Invoke(self, out dir, out dashing, dashStartAction);
+                return;
+            }
+            else
+            {
+                // Must set out parameters even if not dashing
+                dir = 0;
+                dashing = false;
+            }
+        }
+        private static void CustomDashHandle(On_Player.orig_DashMovement orig, Player self)
+        {
+            if (self.whoAmI == Main.myPlayer && ModContent.GetInstance<Keybinds>().Dash.JustPressed)
+            {
+                //Log.Info($"Dash key pressed on player {self.whoAmI} (dashDelay={self.dashDelay}).");
+            }
+
+            orig(self);
         }
 
         internal static void HandlePacket(BinaryReader reader, int sender)
@@ -58,7 +78,7 @@ namespace PvPAdventure.Core.Features.Dash
                         if (!player.active || player.dead)
                             break;
 
-                        var dashPlayer = player.GetModPlayer<KeybindPlayer>();
+                        var dashPlayer = player.GetModPlayer<DashKeybindPlayer>();
                         if (dashPlayer.PerformDash(direction, force: false, out byte dashTypeUsed, dashTypeHint > 0 ? dashTypeHint : (int?)null))
                         {
                             dashPlayer.BroadcastDash(direction, dashTypeUsed);
@@ -89,7 +109,7 @@ namespace PvPAdventure.Core.Features.Dash
                         if (direction == 0)
                             direction = 1;
 
-                        var dashPlayer = remotePlayer.GetModPlayer<KeybindPlayer>();
+                        var dashPlayer = remotePlayer.GetModPlayer<DashKeybindPlayer>();
                         dashPlayer.PerformDash(direction, force: true, out _, dashTypeUsed > 0 ? dashTypeUsed : (int?)null);
                         break;
                     }
@@ -106,16 +126,14 @@ namespace PvPAdventure.Core.Features.Dash
         }
     }
 
-    public class KeybindPlayer : ModPlayer
+    public class DashKeybindPlayer : ModPlayer
     {
-        private const int DefaultDashType = 2;
-
         private bool restoreDashType;
         private int dashTypeToRestore;
 
         public override void ProcessTriggers(TriggersSet triggers)
         {
-            if (KeybindSystem.DashKB == null || !KeybindSystem.DashKB.JustPressed)
+            if (ModContent.GetInstance<Keybinds>().Dash == null || !ModContent.GetInstance<Keybinds>().Dash.JustPressed)
                 return;
 
             int inputDirection = NormalizeDirection(GetInputDirection());
