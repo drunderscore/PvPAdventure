@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Integrations.HerosMod.StartGame;
-using PvPAdventure.Common.Integrations.HerosMod.TeamSelector;
+using PvPAdventure.Common.Integrations.StartGame;
+using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.System;
 using System;
@@ -13,11 +13,11 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.Integrations.HerosMod;
 
 [JITWhenModsEnabled("HEROsMod")]
-public sealed class HerosModIntegration : ModSystem
+public sealed class HMIntegration : ModSystem
 {
     private const string PauseGamePermissionKey = "PauseGame";
     private const string PlayGamePermissionKey = "PlayGame";
-    private const string TeamSelectorPermissionKey = "TeamSelector";
+    private const string TeamAssignerPermissionKey = "TeamAssigner";
 
     public override void PostSetupContent()
     {
@@ -26,12 +26,12 @@ public sealed class HerosModIntegration : ModSystem
             // Add permissions
             herosMod.Call("AddPermission",PauseGamePermissionKey,"Pause / resume game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)));
             herosMod.Call("AddPermission",PlayGamePermissionKey,"Start / end game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PlayGamePermissionKey)));
-            herosMod.Call("AddPermission",TeamSelectorPermissionKey,"Open team assigner",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamSelectorPermissionKey)));
+            herosMod.Call("AddPermission",TeamAssignerPermissionKey,"Open team assigner",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamAssignerPermissionKey)));
 
             // Add buttons
             AddPauseButton(herosMod);
             AddPlayButton(herosMod);
-            AddTeamSelectorButton(herosMod);
+            AddTeamAssignerButton(herosMod);
         }
     }
 
@@ -115,23 +115,23 @@ public sealed class HerosModIntegration : ModSystem
             })
         );
     }
-    private void AddTeamSelectorButton(Mod herosMod)
+    private void AddTeamAssignerButton(Mod herosMod)
     {
         herosMod.Call("AddSimpleButton",
-            TeamSelectorPermissionKey,
-            Ass.TeamSelectorIcon,
+            TeamAssignerPermissionKey,
+            Ass.TeamAssignerIcon,
             () =>
             {
                 // Toggle active state of team selector
-                var tss = ModContent.GetInstance<TeamSelectorSystem>();
-                tss.ToggleActive();
+                var tas = ModContent.GetInstance<TeamAssignerSystem>();
+                tas.ToggleActive();
             },
-            (Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamSelectorPermissionKey)),
+            (Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamAssignerPermissionKey)),
             () =>
             {
                 // Update text depending on state
-                var tss = ModContent.GetInstance<TeamSelectorSystem>();
-                if (!tss.IsActive())
+                var tas = ModContent.GetInstance<TeamAssignerSystem>();
+                if (!tas.IsActive())
                 {
                     return "Open team assigner";
                 }

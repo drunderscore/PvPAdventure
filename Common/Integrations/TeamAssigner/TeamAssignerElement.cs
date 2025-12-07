@@ -6,23 +6,25 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.HerosMod.TeamSelector;
+namespace PvPAdventure.Common.Integrations.TeamAssigner;
 
-internal class TeamSelectorElement : UIElement
+/// <summary>
+/// The base element for the team assigner UI (title and content panel).
+/// </summary>
+internal class TeamAssignerElement : UIElement
 {
     // Team colors: 0–5
     internal static readonly Color[] TeamColors =
-    {
-        new Color(0xC5, 0xC1, 0xD8),
-        new Color(0xDA, 0x3B, 0x3B),
-        new Color(0x3B, 0xDA, 0x55),
-        new Color(0x3B, 0x95, 0xDA),
-        new Color(0xDA, 0xB7, 0x3B),
-        new Color(0xE0, 0x64, 0xF2),
-    };
+    [
+        new(0xC5, 0xC1, 0xD8),
+        new(0xDA, 0x3B, 0x3B),
+        new(0x3B, 0xDA, 0x55),
+        new(0x3B, 0x95, 0xDA),
+        new(0xDA, 0xB7, 0x3B),
+        new(0xE0, 0x64, 0xF2),
+    ];
 
     private bool dragging;
     private Vector2 dragOffset;
@@ -80,7 +82,7 @@ internal class TeamSelectorElement : UIElement
             HAlign = 1f,
             VAlign = 0.5f
         };
-        closePanel.OnLeftClick += (_, _) => ModContent.GetInstance<TeamSelectorSystem>().ToggleActive();
+        closePanel.OnLeftClick += (_, _) => ModContent.GetInstance<TeamAssignerSystem>().ToggleActive();
         closePanel.OnMouseOver += (_, _) => closePanel.BorderColor = Color.Yellow;
         closePanel.OnMouseOut += (_, _) => closePanel.BorderColor = Color.Black;
         UIText closeText = new("X", large: true, textScale: 0.55f)

@@ -49,60 +49,6 @@ namespace PvPAdventure.Core.Features.SpawnSelector.UI
             SetPadding(6f);
         }
 
-
-        private void DrawArrow(Player p)
-        {
-            float scale = Main.mapFullscreenScale;
-
-            Vector2 mapPos = new(
-                (p.position.X + p.width / 2f) / 16f,
-                (p.position.Y + p.gfxOffY + p.height / 2f) / 16f
-            );
-
-            Vector2 headPos = new(
-                (mapPos.X - Main.mapFullscreenPos.X) * scale + Main.screenWidth / 2f,
-                (mapPos.Y - Main.mapFullscreenPos.Y) * scale + Main.screenHeight / 2f
-            );
-            headPos += new Vector2(34f, 44f);
-
-            CalculatedStyle inner = GetInnerDimensions();
-            Rectangle rect = new(
-                (int)inner.X - 6,
-                (int)inner.Y - 6,
-                100,
-                72
-            );
-
-            Texture2D arrowTex = Ass.Arrow.Value;
-            Vector2 arrowCenter = new(
-                rect.X + rect.Width / 2f -1,
-                rect.Bottom - 20f
-            );
-
-            Vector2 arrowOrigin = arrowTex.Size() * 0.5f;
-
-            Vector2 dir = headPos - arrowCenter;
-
-            if (dir.LengthSquared() > 0.001f)
-            {
-                dir.Normalize();
-
-                float rotation = dir.ToRotation();
-
-                Main.spriteBatch.Draw(
-                    arrowTex,
-                    arrowCenter,   // stays the same, no matter angle
-                    null,
-                    Color.White,
-                    rotation,
-                    arrowOrigin,   // rotate around center
-                    0.9f,
-                    SpriteEffects.None,
-                    0f
-                );
-            }
-        }
-
         private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
         {
             x += inset; y += inset; w -= inset * 2; h -= inset * 2;

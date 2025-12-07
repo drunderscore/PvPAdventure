@@ -20,11 +20,17 @@
 		<Reference Include="System.Linq.Async">
 			<HintPath>lib\System.Linq.Async.dll</HintPath>
 		</Reference>
+
+		<Reference Include="DragonLens">
+			<HintPath>lib\DragonLens.dll</HintPath>
+		</Reference>
+
 	</ItemGroup>
 
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->
 	<ItemGroup>
 		<PackageReference Include="Krafs.Publicizer" PrivateAssets="true" Version="2.2.1" />
 		<Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+		<Publicize Include="DragonLens" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
 	</ItemGroup>
 </Project>

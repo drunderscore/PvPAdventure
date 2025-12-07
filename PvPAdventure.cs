@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.Common.Integrations.HerosMod.TeamSelector;
+using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.System;
 using System.IO;
 using System.Linq;
@@ -182,12 +182,12 @@ public class PvPAdventure : Mod
                     if (!Main.dedServ)
                         ModContent.GetInstance<PointsManager>().UiScoreboard?.Invalidate();
 
-                    var ts = ModContent.GetInstance<TeamSelectorSystem>();
-                    if (ts?.teamSelectorState != null)
+                    var ts = ModContent.GetInstance<TeamAssignerSystem>();
+                    if (ts?.teamAssignerState != null)
                     {
-                        foreach (var child in ts.teamSelectorState.Children)
+                        foreach (var child in ts.teamAssignerState.Children)
                         {
-                            if (child is TeamSelectorElement panel)
+                            if (child is TeamAssignerElement panel)
                             {
                                 panel.needsRebuild = true;
                                 break;

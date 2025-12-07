@@ -4,24 +4,27 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.HerosMod.TeamSelector;
+namespace PvPAdventure.Common.Integrations.TeamAssigner;
 
+/// <summary>
+/// The system responsible for managing the team selector UI.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
-internal class TeamSelectorSystem : ModSystem
+internal class TeamAssignerSystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState teamSelectorState;
+    public UIState teamAssignerState;
 
     // State
-    public bool IsActive() => ui?.CurrentState == teamSelectorState;
-    public void ToggleActive() => ui.SetState(IsActive() ? null : teamSelectorState);
+    public bool IsActive() => ui?.CurrentState == teamAssignerState;
+    public void ToggleActive() => ui.SetState(IsActive() ? null : teamAssignerState);
 
     public override void OnWorldLoad()
     {
         ui = new();
-        teamSelectorState = new();
-        teamSelectorState.Append(new TeamSelectorElement());
+        teamAssignerState = new();
+        teamAssignerState.Append(new TeamAssignerElement());
     }
     public override void UpdateUI(GameTime gameTime)
     {
@@ -35,7 +38,7 @@ internal class TeamSelectorSystem : ModSystem
         if (index != -1)
         {
             layers.Insert(index, new LegacyGameInterfaceLayer(
-                name: "PvPAdventure: TeamSelectorSystem",
+                name: "PvPAdventure: TeamAssignerSystem",
                 drawMethod: () =>
                 {
                     if (IsActive())

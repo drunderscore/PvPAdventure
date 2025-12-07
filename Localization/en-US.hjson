@@ -18,6 +18,10 @@ Mods: {
 			SwitchTeams.DisplayName: Switch Teams
 			"[DEBUG] OpenControls.DisplayName": "[ D E B U G]  Open Controls"
 			"[DEBUG] SwitchTeams.DisplayName": "[ D E B U G]  Switch Teams"
+			DLStartGameTool.DisplayName: D L Start Game Tool
+			DLTeamAssignerTool.DisplayName: D L Team Assigner Tool
+			DLPauseTool.DisplayName: D L Pause Tool
+			DLStartGameToolRightClick.DisplayName: D L Start Game Tool Right Click
 		}
 
 		Configs: {
@@ -808,6 +812,24 @@ Mods: {
 			AdventureMirror: {
 				DisplayName: Adventure Mirror
 				Tooltip: Gaze in the mirror to go on adventures
+			}
+		}
+
+		Tools: {
+			DLStartGameTool: {
+				DisplayName: DLStartGameTool
+				Description: The tool has no description! Add one in .hjson files!
+				RightClickName: DLStartGameTool Right Click
+			}
+
+			DLTeamAssignerTool: {
+				DisplayName: DLTeamAssignerTool
+				Description: The tool has no description! Add one in .hjson files!
+			}
+
+			DLPauseTool: {
+				DisplayName: DLPauseTool
+				Description: The tool has no description! Add one in .hjson files!
 			}
 		}
 	}

@@ -2,13 +2,15 @@
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria;
-using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.HerosMod.TeamSelector;
+namespace PvPAdventure.Common.Integrations.TeamAssigner;
 
+/// <summary>
+/// A selectable team icon element.
+/// </summary>
 public class TeamIconElement : UIElement
 {
     private readonly Texture2D sheet;
@@ -67,7 +69,7 @@ public class TeamIconElement : UIElement
         }
 
         // Always rebuild UI
-        if (Parent?.Parent is TeamSelectorElement panel)
+        if (Parent?.Parent is TeamAssignerElement panel)
             panel.needsRebuild = true;
     }
 

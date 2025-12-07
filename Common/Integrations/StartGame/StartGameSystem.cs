@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.HerosMod.StartGame;
+namespace PvPAdventure.Common.Integrations.StartGame;
 
 [Autoload(Side = ModSide.Client)]
 internal class StartGameSystem : ModSystem

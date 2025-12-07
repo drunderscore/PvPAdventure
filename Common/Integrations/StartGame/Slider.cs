@@ -9,7 +9,7 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.HerosMod.StartGame;
+namespace PvPAdventure.Common.Integrations.StartGame;
 
 public class Slider : UIElement
 {

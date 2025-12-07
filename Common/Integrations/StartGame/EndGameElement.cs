@@ -7,25 +7,24 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.HerosMod.StartGame;
+namespace PvPAdventure.Common.Integrations.StartGame;
 
-internal class StartGameElement : UIElement
+internal class EndGameElement : UIElement
 {
     private UIPanel titlePanel;
     private UIPanel contentPanel;
     private UIText titleText;
-    private UITextPanel<string> startButton;
-    private SliderElement gameTimeSlider;
-    private SliderElement countdownSlider;
-    private int countdownTimeInSeconds = 10;
-    private int gameTimeInFrames = 195 * 60 * 60;
+    private UITextPanel<string> yesButton;
+    private UITextPanel<string> noButton;
+
+    // Dragging
     private bool dragging;
     private Vector2 dragOffset;
 
     public override void OnInitialize()
     {
-        Width.Set(350, 0);
-        Height.Set(180, 0);
+        Width.Set(400, 0);
+        Height.Set(100, 0);
         HAlign = 0.5f;
         VAlign = 0.7f;
 
@@ -39,7 +38,7 @@ internal class StartGameElement : UIElement
         };
         titlePanel.SetPadding(0);
 
-        titleText = new UIText("Start Game", 0.7f, true)
+        titleText = new UIText("Really end game?", 0.7f, true)
         {
             HAlign = 0.5f,
             VAlign = 0.5f
@@ -78,93 +77,81 @@ internal class StartGameElement : UIElement
         };
         contentPanel.SetPadding(12);
 
-        gameTimeSlider = new SliderElement(
-            label: "Time",
-            min: 0f,
-            max: 195f,
-            defaultValue: 195f,
-            step: 1f,
-            onValueChanged: value =>
-            {
-                int totalMinutes = (int)value;
-                gameTimeInFrames = totalMinutes * 60 * 60;
-            }
-        );
-
-        contentPanel.Append(gameTimeSlider);
-
-        countdownSlider = new SliderElement(
-            label: "Countdown",
-            min: 0f,
-            max: 10f,
-            defaultValue: 10f,
-            step: 1f,
-            onValueChanged: value =>
-            {
-                countdownTimeInSeconds = (int)value;
-            }
-        );
-        countdownSlider.Top.Set(26, 0);
-
-        contentPanel.Append(countdownSlider);
-
-        startButton = new UITextPanel<string>("Start!")
+        // Buttons
+        noButton = new UITextPanel<string>("No")
         {
             Width = new StyleDimension(120, 0),
             Height = new StyleDimension(40, 0),
-            HAlign = 0.5f,
-            VAlign = 1f,
-            Top = new StyleDimension(0, 0),
+            HAlign = 0.25f,
+            VAlign = 0.5f
         };
-        startButton.OnMouseOver += (_, _) => startButton.BorderColor = Color.Yellow;
-        startButton.OnMouseOut += (_, _) => startButton.BorderColor = Color.Black;
-        startButton.OnLeftClick += (_, _) =>
+        noButton.OnMouseOver += (_, _) => noButton.BorderColor = Color.Yellow;
+        noButton.OnMouseOut += (_, _) => noButton.BorderColor = Color.Black;
+        noButton.OnLeftClick += (_, _) => ModContent.GetInstance<StartGameSystem>().Hide();
+
+        yesButton = new UITextPanel<string>("Yes")
         {
+            Width = new StyleDimension(120, 0),
+            Height = new StyleDimension(40, 0),
+            HAlign = 0.75f,
+            VAlign = 0.5f
+        };
+        yesButton.OnMouseOver += (_, _) => yesButton.BorderColor = Color.Yellow;
+        yesButton.OnMouseOut += (_, _) => yesButton.BorderColor = Color.Black;
+        yesButton.OnLeftClick += (_, _) =>
+        {
+            var gm = ModContent.GetInstance<GameManager>();
+
             if (Main.netMode == NetmodeID.SinglePlayer)
             {
-                var gm = ModContent.GetInstance<GameManager>();
-                gm.StartGame(time: gameTimeInFrames, countdownTimeInSeconds: countdownTimeInSeconds-1);
+                gm.EndGame();
             }
             else if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-                packet.Write((byte)AdventurePacketIdentifier.StartGame);
-                packet.Write(gameTimeInFrames);
-                packet.Write(countdownTimeInSeconds);
+                packet.Write((byte)AdventurePacketIdentifier.EndGame);
                 packet.Send();
             }
 
             ModContent.GetInstance<StartGameSystem>().Hide();
         };
 
-        contentPanel.Append(startButton);
+        contentPanel.Append(noButton);
+        contentPanel.Append(yesButton);
+
         Append(contentPanel);
     }
-
     public override void Update(GameTime gameTime)
     {
         if (IsMouseHovering)
         {
             Main.LocalPlayer.mouseInterface = true;
         }
-
         base.Update(gameTime);
         UpdateDragging();
-    }
 
+    }
     private void UpdateDragging()
     {
         if (dragging)
         {
             float x = Main.mouseX - dragOffset.X;
             float y = Main.mouseY - dragOffset.Y;
+
+            var d = GetDimensions();
+            float w = d.Width;
+            float h = d.Height;
+
+            //if (x < 0) x = 0;
+            //else if (x + w > Main.screenWidth) x = Main.screenWidth - w;
+
+            //if (y < 0) y = 0;
+            //else if (y + h > Main.screenHeight) y = Main.screenHeight - h;
+
             Left.Pixels = x;
             Top.Pixels = y;
             Recalculate();
         }
-
-        if (Parent is null)
-            return;
 
         Rectangle parentSpace = Parent.GetDimensions().ToRectangle();
         if (!GetDimensions().ToRectangle().Intersects(parentSpace))
@@ -177,11 +164,8 @@ internal class StartGameElement : UIElement
 
     public override void LeftMouseDown(UIMouseEvent evt)
     {
-        if (titlePanel != null && titlePanel.ContainsPoint(evt.MousePosition))
-        {
-            dragging = true;
-            dragOffset = evt.MousePosition - new Vector2(Left.Pixels, Top.Pixels);
-        }
+        dragging = true;
+        dragOffset = evt.MousePosition - new Vector2(Left.Pixels, Top.Pixels);
     }
 
     public override void LeftMouseUp(UIMouseEvent evt)
