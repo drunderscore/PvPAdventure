@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Microsoft.Xna.Framework;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using PvPAdventure.System;
@@ -13,6 +16,8 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
+using Terraria.ModLoader.IO;
+using static PvPAdventure.AdventureItem;
 
 namespace PvPAdventure;
 
@@ -20,6 +25,14 @@ public class AdventureNpc : GlobalNPC
 {
     public override bool InstancePerEntity => true;
     public DamageInfo LastDamageFromPlayer { get; set; }
+
+    private readonly Dictionary<Team, int> _teamLife = new();
+    public IReadOnlyDictionary<Team, int> TeamLife => _teamLife;
+
+    private readonly HashSet<Team> _hasBeenHurtByTeam = new();
+    public IReadOnlySet<Team> HasBeenHurtByTeam => _hasBeenHurtByTeam;
+
+    private Team _lastStrikeTeam;
 
     public class DamageInfo(byte who)
     {
@@ -49,6 +62,9 @@ public class AdventureNpc : GlobalNPC
         On_Item.CheckLavaDeath += OnItemCheckLavaDeath;
         // Prevent some global drop rules from being registered.
         On_ItemDropDatabase.RegisterToGlobal += AdventureDropDatabase.OnItemDropDatabaseRegisterToGlobal;
+
+        On_NPC.StrikeNPC_HitInfo_bool_bool += OnNPCStrikeNPC;
+        On_NetMessage.SendStrikeNPC += OnNetMessageSendStrikeNPC;
     }
 
     private void OnNPCScaleStats(On_NPC.orig_ScaleStats orig, NPC self, int? activeplayerscount,
@@ -105,14 +121,28 @@ public class AdventureNpc : GlobalNPC
         // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
         if (NPCID.Search.TryGetName(entity.type, out var name))
         {
+            var definition = new NPCDefinition(name);
+
             {
-                if (adventureConfig.NpcBalance.LifeMaxMultipliers.TryGetValue(new(name), out var multiplier))
+                if (adventureConfig.NpcBalance.LifeMaxMultipliers.TryGetValue(definition, out var multiplier))
                     entity.lifeMax = (int)(entity.lifeMax * multiplier.Value);
             }
 
             {
-                if (adventureConfig.NpcBalance.DamageMultipliers.TryGetValue(new(name), out var multiplier))
+                if (adventureConfig.NpcBalance.DamageMultipliers.TryGetValue(definition, out var multiplier))
                     entity.damage = (int)(entity.damage * multiplier.Value);
+            }
+
+            // FIXME: What if config changes mid game? might desync form the config which might break some contracts?
+            if (adventureConfig.Combat.TeamLifeNpcs.ContainsKey(definition))
+            {
+                foreach (var team in Enum.GetValues<Team>())
+                {
+                    if (team == Team.None)
+                        continue;
+
+                    _teamLife[team] = entity.lifeMax;
+                }
             }
         }
     }
@@ -151,12 +181,105 @@ public class AdventureNpc : GlobalNPC
                     new(175, 75, 255));
         }
     }
+    public class TillDeathDoUsPart : GlobalNPC
+    {
+        public override bool PreKill(NPC npc)
+        {
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+                if (otherTwin != null && otherTwin.life > 1)
+                {
+                    npc.life = 1;
+                    return false;
+                }
+                return true;
+            }
+            return true;
+        }
+
+        public override bool CheckDead(NPC npc)
+        {
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+                if (otherTwin != null && otherTwin.life > 1)
+                {
+                    npc.life = 1;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public override void OnKill(NPC npc)
+        {
+            if (npc.type == NPCID.Spazmatism || npc.type == NPCID.Retinazer)
+            {
+                NPC otherTwin = FindOtherTwin(npc);
+                if (otherTwin != null && otherTwin.active && otherTwin.life <= 1)
+                {
+                  
+                    int killingPlayer = npc.lastInteraction;
+
+                    if (killingPlayer != 255 && killingPlayer < Main.maxPlayers && Main.player[killingPlayer].active)
+                    {
+                        Player player = Main.player[killingPlayer];
+                        // AI slop solution because I can't figure out how kill credit works
+
+                        if (Main.netMode != NetmodeID.MultiplayerClient)
+                        {
+                            int projectile = Projectile.NewProjectile(
+                                npc.GetSource_Death(),
+                                otherTwin.Center.X,
+                                otherTwin.Center.Y,
+                                0f,
+                                0f,
+                                ProjectileID.DD2ExplosiveTrapT3Explosion,
+                                200,
+                                0f,
+                                killingPlayer
+                            );
+
+
+                            if (projectile >= 0 && projectile < Main.maxProjectiles)
+                            {
+                                Projectile proj = Main.projectile[projectile];
+
+                                proj.penetrate = 1;
+                                proj.timeLeft = 120;
+                            }
+
+
+                            if (Main.netMode == NetmodeID.Server && projectile >= 0)
+                            {
+                                NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, projectile);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private NPC FindOtherTwin(NPC currentTwin)
+        {
+            int targetType = currentTwin.type == NPCID.Spazmatism ? NPCID.Retinazer : NPCID.Spazmatism;
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                NPC npc = Main.npc[i];
+                if (npc.active && npc.type == targetType)
+                {
+                    return npc;
+                }
+            }
+            return null;
+        }
+    }
 
     private static void OnNPCPlayerInteraction(On_NPC.orig_PlayerInteraction orig, NPC self, int player)
     {
         orig(self, player);
 
-        // If this is part of the Eater of Worlds, then mark ALL segments as last damaged by this player.
         if (IsPartOfEaterOfWorlds((short)self.type))
         {
             foreach (var npc in Main.ActiveNPCs)
@@ -325,6 +448,104 @@ public class AdventureNpc : GlobalNPC
         }
     }
 
+    // FIXME: This only covers strikes, would be good to support DOTs/debuffs
+    private int OnNPCStrikeNPC(On_NPC.orig_StrikeNPC_HitInfo_bool_bool orig, NPC self, NPC.HitInfo hit, bool fromNet,
+        bool noPlayerInteraction)
+    {
+        if (!Main.dedServ && !fromNet)
+            PlayHitMarker(hit.Damage);
+
+        var adventureNpc = self.GetGlobalNPC<AdventureNpc>();
+        var realLifeNpc = self.realLife != -1 ? Main.npc[self.realLife] : null;
+        var realLifeAdventureNpc = realLifeNpc?.GetGlobalNPC<AdventureNpc>();
+        var teamLife = realLifeAdventureNpc?._teamLife ?? adventureNpc._teamLife;
+        var currentLife = realLifeNpc?.life ?? self.life;
+
+        // If this isn't from the network, then we did this ourselves.
+        if (!fromNet)
+            adventureNpc.MarkNextStrikeForTeam(self, (Team)Main.LocalPlayer.team);
+
+        // If this was a non-player strike, treat it as damage for all teams.
+        if (adventureNpc._lastStrikeTeam == Team.None)
+        {
+            foreach (var team in teamLife.Keys)
+                teamLife[team] = Math.Max(0, teamLife[team] - hit.Damage);
+
+            return orig(self, hit, fromNet, noPlayerInteraction);
+        }
+
+        // Always hide PvE combat text with a team, we display our own.
+        hit.HideCombatText = true;
+
+        CombatText.NewText(new Rectangle(
+            (int)self.position.X,
+            (int)self.position.Y,
+            self.width,
+            self.height
+        ), Main.teamColor[(int)adventureNpc._lastStrikeTeam], hit.Damage, hit.Crit);
+
+        // Save the previous immortal value, we might clobber it later.
+        var previousImmortal = self.immortal;
+
+        try
+        {
+            if (teamLife.TryGetValue(adventureNpc._lastStrikeTeam, out var life))
+            {
+                // FIXME: wrong place to get damage sorta, what abt InstantKill etc?
+                var newTeamLife = Math.Max(0, life - hit.Damage);
+                teamLife[adventureNpc._lastStrikeTeam] = newTeamLife;
+
+                var damage = Math.Max(0, currentLife - newTeamLife);
+
+                var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+                var npcDefinition = new NPCDefinition((realLifeNpc ?? self).type);
+
+                foreach (var team in teamLife.Keys)
+                {
+                    if (team != adventureNpc._lastStrikeTeam)
+                        teamLife[team] = Math.Max(currentLife,
+                            (int)(teamLife[team] -
+                                  (damage * adventureConfig.Combat.TeamLifeNpcs[npcDefinition].Share)));
+                }
+
+                // Can't deal 0 damage!
+                if (damage == 0)
+                    self.immortal = true;
+
+                hit.Damage = damage;
+
+                // FIXME: holy fuck
+                // FIXME: i think we want to update whomever teamlife was reduced
+                (realLifeNpc ?? self).netUpdate = true;
+            }
+
+            return orig(self, hit, fromNet, noPlayerInteraction);
+        }
+        finally
+        {
+            self.immortal = previousImmortal;
+        }
+    }
+
+    private void OnNetMessageSendStrikeNPC(On_NetMessage.orig_SendStrikeNPC orig, NPC npc, ref NPC.HitInfo hit,
+        int ignoreClient)
+    {
+        var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
+
+        if (Main.dedServ)
+        {
+            // FIXME: Proper packet
+            var packet = Mod.GetPacket();
+            packet.Write((byte)AdventurePacketIdentifier.NpcStrikeTeam);
+            packet.Write((short)npc.whoAmI);
+            packet.Write((byte)adventureNpc._lastStrikeTeam);
+
+            packet.Send(ignoreClient: ignoreClient);
+        }
+
+        orig(npc, ref hit, ignoreClient);
+    }
+
     public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
     {
         var config = ModContent.GetInstance<AdventureConfig>();
@@ -415,20 +636,6 @@ public class AdventureNpc : GlobalNPC
         AdventureDropDatabase.ModifyNPCLoot(npc, npcLoot);
     }
 
-    // This only runs on the attacking player
-    public override void OnHitByItem(NPC npc, Player player, Item item, NPC.HitInfo hit, int damageDone)
-    {
-        if (!Main.dedServ)
-            PlayHitMarker(damageDone);
-    }
-
-    // This only runs on the attacking player
-    public override void OnHitByProjectile(NPC npc, Projectile projectile, NPC.HitInfo hit, int damageDone)
-    {
-        if (!Main.dedServ)
-            PlayHitMarker(damageDone);
-    }
-
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
     {
         if (ModContent.GetInstance<GameManager>()?.CurrentPhase == GameManager.Phase.Waiting)
@@ -444,16 +651,18 @@ public class AdventureNpc : GlobalNPC
 
     public override void ModifyShop(NPCShop shop)
     {
+        // NOT USING TS FOR NOW
         // The Steampunker sells the Jetpack at moon phase 4 and after during hardmode.
         // Change it to be during moon phase 5 and later.
-        if (shop.NpcType == NPCID.Steampunker && shop.TryGetEntry(ItemID.Jetpack, out var entry))
-        {
-            if (((List<Condition>)entry.Conditions).Remove(Condition.MoonPhasesHalf1))
-                entry.AddCondition(Condition.MoonPhaseWaxingCrescent);
-            else
-                Mod.Logger.Warn(
-                    "Failed to remove moon phase condition for Steampunker's Jetpack shop entry -- not changing it any further.");
-        }
+        //if (shop.NpcType == NPCID.Steampunker && shop.TryGetEntry(ItemID.Jetpack, out var entry))
+        //{
+        //    if (((List<Condition>)entry.Conditions).Remove(Condition.MoonPhasesHalf1))
+        //        entry.AddCondition(Condition.MoonPhaseWaxingCrescent);
+        //    else
+        //        Mod.Logger.Warn(
+        //            "Failed to remove moon phase condition for Steampunker's Jetpack shop entry -- not changing it any further.");
+        //}
+
     }
 
     public override bool CheckDead(NPC npc)
@@ -477,6 +686,50 @@ public class AdventureNpc : GlobalNPC
         return true;
     }
 
+    // FIXME: might be costly!
+    public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    {
+        var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
+
+        binaryWriter.Write((byte)adventureNpc.TeamLife.Count);
+        foreach (var (team, life) in adventureNpc.TeamLife)
+        {
+            binaryWriter.Write((byte)team);
+            binaryWriter.Write7BitEncodedInt(life);
+        }
+    }
+
+    // FIXME: might be costly!
+    public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+    {
+        var adventureNpc = npc.GetGlobalNPC<AdventureNpc>();
+        adventureNpc._teamLife.Clear();
+
+        {
+            var count = binaryReader.ReadByte();
+            for (var i = 0; i < count; i++)
+            {
+                var team = (Team)binaryReader.ReadByte();
+                var life = binaryReader.Read7BitEncodedInt();
+
+                adventureNpc._teamLife[team] = life;
+            }
+        }
+    }
+
+    public void MarkNextStrikeForTeam(NPC npc, Team team)
+    {
+        _lastStrikeTeam = team;
+        _hasBeenHurtByTeam.Add(team);
+
+        // If our life pool is someone else's, count it as hurting them too.
+        if (npc.realLife != -1 && npc.realLife != npc.whoAmI)
+        {
+            var realLife = Main.npc[npc.realLife];
+            realLife.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(realLife, team);
+        }
+    }
+
     private static void PlayHitMarker(int damage)
     {
         var marker = ModContent.GetInstance<AdventureClientConfig>().SoundEffect.NpcHitMarker;
@@ -489,4 +742,49 @@ public class AdventureNpc : GlobalNPC
 
     public static bool IsPartOfTheDestroyer(short type) =>
         type is NPCID.TheDestroyer or NPCID.TheDestroyerBody or NPCID.TheDestroyerTail;
+
+    public class TavernkeepDespawn : GlobalNPC
+    {
+        public override void PostAI(NPC npc)
+        {
+            if (npc.type == NPCID.BartenderUnconscious)
+            {
+                npc.active = false;
+                npc.life = 0;
+
+            }
+        }
+    }
+    public class DemonReplacement : GlobalNPC
+    {
+        public override void OnSpawn(NPC npc, IEntitySource source)
+        {
+            bool anyMechBossDefeated = NPC.downedMechBoss1 || NPC.downedMechBoss2 || NPC.downedMechBoss3;
+
+            if (anyMechBossDefeated && npc.type == NPCID.Demon)
+            {
+                Vector2 position = npc.position;
+                Vector2 velocity = npc.velocity;
+                int target = npc.target;
+                int direction = npc.direction;
+                int spriteDirection = npc.spriteDirection;
+                float rotation = npc.rotation;
+
+                npc.SetDefaults(NPCID.VoodooDemon);
+
+                // Restore the state
+                npc.position = position;
+                npc.velocity = velocity;
+                npc.target = target;
+                npc.direction = direction;
+                npc.spriteDirection = spriteDirection;
+                npc.rotation = rotation;
+
+                if (Main.netMode == NetmodeID.Server)
+                {
+                    NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npc.whoAmI);
+                }
+            }
+        }
+    }
 }

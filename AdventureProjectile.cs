@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.System;
@@ -6,13 +7,16 @@ using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Config;
+using Terraria.ModLoader.IO;
+using static PvPAdventure.AdventureConfig;
 
 namespace PvPAdventure;
 
 public class AdventureProjectile : GlobalProjectile
 {
-    private IEntitySource _entitySource;
     public override bool InstancePerEntity => true;
+    private IEntitySource _entitySource;
 
     public override void Load()
     {
@@ -166,6 +170,418 @@ public class AdventureProjectile : GlobalProjectile
         }
     }
 
+
+    public class SpiderStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.VenomSpider ||
+                   entity.type == ProjectileID.JumperSpider || // Note: Fix typo here
+                   entity.type == ProjectileID.DangerousSpider;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.SpiderStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.SpiderStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class ClingerStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.ClingerStaff;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.ClingerStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.ClingerStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class QueenSpiderStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.SpiderHiver;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.QueenSpiderStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.QueenSpiderStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class NimbusRodGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.RainCloudRaining;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.NimbusRod);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.NimbusRod && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class XenoStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.UFOMinion;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.XenoStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.XenoStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class BladeStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.Smolstar;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.Smolstar);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.Smolstar && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class HornetStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.Hornet;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.HornetStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.HornetStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class ImpStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.FlyingImp;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.ImpStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.ImpStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class PygmyStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.Pygmy ||
+                   entity.type == ProjectileID.Pygmy2 ||
+                   entity.type == ProjectileID.Pygmy3 ||
+                   entity.type == ProjectileID.Pygmy4;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.PygmyStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.PygmyStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class DeadlySphereGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.DeadlySphere;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.DeadlySphereStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.DeadlySphereStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class PirateStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.OneEyedPirate ||
+                   entity.type == ProjectileID.SoulscourgePirate ||
+                   entity.type == ProjectileID.PirateCaptain;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.PirateStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.PirateStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class TempestStaffGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.Tempest;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.TempestStaff);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.TempestStaff && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class TerraprismaGlobalProjectile : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.EmpressBlade;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            Player owner = Main.player[projectile.owner];
+
+            // Check inventory (including equipped items) AND mouse slot
+            bool hasStaff = owner.HasItem(ItemID.EmpressBlade);
+            bool mouseHasStaff = owner.inventory[58].type == ItemID.EmpressBlade && owner.inventory[58].stack > 0;
+
+            if (!hasStaff && !mouseHasStaff)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+
+    public class DeadProjectileList : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.ClingerStaff ||
+                   entity.type == ProjectileID.SporeTrap ||
+                   entity.type == ProjectileID.SporeTrap2 ||
+                   entity.type == ProjectileID.SporeGas ||
+                   entity.type == ProjectileID.SporeGas2 ||
+                   entity.type == ProjectileID.RainCloudRaining ||
+                   entity.type == ProjectileID.BloodCloudRaining ||
+                   entity.type == ProjectileID.SporeGas3;
+        }
+
+        public override void PostAI(Projectile projectile)
+        {
+            // Ensure owner index is valid
+            if (projectile.owner < 0 || projectile.owner >= Main.maxPlayers)
+                return;
+
+            Player owner = Main.player[projectile.owner];
+
+            // Kill projectile if owner is dead or inactive
+            if (owner.dead || !owner.active)
+            {
+                projectile.Kill();
+            }
+        }
+    }
+    public class AdventureNightglow : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation) =>
+            entity.type == ProjectileID.FairyQueenMagicItemShot;
+
+        public override void SetDefaults(Projectile entity)
+        {
+            entity.localAI[0] = 0;
+        }
+
+        public override void AI(Projectile projectile)
+        {
+            if (projectile.localAI[0] <= 60)
+            {
+                projectile.localAI[0]++;
+                return;
+            }
+
+            if (!projectile.TryGetOwner(out var owner))
+                return;
+
+            if (owner.whoAmI != Main.myPlayer)
+                return;
+
+            if (owner.itemAnimation > 0 && owner.HeldItem.type == ItemID.FairyQueenMagicItem)
+            {
+                var cursorPosition = Main.MouseWorld;
+                var toCursor = cursorPosition - projectile.Center;
+
+                var baseSpeed = 20.0f;
+                var accelerationFactor = 1.5f;
+                var turnStrength = 0.05f;
+
+                var direction = toCursor.SafeNormalize(Vector2.Zero);
+                var targetVelocity = direction * baseSpeed * accelerationFactor;
+
+                projectile.velocity = Vector2.Lerp(projectile.velocity, targetVelocity, turnStrength);
+                projectile.rotation = projectile.velocity.ToRotation() * MathHelper.PiOver2;
+                projectile.netUpdate = true;
+            }
+        }
+    }
+
+    public class WhipRangeChanges : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile projectile, bool lateInstantiation)
+        {
+            return projectile.type == ProjectileID.MaceWhip ||
+                   projectile.type == ProjectileID.RainbowWhip ||
+                   projectile.type == ProjectileID.CoolWhip ||
+                   projectile.type == ProjectileID.FireWhip ||
+                   projectile.type == ProjectileID.SwordWhip ||
+                   projectile.type == ProjectileID.ScytheWhip ||
+                   projectile.type == ProjectileID.ThornWhip ||
+                   projectile.type == ProjectileID.BoneWhip ||
+                   projectile.type == ProjectileID.BlandWhip;
+        }
+        public override void SetDefaults(Projectile projectile)
+        {
+            if (projectile.type == ProjectileID.MaceWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.03f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.RainbowWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.43f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.CoolWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.18f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.FireWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.18f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.SwordWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 1.4f; // this is like 20% range
+            }
+            if (projectile.type == ProjectileID.ScytheWhip)
+            {
+                projectile.WhipSettings.RangeMultiplier = 2f; // this is like 20% range
+            }
+        }
+    }
+
+
+
     private void EditProjectileDamage(ILContext il)
     {
         var cursor = new ILCursor(il);
@@ -224,11 +640,11 @@ public class AdventureProjectile : GlobalProjectile
             || projectile.type == ProjectileID.LightDisc && projectile.localAI[0] > 0;
 
         if (bounced)
-            modifiers.SourceDamage *= 1.0f - adventureConfig.Combat.ProjectileCollisionDamageReduction;
+            modifiers.SourceDamage *= adventureConfig.Combat.ProjectileCollisionDamageReduction;
 
         if (adventureConfig.Combat.NoLineOfSightDamageReduction.TryGetValue(new(projectile.type),
                 out var damageReduction) && projectile.TryGetOwner(out var owner) && !Collision.CanHit(owner, target))
-            modifiers.SourceDamage *= 1.0f - damageReduction;
+            modifiers.SourceDamage *= damageReduction;
     }
 
     private void EditProjectileHandleMovement(ILContext il)
@@ -272,5 +688,344 @@ public class AdventureProjectile : GlobalProjectile
     {
         self.localAI[0] = 1;
         orig(self, hitPoint, normal);
+    }
+
+    public class WhipBuffs : GlobalProjectile
+    {
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            if (projectile.type == ProjectileID.SwordWhip && target.hostile)
+            {
+                if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
+                {
+                    Player attacker = Main.player[projectile.owner];
+                    if (attacker != null && attacker.active && attacker != target && attacker.hostile)
+                    {
+                        int buffDuration = 420;
+                        attacker.AddBuff(BuffID.SwordWhipPlayerBuff, buffDuration);
+                    }
+                }
+            }
+            if (projectile.type == ProjectileID.ThornWhip && target.hostile)
+            {
+                if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
+                {
+                    Player attacker = Main.player[projectile.owner];
+
+                    if (attacker != null && attacker.active && attacker != target && attacker.hostile)
+                    {
+                        int buffDuration = 420;
+                        attacker.AddBuff(BuffID.ThornWhipPlayerBuff, buffDuration);
+                    }
+                }
+            }
+            if (projectile.type == ProjectileID.ScytheWhip && target.hostile)
+            {
+                if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
+                {
+                    Player attacker = Main.player[projectile.owner];
+
+                    if (attacker != null && attacker.active && attacker != target && attacker.hostile)
+                    {
+                        int buffDuration = 420;
+                        attacker.AddBuff(BuffID.ScytheWhipPlayerBuff, buffDuration);
+                    }
+                }
+            }
+            if (projectile.type == ProjectileID.CoolWhip && target.hostile)
+            {
+                if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
+                {
+                    Player attacker = Main.player[projectile.owner];
+
+                    if (attacker != null && attacker.active && attacker != target && attacker.hostile)
+                    {
+                        int buffDuration = 420;
+                        attacker.AddBuff(BuffID.CoolWhipPlayerBuff, buffDuration);
+                    }
+                }
+            }
+        }
+    }
+
+    public class CursedDartDestroyer : GlobalProjectile
+    {
+        public override void ModifyHitNPC(Projectile projectile, NPC target, ref NPC.HitModifiers modifiers)
+        {
+            if (projectile.type == ProjectileID.CursedDartFlame &&
+                (target.type == NPCID.TheDestroyer || target.type == NPCID.TheDestroyerBody || target.type == NPCID.TheDestroyerTail))
+            {
+                modifiers.SourceDamage *= 0.66f;
+            }
+        }
+    }
+    public class NoMoreDynaWoF : GlobalProjectile
+    {
+        public override void ModifyHitNPC(Projectile projectile, NPC target, ref NPC.HitModifiers modifiers)
+        {
+            if ((projectile.type == ProjectileID.Dynamite || projectile.type == ProjectileID.StickyDynamite) &&
+                (target.type == NPCID.WallofFlesh || target.type == NPCID.WallofFleshEye))
+            {
+                modifiers.SourceDamage *= 0f;
+            }
+        }
+    }
+
+
+    public class EmpressNerf : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.FairyQueenLance ||
+                   entity.type == ProjectileID.FairyQueenSunDance ||
+                   entity.type == ProjectileID.FairyQueenMagicItemShot ||
+                   entity.type == ProjectileID.FairyQueenRangedItemShot ||
+                   entity.type == ProjectileID.HallowBossRainbowStreak ||
+                   entity.type == ProjectileID.HallowBossSplitShotCore ||
+                   entity.type == ProjectileID.HallowBossLastingRainbow;
+        }
+
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.SourceDamage *= 0.75f;
+        }
+    }
+    public class VanillaPirahinaGun : GlobalProjectile
+    {
+        public override bool InstancePerEntity => true;
+
+        public int attachedPlayerIndex = -1;
+        private Vector2 attachOffset = Vector2.Zero;
+
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            return entity.type == ProjectileID.MechanicalPiranha;
+        }
+
+        public override void SetDefaults(Projectile projectile)
+        {
+            projectile.friendly = true;
+        }
+
+        public override void AI(Projectile projectile)
+        {
+            if (attachedPlayerIndex < 0)
+            {
+                Player owner = Main.player[projectile.owner];
+                if (!owner.hostile)
+                    return;
+
+                for (int i = 0; i < Main.maxPlayers; i++)
+                {
+                    if (i == projectile.owner)
+                        continue;
+
+                    Player target = Main.player[i];
+
+                    if (target.HasBuff(ModContent.BuffType<PlayerInSpawn>()))
+                        continue;
+
+                    if (target.active && !target.dead && target.hostile && target.team != owner.team)
+                    {
+                        Rectangle projHitbox = new Rectangle((int)projectile.position.X, (int)projectile.position.Y,
+                            projectile.width, projectile.height);
+                        Rectangle playerHitbox = new Rectangle((int)target.position.X, (int)target.position.Y,
+                            target.width, target.height);
+
+                        if (projHitbox.Intersects(playerHitbox))
+                        {
+                            attachedPlayerIndex = target.whoAmI;
+                            attachOffset = projectile.Center - target.Center;
+                            projectile.ai[0] = 1f;
+                            projectile.ai[1] = target.whoAmI;
+                            projectile.netUpdate = true;
+
+                            if (Main.myPlayer == projectile.owner)
+                            {
+                                int hitDirection = (target.Center.X > owner.Center.X) ? 1 : -1;
+                                target.Hurt(PlayerDeathReason.ByProjectile(owner.whoAmI, projectile.whoAmI),
+                                    projectile.damage, hitDirection, pvp: true);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.Knockback *= 0f;
+        }
+
+        public override void OnHitPlayer(Projectile projectile, Player target, Player.HurtInfo info)
+        {
+            Player owner = Main.player[projectile.owner];
+            if (owner.hostile && target.hostile && owner.team != target.team && attachedPlayerIndex < 0)
+            {
+                attachedPlayerIndex = target.whoAmI;
+                attachOffset = projectile.Center - target.Center;
+                projectile.ai[0] = 1f; // Set to "attached" state
+                projectile.ai[1] = target.whoAmI;
+                projectile.netUpdate = true;
+            }
+        }
+
+        public override bool PreAI(Projectile projectile)
+        {
+            if (attachedPlayerIndex < 0)
+                return true;
+
+            Player owner = Main.player[projectile.owner];
+            Player target = Main.player[attachedPlayerIndex];
+
+            bool shouldDetach = false;
+
+            if (!target.active || target.dead || !target.hostile || target.team == owner.team)
+            {
+                shouldDetach = true;
+            }
+
+            else if (!owner.channel || owner.HeldItem.type != ItemID.PiranhaGun)
+            {
+                shouldDetach = true;
+            }
+            else if (Vector2.Distance(projectile.Center, owner.Center) > 2000f) // this will detach the pirahinas if theyre too far away when attached to a player, we can change this
+            {
+                shouldDetach = true;
+            }
+
+            if (shouldDetach)
+            {
+                attachedPlayerIndex = -1;
+                attachOffset = Vector2.Zero;
+                projectile.ai[0] = 0f;
+                projectile.ai[1] = 0f;
+                projectile.netUpdate = true;
+                return true;
+            }
+
+            projectile.Center = target.Center + attachOffset;
+            projectile.velocity = Vector2.Zero;
+
+            Vector2 directionToTarget = target.Center - owner.Center;
+            projectile.rotation = directionToTarget.ToRotation() + MathHelper.PiOver2;
+
+            projectile.timeLeft = 300;
+            projectile.ai[0] = 1f;
+
+            if (projectile.localAI[0] <= 0f)
+            {
+                projectile.localAI[0] = 40f; // Attack every frame (temp), we can change ts
+
+                if (Main.myPlayer == projectile.owner)
+                {
+                    int damage = projectile.damage;
+                    int hitDirection = (target.Center.X > owner.Center.X) ? 1 : -1;
+
+                    target.Hurt(PlayerDeathReason.ByProjectile(owner.whoAmI, projectile.whoAmI),
+                        damage, hitDirection, pvp: true);
+                }
+            }
+            else
+            {
+                projectile.localAI[0]--;
+            }
+
+            return false; // Don't run vanilla AI
+        }
+
+        public override bool CanHitPlayer(Projectile projectile, Player target)
+        {
+            if (attachedPlayerIndex == target.whoAmI)
+                return false;
+
+            Player owner = Main.player[projectile.owner];
+            if (!owner.hostile || !target.hostile || owner.team == target.team)
+                return false;
+
+            return base.CanHitPlayer(projectile, target);
+        }
+
+        public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            binaryWriter.Write(attachedPlayerIndex);
+            binaryWriter.Write(attachOffset.X);
+            binaryWriter.Write(attachOffset.Y);
+        }
+
+        public override void ReceiveExtraAI(Projectile projectile, BitReader bitReader, BinaryReader binaryReader)
+        {
+            attachedPlayerIndex = binaryReader.ReadInt32();
+            attachOffset.X = binaryReader.ReadSingle();
+            attachOffset.Y = binaryReader.ReadSingle();
+        }
+    }
+    public class PiranhaGunItem : GlobalItem
+    {
+        public override bool AppliesToEntity(Item entity, bool lateInstantiation)
+        {
+            return entity.type == ItemID.PiranhaGun;
+        }
+
+        public override void HoldItem(Item item, Player player)
+        {
+            bool hasAttachedPiranha = false;
+            for (int i = 0; i < Main.maxProjectiles; i++)
+            {
+                Projectile proj = Main.projectile[i];
+                if (proj.active && proj.owner == player.whoAmI && proj.type == ProjectileID.MechanicalPiranha)
+                {
+                    var modProj = proj.GetGlobalProjectile<VanillaPirahinaGun>();
+                    if (modProj != null && modProj.attachedPlayerIndex >= 0)
+                    {
+                        hasAttachedPiranha = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasAttachedPiranha && player.controlUseItem)
+            {
+                player.channel = true;
+                player.itemTime = 2;
+                player.itemAnimation = 2;
+            }
+        }
+
+        public override bool CanUseItem(Item item, Player player)
+        {
+            for (int i = 0; i < Main.maxProjectiles; i++)
+            {
+                Projectile proj = Main.projectile[i];
+                if (proj.active && proj.owner == player.whoAmI && proj.type == ProjectileID.MechanicalPiranha)
+                {
+                    var modProj = proj.GetGlobalProjectile<VanillaPirahinaGun>();
+                    if (modProj != null && modProj.attachedPlayerIndex >= 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return base.CanUseItem(item, player);
+        }
+    }
+    public class NoKnockbackProjectiles : GlobalProjectile
+    {
+        public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
+        {
+            int projType = entity.type;
+
+            return projType == ProjectileID.Meteor1 ||
+                   projType == ProjectileID.Meteor2 ||
+                   projType == ProjectileID.Meteor3 ||
+                   projType == ProjectileID.HeatRay ||
+                   projType == ProjectileID.FlyingKnife ||
+                   projType == ProjectileID.LaserMachinegunLaser;
+        }
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.Knockback *= 0f;
+        }
     }
 }

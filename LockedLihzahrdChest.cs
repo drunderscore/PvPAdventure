@@ -9,6 +9,10 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using Terraria.DataStructures;
 using Terraria.GameContent.ObjectInteractions;
+using Terraria.WorldBuilding;
+using Terraria.IO;
+using System.Collections.Generic;
+using Terraria.GameContent.Generation;
 
 namespace PvPAdventure;
 
@@ -19,6 +23,156 @@ public class LockedLihzahrdChest : ModTile
     public override void Load()
     {
         IL_Player.TileInteractionsUse += EditPlayerTileInteractionsUse;
+        On_WorldGen.templePart2 += AddExtraChestsDuringTempleGen;
+    }
+
+    public override void Unload()
+    {
+        IL_Player.TileInteractionsUse -= EditPlayerTileInteractionsUse;
+        On_WorldGen.templePart2 -= AddExtraChestsDuringTempleGen;
+    }
+
+    private void AddExtraChestsDuringTempleGen(On_WorldGen.orig_templePart2 orig)
+    {
+        // First run the original temple generation (which places vanilla chests)
+        orig();
+
+        // Then add our extra chests
+        AddExtraTempleChests();
+    }
+
+    private void AddExtraTempleChests()
+    {
+        if (GenVars.tLeft == 0 || GenVars.tRight == 0)
+        {
+            ModContent.GetInstance<PvPAdventure>().Logger.Info("Temple bounds not set, skipping extra chests");
+            return;
+        }
+
+        int tLeft = GenVars.tLeft;
+        int tRight = GenVars.tRight;
+        int tTop = GenVars.tTop;
+        int tBottom = GenVars.tBottom;
+        int tRooms = GenVars.tRooms;
+
+        ModContent.GetInstance<PvPAdventure>().Logger.Info($"Adding extra chests to temple: {tLeft},{tTop} to {tRight},{tBottom}, rooms: {tRooms}");
+
+        int extraChests = tRooms * 3;
+        int chestsPlaced = 0;
+
+        for (int i = 0; i < extraChests; i++)
+        {
+            int attempts = 0;
+            bool placed = false;
+
+            while (!placed && attempts < 1000)
+            {
+                int x = WorldGen.genRand.Next(tLeft + 5, tRight - 5);
+                int y = WorldGen.genRand.Next(tTop + 5, tBottom - 5);
+
+                if (WorldGen.InWorld(x, y) && WorldGen.InWorld(x + 1, y + 1))
+                {
+                    Tile tile = Main.tile[x, y];
+                    Tile tileRight = Main.tile[x + 1, y];
+                    Tile tileBelow = Main.tile[x, y + 1];
+                    Tile tileBelowRight = Main.tile[x + 1, y + 1];
+
+                    // Check if location is suitable: temple wall, empty space, solid floor below
+                    if (tile.WallType == 87 && !tile.HasTile &&
+                        tileRight.WallType == 87 && !tileRight.HasTile &&
+                        tileBelow.HasTile && Main.tileSolid[tileBelow.TileType] &&
+                        tileBelowRight.HasTile && Main.tileSolid[tileBelowRight.TileType])
+                    {
+                        // Check for nearby chests
+                        bool chestNearby = false;
+                        for (int checkX = x - 3; checkX <= x + 3; checkX++)
+                        {
+                            for (int checkY = y - 3; checkY <= y + 3; checkY++)
+                            {
+                                if (WorldGen.InWorld(checkX, checkY))
+                                {
+                                    Tile checkTile = Main.tile[checkX, checkY];
+                                    if (checkTile.HasTile && (checkTile.TileType == TileID.Containers ||
+                                        checkTile.TileType == ModContent.TileType<LockedLihzahrdChest>()))
+                                    {
+                                        chestNearby = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (chestNearby) break;
+                        }
+
+                        if (!chestNearby)
+                        {
+                            // Place locked chest directly using WorldGen.PlaceChest
+                            int chestIndex = WorldGen.PlaceChest(x, y, (ushort)ModContent.TileType<LockedLihzahrdChest>(), false, 0);
+
+                            if (chestIndex != -1)
+                            {
+                                // Manually populate with temple loot based on vanilla temple chest contents
+                                Chest chest = Main.chest[chestIndex];
+                                if (chest != null)
+                                {
+                                    int slot = 0;
+
+                                    // Always include Lihzahrd Power Cell
+                                    chest.item[slot].SetDefaults(ItemID.LihzahrdPowerCell);
+                                    chest.item[slot].stack = 3;
+                                    slot++;
+
+                                    // Always include Lihzahrd Furnace
+                                    chest.item[slot].SetDefaults(ItemID.LihzahrdFurnace);
+                                    chest.item[slot].stack = 12;
+                                    slot++;
+
+                                    // 33% chance for Solar Tablet, otherwise Solar Tablet Fragments
+                                    if (WorldGen.genRand.NextBool(3))
+                                    {
+                                        chest.item[slot].SetDefaults(ItemID.SolarTablet);
+                                        chest.item[slot].stack = 1;
+                                    }
+                                    else
+                                    {
+                                        chest.item[slot].SetDefaults(ItemID.LunarTabletFragment);
+                                        chest.item[slot].stack = WorldGen.genRand.Next(4, 9);
+                                    }
+                                    slot++;
+
+                                    // Add some typical Gold Chest loot (coins, potions, etc)
+                                    if (WorldGen.genRand.NextBool(2))
+                                    {
+                                        chest.item[slot].SetDefaults(ItemID.GoldCoin);
+                                        chest.item[slot].stack = WorldGen.genRand.Next(3, 8);
+                                        slot++;
+                                    }
+
+                                    if (WorldGen.genRand.NextBool(2))
+                                    {
+                                        chest.item[slot].SetDefaults(ItemID.HealingPotion);
+                                        chest.item[slot].stack = WorldGen.genRand.Next(2, 5);
+                                        slot++;
+                                    }
+
+                                    if (WorldGen.genRand.NextBool(3))
+                                    {
+                                        chest.item[slot].SetDefaults(ItemID.Torch);
+                                        chest.item[slot].stack = WorldGen.genRand.Next(15, 30);
+                                        slot++;
+                                    }
+
+                                    placed = true;
+                                    chestsPlaced++;
+                                }
+                            }
+                        }
+                    }
+                }
+                attempts++;
+            }
+        }
+
+        ModContent.GetInstance<PvPAdventure>().Logger.Info($"Placed {chestsPlaced} extra locked temple chests");
     }
 
     public override void SetStaticDefaults()
@@ -64,7 +218,6 @@ public class LockedLihzahrdChest : ModTile
 
         IL_WorldGen.templePart2 += EditWorldGentemplePart2;
     }
-
 
     private void EditWorldGentemplePart2(ILContext il)
     {
@@ -147,8 +300,6 @@ public class LockedLihzahrdChest : ModTile
             }
         }
 
-        // TODO: It would be better to replace the netmessage with a custom packet to perfectly sync
-        //       the chest unlock sound and dust emitted.
         if (Main.netMode == NetmodeID.MultiplayerClient)
             NetMessage.SendTileSquare(-1, left, top, 2, 2);
 

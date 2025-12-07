@@ -4,9 +4,12 @@ public enum AdventurePacketIdentifier : byte
 {
     BountyTransaction,
     PlayerStatistics,
-    WorldMapLighting,
     PingPong,
     PlayerItemPickup,
     PlayerTeam,
-    Dash
+    NpcStrikeTeam,
+    Dash,
+    PlayerBed,
+    AdventureMirrorRightClickUse,
+    BedTeleport,
 }
