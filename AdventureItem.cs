@@ -1,7 +1,8 @@
+using Microsoft.Xna.Framework;
+using PvPAdventure.Content.Items;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.Enums;
@@ -283,6 +284,7 @@ public class AdventureItem : GlobalItem
             player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MiningPotion, 2);       
             player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.WormholePotion, 4);
             player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MagicMirror, 1);
+            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ModContent.ItemType<AdventureMirror>(), 1);
         }
 
         public override bool ConsumeItem(Player player)

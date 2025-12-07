@@ -11,7 +11,7 @@ using Terraria.UI;
 namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 /// <summary>
-/// Prevents the Adventure Mirror from being removed from the player inventory via trashing or selling.
+/// Prevents the Adventure Mirror from being removed from the player inventory via trashing, selling etc.
 /// Various inventory hooks are used to achieve this.
 /// </summary>
 public class ItemSlotHooks : ModSystem

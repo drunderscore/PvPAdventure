@@ -37,7 +37,7 @@ public class AdventureMirrorPlayer : ModPlayer
 
     public bool IsPlayerInSpawnRegion()
     {
-        // Is player in resin's spawn region?
+        // Is player in the world spawn region?
         var regionManager = ModContent.GetInstance<RegionManager>();
         Point tilePos = Player.Center.ToTileCoordinates();
         var region = regionManager.GetRegionContaining(tilePos);

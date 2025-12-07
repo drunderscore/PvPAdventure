@@ -79,8 +79,12 @@ public class AdventureDropDatabase : ModSystem
         foreach (var drop in drops)
             ModifyDropRate(drop, ItemID.Kraken, 1, 20);
 
-        foreach (var drop in drops)
-            ModifyDropRate(drop, ItemID., 1, 20);
+        // I don't know what's going on in the two lines below here,
+        // but I commented this out as it was faulty.
+        // Looks like duplicate code from the for loop above.
+
+        //foreach (var drop in drops)
+        //ModifyDropRate(drop, ItemID., 1, 20);
 
         switch (npc.type)
         {
