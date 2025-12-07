@@ -9,7 +9,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
-using static PvPAdventure.AdventureConfig;
+using static PvPAdventure.AdventureServerConfig;
 
 namespace PvPAdventure;
 
@@ -121,7 +121,7 @@ public class AdventureProjectile : GlobalProjectile
         //   - Player life steal is entirely disregarded.
         //   - All nearby teammates are healed, instead of only the one with the largest health deficit.
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         var healMultiplier = adventureConfig.Combat.GhostHealMultiplier;
         healMultiplier -= self.numHits * 0.05f;
@@ -619,7 +619,7 @@ public class AdventureProjectile : GlobalProjectile
         // ...and emit our own delegate to return the value.
         cursor.EmitDelegate(() =>
         {
-            var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
             return adventureConfig.Combat.GhostHealMaxDistanceNpc;
         });
     }
@@ -633,7 +633,7 @@ public class AdventureProjectile : GlobalProjectile
             modifiers.Knockback /= 2;
         }
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         var bounced =
             projectile.type == ProjectileID.ShadowBeamFriendly && projectile.localAI[1] > 0

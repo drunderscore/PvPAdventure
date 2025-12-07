@@ -116,7 +116,7 @@ public class AdventureNpc : GlobalNPC
             // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
             entity.immortal = true;
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
         if (NPCID.Search.TryGetName(entity.type, out var name))
@@ -170,7 +170,7 @@ public class AdventureNpc : GlobalNPC
             }
         }
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         if (adventureConfig.NpcSpawnAnnouncements.Contains(new NPCDefinition(npc.type)))
         {
@@ -497,7 +497,7 @@ public class AdventureNpc : GlobalNPC
 
                 var damage = Math.Max(0, currentLife - newTeamLife);
 
-                var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+                var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
                 var npcDefinition = new NPCDefinition((realLifeNpc ?? self).type);
 
                 foreach (var team in teamLife.Keys)
@@ -548,7 +548,7 @@ public class AdventureNpc : GlobalNPC
 
     public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
     {
-        var config = ModContent.GetInstance<AdventureConfig>();
+        var config = ModContent.GetInstance<AdventureServerConfig>();
 
         var isBoss = npc.boss
                      || IsPartOfEaterOfWorlds((short)npc.type)

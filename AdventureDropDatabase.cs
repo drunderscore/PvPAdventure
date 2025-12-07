@@ -9,7 +9,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Mono.Cecil.Cil;
 using static PvPAdventure.System.BountyManager;
-using static PvPAdventure.AdventureConfig;
+using static PvPAdventure.AdventureServerConfig;
 using PvPAdventure.System;
 using System.Collections.Generic;
 
@@ -617,7 +617,7 @@ public class AdventureDropDatabase : ModSystem
     public static IItemDropRule OnItemDropDatabaseRegisterToGlobal(On_ItemDropDatabase.orig_RegisterToGlobal orig,
         ItemDropDatabase self, IItemDropRule entry)
     {
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         var disallowed = false;
 

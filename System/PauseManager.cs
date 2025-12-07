@@ -74,7 +74,7 @@ public class PauseManager : ModSystem
         protected override bool DrawSelf()
         {
             // Only display this if our mod specifically has paused the game.
-            if (!pauseManager._paused || !ModContent.GetInstance<AdventureClientConfig>().ShowPauseMessage)
+            if (!pauseManager._paused)
                 return true;
 
             var size = ChatManager.GetStringSize(FontAssets.DeathText.Value, "PAUSED", Vector2.One);

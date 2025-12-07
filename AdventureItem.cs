@@ -26,7 +26,7 @@ public class AdventureItem : GlobalItem
 
     public override void SetDefaults(Item item)
     {
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         if (item.type == ItemID.LihzahrdPowerCell)
         {
@@ -40,7 +40,8 @@ public class AdventureItem : GlobalItem
 
         if (RecallItems[item.type])
         {
-            var recallTime = adventureConfig.RecallFrames;
+            //var recallTime = adventureConfig.RecallFrames;
+            var recallTime = 240; // 4 seconds
             item.useTime = recallTime * 2;
             item.useAnimation = recallTime * 2;
         }
@@ -130,20 +131,20 @@ public class AdventureItem : GlobalItem
                 return false;
         }
 
-        return !ModContent.GetInstance<AdventureConfig>().PreventUse
+        return !ModContent.GetInstance<AdventureServerConfig>().PreventUse
             .Any(itemDefinition => item.type == itemDefinition.Type);
     }
 
     // NOTE: This will not remove already-equipped accessories from players.
     public override bool CanEquipAccessory(Item item, Player player, int slot, bool modded)
     {
-        return !ModContent.GetInstance<AdventureConfig>().PreventUse
+        return !ModContent.GetInstance<AdventureServerConfig>().PreventUse
             .Any(itemDefinition => item.type == itemDefinition.Type);
     }
 
     public override bool? CanBeChosenAsAmmo(Item ammo, Item weapon, Player player)
     {
-        if (ModContent.GetInstance<AdventureConfig>().PreventUse
+        if (ModContent.GetInstance<AdventureServerConfig>().PreventUse
             .Any(itemDefinition => ammo.type == itemDefinition.Type))
             return false;
 
@@ -152,7 +153,7 @@ public class AdventureItem : GlobalItem
 
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
     {
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         var itemDefinition = new ItemDefinition(item.type);
         if (adventureConfig.Combat.PlayerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition,
@@ -239,14 +240,14 @@ public class AdventureItem : GlobalItem
     public override bool? PrefixChance(Item item, int pre, UnifiedRandom rand)
     {
         // Prevent the item from spawning with a prefix, being placed into a reforge window, and loading with a prefix.
-        if ((pre == -1 || pre == -3 || pre > 0) && ModContent.GetInstance<AdventureConfig>().RemovePrefixes)
+        if ((pre == -1 || pre == -3 || pre > 0) && ModContent.GetInstance<AdventureServerConfig>().RemovePrefixes)
             return false;
 
         return null;
     }
 
     // This is likely unnecessary if we are overriding PrefixChance, but might as well.
-    public override bool CanReforge(Item item) => !ModContent.GetInstance<AdventureConfig>().RemovePrefixes;
+    public override bool CanReforge(Item item) => !ModContent.GetInstance<AdventureServerConfig>().RemovePrefixes;
 
 
     public class AdventureBag : ModItem
