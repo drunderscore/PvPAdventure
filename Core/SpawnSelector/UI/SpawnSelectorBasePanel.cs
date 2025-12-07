@@ -7,6 +7,10 @@ using Terraria.GameContent.UI.Elements;
 
 namespace PvPAdventure.Core.SpawnSelector.UI;
 
+/// <summary>
+/// The base panel containing all elements for the spawn selector UI.
+/// Includes, for example <see cref="SpawnSelectorCharacter"/>, and <see cref="SpawnSelectorQuestionMark"/>.
+/// </summary>
 public class SpawnSelectorBasePanel : UIPanel
 {
     private UIPanel _randomPanel;
@@ -42,7 +46,7 @@ public class SpawnSelectorBasePanel : UIPanel
             {
                 Player p = Main.player[i];
 
-                if (p == null)
+                if (p == null || !p.active)
                     continue;
 
                 if (p.whoAmI == local.whoAmI || p.team != local.team)

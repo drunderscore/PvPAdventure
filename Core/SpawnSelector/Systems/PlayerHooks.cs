@@ -1,24 +1,32 @@
-﻿using Microsoft.Xna.Framework;
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.SpawnSelector.Systems;
 
 /// <summary>
-/// This allows the player to click on teammates to teleport to them.
+/// Various player hooks related to teleporting, spawning, and spawn selector.
 /// </summary>
-public class SpawnHooks : ModSystem
+public class PlayerHooks : ModSystem
 {
     public override void Load()
     {
+        On_Player.HasUnityPotion += OnHasUnityPotion;
         On_Player.Spawn_SetPosition += ForceWorldSpawn;
     }
 
     public override void Unload()
     {
+        On_Player.HasUnityPotion -= OnHasUnityPotion;
         On_Player.Spawn_SetPosition -= ForceWorldSpawn;
     }
 
+    private static bool OnHasUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)
+    {
+        if (SpawnSelectorSystem.GetEnabled())
+            return true;
+
+        return orig(self);
+    }
     private void ForceWorldSpawn(On_Player.orig_Spawn_SetPosition orig, Player self, int floorX, int floorY)
     {
         //orig(self, floorX, floorY);
@@ -35,9 +43,8 @@ public class SpawnHooks : ModSystem
 
         if (self == Main.LocalPlayer)
         {
-        Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;
-        Main.LocalPlayer.position.Y = spawnY * 16 - Main.LocalPlayer.height;
-    }
-        
+            Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;
+            Main.LocalPlayer.position.Y = spawnY * 16 - Main.LocalPlayer.height;
+        }
     }
 }
