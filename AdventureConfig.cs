@@ -1,3 +1,4 @@
+using PvPAdventure.Content.Items;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -194,16 +195,27 @@ public class AdventureConfig : ModConfig
         [DefaultValue(3000.0f)]
         public float GhostHealMaxDistance { get; set; }
 
-        [Range(0.0f, 3000.0f)]
-        [DefaultValue(3000.0f)]
         public float GhostHealMaxDistanceNpc { get; set; }
+
+        public class TeamLifeConfig
+        {
+            [DefaultValue(0.5f)] public float Share { get; set; } = 0.5f;
+        }
+
+        [Description("Require each team to deal the maximum life in total damage to kill this NPC")]
+
+        public Dictionary<NPCDefinition, TeamLifeConfig> TeamLifeNpcs { get; set; } = new();
+
+        [Range(0.0f, 1.0f)]
+        [DefaultValue(0.0f)]
+      
 
         [Description("Reduce the damage of certain projectiles after they have collided or bounced")]
         public float ProjectileCollisionDamageReduction { get; set; }
 
         public Dictionary<ProjectileDefinition, float> NoLineOfSightDamageReduction { get; set; } = new();
-
         public bool AwardBountyEveryKill { get; set; }
+
     }
 
     public class Statistics : IEquatable<Statistics>
@@ -324,6 +336,12 @@ public class AdventureConfig : ModConfig
         [DefaultValue(30)] public int PlanteraBulbChanceDenominator { get; set; } = 30;
 
         [DefaultValue(8)] public int ChlorophyteSpreadChanceModifier { get; set; } = 8;
+
+        [Range(1, 1000)]
+        [DefaultValue(300)] public int ChlorophyteGrowChanceModifier { get; set; } = 300;
+
+        [Range(1, 999999)]
+        [DefaultValue(300)] public int ChlorophyteGrowLimitModifier { get; set; } = 300;
     }
 
     public WorldGenerationConfig WorldGeneration { get; set; } = new();
@@ -340,7 +358,6 @@ public class AdventureConfig : ModConfig
         public Dictionary<NPCDefinition, FloatStatistic> LifeMaxMultipliers { get; set; } = new();
         public Dictionary<NPCDefinition, FloatStatistic> DamageMultipliers { get; set; } = new();
         public bool NoMechanicalBossSummonDrops { get; set; }
-        public bool NoBiomeKeyDrops { get; set; }
     }
 
     public NpcBalanceConfig NpcBalance { get; set; } = new();
@@ -354,6 +371,11 @@ public class AdventureConfig : ModConfig
 
     [Range(0, 600)] public int MinimumDamageReceivedByPlayers { get; set; }
     [Range(0, 600)] public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
+
+    [Header("AdventureMirror")]
+    [Range(0, 60 * 60)]
+    [DefaultValue(4 * 60)]
+    public int AdventureMirrorRecallFrames { get; set; }
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {

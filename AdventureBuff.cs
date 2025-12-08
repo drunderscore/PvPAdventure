@@ -1,4 +1,6 @@
+using System;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -19,20 +21,20 @@ public class AdventureBuff : GlobalBuff
 
             if (player.beetleOrbs >= 1)
             {
-                damage += 0.15f;
-                attackSpeed += 0.15f;
+                damage += 0.08f;
+                attackSpeed += 0.08f;
             }
 
             if (player.beetleOrbs >= 2)
             {
-                damage += 0.10f;
-                attackSpeed += 0.10f;
+                damage += 0.08f;
+                attackSpeed += 0.08f;
             }
 
             if (player.beetleOrbs >= 3)
             {
-                damage += 0.05f;
-                attackSpeed += 0.20f;
+                damage += 0.08f;
+                attackSpeed += 0.08f;
             }
 
             player.GetDamage<MeleeDamageClass>() += damage;
@@ -47,5 +49,51 @@ public class AdventureBuff : GlobalBuff
             return false;
 
         return true;
+    }
+
+    public class RemoveFlaskBuffsOnDeath : ModPlayer
+    {
+        // Array of buff IDs to remove on death
+        private readonly int[] buffsToRemove = { 71, 73, 74, 75, 76, 77, 78, 79 }; //Every single Flask buff that doesn't go away on death for some reason
+
+        public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
+        {
+
+            for (int i = 0; i < Player.MaxBuffs; i++)
+            {
+                int buffType = Player.buffType[i];
+
+
+                foreach (int buffId in buffsToRemove)
+                {
+                    if (buffType == buffId)
+                    {
+                        Player.DelBuff(i); // Remove the buff
+                        i--; // Adjust index since we removed a buff
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    public class ArcheryNerf : GlobalItem
+    {
+        public override void ModifyWeaponDamage(Item item, Player player, ref StatModifier damage)
+        {
+            if (player.HasBuff(BuffID.Archery) && item.useAmmo == AmmoID.Arrow)
+            {
+                damage /= 1.1f;
+            }
+        }
+    }
+    public class BuffTextChange : GlobalBuff
+    {
+   public override void ModifyBuffText(int type, ref string buffName, ref string tip, ref int rare)
+        {
+            if (type == BuffID.Archery)
+            {
+                tip = "20% increased arrow speed\nNo longer grants bow damage";
+            }
+        }
     }
 }

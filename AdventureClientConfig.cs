@@ -12,6 +12,9 @@ public class AdventureClientConfig : ModConfig
 
     public PlayerOutlineConfig PlayerOutline { get; set; } = new();
     public bool ShiftEnterOpensAllChat { get; set; }
+
+    [DefaultValue(true)]
+    public bool IsVanillaDashEnabled { get; set; }
     [DefaultValue(true)] public bool ShowPauseMessage { get; set; }
 
     public class PlayerOutlineConfig
@@ -125,7 +128,14 @@ public class AdventureClientConfig : ModConfig
         [DefaultValue(null)] [NullAllowed] public HitMarkerConfig NpcHitMarker { get; set; }
         [DefaultValue(null)] [NullAllowed] public PlayerHitMarkerConfig PlayerHitMarker { get; set; }
         [DefaultValue(null)] [NullAllowed] public PlayerKillMarkerConfig PlayerKillMarker { get; set; }
+
+        
     }
 
     public SoundEffectConfig SoundEffect { get; set; } = new();
+
+    [Header("AdventureMirror")]
+    [DefaultValue(true)] public bool OpenMapAfterRecall;
+    [DefaultValue(true)] public bool ShowPopupText;
+    [DefaultValue(true)] public bool ShowPlayerIndicationWhenWhenHovering;
 }

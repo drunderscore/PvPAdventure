@@ -4,6 +4,7 @@ using System.IO;
 using MonoMod.Cil;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -12,7 +13,7 @@ namespace PvPAdventure.System;
 [Autoload(Side = ModSide.Both)]
 public class CombatManager : ModSystem
 {
-    private const bool PreventPersonalCombatModifications = true;
+    private const bool PreventPersonalCombatModifications = false;
 
     private static readonly HashSet<short> BossProjectiles =
     [
@@ -89,8 +90,26 @@ public class CombatManager : ModSystem
 
     public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
     {
-        return PreventPersonalCombatModifications && Main.dedServ &&
-               (messageType is MessageID.TogglePVP or MessageID.PlayerTeam);
+        if (PreventPersonalCombatModifications && Main.dedServ &&
+            (messageType is MessageID.TogglePVP or MessageID.PlayerTeam))
+            return true;
+
+        if (Main.dedServ && messageType == MessageID.DamageNPC)
+        {
+            var previousPosition = reader.BaseStream.Position;
+
+            try
+            {
+                var npc = Main.npc[reader.ReadInt16()];
+                npc.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(npc, (Team)Main.player[playerNumber].team);
+            }
+            finally
+            {
+                reader.BaseStream.Position = previousPosition;
+            }
+        }
+
+        return false;
     }
 
     private void OnPlayerHurt(On_Player.orig_Hurt_HurtInfo_bool orig, Player self, Player.HurtInfo info, bool quiet)

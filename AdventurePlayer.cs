@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Discord.Rest;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using PvPAdventure.System;
 using PvPAdventure.System.Client;
 using Terraria;
@@ -19,6 +21,8 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
+using Mono.Cecil.Cil;
+using static PvPAdventure.AdventurePlayer;
 
 namespace PvPAdventure;
 
@@ -28,6 +32,8 @@ public class AdventurePlayer : ModPlayer
     public DamageInfo RecentDamageFromPlayer { get; private set; }
     public int Kills { get; private set; }
     public int Deaths { get; private set; }
+
+    private bool deathProcessedThisLife = false;
 
     private readonly int[] _playerMeleeInvincibleTime = new int[Main.maxPlayers];
 
@@ -480,8 +486,29 @@ public class AdventurePlayer : ModPlayer
             if (PvPImmuneTime[i] > 0)
                 PvPImmuneTime[i]--;
         }
-    }
+        bool hasSpectreSet = IsSpectreSetEquipped();
+        int currentHead = Player.armor[0].type;
+        bool headChanged = IsSpectreHead(currentHead) && currentHead != lastSpectreHead;
 
+        if ((hasSpectreSet && !hadSpectreSetLastFrame) || headChanged)
+        {
+            Player.AddBuff(ModContent.BuffType<Attuning>(), 3600); // 60 seconds
+        }
+
+        hadSpectreSetLastFrame = hasSpectreSet;
+        if (IsSpectreHead(currentHead))
+        {
+            lastSpectreHead = currentHead;
+        }
+    }
+    public override void PostUpdate()
+    {
+        if (Player.HasBuff(ModContent.BuffType<Attuning>()))
+        {
+            Player.ghostHurt = false;
+            Player.ghostHeal = false;
+        }
+    }
     private bool CanRecall()
     {
         var region = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
@@ -592,30 +619,125 @@ public class AdventurePlayer : ModPlayer
         return true;
     }
 
+    private bool hadShinyStoneLastFrame;
+    private int lastSpectreHead = 0;
+    private bool hadSpectreSetLastFrame;
+
+    private bool IsSpectreSetEquipped()
+    {
+        int head = Player.armor[0].type;
+        int body = Player.armor[1].type;
+        int legs = Player.armor[2].type;
+
+        bool hasSpectreHead = IsSpectreHead(head);
+        bool hasSpectreBody = body == ItemID.SpectreRobe;
+        bool hasSpectreLegs = legs == ItemID.SpectrePants;
+
+        return hasSpectreHead && hasSpectreBody && hasSpectreLegs;
+    }
+
+    private bool IsSpectreHead(int headType)
+    {
+        return headType == ItemID.SpectreHood || headType == ItemID.SpectreMask;
+    }
+    private bool hadPhilostoneLastFrame;
+    public override void PostUpdateEquips()
+    {
+        // Check if Shiny Stone is equipped
+        bool hasShinyStone = IsShinyStoneEquipped();
+
+        // Apply debuff when first equipped or after respawn
+        if (hasShinyStone && !hadShinyStoneLastFrame)
+        {
+            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 3600); // 60 seconds
+        }
+
+        // Disable Shiny Stone effects while debuffed
+        if (Player.HasBuff(ModContent.BuffType<ShinyStoneHotswap>()))
+        {
+            Player.shinyStone = false;
+        }
+        bool hasPhilostone = IsPhilostoneEquipped();
+        hadShinyStoneLastFrame = hasShinyStone;
+
+        if (hasPhilostone && !hadPhilostoneLastFrame)
+        {
+            Player.AddBuff(ModContent.BuffType<UncouthandBoring>(), 3600); // 60 seconds
+        }
+
+        hadPhilostoneLastFrame = hasPhilostone;
+
+
+        if (Player.beetleOffense)
+        {
+            Player.GetDamage<MeleeDamageClass>() += 0;
+            Player.GetAttackSpeed<MeleeDamageClass>() += 0;
+        }
+        else
+        {
+            // If we don't have the beetle offense set bonus, remove all possible buffs.
+            Player.ClearBuff(BuffID.BeetleMight1);
+            Player.ClearBuff(BuffID.BeetleMight2);
+            Player.ClearBuff(BuffID.BeetleMight3);
+        }
+
+        if (Player.HasBuff(BuffID.BeetleMight3))
+        {
+            // we apply the glowing eye effect from Yoraiz0rsSpell item
+            Player.yoraiz0rEye = 33;
+        }
+
+        if (Player.hasPaladinShield)
+        {
+            Player.buffImmune[BuffID.PaladinsShield] = true;
+        }
+    }
+
+    private bool IsShinyStoneEquipped()
+    {
+        for (int i = 3; i < 10; i++) // Check all accessory slots
+        {
+            if (Player.armor[i].type == ItemID.ShinyStone &&
+               (i < 7 || !Player.hideVisibleAccessory[i - 3]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    private bool IsPhilostoneEquipped()
+    {
+        for (int i = 3; i < 10; i++) // Check all accessory slots
+        {
+            if (Player.armor[i].type == ItemID.PhilosophersStone || (Player.armor[i].type == ItemID.CharmofMyths) &&
+               (i < 7 || !Player.hideVisibleAccessory[i - 3]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         // Only play kill markers on clients that we hurt that aren't ourselves
         if (!Main.dedServ && pvp && damageSource.SourcePlayerIndex == Main.myPlayer && Player.whoAmI != Main.myPlayer)
             PlayKillMarker((int)damage);
-
         // Only for non-suicide PvP deaths, apply Beetle Might as needed to the attacker.
         if (pvp && damageSource.SourcePlayerIndex != Player.whoAmI)
         {
             var attacker = Main.player[damageSource.SourcePlayerIndex];
-
             if (attacker.beetleOffense && attacker.beetleOrbs < 3)
             {
                 // First, make sure to clear any previous buff if applicable.
                 if (attacker.beetleOrbs > 0)
                     attacker.ClearBuff(BuffID.BeetleMight1 + attacker.beetleOrbs - 1);
-
                 attacker.AddBuff(BuffID.BeetleMight1 + attacker.beetleOrbs, 5);
             }
         }
-
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
-
         // Remove the Dungeon Guardian when it kills a player.
         if (damageSource.SourceNPCIndex != -1)
         {
@@ -631,31 +753,35 @@ public class AdventurePlayer : ModPlayer
 
         try
         {
-            Player killer = null;
+            if (deathProcessedThisLife)
+            {
+                Mod.Logger.Warn($"Death already processed for {Player.name} this life, skipping duplicate K/D increment");
+                return;
+            }
+            deathProcessedThisLife = true;
 
-            // If you killed yourself, we should delegate to the recent damage.
+            Player killer = null;
             if (pvp && damageSource.SourcePlayerIndex != -1 && damageSource.SourcePlayerIndex != Player.whoAmI)
             {
                 killer = Main.player[damageSource.SourcePlayerIndex];
             }
             else
             {
-                // We checked this earlier, but let's check again for logging purposes.
                 if (pvp && damageSource.SourcePlayerIndex == -1)
                     Mod.Logger.Warn($"PvP kill without a valid SourcePlayerIndex ({this} killed)");
-
                 if (RecentDamageFromPlayer != null)
                     killer = Main.player[RecentDamageFromPlayer.Who];
             }
-
             // Nothing should happen for suicide
             if (killer == null || !killer.active || killer.whoAmI == Player.whoAmI)
                 return;
 
             ModContent.GetInstance<PointsManager>().AwardPlayerKillToTeam(killer, Player);
-            killer.GetModPlayer<AdventurePlayer>().Kills += 1;
-            killer.GetModPlayer<AdventurePlayer>().SyncStatistics();
 
+            // Increment and sync
+            var killerAdventurePlayer = killer.GetModPlayer<AdventurePlayer>();
+            killerAdventurePlayer.Kills += 1;
+            killerAdventurePlayer.SyncStatistics();
             Deaths += 1;
             SyncStatistics();
 
@@ -666,7 +792,6 @@ public class AdventurePlayer : ModPlayer
         {
             // PvP or not, reset whom we last took damage from.
             RecentDamageFromPlayer = null;
-
             // Remove recent damage for ALL players we've attacked after we die.
             // These are indirect post-mortem kills, which we don't want.
             // FIXME: We would still like to attribute this to the next recent damager, which would require a stack of
@@ -680,6 +805,11 @@ public class AdventurePlayer : ModPlayer
         }
     }
 
+    public override void OnRespawn()
+    {
+        deathProcessedThisLife = false;
+    }
+    
     public override void ProcessTriggers(TriggersSet triggersSet)
     {
         var pointsManager = ModContent.GetInstance<PointsManager>();
@@ -876,16 +1006,7 @@ public class AdventurePlayer : ModPlayer
         }
     }
 
-    public override void PostUpdateEquips()
-    {
-        if (!Player.beetleOffense)
-        {
-            // If we don't have the beetle offense set bonus, remove all possible buffs.
-            Player.ClearBuff(BuffID.BeetleMight1);
-            Player.ClearBuff(BuffID.BeetleMight2);
-            Player.ClearBuff(BuffID.BeetleMight3);
-        }
-    }
+
 
     private void SendPingPong()
     {
@@ -909,6 +1030,49 @@ public class AdventurePlayer : ModPlayer
         Latency = _pingPongStopwatch.Elapsed / 2;
         _pingPongStopwatch = null;
         _pingPongCanary++;
+    }
+
+    public class TikiArmorPlayer : ModPlayer
+    {
+        public bool hasTikiSet = false;
+
+        public override void PostUpdateEquips()
+        {
+            // Check if wearing full Tiki Armor
+            if (Player.armor[0].type == ItemID.TikiMask &&
+                Player.armor[1].type == ItemID.TikiShirt &&
+                Player.armor[2].type == ItemID.TikiPants)
+            {
+                hasTikiSet = true;
+            }
+            else
+            {
+                hasTikiSet = false;
+            }
+        }
+    }
+
+    public class WhipRangePlayer : ModPlayer
+    {
+        public bool largeWhipIncrease = false;
+
+        public override void PostUpdateEquips()
+        {
+            largeWhipIncrease = false;
+
+            for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
+            {
+                if (Player.armor[i].type == ItemID.PygmyNecklace || Player.armor[i].type == ItemID.HerculesBeetle || (Player.armor[0].type == ItemID.TikiMask && Player.armor[1].type == ItemID.TikiShirt &&Player.armor[2].type == ItemID.TikiPants) || (Player.armor[0].type == ItemID.ObsidianHelm && Player.armor[1].type == ItemID.ObsidianShirt && Player.armor[2].type == ItemID.ObsidianPants))
+                {
+                    largeWhipIncrease = true;
+                    break;
+                }
+            }
+            if (largeWhipIncrease)
+            {
+                Player.whipRangeMultiplier += 0.45f;
+            }
+        }
     }
 
     private void EditPlayerFrame(ILContext il)
@@ -978,5 +1142,1603 @@ public class AdventurePlayer : ModPlayer
     public override string ToString()
     {
         return $"{Player.whoAmI}/{Player.name}/{DiscordUser?.Id}";
+    }
+}
+
+public class TurtleDashPlayer : ModPlayer
+{
+    private bool isWearingFullTurtleArmor = false;
+    private int dashingTimer = 0;
+
+    // Detect if player is in a dash state
+    public bool IsInADashState => (Player.dashDelay == -1 || dashingTimer > 0) && Player.grapCount <= 0;
+
+    public override void PostUpdateEquips()
+    {
+
+        isWearingFullTurtleArmor = Player.armor[0].type == ItemID.TurtleHelmet &&
+                                   Player.armor[1].type == ItemID.TurtleScaleMail &&
+                                   Player.armor[2].type == ItemID.TurtleLeggings;
+
+        if (isWearingFullTurtleArmor)
+        {
+            Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
+        }
+    }
+
+    public override void PostUpdate()
+    {
+
+        if (Player.dashDelay == -1)
+        {
+            dashingTimer = 10;
+        }
+        else if (dashingTimer > 0)
+        {
+            dashingTimer--;
+        }
+
+        // Apply dash speed reduction if player has the debuff and is dashing
+        if (Player.HasBuff(ModContent.BuffType<BROISACHOJ>()) && IsInADashState)
+        {
+            float dashSpeedReduction = Player.velocity.X * 0.05f;
+            Player.velocity.X -= dashSpeedReduction;
+        }
+        //thanks mr fargo
+    }
+}
+public class NewIchorPlayer : ModPlayer
+{
+    public bool hasDefenseReduction = false;
+
+    public override void ResetEffects()
+    {
+        hasDefenseReduction = false;
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        // Convert vanilla Ichor to our custom debuff
+        if (Player.HasBuff(BuffID.Ichor))
+        {
+            // Get the remaining time of the vanilla Ichor debuff
+            int ichorBuffIndex = Player.FindBuffIndex(BuffID.Ichor);
+            if (ichorBuffIndex != -1)
+            {
+                int remainingTime = Player.buffTime[ichorBuffIndex];
+
+                // Remove vanilla Ichor
+                Player.DelBuff(ichorBuffIndex);
+
+                // Add our custom debuff with the same duration
+                Player.AddBuff(ModContent.BuffType<NewIchorPlayerDebuff>(), remainingTime);
+            }
+        }
+
+        // Check if player has our custom debuff
+        if (Player.HasBuff(ModContent.BuffType<NewIchorPlayerDebuff>()))
+        {
+            hasDefenseReduction = true;
+        }
+    }
+
+    public override void PostUpdateEquips()
+    {
+
+        if (hasDefenseReduction)
+        {
+            // Calculate 33% reduction (rounded down)
+            int originalDefense = Player.statDefense;
+            int reduction = (int)(originalDefense * 0.33f);
+            Player.statDefense -= reduction;
+            Player.ichor = true;
+        }
+    }
+}
+public class BitingEmbracePlayer : ModPlayer
+{
+    public int bitingEmbraceApplierIndex = -1;
+
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.CoolWhip)
+        {
+            int duration = 300;
+            int applierIndex = -1;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 2.5f);
+                    }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
+                }
+            }
+
+            bitingEmbraceApplierIndex = applierIndex;
+            Player.AddBuff(ModContent.BuffType<BitingEmbrace>(), duration);
+            Player.AddBuff(BuffID.Frostburn2, duration);
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<BitingEmbrace>() && bitingEmbraceApplierIndex >= 0 && bitingEmbraceApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[bitingEmbraceApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<BitingEmbrace>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                Player.ClearBuff(BuffID.Frostburn2);
+                bitingEmbraceApplierIndex = -1;
+                return;
+            }
+        }
+
+        if (Player.HasBuff<BitingEmbrace>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.07f);
+                float distance = 21f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.IceTorch, Vector2.Zero, 100, Color.Teal, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.Teal, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
+        }
+        else
+        {
+            bitingEmbraceApplierIndex = -1;
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<BitingEmbrace>())
+        {
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == bitingEmbraceApplierIndex;
+
+            bool isSummon = false;
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon && !isDebuffApplier)
+            {
+                modifiers.SourceDamage.Flat += 6;
+            }
+        }
+    }
+}
+
+public class PressurePointsPlayer : ModPlayer
+{
+    public int pressurePointsApplierIndex = -1;
+
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.ThornWhip)
+        {
+            int duration = 300;
+            int applierIndex = -1;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 2.5f);
+                    }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
+                }
+            }
+
+            pressurePointsApplierIndex = applierIndex;
+            Player.AddBuff(ModContent.BuffType<PressurePoints>(), duration);
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<PressurePoints>() && pressurePointsApplierIndex >= 0 && pressurePointsApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[pressurePointsApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<PressurePoints>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                pressurePointsApplierIndex = -1;
+                return;
+            }
+        }
+
+        if (Player.HasBuff<PressurePoints>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.05f);
+                float distance = 12f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.CursedTorch, Vector2.Zero, 100, Color.LimeGreen, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.LimeGreen, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
+        }
+        else
+        {
+            pressurePointsApplierIndex = -1;
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<PressurePoints>())
+        {
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == pressurePointsApplierIndex;
+
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon && !isDebuffApplier)
+            {
+                modifiers.SourceDamage.Flat += 6;
+            }
+        }
+    }
+}
+
+public class BrittleBonesPlayer : ModPlayer
+{
+    public int brittleBonesApplierIndex = -1;
+
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.BoneWhip)
+        {
+            int duration = 300;
+            int applierIndex = -1;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 2.5f);
+                    }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
+                }
+            }
+
+            brittleBonesApplierIndex = applierIndex;
+            Player.AddBuff(ModContent.BuffType<BrittleBones>(), duration);
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<BrittleBones>() && brittleBonesApplierIndex >= 0 && brittleBonesApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[brittleBonesApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<BrittleBones>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                brittleBonesApplierIndex = -1;
+                return;
+            }
+        }
+
+        if (Player.HasBuff<BrittleBones>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.06f);
+                float distance = 19f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.BoneTorch, Vector2.Zero, 100, Color.DarkGray, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.DarkGray, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
+        }
+        else
+        {
+            brittleBonesApplierIndex = -1;
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<BrittleBones>())
+        {
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == brittleBonesApplierIndex;
+
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon && !isDebuffApplier)
+            {
+                modifiers.SourceDamage.Flat += 7;
+            }
+        }
+    }
+}
+
+public class MarkedPlayer : ModPlayer
+{
+    public int markedApplierIndex = -1;
+
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.SwordWhip)
+        {
+            int duration = 300;
+            int applierIndex = -1;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 2.5f);
+                    }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
+                }
+            }
+
+            markedApplierIndex = applierIndex;
+            Player.AddBuff(ModContent.BuffType<Marked>(), duration);
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<Marked>() && markedApplierIndex >= 0 && markedApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[markedApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Marked>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                markedApplierIndex = -1;
+                return;
+            }
+        }
+
+        if (Player.HasBuff<Marked>())
+        {
+            float pulseTime = Main.GameUpdateCount % 60f / 60f;
+            float pulseScale = 1f + (float)Math.Sin(pulseTime * MathHelper.TwoPi) * 0.2f;
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = (MathHelper.TwoPi / 4f) * i + (Main.GameUpdateCount * 0.08f);
+                float distance = 26f * pulseScale;
+
+                Vector2 offset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + offset;
+
+                Dust dust = Dust.NewDustPerfect(dustPosition, DustID.Blood, Vector2.Zero, 100, Color.Red, 1.5f);
+                dust.noGravity = true;
+                dust.fadeIn = 1f;
+                dust.noLight = false;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float lineAngle = i * MathHelper.PiOver2;
+                    float lineDistance = Main.rand.NextFloat(10f, 40f);
+
+                    Vector2 lineOffset = new Vector2(
+                        (float)Math.Cos(lineAngle) * lineDistance,
+                        (float)Math.Sin(lineAngle) * lineDistance
+                    );
+                    Vector2 dustPos = Player.Center + lineOffset;
+
+                    Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, Color.DarkRed, 1f);
+                    lineDust.noGravity = true;
+                    lineDust.fadeIn = 0.5f;
+                }
+            }
+        }
+        else
+        {
+            markedApplierIndex = -1;
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<Marked>())
+        {
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == markedApplierIndex;
+
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon && !isDebuffApplier)
+            {
+                modifiers.SourceDamage.Flat += 9;
+            }
+        }
+    }
+}
+
+public class AnathemaPlayer : ModPlayer
+{
+    public int anathemaApplierIndex = -1;
+
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.RainbowWhip)
+        {
+            int duration = 300;
+            int applierIndex = -1;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 2.5f);
+                    }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
+                }
+            }
+
+            anathemaApplierIndex = applierIndex;
+            Player.AddBuff(ModContent.BuffType<Anathema>(), duration);
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<Anathema>() && anathemaApplierIndex >= 0 && anathemaApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[anathemaApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Anathema>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                anathemaApplierIndex = -1;
+                return;
+            }
+        }
+
+        if (Player.HasBuff<Anathema>())
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                float distance = Main.rand.NextFloat(40f, 80f);
+                float angle = Main.rand.NextFloat(0f, MathHelper.TwoPi);
+
+                Vector2 spawnOffset = new Vector2(
+                    (float)Math.Cos(angle) * distance,
+                    (float)Math.Sin(angle) * distance
+                );
+                Vector2 dustPosition = Player.Center + spawnOffset;
+
+                Vector2 towardPlayer = Player.Center - dustPosition;
+                towardPlayer.Normalize();
+                Vector2 dustVelocity = towardPlayer * Main.rand.NextFloat(2f, 4f);
+
+                int dustType;
+                Color dustColor;
+
+                if (Main.rand.NextBool())
+                {
+                    dustType = DustID.PlatinumCoin;
+                    dustColor = Color.White;
+                }
+                else
+                {
+                    dustType = DustID.Smoke;
+                    dustColor = Color.Black;
+                }
+
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, dustColor, Main.rand.NextFloat(0.6f, 1.2f));
+                dust.noGravity = true;
+                dust.fadeIn = 0.8f;
+            }
+        }
+        else
+        {
+            anathemaApplierIndex = -1;
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<Anathema>())
+        {
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == anathemaApplierIndex;
+
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon && !isDebuffApplier)
+            {
+                modifiers.SourceDamage.Flat += 20;
+                modifiers.FinalDamage *= 1.1f;
+            }
+        }
+    }
+}
+
+public class ShatteredArmorPlayer : ModPlayer
+{
+    public int shatteredArmorApplierIndex = -1;
+
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.MaceWhip)
+        {
+            int duration = 300;
+            int applierIndex = -1;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 2.5f);
+                    }
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
+                }
+            }
+
+            shatteredArmorApplierIndex = applierIndex;
+            Player.AddBuff(ModContent.BuffType<ShatteredArmor>(), duration);
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<ShatteredArmor>() && shatteredArmorApplierIndex >= 0 && shatteredArmorApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[shatteredArmorApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<ShatteredArmor>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                shatteredArmorApplierIndex = -1;
+                return;
+            }
+        }
+
+        if (Player.HasBuff<ShatteredArmor>())
+        {
+            for (int i = 0; i < 1; i++)
+            {
+                int dustType = DustID.BatScepter;
+                Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Vector2 dustVelocity = Player.velocity * 0.3f + new Vector2(Main.rand.NextFloat(-1f, 1f), Main.rand.NextFloat(-1f, 1f));
+
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, Color.Black, Main.rand.NextFloat(0.8f, 1.5f));
+                dust.noGravity = Main.rand.NextBool(2);
+                dust.fadeIn = 1.2f;
+            }
+        }
+        else
+        {
+            shatteredArmorApplierIndex = -1;
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<ShatteredArmor>())
+        {
+            bool isDebuffApplier = modifiers.DamageSource.SourcePlayerIndex == shatteredArmorApplierIndex;
+
+            bool isSummon = false;
+
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                {
+                    isSummon = true;
+                }
+            }
+            else if (modifiers.DamageSource.SourceProjectileType > 0)
+            {
+                int projType = modifiers.DamageSource.SourceProjectileType;
+                if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                    projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                    projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                    projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                    projType == ProjectileID.CoolWhip)
+                {
+                    isSummon = true;
+                }
+            }
+
+            if (!isSummon && !isDebuffApplier)
+            {
+                modifiers.SourceDamage.Flat += 8;
+                modifiers.FinalDamage *= 1.12f;
+            }
+        }
+    }
+}
+
+public class HellhexPlayer : ModPlayer
+{
+    public bool hellhexTriggered = false;
+    private int storedDamage = 0;
+    public int hellhexApplierIndex = -1;
+    private bool explosionSpawned = false;
+
+    private bool IsSummonOrWhipDamage(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        if (info.DamageSource.SourceProjectileType > 0)
+        {
+            int projType = info.DamageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsSummonOrWhipDamage(ref Player.HurtModifiers modifiers)
+    {
+        if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        if (modifiers.DamageSource.SourceProjectileType > 0)
+        {
+            int projType = modifiers.DamageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsSummonOrWhipDeath(PlayerDeathReason damageSource)
+    {
+        if (damageSource.SourceProjectileLocalIndex >= 0)
+        {
+            Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
+            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            {
+                return true;
+            }
+        }
+
+        if (damageSource.SourceProjectileType > 0)
+        {
+            int projType = damageSource.SourceProjectileType;
+            if (projType == ProjectileID.BlandWhip || projType == ProjectileID.FireWhip ||
+                projType == ProjectileID.SwordWhip || projType == ProjectileID.MaceWhip ||
+                projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
+                projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
+                projType == ProjectileID.CoolWhip)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
+    {
+        if (Player.HasBuff<Hellhex>())
+        {
+            bool isSummon = IsSummonOrWhipDeath(damageSource);
+            bool isDebuffApplier = damageSource.SourcePlayerIndex == hellhexApplierIndex;
+
+            if (!isSummon && !isDebuffApplier && damage >= 30 && !explosionSpawned)
+            {
+                explosionSpawned = true;
+
+                if (Main.netMode != NetmodeID.MultiplayerClient)
+                {
+                    int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
+                    int explosionDamage = (int)(damage * 2.75f);
+
+                    int proj = Projectile.NewProjectile(
+                        Player.GetSource_Death(),
+                        Player.Center,
+                        Vector2.Zero,
+                        ProjectileID.FireWhipProj,
+                        explosionDamage,
+                        0f,
+                        owner,
+                        0f,
+                        0f
+                    );
+
+                    if (proj >= 0 && proj < Main.maxProjectiles)
+                    {
+                        if (Main.netMode == NetmodeID.Server)
+                        {
+                            NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        if (info.DamageSource.SourceProjectileType == ProjectileID.FireWhip)
+        {
+            int duration = 450;
+            int applierIndex = -1;
+
+            if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
+            {
+                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                if (attacker != null && attacker.active)
+                {
+                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
+                    if (tikiPlayer.hasTikiSet)
+                    {
+                        duration = (int)(duration * 2.5f);
+                    }
+
+                    applierIndex = info.DamageSource.SourcePlayerIndex;
+                }
+            }
+
+            hellhexApplierIndex = applierIndex;
+            Player.AddBuff(ModContent.BuffType<Hellhex>(), duration);
+
+            if (Main.netMode == NetmodeID.Server)
+            {
+                ModPacket packet = Mod.GetPacket();
+                packet.Write((byte)0);
+                packet.Write((byte)Player.whoAmI);
+                packet.Write((byte)applierIndex);
+                packet.Send();
+            }
+
+            return;
+        }
+
+        if (Player.HasBuff<Hellhex>() && !explosionSpawned)
+        {
+            bool isSummon = IsSummonOrWhipDamage(info);
+            bool isDebuffApplier = info.DamageSource.SourcePlayerIndex == hellhexApplierIndex;
+
+            if (!isSummon && !isDebuffApplier && info.Damage >= 30)
+            {
+                explosionSpawned = true;
+
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+
+                Vector2 spawnPos = Player.Center;
+                float scale = info.Damage / 100f;
+                int owner = hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers ? hellhexApplierIndex : -1;
+                int explosionDamage = (int)(info.Damage * 2.75f);
+
+                if (Main.netMode == NetmodeID.SinglePlayer ||
+                    (info.DamageSource.SourcePlayerIndex >= 0 && Main.myPlayer == info.DamageSource.SourcePlayerIndex))
+                {
+                    int proj = Projectile.NewProjectile(
+                        Player.GetSource_Buff(buffIndex),
+                        spawnPos,
+                        Vector2.Zero,
+                        ProjectileID.FireWhipProj,
+                        explosionDamage,
+                        0f,
+                        owner
+                    );
+
+                    if (proj >= 0 && proj < Main.maxProjectiles)
+                    {
+                        Main.projectile[proj].scale = scale;
+                    }
+
+                    if (Main.netMode == NetmodeID.MultiplayerClient)
+                    {
+                        ModPacket packet = Mod.GetPacket();
+                        packet.Write((byte)1);
+                        packet.Write((byte)Player.whoAmI);
+                        packet.Write(spawnPos.X);
+                        packet.Write(spawnPos.Y);
+                        packet.Write(explosionDamage);
+                        packet.Write(scale);
+                        packet.Write((sbyte)owner);
+                        packet.Send();
+                    }
+                }
+                else if (Main.netMode == NetmodeID.Server)
+                {
+                    int proj = Projectile.NewProjectile(
+                        Player.GetSource_Buff(buffIndex),
+                        spawnPos,
+                        Vector2.Zero,
+                        ProjectileID.FireWhipProj,
+                        explosionDamage,
+                        0f,
+                        owner
+                    );
+
+                    if (proj >= 0 && proj < Main.maxProjectiles)
+                    {
+                        Main.projectile[proj].scale = scale;
+                        NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+                    }
+                }
+            }
+        }
+    }
+
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (Player.HasBuff<Hellhex>())
+        {
+            bool isSummon = IsSummonOrWhipDamage(ref modifiers);
+
+            if (!isSummon)
+            {
+                hellhexTriggered = true;
+            }
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff<Hellhex>() && hellhexApplierIndex >= 0 && hellhexApplierIndex < Main.maxPlayers)
+        {
+            Player applier = Main.player[hellhexApplierIndex];
+            if (applier == null || !applier.active || applier.dead)
+            {
+                int buffIndex = Player.FindBuffIndex(ModContent.BuffType<Hellhex>());
+                if (buffIndex >= 0)
+                {
+                    Player.buffTime[buffIndex] = 0;
+                }
+                hellhexApplierIndex = -1;
+                hellhexTriggered = false;
+                explosionSpawned = false;
+                return;
+            }
+        }
+
+        if (Player.HasBuff<Hellhex>())
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                int dustType = DustID.Torch;
+                Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-2f, 0f));
+
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, default(Color), Main.rand.NextFloat(1f, 2f));
+                dust.noGravity = true;
+                dust.fadeIn = 1.3f;
+            }
+
+            if (Main.rand.NextBool(2))
+            {
+                int dustType = DustID.Smoke;
+                Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-1.5f, 0f));
+
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, Color.OrangeRed, Main.rand.NextFloat(0.8f, 1.5f));
+                dust.noGravity = true;
+            }
+        }
+        else
+        {
+            hellhexTriggered = false;
+            hellhexApplierIndex = -1;
+            explosionSpawned = false;
+        }
+    }
+}
+public class PvPAdventurePlayer : ModPlayer
+{
+    public bool hasReceivedStarterBag = false;
+
+    public override void SaveData(TagCompound tag)
+    {
+        tag["hasReceivedStarterBag"] = hasReceivedStarterBag;
+    }
+
+    public override void LoadData(TagCompound tag)
+    {
+        hasReceivedStarterBag = tag.GetBool("hasReceivedStarterBag");
+    }
+
+    public override void OnEnterWorld()
+    {
+        if (!hasReceivedStarterBag)
+        {
+            int itemType = ModContent.ItemType<AdventureItem.AdventureBag>();
+            var item = new Item();
+            item.SetDefaults(itemType);
+            Player.inventory[1] = item; // Adds to second inventory slot
+            var beachBallItem = new Item();
+            beachBallItem.SetDefaults(ItemID.BeachBall);
+            Player.inventory[2] = beachBallItem; // Adds to third inventory slot
+
+            hasReceivedStarterBag = true;
+        }
+    }
+}
+
+
+public class SpawnProtectionPlayer : ModPlayer
+{
+    public override void PostUpdateMiscEffects()
+    {
+        int playerTileX = (int)(Player.position.X / 16f);
+        int playerTileY = (int)(Player.position.Y / 16f);
+
+        int spawnTileX = Main.spawnTileX;
+        int spawnTileY = Main.spawnTileY;
+
+        int distanceX = Math.Abs(playerTileX - spawnTileX);
+        int distanceY = Math.Abs(playerTileY - spawnTileY);
+
+        if (distanceX <= 25 && distanceY <= 25)
+        {
+            Player.AddBuff(ModContent.BuffType<PlayerInSpawn>(), 2);
+        }
+    }
+}
+
+public class AetherLuckPlayer : ModPlayer
+{
+    public override void ModifyLuck(ref float luck)
+    {
+        if (Player.ZoneShimmer)
+        {
+            luck += 400; // 400 times the amount of normal luck
+        }
+    }
+}
+public class ShadowFlamePlayer : ModPlayer
+{
+    public override void PostHurt(Player.HurtInfo info)
+    {
+        int shadowflameDuration = 0;
+
+        if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameArrow)
+        {
+            int maxDuration = 3 * 60;
+            float damageRatio = Math.Min(info.Damage / 30f, 1f);
+            shadowflameDuration = (int)(maxDuration * damageRatio);
+        }
+        else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlame)
+        {
+            shadowflameDuration = 60 * 10;
+        }
+        else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameKnife)
+        {
+            int maxDuration = 60 * 3;
+            float damageRatio = Math.Min(info.Damage / 25f, 1f);
+            shadowflameDuration = (int)(maxDuration * damageRatio);
+        }
+        else if (info.DamageSource.SourceProjectileType == ProjectileID.DarkLance)
+        {
+            shadowflameDuration = 66 * 6; // 6.66 seconds
+        }
+
+        if (shadowflameDuration > 0)
+        {
+            Player.AddBuff(BuffID.ShadowFlame, shadowflameDuration);
+        }
+    }
+
+    public override void UpdateBadLifeRegen()
+    {
+        if (Player.HasBuff(BuffID.ShadowFlame))
+        {
+            if (Player.lifeRegen > 0)
+            {
+                Player.lifeRegen = 0;
+            }
+            Player.lifeRegenTime = 0;
+
+            Player.lifeRegen -= 30;
+        }
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        if (Player.HasBuff(BuffID.ShadowFlame))
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-1f, 1f), Main.rand.NextFloat(-2f, 0f));
+
+                Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, DustID.Shadowflame, dustVelocity.X, dustVelocity.Y, 100, default(Color), Main.rand.NextFloat(1f, 1.5f));
+                dust.noGravity = true;
+                dust.fadeIn = 1.2f;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                Vector2 smokePos = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
+                Dust smoke = Dust.NewDustDirect(smokePos, 0, 0, DustID.Smoke, 0, -1f, 100, Color.Purple, 0.8f);
+                smoke.noGravity = true;
+            }
+        }
+    }
+}
+public class QuiverNerfPlayer : ModPlayer
+{
+    public bool hasQuiver = false;
+
+    public override void ResetEffects()
+    {
+        hasQuiver = false;
+    }
+
+    public override void PostUpdateEquips()
+    {
+        for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
+        {
+            if (Player.armor[i].type == ItemID.MagicQuiver || Player.armor[i].type == ItemID.MoltenQuiver)
+            {
+                hasQuiver = true;
+                break;
+            }
+        }
+    }
+}
+public class HittheChytty : ModPlayer
+{
+    public override void OnRespawn()
+    {
+        bool hasCharmOfMyths = false;
+
+        for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
+        {
+            if (Player.armor[i].type == ItemID.CharmofMyths || Player.armor[i].type == ItemID.PhilosophersStone)
+            {
+                hasCharmOfMyths = true;
+                break;
+            }
+        }
+
+        if (hasCharmOfMyths && !Player.HasBuff<UncouthandBoring>())
+        {
+            Player.statLife = Player.statLifeMax2;
+        }
+    }
+}
+
+public class ShinyStoneHotswap : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/ShinyStoneHotswap";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = true;
+        Main.buffNoTimeDisplay[Type] = false;
+    }
+}
+public class NewIchorPlayerDebuff : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/NewIchorPlayerDebuff";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+    }
+}
+public class BROISACHOJ : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/BROISACHOJ";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+    }
+}
+
+public class ConsumableShadowKeyPlayer : ModPlayer
+{
+    private Dictionary<Point, int> trackedLockedChests = new Dictionary<Point, int>();
+
+    public override void PostUpdate()
+    {
+        // Only track and consume on the client that owns this player
+        if (Player.whoAmI != Main.myPlayer)
+            return;
+
+        // Scan every frame for consistency
+        int scanRange = 10;
+        int playerTileX = (int)(Player.Center.X / 16);
+        int playerTileY = (int)(Player.Center.Y / 16);
+
+        HashSet<Point> foundLockedChests = new HashSet<Point>();
+
+        for (int i = playerTileX - scanRange; i < playerTileX + scanRange; i++)
+        {
+            for (int j = playerTileY - scanRange; j < playerTileY + scanRange; j++)
+            {
+                if (!WorldGen.InWorld(i, j))
+                    continue;
+
+                Tile tile = Main.tile[i, j];
+
+                if (tile != null && tile.TileType == TileID.Containers)
+                {
+                    int left = i - (tile.TileFrameX % 36) / 18;
+                    int top = j - (tile.TileFrameY % 36) / 18;
+                    Point chestPos = new Point(left, top);
+
+                    if (foundLockedChests.Contains(chestPos))
+                        continue;
+
+                    Tile topLeftTile = Main.tile[left, top];
+                    int frameX = topLeftTile.TileFrameX;
+
+                    if (frameX == 144)
+                    {
+                        foundLockedChests.Add(chestPos);
+
+                        if (!trackedLockedChests.ContainsKey(chestPos))
+                        {
+                            trackedLockedChests.Add(chestPos, (int)Main.GameUpdateCount);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check if any tracked chests are now unlocked
+        List<Point> chestsToRemove = new List<Point>();
+        foreach (var kvp in trackedLockedChests)
+        {
+            Point chestPos = kvp.Key;
+
+            if (!foundLockedChests.Contains(chestPos))
+            {
+                if (WorldGen.InWorld(chestPos.X, chestPos.Y))
+                {
+                    float distance = Vector2.Distance(new Vector2(chestPos.X * 16, chestPos.Y * 16), Player.Center);
+
+                    // Only consume key if chest is within interaction range
+                    // Terraria's tile interaction range is about 6.5 tiles (104 pixels)
+                    if (distance <= 104)
+                    {
+                        // Consume Shadow Key - only players within interaction range could have unlocked it
+                        if (Player.HasItem(ItemID.ShadowKey))
+                        {
+                            Player.ConsumeItem(ItemID.ShadowKey);
+                        }
+                    }
+                }
+
+                chestsToRemove.Add(chestPos);
+            }
+        }
+
+        // Remove processed chests from tracking
+        foreach (Point pos in chestsToRemove)
+        {
+            trackedLockedChests.Remove(pos);
+        }
+
+        // Clean up chests that are far away
+        List<Point> distantChests = new List<Point>();
+        foreach (var kvp in trackedLockedChests)
+        {
+            float distance = Vector2.Distance(new Vector2(kvp.Key.X * 16, kvp.Key.Y * 16), Player.Center);
+            if (distance > scanRange * 16 * 1.5f)
+            {
+                distantChests.Add(kvp.Key);
+            }
+        }
+        foreach (Point pos in distantChests)
+        {
+            trackedLockedChests.Remove(pos);
+        }
+    }
+}
+public class PlayerInSpawn : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/PlayerInSpawn";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = true;
+        Main.persistentBuff[Type] = true;
+    }
+
+    public override void Update(Player player, ref int buffIndex)
+    {
+        player.GetDamage(DamageClass.Generic) *= -999f;
+
+    }
+}
+
+public class ShatteredArmor : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/ShatteredArmor";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+        BuffID.Sets.IsATagBuff[Type] = false;
+    }
+    public override void Update(Player player, ref int buffIndex)
+    { }
+}
+
+public class Anathema : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/Anathema";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+    }
+}
+public class Hellhex : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/Hellhex";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+    }
+
+    public override void Update(Player player, ref int buffIndex)
+    {
+        // Visual effects and buff management handled in ModPlayer
+    }
+}
+public class PressurePoints : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/PressurePoints";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+    }
+}
+public class BrittleBones : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/BrittleBones";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+    }
+}
+public class BitingEmbrace : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/BitingEmbrace";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+    }
+}
+public class Marked : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/Marked";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = false;
+    }
+}
+public class Attuning : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/Attuning";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
+    }
+}
+public class UncouthandBoring : ModBuff
+{
+    public override string Texture => $"PvPAdventure/Assets/Buff/uncouthandboring";
+
+    public override void SetStaticDefaults()
+    {
+        Main.debuff[Type] = true;
+        Main.buffNoSave[Type] = false;
+        Main.buffNoTimeDisplay[Type] = false;
+        Main.persistentBuff[Type] = true;
     }
 }
