@@ -34,11 +34,15 @@ public class PlayerHooks : ModSystem
         // Force all respawns to world spawn
         int spawnX = Main.spawnTileX;
         int spawnY = Main.spawnTileY;
-        //bool num = Player.Spawn_GetPositionAtWorldSpawn(ref floorX, ref floorY);
-        //this.Spawn_SetPosition(floorX, floorY);
-        //if (num && !this.Spawn_IsAreaAValidWorldSpawn(floorX, floorY))
+
+        // Skip this for now.
+        //bool num = self.Spawn_GetPositionAtWorldSpawn(ref floorX, ref floorY);
+        //self.Spawn_SetPosition(floorX, floorY);
+
+        // Clears the area. Skip this for now.
+        //if (num && !self.Spawn_IsAreaAValidWorldSpawn(floorX, floorY))
         //{
-        //Player.Spawn_ForceClearArea(floorX, floorY);
+        //    Player.Spawn_ForceClearArea(floorX, floorY);
         //}
 
         if (self == Main.LocalPlayer)
