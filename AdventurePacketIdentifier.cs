@@ -14,4 +14,6 @@ public enum AdventurePacketIdentifier : byte
     PlayerBed,
     AdventureMirrorRightClickUse,
     BedTeleport,
+    SubworldJoin,
+    SubworldCounts
 }

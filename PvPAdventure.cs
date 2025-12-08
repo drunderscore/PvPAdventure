@@ -1,10 +1,13 @@
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.Content.Items;
 using PvPAdventure.Common.Integrations.TeamAssigner;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
+using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.SubworldArenas;
 using PvPAdventure.System;
+using SubworldLibrary;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -375,6 +378,21 @@ public class PvPAdventure : Mod
             case AdventurePacketIdentifier.Dash:
                 DashKeybindSystem.HandlePacket(reader, whoAmI);
                 break;
+
+            case AdventurePacketIdentifier.SubworldJoin:
+                {
+                    byte index = reader.ReadByte();
+                    if (Main.netMode == NetmodeID.Server)
+                        SWSystem.HandleJoinFromClient(index, whoAmI);
+                    break;
+                }
+
+            case AdventurePacketIdentifier.SubworldCounts:
+                {
+                    if (Main.netMode == NetmodeID.MultiplayerClient)
+                        SWSystem.HandleCountsPacket(reader);
+                    break;
+                }
         }
     }
 }

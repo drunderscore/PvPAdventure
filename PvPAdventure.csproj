@@ -1,4 +1,4 @@
-
+﻿
 <Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\tModLoader.targets" />
 	<PropertyGroup>
@@ -21,6 +21,10 @@
 		</Reference>
 		<Reference Include="Discord.Net.Rest">
 			<HintPath>lib\Discord.Net.Rest.dll</HintPath>
+		</Reference>
+		<!-- Add subworld library for subworld arenas-->
+		<Reference Include="SubworldLibrary">
+		  <HintPath>lib\SubworldLibrary.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Linq.Async">
 			<HintPath>lib\System.Linq.Async.dll</HintPath>
