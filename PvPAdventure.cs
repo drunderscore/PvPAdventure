@@ -14,6 +14,7 @@ using Terraria.Enums;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using System;
 
 namespace PvPAdventure;
 
@@ -62,6 +63,12 @@ public class PvPAdventure : Mod
 
         switch (id)
         {
+            case AdventurePacketIdentifier.TeamSpectate:
+                {
+                    RemoteClient.CheckSection(whoAmI, reader.ReadVector2());
+                    break;
+                }
+
             case AdventurePacketIdentifier.BedTeleport:
             {
                 byte playerId = reader.ReadByte();
@@ -71,7 +78,6 @@ public class PvPAdventure : Mod
                 if (Main.netMode != NetmodeID.Server)
                     break;
 
-                // optional anti-cheat: ensure bedX/bedY matches what server knows for this player
                 if (playerId != whoAmI)
                     return;
 
