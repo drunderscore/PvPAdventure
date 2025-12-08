@@ -14,11 +14,10 @@ Mods: {
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
-			AdventureMirror.DisplayName: Adventure Mirror
-			DLStartGameTool.DisplayName: D L Start Game Tool
-			DLTeamAssignerTool.DisplayName: D L Team Assigner Tool
-			DLPauseTool.DisplayName: D L Pause Tool
-			DLStartGameToolRightClick.DisplayName: D L Start Game Tool Right Click
+			DLStartGameTool.DisplayName: DL Start Game Tool
+			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
+			DLPauseTool.DisplayName: DL Pause Tool
+			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
 		}
 
 		Configs: {
@@ -96,7 +95,7 @@ Mods: {
 				}
 
 				RemovePrefixes: {
-					Label: Remove Prefixes
+					Label: Remove Prefixez [i:PvPAdventure/MatteConfig]
 					Tooltip: ""
 				}
 
@@ -134,18 +133,6 @@ Mods: {
 					Tooltip: ""
 					Label: Minimum Damage Received By Players From Player
 				}
-
-				RTPRecallFrames: {
-					Label: RTP Recall Frames
-					Tooltip: ""
-				}
-
-				AdventureMirrorRecallFrames: {
-					Label: Adventure Mirror Recall Frames
-					Tooltip: ""
-				}
-
-				Headers.AdventureMirror: Adventure Mirror Header
 			}
 
 			PointsConfig: {
@@ -329,7 +316,7 @@ Mods: {
 
 				GhostHealMultiplierWearers: {
 					Label: Ghost Heal Multiplier Wearers
-					Tooltip: ""
+					Tooltip: Additional multiplier for any player that can Ghost Heal
 				}
 
 				TeamLifeNpcs: {
@@ -342,7 +329,7 @@ Mods: {
 
 					ProjectileCollisionDamageReduction: {
 						Label: Projectile Collision Damage Reduction
-						Tooltip: ""
+						Tooltip: Reduce the damage of certain projectiles after they have collided or bounced
 					}
 
 					NoLineOfSightDamageReduction: {
@@ -350,7 +337,7 @@ Mods: {
 						Tooltip: ""
 					}
 
-					Tooltip: ""
+					Tooltip: Require each team to deal the maximum life in total damage to kill this NPC
 				}
 
 				GhostHealMaxDistanceNpc: {
@@ -378,70 +365,6 @@ Mods: {
 
 					AwardBountyEveryKill: {
 						Label: Award Bounty Every Kill
-						Tooltip: ""
-					}
-				}
-
-				AdventureClientConfig: {
-					DisplayName: Client
-
-					PlayerOutline: {
-						Label: Player Outline
-						Tooltip: ""
-					}
-
-					ShiftEnterOpensAllChat: {
-						Label: Shift Enter Opens All Chat
-						Tooltip: ""
-					}
-
-					ShowPauseMessage: {
-						Tooltip: ""
-						Label: Show Pause Message
-					}
-
-					SoundEffect: {
-						Label: Sound Effect
-						Tooltip: ""
-					}
-
-					IsVanillaDashEnabled: {
-						Label: Is Vanilla Dash Enabled
-						Tooltip:
-							'''
-							On: Dash as usual with double tap
-							Off: Disables double tap dash. Use keybind instead
-							'''
-					}
-
-					OpenMapAfterRecall: {
-						Label: "[i:2435] Open Map After Recall"
-						Tooltip: Opens the map instantly after the mirror has finished channeling
-					}
-
-					ShowPopupText: {
-						Label: "[i:159] Show Popup Text"
-						Tooltip: Shows popup text related to item
-					}
-
-					Headers.AdventureMirror: Adventure Mirror
-
-					ShowPlayerIndicationWhenWhenHovering: {
-						Label: Show Player Indication When When Hovering
-						Tooltip: Shows arrow and player head on the fullscreen map when hovering the teleport option above a player
-					}
-				}
-
-				PlayerOutlineConfig: {
-					Tooltip: ""
-
-					Self: {
-						Label: Self
-						Tooltip: ""
-					}
-
-					Team: {
-						Label: Team
 						Tooltip: ""
 					}
 				}
@@ -745,7 +668,7 @@ Mods: {
 					Tooltip: ""
 
 					PlanteraBulbChanceDenominator: {
-						Label: Plantera Bulb Chance Denominator
+						Label: "[i:PvPAdventure/PlanterasBulbConfig] Plantera Bulb Chance Denominator"
 						Tooltip: ""
 					}
 
@@ -976,22 +899,17 @@ Mods: {
 				DisplayName: Adventure Client Config
 
 				PlayerOutline: {
-					Label: Player Outline
-					Tooltip: ""
+					Label: "[i:PvPAdventure/MatteConfig] Player Outline"
+					Tooltip: Visual outline around players
 				}
 
 				ShiftEnterOpensAllChat: {
 					Label: Shift Enter Opens All Chat
-					Tooltip: ""
-				}
-
-				ShowPauseMessage: {
-					Label: Show Pause Message
-					Tooltip: ""
+					Tooltip: Pressing shift+enter opens the all chat
 				}
 
 				SoundEffect: {
-					Label: Sound Effect
+					Label: "[i:507] Sound Effect"
 					Tooltip: ""
 				}
 
@@ -1000,25 +918,33 @@ Mods: {
 					Tooltip: Permanently decreases maximum life by 5
 				}
 
-				Headers.AdventureMirror: Adventure Mirror Header
-
-				OpenMapAfterRecall: {
-					Label: Open Map After Recall
-					Tooltip: ""
-				}
-
-				ShowPopupText: {
-					Label: Show Popup Text
-					Tooltip: ""
-				}
-
-				ShowPlayerIndicationWhenWhenHovering: {
-					Label: Show Player Indication When When Hovering
-					Tooltip: ""
+				Headers: {
+					AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
+					General: "[i:Cog] General"
+					SoundEffects: Sound Effects
 				}
 
 				IsVanillaDashEnabled: {
-					Label: Is Vanilla Dash Enabled
+					Label: Vanilla Dash
+					Tooltip:
+						'''
+						On: Dash as usual by double tapping a movement direction (vanilla)
+						Off: Disables vanilla dash in favor of dash keybind
+						'''
+				}
+
+				OpenMapAfterRecall: {
+					Label: Open Map After Recall Completes
+					Tooltip: Opens the map instantly after recall completes
+				}
+
+				ShowPopupText: {
+					Label: Show Countdown
+					Tooltip: Shows time remaining until recall completes above the player's head
+				}
+
+				PlaySound: {
+					Label: Play Sound
 					Tooltip: ""
 				}
 			}
@@ -1303,37 +1229,37 @@ Mods: {
 				Tooltip: ""
 
 				LifeFruitChanceDenominator: {
-					Label: Life Fruit Chance Denominator
+					Label: "[i:1291] Life Fruit Chance Denominator"
 					Tooltip: ""
 				}
 
 				LifeFruitExpertChanceDenominator: {
-					Label: Life Fruit Expert Chance Denominator
+					Label: "[i:1291] Life Fruit Expert Chance Denominator"
 					Tooltip: ""
 				}
 
 				LifeFruitMinimumDistanceBetween: {
-					Label: Life Fruit Minimum Distance Between
+					Label: "[i:1291] Life Fruit Minimum Distance Between"
 					Tooltip: ""
 				}
 
 				PlanteraBulbChanceDenominator: {
-					Label: Plantera Bulb Chance Denominator
+					Label: "[i:PvPAdventure/PlanterasBulbConfig] Plantera Bulb Chance Denominator"
 					Tooltip: ""
 				}
 
 				ChlorophyteSpreadChanceModifier: {
-					Label: Chlorophyte Spread Chance Modifier
+					Label: "[i:947] Chlorophyte Spread Chance Modifier"
 					Tooltip: ""
 				}
 
 				ChlorophyteGrowChanceModifier: {
-					Label: Chlorophyte Grow Chance Modifier
+					Label: "[i:947] Chlorophyte Grow Chance Modifier"
 					Tooltip: ""
 				}
 
 				ChlorophyteGrowLimitModifier: {
-					Label: Chlorophyte Grow Limit Modifier
+					Label: "[i:947] Chlorophyte Grow Limit Modifier"
 					Tooltip: ""
 				}
 			}
@@ -1372,6 +1298,130 @@ Mods: {
 				Items: {
 					Label: Items
 					Tooltip: ""
+				}
+			}
+
+			AdventureServerConfig: {
+				DisplayName: Adventure Server Config
+
+				Headers: {
+					Points: "[i:GoldCoin] Points"
+					Combat: "[i:273] Combat"
+					Items: "[i:Chest] Items"
+					NPCs: "[i:267] NPCs"
+					Gameplay: "[i:Stopwatch] Gameplay"
+					General: "[i:Cog] General"
+					WorldGen: "[i:WorldGlobe] World Gen"
+				}
+
+				Points: {
+					Label: Points
+					Tooltip: ""
+				}
+
+				Bounties: {
+					Label: Bounties
+					Tooltip: ""
+				}
+
+				Combat: {
+					Label: Combat
+					Tooltip: ""
+				}
+
+				PreventUse: {
+					Label: Prevent Use
+					Tooltip: ""
+				}
+
+				NpcSpawnAnnouncements: {
+					Label: Npc Spawn Announcements
+					Tooltip: ""
+				}
+
+				BossOrder: {
+					Label: Boss Order
+					Tooltip: ""
+				}
+
+				OnlyDisplayWorldEvilBoss: {
+					Label: Only Display World Evil Boss
+					Tooltip: ""
+				}
+
+				BossInvulnerableProjectiles: {
+					Label: Boss Invulnerable Projectiles
+					Tooltip: ""
+				}
+
+				InvasionSizes: {
+					Label: Invasion Sizes
+					Tooltip: ""
+				}
+
+				SpawnImmuneFrames: {
+					Label: Spawn Immune Frames
+					Tooltip: ""
+				}
+
+				CrashoutMessages: {
+					Label: Crashout Messages
+					Tooltip: ""
+				}
+
+				AllowConfigModification: {
+					Label: Allow Config Modification
+					Tooltip: Discord IDs that are allowed to modify the server configuration
+				}
+
+				BoundSpawnChance: {
+					Label: Bound Spawn Chance
+					Tooltip: Percent chance that our bound NPCs spawn
+				}
+
+				RemovePrefixes: {
+					Label: Remove Prefixes
+					Tooltip: ""
+				}
+
+				ItemStatistics: {
+					Label: Item Statistics
+					Tooltip: ""
+				}
+
+				WorldGeneration: {
+					Label: World Generation
+					Tooltip: ""
+				}
+
+				PreventAutoReuse: {
+					Label: Prevent Auto Reuse
+					Tooltip: ""
+				}
+
+				NpcBalance: {
+					Label: Npc Balance
+					Tooltip: ""
+				}
+
+				ChestItemReplacements: {
+					Label: Chest Item Replacements
+					Tooltip: ""
+				}
+
+				MinimumDamageReceivedByPlayers: {
+					Label: Minimum Damage Received By Players
+					Tooltip: ""
+				}
+
+				MinimumDamageReceivedByPlayersFromPlayer: {
+					Label: Minimum Damage Received By Players From Player
+					Tooltip: ""
+				}
+
+				AdventureMirrorRecallFrames: {
+					Label: "[i:PvPAdventure/AdventureMirror] Adventure Mirror Recall Frames"
+					Tooltip: The number of frames before recall completes
 				}
 			}
 		}
@@ -1484,6 +1534,16 @@ Mods: {
 			CorruptionKeyMold: {
 				Tooltip: Used for crafting a Corruption Key
 				DisplayName: Corruption Key Mold
+			}
+
+			PlanterasBulbConfig: {
+				DisplayName: Planteras Bulb Config
+				Tooltip: ""
+			}
+
+			MatteConfig: {
+				DisplayName: Matte Config
+				Tooltip: ""
 			}
 		}
 

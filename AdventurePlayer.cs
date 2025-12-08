@@ -310,7 +310,7 @@ public class AdventurePlayer : ModPlayer
         self.pvpDeath = false;
         orig(self, context);
         // Remove immune and immune time applied during spawn.
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
         self.immuneTime = adventureConfig.SpawnImmuneFrames;
         self.immune = self.immuneTime > 0;
     }
@@ -419,7 +419,7 @@ public class AdventurePlayer : ModPlayer
             return false;
 
         _playerMeleeInvincibleTime[target.whoAmI] =
-            ModContent.GetInstance<AdventureConfig>().Combat.MeleeInvincibilityFrames;
+            ModContent.GetInstance<AdventureServerConfig>().Combat.MeleeInvincibilityFrames;
 
         return true;
     }
@@ -602,7 +602,7 @@ public class AdventurePlayer : ModPlayer
             return;
 
         RecentDamageFromPlayer = new((byte)damagerPlayer.whoAmI,
-            ModContent.GetInstance<AdventureConfig>().Combat.RecentDamagePreservationFrames);
+            ModContent.GetInstance<AdventureServerConfig>().Combat.RecentDamagePreservationFrames);
     }
 
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genDust,
@@ -901,7 +901,7 @@ public class AdventurePlayer : ModPlayer
     {
         modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
         {
-            var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
             info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayers);
             if (info.PvP)
                 info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayersFromPlayer);
@@ -910,7 +910,7 @@ public class AdventurePlayer : ModPlayer
         if (!modifiers.PvP)
             return;
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
         var playerDamageBalance = adventureConfig.Combat.PlayerDamageBalance;
 
         var sourcePlayer = Main.player[modifiers.DamageSource.SourcePlayerIndex];
@@ -956,7 +956,7 @@ public class AdventurePlayer : ModPlayer
         if (!info.PvP)
             return;
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         // Only play hit markers on clients that we hurt that aren't ourselves
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
@@ -983,7 +983,7 @@ public class AdventurePlayer : ModPlayer
 
     public override bool? CanAutoReuseItem(Item item)
     {
-        if (ModContent.GetInstance<AdventureConfig>().PreventAutoReuse.Contains(new(item.type)))
+        if (ModContent.GetInstance<AdventureServerConfig>().PreventAutoReuse.Contains(new(item.type)))
             return false;
 
         return null;
