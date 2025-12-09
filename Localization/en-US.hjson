@@ -1557,6 +1557,8 @@ Mods: {
 				Truffle.DisplayName: Bound. Truffle
 				WitchDoctor.DisplayName: Bound. Witch Doctor
 			}
+
+			Target.DisplayName: Target
 		}
 
 		Tools: {

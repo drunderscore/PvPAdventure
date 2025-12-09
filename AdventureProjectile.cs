@@ -555,11 +555,11 @@ public class AdventureProjectile : GlobalProjectile
         {
             if (projectile.type == ProjectileID.MaceWhip)
             {
-                projectile.WhipSettings.RangeMultiplier = 1.03f; // this is like 20% range
+                projectile.WhipSettings.RangeMultiplier = 1.56f; // this is like 20% range
             }
             if (projectile.type == ProjectileID.RainbowWhip)
             {
-                projectile.WhipSettings.RangeMultiplier = 1.43f; // this is like 20% range
+                projectile.WhipSettings.RangeMultiplier = 1.75f; // this is like 20% range
             }
             if (projectile.type == ProjectileID.CoolWhip)
             {
@@ -784,10 +784,30 @@ public class AdventureProjectile : GlobalProjectile
                    entity.type == ProjectileID.HallowBossSplitShotCore ||
                    entity.type == ProjectileID.HallowBossLastingRainbow;
         }
-
         public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
         {
             modifiers.SourceDamage *= 0.75f;
+            if (Main.dayTime)
+            {
+                modifiers.SourceDamage *= 0.006f;
+            }
+        }
+    }
+
+    public class EmpressContactDamageNerf : GlobalNPC
+    {
+        public override bool AppliesToEntity(NPC entity, bool lateInstantiation)
+        {
+            return entity.type == NPCID.HallowBoss;
+        }
+
+        public override void ModifyHitPlayer(NPC npc, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.SourceDamage *= 0.75f;
+            if (Main.dayTime)
+            {
+                modifiers.SourceDamage *= 0.01f;
+            }
         }
     }
     public class VanillaPirahinaGun : GlobalProjectile
