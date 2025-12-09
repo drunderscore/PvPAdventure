@@ -1,7 +1,10 @@
 using System;
 using System.ComponentModel;
 using Newtonsoft.Json;
+using PvPAdventure.Core.ConfigElements;
+using PvPAdventure.Core.HealthBars;
 using Terraria.Audio;
+using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 
 namespace PvPAdventure;
@@ -11,29 +14,57 @@ public class AdventureClientConfig : ModConfig
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
     [Header("General")]
-    [BackgroundColor(50, 70, 120)]
+    [BackgroundColor(50, 70, 120, 200)]
     [DefaultValue(true)] public bool ShiftEnterOpensAllChat;
 
-    [BackgroundColor(50, 70, 120)]
+    [BackgroundColor(50, 70, 120, 200)]
     [DefaultValue(true)] public bool IsVanillaDashEnabled;
 
-    [BackgroundColor(50, 70, 120)]
+    [BackgroundColor(50, 70, 120, 200)]
     [Expand(false, false)]
     public PlayerOutlineConfig PlayerOutline = new();
 
     [Header("SoundEffects")]
-    [BackgroundColor(90, 50, 130)]
+    [BackgroundColor(90, 50, 130, 200)]
     [Expand(false,false)]
     public SoundEffectConfig SoundEffect = new();
 
     [Header("AdventureMirror")]
-    [BackgroundColor(30, 90, 90)]
+    [BackgroundColor(30, 90, 90, 200)]
     [DefaultValue(true)] public bool OpenMapAfterRecall;
 
-    [BackgroundColor(30, 90, 90)]
+    [BackgroundColor(30, 90, 90, 200)]
     [DefaultValue(true)] public bool ShowPopupText;
-    [BackgroundColor(30, 90, 90)]
+    [BackgroundColor(30, 90, 90, 200)]
     [DefaultValue(true)] public bool PlaySound;
+
+    [Header("HealthBars")]
+    [BackgroundColor(200, 30, 30, 150)]
+    [DefaultValue(true)]
+    [CustomModConfigItem(typeof(HealthbarShowElement))]
+    public bool ShowHealthBars;
+
+    [BackgroundColor(200, 30, 30, 150)]
+    [Increment(0.5f)]
+    [Range(1f, 2f)]
+    [DefaultValue(1.0f)]
+    [Slider]
+    [CustomModConfigItem(typeof(HealthbarScaleElement))]
+    public float HealthbarScale;
+
+    [Increment(1)]
+    [Range(0, 100)]
+    [DefaultValue(0)]
+    [BackgroundColor(200, 30, 30, 150)]
+    [CustomModConfigItem(typeof(HealthbarOffsetElement))]
+    public int HealthbarYOffset;
+
+    [DrawTicks]
+    [CustomModConfigItem(typeof(HealthbarStyleConfigElement))]
+    [OptionStrings(["Vanilla", "Fancy", "Golden", "Leaf", "Retro", "Sticks", "StoneGold", "Tribute", "TwigLeaf", "Valkyrie"])]
+    [DefaultValue("Fancy")]
+    [BackgroundColor(200, 30, 30, 150)]
+    public string Theme;
 
     #region Configs
     public class PlayerOutlineConfig
@@ -150,4 +181,12 @@ public class AdventureClientConfig : ModConfig
     }
     #endregion
 
+    public override void OnChanged()
+    {
+        var hb = ModContent.GetInstance<HealthbarSystem>();
+        if (hb == null) return;
+
+        hb.Scale = HealthbarScale;
+        hb.Offset = HealthbarYOffset;
+    }
 }

@@ -24,6 +24,7 @@ internal class AdventureMirror : ModItem
         Item.rare = ItemRarityID.Blue;
         Item.value = Item.buyPrice(gold: 5);
         Item.noUseGraphic = false;
+        Item.favorited = true;
     }
     public override bool ConsumeItem(Player player) => false;
 

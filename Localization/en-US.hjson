@@ -922,6 +922,7 @@ Mods: {
 					AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
 					General: "[i:Cog] General"
 					SoundEffects: Sound Effects
+					HealthBars: "[i:PvPAdventure/HPVanillaConfigItem] Health Bars"
 				}
 
 				IsVanillaDashEnabled: {
@@ -945,6 +946,26 @@ Mods: {
 
 				PlaySound: {
 					Label: Play Sound
+					Tooltip: Plays a sound when recalling the player
+				}
+
+				ShowHealthBars: {
+					Label: Show Health Bars
+					Tooltip: ""
+				}
+
+				HealthbarScale: {
+					Label: Healthbar Scale
+					Tooltip: ""
+				}
+
+				HealthbarYOffset: {
+					Label: Healthbar Y Offset
+					Tooltip: ""
+				}
+
+				Theme: {
+					Label: Theme
 					Tooltip: ""
 				}
 			}
@@ -1543,6 +1564,16 @@ Mods: {
 
 			MatteConfig: {
 				DisplayName: Matte Config
+				Tooltip: ""
+			}
+
+			HbConfig: {
+				DisplayName: Hb Config
+				Tooltip: ""
+			}
+
+			HPVanillaConfigItem: {
+				DisplayName: H P Vanilla Config Item
 				Tooltip: ""
 			}
 		}

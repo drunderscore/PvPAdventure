@@ -5,7 +5,6 @@ using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Integrations.StartGame;
-using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.System;
 using Terraria;

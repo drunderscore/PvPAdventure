@@ -17,6 +17,6 @@
       "executablePath": "dotnet",
       "commandLineArgs": "$(tMLPath) -skipselect",
       "workingDirectory": "$(tMLSteamPath)"
-    },
+    }
   }
 }

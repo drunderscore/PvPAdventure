@@ -1,6 +1,6 @@
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Content.Items;
+namespace PvPAdventure.Content.Items.Config;
 public class MatteConfig : ModItem
 {
     public override void SetDefaults()

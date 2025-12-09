@@ -23,6 +23,26 @@ public static class Ass
     public static Asset<Texture2D> SliderHighlight;
     public static Asset<Texture2D> SliderGradient;
 
+    // Healthbar
+    public static Asset<Texture2D> HP_Fancy; // visual placeholder only
+    public static Asset<Texture2D> HP_Golden;
+    public static Asset<Texture2D> HP_Golden_Left;
+    public static Asset<Texture2D> HP_Golden_Mid;
+    public static Asset<Texture2D> HP_Leaf;
+    public static Asset<Texture2D> HP_Leaf_Left;
+    public static Asset<Texture2D> HP_Leaf_Mid;
+
+    // Temp assets with incorrect dimensions
+    public static Asset<Texture2D> HP_Retro;
+    public static Asset<Texture2D> HP_Sticks;
+    public static Asset<Texture2D> HP_StoneGold;
+    public static Asset<Texture2D> HP_Tribute;
+    public static Asset<Texture2D> HP_TwigLeaf;
+    public static Asset<Texture2D> HP_Valkyrie;
+
+    // Temp vanilla health bar
+    public static Asset<Texture2D> HPVanillaConfigItem;
+
     public static bool Initialized { get; set; }
 
     static Ass()

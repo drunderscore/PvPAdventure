@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Discord.Rest;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
+using PvPAdventure.Content.Items;
 using PvPAdventure.System;
 using PvPAdventure.System.Client;
 using Terraria;
@@ -21,7 +20,6 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
-using Mono.Cecil.Cil;
 using static PvPAdventure.AdventurePlayer;
 
 namespace PvPAdventure;
@@ -2365,7 +2363,7 @@ public class PvPAdventurePlayer : ModPlayer
     {
         if (!hasReceivedStarterBag)
         {
-            int itemType = ModContent.ItemType<AdventureItem.AdventureBag>();
+            int itemType = ModContent.ItemType<AdventureBag>();
             var item = new Item();
             item.SetDefaults(itemType);
             Player.inventory[1] = item; // Adds to second inventory slot
