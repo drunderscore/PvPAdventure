@@ -99,7 +99,7 @@ internal class SpawnSelectorCharacter : UIPanel
         DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, _playerBGTexture.Value, Color.White, 5);
         DrawMapFullscreenBackground(sb, rect, player);
 
-        AdventureMirrorPlayer.ForceFullBrightOnce = true;
+        SpawnSelectorPlayer.ForceFullBrightOnce = true;
         try
         {
             Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
@@ -116,7 +116,7 @@ internal class SpawnSelectorCharacter : UIPanel
         }
         finally
         {
-            AdventureMirrorPlayer.ForceFullBrightOnce = false;
+            SpawnSelectorPlayer.ForceFullBrightOnce = false;
         }
 
         // Use the actual layout widths, not the texture width

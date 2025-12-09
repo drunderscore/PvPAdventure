@@ -243,10 +243,10 @@ public class ItemSlotHooks : ModSystem
             {
                 // RETURN EARLY for all other items other than Adventure Mirror
                 // Meaning we allow ItemSlot use while AM is the held item.
-                //if (player.HeldItem.type != ModContent.ItemType<AdventureMirror>())
-                //{
-                    //return;
-                //}
+                if (player.HeldItem.type != ModContent.ItemType<AdventureMirror>())
+                {
+                    return;
+                }
 
             }
         }
