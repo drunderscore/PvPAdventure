@@ -1068,9 +1068,9 @@ public class AdventurePlayer : ModPlayer
                     break;
                 }
             }
-            if (largeWhipIncrease)
+            if (!largeWhipIncrease)
             {
-                Player.whipRangeMultiplier += 0.45f;
+                Player.whipRangeMultiplier -= 0.65f;
             }
         }
     }
@@ -1254,7 +1254,7 @@ public class BitingEmbracePlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 2.5f);
+                        duration = (int)(duration * 3.5f);
                     }
                     applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
@@ -1341,7 +1341,7 @@ public class BitingEmbracePlayer : ModPlayer
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
                 {
                     isSummon = true;
                 }
@@ -1359,9 +1359,11 @@ public class BitingEmbracePlayer : ModPlayer
                 }
             }
 
-            if (!isSummon && !isDebuffApplier)
+            if (!isSummon)
             {
-                modifiers.SourceDamage.Flat += 6;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 7;
+                };
             }
         }
     }
@@ -1386,7 +1388,7 @@ public class PressurePointsPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 2.5f);
+                        duration = (int)(duration * 3.5f);
                     }
                     applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
@@ -1472,7 +1474,7 @@ public class PressurePointsPlayer : ModPlayer
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
                 {
                     isSummon = true;
                 }
@@ -1490,9 +1492,11 @@ public class PressurePointsPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon && !isDebuffApplier)
+            if (!isSummon)
             {
-                modifiers.SourceDamage.Flat += 6;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 6;
+                };
             }
         }
     }
@@ -1517,7 +1521,7 @@ public class BrittleBonesPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 2.5f);
+                        duration = (int)(duration * 3.5f);
                     }
                     applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
@@ -1603,7 +1607,7 @@ public class BrittleBonesPlayer : ModPlayer
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
                 {
                     isSummon = true;
                 }
@@ -1621,9 +1625,11 @@ public class BrittleBonesPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon && !isDebuffApplier)
+            if (!isSummon)
             {
-                modifiers.SourceDamage.Flat += 7;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 7;
+                };
             }
         }
     }
@@ -1648,7 +1654,7 @@ public class MarkedPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 2.5f);
+                        duration = (int)(duration * 3.5f);
                     }
                     applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
@@ -1734,7 +1740,7 @@ public class MarkedPlayer : ModPlayer
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                if (proj != null && proj.active && ( proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
                 {
                     isSummon = true;
                 }
@@ -1752,9 +1758,11 @@ public class MarkedPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon && !isDebuffApplier)
+            if (!isSummon)
             {
-                modifiers.SourceDamage.Flat += 9;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 9;
+                };
             }
         }
     }
@@ -1763,6 +1771,7 @@ public class MarkedPlayer : ModPlayer
 public class AnathemaPlayer : ModPlayer
 {
     public int anathemaApplierIndex = -1;
+    public int dummyNPCIndex = -1;
 
     public override void PostHurt(Player.HurtInfo info)
     {
@@ -1779,7 +1788,7 @@ public class AnathemaPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 2.5f);
+                        duration = (int)(duration * 3.5f);
                     }
                     applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
@@ -1809,6 +1818,35 @@ public class AnathemaPlayer : ModPlayer
 
         if (Player.HasBuff<Anathema>())
         {
+            bool needsSpawn = dummyNPCIndex < 0 ||
+                              dummyNPCIndex >= Main.maxNPCs ||
+                              !Main.npc[dummyNPCIndex].active ||
+                              Main.npc[dummyNPCIndex].type != ModContent.NPCType<Target>();
+
+            if (needsSpawn)
+            {
+
+                int npcIndex = NPC.NewNPC(Player.GetSource_FromThis(), (int)Player.Center.X, (int)Player.Center.Y, ModContent.NPCType<Target>());
+
+                if (npcIndex >= 0 && npcIndex < Main.maxNPCs)
+                {
+                    Target targetNPC = Main.npc[npcIndex].ModNPC as Target;
+                    if (targetNPC != null)
+                    {
+                        targetNPC.targetPlayerIndex = Player.whoAmI;
+                    }
+                    dummyNPCIndex = npcIndex;
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npcIndex);
+                    }
+                }
+                else
+                {
+                }
+            }
+
             for (int i = 0; i < 3; i++)
             {
                 float distance = Main.rand.NextFloat(40f, 80f);
@@ -1846,6 +1884,17 @@ public class AnathemaPlayer : ModPlayer
         else
         {
             anathemaApplierIndex = -1;
+
+            // Remove dummy NPC when buff expires
+            if (dummyNPCIndex >= 0 && dummyNPCIndex < Main.maxNPCs && Main.npc[dummyNPCIndex].active)
+            {
+                Main.npc[dummyNPCIndex].active = false;
+                if (Main.netMode == NetmodeID.Server)
+                {
+                    NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, dummyNPCIndex);
+                }
+            }
+            dummyNPCIndex = -1;
         }
     }
 
@@ -1860,7 +1909,7 @@ public class AnathemaPlayer : ModPlayer
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
                 {
                     isSummon = true;
                 }
@@ -1878,9 +1927,11 @@ public class AnathemaPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon && !isDebuffApplier)
+            if (!isSummon)
             {
-                modifiers.SourceDamage.Flat += 20;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 20;
+                };
                 modifiers.FinalDamage *= 1.1f;
             }
         }
@@ -1906,7 +1957,7 @@ public class ShatteredArmorPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 2.5f);
+                        duration = (int)(duration * 3.5f);
                     }
                     applierIndex = info.DamageSource.SourcePlayerIndex;
                 }
@@ -1964,7 +2015,7 @@ public class ShatteredArmorPlayer : ModPlayer
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
                 {
                     isSummon = true;
                 }
@@ -1982,9 +2033,11 @@ public class ShatteredArmorPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon && !isDebuffApplier)
+            if (!isSummon)
             {
-                modifiers.SourceDamage.Flat += 8;
+                modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
+                    info.Damage += 8;
+                };
                 modifiers.FinalDamage *= 1.12f;
             }
         }
@@ -2003,7 +2056,7 @@ public class HellhexPlayer : ModPlayer
         if (info.DamageSource.SourceProjectileLocalIndex >= 0)
         {
             Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
-            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
             {
                 return true;
             }
@@ -2030,7 +2083,7 @@ public class HellhexPlayer : ModPlayer
         if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
         {
             Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
             {
                 return true;
             }
@@ -2057,7 +2110,7 @@ public class HellhexPlayer : ModPlayer
         if (damageSource.SourceProjectileLocalIndex >= 0)
         {
             Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
-            if (proj != null && proj.active && (proj.minion || proj.sentry || proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+            if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
             {
                 return true;
             }
@@ -2136,7 +2189,7 @@ public class HellhexPlayer : ModPlayer
                     TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
                     if (tikiPlayer.hasTikiSet)
                     {
-                        duration = (int)(duration * 2.5f);
+                        duration = (int)(duration * 3.5f);
                     }
 
                     applierIndex = info.DamageSource.SourcePlayerIndex;

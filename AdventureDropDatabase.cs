@@ -116,7 +116,17 @@ public class AdventureDropDatabase : ModSystem
                 break;
             case NPCID.Harpy:
                 foreach (var drop in drops)
+                {
                     ModifyDropRate(drop, ItemID.GiantHarpyFeather, 1, 75);
+                    ModifyDropRate(drop, ItemID.Feather, 1, 1);
+                }
+                break;
+            case NPCID.WyvernHead:
+                foreach (var drop in drops)
+                {
+                    npcLoot.RemoveWhere(drop => true);
+                    npcLoot.Add(ItemDropRule.Common(ItemID.SoulofFlight, 1, 10, 20));
+                }
                 break;
             case NPCID.IceGolem:
                 foreach (var drop in drops)
@@ -337,7 +347,11 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.EyeofCthulhu:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.Binoculars, 1, 1);
+                ModifyDropRate(drop, ItemID.Binoculars, 1, 1);
+                npcLoot.Add(ItemDropRule.Common(ItemID.VilePowder, 1, 10, 10));
+                npcLoot.RemoveWhere(drop =>
+    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.CorruptSeeds) ||
+    drop is LeadingConditionRule);
                 break;
 
             case NPCID.DungeonSpirit:
@@ -430,7 +444,7 @@ public class AdventureDropDatabase : ModSystem
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
                 npcLoot.Add(ItemDropRule.Common(ItemID.IlluminantHook, 4, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 5, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
 
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
@@ -442,7 +456,7 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.BigMimicCorruption:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
                 npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 5, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
                     ItemID.ClingerStaff,
@@ -527,12 +541,8 @@ public class AdventureDropDatabase : ModSystem
 
                 foreach (var drop in drops)
                 {
-                    if (drop is OneFromOptionsNotScaledWithLuckDropRule oneFromOptionsNotScaledWithLuckDropRule)
-                    {
-                        oneFromOptionsNotScaledWithLuckDropRule.dropIds = oneFromOptionsNotScaledWithLuckDropRule
-                            .dropIds.Where(id => id != ItemID.FishronWings).ToArray();
+                            ModifyDropRate(drop, ItemID.FishronWings, 1, 1);
                     }
-                }
 
                 var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
                 dukefirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
@@ -551,8 +561,8 @@ public class AdventureDropDatabase : ModSystem
 
 
             case NPCID.HallowBoss:
-                npcLoot.RemoveWhere(drop =>
-                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.RainbowWings));
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.RainbowWings, 1, 1);
                 break;
 
             case NPCID.TheDestroyer:
