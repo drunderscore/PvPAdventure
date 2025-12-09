@@ -1068,9 +1068,9 @@ public class AdventurePlayer : ModPlayer
                     break;
                 }
             }
-            if (largeWhipIncrease)
+            if (!largeWhipIncrease)
             {
-                Player.whipRangeMultiplier += 0.45f;
+                Player.whipRangeMultiplier -= 0.65f;
             }
         }
     }
