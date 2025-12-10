@@ -248,46 +248,47 @@ public class AdventureServerConfig : ModConfig
             public Dictionary<ItemDefinition, float> ItemDamageMultipliers { get; set; } = new();
             public Dictionary<ProjectileDefinition, float> ProjectileDamageMultipliers { get; set; } = new();
 
+            [Increment(0.01f)]
+            [Range(0.0f, 1.0f)]
+            public Dictionary<ItemDefinition, float> ItemArmorPenetration { get; set; } = new();
+
+            [Increment(0.01f)]
+            [Range(0.0f, 1.0f)]
+            public Dictionary<ProjectileDefinition, float> ProjectileArmorPenetration { get; set; } = new();
+
             public class Falloff
             {
                 [Increment(0.0001f)]
                 [Range(0.0f, 1.0f)]
                 public float Coefficient { get; set; }
-
                 [Increment(0.05f)]
                 [Range(0.0f, 100.0f)]
                 public float Forward { get; set; }
-
                 public float CalculateMultiplier(float tileDistance) =>
                     (float)Math.Min(Math.Pow(Math.E, -(Coefficient * (tileDistance - Forward) / 100.0)), 1.0);
             }
-
             public Dictionary<ItemDefinition, Falloff> ItemFalloff { get; set; } = new();
             public Dictionary<ProjectileDefinition, Falloff> ProjectileFalloff { get; set; } = new();
-
             [DefaultValue(null)][NullAllowed] public Falloff DefaultFalloff { get; set; }
         }
 
         [Range(0, 5 * 60)][DefaultValue(8)] public int MeleeInvincibilityFrames { get; set; }
-
         [Range(0, 60 * 2 * 60)]
         [DefaultValue(15 * 60)]
         public int RecentDamagePreservationFrames { get; set; }
-
         public PlayerDamageBalanceConfig PlayerDamageBalance { get; set; } = new();
-
         [Range(0, 5 * 60)][DefaultValue(8)] public int StandardInvincibilityFrames { get; set; }
-
         [DefaultValue(0.2f)] public float GhostHealMultiplier { get; set; }
-
         [DefaultValue(1.0f)]
         public float GhostHealMultiplierWearers { get; set; }
-
         [Range(0.0f, 3000.0f)]
         [DefaultValue(3000.0f)]
         public float GhostHealMaxDistance { get; set; }
-
         public float GhostHealMaxDistanceNpc { get; set; }
+        [Increment(0.01f)]
+        [Range(0.0f, 1.0f)]
+        [DefaultValue(0.5f)]
+        public float GhostHealArmorPenetration { get; set; }
 
         public class TeamLifeConfig
         {

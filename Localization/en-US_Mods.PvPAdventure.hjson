@@ -695,6 +695,11 @@ Configs: {
 			Label: Award Bounty Every Kill
 			Tooltip: ""
 		}
+
+		GhostHealArmorPenetration: {
+			Tooltip: ""
+			Label: Ghost Heal Armor Penetration
+		}
 	}
 
 	CannotModify: You are not permitted to modify this config.
@@ -725,6 +730,16 @@ Configs: {
 		DefaultFalloff: {
 			Label: Default Falloff
 			Tooltip: ""
+		}
+
+		ProjectileArmorPenetration: {
+			Tooltip: ""
+			Label: Projectile Armor Penetration
+		}
+
+		ItemArmorPenetration: {
+			Tooltip: ""
+			Label: Item Armor Penetration
 		}
 	}
 

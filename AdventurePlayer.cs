@@ -912,11 +912,13 @@ public class AdventurePlayer : ModPlayer
 
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
         var playerDamageBalance = adventureConfig.Combat.PlayerDamageBalance;
-
         var sourcePlayer = Main.player[modifiers.DamageSource.SourcePlayerIndex];
         var tileDistance = Player.Distance(sourcePlayer.position) / 16.0f;
-
         var hasIncurredFalloff = false;
+
+        // Track base armor penetration
+        float baseArmorPen = 0f;
+        bool isMagicDamage = false;
 
         var sourceItem = modifiers.DamageSource.SourceItem;
         if (sourceItem != null && !sourceItem.IsAir)
@@ -924,13 +926,20 @@ public class AdventurePlayer : ModPlayer
             var itemDefinition = new ItemDefinition(sourceItem.type);
             if (playerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition, out var multiplier))
                 modifiers.IncomingDamageMultiplier *= multiplier;
-
             if (playerDamageBalance.ItemFalloff.TryGetValue(itemDefinition, out var falloff) &&
                 falloff != null)
             {
                 modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
+            if (playerDamageBalance.ItemArmorPenetration.TryGetValue(itemDefinition, out var armorPen))
+            {
+                baseArmorPen = Math.Clamp(armorPen, 0f, 1f);
+            }
+
+            // Check if this is a magic weapon
+            if (sourceItem.CountsAsClass(DamageClass.Magic))
+                isMagicDamage = true;
         }
 
         if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
@@ -938,17 +947,43 @@ public class AdventurePlayer : ModPlayer
             var projectileDefinition = new ProjectileDefinition(modifiers.DamageSource.SourceProjectileType);
             if (playerDamageBalance.ProjectileDamageMultipliers.TryGetValue(projectileDefinition, out var multiplier))
                 modifiers.IncomingDamageMultiplier *= multiplier;
-
             if (playerDamageBalance.ProjectileFalloff.TryGetValue(projectileDefinition, out var falloff) &&
                 falloff != null)
             {
                 modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
+            if (playerDamageBalance.ProjectileArmorPenetration.TryGetValue(projectileDefinition, out var armorPen))
+            {
+                baseArmorPen = Math.Clamp(armorPen, 0f, 1f);
+            }
+
+            // Check if the projectile is magic damage
+            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            {
+                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                if (proj != null && proj.active && proj.CountsAsClass(DamageClass.Magic))
+                    isMagicDamage = true;
+            }
         }
 
         if (!hasIncurredFalloff && playerDamageBalance.DefaultFalloff != null)
             modifiers.IncomingDamageMultiplier *= playerDamageBalance.DefaultFalloff.CalculateMultiplier(tileDistance);
+
+        // Apply Spectre Hood armor penetration bonus for magic damage
+        float finalArmorPen = baseArmorPen;
+        if (isMagicDamage && sourcePlayer.ghostHeal)
+        {
+            // Formula: increase by configured percentage of remaining penetration
+            float ghostHealPenBonus = adventureConfig.Combat.GhostHealArmorPenetration;
+            finalArmorPen = baseArmorPen + (1f - baseArmorPen) * ghostHealPenBonus;
+        }
+
+        // Apply final armor penetration
+        if (finalArmorPen > 0f)
+        {
+            modifiers.ScalingArmorPenetration += finalArmorPen;
+        }
     }
 
     public override void OnHurt(Player.HurtInfo info)
@@ -1062,7 +1097,7 @@ public class AdventurePlayer : ModPlayer
 
             for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
             {
-                if (Player.armor[i].type == ItemID.PygmyNecklace || Player.armor[i].type == ItemID.HerculesBeetle || (Player.armor[0].type == ItemID.TikiMask && Player.armor[1].type == ItemID.TikiShirt &&Player.armor[2].type == ItemID.TikiPants) || (Player.armor[0].type == ItemID.ObsidianHelm && Player.armor[1].type == ItemID.ObsidianShirt && Player.armor[2].type == ItemID.ObsidianPants))
+                if ((Player.armor[0].type == ItemID.TikiMask && Player.armor[1].type == ItemID.TikiShirt &&Player.armor[2].type == ItemID.TikiPants) || (Player.armor[0].type == ItemID.ObsidianHelm && Player.armor[1].type == ItemID.ObsidianShirt && Player.armor[2].type == ItemID.ObsidianPants) || (Player.armor[0].type == ItemID.BeeHeadgear && Player.armor[1].type == ItemID.BeeBreastplate && Player.armor[2].type == ItemID.BeeGreaves) || (Player.armor[0].type == ItemID.SpiderMask && Player.armor[1].type == ItemID.SpiderBreastplate && Player.armor[2].type == ItemID.SpiderGreaves))
                 {
                     largeWhipIncrease = true;
                     break;
@@ -1359,7 +1394,7 @@ public class BitingEmbracePlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 7;
@@ -1492,7 +1527,7 @@ public class PressurePointsPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 6;
@@ -1625,7 +1660,7 @@ public class BrittleBonesPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 7;
@@ -1758,7 +1793,7 @@ public class MarkedPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 9;
@@ -1927,7 +1962,7 @@ public class AnathemaPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 20;
@@ -2033,7 +2068,7 @@ public class ShatteredArmorPlayer : ModPlayer
                 }
             }
 
-            if (!isSummon)
+            if (!isSummon && !isDebuffApplier)
             {
                 modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) => {
                     info.Damage += 8;

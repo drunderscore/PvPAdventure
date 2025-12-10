@@ -154,8 +154,8 @@ public class AdventureItem : GlobalItem
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
     {
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-
         var itemDefinition = new ItemDefinition(item.type);
+
         if (adventureConfig.Combat.PlayerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition,
                 out var multiplier))
         {
@@ -165,6 +165,17 @@ public class AdventureItem : GlobalItem
             {
                 IsModifier = true,
                 IsModifierBad = true
+            });
+        }
+
+        if (adventureConfig.Combat.PlayerDamageBalance.ItemArmorPenetration.TryGetValue(itemDefinition,
+                out var armorPen))
+        {
+            tooltips.Add(new TooltipLine(Mod, "CombatPlayerArmorPenetration",
+                $"+{(int)(armorPen * 100)}% PvP armor penetration")
+            {
+                IsModifier = true,
+                IsModifierBad = false
             });
         }
 
@@ -496,7 +507,7 @@ public class QuiverNerf : GlobalItem
             item.type == ItemID.ScytheWhip || item.type == ItemID.MaceWhip ||
             item.type == ItemID.RainbowWhip)
             {
-                tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without Pygmy Necklace, Hercules Beetle, or certain Set Bonuses")
+                tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without certain Set Bonuses")
                 {
                     OverrideColor = new Color(255, 100, 100)
                 });

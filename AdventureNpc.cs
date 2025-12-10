@@ -815,7 +815,7 @@ public class Target : ModNPC
         NPC.alpha = 255;
         NPC.HideStrikeDamage = true;
         NPC.friendly = false;
-        NPC.chaseable = true;
+        NPC.chaseable = false; // we don't want this functionality right now, so let's have ts be false
     }
 
     public override bool? CanBeHitByProjectile(Projectile projectile)
