@@ -295,7 +295,7 @@ public class BountyManager : ModSystem
     {
         var team = (Team)killer.team;
 
-        var eligibleBounties = ModContent.GetInstance<AdventureServerConfig>().Bounties
+        var eligibleBounties = ModContent.GetInstance<AdventureServerConfig>().Bounties.ClaimableItems
             .Where(IsBountyAvailable)
             .Select(bounty => bounty.Items)
             .Select(items => items.Select(item => new Item(item.Item.Type, item.Stack, item.Prefix.Type)).ToArray())

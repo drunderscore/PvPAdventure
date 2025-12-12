@@ -377,7 +377,7 @@ Configs: {
 		DisplayName: Adventure Server Config
 
 		Headers: {
-			Points: "[i:GoldCoin] Points"
+			Points: "[i:GoldCoin] Point System"
 			Combat: "[i:273] Combat"
 			Items: "[i:Chest] Items"
 			NPCs: "[i:267] NPCs"
@@ -495,6 +495,26 @@ Configs: {
 			Label: World Generation
 			Tooltip: ""
 		}
+
+		NoMechanicalBossSummonDrops: {
+			Label: No Mechanical Boss Summon Drops
+			Tooltip: ""
+		}
+
+		BossBalance: {
+			Label: Boss Balance
+			Tooltip: ""
+		}
+
+		WeaponBalance: {
+			Label: Weapon Balance
+			Tooltip: ""
+		}
+
+		Other: {
+			Label: Other
+			Tooltip: ""
+		}
 	}
 
 	PointsConfig: {
@@ -512,6 +532,11 @@ Configs: {
 
 		PlayerKill: {
 			Label: Player Kill
+			Tooltip: ""
+		}
+
+		NpcMap: {
+			Label: Npc Map
 			Tooltip: ""
 		}
 	}
@@ -859,6 +884,11 @@ Configs: {
 			Label: No Mechanical Boss Summon Drops
 			Tooltip: ""
 		}
+
+		BossBalance: {
+			Label: Boss Balance
+			Tooltip: ""
+		}
 	}
 
 	FloatStatistic: {
@@ -915,6 +945,225 @@ Configs: {
 		ChlorophyteGrowLimitModifier: {
 			Label: Chlorophyte Grow Limit Modifier
 			Tooltip: Maximum Chlorophyte per 1000 block area
+		}
+	}
+
+	BossBalanceEntry: {
+		Tooltip: ""
+
+		LifeMaxMultiplier: {
+			Label: Life Max Multiplier
+			Tooltip: ""
+		}
+
+		DamageMultiplier: {
+			Label: Damage Multiplier
+			Tooltip: ""
+		}
+
+		TeamLife: {
+			Label: Team Life
+			Tooltip: ""
+		}
+
+		TeamLifeShare: {
+			Label: Team Life Share
+			Tooltip: ""
+		}
+	}
+
+	BossBalanceConfig: {
+		Tooltip: ""
+
+		LifeMaxMultiplier: {
+			Label: Life Max Multiplier
+			Tooltip: ""
+		}
+
+		DamageMultiplier: {
+			Label: Damage Multiplier
+			Tooltip: ""
+		}
+
+		TeamLife: {
+			Label: Team Life
+			Tooltip: ""
+		}
+
+		BossBalance: {
+			Label: Boss Balance
+			Tooltip: ""
+		}
+	}
+
+	BountiesConfig: {
+		Tooltip: ""
+
+		ClaimableItems: {
+			Label: Claimable Items
+			Tooltip: ""
+		}
+
+		AwardBountyEveryKill: {
+			Label: Award Bounty Every Kill
+			Tooltip: ""
+		}
+	}
+
+	WeaponBalanceConfig: {
+		Tooltip: ""
+
+		Damage: {
+			Label: Damage
+			Tooltip: ""
+		}
+
+		ArmorPenetration: {
+			Label: Armor Penetration
+			Tooltip: ""
+		}
+
+		Falloff: {
+			Label: Falloff
+			Tooltip: ""
+		}
+
+		ProjectileBounceDamageReduction: {
+			Label: Projectile Bounce Damage Reduction
+			Tooltip: ""
+		}
+
+		ProjectileLineOfSightDamageReduction: {
+			Label: Projectile Line Of Sight Damage Reduction
+			Tooltip: ""
+		}
+
+		ImmunityFrames: {
+			Label: Immunity Frames
+			Tooltip: ""
+		}
+
+		Other: {
+			Label: Other
+			Tooltip: ""
+		}
+	}
+
+	DamageConfig: {
+		Tooltip: ""
+
+		ItemDamage: {
+			Label: Item Damage
+			Tooltip: ""
+		}
+
+		ProjectileDamage: {
+			Label: Projectile Damage
+			Tooltip: ""
+		}
+	}
+
+	ArmorPenetrationConfig: {
+		Tooltip: ""
+
+		ItemAP: {
+			Label: Item Armor Penetration
+			Tooltip: ""
+		}
+
+		ProjectileAP: {
+			Label: Projectile Armor Penetration
+			Tooltip: ""
+		}
+	}
+
+	FalloffConfig: {
+		Tooltip: ""
+
+		Default: {
+			Label: Default
+			Tooltip: ""
+		}
+
+		PerItem: {
+			Label: Per Item
+			Tooltip: ""
+		}
+
+		PerProjectile: {
+			Label: Per Projectile
+			Tooltip: ""
+		}
+	}
+
+	ImmunityFramesConfig: {
+		Tooltip: ""
+
+		TrueMelee: {
+			Label: True Melee
+			Tooltip: ""
+		}
+
+		PerPlayerGlobal: {
+			Label: Per Player Global
+			Tooltip: ""
+		}
+
+		RecentDamagePreservationFrames: {
+			Label: Recent Damage Preservation Frames
+			Tooltip: ""
+		}
+	}
+
+	OtherConfig: {
+		Tooltip: ""
+
+		SpectreHealing: {
+			Label: Spectre Healing
+			Tooltip: ""
+		}
+	}
+
+	SpectreHealingConfig: {
+		Tooltip: ""
+
+		PvPHealMultiplier: {
+			Label: PvP Heal Multiplier
+			Tooltip: ""
+		}
+
+		PvPSelfHealMultiplier: {
+			Label: PvP Self Heal Multiplier
+			Tooltip: ""
+		}
+
+		PvPHealRange: {
+			Label: PvP Heal Range
+			Tooltip: ""
+		}
+
+		PvEHealRange: {
+			Label: PvE Heal Range
+			Tooltip: ""
+		}
+
+		HealerArmorPenetration: {
+			Label: Healer Armor Penetration
+			Tooltip: ""
+		}
+	}
+
+	NpcPointEntry: {
+		Tooltip: ""
+
+		Npc: {
+			Label: Npc
+			Tooltip: ""
+		}
+
+		Points: {
+			Label: Points
+			Tooltip: ""
 		}
 	}
 }

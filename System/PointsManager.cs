@@ -269,7 +269,7 @@ public class PointsManager : ModSystem
                 UiScoreboard.Invalidate();
         }
 
-        if (config.Combat.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
+        if (config.Bount.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
             ModContent.GetInstance<BountyManager>().Award(killer, victim);
     }
 
