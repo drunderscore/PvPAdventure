@@ -12,6 +12,7 @@ namespace PvPAdventure.Content.Items;
 /// </summary>
 internal class AdventureMirror : ModItem
 {
+    public override string Texture => $"PvPAdventure/Assets/Item/AdventureMirror";
     public override void SetDefaults()
     {
         //Item.CloneDefaults(ItemID.MagicMirror);

@@ -38,6 +38,10 @@ public class ItemSlotHooks : ModSystem
         On_Player.DropSelectedItem -= Hook_DropSelectedItem;
         On_Player.dropItemCheck -= Hook_DropItemCheck;
     }
+    /// <summary>
+    /// Helper method to identify Adventure Mirror
+    /// </summary>
+    private static bool IsAdventureMirror(Item item) => !item.IsAir && item.type == ModContent.ItemType<AdventureMirror>();
 
     // Vanilla method with the item animation check removed for Adventure Mirror.
     private static void Hook_RightClick(
@@ -187,39 +191,39 @@ public class ItemSlotHooks : ModSystem
         orig(self);
     }
 
-    // QUICK TRASH / QUICK SELL (Shift + click)
-    private static bool Hook_LeftClick_SellOrTrash(
-        On_ItemSlot.orig_LeftClick_SellOrTrash orig,
-        Item[] inv, int context, int slot)
+    /// <summary>
+    /// Block selling Adventure Mirror to NPC's
+    /// </summary>
+    private static bool Hook_SellItem(On_Player.orig_SellItem orig,Player self,Item item,int stack)
+    {
+        if (IsAdventureMirror(item))
+        {
+            return false;
+        }
+
+        return orig(self, item, stack);
+    }
+
+    /// <summary>
+    /// Block quick trash/quick sell (shift+click) Adventure Mirror
+    /// </summary>
+    private static bool Hook_LeftClick_SellOrTrash(On_ItemSlot.orig_LeftClick_SellOrTrash orig,Item[] inv, int context, int slot)
     {
         Item item = inv[slot];
 
         if (!item.IsAir && item.type == ModContent.ItemType<AdventureMirror>())
         {
-            //PopupText.NewText(new AdvancedPopupRequest
-            //{
-            //    Color = Color.Crimson,
-            //    Text = Language.GetTextValue("cannot trash!"),
-            //    Velocity = new(0.0f, 4.0f),
-            //    DurationInFrames = 60 * 2
-            //}, Main.LocalPlayer.Top + new Vector2(0, -40));
-
-            //SoundEngine.PlaySound(SoundID.MenuClose);
-            return false; // skip SellOrTrash completely
+            return false; // skip completely
         }
 
         return orig(inv, context, slot);
     }
 
-    // Helper method to identify Adventure Mirror
-    private static bool IsAdventureMirror(Item item)
-    => !item.IsAir && item.type == ModContent.ItemType<AdventureMirror>();
-
-    // Vanilla method with the item animation check removed for Adventure Mirror.
-    // DRAGGING ONTO THE TRASH SLOT / CHESTS / BANKS
-    private static void Hook_LeftClick_ItemArray(
-    On_ItemSlot.orig_LeftClick_ItemArray_int_int orig,
-    Item[] inv, int context, int slot)
+    /// <summary>
+    /// Vanilla method with the item animation check removed for Adventure Mirror.
+    // Draggong onto trash slot / chests / banks
+    /// </summary>
+    private static void Hook_LeftClick_ItemArray(On_ItemSlot.orig_LeftClick_ItemArray_int_int orig,Item[] inv, int context, int slot)
     {
         // Disallow unfavorite for AdventureMirror (Alt + LeftClick)
         if (slot >= 0 && slot < inv.Length && IsAdventureMirror(inv[slot]))
@@ -246,9 +250,7 @@ public class ItemSlotHooks : ModSystem
         bool isMirrorOnMouse = IsAdventureMirror(Main.mouseItem);
 
         // Block putting mirror into storage
-        bool isStorageSlot =
-            context == ItemSlot.Context.ChestItem ||
-            context == ItemSlot.Context.BankItem;
+        bool isStorageSlot = context == ItemSlot.Context.ChestItem || context == ItemSlot.Context.BankItem;
 
         if (isStorageSlot && isMirrorOnMouse)
             return;
@@ -257,8 +259,8 @@ public class ItemSlotHooks : ModSystem
         if (context == ItemSlot.Context.TrashItem && isMirrorOnMouse)
             return;
 
-        // --- From here on: KEEP VANILLA BEHAVIOR ---
-        Player player = Main.player[Main.myPlayer];
+        // Vanilla (orig)
+        Player player = Main.LocalPlayer;
 
         bool bypassAnimCheck = player.HeldItem.type == ModContent.ItemType<AdventureMirror>();
 
@@ -273,7 +275,7 @@ public class ItemSlotHooks : ModSystem
 
         try
         {
-            orig(inv, context, slot); // vanilla ItemSlot.LeftClick behavior
+            orig(inv, context, slot);
         }
         finally
         {

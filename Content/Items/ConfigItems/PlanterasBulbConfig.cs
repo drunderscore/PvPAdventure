@@ -1,7 +1,7 @@
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Content.Items;
-public class MatteConfig : ModItem
+namespace PvPAdventure.Content.Items.ConfigItems;
+public class PlanterasBulbConfig : ModItem
 {
     public override void SetDefaults()
     {
