@@ -1,0 +1,95 @@
+﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Integrations.SharedUI;
+using PvPAdventure.System;
+using Terraria;
+using Terraria.GameContent.UI.Elements;
+using Terraria.ID;
+using Terraria.ModLoader;
+
+namespace PvPAdventure.Common.Integrations.GameStarter;
+
+/// <summary>
+/// The main UI element for starting a game (draggable title + content panel)
+/// </summary>
+internal class GameStarterElement : DraggablePanel
+{
+    private readonly UITextPanel<string> _startButton;
+    private readonly SliderElement _gameTimeSlider;
+    private readonly SliderElement _countdownSlider;
+
+    private int _countdownTimeInSeconds = 10;
+    private int _gameTimeInFrames = 195 * 60 * 60;
+
+    public GameStarterElement() : base("Start Game")
+    {
+        Width.Set(350, 0);
+        Height.Set(180, 0);
+        HAlign = 0.5f;
+        VAlign = 0.7f;
+        ContentPanel.SetPadding(12);
+
+        _gameTimeSlider = new SliderElement(
+            label: "Time",
+            min: 0f,
+            max: 195f,
+            defaultValue: 195f,
+            step: 1f,
+            onValueChanged: value =>
+            {
+                int totalMinutes = (int)value;
+                _gameTimeInFrames = totalMinutes * 60 * 60;
+            }
+        );
+        ContentPanel.Append(_gameTimeSlider);
+
+        _countdownSlider = new SliderElement(
+            label: "Countdown",
+            min: 0f,
+            max: 10f,
+            defaultValue: 10f,
+            step: 1f,
+            onValueChanged: value =>
+            {
+                _countdownTimeInSeconds = (int)value;
+            }
+        )
+        {
+            Top = { Pixels = 26f }
+        };
+        ContentPanel.Append(_countdownSlider);
+
+        _startButton = new UITextPanel<string>("Start!")
+        {
+            Width = { Pixels = 120f },
+            Height = { Pixels = 40f },
+            HAlign = 0.5f,
+            VAlign = 1f
+        };
+        _startButton.OnMouseOver += (_, _) => _startButton.BorderColor = Color.Yellow;
+        _startButton.OnMouseOut += (_, _) => _startButton.BorderColor = Color.Black;
+        _startButton.OnLeftClick += (_, _) =>
+        {
+            if (Main.netMode == NetmodeID.SinglePlayer)
+            {
+                var gm = ModContent.GetInstance<GameManager>();
+                gm.StartGame(time: _gameTimeInFrames, countdownTimeInSeconds: _countdownTimeInSeconds - 1);
+            }
+            else if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+                packet.Write((byte)AdventurePacketIdentifier.StartGame);
+                packet.Write(_gameTimeInFrames);
+                packet.Write(_countdownTimeInSeconds);
+                packet.Send();
+            }
+
+            ModContent.GetInstance<GameStarterSystem>().Hide();
+        };
+        ContentPanel.Append(_startButton);
+    }
+
+    public override void OnClosePanelLeftClick()
+    {
+        ModContent.GetInstance<GameStarterSystem>().Hide();
+    }
+}

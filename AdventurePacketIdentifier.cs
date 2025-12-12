@@ -15,4 +15,5 @@ public enum AdventurePacketIdentifier : byte
     PlayerBed,
     AdventureMirrorRightClickUse,
     BedTeleport,
+    SetPointsRequest
 }
