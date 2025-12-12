@@ -44,10 +44,10 @@ public class AdventureNpc : GlobalNPC
         if (Main.dedServ)
             On_NPC.PlayerInteraction += OnNPCPlayerInteraction;
 
-        // Prevent Empress of Light from targeting players during daytime, so she will despawn.
-        On_NPC.TargetClosest += OnNPCTargetClosest;
-        // Prevent Empress of Light from being enraged, so she won't instantly kill players.
-        On_NPC.ShouldEmpressBeEnraged += OnNPCShouldEmpressBeEnraged;
+        // Prevent Empress of Light from targeting players during daytime, so she will despawn. REMOVED
+        //On_NPC.TargetClosest += OnNPCTargetClosest;
+        // Prevent Empress of Light from being enraged, so she won't instantly kill players. REMOVED
+         //On_NPC.ShouldEmpressBeEnraged += OnNPCShouldEmpressBeEnraged;
         // Clients and servers sync the Shimmer buff upon all collisions constantly for NPCs.
         // Mark it as quiet so just the server does this.
         IL_NPC.Collision_WaterCollision += EditNPCCollision_WaterCollision;
@@ -116,7 +116,7 @@ public class AdventureNpc : GlobalNPC
             // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
             entity.immortal = true;
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
         if (NPCID.Search.TryGetName(entity.type, out var name))
@@ -170,7 +170,7 @@ public class AdventureNpc : GlobalNPC
             }
         }
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         if (adventureConfig.NpcSpawnAnnouncements.Contains(new NPCDefinition(npc.type)))
         {
@@ -497,7 +497,7 @@ public class AdventureNpc : GlobalNPC
 
                 var damage = Math.Max(0, currentLife - newTeamLife);
 
-                var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+                var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
                 var npcDefinition = new NPCDefinition((realLifeNpc ?? self).type);
 
                 foreach (var team in teamLife.Keys)
@@ -548,7 +548,7 @@ public class AdventureNpc : GlobalNPC
 
     public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
     {
-        var config = ModContent.GetInstance<AdventureConfig>();
+        var config = ModContent.GetInstance<AdventureServerConfig>();
 
         var isBoss = npc.boss
                      || IsPartOfEaterOfWorlds((short)npc.type)
@@ -785,6 +785,78 @@ public class AdventureNpc : GlobalNPC
                     NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npc.whoAmI);
                 }
             }
+        }
+    }
+}
+public class Target : ModNPC
+{
+    public override string Texture => $"PvPAdventure/Assets/NPC/Target";
+    public int targetPlayerIndex = -1;
+
+    public override void SetStaticDefaults()
+    {
+        NPCID.Sets.NPCBestiaryDrawOffset[Type] = new NPCID.Sets.NPCBestiaryDrawModifiers()
+        {
+            Hide = true
+        };
+    }
+
+    public override void SetDefaults()
+    {
+        NPC.width = 0;
+        NPC.height = 0;
+        NPC.lifeMax = 999999;
+        NPC.defense = 0;
+        NPC.immortal = false;
+        NPC.dontTakeDamage = false; // Don't use this
+        NPC.noGravity = true;
+        NPC.noTileCollide = true;
+        NPC.aiStyle = -1;
+        NPC.alpha = 255;
+        NPC.HideStrikeDamage = true;
+        NPC.friendly = false;
+        NPC.chaseable = false; // we don't want this functionality right now, so let's have ts be false
+    }
+
+    public override bool? CanBeHitByProjectile(Projectile projectile)
+    {
+        return false;
+    }
+
+    public override void ModifyIncomingHit(ref NPC.HitModifiers modifiers)
+    {
+        // Zero out all damage components
+        modifiers.SourceDamage *= 0;
+        modifiers.FinalDamage *= 0;
+        modifiers.Knockback *= 0;
+        modifiers.HideCombatText();
+    }
+
+    public override bool CheckDead()
+    {
+        // Never die
+        NPC.life = NPC.lifeMax;
+        return false;
+    }
+
+    public override void AI()
+    {
+        // Keep at full health always
+        NPC.life = NPC.lifeMax;
+
+        if (targetPlayerIndex >= 0 && targetPlayerIndex < Main.maxPlayers)
+        {
+            Player target = Main.player[targetPlayerIndex];
+            if (target == null || !target.active || !target.HasBuff<Anathema>())
+            {
+                NPC.active = false;
+                return;
+            }
+            NPC.Center = target.Center;
+        }
+        else
+        {
+            NPC.active = false;
         }
     }
 }

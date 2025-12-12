@@ -27,7 +27,7 @@ public class WorldGenerationManager : ModSystem
 
         // ...and replace it with a delegate that loads from our config instance.
         cursor.Remove().EmitDelegate(() =>
-            ModContent.GetInstance<AdventureConfig>().WorldGeneration.PlanteraBulbChanceDenominator);
+            ModContent.GetInstance<AdventureServerConfig>().WorldGeneration.PlanteraBulbChanceDenominator);
 
         // Find the first reference to NPC.downedMechBossAny...
         cursor.GotoNext(i => i.MatchLdsfld<NPC>("downedMechBossAny"));
@@ -38,7 +38,7 @@ public class WorldGenerationManager : ModSystem
         // ...to remove it...
         cursor.Remove()
             // ...and replace it with a delegate that loads from our config instance.
-            .EmitDelegate(() => ModContent.GetInstance<AdventureConfig>().WorldGeneration.LifeFruitChanceDenominator);
+            .EmitDelegate(() => ModContent.GetInstance<AdventureServerConfig>().WorldGeneration.LifeFruitChanceDenominator);
 
         // Then, advance past else branch, to the constant load of the expert mode Life Fruit denominator...
         cursor.Index += 1;
@@ -49,7 +49,7 @@ public class WorldGenerationManager : ModSystem
         cursor.Remove()
             // ...and replace it with a delegate that loads from our config instance.
             .EmitDelegate(() =>
-                ModContent.GetInstance<AdventureConfig>().WorldGeneration.LifeFruitExpertChanceDenominator);
+                ModContent.GetInstance<AdventureServerConfig>().WorldGeneration.LifeFruitExpertChanceDenominator);
         // Return to default labeling behavior.
         cursor.MoveBeforeLabels();
 
@@ -60,7 +60,7 @@ public class WorldGenerationManager : ModSystem
         cursor.Remove()
             // ...and replace it with a delegate that loads from our config instance.
             .EmitDelegate(() =>
-                ModContent.GetInstance<AdventureConfig>().WorldGeneration.LifeFruitMinimumDistanceBetween);
+                ModContent.GetInstance<AdventureServerConfig>().WorldGeneration.LifeFruitMinimumDistanceBetween);
     }
 
     private void OnWorldGenhardUpdateWorld(ILContext il)
@@ -75,7 +75,7 @@ public class WorldGenerationManager : ModSystem
         cursor.Remove()
             // ...and replace it with a delegate that loads from our config instance.
             .EmitDelegate(() =>
-                ModContent.GetInstance<AdventureConfig>().WorldGeneration.ChlorophyteGrowChanceModifier);
+                ModContent.GetInstance<AdventureServerConfig>().WorldGeneration.ChlorophyteGrowChanceModifier);
 
         // Find the call to WorldGen.genRand.Next(3)...
         cursor.GotoNext(i => i.MatchCallvirt<UnifiedRandom>("Next") && i.Previous.MatchLdcI4(3));
@@ -85,7 +85,7 @@ public class WorldGenerationManager : ModSystem
         cursor.Remove()
             // ...and replace it with a delegate that loads from our config instance.
             .EmitDelegate(() =>
-                ModContent.GetInstance<AdventureConfig>().WorldGeneration.ChlorophyteSpreadChanceModifier);
+                ModContent.GetInstance<AdventureServerConfig>().WorldGeneration.ChlorophyteSpreadChanceModifier);
     }
 
     private void OnWorldGenChlorophyte(ILContext il)
@@ -98,7 +98,7 @@ public class WorldGenerationManager : ModSystem
         cursor.Remove()
             // ...and replace it with a delegate that loads from our config instance.
             .EmitDelegate(() =>
-                ModContent.GetInstance<AdventureConfig>().WorldGeneration.ChlorophyteGrowLimitModifier);
+                ModContent.GetInstance<AdventureServerConfig>().WorldGeneration.ChlorophyteGrowLimitModifier);
         cursor.Index = 0;
 
         cursor.GotoNext(i => i.MatchLdcI4(130));
@@ -106,7 +106,7 @@ public class WorldGenerationManager : ModSystem
         cursor.Remove()
             // ...and replace it with a delegate that loads from our config instance.
             .EmitDelegate(() =>
-                ModContent.GetInstance<AdventureConfig>().WorldGeneration.ChlorophyteGrowLimitModifier);
+                ModContent.GetInstance<AdventureServerConfig>().WorldGeneration.ChlorophyteGrowLimitModifier);
 
     }
 
@@ -131,7 +131,7 @@ public class WorldGenerationManager : ModSystem
         // ...and emit our own delegate to invoke.
         cursor.EmitDelegate((int chestId) =>
         {
-            var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
             var chest = Main.chest[chestId];
 
             foreach (var item in chest.item)

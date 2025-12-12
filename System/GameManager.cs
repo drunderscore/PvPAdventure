@@ -80,7 +80,7 @@ public class GameManager : ModSystem
         if (Main.invasionType == InvasionID.None)
             return;
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
         if (!adventureConfig.InvasionSizes.TryGetValue(type, out var invasionSize))
             return;
 
@@ -408,7 +408,7 @@ public class GameManager : ModSystem
             if (Main.netMode == NetmodeID.SinglePlayer)
                 return;
 
-            var crashoutMessages = ModContent.GetInstance<AdventureConfig>().CrashoutMessages;
+            var crashoutMessages = ModContent.GetInstance<AdventureServerConfig>().CrashoutMessages;
             var message = crashoutMessages[Main.rand.Next(0, crashoutMessages.Count)];
 
             ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{caller.Player.name} crashed out: {message}"),

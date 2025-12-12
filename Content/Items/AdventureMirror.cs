@@ -16,7 +16,7 @@ internal class AdventureMirror : ModItem
     {
         //Item.CloneDefaults(ItemID.MagicMirror);
 
-        var config = ModContent.GetInstance<AdventureConfig>();
+        var config = ModContent.GetInstance<AdventureServerConfig>();
         int recallFrames = config.AdventureMirrorRecallFrames; // 5 seconds = 60 * 5
 
         Item.useTime = recallFrames + 10; // +10 frames to ensure countdown shows
@@ -245,6 +245,7 @@ internal class AdventureMirror : ModItem
     {
         return true;
     }
+
 
     public override void UpdateInventory(Player player)
     {
