@@ -227,6 +227,18 @@ public class PvPAdventure : Mod
 
                     break;
                 }
+            case AdventurePacketIdentifier.PauseGame:
+                {
+                    bool isPaused = reader.ReadBoolean();
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        var pm = ModContent.GetInstance<PauseManager>();
+                        pm.PauseGame();
+                    }
+
+                    break;
+                }
             case AdventurePacketIdentifier.StartGame:
                 {
                     int time = reader.ReadInt32();

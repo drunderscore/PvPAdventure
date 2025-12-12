@@ -52,11 +52,8 @@ public class DLTeamAssignerTool : Tool
 
         return result;
     }
-
-
     public override void OnActivate()
     {
-        Log.Info("DLTeamAssignerTool activated");
         var sys = ModContent.GetInstance<TeamAssignerSystem>();
         if (sys == null)
         {

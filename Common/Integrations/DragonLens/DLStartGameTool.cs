@@ -5,13 +5,10 @@ using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Integrations.StartGame;
-using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.System;
 using Terraria;
-using Terraria.Chat;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Integrations.DragonLens;
@@ -63,21 +60,40 @@ public class DLStartGameTool : Tool
 
         if (gm.CurrentPhase == GameManager.Phase.Playing)
         {
-            gm.EndGame();
+            if (Main.netMode == NetmodeID.SinglePlayer)
+            {
+                gm.EndGame();
+            }
+            else if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+                packet.Write((byte)AdventurePacketIdentifier.EndGame);
+                packet.Send();
+            }
         }
         //else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
         //{
         //    return "Options for starting or ending the game\nRight click to start instantly";
         //}
-        else
+        else if (gm.CurrentPhase == GameManager.Phase.Waiting)
         {
-            gm.StartGame(216000, countdownTimeInSeconds: -1); // 60 minutes
+            if (Main.netMode == NetmodeID.SinglePlayer)
+            {
+                gm.StartGame(time: 216000, countdownTimeInSeconds: 0); // 60 minutes
+            }
+            else if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+                packet.Write((byte)AdventurePacketIdentifier.StartGame);
+                packet.Write(216000);
+                packet.Write(0);
+                packet.Send();
+            }
         }
     }
 
     public override void OnActivate()
     {
-        Log.Info("DLStartGameTool activated");
         var sys = ModContent.GetInstance<StartGameSystem>();
         if (sys == null)
         {
@@ -90,12 +106,12 @@ public class DLStartGameTool : Tool
         {
             ModContent.GetInstance<StartGameSystem>().ShowEndDialog();
         }
-        else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
+        else if (gm._startGameCountdown.HasValue)
         {
-            gm._startGameCountdown = null;
-            gm.TimeRemaining = 0;
-            gm.CurrentPhase = GameManager.Phase.Waiting;
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("Cancelled countdown."), Color.Red);
+            //gm._startGameCountdown = null;
+            //gm.TimeRemaining = 0;
+            //gm.CurrentPhase = GameManager.Phase.Waiting;
+            //ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("Cancelled countdown."), Color.Red);
         }
         else
         {
