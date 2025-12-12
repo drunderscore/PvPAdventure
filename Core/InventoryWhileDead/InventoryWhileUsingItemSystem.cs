@@ -1,4 +1,5 @@
 ﻿using MonoMod.RuntimeDetour;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Helpers;
 using System;
 using System.Reflection;
@@ -38,6 +39,7 @@ internal class InventoryWhileUsingItemSystem : ModSystem
     private void ModifyInterface0(On_Main.orig_DrawInterface_0_InterfaceLogic1 orig)
     {
         // do nothing
+        orig();
     }
 
     public override void Unload()
@@ -48,13 +50,16 @@ internal class InventoryWhileUsingItemSystem : ModSystem
 
     private bool OverrideIgnoreMouseInterface(Func<bool> orig)
     {
-        Player player = Main.LocalPlayer;
+        Player p = Main.LocalPlayer;
 
-        // Allow mouse to interact while using items
-        if (player.itemAnimation > 0)
-            return false;
+        if (p != null &&
+            Main.playerInventory &&                 
+            p.itemAnimation > 0 &&
+            p.HeldItem.type == ModContent.ItemType<AdventureMirror>())
+        {
+            return false; // allow UI interaction while AM is animating
+        }
 
-        // fallback to vanilla
         return orig();
     }
 }

@@ -18,6 +18,7 @@ public class PlayerHooks : ModSystem
     {
         On_Player.HasUnityPotion -= OnHasUnityPotion;
         On_Player.Spawn_SetPosition -= ForceWorldSpawn;
+        On_SoundEngine.PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback -= DisableMirrorSound;
     }
 
     private static bool OnHasUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)
