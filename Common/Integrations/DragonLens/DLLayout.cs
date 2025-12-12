@@ -89,8 +89,8 @@ public class DLLayout : ModSystem
             n.Add(
                 new Toolbar(new Vector2(0f, 0.5f), Orientation.Vertical, AutomaticHideOption.Never)
                 .AddTool<DLStartGameTool>()
-                .AddTool<DLPauseTool>()
                 .AddTool<DLTeamAssignerTool>()
+                .AddTool<DLPauseTool>()
                 );
         },
         ThemeHandler.GetBoxProvider<VanillaBoxes>(),
