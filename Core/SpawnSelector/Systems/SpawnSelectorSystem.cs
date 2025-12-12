@@ -6,6 +6,11 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnSelector.Systems;
 
+/// <summary>
+/// A system to manage the spawn selector UI.
+/// Is active when player is within the spawn region or a bed region
+/// Allows the player to teleport to teammates and teammates beds on the fullscreen map.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
 public class SpawnSelectorSystem : ModSystem
 {

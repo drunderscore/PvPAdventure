@@ -69,7 +69,7 @@ public class SpawnboxMap : ModMapLayer
         }
 
         var gm = ModContent.GetInstance<GameManager>();
-        var am = Main.LocalPlayer.GetModPlayer<AdventureMirrorPlayer>();
+        var am = Main.LocalPlayer.GetModPlayer<SpawnSelectorPlayer>();
         bool canPass = gm.CurrentPhase == GameManager.Phase.Playing
           && am.IsPlayerInSpawnRegion();
 

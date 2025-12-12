@@ -9,7 +9,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.SpawnSelector.Players;
 
-public class AdventureMirrorPlayer : ModPlayer
+public class SpawnSelectorPlayer : ModPlayer
 {
     // Variables
     private Point _lastSpawn = new(-1, -1);
@@ -37,7 +37,7 @@ public class AdventureMirrorPlayer : ModPlayer
 
     public bool IsPlayerInSpawnRegion()
     {
-        // Is player in resin's spawn region?
+        // Is player in the world spawn region?
         var regionManager = ModContent.GetInstance<RegionManager>();
         Point tilePos = Player.Center.ToTileCoordinates();
         var region = regionManager.GetRegionContaining(tilePos);
@@ -46,12 +46,15 @@ public class AdventureMirrorPlayer : ModPlayer
             return true;
         }
 
-        // Is player in bed spawn region?
-        Vector2 bedSpawnPoint = new(Player.SpawnX, Player.SpawnY);
-        float distanceToBedSpawn = Vector2.Distance(bedSpawnPoint * 16f, Player.Center);
-        if (distanceToBedSpawn <= 25 * 16f)
+        // Is player in their own bed spawn region?
+        if (HasValidBedSpawn(Player))
         {
-            return true;
+            Vector2 bedSpawnPoint = new(Player.SpawnX, Player.SpawnY);
+            float distanceToBedSpawn = Vector2.Distance(bedSpawnPoint * 16f, Player.Center);
+            if (distanceToBedSpawn <= 25 * 16f)
+            {
+                return true;
+            }
         }
 
         // Is player in any bed spawn region?
@@ -68,6 +71,10 @@ public class AdventureMirrorPlayer : ModPlayer
 
             // No bed set for this teammate
             if (other.SpawnX == -1 || other.SpawnY == -1)
+                continue;
+
+            // Ensure bed is valid
+            if (!HasValidBedSpawn(other))
                 continue;
 
             Vector2 teammateBedTile = new Vector2(other.SpawnX, other.SpawnY);
@@ -103,17 +110,56 @@ public class AdventureMirrorPlayer : ModPlayer
             return;
 
         UpdatePlayerSpawnpoint();
+
+        //if (Main.GameUpdateCount % 60 == 0)
+        //{
+        //    // If the bed has become invalid, update the spawnX and spawnY variable
+
+        //    var packet = Mod.GetPacket();
+        //    packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
+        //    packet.Write((byte)Player.whoAmI);
+        //    packet.Write(current.X);
+        //    packet.Write(current.Y);
+        //    packet.Send();
+        //}
+    }
+    private static bool HasValidBedSpawn(Player player)
+    {
+        // No bed set at all
+        if (player.SpawnX < 0 || player.SpawnY < 0)
+            return false;
+
+        if (!Player.CheckSpawn(player.SpawnX, player.SpawnY))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     // Update the player's bed spawnpoint to the server
     private void UpdatePlayerSpawnpoint()
     {
-        Point current = new(Player.SpawnX, Player.SpawnY);
+        Point current;
+
+        // No bed set at all
+        if (Player.SpawnX == -1 || Player.SpawnY == -1)
+        {
+            current = new Point(-1, -1);
+        }
+        // Bed set, but housing / tiles now invalid -> treat as no bed for the mod
+        else if (!Player.CheckSpawn(Player.SpawnX, Player.SpawnY))
+        {
+            current = new Point(-1, -1);
+        }
+        else
+        {
+            current = new Point(Player.SpawnX, Player.SpawnY);
+        }
 
         if (current == _lastSpawn)
-            return; // nothing changed
+            return;
 
-        // Spawn changed (bed set, removed, bed mined, room invalid, etc.)
         _lastSpawn = current;
 
         var packet = Mod.GetPacket();
@@ -169,4 +215,5 @@ public class AdventureMirrorPlayer : ModPlayer
         drawInfo.legsGlowColor = new Color(drawInfo.legsGlowColor.R, drawInfo.legsGlowColor.G, drawInfo.legsGlowColor.B, 0);
     }
     #endregion
+
 }
