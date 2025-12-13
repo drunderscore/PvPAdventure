@@ -23,6 +23,7 @@ using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
 using Mono.Cecil.Cil;
 using static PvPAdventure.AdventurePlayer;
+using PvPAdventure.Content.Items;
 
 namespace PvPAdventure;
 
@@ -419,7 +420,7 @@ public class AdventurePlayer : ModPlayer
             return false;
 
         _playerMeleeInvincibleTime[target.whoAmI] =
-            ModContent.GetInstance<AdventureServerConfig>().Combat.MeleeInvincibilityFrames;
+            ModContent.GetInstance<AdventureServerConfig>().WeaponBalance.ImmunityFrames.TrueMelee;
 
         return true;
     }
@@ -602,7 +603,7 @@ public class AdventurePlayer : ModPlayer
             return;
 
         RecentDamageFromPlayer = new((byte)damagerPlayer.whoAmI,
-            ModContent.GetInstance<AdventureServerConfig>().Combat.RecentDamagePreservationFrames);
+            ModContent.GetInstance<AdventureServerConfig>().WeaponBalance.ImmunityFrames.RecentDamagePreservationFrames);
     }
 
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genDust,
@@ -896,7 +897,6 @@ public class AdventurePlayer : ModPlayer
             packet.Send(toWho, fromWho);
         }
     }
-
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
@@ -911,7 +911,7 @@ public class AdventurePlayer : ModPlayer
             return;
 
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-        var playerDamageBalance = adventureConfig.Combat.PlayerDamageBalance;
+        var weaponBalance = adventureConfig.WeaponBalance;
         var sourcePlayer = Main.player[modifiers.DamageSource.SourcePlayerIndex];
         var tileDistance = Player.Distance(sourcePlayer.position) / 16.0f;
         var hasIncurredFalloff = false;
@@ -924,15 +924,15 @@ public class AdventurePlayer : ModPlayer
         if (sourceItem != null && !sourceItem.IsAir)
         {
             var itemDefinition = new ItemDefinition(sourceItem.type);
-            if (playerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition, out var multiplier))
+            if (weaponBalance.Damage.ItemDamage.TryGetValue(itemDefinition, out var multiplier))
                 modifiers.IncomingDamageMultiplier *= multiplier;
-            if (playerDamageBalance.ItemFalloff.TryGetValue(itemDefinition, out var falloff) &&
+            if (weaponBalance.Falloff.PerItem.TryGetValue(itemDefinition, out var falloff) &&
                 falloff != null)
             {
                 modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
-            if (playerDamageBalance.ItemArmorPenetration.TryGetValue(itemDefinition, out var armorPen))
+            if (weaponBalance.ArmorPenetration.ItemAP.TryGetValue(itemDefinition, out var armorPen))
             {
                 baseArmorPen = Math.Clamp(armorPen, 0f, 1f);
             }
@@ -945,15 +945,15 @@ public class AdventurePlayer : ModPlayer
         if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
         {
             var projectileDefinition = new ProjectileDefinition(modifiers.DamageSource.SourceProjectileType);
-            if (playerDamageBalance.ProjectileDamageMultipliers.TryGetValue(projectileDefinition, out var multiplier))
+            if (weaponBalance.Damage.ProjectileDamage.TryGetValue(projectileDefinition, out var multiplier))
                 modifiers.IncomingDamageMultiplier *= multiplier;
-            if (playerDamageBalance.ProjectileFalloff.TryGetValue(projectileDefinition, out var falloff) &&
+            if (weaponBalance.Falloff.PerProjectile.TryGetValue(projectileDefinition, out var falloff) &&
                 falloff != null)
             {
                 modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
-            if (playerDamageBalance.ProjectileArmorPenetration.TryGetValue(projectileDefinition, out var armorPen))
+            if (weaponBalance.ArmorPenetration.ProjectileAP.TryGetValue(projectileDefinition, out var armorPen))
             {
                 baseArmorPen = Math.Clamp(armorPen, 0f, 1f);
             }
@@ -967,15 +967,15 @@ public class AdventurePlayer : ModPlayer
             }
         }
 
-        if (!hasIncurredFalloff && playerDamageBalance.DefaultFalloff != null)
-            modifiers.IncomingDamageMultiplier *= playerDamageBalance.DefaultFalloff.CalculateMultiplier(tileDistance);
+        if (!hasIncurredFalloff && weaponBalance.Falloff.Default != null)
+            modifiers.IncomingDamageMultiplier *= weaponBalance.Falloff.Default.CalculateMultiplier(tileDistance);
 
         // Apply Spectre Hood armor penetration bonus for magic damage
         float finalArmorPen = baseArmorPen;
         if (isMagicDamage && sourcePlayer.ghostHeal)
         {
             // Formula: increase by configured percentage of remaining penetration
-            float ghostHealPenBonus = adventureConfig.Combat.GhostHealArmorPenetration;
+            float ghostHealPenBonus = adventureConfig.Other.SpectreHealing.HealerArmorPenetration;
             finalArmorPen = baseArmorPen + (1f - baseArmorPen) * ghostHealPenBonus;
         }
 
@@ -998,8 +998,8 @@ public class AdventurePlayer : ModPlayer
             PlayHitMarker(info.Damage);
 
         if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
-            adventureConfig.Combat.MeleeInvincibilityFrames == 0)
-            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
+            adventureConfig.WeaponBalance.ImmunityFrames.TrueMelee == 0)
+            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
     }
 
     public override bool OnPickup(Item item)
@@ -2400,14 +2400,13 @@ public class PvPAdventurePlayer : ModPlayer
     {
         if (!hasReceivedStarterBag)
         {
-            int itemType = ModContent.ItemType<AdventureItem.AdventureBag>();
+            int itemType = ModContent.ItemType<AdventureBag>();
             var item = new Item();
             item.SetDefaults(itemType);
             Player.inventory[1] = item; // Adds to second inventory slot
             var beachBallItem = new Item();
             beachBallItem.SetDefaults(ItemID.BeachBall);
             Player.inventory[2] = beachBallItem; // Adds to third inventory slot
-
             hasReceivedStarterBag = true;
         }
     }

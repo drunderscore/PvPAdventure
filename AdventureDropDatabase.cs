@@ -631,7 +631,7 @@ public class AdventureDropDatabase : ModSystem
 
         var disallowed = false;
 
-        disallowed |= entry is MechBossSpawnersDropRule && adventureConfig.NpcBalance.NoMechanicalBossSummonDrops;
+        disallowed |= entry is MechBossSpawnersDropRule && adventureConfig.NoMechanicalBossSummonDrops;
 
         if (!disallowed)
             orig(self, entry);

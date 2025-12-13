@@ -95,7 +95,11 @@ public class PvPIconDrawerLayer : ModSystem
                     (int)iconH
                 );
 
-                Rectangle iconSrc = pvpTex.Frame(4, 6, 2, p.team);
+                Rectangle iconSrc = pvpTex.Frame(
+                    horizontalFrames: 4, 
+                    verticalFrames: 6, 
+                    frameX: 1, 
+                    frameY: p.team);
 
                 // Draw PvP icon
                 sb.Draw(pvpTex.Value, iconRect, iconSrc, Color.White * 1f);
