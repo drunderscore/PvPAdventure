@@ -6,7 +6,7 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.StartGame;
+namespace PvPAdventure.Common.Integrations.SharedUI;
 
 internal class SliderElement : UIElement
 {

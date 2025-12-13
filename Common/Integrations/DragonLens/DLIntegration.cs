@@ -12,9 +12,10 @@ namespace PvPAdventure.Common.Integrations.DragonLens;
 public class DLIntegration : ModSystem
 {
     // Keys
-    public static string StartGameKey => "StartGame";
+    public static string GameStarterKey => "GameStarter";
     public static string TeamAssignerKey => "TeamAssigner";
     public static string PauseKey => "Pause";
+    public static string PointsSetterKey => "PointsSetter";
 
     // Assets
     public static Asset<Texture2D> GlowAlpha = ModContent.Request<Texture2D>("DragonLens/Assets/Misc/GlowAlpha");
@@ -30,9 +31,10 @@ public class DLIntegration : ModSystem
         {
             foreach (var provider in ThemeHandler.allIconProviders.Values)
             {
-                provider.icons[StartGameKey] = Ass.Play.Value;
+                provider.icons[GameStarterKey] = Ass.Play.Value;
                 provider.icons[TeamAssignerKey] = Ass.TeamAssignerIcon.Value;
                 provider.icons[PauseKey] = Ass.Pause.Value;
+                provider.icons[PointsSetterKey] = Ass.Points.Value;
             }
 
             // rebuild toolbars *after* icons (and tools) have been injected

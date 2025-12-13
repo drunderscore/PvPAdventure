@@ -21,6 +21,7 @@ public class DLPauseTool : Tool
     public override string DisplayName => GetDisplayName();
     private string GetDisplayName()
     {
+        //return "Pause";
         var pm = ModContent.GetInstance<PauseManager>();
         return pm.IsPaused ?
             "Resume" :

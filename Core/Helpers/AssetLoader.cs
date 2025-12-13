@@ -15,13 +15,14 @@ public static class Ass
     public static Asset<Texture2D> Stop_Icon;
 
     // Admin tools
-    public static Asset<Texture2D> TeamAssignerIcon;
     public static Asset<Texture2D> Pause;
+    public static Asset<Texture2D> Points;
     public static Asset<Texture2D> Play;
     public static Asset<Texture2D> Reset;
     public static Asset<Texture2D> Slider;
     public static Asset<Texture2D> SliderHighlight;
     public static Asset<Texture2D> SliderGradient;
+    public static Asset<Texture2D> TeamAssignerIcon;
 
     public static bool Initialized { get; set; }
 

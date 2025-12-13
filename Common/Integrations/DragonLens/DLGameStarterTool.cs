@@ -4,7 +4,7 @@ using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Integrations.StartGame;
+using PvPAdventure.Common.Integrations.GameStarter;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.System;
 using Terraria;
@@ -15,9 +15,9 @@ namespace PvPAdventure.Common.Integrations.DragonLens;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
-public class DLStartGameTool : Tool
+public class DLGameStarterTool : Tool
 {
-    public override string IconKey => DLIntegration.StartGameKey;
+    public override string IconKey => DLIntegration.GameStarterKey;
     public override string DisplayName => GetDisplayName();
 
     private string GetDisplayName()
@@ -33,7 +33,7 @@ public class DLStartGameTool : Tool
         }
         else
         {
-            return "Start Game";
+            return "Game Starter";
         }
     }
     public override string Description => GetDescription();
@@ -42,15 +42,15 @@ public class DLStartGameTool : Tool
         var gm = ModContent.GetInstance<GameManager>();
         if (gm.CurrentPhase == GameManager.Phase.Playing)
         {
-            return "Click to open confirmation window\nRight click to end game instantly";
+            return "Open confirmation window\nRight click to end game instantly";
         }
         else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
         {
-            return "Click to cancel the countdown";
+            return "Cancel the countdown";
         }
         else
         {
-            return "Left click to open start game options\nRight click to start instantly";
+            return "Open game starter tool\nRight click to start instantly";
         }
     }
     public override bool HasRightClick => true;
@@ -94,7 +94,7 @@ public class DLStartGameTool : Tool
 
     public override void OnActivate()
     {
-        var sys = ModContent.GetInstance<StartGameSystem>();
+        var sys = ModContent.GetInstance<GameStarterSystem>();
         if (sys == null)
         {
             Main.NewText("Failed to open StartGameSystem: System not found.", Color.Red);
@@ -104,7 +104,7 @@ public class DLStartGameTool : Tool
         var gm = ModContent.GetInstance<GameManager>();
         if (gm.CurrentPhase == GameManager.Phase.Playing)
         {
-            ModContent.GetInstance<StartGameSystem>().ShowEndDialog();
+            ModContent.GetInstance<GameStarterSystem>().ShowEndDialog();
         }
         else if (gm._startGameCountdown.HasValue)
         {
@@ -115,15 +115,15 @@ public class DLStartGameTool : Tool
         }
         else
         {
-            var sgs = ModContent.GetInstance<StartGameSystem>();
+            var gss = ModContent.GetInstance<GameStarterSystem>();
 
-            if (sgs.IsActive())
+            if (gss.IsActive())
             {
-                sgs.Hide();
+                gss.Hide();
             }
             else
             {
-                sgs.ShowStartDialog();
+                gss.ShowStartDialog();
             }
         }
     }
@@ -132,7 +132,7 @@ public class DLStartGameTool : Tool
     {
         base.DrawIcon(spriteBatch, position);
 
-        var sys = ModContent.GetInstance<StartGameSystem>();
+        var sys = ModContent.GetInstance<GameStarterSystem>();
 
         if (sys.IsActive())
         {

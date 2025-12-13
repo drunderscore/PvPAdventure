@@ -16,6 +16,9 @@ Keybinds: {
 	DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
 	DLPauseTool.DisplayName: DL Pause Tool
 	DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
+	DLGameStarterTool.DisplayName: D L Game Starter Tool
+	DLGameStarterToolRightClick.DisplayName: D L Game Starter Tool Right Click
+	DLPointsSetterTool.DisplayName: D L Points Setter Tool
 }
 
 Tools: {
@@ -32,6 +35,17 @@ Tools: {
 
 	DLPauseTool: {
 		DisplayName: DLPauseTool
+		Description: The tool has no description! Add one in .hjson files!
+	}
+
+	DLGameStarterTool: {
+		DisplayName: DLGameStarterTool
+		Description: The tool has no description! Add one in .hjson files!
+		RightClickName: DLGameStarterTool Right Click
+	}
+
+	DLPointsSetterTool: {
+		DisplayName: DLPointsSetterTool
 		Description: The tool has no description! Add one in .hjson files!
 	}
 }

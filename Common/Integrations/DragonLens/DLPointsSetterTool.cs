@@ -3,7 +3,9 @@ using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Integrations.PointsSetter;
 using PvPAdventure.Common.Integrations.TeamAssigner;
+using PvPAdventure.System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Enums;
@@ -13,16 +15,16 @@ namespace PvPAdventure.Common.Integrations.DragonLens;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
-public class DLTeamAssignerTool : Tool
+public class DLPointsSetterTool : Tool
 {
-    public override string IconKey => DLIntegration.TeamAssignerKey;
+    public override string IconKey => DLIntegration.PointsSetterKey;
 
-    public override string DisplayName => "Team Assigner";
+    public override string DisplayName => "Points Setter";
 
     public override string Description => GetDescription();
     private string GetDescription()
     {
-        // Count players on each team
+        // Count active players on each team
         Dictionary<Team, int> counts = [];
 
         foreach (var p in Main.ActivePlayers)
@@ -35,29 +37,30 @@ public class DLTeamAssignerTool : Tool
                 counts[team] = 1;
         }
 
+        // Count points on each team
+        var pm = ModContent.GetInstance<PointsManager>();
+        var teamPointsDict = pm.Points;
         string result = "";
 
-        foreach (var kvp in counts)
+        foreach (var kvp in teamPointsDict)
         {
             Team team = kvp.Key;
-            int count = kvp.Value;
+            int points = kvp.Value;
 
-            if (count <= 0)
-                continue; // skip empty
-
-            string playersString = count == 1 ? "player" : "players";
-
-            result += $"{team}: {count} {playersString}\n";
+            if (points != 0)
+            {
+                result += $"{team}: {points} points\n";
+            }
         }
 
         return result;
     }
     public override void OnActivate()
     {
-        var sys = ModContent.GetInstance<TeamAssignerSystem>();
+        var sys = ModContent.GetInstance<PointsSetterSystem>();
         if (sys == null)
         {
-            Main.NewText("Failed to open TeamAssignerSystem: System not found.", Color.Red);
+            Main.NewText("Failed to open PointsSetterSystem: System not found.", Color.Red);
             return;
         }
 
@@ -68,9 +71,9 @@ public class DLTeamAssignerTool : Tool
     {
         base.DrawIcon(spriteBatch, position);
 
-        var tas = ModContent.GetInstance<TeamAssignerSystem>();
+        var pss = ModContent.GetInstance<PointsSetterSystem>();
 
-        if (tas.IsActive())
+        if (pss.IsActive())
         {
             GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
 

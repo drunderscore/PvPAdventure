@@ -1,22 +1,22 @@
+using Discord.Net;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.Content.Items;
 using PvPAdventure.Common.Integrations.TeamAssigner;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
+using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.SpawnSelector.Systems;
 using PvPAdventure.System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Terraria;
-using System;
 using Terraria.Chat;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using System;
-using PvPAdventure.Core.SpawnSelector.Systems;
 
 namespace PvPAdventure;
 
@@ -348,6 +348,26 @@ public class PvPAdventure : Mod
                         ChatHelper.BroadcastChatMessage(
                             NetworkText.FromLiteral($"[DEBUG/SERVER] Player {p.name} set spawn to ({spawnX}, {spawnY})"), Color.White);
 #endif
+                    }
+
+                    break;
+                }
+            case AdventurePacketIdentifier.SetPointsRequest:
+                {
+                    var team = (Team)reader.ReadByte();
+                    var value = reader.ReadInt32();
+
+                    var pointsManager = ModContent.GetInstance<PointsManager>();
+                    pointsManager._points[team] = value;
+
+                    if (Main.dedServ)
+                    {
+                        NetMessage.SendData(MessageID.WorldData);
+                    }
+                    else
+                    {
+                        // Refresh scoreboard
+                        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
                     }
 
                     break;
