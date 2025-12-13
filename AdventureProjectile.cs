@@ -106,7 +106,7 @@ public class AdventureProjectile : GlobalProjectile
     }
 
     private void OnProjectileghostHeal(On_Projectile.orig_ghostHeal orig, Projectile self, int dmg, Vector2 position,
-    Entity victim)
+        Entity victim)
     {
         // Don't touch anything about the Ghost Heal outside PvP.
         if (victim is not Player)
@@ -123,7 +123,7 @@ public class AdventureProjectile : GlobalProjectile
 
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
-        var healMultiplier = adventureConfig.Other.SpectreHealing.PvPHealMultiplier;
+        var healMultiplier = adventureConfig.Combat.GhostHealMultiplier;
         healMultiplier -= self.numHits * 0.05f;
         if (healMultiplier <= 0f)
             return;
@@ -135,7 +135,7 @@ public class AdventureProjectile : GlobalProjectile
         if (!self.CountsAsClass(DamageClass.Magic))
             return;
 
-        var maxDistance = adventureConfig.Other.SpectreHealing.PvPHealRange;
+        var maxDistance = adventureConfig.Combat.GhostHealMaxDistance;
         for (var i = 0; i < Main.maxPlayers; i++)
         {
             var player = Main.player[i];
@@ -151,7 +151,7 @@ public class AdventureProjectile : GlobalProjectile
 
             var personalHeal = heal;
             if (player.ghostHeal)
-                personalHeal *= adventureConfig.Other.SpectreHealing.PvPSelfHealMultiplier;
+                personalHeal *= adventureConfig.Combat.GhostHealMultiplierWearers;
 
             // FIXME: Can't set the context properly because of poor TML visibility to ProjectileSourceID.
             Projectile.NewProjectile(
@@ -169,6 +169,7 @@ public class AdventureProjectile : GlobalProjectile
             );
         }
     }
+
 
     public class SpiderStaffGlobalProjectile : GlobalProjectile
     {
@@ -573,7 +574,7 @@ public class AdventureProjectile : GlobalProjectile
         cursor.EmitDelegate(() =>
         {
             var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-            return adventureConfig.Other.SpectreHealing.PvEHealRange;
+            return adventureConfig.Combat.GhostHealMaxDistanceNpc;
         });
     }
 
@@ -593,9 +594,9 @@ public class AdventureProjectile : GlobalProjectile
             || projectile.type == ProjectileID.LightDisc && projectile.localAI[0] > 0;
 
         if (bounced)
-            modifiers.SourceDamage *= adventureConfig.WeaponBalance.ProjectileBounceDamageReduction;
+            modifiers.SourceDamage *= adventureConfig.Combat.ProjectileCollisionDamageReduction;
 
-        if (adventureConfig.WeaponBalance.ProjectileLineOfSightDamageReduction.TryGetValue(new(projectile.type),
+        if (adventureConfig.Combat.NoLineOfSightDamageReduction.TryGetValue(new(projectile.type),
                 out var damageReduction) && projectile.TryGetOwner(out var owner) && !Collision.CanHit(owner, target))
             modifiers.SourceDamage *= damageReduction;
     }

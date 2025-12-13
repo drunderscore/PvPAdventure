@@ -2,6 +2,7 @@ using Discord.Net;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.Common.Integrations.TeamAssigner;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.Core.SpawnSelector.Systems;
@@ -17,8 +18,6 @@ using Terraria.Enums;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using PvPAdventure.Core.SpawnSelector.Systems;
-
 
 namespace PvPAdventure;
 
