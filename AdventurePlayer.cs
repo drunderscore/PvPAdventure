@@ -1220,8 +1220,14 @@ public class TurtleDashPlayer : ModPlayer
             float dashSpeedReduction = Player.velocity.X * 0.05f;
             Player.velocity.X -= dashSpeedReduction;
         }
+        if (Player.HasBuff(BuffID.BabyEater) && IsInADashState)
+        {
+            float dashSpeedReduction = Player.velocity.X * -0.03f;
+            Player.velocity.X -= dashSpeedReduction;
+        }
         //thanks mr fargo
     }
+
 }
 public class NewIchorPlayer : ModPlayer
 {
