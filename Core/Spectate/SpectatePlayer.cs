@@ -1,114 +1,146 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
-using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Spectate;
+
 internal class SpectatePlayer : ModPlayer
 {
-    // The index of the player being spectated. Initially null. Set this to a valid player index to spectate that player.
     public int? TargetPlayerIndex;
+    private bool openSpectateUiNextTick;
 
     public override void ModifyScreenPosition()
     {
         if (TargetPlayerIndex is null or -1)
+            return;
+
+        Player target = Main.player[TargetPlayerIndex.Value];
+
+        if (target == null || !target.active || target.dead)
         {
+            TargetPlayerIndex = null;
+            SnapBackToSelf();
             return;
         }
 
-        // spectate target player
-        Main.screenPosition = Main.player[TargetPlayerIndex.Value].position - new Vector2(Main.screenWidth, Main.screenHeight) / 2;
+        Main.screenPosition = target.position - new Vector2(Main.screenWidth, Main.screenHeight) / 2f;
     }
+
     public override void OnRespawn()
     {
         base.OnRespawn();
 
-        // reset spectate target on respawn
-        TargetPlayerIndex = null;
+        SetTarget(null);
+
+        var ss = ModContent.GetInstance<SpectateSystem>();
+        if (ss != null && ss.IsActive())
+            ss.ExitSpectateUI();
     }
+
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         base.Kill(damage, hitDirection, pvp, damageSource);
 
-        Player? closest = Main.player.Where(x => x != Main.LocalPlayer).MinBy(x => x.position.Distance(Main.LocalPlayer.position));
-        if (closest is null) return;
+        var cfg = ModContent.GetInstance<AdventureClientConfig>();
+        if (!cfg.SpectateTeammatesOnDeath || Player.whoAmI != Main.myPlayer || Main.dedServ)
+            return;
 
-        TargetPlayerIndex = closest.whoAmI;
+        List<int> ids = GetTeammateIds();
+        if (ids.Count == 0)
+            return;
+
+        int bestId = -1;
+        float best = float.MaxValue;
+
+        for (int i = 0; i < ids.Count; i++)
+        {
+            Player p = Main.player[ids[i]];
+            float d = Vector2.DistanceSquared(p.Center, Player.Center);
+
+            if (d < best)
+            {
+                best = d;
+                bestId = p.whoAmI;
+            }
+        }
+
+        SetTarget(bestId);
+        openSpectateUiNextTick = true;
     }
 
     public override void PostUpdate()
     {
-        // Send update to server about screen position every 10 ticks
-        if (Player.whoAmI == Main.myPlayer && Main.netMode == NetmodeID.MultiplayerClient && Main.GameUpdateCount % 10 == 0)
+        if (openSpectateUiNextTick)
         {
-            ModPacket packet = Mod.GetPacket();
-            packet.Write((byte)AdventurePacketIdentifier.TeamSpectate);
-            packet.WriteVector2(Main.screenPosition);
+            openSpectateUiNextTick = false;
 
-            packet.Send();
+            if (TargetPlayerIndex is not null)
+                ModContent.GetInstance<SpectateSystem>()?.EnterSpectateUI(clearTarget: false);
         }
     }
 
-    /// Wrapped list of active players except yourself
-    public List<Player> GetValidPlayers()
+    public void SetTarget(int? target) => TargetPlayerIndex = target;
+
+    public void SnapBackToSelf() =>
+        Main.screenPosition = Player.position - new Vector2(Main.screenWidth, Main.screenHeight) / 2f;
+
+    public List<int> GetTeammateIds()
     {
-        List<Player> list = new();
-        foreach (var p in Main.player)
+        List<int> ids = [];
+
+#if DEBUG
+        if (Main.netMode == NetmodeID.SinglePlayer)
         {
-            if (p != null && p.active && p != Player)
-                list.Add(p);
+            int me = Player.whoAmI;
+            ids.Add(me);
+            ids.Add(me);
+            ids.Add(me);
+            ids.Add(me);
+            return ids;
         }
-        return list;
-    }
+#endif
 
-    public void GetNextPrev(out Player prev, out Player next)
-    {
-        prev = next = null;
+        Player mePlayer = Player;
 
-        var list = GetValidPlayers();
-        if (list.Count == 0 || TargetPlayerIndex is null)
-            return;
-
-        int current = list.FindIndex(p => p.whoAmI == TargetPlayerIndex);
-        if (current == -1)
-            return;
-
-        // wrap-around
-        prev = list[(current - 1 + list.Count) % list.Count];
-        next = list[(current + 1) % list.Count];
-    }
-
-    public void SelectNext()
-    {
-        var list = GetValidPlayers();
-        if (list.Count == 0)
-            return;
-
-        if (TargetPlayerIndex is null)
-            TargetPlayerIndex = list[0].whoAmI;
-        else
+        for (int i = 0; i < Main.maxPlayers; i++)
         {
-            int i = list.FindIndex(p => p.whoAmI == TargetPlayerIndex);
-            TargetPlayerIndex = list[(i + 1) % list.Count].whoAmI;
+            Player p = Main.player[i];
+
+            if (p == null || !p.active || p.dead || p.whoAmI == mePlayer.whoAmI)
+                continue;
+
+            if (mePlayer.team != 0 && p.team != mePlayer.team)
+                continue;
+
+            ids.Add(p.whoAmI);
         }
+
+        return ids;
     }
 
-    public void SelectPrev()
+    public void Cycle(int dir)
     {
-        var list = GetValidPlayers();
-        if (list.Count == 0)
+        List<int> ids = GetTeammateIds();
+        if (ids.Count == 0)
             return;
 
         if (TargetPlayerIndex is null)
-            TargetPlayerIndex = list[0].whoAmI;
-        else
         {
-            int i = list.FindIndex(p => p.whoAmI == TargetPlayerIndex);
-            TargetPlayerIndex = list[(i - 1 + list.Count) % list.Count].whoAmI;
+            SetTarget(dir < 0 ? ids[^1] : ids[0]);
+            return;
         }
-    }
 
+        int cur = ids.IndexOf(TargetPlayerIndex.Value);
+        if (cur == -1)
+        {
+            SetTarget(ids[0]);
+            return;
+        }
+
+        cur = (cur + dir + ids.Count) % ids.Count;
+        SetTarget(ids[cur]);
+    }
 }

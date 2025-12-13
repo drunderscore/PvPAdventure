@@ -179,7 +179,7 @@ public sealed class HMIntegration : ModSystem
                 }
                 else
                 {
-                    spec.EnterSpectateUI();
+                    spec.EnterSpectateUI(clearTarget: true);
                 }
             }),
             (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)),

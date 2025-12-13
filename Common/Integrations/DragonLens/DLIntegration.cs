@@ -16,6 +16,7 @@ public class DLIntegration : ModSystem
     public static string TeamAssignerKey => "TeamAssigner";
     public static string PauseKey => "Pause";
     public static string PointsSetterKey => "PointsSetter";
+    public static string SpectateKey => "Spectate";
 
     // Assets
     public static Asset<Texture2D> GlowAlpha = ModContent.Request<Texture2D>("DragonLens/Assets/Misc/GlowAlpha");
@@ -35,6 +36,7 @@ public class DLIntegration : ModSystem
                 provider.icons[TeamAssignerKey] = Ass.TeamAssignerIcon.Value;
                 provider.icons[PauseKey] = Ass.Pause.Value;
                 provider.icons[PointsSetterKey] = Ass.Points.Value;
+                provider.icons[SpectateKey] = Ass.Spectate.Value;
             }
 
             // rebuild toolbars *after* icons (and tools) have been injected

@@ -1,71 +1,87 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Spectate.UI;
+using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.ModLoader;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.Spectate;
 
-/// <summary>
-/// The system responsible for managing the spectate feature, both UI and state.
-/// </summary>
 [Autoload(Side = ModSide.Client)]
 internal class SpectateSystem : ModSystem
 {
+    // Spectate UI
     public UserInterface ui;
-    public SpectateUI spectateState;
-
+    public UIState spectateState;
+    public SpectateElement spectateElement;
     public bool IsActive() => ui?.CurrentState == spectateState;
-    public void EnterSpectateUI()
+
+    public override void OnWorldLoad()
     {
-        var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
+        ui = new();
+        spectateState = new();
+        spectateElement = new();
+        spectateState.Append(spectateElement);
+    }
 
-        if (sp.TargetPlayerIndex is null)
-        {
-            var list = sp.GetValidPlayers();
-            if (list.Count > 0)
-                sp.TargetPlayerIndex = list[0].whoAmI; // first available player
-            else
-                return; // no valid players → do not open UI
-        }
+    public void EnterSpectateUI(bool clearTarget)
+    {
+        if (clearTarget)
+            Main.LocalPlayer.GetModPlayer<SpectatePlayer>().SetTarget(null);
 
+        spectateElement?.Rebuild();
         ui.SetState(spectateState);
     }
 
     public void ExitSpectateUI()
     {
         ui.SetState(null);
-
-        var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
-        sp.TargetPlayerIndex = null;
-    }
-
-
-    public override void OnWorldLoad()
-    {
-        ui = new();
-        spectateState = new();
+        Main.LocalPlayer.GetModPlayer<SpectatePlayer>().SetTarget(null);
     }
 
     public override void UpdateUI(GameTime gameTime)
     {
         ui?.Update(gameTime);
+
+        if (!IsActive() || Main.gameMenu || Main.drawingPlayerChat || Main.editSign || Main.editChest)
+            return;
+
+        if (Main.keyState.IsKeyDown(Keys.A) && Main.oldKeyState.IsKeyUp(Keys.A))
+            Cycle(-1);
+
+        if (Main.keyState.IsKeyDown(Keys.D) && Main.oldKeyState.IsKeyUp(Keys.D))
+            Cycle(1);
+    }
+
+    private void Cycle(int dir)
+    {
+        if (!Main.LocalPlayer.dead)
+            return;
+
+        var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
+        sp.Cycle(dir);
+        spectateElement?.Rebuild();
     }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
-        int idx = layers.FindIndex(l => l.Name == "Vanilla: Mouse Text");
+        int idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
 
         layers.Insert(idx, new LegacyGameInterfaceLayer(
             "PvPAdventure: SpectateSystem",
             () =>
             {
                 if (ui?.CurrentState != null)
+                {
+                    // Debug
+                    //Main.spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.Red * 0.5f);
+
                     ui.Draw(Main.spriteBatch, Main._drawInterfaceGameTime);
+                }
+
                 return true;
             },
             InterfaceScaleType.UI));
     }
 }
-

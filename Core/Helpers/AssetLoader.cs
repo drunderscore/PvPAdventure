@@ -23,6 +23,7 @@ public static class Ass
     public static Asset<Texture2D> SliderHighlight;
     public static Asset<Texture2D> SliderGradient;
     public static Asset<Texture2D> TeamAssignerIcon;
+    public static Asset<Texture2D> Spectate;
 
     public static bool Initialized { get; set; }
 
