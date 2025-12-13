@@ -20,7 +20,10 @@ namespace PvPAdventure.Common.Integrations.PointsSetter;
 
 internal class PointsSetterElement : DraggablePanel
 {
-    public PointsSetterElement() : base(title: "Set Points") { }
+    public PointsSetterElement() : base(title: "Set Points") 
+    {
+        Height.Set(210, 0);
+    }
 
     public override void OnInitialize()
     {
@@ -77,12 +80,12 @@ internal class PointsSetterElement : DraggablePanel
         }
     }
 
-    public override void OnClosePanelLeftClick()
+    protected override void OnClosePanelLeftClick()
     {
         ModContent.GetInstance<PointsSetterSystem>().ToggleActive();
     }
 
-    public override void OnRefreshPanelLeftClick()
+    protected override void OnRefreshPanelLeftClick()
     {
         Rebuild();
     }

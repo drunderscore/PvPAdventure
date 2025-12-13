@@ -14,6 +14,13 @@ internal class EndGameElement : DraggablePanel
     private readonly UITextPanel<string> yesButton;
     private readonly UITextPanel<string> noButton;
 
+    protected override float MinResizeW => 260f;
+    protected override float MinResizeH => 100f;
+    protected override void OnClosePanelLeftClick()
+    {
+        ModContent.GetInstance<GameStarterSystem>().Hide();
+    }
+
     public EndGameElement() : base("Really end game?")
     {
         Width.Set(400, 0);
@@ -24,9 +31,9 @@ internal class EndGameElement : DraggablePanel
 
         noButton = new UITextPanel<string>("No")
         {
-            Width = new StyleDimension(120, 0),
-            Height = new StyleDimension(40, 0),
-            HAlign = 0.25f,
+            Width = { Pixels = 120f },
+            Height = { Pixels = 40f },
+            Left = { Pixels = 10f },
             VAlign = 0.5f
         };
         noButton.OnMouseOver += (_, _) => noButton.BorderColor = Color.Yellow;
@@ -35,9 +42,9 @@ internal class EndGameElement : DraggablePanel
 
         yesButton = new UITextPanel<string>("Yes")
         {
-            Width = new StyleDimension(120, 0),
-            Height = new StyleDimension(40, 0),
-            HAlign = 0.75f,
+            Width = { Pixels = 120f },
+            Height = { Pixels = 40f },
+            Left = { Percent = 1f, Pixels = -10f - 120f },
             VAlign = 0.5f
         };
         yesButton.OnMouseOver += (_, _) => yesButton.BorderColor = Color.Yellow;
@@ -62,8 +69,4 @@ internal class EndGameElement : DraggablePanel
         ContentPanel.Append(yesButton);
     }
 
-    public override void OnClosePanelLeftClick()
-    {
-        ModContent.GetInstance<GameStarterSystem>().Hide();
-    }
 }

@@ -4,7 +4,7 @@ using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Integrations.PointsSetter;
-using PvPAdventure.Common.Integrations.TeamAssigner;
+using PvPAdventure.Core.Helpers;
 using PvPAdventure.System;
 using System.Collections.Generic;
 using Terraria;
@@ -70,6 +70,9 @@ public class DLPointsSetterTool : Tool
     public override void DrawIcon(SpriteBatch spriteBatch, Rectangle position)
     {
         base.DrawIcon(spriteBatch, position);
+
+        // We have to manually draw it for some reason
+        spriteBatch.Draw(Ass.Points.Value, position, Color.White);
 
         var pss = ModContent.GetInstance<PointsSetterSystem>();
 
