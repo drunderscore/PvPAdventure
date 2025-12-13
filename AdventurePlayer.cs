@@ -1224,6 +1224,7 @@ public class TurtleDashPlayer : ModPlayer
         {
             float dashSpeedReduction = Player.velocity.X * -0.03f;
             Player.velocity.X -= dashSpeedReduction;
+            //Dont think I didnt notice this.
         }
         //thanks mr fargo
     }

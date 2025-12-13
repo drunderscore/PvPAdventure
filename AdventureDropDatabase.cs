@@ -351,7 +351,6 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.Clinger:
             case NPCID.SeekerHead:
             case NPCID.DesertGhoulCorruption:
-            case NPCID.CultistArcherBlue:
                 foreach (var drop in drops)
                     npcLoot.Add(ItemDropRule.Common(ItemID.RottenChunk, 1, 1, 1));
                 break;
