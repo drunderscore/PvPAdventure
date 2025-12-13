@@ -1,4 +1,3 @@
-using PvPAdventure.Content.Items;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,20 +9,57 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure;
 
-public class AdventureConfig : ModConfig
+public class AdventureServerConfig : ModConfig
 {
+    #region Members
+
     public override ConfigScope Mode => ConfigScope.ServerSide;
 
+    [Header("Points")]
+    [BackgroundColor(140, 100, 20)]
+    [Expand(false, false)]
     public PointsConfig Points { get; set; } = new();
+
+    [BackgroundColor(140, 100, 20)]
+    [Expand(false, false)]
     public List<Bounty> Bounties { get; set; } = new();
+
+    [Header("Combat")]
+    [BackgroundColor(40, 90, 40)]
+    [Expand(false, false)]
     public CombatConfig Combat { get; set; } = new();
+
+    [Header("Items")]
+    [BackgroundColor(40, 60, 110)]
+    [Expand(false, false)]
     public List<ItemDefinition> PreventUse { get; set; } = new();
 
+    [BackgroundColor(40, 60, 110)]
+    public bool RemovePrefixes { get; set; }
+
+    [BackgroundColor(40, 60, 110)]
+    [ReloadRequired]
+    [Expand(false, false)]
+    public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = new();
+
+    [BackgroundColor(40, 60, 110)]
+    [Expand(false, false)]
+    public List<ItemDefinition> PreventAutoReuse { get; set; } = new();
+
+    [BackgroundColor(40, 60, 110)]
+    [Expand(false, false)]
+    public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = new();
+
+    [Header("NPCs")]
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
     public List<NPCDefinition> NpcSpawnAnnouncements { get; set; } = new()
     {
         new(NPCID.CultistBoss)
     };
 
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
     public List<NPCDefinition> BossOrder { get; set; } =
     [
         new(NPCID.KingSlime),
@@ -46,8 +82,12 @@ public class AdventureConfig : ModConfig
         new(NPCID.CultistBoss)
     ];
 
-    [DefaultValue(true)] public bool OnlyDisplayWorldEvilBoss { get; set; }
+    [BackgroundColor(90, 40, 110)]
+    [DefaultValue(true)]
+    public bool OnlyDisplayWorldEvilBoss { get; set; }
 
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
     public List<ProjectileDefinition> BossInvulnerableProjectiles { get; set; } =
     [
         new(ProjectileID.Dynamite),
@@ -55,21 +95,39 @@ public class AdventureConfig : ModConfig
         new(ProjectileID.BouncyDynamite)
     ];
 
-    public class InvasionSizeValue
-    {
-        [Range(0, 1000)] public int Value { get; set; }
-    }
+    [BackgroundColor(90, 40, 110)]
+    [DefaultValue(0.25f)]
+    public float BoundSpawnChance { get; set; }
 
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
+    public NpcBalanceConfig NpcBalance { get; set; } = new();
+
+    [Header("Gameplay")]
+    [BackgroundColor(40, 90, 40)]
+    [Expand(false, false)]
     public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = new();
 
+    [BackgroundColor(40, 90, 40)]
     [Range(0, 60 * 60)]
     [DefaultValue(4 * 60)]
-    public int RecallFrames { get; set; }
-
+    public int AdventureMirrorRecallFrames { get; set; }
+    [BackgroundColor(40, 90, 40)]
     [Range(0, 30 * 60)]
     [DefaultValue(1.5 * 60)]
     public int SpawnImmuneFrames { get; set; }
 
+    [BackgroundColor(40, 90, 40)]
+    [Range(0, 600)]
+    public int MinimumDamageReceivedByPlayers { get; set; }
+
+    [BackgroundColor(40, 90, 40)]
+    [Range(0, 600)]
+    public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
+
+    [Header("General")]
+    [BackgroundColor(50, 60, 80)]
+    [Expand(false, false)]
     public List<string> CrashoutMessages { get; set; } =
     [
         "Is it break yet?",
@@ -80,14 +138,49 @@ public class AdventureConfig : ModConfig
         "Too many surface RTPs"
     ];
 
-    [Description("Discord IDs that are allowed to modify the server configuration")]
-    public List<string> AllowConfigModification { get; set; } = new();
+    [BackgroundColor(50, 60, 80)]
+    [Expand(false, false)]
+    public List<string> AllowConfigModification { get; set; } = [];
 
-    [Description("Percent chance that our bound NPCs spawn")]
-    [DefaultValue(0.25f)]
-    public float BoundSpawnChance { get; set; }
+    [Header("WorldGen")]
+    [BackgroundColor(90, 70, 40)]
+    [Expand(false, false)]
+    public WorldGenerationConfig WorldGeneration { get; set; } = new();
+    public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
+    {
+        if (pendingConfig is not AdventureServerConfig pendingAdventureConfig)
+            return true;
 
-    public bool RemovePrefixes { get; set; }
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var discordId = Main.player[whoAmI].GetModPlayer<AdventurePlayer>().DiscordUser?.Id;
+        if (discordId == null)
+            return false;
+
+        if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
+        {
+            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
+            return false;
+        }
+
+        // You must have access by this point, but then you removed yourself!
+        // Don't do that.
+        if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
+        {
+            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
+            return false;
+        }
+
+        return true;
+    }
+
+    #endregion
+
+    #region NestedConfigTypes
+
+    public class InvasionSizeValue
+    {
+        [Range(0, 1000)] public int Value { get; set; }
+    }
 
     public class PointsConfig
     {
@@ -155,62 +248,58 @@ public class AdventureConfig : ModConfig
             public Dictionary<ItemDefinition, float> ItemDamageMultipliers { get; set; } = new();
             public Dictionary<ProjectileDefinition, float> ProjectileDamageMultipliers { get; set; } = new();
 
+            [Increment(0.01f)]
+            [Range(0.0f, 1.0f)]
+            public Dictionary<ItemDefinition, float> ItemArmorPenetration { get; set; } = new();
+
+            [Increment(0.01f)]
+            [Range(0.0f, 1.0f)]
+            public Dictionary<ProjectileDefinition, float> ProjectileArmorPenetration { get; set; } = new();
+
             public class Falloff
             {
                 [Increment(0.0001f)]
                 [Range(0.0f, 1.0f)]
                 public float Coefficient { get; set; }
-
                 [Increment(0.05f)]
                 [Range(0.0f, 100.0f)]
                 public float Forward { get; set; }
-
                 public float CalculateMultiplier(float tileDistance) =>
                     (float)Math.Min(Math.Pow(Math.E, -(Coefficient * (tileDistance - Forward) / 100.0)), 1.0);
             }
-
             public Dictionary<ItemDefinition, Falloff> ItemFalloff { get; set; } = new();
             public Dictionary<ProjectileDefinition, Falloff> ProjectileFalloff { get; set; } = new();
-
-            [DefaultValue(null)] [NullAllowed] public Falloff DefaultFalloff { get; set; }
+            [DefaultValue(null)][NullAllowed] public Falloff DefaultFalloff { get; set; }
         }
 
-        [Range(0, 5 * 60)] [DefaultValue(8)] public int MeleeInvincibilityFrames { get; set; }
-
+        [Range(0, 5 * 60)][DefaultValue(8)] public int MeleeInvincibilityFrames { get; set; }
         [Range(0, 60 * 2 * 60)]
         [DefaultValue(15 * 60)]
         public int RecentDamagePreservationFrames { get; set; }
-
         public PlayerDamageBalanceConfig PlayerDamageBalance { get; set; } = new();
-
-        [Range(0, 5 * 60)] [DefaultValue(8)] public int StandardInvincibilityFrames { get; set; }
-
+        [Range(0, 5 * 60)][DefaultValue(8)] public int StandardInvincibilityFrames { get; set; }
         [DefaultValue(0.2f)] public float GhostHealMultiplier { get; set; }
-
-        [Description("Additional multiplier for any player that can Ghost Heal")]
         [DefaultValue(1.0f)]
         public float GhostHealMultiplierWearers { get; set; }
-
         [Range(0.0f, 3000.0f)]
         [DefaultValue(3000.0f)]
         public float GhostHealMaxDistance { get; set; }
-
         public float GhostHealMaxDistanceNpc { get; set; }
+        [Increment(0.01f)]
+        [Range(0.0f, 1.0f)]
+        [DefaultValue(0.5f)]
+        public float GhostHealArmorPenetration { get; set; }
 
         public class TeamLifeConfig
         {
             [DefaultValue(0.5f)] public float Share { get; set; } = 0.5f;
         }
 
-        [Description("Require each team to deal the maximum life in total damage to kill this NPC")]
-
         public Dictionary<NPCDefinition, TeamLifeConfig> TeamLifeNpcs { get; set; } = new();
 
         [Range(0.0f, 1.0f)]
         [DefaultValue(0.0f)]
-      
 
-        [Description("Reduce the damage of certain projectiles after they have collided or bounced")]
         public float ProjectileCollisionDamageReduction { get; set; }
 
         public Dictionary<ProjectileDefinition, float> NoLineOfSightDamageReduction { get; set; } = new();
@@ -280,15 +369,15 @@ public class AdventureConfig : ModConfig
             public override int GetHashCode() => Value.GetHashCode();
         }
 
-        [DefaultValue(null)] [NullAllowed] public OptionalInt Damage { get; set; }
-        [DefaultValue(null)] [NullAllowed] public OptionalInt UseTime { get; set; }
-        [DefaultValue(null)] [NullAllowed] public OptionalInt UseAnimation { get; set; }
-        [DefaultValue(null)] [NullAllowed] public OptionalFloat ShootSpeed { get; set; }
-        [DefaultValue(null)] [NullAllowed] public OptionalInt Crit { get; set; }
-        [DefaultValue(null)] [NullAllowed] public OptionalInt Mana { get; set; }
-        [DefaultValue(null)] [NullAllowed] public OptionalFloat Scale { get; set; }
-        [DefaultValue(null)] [NullAllowed] public OptionalFloat Knockback { get; set; }
-        [DefaultValue(null)] [NullAllowed] public OptionalInt Value { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalInt Damage { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalInt UseTime { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalInt UseAnimation { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalFloat ShootSpeed { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalInt Crit { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalInt Mana { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalFloat Scale { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalFloat Knockback { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalInt Value { get; set; }
 
         public bool Equals(Statistics other)
         {
@@ -323,8 +412,6 @@ public class AdventureConfig : ModConfig
         }
     }
 
-    [ReloadRequired] public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = new();
-
     public class WorldGenerationConfig
     {
         [DefaultValue(2)] public int LifeFruitChanceDenominator { get; set; } = 2;
@@ -344,10 +431,6 @@ public class AdventureConfig : ModConfig
         [DefaultValue(300)] public int ChlorophyteGrowLimitModifier { get; set; } = 300;
     }
 
-    public WorldGenerationConfig WorldGeneration { get; set; } = new();
-
-    public List<ItemDefinition> PreventAutoReuse { get; set; } = new();
-
     public class NpcBalanceConfig
     {
         public class FloatStatistic
@@ -360,47 +443,10 @@ public class AdventureConfig : ModConfig
         public bool NoMechanicalBossSummonDrops { get; set; }
     }
 
-    public NpcBalanceConfig NpcBalance { get; set; } = new();
-
     public class ChestItemReplacement
     {
         public List<ConfigItem> Items { get; set; } = new();
     }
 
-    public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = new();
-
-    [Range(0, 600)] public int MinimumDamageReceivedByPlayers { get; set; }
-    [Range(0, 600)] public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
-
-    [Header("AdventureMirror")]
-    [Range(0, 60 * 60)]
-    [DefaultValue(4 * 60)]
-    public int AdventureMirrorRecallFrames { get; set; }
-
-    public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
-    {
-        if (pendingConfig is not AdventureConfig pendingAdventureConfig)
-            return true;
-
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
-        var discordId = Main.player[whoAmI].GetModPlayer<AdventurePlayer>().DiscordUser?.Id;
-        if (discordId == null)
-            return false;
-
-        if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        {
-            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-            return false;
-        }
-
-        // You must have access by this point, but then you removed yourself!
-        // Don't do that.
-        if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        {
-            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-            return false;
-        }
-
-        return true;
-    }
+    #endregion
 }

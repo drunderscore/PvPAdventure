@@ -1,28 +1,31 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.SpawnSelector.UI;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PvPAdventure.Content.Items;
 
+/// <summary>
+/// An item that teleports the player to world spawn.
+/// Has a countdown of a few seconds before being used.
+/// </summary>
 internal class AdventureMirror : ModItem
 {
+    public override string Texture => $"PvPAdventure/Assets/Item/AdventureMirror";
     public override void SetDefaults()
     {
         //Item.CloneDefaults(ItemID.MagicMirror);
 
-        var config = ModContent.GetInstance<AdventureConfig>();
+        var config = ModContent.GetInstance<AdventureServerConfig>();
         int recallFrames = config.AdventureMirrorRecallFrames; // 5 seconds = 60 * 5
 
-        Item.useTime = recallFrames + 1;
-        Item.useAnimation = recallFrames + 1;
+        Item.useTime = recallFrames + 10; // +10 frames to ensure countdown shows
+        Item.useAnimation = recallFrames + 10; // +10 frames to ensure countdown 
         Item.useStyle = ItemUseStyleID.HoldUp;
         Item.UseSound = SoundID.Item6;
         Item.rare = ItemRarityID.Blue;
-        Item.value = Item.buyPrice(gold: 5);
+        Item.value = Item.buyPrice(gold: 0);
         Item.noUseGraphic = false;
     }
     public override bool ConsumeItem(Player player) => false;
@@ -244,9 +247,11 @@ internal class AdventureMirror : ModItem
         return true;
     }
 
+
     public override void UpdateInventory(Player player)
     {
         // Force favorite every tick
-        Item.favorited = true;
+        // Redundant now that we disallowed unfavorite in ItemSlotHooks left click hook
+        //Item.favorited = true;
     }
 }

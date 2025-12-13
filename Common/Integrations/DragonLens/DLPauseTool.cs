@@ -2,9 +2,12 @@
 using DragonLens.Core.Systems.ThemeSystem;
 using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
+using Humanizer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.System;
+using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Integrations.DragonLens;
@@ -18,6 +21,7 @@ public class DLPauseTool : Tool
     public override string DisplayName => GetDisplayName();
     private string GetDisplayName()
     {
+        //return "Pause";
         var pm = ModContent.GetInstance<PauseManager>();
         return pm.IsPaused ?
             "Resume" :
@@ -34,11 +38,20 @@ public class DLPauseTool : Tool
             "Click to pause the game";
     }
 
-
     public override void OnActivate()
     {
         var pm = ModContent.GetInstance<PauseManager>();
-        pm.PauseGame();
+
+        if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            pm.PauseGame();
+        }
+        else if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            var packet = Mod.GetPacket();
+            packet.Write((byte)AdventurePacketIdentifier.PauseGame);
+            packet.Send();
+        }
     }
 
     public override void DrawIcon(SpriteBatch spriteBatch, Rectangle position)

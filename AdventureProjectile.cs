@@ -9,7 +9,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
-using static PvPAdventure.AdventureConfig;
+using static PvPAdventure.AdventureServerConfig;
 
 namespace PvPAdventure;
 
@@ -121,7 +121,7 @@ public class AdventureProjectile : GlobalProjectile
         //   - Player life steal is entirely disregarded.
         //   - All nearby teammates are healed, instead of only the one with the largest health deficit.
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         var healMultiplier = adventureConfig.Combat.GhostHealMultiplier;
         healMultiplier -= self.numHits * 0.05f;
@@ -536,52 +536,6 @@ public class AdventureProjectile : GlobalProjectile
             }
         }
     }
-
-    public class WhipRangeChanges : GlobalProjectile
-    {
-        public override bool AppliesToEntity(Projectile projectile, bool lateInstantiation)
-        {
-            return projectile.type == ProjectileID.MaceWhip ||
-                   projectile.type == ProjectileID.RainbowWhip ||
-                   projectile.type == ProjectileID.CoolWhip ||
-                   projectile.type == ProjectileID.FireWhip ||
-                   projectile.type == ProjectileID.SwordWhip ||
-                   projectile.type == ProjectileID.ScytheWhip ||
-                   projectile.type == ProjectileID.ThornWhip ||
-                   projectile.type == ProjectileID.BoneWhip ||
-                   projectile.type == ProjectileID.BlandWhip;
-        }
-        public override void SetDefaults(Projectile projectile)
-        {
-            if (projectile.type == ProjectileID.MaceWhip)
-            {
-                projectile.WhipSettings.RangeMultiplier = 1.03f; // this is like 20% range
-            }
-            if (projectile.type == ProjectileID.RainbowWhip)
-            {
-                projectile.WhipSettings.RangeMultiplier = 1.43f; // this is like 20% range
-            }
-            if (projectile.type == ProjectileID.CoolWhip)
-            {
-                projectile.WhipSettings.RangeMultiplier = 1.18f; // this is like 20% range
-            }
-            if (projectile.type == ProjectileID.FireWhip)
-            {
-                projectile.WhipSettings.RangeMultiplier = 1.18f; // this is like 20% range
-            }
-            if (projectile.type == ProjectileID.SwordWhip)
-            {
-                projectile.WhipSettings.RangeMultiplier = 1.4f; // this is like 20% range
-            }
-            if (projectile.type == ProjectileID.ScytheWhip)
-            {
-                projectile.WhipSettings.RangeMultiplier = 2f; // this is like 20% range
-            }
-        }
-    }
-
-
-
     private void EditProjectileDamage(ILContext il)
     {
         var cursor = new ILCursor(il);
@@ -619,7 +573,7 @@ public class AdventureProjectile : GlobalProjectile
         // ...and emit our own delegate to return the value.
         cursor.EmitDelegate(() =>
         {
-            var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
             return adventureConfig.Combat.GhostHealMaxDistanceNpc;
         });
     }
@@ -633,7 +587,7 @@ public class AdventureProjectile : GlobalProjectile
             modifiers.Knockback /= 2;
         }
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         var bounced =
             projectile.type == ProjectileID.ShadowBeamFriendly && projectile.localAI[1] > 0
@@ -784,10 +738,30 @@ public class AdventureProjectile : GlobalProjectile
                    entity.type == ProjectileID.HallowBossSplitShotCore ||
                    entity.type == ProjectileID.HallowBossLastingRainbow;
         }
-
         public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
         {
             modifiers.SourceDamage *= 0.75f;
+            if (Main.dayTime)
+            {
+                modifiers.SourceDamage *= 0.006f;
+            }
+        }
+    }
+
+    public class EmpressContactDamageNerf : GlobalNPC
+    {
+        public override bool AppliesToEntity(NPC entity, bool lateInstantiation)
+        {
+            return entity.type == NPCID.HallowBoss;
+        }
+
+        public override void ModifyHitPlayer(NPC npc, Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.SourceDamage *= 0.75f;
+            if (Main.dayTime)
+            {
+                modifiers.SourceDamage *= 0.01f;
+            }
         }
     }
     public class VanillaPirahinaGun : GlobalProjectile

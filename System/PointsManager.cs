@@ -1,9 +1,10 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Integrations.PointsSetter;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Chat;
 using Terraria.Enums;
@@ -22,7 +23,7 @@ namespace PvPAdventure.System;
 [Autoload(Side = ModSide.Both)]
 public class PointsManager : ModSystem
 {
-    private readonly Dictionary<Team, int> _points = new();
+    public readonly Dictionary<Team, int> _points = new();
     private readonly Dictionary<Team, ISet<short>> _downedNpcs = new();
 
     public BossCompletionInterfaceLayer BossCompletion { get; private set; }
@@ -183,7 +184,7 @@ public class PointsManager : ModSystem
 
     public void AwardNpcKillToTeam(Team team, NPC npc)
     {
-        var config = ModContent.GetInstance<AdventureConfig>();
+        var config = ModContent.GetInstance<AdventureServerConfig>();
 
         // Is this NPC assigned custom point values?
         if (!config.Points.Npc.TryGetValue(new NPCDefinition(npc.type), out var points))
@@ -241,7 +242,7 @@ public class PointsManager : ModSystem
 
     public void AwardPlayerKillToTeam(Player killer, Player victim)
     {
-        var config = ModContent.GetInstance<AdventureConfig>();
+        var config = ModContent.GetInstance<AdventureServerConfig>();
         var killerTeam = (Team)killer.team;
 
         // Even if certain oddities allowed this to happen, no point exchanging would actually occur.
@@ -269,8 +270,24 @@ public class PointsManager : ModSystem
                 UiScoreboard.Invalidate();
         }
 
+
         if (config.Combat.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
             ModContent.GetInstance<BountyManager>().Award(killer, victim);
+
+    }
+
+    public void SetTeamPoints(Team team, int points)
+    {
+        _points[team] = points;
+
+        if (Main.dedServ)
+        {
+            NetMessage.SendData(MessageID.WorldData);
+        }
+        else
+        {
+            UiScoreboard?.Invalidate();
+        }
     }
 
     public class UIScoreboard(PointsManager pointsManager) : UIState
@@ -428,7 +445,19 @@ public class PointsManager : ModSystem
             };
 
             Append(root);
+
+            // Refresh PointsSetterElement
+            var pss = ModContent.GetInstance<PointsSetterSystem>();
+            if (pss != null)
+            {
+                // Note: This is a hotfix to update the setpoints UI when awarding e.g boss points.
+                // FIXME: This causes enumeration collection exception.
+                // Need to make a dirty flag and rebuild during safe update.
+                //pss.pointsSetterElement?.Rebuild();
+            }
         }
+
+        
     }
 
     public class BossCompletionInterfaceLayer(PointsManager pointsManager)
@@ -444,7 +473,7 @@ public class PointsManager : ModSystem
             const int bossHeadTeamIconVisualSeparatorYOffset = 28;
             var teamIconsTexture = TextureAssets.Pvp[1].Value;
 
-            var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
             var bosses = adventureConfig.BossOrder
                 .Select(npcDefinition => (short)npcDefinition.Type)
                 // Remove invalid/unloaded NPCs
@@ -452,7 +481,7 @@ public class PointsManager : ModSystem
                 .ToList();
             var numberOfBosses = bosses.Count;
 
-            var onlyDisplayWorldEvilBoss = ModContent.GetInstance<AdventureConfig>().OnlyDisplayWorldEvilBoss &&
+            var onlyDisplayWorldEvilBoss = ModContent.GetInstance<AdventureServerConfig>().OnlyDisplayWorldEvilBoss &&
                                            bosses.Contains(NPCID.EaterofWorldsHead) &&
                                            bosses.Contains(NPCID.BrainofCthulhu);
 

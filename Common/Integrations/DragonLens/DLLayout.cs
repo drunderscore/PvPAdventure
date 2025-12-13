@@ -5,9 +5,10 @@ using DragonLens.Content.GUI;
 using DragonLens.Content.Themes.BoxProviders;
 using DragonLens.Content.Themes.IconProviders;
 using DragonLens.Content.Tools;
-using DragonLens.Content.Tools.Despawners;
 using DragonLens.Content.Tools.Editors;
 using DragonLens.Content.Tools.Gameplay;
+using DragonLens.Content.Tools.Map;
+using DragonLens.Content.Tools.Multiplayer;
 using DragonLens.Content.Tools.Spawners;
 using DragonLens.Core.Systems.ThemeSystem;
 using DragonLens.Core.Systems.ToolbarSystem;
@@ -55,17 +56,18 @@ public class DLLayout : ModSystem
     {
         orig(self, grid);
 
-        // Setup layout names
-        string herosLayout = "HEROs Mod + PvP Adventure";
+        string layout1 = "PvP Adventure";
+        RegisterPvPAdventureLayout(layout1);
 
-        // Register the layouts
-        RegisterHerosLayout(herosLayout);
+        string layout2 = "PvP Adventure+";
+        RegisterPvPAdventurePlusLayout(layout2);
 
         // Add the layouts to the grid of layout browser
-        grid.Add(new LayoutPresetButton(self, herosLayout, GetLayoutPath(herosLayout), herosLayout));
+        grid.Add(new LayoutPresetButton(self, layout1, GetLayoutPath(layout1), "Basic general-purpose tools for a standard PvP Adventure admin."));
+        grid.Add(new LayoutPresetButton(self, layout2, GetLayoutPath(layout2), "Advanced all-purpose tools for a more seasoned PvP Adventure admin."));
     }
 
-    private static string RegisterHerosLayout(string layoutName)
+    private static string RegisterPvPAdventureLayout(string layoutName)
     {
         ToolbarHandler.BuildPreset(layoutName, n =>
         {
@@ -73,28 +75,80 @@ public class DLLayout : ModSystem
             n.Add(
                 new Toolbar(new Vector2(0.5f, 1f), Orientation.Horizontal, AutomaticHideOption.Never)
                 .AddTool<ItemSpawner>()
-                .AddTool<InfiniteReach>()
-                .AddTool<SpawnTool>()
-                .AddTool<ItemDespawner>()
+                .AddTool<NPCSpawner>()
                 .AddTool<Time>()
                 .AddTool<Weather>()
-                .AddTool<NPCSpawner>()
-                .AddTool<BuffSpawner>()
-                .AddTool<Godmode>()
-                .AddTool<ItemEditor>()
+                .AddTool<SpawnTool>() // enemy spawn rate
                 .AddTool<CustomizeTool>()
-                );
+            );
 
             // left PvPAdventure toolbar
             n.Add(
-                new Toolbar(new Vector2(0f, 0.5f), Orientation.Vertical, AutomaticHideOption.Never)
-                .AddTool<DLStartGameTool>()
-                .AddTool<DLPauseTool>()
+                new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
+                .AddTool<DLGameStarterTool>()
                 .AddTool<DLTeamAssignerTool>()
-                );
+                .AddTool<DLPointsSetterTool>()
+                .AddTool<DLPauseTool>()
+                .AddTool<PlayerManager>()
+            );
         },
-        ThemeHandler.GetBoxProvider<VanillaBoxes>(),
-        ThemeHandler.GetIconProvider<HEROsIcons>());
+        ThemeHandler.GetBoxProvider<SimpleBoxes>(),
+        ThemeHandler.GetIconProvider<DefaultIcons>());
+
+        ExportLayout(layoutName);
+
+        return layoutName;
+    }
+
+    private static string RegisterPvPAdventurePlusLayout(string layoutName)
+    {
+        ToolbarHandler.BuildPreset(layoutName, n =>
+        {
+            // bottom toolbar
+            n.Add(
+                new Toolbar(new Vector2(0.5f, 1f), Orientation.Horizontal, AutomaticHideOption.Never)
+
+                // regular tools
+                .AddTool<ItemSpawner>()
+                .AddTool<NPCSpawner>()
+                .AddTool<Time>()
+                .AddTool<Weather>()
+                .AddTool<SpawnTool>() // enemy spawn rate
+                .AddTool<CustomizeTool>()
+            );
+
+            // left PvPAdventure toolbar
+            n.Add(
+                new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
+                .AddTool<DLGameStarterTool>()
+                .AddTool<DLTeamAssignerTool>()
+                .AddTool<DLPointsSetterTool>()
+                .AddTool<DLPauseTool>()
+                .AddTool<PlayerManager>()
+            );
+
+            // right toolbar
+            n.Add(
+                new Toolbar(new Vector2(1f, 0.2f), Orientation.Vertical, AutomaticHideOption.Never)
+
+                // cheat tools
+                .AddTool<Godmode>()
+                .AddTool<InfiniteReach>()
+                .AddTool<NoClip>()
+                .AddTool<SystemEditorTool>()
+            );
+
+            // left map toolbar
+            n.Add(
+                new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.NoMapScreen)
+                .AddTool<MapTeleport>()
+                .AddTool<RevealMap>()
+                .AddTool<HideMap>()
+                .AddTool<CustomizeTool>()
+            );
+        },
+        ThemeHandler.GetBoxProvider<SimpleBoxes>(),
+        ThemeHandler.GetIconProvider<DefaultIcons>());
 
         ExportLayout(layoutName);
 

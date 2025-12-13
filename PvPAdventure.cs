@@ -1,10 +1,14 @@
+using Discord.Net;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.Content.Items;
 using PvPAdventure.Common.Integrations.TeamAssigner;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
+using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.SpawnSelector.Systems;
 using PvPAdventure.System;
+using PvPAdventure.Content.Items;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -287,6 +291,22 @@ public class PvPAdventure : Mod
 
                     break;
                 }
+            case AdventurePacketIdentifier.NpcStrikeTeam:
+                {
+                    var npcIndex = reader.ReadInt16();
+                    var team = reader.ReadByte();
+
+                    if (npcIndex < 0 || npcIndex >= Main.maxNPCs)
+                        return;
+
+                    if (team >= Enum.GetValues<Team>().Length)
+                        return;
+
+                    var npc = Main.npc[npcIndex];
+                    npc.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(npc, (Team)team);
+
+                    break;
+                }
             case AdventurePacketIdentifier.PlayerTeam:
                 {
                     var team = AdventurePlayer.Team.Deserialize(reader);
@@ -320,6 +340,7 @@ public class PvPAdventure : Mod
                     if (!Main.dedServ)
                         ModContent.GetInstance<PointsManager>().UiScoreboard?.Invalidate();
 
+                    // Update team assigner
                     var ts = ModContent.GetInstance<TeamAssignerSystem>();
                     if (ts?.teamAssignerState != null)
                     {
@@ -331,6 +352,18 @@ public class PvPAdventure : Mod
                                 break;
                             }
                         }
+                    }
+
+                    break;
+                }
+            case AdventurePacketIdentifier.PauseGame:
+                {
+                    bool isPaused = reader.ReadBoolean();
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        var pm = ModContent.GetInstance<PauseManager>();
+                        pm.PauseGame();
                     }
 
                     break;
@@ -362,25 +395,112 @@ public class PvPAdventure : Mod
 
                     break;
                 }
-            case AdventurePacketIdentifier.NpcStrikeTeam:
-            {
-                var npcIndex = reader.ReadInt16();
-                var team = reader.ReadByte();
-
-                if (npcIndex < 0 || npcIndex >= Main.maxNPCs)
-                    return;
-
-                if (team >= Enum.GetValues<Team>().Length)
-                    return;
-
-                var npc = Main.npc[npcIndex];
-                npc.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(npc, (Team)team);
-
-                break;
-            }
             case AdventurePacketIdentifier.Dash:
                 DashKeybindSystem.HandlePacket(reader, whoAmI);
                 break;
+            case AdventurePacketIdentifier.AdventureMirrorRightClickUse:
+                {
+                    byte playerId = reader.ReadByte();
+                    byte slot = reader.ReadByte();
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        if (playerId != whoAmI)
+                            return;
+
+                        if (playerId < 0 || playerId >= Main.maxPlayers)
+                            return;
+
+                        Player player = Main.player[playerId];
+                        if (player is null || !player.active)
+                            return;
+
+                        if (slot < 0 || slot >= player.inventory.Length)
+                            return;
+
+                        Item item = player.inventory[slot];
+                        if (item?.ModItem is not AdventureMirror)
+                            return;
+
+                        ModPacket p = GetPacket();
+                        p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
+                        p.Write(playerId);
+                        p.Write(slot);
+                        p.Send();
+                    }
+                    else if (Main.netMode == NetmodeID.MultiplayerClient)
+                    {
+                        Player player = Main.player[playerId];
+                        if (player is null || !player.active)
+                            return;
+
+                        if (slot < 0 || slot >= player.inventory.Length)
+                            return;
+
+                        Item item = player.inventory[slot];
+                        if (item?.ModItem is not AdventureMirror)
+                            return;
+
+                        // Visual state only
+                        player.selectedItem = slot;
+                        player.itemAnimation = item.useAnimation;
+                        player.itemAnimationMax = item.useAnimation;
+                        player.itemTime = item.useTime;
+                        player.itemTimeMax = item.useTime;
+                    }
+                    break;
+                }
+            case AdventurePacketIdentifier.BedTeleport:
+                {
+                    BedsOnMap.HandlePacket(reader, whoAmI);
+                    break;
+                }
+            case AdventurePacketIdentifier.PlayerBed:
+                {
+                    byte playerId = reader.ReadByte();
+                    int spawnX = reader.ReadInt32();
+                    int spawnY = reader.ReadInt32();
+
+                    Player p = Main.player[playerId];
+                    p.SpawnX = spawnX;
+                    p.SpawnY = spawnY;
+
+                    if (Main.dedServ)
+                    {
+                        var packet = GetPacket();
+                        packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
+                        packet.Write(playerId);
+                        packet.Write(spawnX);
+                        packet.Write(spawnY);
+                        packet.Send(-1, whoAmI);
+#if DEBUG
+                        ChatHelper.BroadcastChatMessage(
+                            NetworkText.FromLiteral($"[DEBUG/SERVER] Player {p.name} set spawn to ({spawnX}, {spawnY})"), Color.White);
+#endif
+                    }
+
+                    break;
+                }
+            case AdventurePacketIdentifier.SetPointsRequest:
+                {
+                    var team = (Team)reader.ReadByte();
+                    var value = reader.ReadInt32();
+
+                    var pointsManager = ModContent.GetInstance<PointsManager>();
+                    pointsManager._points[team] = value;
+
+                    if (Main.dedServ)
+                    {
+                        NetMessage.SendData(MessageID.WorldData);
+                    }
+                    else
+                    {
+                        // Refresh scoreboard
+                        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
+                    }
+
+                    break;
+                }
         }
     }
 }
