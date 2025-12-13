@@ -6,6 +6,7 @@ using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.Core.SpawnSelector.Systems;
 using PvPAdventure.System;
+using PvPAdventure.Content.Items;
 using System;
 using System.Collections.Generic;
 using System.IO;
