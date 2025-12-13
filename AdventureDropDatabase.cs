@@ -344,7 +344,17 @@ public class AdventureDropDatabase : ModSystem
                     ModifyDropRate(drop, ItemID.GoldRing, 1, 10);
                 }
                 break;
-
+            case NPCID.Corruptor:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.RottenChunk, 1, 1);
+                break;
+            case NPCID.Clinger:
+            case NPCID.SeekerHead:
+            case NPCID.DesertGhoulCorruption:
+            case NPCID.CultistArcherBlue:
+                foreach (var drop in drops)
+                    npcLoot.Add(ItemDropRule.Common(ItemID.RottenChunk, 1, 1, 1));
+                break;
             case NPCID.EyeofCthulhu:
                 foreach (var drop in drops)
                 ModifyDropRate(drop, ItemID.Binoculars, 1, 1);
@@ -470,7 +480,7 @@ public class AdventureDropDatabase : ModSystem
                 break;
 
             case NPCID.SkeletronHead:
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey, 1, 3, 3));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey, 1, 2, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.Marrow, 1000, 1000, 1000));
 
                 foreach (var drop in drops)
@@ -706,6 +716,72 @@ public class AdventureDropDatabase : ModSystem
             else
             {
                 ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find any biome key drop rates (2500) in RegisterGlobalRules method");
+            }
+        }
+    }
+    public class SoulDropEdit : ModSystem
+    {
+        private static ILHook globalRulesHook;
+
+
+        private const int NewSoulDropRate = 3; // denominator
+
+        public override void PostSetupContent()
+        {
+            MethodInfo method = typeof(Terraria.GameContent.ItemDropRules.ItemDropDatabase).GetMethod("RegisterGlobalRules",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            globalRulesHook = new ILHook(method, SoulDropILEdit);
+        }
+
+        public override void Unload()
+        {
+            globalRulesHook?.Dispose();
+        }
+
+        private static void SoulDropILEdit(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+            int replacedCount = 0;
+
+
+            while (cursor.TryGotoNext(MoveType.Before,
+                i => i.MatchLdcI4(5))) 
+            {
+
+                var nextCursor = cursor.Clone();
+                bool isSoulDrop = false;
+
+
+                for (int j = 0; j < 100; j++) 
+                {
+                    if (nextCursor.TryGotoNext(MoveType.After,
+                        i => i.MatchLdcI4(520) || i.MatchLdcI4(521))) 
+                    {
+                        isSoulDrop = true;
+                        break;
+                    }
+                }
+
+                if (isSoulDrop)
+                {
+                    cursor.Remove();
+                    cursor.Emit(OpCodes.Ldc_I4, NewSoulDropRate); 
+                    replacedCount++;
+                    ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced soul drop rate 5 with {NewSoulDropRate} (instance {replacedCount})");
+                }
+                else
+                {
+                    cursor.Index++;
+                }
+            }
+
+            if (replacedCount > 0)
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully changed {replacedCount} soul drop rates from 5 to {NewSoulDropRate}");
+            }
+            else
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find any soul drop rates (5) in RegisterGlobalRules method");
             }
         }
     }
