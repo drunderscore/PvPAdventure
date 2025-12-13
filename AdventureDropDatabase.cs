@@ -344,7 +344,17 @@ public class AdventureDropDatabase : ModSystem
                     ModifyDropRate(drop, ItemID.GoldRing, 1, 10);
                 }
                 break;
-
+            case NPCID.Corruptor:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.RottenChunk, 1, 1);
+                break;
+            case NPCID.Clinger:
+            case NPCID.SeekerHead:
+            case NPCID.DesertGhoulCorruption:
+            case NPCID.CultistArcherBlue:
+                foreach (var drop in drops)
+                    npcLoot.Add(ItemDropRule.Common(ItemID.RottenChunk, 1, 1, 1));
+                break;
             case NPCID.EyeofCthulhu:
                 foreach (var drop in drops)
                 ModifyDropRate(drop, ItemID.Binoculars, 1, 1);
