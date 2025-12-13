@@ -23,6 +23,7 @@ using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
 using Mono.Cecil.Cil;
 using static PvPAdventure.AdventurePlayer;
+using PvPAdventure.Content.Items;
 
 namespace PvPAdventure;
 
@@ -2400,7 +2401,7 @@ public class PvPAdventurePlayer : ModPlayer
     {
         if (!hasReceivedStarterBag)
         {
-            int itemType = ModContent.ItemType<AdventureItem.AdventureBag>();
+            int itemType = ModContent.ItemType<AdventureBag>();
             var item = new Item();
             item.SetDefaults(itemType);
             Player.inventory[1] = item; // Adds to second inventory slot
