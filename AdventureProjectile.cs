@@ -726,7 +726,7 @@ public class AdventureProjectile : GlobalProjectile
     }
 
 
-    public class EmpressNerf : GlobalProjectile
+    public class EmpressProjectiles : GlobalProjectile
     {
         public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
         {
@@ -743,12 +743,12 @@ public class AdventureProjectile : GlobalProjectile
             modifiers.SourceDamage *= 0.75f;
             if (Main.dayTime)
             {
-                modifiers.SourceDamage *= 0.006f;
+                modifiers.SourceDamage *= 0.0085f;
             }
         }
     }
 
-    public class EmpressContactDamageNerf : GlobalNPC
+    public class EmpressDayTimeNPC : GlobalNPC
     {
         public override bool AppliesToEntity(NPC entity, bool lateInstantiation)
         {
@@ -761,6 +761,15 @@ public class AdventureProjectile : GlobalProjectile
             if (Main.dayTime)
             {
                 modifiers.SourceDamage *= 0.01f;
+            }
+        }
+
+        public override void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
+        {
+            if (Main.dayTime)
+            {
+                // Empress takes 75% less damage during the day
+                modifiers.FinalDamage *= 0.25f;
             }
         }
     }
