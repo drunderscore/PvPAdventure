@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Integrations.GameStarter;
-using PvPAdventure.Common.Integrations.PointsSetter;
+using PvPAdventure.Common.Integrations.GameManagerIntegration;
 using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.System;
@@ -67,7 +66,7 @@ public sealed class HMIntegration : ModSystem
                 var gm = ModContent.GetInstance<GameManager>();
                 if (gm.CurrentPhase == GameManager.Phase.Playing)
                 {
-                    ModContent.GetInstance<GameStarterSystem>().ShowEndDialog();
+                    ModContent.GetInstance<GameManagerSystem>().ShowEndDialog();
                 }
                 else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
                 {
@@ -78,14 +77,14 @@ public sealed class HMIntegration : ModSystem
                 }
                 else
                 {
-                    var gss = ModContent.GetInstance<GameStarterSystem>();
-                    if (gss.IsActive())
+                    var gms = ModContent.GetInstance<GameManagerSystem>();
+                    if (gms.IsActive())
                     {
-                        gss.Hide();
+                        gms.Hide();
                     }
                     else
                     {
-                        gss.ShowStartDialog();
+                        gms.ShowStartDialog();
                     }
                 }
             }),
@@ -103,7 +102,7 @@ public sealed class HMIntegration : ModSystem
                 }
                 else
                 {
-                    var gss = ModContent.GetInstance<GameStarterSystem>();
+                    var gss = ModContent.GetInstance<GameManagerSystem>();
                     if (gss.IsActive())
                     {
                         return "Close game starter";

@@ -4,14 +4,15 @@ using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Integrations.GameStarter;
+namespace PvPAdventure.Common.Integrations.GameManagerIntegration;
 
 /// <summary>
 /// The main UI element for starting a game (draggable title + content panel)
 /// </summary>
-internal class GameStarterElement : DraggablePanel
+internal class GameManagerElement : DraggablePanel
 {
     private readonly UITextPanel<string> _startButton;
     private readonly SliderElement _gameTimeSlider;
@@ -23,7 +24,7 @@ internal class GameStarterElement : DraggablePanel
     protected override float MinResizeH => 155f;
     protected override float MinResizeW => 220f;
 
-    public GameStarterElement() : base("Start Game")
+    public GameManagerElement() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.StartGame"))
     {
         Width.Set(360, 0);
         Height.Set(180, 0);
@@ -32,7 +33,7 @@ internal class GameStarterElement : DraggablePanel
         ContentPanel.SetPadding(12);
 
         _gameTimeSlider = new SliderElement(
-            label: "Time",
+            label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.Time"),
             min: 0f,
             max: 195f,
             defaultValue: 195f,
@@ -46,7 +47,7 @@ internal class GameStarterElement : DraggablePanel
         ContentPanel.Append(_gameTimeSlider);
 
         _countdownSlider = new SliderElement(
-            label: "Countdown",
+            label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.Countdown"),
             min: 0f,
             max: 10f,
             defaultValue: 10f,
@@ -61,7 +62,7 @@ internal class GameStarterElement : DraggablePanel
         };
         ContentPanel.Append(_countdownSlider);
 
-        _startButton = new UITextPanel<string>("Start!")
+        _startButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.StartExclamation"))
         {
             Width = { Pixels = 120f },
             Height = { Pixels = 40f },
@@ -75,7 +76,7 @@ internal class GameStarterElement : DraggablePanel
             if (Main.netMode == NetmodeID.SinglePlayer)
             {
                 var gm = ModContent.GetInstance<GameManager>();
-                gm.StartGame(time: _gameTimeInFrames, countdownTimeInSeconds: _countdownTimeInSeconds - 1);
+                gm.StartGame(time: _gameTimeInFrames, countdownTimeInSeconds: _countdownTimeInSeconds);
             }
             else if (Main.netMode == NetmodeID.MultiplayerClient)
             {
@@ -86,13 +87,13 @@ internal class GameStarterElement : DraggablePanel
                 packet.Send();
             }
 
-            ModContent.GetInstance<GameStarterSystem>().Hide();
+            ModContent.GetInstance<GameManagerSystem>().Hide();
         };
         ContentPanel.Append(_startButton);
     }
 
     protected override void OnClosePanelLeftClick()
     {
-        ModContent.GetInstance<GameStarterSystem>().Hide();
+        ModContent.GetInstance<GameManagerSystem>().Hide();
     }
 }

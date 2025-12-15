@@ -13,6 +13,7 @@ using Terraria.Enums;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -20,7 +21,7 @@ namespace PvPAdventure.Common.Integrations.PointsSetter;
 
 internal class PointsSetterElement : DraggablePanel
 {
-    public PointsSetterElement() : base(title: "Set Points") 
+    public PointsSetterElement() : base(title: Language.GetTextValue("Mods.PvPAdventure.Tools.DLPointsSetterTool.TitlePanelName"))
     {
         Height.Set(210, 0);
     }

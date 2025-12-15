@@ -1,10 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.SpawnSelector.UI;
 using Terraria;
+using Terraria.GameContent.UI.Elements;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector;
 
 /// <summary>
 /// A system to manage the spawn selector UI.
@@ -15,7 +18,8 @@ namespace PvPAdventure.Core.SpawnSelector.Systems;
 public class SpawnSelectorSystem : ModSystem
 {
     public UserInterface ui;
-    public SpawnSelectorState state;
+    public UIState spawnSelectorState;
+    public SpawnSelectorBasePanel spawnSelectorPanel;
 
     // Track whether the spawn selector is enabled
     private static bool Enabled;
@@ -25,48 +29,66 @@ public class SpawnSelectorSystem : ModSystem
     // Hovering players
     internal static int HoveredPlayerIndex = -1;
 
-    public override void Load()
+    // Track visibility state
+    private bool _wasVisible = false;
+
+    public override void OnWorldLoad()
     {
         if (!Main.dedServ)
         {
             ui = new();
-            state = new();
-            state.Activate();
+            RebuildState();
 
             Main.OnPostFullscreenMapDraw += DrawOverFullscreenMap;
         }
 
-        On_Main.TriggerPing += OnTriggerPing;
     }
 
     public override void Unload()
     {
-        if (!Main.dedServ)
-            Main.OnPostFullscreenMapDraw -= DrawOverFullscreenMap;
-
-        On_Main.TriggerPing -= OnTriggerPing;
+        Main.OnPostFullscreenMapDraw -= DrawOverFullscreenMap;
     }
 
-    private void OnTriggerPing(On_Main.orig_TriggerPing orig, Vector2 position)
+    private void RebuildState()
     {
-        // Skip ping execution if our panel is being hovered
-        if (state.spawnSelectorPanel != null && state.spawnSelectorPanel.IsMouseHovering)
-        {
-            return;
-        }
-        orig(position);
+        HoveredPlayerIndex = -1;
+
+        spawnSelectorState = new UIState();
+        spawnSelectorPanel = new SpawnSelectorBasePanel();
+
+        UITextPanel<string> chooseYourSpawnPanel =
+            new(Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.ChooseYourSpawn"), 0.8f, true)
+            {
+                HAlign = 0.5f,
+                BackgroundColor = new Color(73, 94, 171),
+                Top = new StyleDimension(10,0)
+            };
+
+        spawnSelectorState.Append(spawnSelectorPanel);
+        spawnSelectorState.Append(chooseYourSpawnPanel);
+
+        spawnSelectorState.Activate();
     }
 
     public override void UpdateUI(GameTime gameTime)
     {
-        if (ui == null) return;
+        if (ui == null)
+            return;
 
         bool visible = GetEnabled() && Main.mapFullscreen;
 
+        if (visible && !_wasVisible)
+        {
+            RebuildState();
+            ui.SetState(spawnSelectorState);
+        }
+
+        _wasVisible = visible;
+
         if (visible)
         {
-            if (ui.CurrentState != state)
-                ui.SetState(state);
+            if (ui.CurrentState != spawnSelectorState)
+                ui.SetState(spawnSelectorState);
 
             ui.Update(gameTime);
         }
@@ -75,7 +97,6 @@ public class SpawnSelectorSystem : ModSystem
             ui.SetState(null);
         }
     }
-
     // Draw AFTER the map, with our own Begin/End for UI
     private void DrawOverFullscreenMap(Vector2 _mapPos, float _mapScale)
     {

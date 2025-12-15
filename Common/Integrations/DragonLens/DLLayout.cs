@@ -13,6 +13,7 @@ using DragonLens.Content.Tools.Spawners;
 using DragonLens.Core.Systems.ThemeSystem;
 using DragonLens.Core.Systems.ToolbarSystem;
 using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Integrations.DragonLens.Tools;
 using PvPAdventure.Core.Helpers;
 using Terraria;
 using Terraria.ModLoader;
@@ -85,7 +86,7 @@ public class DLLayout : ModSystem
             // left PvPAdventure toolbar
             n.Add(
                 new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
-                .AddTool<DLGameStarterTool>()
+                .AddTool<DLGameManagerTool>()
                 .AddTool<DLTeamAssignerTool>()
                 .AddTool<DLPointsSetterTool>()
                 .AddTool<DLPauseTool>()
@@ -120,7 +121,7 @@ public class DLLayout : ModSystem
             // left PvPAdventure toolbar
             n.Add(
                 new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
-                .AddTool<DLGameStarterTool>()
+                .AddTool<DLGameManagerTool>()
                 .AddTool<DLTeamAssignerTool>()
                 .AddTool<DLPointsSetterTool>()
                 .AddTool<DLPauseTool>()

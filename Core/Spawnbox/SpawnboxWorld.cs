@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Helpers;
-using PvPAdventure.Core.SpawnSelector.Players;
+using PvPAdventure.Core.SpawnSelector;
 using PvPAdventure.System;
 using ReLogic.Content;
 using System;

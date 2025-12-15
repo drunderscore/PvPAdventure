@@ -12,7 +12,7 @@ using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector;
 
 internal class BedsOnMap : ModSystem
 {
@@ -101,12 +101,14 @@ internal class BedsOnMap : ModSystem
             if (!hoverCheck.IsMouseOver)
                 continue;
 
-            text = $"{player.name}'s Bed";
+            // Hovering over this player's bed
+            text = Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.PlayersBed", player.name);
 
             if (!selectorEnabled)
                 continue;
 
-            text = $"Teleport to {player.name}'s Bed";
+            // Selector is enabled, allow teleporting
+            text = Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.TeleportToPlayersBed", player.name);
 
             if (Main.mouseLeft && Main.mouseLeftRelease)
             {

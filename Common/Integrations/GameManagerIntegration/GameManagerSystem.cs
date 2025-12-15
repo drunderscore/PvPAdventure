@@ -4,10 +4,10 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.GameStarter;
+namespace PvPAdventure.Common.Integrations.GameManagerIntegration;
 
 [Autoload(Side = ModSide.Client)]
-internal class GameStarterSystem : ModSystem
+internal class GameManagerSystem : ModSystem
 {
     // Components
     public UserInterface ui;
@@ -28,7 +28,7 @@ internal class GameStarterSystem : ModSystem
         endGameUIState.Append(new EndGameElement());
 
         startGameUIState = new();
-        startGameUIState.Append(new GameStarterElement());
+        startGameUIState.Append(new GameManagerElement());
 
         ui.SetState(null);
     }
@@ -44,7 +44,7 @@ internal class GameStarterSystem : ModSystem
         if (index != -1)
         {
             layers.Insert(index, new LegacyGameInterfaceLayer(
-                name: "PvPAdventure: StartGameSystem",
+                name: "PvPAdventure: GameManagerSystem",
                 drawMethod: () =>
                 {
                     if (IsActive())

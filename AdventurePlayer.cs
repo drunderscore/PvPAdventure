@@ -394,7 +394,7 @@ public class AdventurePlayer : ModPlayer
         cursor.EmitLdarg0();
         cursor.EmitDelegate((Player self) =>
         {
-            self.setBonus = Language.GetTextValue("ArmorSetBonus.BeetleDamage");
+            self.setBonus = Language.GetTextValue("Mods.PvPAdventure.ArmorSetBonus.BeetleDamage");
             self.beetleOffense = true;
         });
         // ...then branch away so we skip the original code.

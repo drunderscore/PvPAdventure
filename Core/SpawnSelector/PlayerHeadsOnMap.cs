@@ -3,7 +3,7 @@ using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector;
 
 /// <summary>
 /// Draws the selected player heads on map when highlighting the UI element for the player

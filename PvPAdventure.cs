@@ -5,7 +5,7 @@ using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.Helpers;
-using PvPAdventure.Core.SpawnSelector.Systems;
+using PvPAdventure.Core.SpawnSelector;
 using PvPAdventure.System;
 using System;
 using System.Collections.Generic;

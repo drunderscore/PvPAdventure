@@ -1,13 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Helpers;
-using PvPAdventure.Core.SpawnSelector.Players;
-using PvPAdventure.Core.SpawnSelector.Systems;
 using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
+using Terraria.Localization;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnSelector.UI;
@@ -99,7 +98,7 @@ internal class SpawnSelectorCharacter : UIPanel
         DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, _playerBGTexture.Value, Color.White, 5);
         DrawMapFullscreenBackground(sb, rect, player);
 
-        SpawnSelectorPlayer.ForceFullBrightOnce = true;
+        //SpawnSelectorPlayer.ForceFullBrightOnce = true;
         try
         {
             Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
@@ -116,7 +115,7 @@ internal class SpawnSelectorCharacter : UIPanel
         }
         finally
         {
-            SpawnSelectorPlayer.ForceFullBrightOnce = false;
+            //SpawnSelectorPlayer.ForceFullBrightOnce = false;
         }
 
         // Use the actual layout widths, not the texture width
@@ -191,7 +190,7 @@ internal class SpawnSelectorCharacter : UIPanel
         // Draw teleport to if it exists
         if (!player.dead && IsMouseHovering)
         {
-            Main.instance.MouseText("Teleport to " + player.name);
+            Main.instance.MouseText(Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.TeleportToPlayer"));
         }
     }
 

@@ -6,6 +6,7 @@ using ReLogic.Content;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -36,7 +37,7 @@ internal class TeamAssignerElement : DraggablePanel
     private Asset<Texture2D> pvpAsset;
     private Asset<Texture2D> pvpAssetHover;
 
-    public TeamAssignerElement() : base("Assign Teams")
+    public TeamAssignerElement() : base(title: Language.GetTextValue("Mods.PvPAdventure.Tools.DLTeamAssignerTool.TitlePanelName"))
     {
         Width.Set(350, 0);
         Height.Set(460, 0);

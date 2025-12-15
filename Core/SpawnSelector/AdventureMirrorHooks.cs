@@ -4,20 +4,18 @@ using System;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
-using Terraria.DataStructures;
-using Terraria.GameContent.Achievements;
-using Terraria.GameInput;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector;
 
 /// <summary>
 /// Prevents the Adventure Mirror from being removed from the player inventory via trashing, selling etc.
 /// Various inventory hooks are used to achieve this.
+/// Also allows using the Adventure Mirror even when item animation is active together with <see cref="InventoryWhileUsingItemSystem"/>
 /// </summary>
-public class ItemSlotHooks : ModSystem
+public class AdventureMirrorHooks : ModSystem
 {
     public override void Load()
     {
@@ -38,10 +36,22 @@ public class ItemSlotHooks : ModSystem
         On_Player.DropSelectedItem -= Hook_DropSelectedItem;
         On_Player.dropItemCheck -= Hook_DropItemCheck;
     }
-    /// <summary>
-    /// Helper method to identify Adventure Mirror
-    /// </summary>
+    // Helper to identify Adventure Mirror
     private static bool IsAdventureMirror(Item item) => !item.IsAir && item.type == ModContent.ItemType<AdventureMirror>();
+
+    // Helper to show popup text
+    private static void Popup(string key)
+    {
+        PopupText.NewText(new AdvancedPopupRequest
+        {
+            Color = Color.Crimson,
+            Text = Language.GetTextValue(key),
+            Velocity = new Vector2(0f, -4f),
+            DurationInFrames = 60 * 2
+        }, Main.LocalPlayer.Top + new Vector2(0f, -40f));
+    }
+
+
 
     // Vanilla method with the item animation check removed for Adventure Mirror.
     private static void Hook_RightClick(
@@ -168,7 +178,7 @@ public class ItemSlotHooks : ModSystem
                 PopupText.NewText(new AdvancedPopupRequest
                 {
                     Color = Color.Crimson,
-                    Text = Language.GetTextValue("cannot drop!"),
+                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.CannotDrop"),
                     Velocity = new(0.0f, 4.0f),
                     DurationInFrames = 60 * 2
                 }, Main.LocalPlayer.Top + new Vector2(0, -40));
@@ -213,6 +223,8 @@ public class ItemSlotHooks : ModSystem
 
         if (!item.IsAir && item.type == ModContent.ItemType<AdventureMirror>())
         {
+            //if (Main.npcShop > 0)
+                //Popup("Mods.PvPAdventure.AdventureMirror.CannotTrash");
             return false; // skip completely
         }
 
@@ -238,7 +250,7 @@ public class ItemSlotHooks : ModSystem
                 PopupText.NewText(new AdvancedPopupRequest
                 {
                     Color = Color.Crimson,
-                    Text = "cannot unfavorite!",
+                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.CannotUnfavorite"),
                     Velocity = new Vector2(0f, -4f),
                     DurationInFrames = 60 * 2
                 }, Main.LocalPlayer.Top + new Vector2(0, -4));
@@ -257,7 +269,27 @@ public class ItemSlotHooks : ModSystem
 
         // Block dragging mirror onto trash
         if (context == ItemSlot.Context.TrashItem && isMirrorOnMouse)
+        {
+            if (Main.mouseLeft && Main.mouseLeftRelease)
+                Popup("Mods.PvPAdventure.AdventureMirror.CannotTrash");
             return;
+        }
+
+        // Block dragging mirror onto shop
+        if (context == ItemSlot.Context.ShopItem && isMirrorOnMouse)
+        {
+            if (Main.mouseLeft && Main.mouseLeftRelease)
+                Popup("Mods.PvPAdventure.AdventureMirror.CannotSell");
+            return;
+        }
+
+        // Block dragging mirror onto chest
+        if (context == ItemSlot.Context.ShopItem && isMirrorOnMouse)
+        {
+            if (Main.mouseLeft && Main.mouseLeftRelease)
+                Popup("Mods.PvPAdventure.AdventureMirror.CannotSell");
+            return;
+        }
 
         // Vanilla (orig)
         Player player = Main.LocalPlayer;

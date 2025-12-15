@@ -4,55 +4,43 @@ using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Integrations.GameStarter;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Common.Integrations.GameManagerIntegration;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Integrations.DragonLens;
+namespace PvPAdventure.Common.Integrations.DragonLens.Tools;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
-public class DLGameStarterTool : Tool
+public class DLGameManagerTool : Tool
 {
     public override string IconKey => DLIntegration.GameStarterKey;
-    public override string DisplayName => GetDisplayName();
-
-    private string GetDisplayName()
-    {
-        var gm = ModContent.GetInstance<GameManager>();
-        if (gm.CurrentPhase == GameManager.Phase.Playing)
-        {
-            return "End Game";
-        }
-        else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
-        {
-            return "Countdown";
-        }
-        else
-        {
-            return "Game Starter";
-        }
-    }
+    public override string DisplayName => Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.DisplayName");
     public override string Description => GetDescription();
     private string GetDescription()
     {
         var gm = ModContent.GetInstance<GameManager>();
+        string localizationKey = "Mods.PvPAdventure.Tools.DLGameManagerTool.Description.";
         if (gm.CurrentPhase == GameManager.Phase.Playing)
         {
-            return "Right click to end game instantly";
+            localizationKey += "RightClickToEndGame";
         }
         else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
         {
-            return "Countdown in progress...";
-            //return "Cancel the countdown";
+            localizationKey += "CountdownInProgress";
+        }
+        else if (gm.CurrentPhase == GameManager.Phase.Waiting)
+        {
+            localizationKey += "RightClickToStartGame";
         }
         else
         {
-            return "Right click to start game instantly";
+            localizationKey += "UnknownState"; // should never happen
         }
+        return Language.GetTextValue(localizationKey);
     }
     public override bool HasRightClick => true;
     public override void OnRightClick()
@@ -72,10 +60,10 @@ public class DLGameStarterTool : Tool
                 packet.Send();
             }
         }
-        //else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
-        //{
-        //    return "Options for starting or ending the game\nRight click to start instantly";
-        //}
+        else if (gm._startGameCountdown.HasValue)
+        {
+            Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.CannotStart"), Color.Red);
+        }
         else if (gm.CurrentPhase == GameManager.Phase.Waiting)
         {
             if (Main.netMode == NetmodeID.SinglePlayer)
@@ -95,8 +83,8 @@ public class DLGameStarterTool : Tool
 
     public override void OnActivate()
     {
-        var sys = ModContent.GetInstance<GameStarterSystem>();
-        if (sys == null)
+        var gms = ModContent.GetInstance<GameManagerSystem>();
+        if (gms == null)
         {
             Main.NewText("Failed to open StartGameSystem: System not found.", Color.Red);
             return;
@@ -105,10 +93,11 @@ public class DLGameStarterTool : Tool
         var gm = ModContent.GetInstance<GameManager>();
         if (gm.CurrentPhase == GameManager.Phase.Playing)
         {
-            ModContent.GetInstance<GameStarterSystem>().ShowEndDialog();
+            gms.ShowEndDialog();
         }
         else if (gm._startGameCountdown.HasValue)
         {
+            Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.CannotStart"), Color.Red);
             //gm._startGameCountdown = null;
             //gm.TimeRemaining = 0;
             //gm.CurrentPhase = GameManager.Phase.Waiting;
@@ -116,15 +105,13 @@ public class DLGameStarterTool : Tool
         }
         else
         {
-            var gss = ModContent.GetInstance<GameStarterSystem>();
-
-            if (gss.IsActive())
+            if (gms.IsActive())
             {
-                gss.Hide();
+                gms.Hide();
             }
             else
             {
-                gss.ShowStartDialog();
+                gms.ShowStartDialog();
             }
         }
     }
@@ -133,9 +120,9 @@ public class DLGameStarterTool : Tool
     {
         base.DrawIcon(spriteBatch, position);
 
-        var sys = ModContent.GetInstance<GameStarterSystem>();
+        var gms = ModContent.GetInstance<GameManagerSystem>();
 
-        if (sys.IsActive())
+        if (gms.IsActive())
         {
             GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
 

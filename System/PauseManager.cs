@@ -77,9 +77,11 @@ public class PauseManager : ModSystem
             if (!pauseManager._paused)
                 return true;
 
-            var size = ChatManager.GetStringSize(FontAssets.DeathText.Value, "PAUSED", Vector2.One);
+            string PAUSEDText = Language.GetTextValue("Mods.PvPAdventure.Pause.Paused");
 
-            ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, FontAssets.DeathText.Value, "PAUSED",
+            var size = ChatManager.GetStringSize(FontAssets.DeathText.Value, PAUSEDText, Vector2.One);
+
+            ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, FontAssets.DeathText.Value, PAUSEDText,
                 new Vector2((int)((Main.screenWidth / 2.0f) - (size.X / 2.0f)),
                     (int)(Main.screenHeight / 2.0f) - (size.Y / 2.0f)), Color.Red, 0.0f,
                 Vector2.Zero,

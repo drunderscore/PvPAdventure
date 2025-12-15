@@ -4,10 +4,11 @@ using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.GameStarter;
+namespace PvPAdventure.Common.Integrations.GameManagerIntegration;
 
 internal class EndGameElement : DraggablePanel
 {
@@ -18,10 +19,10 @@ internal class EndGameElement : DraggablePanel
     protected override float MinResizeH => 100f;
     protected override void OnClosePanelLeftClick()
     {
-        ModContent.GetInstance<GameStarterSystem>().Hide();
+        ModContent.GetInstance<GameManagerSystem>().Hide();
     }
 
-    public EndGameElement() : base("Really end game?")
+    public EndGameElement() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.ReallyEndGame"))
     {
         Width.Set(400, 0);
         Height.Set(100, 0);
@@ -29,7 +30,8 @@ internal class EndGameElement : DraggablePanel
         VAlign = 0.7f;
         ContentPanel.SetPadding(12f);
 
-        noButton = new UITextPanel<string>("No")
+        // No
+        noButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.No"))
         {
             Width = { Pixels = 120f },
             Height = { Pixels = 40f },
@@ -38,9 +40,10 @@ internal class EndGameElement : DraggablePanel
         };
         noButton.OnMouseOver += (_, _) => noButton.BorderColor = Color.Yellow;
         noButton.OnMouseOut += (_, _) => noButton.BorderColor = Color.Black;
-        noButton.OnLeftClick += (_, _) => ModContent.GetInstance<GameStarterSystem>().Hide();
+        noButton.OnLeftClick += (_, _) => ModContent.GetInstance<GameManagerSystem>().Hide();
 
-        yesButton = new UITextPanel<string>("Yes")
+        // Yes
+        yesButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.Yes"))
         {
             Width = { Pixels = 120f },
             Height = { Pixels = 40f },
@@ -62,7 +65,7 @@ internal class EndGameElement : DraggablePanel
                 packet.Send();
             }
 
-            ModContent.GetInstance<GameStarterSystem>().Hide();
+            ModContent.GetInstance<GameManagerSystem>().Hide();
         };
 
         ContentPanel.Append(noButton);

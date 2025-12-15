@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.SpawnSelector.Players;
+using PvPAdventure.Core.SpawnSelector;
 using PvPAdventure.System;
 using ReLogic.Graphics;
 using Terraria;

@@ -3,28 +3,27 @@ using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Integrations.PointsSetter;
-using PvPAdventure.Core.Helpers;
-using PvPAdventure.System;
+using PvPAdventure.Common.Integrations.TeamAssigner;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Enums;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Integrations.DragonLens;
+namespace PvPAdventure.Common.Integrations.DragonLens.Tools;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
-public class DLPointsSetterTool : Tool
+public class DLTeamAssignerTool : Tool
 {
-    public override string IconKey => DLIntegration.PointsSetterKey;
+    public override string IconKey => DLIntegration.TeamAssignerKey;
 
-    public override string DisplayName => "Points Setter";
+    public override string DisplayName => Language.GetTextValue("Mods.PvPAdventure.Tools.DLTeamAssignerTool.DisplayName");
 
     public override string Description => GetDescription();
     private string GetDescription()
     {
-        // Count active players on each team
+        // Count players on each team
         Dictionary<Team, int> counts = [];
 
         foreach (var p in Main.ActivePlayers)
@@ -37,30 +36,29 @@ public class DLPointsSetterTool : Tool
                 counts[team] = 1;
         }
 
-        // Count points on each team
-        var pm = ModContent.GetInstance<PointsManager>();
-        var teamPointsDict = pm.Points;
         string result = "";
 
-        foreach (var kvp in teamPointsDict)
+        foreach (var kvp in counts)
         {
             Team team = kvp.Key;
-            int points = kvp.Value;
+            int count = kvp.Value;
 
-            if (points != 0)
-            {
-                result += $"{team}: {points} points\n";
-            }
+            if (count <= 0)
+                continue; // skip empty
+
+            string playersString = count == 1 ? "player" : "players";
+
+            result += $"{team}: {count} {playersString}\n";
         }
 
         return result;
     }
     public override void OnActivate()
     {
-        var sys = ModContent.GetInstance<PointsSetterSystem>();
+        var sys = ModContent.GetInstance<TeamAssignerSystem>();
         if (sys == null)
         {
-            Main.NewText("Failed to open PointsSetterSystem: System not found.", Color.Red);
+            Main.NewText("Failed to open TeamAssignerSystem: System not found.", Color.Red);
             return;
         }
 
@@ -71,12 +69,9 @@ public class DLPointsSetterTool : Tool
     {
         base.DrawIcon(spriteBatch, position);
 
-        // We have to manually draw it for some reason
-        spriteBatch.Draw(Ass.Points.Value, position, Color.White);
+        var tas = ModContent.GetInstance<TeamAssignerSystem>();
 
-        var pss = ModContent.GetInstance<PointsSetterSystem>();
-
-        if (pss.IsActive())
+        if (tas.IsActive())
         {
             GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
 

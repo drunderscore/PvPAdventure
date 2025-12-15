@@ -8,9 +8,10 @@ using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Integrations.DragonLens;
+namespace PvPAdventure.Common.Integrations.DragonLens.Tools;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
@@ -18,25 +19,14 @@ public class DLPauseTool : Tool
 {
     public override string IconKey => DLIntegration.PauseKey;
 
-    public override string DisplayName => GetDisplayName();
-    private string GetDisplayName()
-    {
-        //return "Pause";
-        var pm = ModContent.GetInstance<PauseManager>();
-        return pm.IsPaused ?
-            "Resume" :
-            "Pause";
-    }
+    public override string DisplayName =>
+        Language.GetTextValue($"Mods.PvPAdventure.Tools.DLPauseTool.DisplayName.{ModContent.GetInstance<PauseManager>().IsPaused}");
 
-    public override string Description => GetDescription();
-
-    private string GetDescription()
-    {
-        var pm = ModContent.GetInstance<PauseManager>();
-        return pm.IsPaused ?
-            "Click to resume the game" :
-            "Click to pause the game";
-    }
+    public override string Description =>
+    string.Format(
+        Language.GetTextValue("Mods.PvPAdventure.Tools.DLPauseTool.Description"),
+        Language.GetTextValue($"Mods.PvPAdventure.Tools.DLPauseTool.DisplayName.{ModContent.GetInstance<PauseManager>().IsPaused}").ToLower()
+    );
 
     public override void OnActivate()
     {

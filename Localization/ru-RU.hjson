@@ -173,11 +173,11 @@ Mods: {
 			}
 
 			AdventureMirror: {
-				DisplayName: Adventure Mirror
+				DisplayName: Зеркало приключений
 				Tooltip:
 					'''
-					Gaze in the mirror to return to spawn
-					Right click to use
+					Взгляните в зеркало, чтобы вернуться на точку возрождения
+					Правый клик — использовать
 					'''
 			}
 
@@ -1004,19 +1004,19 @@ Mods: {
 		Player.CannotRecall: Cannot recall!
 
 		AdventureMirror: {
-			GameNotStarted: wait until game starts!
-			CannotDrop: cannot drop!
-			CannotUnfavorite: cannot unfavorite!
-			CannotTrash: cannot trash!
-			CannotSell: cannot sell!
+			GameNotStarted: дождитесь начала игры!
+			CannotDrop: нельзя выбросить!
+			CannotUnfavorite: нельзя убрать из избранного!
+			CannotTrash: нельзя удалить!
+			CannotSell: нельзя продать!
 		}
 
 		SpawnSelector: {
-			ChooseYourSpawn: Choose Your Spawn
-			TeleportToPlayer: Teleport to {0}
-			RandomTeleport: Random
-			PlayersBed: "{0}'s Bed"
-			TeleportToPlayersBed: Teleport to {0}'s Bed
+			ChooseYourSpawn: Выберите точку возрождения
+			TeleportToPlayer: Телепорт к {0}
+			RandomTeleport: Случайно
+			PlayersBed: Кровать игрока {0}
+			TeleportToPlayersBed: Телепорт к кровати игрока {0}
 		}
 
 		Item: {
@@ -1026,13 +1026,13 @@ Mods: {
 		}
 
 		Pause: {
-			True: "[c/FF0000:The game has been paused.]"
-			False: "[c/00FF00:The game has been resumed.]"
-			Paused: PAUSED
+			True: "[c/FF0000:Игра приостановлена.]"
+			False: "[c/00FF00:Игра возобновлена.]"
+			Paused: ПАУЗА
 		}
 
-		Sandstorm: "[c/FFC864:Desert winds are picking up...]"
-		Rain: "[c/6496FF:A storm is brewing overhead...]"
+		Sandstorm: "[c/FFC864:В пустыне поднимается песчаная буря...]"
+		Rain: "[c/6496FF:Надвигается шторм...]"
 		ArmorSetBonus.BeetleDamage:
 			'''
 			Gain Beetles from player kills

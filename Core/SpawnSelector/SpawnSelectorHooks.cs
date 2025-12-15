@@ -6,18 +6,19 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.SpawnSelector.Systems;
+namespace PvPAdventure.Core.SpawnSelector;
 
 /// <summary>
 /// Various player hooks related to teleporting, spawning, and spawn selector.
 /// </summary>
-public class PlayerHooks : ModSystem
+public class SpawnSelectorHooks : ModSystem
 {
     public override void Load()
     {
         On_Player.HasUnityPotion += OnHasUnityPotion;
         On_Player.Spawn_SetPosition += ForceWorldSpawn;
         On_SoundEngine.PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback += DisableMirrorSound;
+        On_Main.TriggerPing += OnTriggerPing;
     }
 
     public override void Unload()
@@ -25,6 +26,18 @@ public class PlayerHooks : ModSystem
         On_Player.HasUnityPotion -= OnHasUnityPotion;
         On_Player.Spawn_SetPosition -= ForceWorldSpawn;
         On_SoundEngine.PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback -= DisableMirrorSound;
+        On_Main.TriggerPing -= OnTriggerPing;
+    }
+
+    private void OnTriggerPing(On_Main.orig_TriggerPing orig, Vector2 position)
+    {
+        // Skip ping execution if our panel is being hovered
+        var ss = ModContent.GetInstance<SpawnSelectorSystem>();
+        if (ss != null && ss.spawnSelectorPanel != null && ss.spawnSelectorPanel.IsMouseHovering)
+        {
+            return;
+        }
+        orig(position);
     }
 
     private static bool OnHasUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)

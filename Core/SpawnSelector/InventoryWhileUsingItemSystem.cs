@@ -7,22 +7,18 @@ using Terraria;
 using Terraria.GameInput;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.InventoryWhileDead;
+namespace PvPAdventure.Core.SpawnSelector;
 
 internal class InventoryWhileUsingItemSystem : ModSystem
 {
     private Hook ignoreMouseHook;
-    private Hook leftClickHook;
 
     public override void Load()
     {
         On_Main.DrawInterface_0_InterfaceLogic1 += ModifyInterface0;
 
-        // Mouse interface
-        MethodInfo getter = typeof(PlayerInput).GetMethod(
-            "get_IgnoreMouseInterface",
-            BindingFlags.Public | BindingFlags.Static
-        );
+        // Mouse interface getter hook called IgnoreMouseInterface
+        MethodInfo getter = typeof(PlayerInput).GetMethod("get_IgnoreMouseInterface",BindingFlags.Public | BindingFlags.Static);
 
         if (getter == null)
         {
@@ -33,12 +29,9 @@ internal class InventoryWhileUsingItemSystem : ModSystem
         ignoreMouseHook = new Hook(getter, (Func<Func<bool>, bool>)OverrideIgnoreMouseInterface);
     }
 
-    //private bool OverrideIgnoreMouseInterface(Func<bool> orig)
-    //{
-
     private void ModifyInterface0(On_Main.orig_DrawInterface_0_InterfaceLogic1 orig)
     {
-        // do nothing
+        // TODO: This currently does nothing, but skipping the orig() call might introduce unintended bugs.
         orig();
     }
 
@@ -57,7 +50,7 @@ internal class InventoryWhileUsingItemSystem : ModSystem
             p.itemAnimation > 0 &&
             p.HeldItem.type == ModContent.ItemType<AdventureMirror>())
         {
-            return false; // allow UI interaction while AM is animating
+            return false; // allow UI interaction while Adventure Mirror is animating
         }
 
         return orig();
