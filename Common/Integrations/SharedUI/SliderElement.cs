@@ -6,7 +6,7 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.StartGame;
+namespace PvPAdventure.Common.Integrations.SharedUI;
 
 internal class SliderElement : UIElement
 {
@@ -53,9 +53,10 @@ internal class SliderElement : UIElement
 
         Slider = new Slider
         {
-            Left = { Pixels = 190 },
-            Width = { Pixels = 140, Percent = 0f },
-            VAlign = 0.5f
+            Left = { Percent = 0f, Pixels = -3f },
+            Width = { Percent = 0.50f, Pixels = 0f },
+            VAlign = 0.5f,
+            HAlign = 1f
         };
 
         appliedValue = MathHelper.Clamp(defaultValue, Min, Max);
@@ -90,9 +91,9 @@ internal class SliderElement : UIElement
 
             string part;
             if (hours > 0 && minutes > 0)
-                part = $"{hours} hour{(hours == 1 ? "" : "s")} {minutes} min{(minutes == 1 ? "" : "s")}";
+                part = $"{hours} hr{(hours == 1 ? "" : "s")} {minutes} min{(minutes == 1 ? "" : "s")}";
             else if (hours > 0)
-                part = $"{hours} hour{(hours == 1 ? "" : "s")}";
+                part = $"{hours} hr{(hours == 1 ? "" : "s")}";
             else
                 part = $"{minutes} min{(minutes == 1 ? "" : "s")}";
 

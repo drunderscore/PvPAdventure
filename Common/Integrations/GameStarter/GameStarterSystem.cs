@@ -4,10 +4,10 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.StartGame;
+namespace PvPAdventure.Common.Integrations.GameStarter;
 
 [Autoload(Side = ModSide.Client)]
-internal class StartGameSystem : ModSystem
+internal class GameStarterSystem : ModSystem
 {
     // Components
     public UserInterface ui;
@@ -28,7 +28,7 @@ internal class StartGameSystem : ModSystem
         endGameUIState.Append(new EndGameElement());
 
         startGameUIState = new();
-        startGameUIState.Append(new StartGameElement());
+        startGameUIState.Append(new GameStarterElement());
 
         ui.SetState(null);
     }

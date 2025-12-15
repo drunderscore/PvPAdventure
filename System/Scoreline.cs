@@ -91,7 +91,7 @@ public class Scoreline : ModSystem
             }
             else if (gm.CurrentPhase == GameManager.Phase.Waiting && gm._startGameCountdown.HasValue)
             {
-                string text = (gm._startGameCountdown /60 + 1).ToString();
+                string text = (gm._startGameCountdown / 60).ToString();
                 var metrics = ChatManager.GetStringSize(FontAssets.MouseText.Value, text, Vector2.One);
                 ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch,
                     FontAssets.MouseText.Value,

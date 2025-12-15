@@ -1,9 +1,10 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Integrations.PointsSetter;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Chat;
 using Terraria.Enums;
@@ -22,7 +23,7 @@ namespace PvPAdventure.System;
 [Autoload(Side = ModSide.Both)]
 public class PointsManager : ModSystem
 {
-    private readonly Dictionary<Team, int> _points = new();
+    public readonly Dictionary<Team, int> _points = new();
     private readonly Dictionary<Team, ISet<short>> _downedNpcs = new();
 
     public BossCompletionInterfaceLayer BossCompletion { get; private set; }
@@ -273,6 +274,20 @@ public class PointsManager : ModSystem
             ModContent.GetInstance<BountyManager>().Award(killer, victim);
     }
 
+    public void SetTeamPoints(Team team, int points)
+    {
+        _points[team] = points;
+
+        if (Main.dedServ)
+        {
+            NetMessage.SendData(MessageID.WorldData);
+        }
+        else
+        {
+            UiScoreboard?.Invalidate();
+        }
+    }
+
     public class UIScoreboard(PointsManager pointsManager) : UIState
     {
         public override void OnInitialize()
@@ -428,7 +443,19 @@ public class PointsManager : ModSystem
             };
 
             Append(root);
+
+            // Refresh PointsSetterElement
+            var pss = ModContent.GetInstance<PointsSetterSystem>();
+            if (pss != null)
+            {
+                // Note: This is a hotfix to update the setpoints UI when awarding e.g boss points.
+                // FIXME: This causes enumeration collection exception.
+                // Need to make a dirty flag and rebuild during safe update.
+                //pss.pointsSetterElement?.Rebuild();
+            }
         }
+
+        
     }
 
     public class BossCompletionInterfaceLayer(PointsManager pointsManager)
