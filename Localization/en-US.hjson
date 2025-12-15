@@ -331,6 +331,11 @@ Mods: {
 					Label: Award Bounty Every Kill
 					Tooltip: ""
 				}
+
+				ProjectileDamageImmunityGroup: {
+					Tooltip: ""
+					Label: Projectile Damage Immunity Group
+				}
 			}
 
 			AdventureClientConfig: {
@@ -729,6 +734,20 @@ Mods: {
 				}
 
 				Tooltip: ""
+			}
+
+			ImmunityGroup: {
+				Tooltip: ""
+
+				Id: {
+					Label: Id
+					Tooltip: ""
+				}
+
+				Frames: {
+					Label: Frames
+					Tooltip: ""
+				}
 			}
 		}
 
