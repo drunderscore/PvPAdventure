@@ -77,6 +77,8 @@ public class AdventurePlayer : ModPlayer
     public TimeSpan? Latency { get; private set; }
     public int[] PvPImmuneTime { get; } = new int[Main.maxPlayers];
 
+    public int[] GroupImmuneTime { get; } = new int[100];
+
     private DiscordRestClient _discordClient;
 
     public sealed class DamageInfo(byte who, int ticksRemaining)
@@ -487,6 +489,13 @@ public class AdventurePlayer : ModPlayer
             if (PvPImmuneTime[i] > 0)
                 PvPImmuneTime[i]--;
         }
+       
+        for (var i = 0; i < GroupImmuneTime.Length; i++)
+        {
+            if (GroupImmuneTime[i] > 0)
+                GroupImmuneTime[i]--;
+        }
+    
         bool hasSpectreSet = IsSpectreSetEquipped();
         int currentHead = Player.armor[0].type;
         bool headChanged = IsSpectreHead(currentHead) && currentHead != lastSpectreHead;
@@ -998,9 +1007,19 @@ public class AdventurePlayer : ModPlayer
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
-            adventureConfig.Combat.MeleeInvincibilityFrames == 0)
-            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
+        if (adventureConfig.Combat.MeleeInvincibilityFrames == 0)
+        {
+            if (info.DamageSource.SourceProjectileType != 0 &&
+                adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(
+                    new(info.DamageSource.SourceProjectileType), out var immunityGroup))
+            {
+                GroupImmuneTime[immunityGroup.Id] = immunityGroup.Frames;
+            }
+            else if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
+            {
+                PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
+            }
+        }
     }
 
     public override bool OnPickup(Item item)

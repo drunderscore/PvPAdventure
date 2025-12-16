@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -305,6 +306,17 @@ public class AdventureServerConfig : ModConfig
         public Dictionary<ProjectileDefinition, float> NoLineOfSightDamageReduction { get; set; } = new();
         public bool AwardBountyEveryKill { get; set; }
 
+        public bool AwardBountyEveryKill { get; set; }
+
+        public class ImmunityGroup
+        {
+            [Range(0, CombatManager.MaximumNumberOfGroupCooldownId - 1)]
+            public int Id { get; set; }
+
+            [DefaultValue(8)] public int Frames { get; set; }
+        }
+
+        public Dictionary<ProjectileDefinition, ImmunityGroup> ProjectileDamageImmunityGroup { get; set; } = new();
     }
 
     public class Statistics : IEquatable<Statistics>
