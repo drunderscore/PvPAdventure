@@ -1,15 +1,13 @@
-using Discord.Net;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
-using PvPAdventure.Core.Helpers;
 using PvPAdventure.Core.SpawnSelector.Systems;
+using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
-using PvPAdventure.Content.Items;
+using Steamworks;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Terraria;
@@ -18,6 +16,8 @@ using Terraria.Enums;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
+
 
 namespace PvPAdventure;
 
@@ -142,7 +142,7 @@ public class PvPAdventure : Mod
                     }
                     else
                     {
-                        var packet = GetPacket();
+                        ModPacket packet = (ModPacket)GetPacket();
                         packet.Write((byte)AdventurePacketIdentifier.PingPong);
                         pingPong.Serialize(packet);
                         packet.Send();
@@ -194,7 +194,7 @@ public class PvPAdventure : Mod
 
                         target.team = (int)team.Value;
 
-                        var packet = GetPacket();
+                        ModPacket packet = (ModPacket)GetPacket();
                         packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
                         team.Serialize(packet);
                         packet.Send();
@@ -294,7 +294,7 @@ public class PvPAdventure : Mod
                         if (item?.ModItem is not AdventureMirror)
                             return;
 
-                        ModPacket p = GetPacket();
+                        ModPacket p = (ModPacket)GetPacket();
                         p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
                         p.Write(playerId);
                         p.Write(slot);
@@ -339,7 +339,7 @@ public class PvPAdventure : Mod
 
                     if (Main.dedServ)
                     {
-                        var packet = GetPacket();
+                        ModPacket packet = (ModPacket)GetPacket();
                         packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
                         packet.Write(playerId);
                         packet.Write(spawnX);
@@ -371,6 +371,11 @@ public class PvPAdventure : Mod
                         ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
                     }
 
+                    break;
+                }
+            case AdventurePacketIdentifier.SSC:
+                {
+                    ModContent.GetInstance<SSCSystem>().HandlePacket(reader, whoAmI);
                     break;
                 }
         }

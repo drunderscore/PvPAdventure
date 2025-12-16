@@ -15,5 +15,6 @@ public enum AdventurePacketIdentifier : byte
     PlayerBed,
     AdventureMirrorRightClickUse,
     BedTeleport,
-    SetPointsRequest
+    SetPointsRequest,
+    SSC, // Server Sided Character
 }
