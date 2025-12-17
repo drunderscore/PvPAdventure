@@ -148,7 +148,6 @@ public class CombatManager : ModSystem
             .EmitDelegate((Player self, PlayerDeathReason damageSource, bool pvp, ref int cooldownCounter,
                 ref bool flag) =>
             {
-                Mod.Logger.Info($"pvp {pvp} proj {damageSource.SourceProjectileType}");
                 var adventurePlayer = self.GetModPlayer<AdventurePlayer>();
 
                 if (pvp)
