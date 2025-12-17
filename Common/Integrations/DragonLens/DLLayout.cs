@@ -89,6 +89,7 @@ public class DLLayout : ModSystem
                 .AddTool<DLTeamAssignerTool>()
                 .AddTool<DLPointsSetterTool>()
                 .AddTool<DLPauseTool>()
+                .AddTool<DLSpectateTool>()
                 .AddTool<PlayerManager>()
             );
         },
@@ -124,6 +125,7 @@ public class DLLayout : ModSystem
                 .AddTool<DLTeamAssignerTool>()
                 .AddTool<DLPointsSetterTool>()
                 .AddTool<DLPauseTool>()
+                .AddTool<DLSpectateTool>()
                 .AddTool<PlayerManager>()
             );
 

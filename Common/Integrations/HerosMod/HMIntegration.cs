@@ -3,6 +3,7 @@ using PvPAdventure.Common.Integrations.GameStarter;
 using PvPAdventure.Common.Integrations.PointsSetter;
 using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.Spectate;
 using PvPAdventure.System;
 using System;
 using Terraria;
@@ -19,6 +20,7 @@ public sealed class HMIntegration : ModSystem
     private const string PauseGamePermissionKey = "PauseGame";
     private const string PlayGamePermissionKey = "PlayGame";
     private const string TeamAssignerPermissionKey = "TeamAssigner";
+    private const string SpectatePermissionKey = "Spectate";
 
     public override void PostSetupContent()
     {
@@ -28,11 +30,13 @@ public sealed class HMIntegration : ModSystem
             herosMod.Call("AddPermission",PauseGamePermissionKey,"Pause / resume game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)));
             herosMod.Call("AddPermission",PlayGamePermissionKey,"Start / end game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PlayGamePermissionKey)));
             herosMod.Call("AddPermission",TeamAssignerPermissionKey,"Open team assigner",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamAssignerPermissionKey)));
+            herosMod.Call("AddPermission", SpectatePermissionKey, "Spectate mode",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, SpectatePermissionKey)));
 
             // Add buttons
             AddPauseButton(herosMod);
             AddPlayButton(herosMod);
             AddTeamAssignerButton(herosMod);
+            AddSpectateButton(herosMod);
         }
     }
 
@@ -158,5 +162,40 @@ public sealed class HMIntegration : ModSystem
             //Main.NewText($"✅ You regained permission to use the {permissionName} button!", Color.Green);
             Log.Info($"You regained permission for {permissionName} button. You can use it again.");
         }
+    }
+
+    private void AddSpectateButton(Mod herosMod)
+    {
+        // Pause game
+        herosMod.Call("AddSimpleButton",
+            PauseGamePermissionKey,
+            Ass.Question_Mark,
+            (Action)(() =>
+            {
+                var spec = ModContent.GetInstance<SpectateSystem>();
+                if (spec.IsActive())
+                {
+                    spec.ExitSpectateUI();
+                }
+                else
+                {
+                    spec.EnterSpectateUI(clearTarget: true);
+                }
+            }),
+            (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)),
+            (Func<string>)(() =>
+            {
+                var spec = ModContent.GetInstance<SpectateSystem>();
+
+                if (!spec.IsActive())
+                {
+                    return "Enter spectate mode";
+                }
+                else
+                {
+                    return "Exit spectate mode";
+                }
+            })
+        );
     }
 }

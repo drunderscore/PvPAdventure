@@ -19,6 +19,7 @@ Keybinds: {
 	DLGameStarterTool.DisplayName: D L Game Starter Tool
 	DLGameStarterToolRightClick.DisplayName: D L Game Starter Tool Right Click
 	DLPointsSetterTool.DisplayName: D L Points Setter Tool
+	DLSpectateTool.DisplayName: D L Spectate Tool
 }
 
 Tools: {
@@ -46,6 +47,11 @@ Tools: {
 
 	DLPointsSetterTool: {
 		DisplayName: DLPointsSetterTool
+		Description: The tool has no description! Add one in .hjson files!
+	}
+
+	DLSpectateTool: {
+		DisplayName: DLSpectateTool
 		Description: The tool has no description! Add one in .hjson files!
 	}
 }
@@ -197,6 +203,7 @@ Configs: {
 			General: "[i:Cog] General"
 			SoundEffects: Sound Effects
 			AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
+			Spectate: "[i:Binoculars] Spectate"
 		}
 
 		ShiftEnterOpensAllChat: {
@@ -215,7 +222,7 @@ Configs: {
 
 		PlayerOutline: {
 			Label: "[i:PvPAdventure/MatteConfig] Player Outline"
-			Tooltip: Visual outline around players
+			Tooltip: Visual outline around players on a team
 		}
 
 		SoundEffect: {
@@ -235,6 +242,16 @@ Configs: {
 
 		PlaySound: {
 			Label: Play Sound
+			Tooltip: ""
+		}
+
+		SpectateTeammatesOnDeath: {
+			Label: Spectate Teammates On Death
+			Tooltip: ""
+		}
+
+		SpectateUIPosition: {
+			Label: Spectate UI Position
 			Tooltip: ""
 		}
 	}
