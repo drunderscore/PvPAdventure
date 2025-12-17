@@ -3,6 +3,11 @@ using PvPAdventure.System;
 using Terraria.ID;
 using Terraria;
 using Terraria.ModLoader;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
+using System.Reflection;
+using System;
+using Mono.Cecil.Cil;
 
 namespace PvPAdventure;
 
@@ -112,6 +117,58 @@ public class AncientManipulatorGlobalTile : GlobalTile
 
             // Apply Alchemy Table effect (33% chance to not consume ingredients when crafting potions)
             player.alchemyTable = true;
+        }
+    }
+}
+public class ForTheWorthyMiningSpeed : ModSystem
+{
+    private static ILHook getPickaxeDamageHook;
+
+    public override void PostSetupContent()
+    {
+        MethodInfo method = typeof(Terraria.Player).GetMethod("GetPickaxeDamage",
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        if (method == null)
+        {
+            ModContent.GetInstance<ForTheWorthyMiningSpeed>().Mod.Logger.Error("Could not find GetPickaxeDamage method!");
+            return;
+        }
+
+        getPickaxeDamageHook = new ILHook(method, ModifyPickaxeDamage);
+    }
+
+    public override void Unload()
+    {
+        getPickaxeDamageHook?.Dispose();
+    }
+
+    private static void ModifyPickaxeDamage(ILContext il)
+    {
+        ILCursor cursor = new ILCursor(il);
+
+        try
+        {
+            if (cursor.TryGotoNext(MoveType.Before,
+                i => i.MatchRet()
+            ))
+            {
+                ModContent.GetInstance<ForTheWorthyMiningSpeed>().Mod.Logger.Info("Found return in GetPickaxeDamage");
+
+                cursor.Emit(OpCodes.Ldc_R4, 1.5f); //for the worthy mining speed
+                cursor.Emit(OpCodes.Mul);
+                cursor.Emit(OpCodes.Conv_I4);
+
+                ModContent.GetInstance<ForTheWorthyMiningSpeed>().Mod.Logger.Info("Successfully modified GetPickaxeDamage to multiply damage by 1.5");
+            }
+            else
+            {
+                ModContent.GetInstance<ForTheWorthyMiningSpeed>().Mod.Logger.Error("Could not find return statement in GetPickaxeDamage");
+            }
+        }
+        catch (Exception e)
+        {
+            ModContent.GetInstance<ForTheWorthyMiningSpeed>().Mod.Logger.Error($"Error in IL edit: {e}");
         }
     }
 }

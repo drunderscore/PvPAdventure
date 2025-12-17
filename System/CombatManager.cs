@@ -174,7 +174,7 @@ public class CombatManager : ModSystem
                 {
                     if (damageSource.SourceProjectileType != 0)
                     {
-                        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+                        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
                         if (adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(new ProjectileDefinition(
                                 damageSource.SourceProjectileType), out var immunityGroup) &&
                             adventurePlayer.GroupImmuneTime[immunityGroup.Id] > 0)

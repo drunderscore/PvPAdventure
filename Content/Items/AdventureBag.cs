@@ -30,14 +30,11 @@ public class AdventureBag : ModItem
     {
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SilverPickaxe, 1);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SilverAxe, 1);
-        player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Ambrosia, 1);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SlimeBed, 1);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Torch, 15);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Wood, 20);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.LifeCrystal, 5);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.ManaCrystal, 4);
-        player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MiningPotion, 2);
-        player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.WormholePotion, 4);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ModContent.ItemType<AdventureMirror>(), 1);
     }
     public override bool ConsumeItem(Player player)

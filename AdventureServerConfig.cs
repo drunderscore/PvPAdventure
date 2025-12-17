@@ -305,9 +305,6 @@ public class AdventureServerConfig : ModConfig
 
         public Dictionary<ProjectileDefinition, float> NoLineOfSightDamageReduction { get; set; } = new();
         public bool AwardBountyEveryKill { get; set; }
-
-        public bool AwardBountyEveryKill { get; set; }
-
         public class ImmunityGroup
         {
             [Range(0, CombatManager.MaximumNumberOfGroupCooldownId - 1)]
