@@ -840,18 +840,16 @@ public class AdventurePlayer : ModPlayer
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        if (adventureConfig.Combat.MeleeInvincibilityFrames == 0)
+        if (info.DamageSource.SourceProjectileType != 0 &&
+            adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(
+                new(info.DamageSource.SourceProjectileType), out var immunityGroup))
         {
-            if (info.DamageSource.SourceProjectileType != 0 &&
-                adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(
-                    new(info.DamageSource.SourceProjectileType), out var immunityGroup))
-            {
-                GroupImmuneTime[immunityGroup.Id] = immunityGroup.Frames;
-            }
-            else if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
-            {
-                PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
-            }
+            GroupImmuneTime[immunityGroup.Id] = immunityGroup.Frames;
+        }
+        else if (adventureConfig.Combat.MeleeInvincibilityFrames == 0 &&
+                 info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
+        {
+            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
         }
     }
 
