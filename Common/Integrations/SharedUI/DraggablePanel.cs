@@ -1,10 +1,19 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Integrations.PointsSetter;
 using PvPAdventure.Core.Helpers;
+using System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
 namespace PvPAdventure.Common.Integrations.SharedUI;
+
+/// <summary>
+/// Class used to define common properties for admin tool window panels,
+/// such as 
+/// <see cref="PointsSetter"/> 
+/// <seealso cref="GameStarter"/>, etc.
+/// </summary>
 public abstract class DraggablePanel : UIElement
 {
     // Dragging
@@ -16,7 +25,17 @@ public abstract class DraggablePanel : UIElement
     protected UIPanel ContentPanel;
     protected UIPanel RefreshPanel;
     protected UIPanel ClosePanel;
+    protected ResizeButton ResizeButton;
 
+    // Overridable properties
+    protected abstract void OnClosePanelLeftClick();
+    protected virtual void OnRefreshPanelLeftClick() { }
+    protected virtual float MinResizeW => 350f;
+    protected virtual float MinResizeH => 210f;
+    protected virtual float MaxResizeW => 1000f;
+    protected virtual float MaxResizeH => 1000f;
+
+    // Constructor sets the style of this panel.
     public DraggablePanel(string title)
     {
         // Size and position
@@ -93,20 +112,74 @@ public abstract class DraggablePanel : UIElement
             VAlign = 0.5f
         });
         TitlePanel.Append(RefreshPanel);
+
+        // Resize
+        ResizeButton = new(Ass.Resize);
+
+        ResizeButton.OnDragX += dx =>
+        {
+            if (Parent == null)
+                return;
+
+            if (HAlign != 0f || VAlign != 0f || Left.Percent != 0f || Top.Percent != 0f)
+            {
+                var p = Parent.GetDimensions();
+                var d = GetDimensions();
+
+                HAlign = 0f;
+                VAlign = 0f;
+                Left.Percent = 0f;
+                Top.Percent = 0f;
+
+                Left.Pixels = d.X - p.X;
+                Top.Pixels = d.Y - p.Y;
+
+                Recalculate();
+            }
+
+            var parent = Parent.GetDimensions();
+
+            float maxW = Math.Min(MaxResizeW, parent.Width - Left.Pixels);
+            float w = Utils.Clamp(Width.Pixels + dx, MinResizeW, maxW);
+
+            Width.Set(w, 0f);
+            Recalculate();
+        };
+
+        ResizeButton.OnDragY += dy =>
+        {
+            if (Parent == null)
+                return;
+
+            if (HAlign != 0f || VAlign != 0f || Left.Percent != 0f || Top.Percent != 0f)
+            {
+                var p = Parent.GetDimensions();
+                var d = GetDimensions();
+
+                HAlign = 0f;
+                VAlign = 0f;
+                Left.Percent = 0f;
+                Top.Percent = 0f;
+
+                Left.Pixels = d.X - p.X;
+                Top.Pixels = d.Y - p.Y;
+
+                Recalculate();
+            }
+
+            var parent = Parent.GetDimensions();
+
+            float maxH = Math.Min(MaxResizeH, parent.Height - Top.Pixels);
+            float h = Utils.Clamp(Height.Pixels + dy, MinResizeH, Math.Max(MinResizeH, maxH));
+
+            Height.Set(h, 0f);
+            Recalculate();
+        };
+
+        Append(ResizeButton);
     }
 
-    /// <summary>
-    /// Action taken when pressing "close" in the top right corner of the element.
-    /// Usually toggling the parent system's state with e.g "ExampleState.setState(null)"
-    /// </summary>
-    public abstract void OnClosePanelLeftClick();
-
-    /// <summary>
-    /// Action taken when pressing "refresh" in the top left corner of the element.
-    /// Usually refreshing the ContentPanel.
-    /// </summary>
-    public virtual void OnRefreshPanelLeftClick() { }
-
+    #region Dragging
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
@@ -117,34 +190,28 @@ public abstract class DraggablePanel : UIElement
         if (RefreshPanel.IsMouseHovering)
             Main.instance.MouseText("Refresh");
 
-        UpdateDragging();
-    }
+        if (Parent == null)
+            return;
 
-    private void UpdateDragging()
-    {
+        if (ClosePanel.IsMouseHovering || RefreshPanel.IsMouseHovering || ResizeButton.IsMouseHovering)
+            return;
+
         if (dragging)
         {
-            float x = Main.mouseX - dragOffset.X;
-            float y = Main.mouseY - dragOffset.Y;
+            var parent = Parent.GetDimensions();
 
-            var d = GetDimensions();
-            float w = d.Width;
-            float h = d.Height;
+            Left.Pixels = Main.mouseX - dragOffset.X - parent.X;
+            Top.Pixels = Main.mouseY - dragOffset.Y - parent.Y;
 
-            // Prevent out of bounds when dragging
-            //if (x < 0) x = 0;
-            //else if (x + w > Main.screenWidth) x = Main.screenWidth - w;
-
-            //if (y < 0) y = 0;
-            //else if (y + h > Main.screenHeight) y = Main.screenHeight - h;
-
-            Left.Pixels = x;
-            Top.Pixels = y;
+            // Clamp to screen
+            var dims = GetDimensions();
+            Left.Pixels = Utils.Clamp(Left.Pixels, 0f, Math.Max(0f, parent.Width - dims.Width));
+            Top.Pixels = Utils.Clamp(Top.Pixels, 0f, Math.Max(0f, parent.Height - dims.Height));
             Recalculate();
         }
 
-        // Prevent out of bounds when resizing the window
-        Rectangle parentSpace = Parent.GetDimensions().ToRectangle();
+        // Ensure panel stays on screen
+        var parentSpace = Parent.GetDimensions().ToRectangle();
         if (!GetDimensions().ToRectangle().Intersects(parentSpace))
         {
             Left.Pixels = Utils.Clamp(Left.Pixels, 0, parentSpace.Right - Width.Pixels);
@@ -155,16 +222,38 @@ public abstract class DraggablePanel : UIElement
 
     public override void LeftMouseDown(UIMouseEvent evt)
     {
-        if (TitlePanel != null && TitlePanel.ContainsPoint(evt.MousePosition))
+        base.LeftMouseDown(evt);
+
+        if (ClosePanel.IsMouseHovering || RefreshPanel.IsMouseHovering || ResizeButton.IsMouseHovering)
+            return;
+
+        if (TitlePanel == null || !TitlePanel.ContainsPoint(evt.MousePosition) || Parent == null)
+            return;
+
+        if (HAlign != 0f || VAlign != 0f || Left.Percent != 0f || Top.Percent != 0f)
         {
-            dragging = true;
-            dragOffset = evt.MousePosition - new Vector2(Left.Pixels, Top.Pixels);
+            var p = Parent.GetDimensions();
+            var d = GetDimensions();
+
+            HAlign = 0f;
+            VAlign = 0f;
+            Left.Percent = 0f;
+            Top.Percent = 0f;
+
+            Left.Pixels = d.X - p.X;
+            Top.Pixels = d.Y - p.Y;
+
+            Recalculate();
         }
+
+        dragging = true;
+        dragOffset = evt.MousePosition - GetDimensions().Position();
     }
 
     public override void LeftMouseUp(UIMouseEvent evt)
     {
+        base.LeftMouseUp(evt);
         dragging = false;
-        Recalculate();
     }
+    #endregion
 }

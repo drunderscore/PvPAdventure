@@ -731,6 +731,11 @@ Configs: {
 			Tooltip: ""
 			Label: Ghost Heal Armor Penetration
 		}
+
+		ProjectileDamageImmunityGroup: {
+			Label: Projectile Damage Immunity Group
+			Tooltip: ""
+		}
 	}
 
 	CannotModify: You are not permitted to modify this config.
@@ -946,6 +951,20 @@ Configs: {
 		ChlorophyteGrowLimitModifier: {
 			Label: Chlorophyte Grow Limit Modifier
 			Tooltip: Maximum Chlorophyte per 1000 block area
+		}
+	}
+
+	ImmunityGroup: {
+		Tooltip: ""
+
+		Id: {
+			Label: Id
+			Tooltip: ""
+		}
+
+		Frames: {
+			Label: Frames
+			Tooltip: ""
 		}
 	}
 }

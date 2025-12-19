@@ -74,6 +74,8 @@ public class AdventurePlayer : ModPlayer
     public TimeSpan? Latency { get; private set; }
     public int[] PvPImmuneTime { get; } = new int[Main.maxPlayers];
 
+    public int[] GroupImmuneTime { get; } = new int[100];
+
     private DiscordRestClient _discordClient;
 
     public sealed class DamageInfo(byte who, int ticksRemaining)
@@ -484,6 +486,13 @@ public class AdventurePlayer : ModPlayer
             if (PvPImmuneTime[i] > 0)
                 PvPImmuneTime[i]--;
         }
+       
+        for (var i = 0; i < GroupImmuneTime.Length; i++)
+        {
+            if (GroupImmuneTime[i] > 0)
+                GroupImmuneTime[i]--;
+        }
+    
         bool hasSpectreSet = IsSpectreSetEquipped();
         int currentHead = Player.armor[0].type;
         bool headChanged = IsSpectreHead(currentHead) && currentHead != lastSpectreHead;
@@ -995,9 +1004,17 @@ public class AdventurePlayer : ModPlayer
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
-            adventureConfig.Combat.MeleeInvincibilityFrames == 0)
+        if (info.DamageSource.SourceProjectileType != 0 &&
+           adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(
+               new(info.DamageSource.SourceProjectileType), out var immunityGroup))
+        {
+            GroupImmuneTime[immunityGroup.Id] = immunityGroup.Frames;
+        }
+        else if (adventureConfig.Combat.MeleeInvincibilityFrames == 0 &&
+                 info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
+        {
             PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
+        }
     }
 
     public override bool OnPickup(Item item)
@@ -1217,8 +1234,15 @@ public class TurtleDashPlayer : ModPlayer
             float dashSpeedReduction = Player.velocity.X * 0.05f;
             Player.velocity.X -= dashSpeedReduction;
         }
+        if (Player.HasBuff(BuffID.BabyEater) && IsInADashState)
+        {
+            float dashSpeedReduction = Player.velocity.X * -0.03f;
+            Player.velocity.X -= dashSpeedReduction;
+            //Dont think I didnt notice this.
+        }
         //thanks mr fargo
     }
+
 }
 public class NewIchorPlayer : ModPlayer
 {
@@ -2450,7 +2474,7 @@ public class ShadowFlamePlayer : ModPlayer
 
         if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameArrow)
         {
-            int maxDuration = 3 * 60;
+            int maxDuration = 2 * 60;
             float damageRatio = Math.Min(info.Damage / 30f, 1f);
             shadowflameDuration = (int)(maxDuration * damageRatio);
         }
@@ -2460,7 +2484,7 @@ public class ShadowFlamePlayer : ModPlayer
         }
         else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameKnife)
         {
-            int maxDuration = 60 * 3;
+            int maxDuration = 60 * 2;
             float damageRatio = Math.Min(info.Damage / 25f, 1f);
             shadowflameDuration = (int)(maxDuration * damageRatio);
         }
@@ -2485,7 +2509,7 @@ public class ShadowFlamePlayer : ModPlayer
             }
             Player.lifeRegenTime = 0;
 
-            Player.lifeRegen -= 30;
+            Player.lifeRegen -= 24; // 12 dps
         }
     }
 

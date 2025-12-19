@@ -726,7 +726,7 @@ public class AdventureProjectile : GlobalProjectile
     }
 
 
-    public class EmpressNerf : GlobalProjectile
+    public class EmpressProjectiles : GlobalProjectile
     {
         public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
         {
@@ -743,12 +743,12 @@ public class AdventureProjectile : GlobalProjectile
             modifiers.SourceDamage *= 0.75f;
             if (Main.dayTime)
             {
-                modifiers.SourceDamage *= 0.006f;
+                modifiers.SourceDamage *= 0.0085f;
             }
         }
     }
 
-    public class EmpressContactDamageNerf : GlobalNPC
+    public class EmpressDayTimeNPC : GlobalNPC
     {
         public override bool AppliesToEntity(NPC entity, bool lateInstantiation)
         {
@@ -761,6 +761,15 @@ public class AdventureProjectile : GlobalProjectile
             if (Main.dayTime)
             {
                 modifiers.SourceDamage *= 0.01f;
+            }
+        }
+
+        public override void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
+        {
+            if (Main.dayTime)
+            {
+                // Empress takes 75% less damage during the day
+                modifiers.FinalDamage *= 0.25f;
             }
         }
     }
@@ -989,13 +998,26 @@ public class AdventureProjectile : GlobalProjectile
         public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
         {
             int projType = entity.type;
-
             return projType == ProjectileID.Meteor1 ||
                    projType == ProjectileID.Meteor2 ||
                    projType == ProjectileID.Meteor3 ||
+                   projType == ProjectileID.ToxicCloud ||
+                   projType == ProjectileID.ToxicCloud2 ||
+                   projType == ProjectileID.ToxicCloud3 ||
                    projType == ProjectileID.HeatRay ||
+                   projType == ProjectileID.RainbowBack ||
+                   projType == ProjectileID.RainbowFront ||
+                   projType == ProjectileID.TinyEater ||
                    projType == ProjectileID.FlyingKnife ||
-                   projType == ProjectileID.LaserMachinegunLaser;
+                   projType == ProjectileID.LaserMachinegunLaser ||
+                   projType == ProjectileID.ClingerStaff ||
+                   projType == ProjectileID.SporeTrap ||
+                   projType == ProjectileID.SporeTrap2 ||
+                   projType == ProjectileID.SporeGas ||
+                   projType == ProjectileID.SporeGas2 ||
+                   projType == ProjectileID.RainCloudRaining ||
+                   projType == ProjectileID.BloodCloudRaining ||
+                   projType == ProjectileID.SporeGas3;
         }
         public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
         {

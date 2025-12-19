@@ -20,9 +20,12 @@ internal class GameStarterElement : DraggablePanel
     private int _countdownTimeInSeconds = 10;
     private int _gameTimeInFrames = 195 * 60 * 60;
 
+    protected override float MinResizeH => 155f;
+    protected override float MinResizeW => 220f;
+
     public GameStarterElement() : base("Start Game")
     {
-        Width.Set(350, 0);
+        Width.Set(360, 0);
         Height.Set(180, 0);
         HAlign = 0.5f;
         VAlign = 0.7f;
@@ -88,7 +91,7 @@ internal class GameStarterElement : DraggablePanel
         ContentPanel.Append(_startButton);
     }
 
-    public override void OnClosePanelLeftClick()
+    protected override void OnClosePanelLeftClick()
     {
         ModContent.GetInstance<GameStarterSystem>().Hide();
     }

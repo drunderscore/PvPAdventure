@@ -29,7 +29,7 @@ public class DLGameStarterTool : Tool
         }
         else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
         {
-            return "Cancel Countdown";
+            return "Countdown";
         }
         else
         {
@@ -42,15 +42,16 @@ public class DLGameStarterTool : Tool
         var gm = ModContent.GetInstance<GameManager>();
         if (gm.CurrentPhase == GameManager.Phase.Playing)
         {
-            return "Open confirmation window\nRight click to end game instantly";
+            return "Right click to end game instantly";
         }
         else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
         {
-            return "Cancel the countdown";
+            return "Countdown in progress...";
+            //return "Cancel the countdown";
         }
         else
         {
-            return "Open game starter tool\nRight click to start instantly";
+            return "Right click to start game instantly";
         }
     }
     public override bool HasRightClick => true;

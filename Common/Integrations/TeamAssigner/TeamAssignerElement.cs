@@ -114,11 +114,7 @@ internal class TeamAssignerElement : DraggablePanel
         string summaryText =
             $"None:{teamCounts[0]}  Red:{teamCounts[1]}  Green:{teamCounts[2]}  Blue:{teamCounts[3]}  Yellow:{teamCounts[4]}  Pink:{teamCounts[5]}";
 
-        summaryRow.Append(new UIText(summaryText, textScale: 0.8f)
-        {
-            VAlign = 0.5f,
-            Left = { Pixels = 10f }
-        });
+        summaryRow.Append(new UIText(summaryText, textScale: 0.8f) { VAlign = 0.5f, HAlign = 0.5f });
 
         ContentPanel.Append(summaryRow);
 
@@ -130,7 +126,7 @@ internal class TeamAssignerElement : DraggablePanel
 
         // Right aligned icons inside ContentPanel
         float totalIconsWidth = (iconCount * iconW) + ((iconCount - 1) * spacing);
-        float iconsLeft = ContentPanel.GetInnerDimensions().Width - totalIconsWidth - rightPadding;
+        float iconsLeft = -rightPadding - totalIconsWidth;
 
         for (int i = 0; i < players.Count; i++)
         {
@@ -165,7 +161,7 @@ internal class TeamAssignerElement : DraggablePanel
 
                 var icon = new TeamIconElement(pvpAsset, pvpAssetHover, src, player, teamIndex)
                 {
-                    Left = { Pixels = iconsLeft + (teamIndex * (iconW + spacing)) },
+                    Left = { Percent = 1f, Pixels = iconsLeft + (teamIndex * (iconW + spacing)) },
                     VAlign = 0.5f
                 };
 
@@ -178,12 +174,12 @@ internal class TeamAssignerElement : DraggablePanel
         ContentPanel.Recalculate();
     }
 
-    public override void OnClosePanelLeftClick()
+    protected override void OnClosePanelLeftClick()
     {
         ModContent.GetInstance<TeamAssignerSystem>().ToggleActive();
     }
 
-    public override void OnRefreshPanelLeftClick()
+    protected override void OnRefreshPanelLeftClick()
     {
         players.Sort((a, b) => Main.player[a].team.CompareTo(Main.player[b].team));
         needsRebuild = true;
