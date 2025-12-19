@@ -17,6 +17,9 @@ internal class SpectateSystem : ModSystem
     public SpectateElement spectateElement;
     public bool IsActive() => ui?.CurrentState == spectateState;
 
+    // Options
+    public bool ShowAllPlayers; // used for admin tools
+
     public override void OnWorldLoad()
     {
         ui = new();
@@ -25,6 +28,10 @@ internal class SpectateSystem : ModSystem
         spectateState.Append(spectateElement);
     }
 
+    /// <summary>
+    /// Sets the UI to show spectateState.
+    /// </summary>
+    /// <param name="clearTarget">Whether to clear the target when entering the state (the player we're tracking)</param>
     public void EnterSpectateUI(bool clearTarget)
     {
         if (clearTarget)
@@ -44,7 +51,20 @@ internal class SpectateSystem : ModSystem
     {
         ui?.Update(gameTime);
 
-        if (!IsActive() || Main.gameMenu || Main.drawingPlayerChat || Main.editSign || Main.editChest)
+        if (Main.gameMenu)
+            return;
+
+        var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
+
+        // Force enter spectate UI when player is dead and no target is set
+        if (Main.LocalPlayer.dead &&
+            sp.TargetPlayerIndex is not null &&
+            ui?.CurrentState != spectateState)
+        {
+            EnterSpectateUI(clearTarget: false);
+        }
+
+        if (!IsActive() || Main.drawingPlayerChat || Main.editSign || Main.editChest)
             return;
 
         if (Main.keyState.IsKeyDown(Keys.A) && Main.oldKeyState.IsKeyUp(Keys.A))

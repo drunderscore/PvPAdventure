@@ -31,6 +31,7 @@ public class DLSpectateTool : Tool
         }
         else
         {
+            sys.ShowAllPlayers = true;
             sys.EnterSpectateUI(clearTarget: true);
         }
     }

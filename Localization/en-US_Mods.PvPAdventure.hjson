@@ -247,7 +247,7 @@ Configs: {
 
 		SpectateTeammatesOnDeath: {
 			Label: Spectate Teammates On Death
-			Tooltip: ""
+			Tooltip: "Shows a spectate UI with all your teammates while you're dead."
 		}
 
 		SpectateUIPosition: {
