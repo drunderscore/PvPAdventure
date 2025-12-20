@@ -87,7 +87,7 @@ internal class SpectatePlayer : ModPlayer
     public void SnapBackToSelf() =>
         Main.screenPosition = Player.position - new Vector2(Main.screenWidth, Main.screenHeight) / 2f;
 
-    public List<int> GetTeammateIds()
+    public List<int> GetTeammateIds(bool includeAllPlayers = false)
     {
         List<int> ids = [];
 
@@ -112,8 +112,11 @@ internal class SpectatePlayer : ModPlayer
             if (p == null || !p.active || p.dead || p.whoAmI == mePlayer.whoAmI)
                 continue;
 
-            if (mePlayer.team != 0 && p.team != mePlayer.team)
-                continue;
+            if (!includeAllPlayers)
+            {
+                if (mePlayer.team != 0 && p.team != mePlayer.team)
+                    continue;
+            }
 
             ids.Add(p.whoAmI);
         }

@@ -46,11 +46,17 @@ public class SpectateElement : UIElement
         }
 
         var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
-        List<int> ids = sp.GetTeammateIds();
+        bool all = ModContent.GetInstance<SpectateSystem>()?.ShowAllPlayers == true;
+        List<int> ids = sp.GetTeammateIds(all);
 
         if (ids.Count == 0)
         {
-            Width.Set(0f, 0f);
+            Width.Set(Slot * 4, 0f);
+
+            var noTeammatesText = new UIText("No teammates to spectate");
+            noTeammatesText.HAlign = 0.5f;
+            Append(noTeammatesText);
+
             Recalculate();
             return;
         }
@@ -66,11 +72,11 @@ public class SpectateElement : UIElement
             Append(slot);
         }
 
-        string name = "n/a";
+        string spectateText = "Click a teammate to spectate";
         if (sp.TargetPlayerIndex is int ti && ti >= 0 && ti < Main.maxPlayers && Main.player[ti]?.active == true)
-            name = Main.player[ti].name;
+            spectateText = "Spectating: " + Main.player[ti].name;
 
-        var text = new UIText($"Spectating: {name}");
+        UIText text = new(spectateText);
         text.HAlign = 0.5f;
         text.Top.Set(Slot + 6, 0f);
         Append(text);
@@ -121,7 +127,18 @@ public class SpectateElement : UIElement
             {
                 Player p = Main.player[playerIndex];
                 if (p != null && p.active)
-                    Main.instance.MouseText(p.name);
+                {
+                    string text = p.name;
+                    var ss = ModContent.GetInstance<SpectateSystem>();
+
+                    if (p.team != 0 && ss != null && ss.ShowAllPlayers)
+                    {
+                        var team = (Terraria.Enums.Team)p.team;
+                        text += $" ({team})";
+                    }
+
+                    Main.instance.MouseText(text);
+                }
             }
 
             var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
