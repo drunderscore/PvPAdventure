@@ -2418,7 +2418,7 @@ public class PvPAdventurePlayer : ModPlayer
         hasReceivedStarterBag = tag.GetBool("hasReceivedStarterBag");
     }
 
-    public override void OnEnterWorld()
+   /* public override void OnEnterWorld()
     {
         if (!hasReceivedStarterBag)
         {
@@ -2433,6 +2433,7 @@ public class PvPAdventurePlayer : ModPlayer
             hasReceivedStarterBag = true;
         }
     }
+    */
 }
 
 

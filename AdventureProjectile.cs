@@ -732,8 +732,6 @@ public class AdventureProjectile : GlobalProjectile
         {
             return entity.type == ProjectileID.FairyQueenLance ||
                    entity.type == ProjectileID.FairyQueenSunDance ||
-                   entity.type == ProjectileID.FairyQueenMagicItemShot ||
-                   entity.type == ProjectileID.FairyQueenRangedItemShot ||
                    entity.type == ProjectileID.HallowBossRainbowStreak ||
                    entity.type == ProjectileID.HallowBossSplitShotCore ||
                    entity.type == ProjectileID.HallowBossLastingRainbow;
