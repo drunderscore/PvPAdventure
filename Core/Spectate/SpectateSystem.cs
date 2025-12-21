@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -26,6 +25,22 @@ internal class SpectateSystem : ModSystem
         spectateState = new();
         spectateElement = new();
         spectateState.Append(spectateElement);
+    }
+    internal void ApplySpectateUiPosition(Vector2 pos)
+    {
+        if (Main.dedServ)
+            return;
+
+        if (spectateElement == null)
+            return;
+
+        spectateElement._hAlign = pos.X;
+        spectateElement._vAlign = pos.Y;
+
+        spectateElement.HAlign = pos.X;
+        spectateElement.VAlign = pos.Y;
+
+        spectateElement.Recalculate();
     }
 
     /// <summary>
@@ -87,6 +102,8 @@ internal class SpectateSystem : ModSystem
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
         int idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
+        if (idx < 0)
+            idx = layers.Count;
 
         layers.Insert(idx, new LegacyGameInterfaceLayer(
             "PvPAdventure: SpectateSystem",
