@@ -7,6 +7,7 @@ using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.Helpers;
 using PvPAdventure.Core.SpawnSelector;
 using PvPAdventure.System;
+using PvPAdventure.Content.Items;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,6 +18,7 @@ using Terraria.Enums;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using System;
 
 namespace PvPAdventure;
 
@@ -370,6 +372,11 @@ public class PvPAdventure : Mod
                         ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
                     }
 
+                    break;
+                }
+            case AdventurePacketIdentifier.TeamSpectate:
+                {
+                    RemoteClient.CheckSection(whoAmI, reader.ReadVector2());
                     break;
                 }
         }

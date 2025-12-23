@@ -106,7 +106,7 @@ public class AdventureProjectile : GlobalProjectile
     }
 
     private void OnProjectileghostHeal(On_Projectile.orig_ghostHeal orig, Projectile self, int dmg, Vector2 position,
-    Entity victim)
+        Entity victim)
     {
         // Don't touch anything about the Ghost Heal outside PvP.
         if (victim is not Player)
@@ -123,7 +123,7 @@ public class AdventureProjectile : GlobalProjectile
 
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
-        var healMultiplier = adventureConfig.Other.SpectreHealing.PvPHealMultiplier;
+        var healMultiplier = adventureConfig.Combat.GhostHealMultiplier;
         healMultiplier -= self.numHits * 0.05f;
         if (healMultiplier <= 0f)
             return;
@@ -135,7 +135,7 @@ public class AdventureProjectile : GlobalProjectile
         if (!self.CountsAsClass(DamageClass.Magic))
             return;
 
-        var maxDistance = adventureConfig.Other.SpectreHealing.PvPHealRange;
+        var maxDistance = adventureConfig.Combat.GhostHealMaxDistance;
         for (var i = 0; i < Main.maxPlayers; i++)
         {
             var player = Main.player[i];
@@ -151,7 +151,7 @@ public class AdventureProjectile : GlobalProjectile
 
             var personalHeal = heal;
             if (player.ghostHeal)
-                personalHeal *= adventureConfig.Other.SpectreHealing.PvPSelfHealMultiplier;
+                personalHeal *= adventureConfig.Combat.GhostHealMultiplierWearers;
 
             // FIXME: Can't set the context properly because of poor TML visibility to ProjectileSourceID.
             Projectile.NewProjectile(
@@ -169,6 +169,7 @@ public class AdventureProjectile : GlobalProjectile
             );
         }
     }
+
 
     public class SpiderStaffGlobalProjectile : GlobalProjectile
     {
@@ -573,7 +574,7 @@ public class AdventureProjectile : GlobalProjectile
         cursor.EmitDelegate(() =>
         {
             var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-            return adventureConfig.Other.SpectreHealing.PvEHealRange;
+            return adventureConfig.Combat.GhostHealMaxDistanceNpc;
         });
     }
 
@@ -593,9 +594,9 @@ public class AdventureProjectile : GlobalProjectile
             || projectile.type == ProjectileID.LightDisc && projectile.localAI[0] > 0;
 
         if (bounced)
-            modifiers.SourceDamage *= adventureConfig.WeaponBalance.ProjectileBounceDamageReduction;
+            modifiers.SourceDamage *= adventureConfig.Combat.ProjectileCollisionDamageReduction;
 
-        if (adventureConfig.WeaponBalance.ProjectileLineOfSightDamageReduction.TryGetValue(new(projectile.type),
+        if (adventureConfig.Combat.NoLineOfSightDamageReduction.TryGetValue(new(projectile.type),
                 out var damageReduction) && projectile.TryGetOwner(out var owner) && !Collision.CanHit(owner, target))
             modifiers.SourceDamage *= damageReduction;
     }
@@ -725,14 +726,12 @@ public class AdventureProjectile : GlobalProjectile
     }
 
 
-    public class EmpressNerf : GlobalProjectile
+    public class EmpressProjectiles : GlobalProjectile
     {
         public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
         {
             return entity.type == ProjectileID.FairyQueenLance ||
                    entity.type == ProjectileID.FairyQueenSunDance ||
-                   entity.type == ProjectileID.FairyQueenMagicItemShot ||
-                   entity.type == ProjectileID.FairyQueenRangedItemShot ||
                    entity.type == ProjectileID.HallowBossRainbowStreak ||
                    entity.type == ProjectileID.HallowBossSplitShotCore ||
                    entity.type == ProjectileID.HallowBossLastingRainbow;
@@ -742,12 +741,12 @@ public class AdventureProjectile : GlobalProjectile
             modifiers.SourceDamage *= 0.75f;
             if (Main.dayTime)
             {
-                modifiers.SourceDamage *= 0.006f;
+                modifiers.SourceDamage *= 0.0085f;
             }
         }
     }
 
-    public class EmpressContactDamageNerf : GlobalNPC
+    public class EmpressDayTimeNPC : GlobalNPC
     {
         public override bool AppliesToEntity(NPC entity, bool lateInstantiation)
         {
@@ -760,6 +759,15 @@ public class AdventureProjectile : GlobalProjectile
             if (Main.dayTime)
             {
                 modifiers.SourceDamage *= 0.01f;
+            }
+        }
+
+        public override void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
+        {
+            if (Main.dayTime)
+            {
+                // Empress takes 75% less damage during the day
+                modifiers.FinalDamage *= 0.25f;
             }
         }
     }
@@ -988,13 +996,26 @@ public class AdventureProjectile : GlobalProjectile
         public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
         {
             int projType = entity.type;
-
             return projType == ProjectileID.Meteor1 ||
                    projType == ProjectileID.Meteor2 ||
                    projType == ProjectileID.Meteor3 ||
+                   projType == ProjectileID.ToxicCloud ||
+                   projType == ProjectileID.ToxicCloud2 ||
+                   projType == ProjectileID.ToxicCloud3 ||
                    projType == ProjectileID.HeatRay ||
+                   projType == ProjectileID.RainbowBack ||
+                   projType == ProjectileID.RainbowFront ||
+                   projType == ProjectileID.TinyEater ||
                    projType == ProjectileID.FlyingKnife ||
-                   projType == ProjectileID.LaserMachinegunLaser;
+                   projType == ProjectileID.LaserMachinegunLaser ||
+                   projType == ProjectileID.ClingerStaff ||
+                   projType == ProjectileID.SporeTrap ||
+                   projType == ProjectileID.SporeTrap2 ||
+                   projType == ProjectileID.SporeGas ||
+                   projType == ProjectileID.SporeGas2 ||
+                   projType == ProjectileID.RainCloudRaining ||
+                   projType == ProjectileID.BloodCloudRaining ||
+                   projType == ProjectileID.SporeGas3;
         }
         public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
         {

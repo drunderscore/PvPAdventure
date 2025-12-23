@@ -156,7 +156,7 @@ public class AdventureItem : GlobalItem
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
         var itemDefinition = new ItemDefinition(item.type);
 
-        if (adventureConfig.WeaponBalance.Damage.ItemDamage.TryGetValue(itemDefinition,
+        if (adventureConfig.Combat.PlayerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition,
                 out var multiplier))
         {
             // FIXME: The mod config is very imprecise with floating points. Do some rounding to make the UI cleaner.
@@ -168,7 +168,7 @@ public class AdventureItem : GlobalItem
             });
         }
 
-        if (adventureConfig.WeaponBalance.ArmorPenetration.ItemAP.TryGetValue(itemDefinition,
+        if (adventureConfig.Combat.PlayerDamageBalance.ItemArmorPenetration.TryGetValue(itemDefinition,
                 out var armorPen))
         {
             tooltips.Add(new TooltipLine(Mod, "CombatPlayerArmorPenetration",

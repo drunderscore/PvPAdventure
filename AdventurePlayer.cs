@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Discord.Rest;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
 using PvPAdventure.System;
 using PvPAdventure.System.Client;
 using Terraria;
@@ -21,7 +19,6 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
-using Mono.Cecil.Cil;
 using static PvPAdventure.AdventurePlayer;
 using PvPAdventure.Content.Items;
 
@@ -76,6 +73,8 @@ public class AdventurePlayer : ModPlayer
     private Stopwatch _pingPongStopwatch;
     public TimeSpan? Latency { get; private set; }
     public int[] PvPImmuneTime { get; } = new int[Main.maxPlayers];
+
+    public int[] GroupImmuneTime { get; } = new int[100];
 
     private DiscordRestClient _discordClient;
 
@@ -420,7 +419,7 @@ public class AdventurePlayer : ModPlayer
             return false;
 
         _playerMeleeInvincibleTime[target.whoAmI] =
-            ModContent.GetInstance<AdventureServerConfig>().WeaponBalance.ImmunityFrames.TrueMelee;
+            ModContent.GetInstance<AdventureServerConfig>().Combat.MeleeInvincibilityFrames;
 
         return true;
     }
@@ -487,6 +486,13 @@ public class AdventurePlayer : ModPlayer
             if (PvPImmuneTime[i] > 0)
                 PvPImmuneTime[i]--;
         }
+       
+        for (var i = 0; i < GroupImmuneTime.Length; i++)
+        {
+            if (GroupImmuneTime[i] > 0)
+                GroupImmuneTime[i]--;
+        }
+    
         bool hasSpectreSet = IsSpectreSetEquipped();
         int currentHead = Player.armor[0].type;
         bool headChanged = IsSpectreHead(currentHead) && currentHead != lastSpectreHead;
@@ -603,7 +609,7 @@ public class AdventurePlayer : ModPlayer
             return;
 
         RecentDamageFromPlayer = new((byte)damagerPlayer.whoAmI,
-            ModContent.GetInstance<AdventureServerConfig>().WeaponBalance.ImmunityFrames.RecentDamagePreservationFrames);
+            ModContent.GetInstance<AdventureServerConfig>().Combat.RecentDamagePreservationFrames);
     }
 
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genDust,
@@ -897,6 +903,7 @@ public class AdventurePlayer : ModPlayer
             packet.Send(toWho, fromWho);
         }
     }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
@@ -911,7 +918,7 @@ public class AdventurePlayer : ModPlayer
             return;
 
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-        var weaponBalance = adventureConfig.WeaponBalance;
+        var playerDamageBalance = adventureConfig.Combat.PlayerDamageBalance;
         var sourcePlayer = Main.player[modifiers.DamageSource.SourcePlayerIndex];
         var tileDistance = Player.Distance(sourcePlayer.position) / 16.0f;
         var hasIncurredFalloff = false;
@@ -924,15 +931,15 @@ public class AdventurePlayer : ModPlayer
         if (sourceItem != null && !sourceItem.IsAir)
         {
             var itemDefinition = new ItemDefinition(sourceItem.type);
-            if (weaponBalance.Damage.ItemDamage.TryGetValue(itemDefinition, out var multiplier))
+            if (playerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition, out var multiplier))
                 modifiers.IncomingDamageMultiplier *= multiplier;
-            if (weaponBalance.Falloff.PerItem.TryGetValue(itemDefinition, out var falloff) &&
+            if (playerDamageBalance.ItemFalloff.TryGetValue(itemDefinition, out var falloff) &&
                 falloff != null)
             {
                 modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
-            if (weaponBalance.ArmorPenetration.ItemAP.TryGetValue(itemDefinition, out var armorPen))
+            if (playerDamageBalance.ItemArmorPenetration.TryGetValue(itemDefinition, out var armorPen))
             {
                 baseArmorPen = Math.Clamp(armorPen, 0f, 1f);
             }
@@ -945,15 +952,15 @@ public class AdventurePlayer : ModPlayer
         if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
         {
             var projectileDefinition = new ProjectileDefinition(modifiers.DamageSource.SourceProjectileType);
-            if (weaponBalance.Damage.ProjectileDamage.TryGetValue(projectileDefinition, out var multiplier))
+            if (playerDamageBalance.ProjectileDamageMultipliers.TryGetValue(projectileDefinition, out var multiplier))
                 modifiers.IncomingDamageMultiplier *= multiplier;
-            if (weaponBalance.Falloff.PerProjectile.TryGetValue(projectileDefinition, out var falloff) &&
+            if (playerDamageBalance.ProjectileFalloff.TryGetValue(projectileDefinition, out var falloff) &&
                 falloff != null)
             {
                 modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
-            if (weaponBalance.ArmorPenetration.ProjectileAP.TryGetValue(projectileDefinition, out var armorPen))
+            if (playerDamageBalance.ProjectileArmorPenetration.TryGetValue(projectileDefinition, out var armorPen))
             {
                 baseArmorPen = Math.Clamp(armorPen, 0f, 1f);
             }
@@ -967,15 +974,15 @@ public class AdventurePlayer : ModPlayer
             }
         }
 
-        if (!hasIncurredFalloff && weaponBalance.Falloff.Default != null)
-            modifiers.IncomingDamageMultiplier *= weaponBalance.Falloff.Default.CalculateMultiplier(tileDistance);
+        if (!hasIncurredFalloff && playerDamageBalance.DefaultFalloff != null)
+            modifiers.IncomingDamageMultiplier *= playerDamageBalance.DefaultFalloff.CalculateMultiplier(tileDistance);
 
         // Apply Spectre Hood armor penetration bonus for magic damage
         float finalArmorPen = baseArmorPen;
         if (isMagicDamage && sourcePlayer.ghostHeal)
         {
             // Formula: increase by configured percentage of remaining penetration
-            float ghostHealPenBonus = adventureConfig.Other.SpectreHealing.HealerArmorPenetration;
+            float ghostHealPenBonus = adventureConfig.Combat.GhostHealArmorPenetration;
             finalArmorPen = baseArmorPen + (1f - baseArmorPen) * ghostHealPenBonus;
         }
 
@@ -997,9 +1004,17 @@ public class AdventurePlayer : ModPlayer
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
-            adventureConfig.WeaponBalance.ImmunityFrames.TrueMelee == 0)
-            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
+        if (info.DamageSource.SourceProjectileType != 0 &&
+           adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(
+               new(info.DamageSource.SourceProjectileType), out var immunityGroup))
+        {
+            GroupImmuneTime[immunityGroup.Id] = immunityGroup.Frames;
+        }
+        else if (adventureConfig.Combat.MeleeInvincibilityFrames == 0 &&
+                 info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
+        {
+            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
+        }
     }
 
     public override bool OnPickup(Item item)
@@ -1219,8 +1234,15 @@ public class TurtleDashPlayer : ModPlayer
             float dashSpeedReduction = Player.velocity.X * 0.05f;
             Player.velocity.X -= dashSpeedReduction;
         }
+        if (Player.HasBuff(BuffID.BabyEater) && IsInADashState)
+        {
+            float dashSpeedReduction = Player.velocity.X * -0.03f;
+            Player.velocity.X -= dashSpeedReduction;
+            //Dont think I didnt notice this.
+        }
         //thanks mr fargo
     }
+
 }
 public class NewIchorPlayer : ModPlayer
 {
@@ -2396,7 +2418,7 @@ public class PvPAdventurePlayer : ModPlayer
         hasReceivedStarterBag = tag.GetBool("hasReceivedStarterBag");
     }
 
-    public override void OnEnterWorld()
+   /* public override void OnEnterWorld()
     {
         if (!hasReceivedStarterBag)
         {
@@ -2407,9 +2429,11 @@ public class PvPAdventurePlayer : ModPlayer
             var beachBallItem = new Item();
             beachBallItem.SetDefaults(ItemID.BeachBall);
             Player.inventory[2] = beachBallItem; // Adds to third inventory slot
+
             hasReceivedStarterBag = true;
         }
     }
+    */
 }
 
 
@@ -2451,7 +2475,7 @@ public class ShadowFlamePlayer : ModPlayer
 
         if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameArrow)
         {
-            int maxDuration = 3 * 60;
+            int maxDuration = 2 * 60;
             float damageRatio = Math.Min(info.Damage / 30f, 1f);
             shadowflameDuration = (int)(maxDuration * damageRatio);
         }
@@ -2461,7 +2485,7 @@ public class ShadowFlamePlayer : ModPlayer
         }
         else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameKnife)
         {
-            int maxDuration = 60 * 3;
+            int maxDuration = 60 * 2;
             float damageRatio = Math.Min(info.Damage / 25f, 1f);
             shadowflameDuration = (int)(maxDuration * damageRatio);
         }
@@ -2486,7 +2510,7 @@ public class ShadowFlamePlayer : ModPlayer
             }
             Player.lifeRegenTime = 0;
 
-            Player.lifeRegen -= 30;
+            Player.lifeRegen -= 24; // 12 dps
         }
     }
 

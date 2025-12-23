@@ -272,6 +272,7 @@ public class PointsManager : ModSystem
 
         if (config.Bounties.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
             ModContent.GetInstance<BountyManager>().Award(killer, victim);
+
     }
 
     public void SetTeamPoints(Team team, int points)
