@@ -10,6 +10,17 @@ using Terraria.ModLoader.IO;
 
 namespace PvPAdventure.Core.SSC;
 
+/// <summary>
+/// Server-Side Characters (SSC).
+/// Saves per-player characters on the host/server at:
+/// <c>.../tModLoader/PvPAdventureSSC/{worldId}/{steamId}/{PlayerName.plr}</c>
+/// On world join the client requests a bind; the server replies with Load (existing) or Create (new).
+/// </summary>
+/// <remarks>
+/// Inspired by zzp198's SSC mod:
+/// https://github.com/zzp198/SSC
+/// </remarks>
+
 [Autoload(Side = ModSide.Both)]
 internal class SSCSystem : ModSystem
 {
@@ -24,6 +35,7 @@ internal class SSCSystem : ModSystem
     private bool requested;
     private string steamId;
     private uint saveTimer;
+    private string boundStem;
 
     public override void OnWorldLoad()
     {
@@ -47,10 +59,17 @@ internal class SSCSystem : ModSystem
             }
         }
 
+        string joinName = string.Empty;
+        if (Main.LocalPlayer != null)
+        {
+            joinName = Main.LocalPlayer.name;
+        }
+
         var packet = Mod.GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.SSC);
         packet.Write((byte)SSCPacketType.BindRequest);
         packet.Write(steamId);
+        packet.Write(joinName);
         packet.Send();
     }
 
@@ -65,6 +84,7 @@ internal class SSCSystem : ModSystem
 
         requested = false;
         saveTimer = 0;
+        boundStem = null;
     }
 
     public override void PostUpdateEverything()
@@ -77,6 +97,7 @@ internal class SSCSystem : ModSystem
         }
 
         saveTimer++;
+
         if (saveTimer < 60u * 10u)
         {
             return;
@@ -89,6 +110,10 @@ internal class SSCSystem : ModSystem
     private void SendSave(string fileName)
     {
         var character = Main.LocalPlayer;
+        if (character == null)
+        {
+            return;
+        }
 
         var fileData = new PlayerFileData(fileName, false)
         {
@@ -97,21 +122,30 @@ internal class SSCSystem : ModSystem
         };
         fileData.MarkAsServerSide();
 
-        var plr = Player.SavePlayerFile_Vanilla(fileData);
-        var tplr = PlayerIO.SaveData(character);
+        byte[] plr = Player.SavePlayerFile_Vanilla(fileData);
+        TagCompound tplr = PlayerIO.SaveData(character);
 
         var packet = Mod.GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.SSC);
         packet.Write((byte)SSCPacketType.UploadPlayer);
         packet.Write(steamId);
+        packet.Write(character.name);
         packet.Write(plr.Length);
         packet.Write(plr);
         TagIO.Write(tplr, packet);
         packet.Send();
 
 #if DEBUG
-        var worldId = Main.ActiveWorldFileData.UniqueId.ToString();
-        var path = Path.Combine(Main.SavePath, "PvPAdventureSSC", worldId, steamId, "ServerCharacterTest.plr");
+        string worldId = Main.ActiveWorldFileData.UniqueId.ToString();
+        string root = Path.Combine(Main.SavePath, "PvPAdventureSSC", worldId, steamId);
+
+        string stem = boundStem;
+        if (string.IsNullOrEmpty(stem))
+        {
+            stem = SanitizeFileName(character.name);
+        }
+
+        string path = Path.Combine(root, stem + ".plr");
         Main.NewText($"Saved {path} at {DateTime.Now:HH:mm:ss}");
 #endif
     }
@@ -129,21 +163,26 @@ internal class SSCSystem : ModSystem
                         return;
                     }
 
-                    var id = reader.ReadString();
-                    var worldId = Main.ActiveWorldFileData.UniqueId.ToString();
-                    var root = Path.Combine(Main.SavePath, "PvPAdventureSSC", worldId, id);
+                    string id = reader.ReadString();
+                    string joinName = reader.ReadString();
 
-                    var plrPath = Path.Combine(root, "ServerCharacterTest.plr");
-                    var tplrPath = Path.Combine(root, "ServerCharacterTest.tplr");
+                    string worldId = Main.ActiveWorldFileData.UniqueId.ToString();
+                    string root = Path.Combine(Main.SavePath, "PvPAdventureSSC", worldId, id);
+
+                    string stem = GetBoundCharacterStem(root, joinName);
+
+                    string plrPath = Path.Combine(root, stem + ".plr");
+                    string tplrPath = Path.Combine(root, stem + ".tplr");
 
                     if (File.Exists(plrPath) && File.Exists(tplrPath))
                     {
-                        var plr = File.ReadAllBytes(plrPath);
-                        var tplr = TagIO.FromFile(tplrPath);
+                        byte[] plr = File.ReadAllBytes(plrPath);
+                        TagCompound tplr = TagIO.FromFile(tplrPath);
 
                         var packet = Mod.GetPacket();
                         packet.Write((byte)AdventurePacketIdentifier.SSC);
                         packet.Write((byte)SSCPacketType.LoadPlayer);
+                        packet.Write(stem);
                         packet.Write(plr.Length);
                         packet.Write(plr);
                         TagIO.Write(tplr, packet);
@@ -154,6 +193,8 @@ internal class SSCSystem : ModSystem
                         var packet = Mod.GetPacket();
                         packet.Write((byte)AdventurePacketIdentifier.SSC);
                         packet.Write((byte)SSCPacketType.CreatePlayer);
+                        packet.Write(stem);
+                        packet.Write(joinName);
                         packet.Send(toClient: whoAmI);
                     }
 
@@ -167,17 +208,20 @@ internal class SSCSystem : ModSystem
                         return;
                     }
 
-                    var id = reader.ReadString();
-                    var plr = reader.ReadBytes(reader.ReadInt32());
-                    var tplr = TagIO.Read(reader);
+                    string id = reader.ReadString();
+                    string name = reader.ReadString();
+                    byte[] plr = reader.ReadBytes(reader.ReadInt32());
+                    TagCompound tplr = TagIO.Read(reader);
 
-                    var worldId = Main.ActiveWorldFileData.UniqueId.ToString();
-                    var root = Path.Combine(Main.SavePath, "PvPAdventureSSC", worldId, id);
+                    string worldId = Main.ActiveWorldFileData.UniqueId.ToString();
+                    string root = Path.Combine(Main.SavePath, "PvPAdventureSSC", worldId, id);
 
                     Directory.CreateDirectory(root);
 
-                    File.WriteAllBytes(Path.Combine(root, "ServerCharacterTest.plr"), plr);
-                    TagIO.ToFile(tplr, Path.Combine(root, "ServerCharacterTest.tplr"));
+                    string stem = GetBoundCharacterStem(root, name);
+
+                    File.WriteAllBytes(Path.Combine(root, stem + ".plr"), plr);
+                    TagIO.ToFile(tplr, Path.Combine(root, stem + ".tplr"));
 
                     break;
                 }
@@ -189,24 +233,30 @@ internal class SSCSystem : ModSystem
                         return;
                     }
 
+                    string stem = reader.ReadString();
+                    string displayName = reader.ReadString();
+
                     var character = new Player();
                     var creation = new UICharacterCreation(character);
 
-                    character.name = "ServerCharacterTest";
+                    character.name = displayName;
                     character.difficulty = PlayerDifficultyID.SoftCore;
 
                     creation.SetupPlayerStatsAndInventoryBasedOnDifficulty();
 
                     var localPlayer = Main.LocalPlayer;
-                    character.skinVariant = localPlayer.skinVariant;
-                    character.skinColor = localPlayer.skinColor;
-                    character.eyeColor = localPlayer.eyeColor;
-                    character.hair = localPlayer.hair;
-                    character.hairColor = localPlayer.hairColor;
-                    character.shirtColor = localPlayer.shirtColor;
-                    character.underShirtColor = localPlayer.underShirtColor;
-                    character.pantsColor = localPlayer.pantsColor;
-                    character.shoeColor = localPlayer.shoeColor;
+                    if (localPlayer != null)
+                    {
+                        character.skinVariant = localPlayer.skinVariant;
+                        character.skinColor = localPlayer.skinColor;
+                        character.eyeColor = localPlayer.eyeColor;
+                        character.hair = localPlayer.hair;
+                        character.hairColor = localPlayer.hairColor;
+                        character.shirtColor = localPlayer.shirtColor;
+                        character.underShirtColor = localPlayer.underShirtColor;
+                        character.pantsColor = localPlayer.pantsColor;
+                        character.shoeColor = localPlayer.shoeColor;
+                    }
 
                     var fileData = new PlayerFileData("Create.SSC", false)
                     {
@@ -215,13 +265,16 @@ internal class SSCSystem : ModSystem
                     };
                     fileData.MarkAsServerSide();
 
-                    var plr = Player.SavePlayerFile_Vanilla(fileData);
-                    var tplr = PlayerIO.SaveData(character);
+                    byte[] plr = Player.SavePlayerFile_Vanilla(fileData);
+                    TagCompound tplr = PlayerIO.SaveData(character);
+
+                    ApplyLoadedPlayer(stem, plr, tplr);
 
                     var packet = Mod.GetPacket();
                     packet.Write((byte)AdventurePacketIdentifier.SSC);
                     packet.Write((byte)SSCPacketType.UploadPlayer);
                     packet.Write(steamId);
+                    packet.Write(character.name);
                     packet.Write(plr.Length);
                     packet.Write(plr);
                     TagIO.Write(tplr, packet);
@@ -237,28 +290,118 @@ internal class SSCSystem : ModSystem
                         return;
                     }
 
-                    var plr = reader.ReadBytes(reader.ReadInt32());
-                    var tplr = TagIO.Read(reader);
+                    string stem = reader.ReadString();
+                    byte[] plr = reader.ReadBytes(reader.ReadInt32());
+                    TagCompound tplr = TagIO.Read(reader);
 
-                    var ms = new MemoryStream();
-                    TagIO.ToStream(tplr, ms);
-
-                    var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, "ServerCharacterTest.SSC"), false)
-                    {
-                        Metadata = FileMetadata.FromCurrentSettings(FileType.Player)
-                    };
-
-                    Player.LoadPlayerFromStream(fileData, plr, ms.ToArray());
-                    fileData.MarkAsServerSide();
-                    fileData.SetAsActive();
-
-                    NetMessage.SendData(MessageID.PlayerInfo, number: Main.myPlayer);
-
-                    fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
-                    Player.Hooks.EnterWorld(Main.myPlayer);
+                    ApplyLoadedPlayer(stem, plr, tplr);
 
                     break;
                 }
         }
+    }
+
+    private void ApplyLoadedPlayer(string stem, byte[] plr, TagCompound tplr)
+    {
+        boundStem = stem;
+
+        var ms = new MemoryStream();
+        TagIO.ToStream(tplr, ms);
+
+        var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, stem + ".SSC"), false)
+        {
+            Metadata = FileMetadata.FromCurrentSettings(FileType.Player)
+        };
+
+        Player.LoadPlayerFromStream(fileData, plr, ms.ToArray());
+        fileData.MarkAsServerSide();
+        fileData.SetAsActive();
+
+        NetMessage.SendData(MessageID.PlayerInfo, number: Main.myPlayer);
+
+        fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
+        Player.Hooks.EnterWorld(Main.myPlayer);
+    }
+
+    private static string GetBoundCharacterStem(string root, string fallbackName)
+    {
+        Directory.CreateDirectory(root);
+
+        string bindPath = Path.Combine(root, "bound.txt");
+
+        if (File.Exists(bindPath))
+        {
+            string existing = File.ReadAllText(bindPath).Trim();
+            if (!string.IsNullOrWhiteSpace(existing))
+            {
+                return existing;
+            }
+        }
+
+        string stem = GetOldestCharacterStem(root);
+        if (string.IsNullOrEmpty(stem))
+        {
+            stem = SanitizeFileName(fallbackName);
+        }
+
+        File.WriteAllText(bindPath, stem);
+        return stem;
+    }
+
+    private static string GetOldestCharacterStem(string root)
+    {
+        if (!Directory.Exists(root))
+        {
+            return null;
+        }
+
+        string bestStem = null;
+        DateTime bestTime = DateTime.MaxValue;
+
+        foreach (string plrPath in Directory.EnumerateFiles(root, "*.plr"))
+        {
+            string stem = Path.GetFileNameWithoutExtension(plrPath);
+            if (string.IsNullOrEmpty(stem))
+            {
+                continue;
+            }
+
+            string tplrPath = Path.Combine(root, stem + ".tplr");
+            if (!File.Exists(tplrPath))
+            {
+                continue;
+            }
+
+            DateTime time = File.GetLastWriteTimeUtc(plrPath);
+            if (time < bestTime)
+            {
+                bestTime = time;
+                bestStem = stem;
+            }
+        }
+
+        return bestStem;
+    }
+
+    private static string SanitizeFileName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "Player";
+        }
+
+        string sanitized = name.Trim();
+
+        foreach (char c in Path.GetInvalidFileNameChars())
+        {
+            sanitized = sanitized.Replace(c, '_');
+        }
+
+        if (string.IsNullOrWhiteSpace(sanitized))
+        {
+            return "Player";
+        }
+
+        return sanitized;
     }
 }
