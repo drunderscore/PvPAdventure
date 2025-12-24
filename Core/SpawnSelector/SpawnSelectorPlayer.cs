@@ -7,6 +7,10 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.SpawnSelector;
 
+/// <summary>
+/// Player-specific logic for managing spawn region detection.
+/// Also manages spawn selection features in the mod.
+/// </summary>
 public class SpawnSelectorPlayer : ModPlayer
 {
     // Variables

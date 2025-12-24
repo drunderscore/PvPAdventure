@@ -10,7 +10,7 @@ using Terraria.ModLoader.Config;
 using Terraria.ModLoader.Config.UI;
 using Terraria.ModLoader.UI;
 
-namespace PvPAdventure.Core.ConfigElements;
+namespace PvPAdventure.Common.Config.ConfigElements;
 
 internal class SpectateUIPositionConfigElement : ConfigElement
 {

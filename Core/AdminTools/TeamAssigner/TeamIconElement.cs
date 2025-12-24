@@ -6,7 +6,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.TeamAssigner;
+namespace PvPAdventure.Core.AdminTools.TeamAssigner;
 
 /// <summary>
 /// A selectable team icon element.

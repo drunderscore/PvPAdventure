@@ -7,7 +7,7 @@ using PvPAdventure.Core.Spectate;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Integrations.DragonLens;
+namespace PvPAdventure.Common.Integrations.DragonLens.Tools;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
@@ -15,14 +15,14 @@ public class DLSpectateTool : Tool
 {
     public override string IconKey => DLIntegration.SpectateKey;
     public override string DisplayName => "Spectate";
-    public override string Description => "Allows you to move the camera to teammates positions.";
+    public override string Description => "Allows you to move the camera to any players position.";
     public override void OnActivate()
     {
         var sys = ModContent.GetInstance<SpectateSystem>();
         if (sys == null)
         {
             Main.NewText("Failed to open SpectateSystem: System not found.", Color.Red);
-            return;
+            return; // should never happen
         }
 
         if (sys.IsActive())

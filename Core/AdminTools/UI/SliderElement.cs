@@ -6,7 +6,7 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.SharedUI;
+namespace PvPAdventure.Core.AdminTools.UI;
 
 internal class SliderElement : UIElement
 {
@@ -83,6 +83,7 @@ internal class SliderElement : UIElement
 
     private void UpdateLabelText()
     {
+        // Here we perform special value formatting for SliderElements that handles time values.
         if(labelTextKey == "Time")
         {
             int totalMinutes = Math.Max(0, (int)appliedValue);

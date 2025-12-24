@@ -3,7 +3,7 @@ using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Integrations.TeamAssigner;
+using PvPAdventure.Core.AdminTools.TeamAssigner;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Enums;

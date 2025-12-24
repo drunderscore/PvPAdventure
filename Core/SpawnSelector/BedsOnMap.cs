@@ -14,6 +14,10 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnSelector;
 
+/// <summary>
+/// Draws player bed spawn points on the fullscreen map.
+/// Also enables teleportation to teammates' beds by clicking on them.
+/// </summary>
 internal class BedsOnMap : ModSystem
 {
     private Asset<Texture2D> spawnBedTexture;

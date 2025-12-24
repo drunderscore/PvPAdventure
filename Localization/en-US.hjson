@@ -23,6 +23,7 @@ Mods: {
 			DLPointsSetterTool.DisplayName: D L Points Setter Tool
 			DLGameManagerTool.DisplayName: D L Game Manager Tool
 			DLGameManagerToolRightClick.DisplayName: D L Game Manager Tool Right Click
+			DLSpectateTool.DisplayName: D L Spectate Tool
 		}
 
 		Tools: {
@@ -32,7 +33,7 @@ Mods: {
 				Description: {
 					RightClickToEndGame: End the game. Right click to end the game instantly
 					CountdownInProgress: A countdown is already in progress!
-					RightClickToStartGame: Start the game. Right click to start game instantly
+					RightClickToStartGame: Allows you to start the game. Right click to start instantly
 					UnknownState: Error: The game is in an unknown state
 				}
 
@@ -65,6 +66,11 @@ Mods: {
 			DLPointsSetterTool: {
 				DisplayName: Points Setter
 				TitlePanelName: Set Points
+				Description: The tool has no description! Add one in .hjson files!
+			}
+
+			DLSpectateTool: {
+				DisplayName: DLSpectateTool
 				Description: The tool has no description! Add one in .hjson files!
 			}
 		}
@@ -228,6 +234,7 @@ Mods: {
 					General: "[i:Cog] General"
 					SoundEffects: Sound Effects
 					AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
+					Spectate: "[i:Binoculars] Spectate"
 				}
 
 				ShiftEnterOpensAllChat: {
@@ -267,6 +274,16 @@ Mods: {
 				PlaySound: {
 					Label: Play Sound
 					Tooltip: Plays a sound while using the Adventure Mirror
+				}
+
+				SpectateTeammatesOnDeath: {
+					Label: Spectate Teammates On Death
+					Tooltip: ""
+				}
+
+				SpectateUIPosition: {
+					Label: Spectate U I Position
+					Tooltip: ""
 				}
 			}
 
@@ -548,6 +565,16 @@ Mods: {
 
 				WorldGeneration: {
 					Label: World Generation
+					Tooltip: ""
+				}
+
+				Combat: {
+					Label: Combat
+					Tooltip: ""
+				}
+
+				NpcBalance: {
+					Label: Npc Balance
 					Tooltip: ""
 				}
 			}
@@ -998,6 +1025,170 @@ Mods: {
 			}
 
 			CannotModify: You are not permitted to modify this config.
+
+			CombatConfig: {
+				Tooltip: ""
+
+				MeleeInvincibilityFrames: {
+					Label: Melee Invincibility Frames
+					Tooltip: ""
+				}
+
+				RecentDamagePreservationFrames: {
+					Label: Recent Damage Preservation Frames
+					Tooltip: ""
+				}
+
+				PlayerDamageBalance: {
+					Label: Player Damage Balance
+					Tooltip: ""
+				}
+
+				StandardInvincibilityFrames: {
+					Label: Standard Invincibility Frames
+					Tooltip: ""
+				}
+
+				GhostHealMultiplier: {
+					Label: Ghost Heal Multiplier
+					Tooltip: ""
+				}
+
+				GhostHealMultiplierWearers: {
+					Label: Ghost Heal Multiplier Wearers
+					Tooltip: ""
+				}
+
+				GhostHealMaxDistance: {
+					Label: Ghost Heal Max Distance
+					Tooltip: ""
+				}
+
+				GhostHealMaxDistanceNpc: {
+					Label: Ghost Heal Max Distance Npc
+					Tooltip: ""
+				}
+
+				GhostHealArmorPenetration: {
+					Label: Ghost Heal Armor Penetration
+					Tooltip: ""
+				}
+
+				TeamLifeNpcs: {
+					Label: Team Life Npcs
+					Tooltip: ""
+				}
+
+				ProjectileCollisionDamageReduction: {
+					Label: Projectile Collision Damage Reduction
+					Tooltip: ""
+				}
+
+				NoLineOfSightDamageReduction: {
+					Label: No Line Of Sight Damage Reduction
+					Tooltip: ""
+				}
+
+				AwardBountyEveryKill: {
+					Label: Award Bounty Every Kill
+					Tooltip: ""
+				}
+
+				ProjectileDamageImmunityGroup: {
+					Label: Projectile Damage Immunity Group
+					Tooltip: ""
+				}
+			}
+
+			PlayerDamageBalanceConfig: {
+				Tooltip: ""
+
+				ItemDamageMultipliers: {
+					Label: Item Damage Multipliers
+					Tooltip: ""
+				}
+
+				ProjectileDamageMultipliers: {
+					Label: Projectile Damage Multipliers
+					Tooltip: ""
+				}
+
+				ItemArmorPenetration: {
+					Label: Item Armor Penetration
+					Tooltip: ""
+				}
+
+				ProjectileArmorPenetration: {
+					Label: Projectile Armor Penetration
+					Tooltip: ""
+				}
+
+				ItemFalloff: {
+					Label: Item Falloff
+					Tooltip: ""
+				}
+
+				ProjectileFalloff: {
+					Label: Projectile Falloff
+					Tooltip: ""
+				}
+
+				DefaultFalloff: {
+					Label: Default Falloff
+					Tooltip: ""
+				}
+			}
+
+			TeamLifeConfig: {
+				Tooltip: ""
+
+				Share: {
+					Label: Share
+					Tooltip: ""
+				}
+			}
+
+			ImmunityGroup: {
+				Tooltip: ""
+
+				Id: {
+					Label: Id
+					Tooltip: ""
+				}
+
+				Frames: {
+					Label: Frames
+					Tooltip: ""
+				}
+			}
+
+			NpcBalanceConfig: {
+				Tooltip: ""
+
+				LifeMaxMultipliers: {
+					Label: Life Max Multipliers
+					Tooltip: ""
+				}
+
+				DamageMultipliers: {
+					Label: Damage Multipliers
+					Tooltip: ""
+				}
+
+				NoMechanicalBossSummonDrops: {
+					Label: No Mechanical Boss Summon Drops
+					Tooltip: ""
+				}
+			}
+
+			FloatStatistic: {
+				Tooltip: ""
+
+				Value: {
+					Label: Value
+					Tooltip: ""
+				}
+			}
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
@@ -1009,7 +1200,10 @@ Mods: {
 			CannotUnfavorite: cannot unfavorite!
 			CannotTrash: cannot trash!
 			CannotSell: cannot sell!
+			CannotStore: cannot store!
 		}
+
+		DashKeybind.NoDashItem: you have no dash item!
 
 		SpawnSelector: {
 			ChooseYourSpawn: Choose Your Spawn

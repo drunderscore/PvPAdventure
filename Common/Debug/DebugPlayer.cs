@@ -1,8 +1,7 @@
-﻿
-using Terraria.DataStructures;
+﻿using Terraria.DataStructures;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Debug;
+namespace PvPAdventure.Common.Debug;
 
 #if DEBUG
 internal class DebugPlayer : ModPlayer

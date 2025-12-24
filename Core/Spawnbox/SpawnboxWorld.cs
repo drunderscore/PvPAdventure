@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Common;
 using PvPAdventure.Core.SpawnSelector;
 using PvPAdventure.System;
 using ReLogic.Content;
@@ -12,6 +12,9 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.Spawnbox;
 
+/// <summary>
+/// Draws the spawn box rectangle in the world.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
 public class SpawnBoxWorld : ModSystem
 {

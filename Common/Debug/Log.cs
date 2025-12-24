@@ -3,12 +3,14 @@ using System.Runtime.CompilerServices;
 using log4net;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Helpers;
+namespace PvPAdventure.Common.Debug;
 
 /// <summary>
 /// A static logging helper for PvPAdventure.
-/// Example usage: Log.Info("This is an info message.");
-/// Example usage: Log.Warn("This is a warning message.");
+/// Used to minimize boilerplate 
+/// and improve debugging by providing class names to log messages.
+/// Example usage: Log.Debug("Your debug message.");
+/// Output: [YourCallerFile] Your debug message.
 /// </summary>
 public static class Log
 {
@@ -33,11 +35,10 @@ public static class Log
     public static void Error(object message, [CallerFilePath] string file = "")
         => Base.Error($"[{Class(file)}] {message}");
 
-    public static Prefixed For<T>() => new(Base, typeof(T).Name);
-    public static Prefixed ForCaller([CallerFilePath] string file = "") => new(Base, Class(file));
-
+    /// Returns the file name without its extension from the specified file path.
     private static string Class(string file) => Path.GetFileNameWithoutExtension(file);
 
+    /// Provides a logging wrapper that prefixes all log messages with a specified string.
     public readonly struct Prefixed
     {
         private readonly ILog _log;

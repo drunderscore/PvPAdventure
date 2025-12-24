@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.Integrations.SharedUI;
-using PvPAdventure.Common.Integrations.TeamAssigner;
+using PvPAdventure.Core.AdminTools.TeamAssigner;
+using PvPAdventure.Core.AdminTools.UI;
 using PvPAdventure.System;
 using ReLogic.Graphics;
 using System;
@@ -17,7 +17,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.PointsSetter;
+namespace PvPAdventure.Core.AdminTools.PointsSetter;
 
 internal class PointsSetterElement : DraggablePanel
 {

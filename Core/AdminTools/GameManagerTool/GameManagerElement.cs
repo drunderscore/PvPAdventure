@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Integrations.SharedUI;
+using PvPAdventure.Core.AdminTools.UI;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
@@ -7,7 +7,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Integrations.GameManagerIntegration;
+namespace PvPAdventure.Core.AdminTools.GameManagerIntegration;
 
 /// <summary>
 /// The main UI element for starting a game (draggable title + content panel)

@@ -11,6 +11,9 @@ using static PvPAdventure.System.RegionManager;
 
 namespace PvPAdventure.Core.Spawnbox;
 
+/// <summary>
+/// Draws the spawn box rectangle on the fullscreen map and minimap.
+/// </summary>
 public class SpawnboxMap : ModMapLayer
 {
     public override void Draw(ref MapOverlayDrawContext context, ref string text)

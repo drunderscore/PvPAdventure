@@ -5,7 +5,7 @@ using Terraria.GameContent.UI.Chat;
 using Terraria.ModLoader;
 using Terraria.UI.Chat;
 
-namespace PvPAdventure.Core.Debug;
+namespace PvPAdventure.Common.Debug;
 
 internal class DebugChat : ModSystem
 {

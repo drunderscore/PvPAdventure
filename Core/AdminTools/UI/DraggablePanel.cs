@@ -1,12 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Integrations.PointsSetter;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Common;
 using System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.SharedUI;
+namespace PvPAdventure.Core.AdminTools.UI;
 
 /// <summary>
 /// Class used to define common properties for admin tool window panels,

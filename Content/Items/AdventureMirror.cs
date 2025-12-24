@@ -252,7 +252,7 @@ internal class AdventureMirror : ModItem
     public override void UpdateInventory(Player player)
     {
         // Force favorite every tick
-        // Redundant now that we disallowed unfavorite in ItemSlotHooks left click hook
+        // A little redundant now that we disallowed unfavorite in ItemSlotHooks left click hook
         Item.favorited = true;
     }
 }

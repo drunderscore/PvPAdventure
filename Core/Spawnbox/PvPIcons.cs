@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Helpers;
 using PvPAdventure.System;
 using System.Collections.Generic;
 using Terraria;
@@ -9,6 +8,9 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.Spawnbox;
 
+/// <summary>
+/// Draws PvP icons above player heads based on their PvP status.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
 public class PvPIconDrawerLayer : ModSystem
 {
@@ -64,7 +66,7 @@ public class PvPIconDrawerLayer : ModSystem
             int headOffset = 12;
 
             var pvpTex = Main.Assets.Request<Texture2D>("Images/UI/PVP_0");
-            var cooldownTex = Ass.Stop_Icon;
+            //var cooldownTex = Ass.Stop_Icon;
 
             float iconFullW = pvpTex.Value.Width;
             float iconFullH = pvpTex.Value.Height;

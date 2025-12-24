@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.PointsSetter;
+namespace PvPAdventure.Core.AdminTools.PointsSetter;
 
 [Autoload(Side = ModSide.Client)]
 internal class PointsSetterSystem : ModSystem

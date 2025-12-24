@@ -1,9 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
+using MonoMod.RuntimeDetour;
+using PvPAdventure.Common.Debug;
 using PvPAdventure.Content.Items;
 using System;
 using System.Linq;
+using System.Reflection;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameInput;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
@@ -13,33 +17,46 @@ namespace PvPAdventure.Core.SpawnSelector;
 /// <summary>
 /// Prevents the Adventure Mirror from being removed from the player inventory via trashing, selling etc.
 /// Various inventory hooks are used to achieve this.
-/// Also allows using the Adventure Mirror even when item animation is active together with <see cref="InventoryWhileUsingItemSystem"/>
+/// Also allows using the Adventure Mirror even when item animation is active with an ignore mouse hook.
 /// </summary>
 public class AdventureMirrorHooks : ModSystem
 {
+    // Manual hook used to ignore mouse interface check while using Adventure Mirror
+    private Hook ignoreMouseHook;
+
     public override void Load()
     {
-        On_ItemSlot.LeftClick_SellOrTrash += Hook_LeftClick_SellOrTrash;
-        On_ItemSlot.LeftClick_ItemArray_int_int += Hook_LeftClick_ItemArray;
-        On_ItemSlot.RightClick_ItemArray_int_int += Hook_RightClick;
-        On_Player.SellItem += Hook_SellItem;
-        On_Player.DropSelectedItem += Hook_DropSelectedItem;
-        On_Player.dropItemCheck += Hook_DropItemCheck;
+        // Detours
+        On_ItemSlot.LeftClick_SellOrTrash += Modify_LeftClick_SellOrTrash;
+        On_ItemSlot.LeftClick_ItemArray_int_int += Modify_LeftClick_ItemArray;
+        On_ItemSlot.RightClick_ItemArray_int_int += Modify_RightClick;
+        On_Player.SellItem += Modify_SellItem;
+        On_Player.DropSelectedItem += Modify_DropSelectedItem;
+
+        // Mouse interface getter hook called IgnoreMouseInterface
+        MethodInfo getter = typeof(PlayerInput).GetMethod("get_IgnoreMouseInterface", BindingFlags.Public | BindingFlags.Static);
+        if (getter != null)
+            ignoreMouseHook = new Hook(getter, OverrideIgnoreMouseInterface);
+        else
+            Log.Error("PlayerInput.get_IgnoreMouseInterface not found!");
     }
 
     public override void Unload()
     {
-        On_ItemSlot.LeftClick_SellOrTrash -= Hook_LeftClick_SellOrTrash;
-        On_ItemSlot.LeftClick_ItemArray_int_int -= Hook_LeftClick_ItemArray;
-        On_ItemSlot.RightClick_ItemArray_int_int -= Hook_RightClick;
-        On_Player.SellItem -= Hook_SellItem;
-        On_Player.DropSelectedItem -= Hook_DropSelectedItem;
-        On_Player.dropItemCheck -= Hook_DropItemCheck;
+        On_ItemSlot.LeftClick_SellOrTrash -= Modify_LeftClick_SellOrTrash;
+        On_ItemSlot.LeftClick_ItemArray_int_int -= Modify_LeftClick_ItemArray;
+        On_ItemSlot.RightClick_ItemArray_int_int -= Modify_RightClick;
+        On_Player.SellItem -= Modify_SellItem;
+        On_Player.DropSelectedItem -= Modify_DropSelectedItem;
+
+        ignoreMouseHook?.Dispose();
     }
-    // Helper to identify Adventure Mirror
+
+    #region Helpers
+    /// <summary> Identify Adventure Mirror item. </summary>
     private static bool IsAdventureMirror(Item item) => !item.IsAir && item.type == ModContent.ItemType<AdventureMirror>();
 
-    // Helper to show popup text
+    /// <summary> Shows popup text above the local player. </summary>
     private static void Popup(string key)
     {
         PopupText.NewText(new AdvancedPopupRequest
@@ -50,16 +67,30 @@ public class AdventureMirrorHooks : ModSystem
             DurationInFrames = 60 * 2
         }, Main.LocalPlayer.Top + new Vector2(0f, -40f));
     }
+    #endregion
 
+    private bool OverrideIgnoreMouseInterface(Func<bool> orig)
+    {
+        Player p = Main.LocalPlayer;
 
+        if (p != null &&
+            Main.playerInventory &&
+            p.itemAnimation > 0 &&
+            p.HeldItem.type == ModContent.ItemType<AdventureMirror>())
+        {
+            return false; // allow UI interaction while Adventure Mirror is animating
+        }
+
+        return orig();
+    }
 
     // Vanilla method with the item animation check removed for Adventure Mirror.
-    private static void Hook_RightClick(
-        On_ItemSlot.orig_RightClick_ItemArray_int_int orig,
-        Item[] inv, int context, int slot)
+    private static void Modify_RightClick(On_ItemSlot.orig_RightClick_ItemArray_int_int orig,Item[] inv, int context, int slot)
     {
         Player player = Main.player[Main.myPlayer];
         inv[slot].newAndShiny = false;
+
+        // Bypass item animation check for Adventure Mirror here!
         if (player.itemAnimation > 0 && player.HeldItem.type != ModContent.ItemType<AdventureMirror>())
         {
             return;
@@ -168,29 +199,7 @@ public class AdventureMirrorHooks : ModSystem
         }
     }
 
-    private void Hook_DropItemCheck(On_Player.orig_dropItemCheck orig, Player self)
-    {
-        // If the mouse is holding the Adventure Mirror, just block the drop.
-        if (IsAdventureMirror(Main.mouseItem))
-        {
-            if (Main.mouseRight && Main.mouseRightRelease)
-            {
-                PopupText.NewText(new AdvancedPopupRequest
-                {
-                    Color = Color.Crimson,
-                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.CannotDrop"),
-                    Velocity = new(0.0f, 4.0f),
-                    DurationInFrames = 60 * 2
-                }, Main.LocalPlayer.Top + new Vector2(0, -40));
-            }
-            
-            // Note, this makes the item unusable out of the inventory
-            //return; 
-        }
-        orig(self);
-    }
-
-    private void Hook_DropSelectedItem(On_Player.orig_DropSelectedItem orig,Player self)
+    private void Modify_DropSelectedItem(On_Player.orig_DropSelectedItem orig,Player self)
     {
         // If the selected item is the Adventure Mirror, block the drop.
         Item selectedItem = self.inventory[self.selectedItem];
@@ -204,7 +213,7 @@ public class AdventureMirrorHooks : ModSystem
     /// <summary>
     /// Block selling Adventure Mirror to NPC's
     /// </summary>
-    private static bool Hook_SellItem(On_Player.orig_SellItem orig,Player self,Item item,int stack)
+    private static bool Modify_SellItem(On_Player.orig_SellItem orig,Player self,Item item,int stack)
     {
         if (IsAdventureMirror(item))
         {
@@ -217,7 +226,7 @@ public class AdventureMirrorHooks : ModSystem
     /// <summary>
     /// Block quick trash/quick sell (shift+click) Adventure Mirror
     /// </summary>
-    private static bool Hook_LeftClick_SellOrTrash(On_ItemSlot.orig_LeftClick_SellOrTrash orig,Item[] inv, int context, int slot)
+    private static bool Modify_LeftClick_SellOrTrash(On_ItemSlot.orig_LeftClick_SellOrTrash orig,Item[] inv, int context, int slot)
     {
         Item item = inv[slot];
 
@@ -233,42 +242,24 @@ public class AdventureMirrorHooks : ModSystem
 
     /// <summary>
     /// Vanilla method with the item animation check removed for Adventure Mirror.
-    // Draggong onto trash slot / chests / banks
+    // Dragging onto trash slot / chests / banks
     /// </summary>
-    private static void Hook_LeftClick_ItemArray(On_ItemSlot.orig_LeftClick_ItemArray_int_int orig,Item[] inv, int context, int slot)
+    private static void Modify_LeftClick_ItemArray(On_ItemSlot.orig_LeftClick_ItemArray_int_int orig,Item[] inv, int context, int slot)
     {
         // Disallow unfavorite for AdventureMirror (Alt + LeftClick)
         if (slot >= 0 && slot < inv.Length && IsAdventureMirror(inv[slot]))
         {
-            bool favoriteModifierDown = Main.keyState.IsKeyDown(Main.FavoriteKey);
-            bool leftClick = Main.mouseLeft && Main.mouseLeftRelease;
-
-            if (favoriteModifierDown && leftClick)
+            if (Main.keyState.IsKeyDown(Main.FavoriteKey) && Main.mouseLeft && Main.mouseLeftRelease)
             {
                 inv[slot].favorited = true;
 
-                PopupText.NewText(new AdvancedPopupRequest
-                {
-                    Color = Color.Crimson,
-                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.CannotUnfavorite"),
-                    Velocity = new Vector2(0f, -4f),
-                    DurationInFrames = 60 * 2
-                }, Main.LocalPlayer.Top + new Vector2(0, -4));
-
+                Popup("Mods.PvPAdventure.AdventureMirror.CannotUnfavorite");
                 return; // swallow favorite toggle
             }
         }
 
-        bool isMirrorOnMouse = IsAdventureMirror(Main.mouseItem);
-
-        // Block putting mirror into storage
-        bool isStorageSlot = context == ItemSlot.Context.ChestItem || context == ItemSlot.Context.BankItem;
-
-        if (isStorageSlot && isMirrorOnMouse)
-            return;
-
         // Block dragging mirror onto trash
-        if (context == ItemSlot.Context.TrashItem && isMirrorOnMouse)
+        if (context == ItemSlot.Context.TrashItem && IsAdventureMirror(Main.mouseItem))
         {
             if (Main.mouseLeft && Main.mouseLeftRelease)
                 Popup("Mods.PvPAdventure.AdventureMirror.CannotTrash");
@@ -276,18 +267,19 @@ public class AdventureMirrorHooks : ModSystem
         }
 
         // Block dragging mirror onto shop
-        if (context == ItemSlot.Context.ShopItem && isMirrorOnMouse)
+        if (context == ItemSlot.Context.ShopItem && IsAdventureMirror(Main.mouseItem))
         {
             if (Main.mouseLeft && Main.mouseLeftRelease)
                 Popup("Mods.PvPAdventure.AdventureMirror.CannotSell");
             return;
         }
 
-        // Block dragging mirror onto chest
-        if (context == ItemSlot.Context.ShopItem && isMirrorOnMouse)
+        // Block dragging mirror onto chest or bank
+        if (context == ItemSlot.Context.ChestItem && IsAdventureMirror(Main.mouseItem)
+            || context == ItemSlot.Context.BankItem && IsAdventureMirror(Main.mouseItem))
         {
             if (Main.mouseLeft && Main.mouseLeftRelease)
-                Popup("Mods.PvPAdventure.AdventureMirror.CannotSell");
+                Popup("Mods.PvPAdventure.AdventureMirror.CannotStore");
             return;
         }
 
@@ -319,4 +311,40 @@ public class AdventureMirrorHooks : ModSystem
         }
     }
 
+}
+
+internal sealed class DisablePickupWhileHoldingMirror : GlobalItem
+{
+    public override bool CanPickup(Item item, Player player)
+    {
+        if (player == null || !player.active)
+        {
+            return true;
+        }
+
+        if (item.IsACoin || item.ammo != 0)
+        {
+            return true; // always allow coins and ammo
+        }
+
+        int freeSlots = 0;
+
+        // Count free inventory slots: 0–49
+        for (int i = 0; i < 50; i++)
+        {
+            if (player.inventory[i].IsAir)
+            {
+                freeSlots++;
+            }
+        }
+
+        // If Adventure Mirror is held and player has 1 or less inventory slots, block all item pickup in the world
+        // This effectively forces the player to always keep at least one free slot when holding the mirror.
+        if (player.HeldItem.type == ModContent.ItemType<AdventureMirror>() && freeSlots <= 1)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

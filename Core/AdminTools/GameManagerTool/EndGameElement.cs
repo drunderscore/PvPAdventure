@@ -1,14 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Integrations.SharedUI;
+using PvPAdventure.Core.AdminTools.UI;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.GameManagerIntegration;
+namespace PvPAdventure.Core.AdminTools.GameManagerIntegration;
 
 internal class EndGameElement : DraggablePanel
 {
@@ -38,7 +39,11 @@ internal class EndGameElement : DraggablePanel
             Left = { Pixels = 10f },
             VAlign = 0.5f
         };
-        noButton.OnMouseOver += (_, _) => noButton.BorderColor = Color.Yellow;
+        noButton.OnMouseOver += (_, _) =>
+        {
+            noButton.BorderColor = Color.Yellow;
+            //Main.instance.MouseText("Click to cancel prompt");
+        };
         noButton.OnMouseOut += (_, _) => noButton.BorderColor = Color.Black;
         noButton.OnLeftClick += (_, _) => ModContent.GetInstance<GameManagerSystem>().Hide();
 
@@ -50,7 +55,11 @@ internal class EndGameElement : DraggablePanel
             Left = { Percent = 1f, Pixels = -10f - 120f },
             VAlign = 0.5f
         };
-        yesButton.OnMouseOver += (_, _) => yesButton.BorderColor = Color.Yellow;
+        yesButton.OnMouseOver += (_, _) =>
+        {
+            yesButton.BorderColor = Color.Yellow;
+            //Main.instance.MouseText("Click to end game");
+        };
         yesButton.OnMouseOut += (_, _) => yesButton.BorderColor = Color.Black;
         yesButton.OnLeftClick += (_, _) =>
         {

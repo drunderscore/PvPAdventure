@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Integrations.SharedUI;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Core.AdminTools.UI;
 using ReLogic.Content;
 using System.Collections.Generic;
 using Terraria;
@@ -10,7 +9,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.TeamAssigner;
+namespace PvPAdventure.Core.AdminTools.TeamAssigner;
 
 /// <summary>
 /// The base element for the team assigner UI (title and content panel).

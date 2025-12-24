@@ -4,33 +4,27 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.GameManagerIntegration;
+namespace PvPAdventure.Core.AdminTools.TeamAssigner;
 
+/// <summary>
+/// The system responsible for managing the team selector UI.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
-internal class GameManagerSystem : ModSystem
+internal class TeamAssignerSystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState endGameUIState;
-    public UIState startGameUIState;
+    public UIState teamAssignerState;
 
     // State
-    public bool IsActive() => ui?.CurrentState != null;
-
-    public void ShowEndDialog() => ui.SetState(endGameUIState);
-    public void ShowStartDialog() => ui.SetState(startGameUIState);
-    public void Hide() => ui.SetState(null);
+    public bool IsActive() => ui?.CurrentState == teamAssignerState;
+    public void ToggleActive() => ui.SetState(IsActive() ? null : teamAssignerState);
 
     public override void OnWorldLoad()
     {
         ui = new();
-        endGameUIState = new();
-        endGameUIState.Append(new EndGameElement());
-
-        startGameUIState = new();
-        startGameUIState.Append(new GameManagerElement());
-
-        ui.SetState(null);
+        teamAssignerState = new();
+        teamAssignerState.Append(new TeamAssignerElement());
     }
     public override void UpdateUI(GameTime gameTime)
     {
@@ -44,7 +38,7 @@ internal class GameManagerSystem : ModSystem
         if (index != -1)
         {
             layers.Insert(index, new LegacyGameInterfaceLayer(
-                name: "PvPAdventure: GameManagerSystem",
+                name: "PvPAdventure: TeamAssignerSystem",
                 drawMethod: () =>
                 {
                     if (IsActive())
@@ -53,7 +47,6 @@ internal class GameManagerSystem : ModSystem
 
                         // Debug
                         //Main.spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.Red * 0.5f);
-
                         return true;
                     }
                     return true;
@@ -63,5 +56,3 @@ internal class GameManagerSystem : ModSystem
         }
     }
 }
-
-

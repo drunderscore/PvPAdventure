@@ -201,6 +201,125 @@ public class GameManager : ModSystem
         CurrentPhase = Phase.Waiting;
     }
 
+    private void BroadcastEndGameSummary()
+    {
+        // Only the server (or singleplayer) should broadcast.
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            return;
+        }
+
+        var pm = ModContent.GetInstance<PointsManager>();
+
+        for (int i = 0; i < 10; i++)
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(string.Empty), Color.White);
+        }
+
+        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("The game has ended!"), Color.White);
+
+        var scoredTeams = pm.Points
+            .Where(kvp => kvp.Key != Team.None)
+            .Where(kvp => kvp.Value > 0)
+            .OrderByDescending(kvp => kvp.Value)
+            .ToList();
+
+        if (scoredTeams.Count == 0)
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("No teams scored any points."),Color.White);
+            return;
+        }
+
+        var maxPoints = scoredTeams[0].Value;
+        var winningTeams = scoredTeams
+            .Where(kvp => kvp.Value == maxPoints)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        if (winningTeams.Count == 1)
+        {
+            var team = winningTeams[0];
+
+            ChatHelper.BroadcastChatMessage(
+                NetworkText.FromLiteral($"{team} Team wins with {maxPoints} points!"),
+                Main.teamColor[(int)team]);
+        }
+        else
+        {
+            // Multiple winners
+            var winnersText = string.Join(", ", winningTeams.Select(t => $"{t} Team"));
+
+            ChatHelper.BroadcastChatMessage(
+                NetworkText.FromLiteral($"Tie! {winnersText} lead with {maxPoints} points."),
+                Color.White);
+        }
+
+        int rank = 1;
+
+        // Print team summary row, containing team points and MVP.
+        foreach (var (team, points) in scoredTeams)
+        {
+            Player bestPlayer = null;
+            var bestKills = -1;
+            var bestDeaths = int.MaxValue;
+            var bestKd = -1f;
+
+            foreach (var player in Main.ActivePlayers)
+            {
+                if ((Team)player.team != team)
+                {
+                    continue;
+                }
+
+                var ap = player.GetModPlayer<AdventurePlayer>();
+                var kills = ap.Kills;
+                var deaths = ap.Deaths;
+
+                float kd = deaths <= 0 ? kills : kills / (float)deaths;
+
+                var isBetter = false;
+
+                if (kills > bestKills)
+                {
+                    isBetter = true;
+                }
+                else if (kills == bestKills)
+                {
+                    if (deaths < bestDeaths)
+                    {
+                        isBetter = true;
+                    }
+                    else if (deaths == bestDeaths && kd > bestKd)
+                    {
+                        isBetter = true;
+                    }
+                }
+
+                if (isBetter)
+                {
+                    bestPlayer = player;
+                    bestKills = kills;
+                    bestDeaths = deaths;
+                    bestKd = kd;
+                }
+            }
+
+            string teamSummaryRow = $"{rank}. {team} Team: {points} points.";
+
+            if (bestPlayer != null)
+            {
+                var bestAp = bestPlayer.GetModPlayer<AdventurePlayer>();
+                teamSummaryRow += $" MVP: {bestPlayer.name} (K/D: {bestAp.Kills}/{bestAp.Deaths})";
+            }
+
+            ChatHelper.BroadcastChatMessage(
+                text: NetworkText.FromLiteral(teamSummaryRow),
+                color: Main.teamColor[(int)team]);
+
+            rank++;
+        }
+    }
+
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
     private void OnPhaseChange(Phase newPhase)
     {
@@ -231,6 +350,7 @@ public class GameManager : ModSystem
                         NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
                 }
 
+                    // Teleport all players to spawn
                 var spawnPosition = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
                 foreach (var player in Main.ActivePlayers)
                 {
@@ -244,7 +364,10 @@ public class GameManager : ModSystem
 
                 UpdateFreezeTime(true);
 
-                    break;
+                // Broadcast end game summary
+                BroadcastEndGameSummary();
+
+                break;
             }
             case Phase.Playing:
             {

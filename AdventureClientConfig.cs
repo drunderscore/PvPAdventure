@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
-using PvPAdventure.Core.ConfigElements;
+using PvPAdventure.Common.Config.ConfigElements;
 using PvPAdventure.Core.Spectate;
 using Terraria.Audio;
 using Terraria.ModLoader;

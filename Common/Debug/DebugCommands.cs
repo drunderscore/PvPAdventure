@@ -11,7 +11,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI.Chat;
 
-namespace PvPAdventure.Core.Debug;
+namespace PvPAdventure.Common.Debug;
 
 // This is only run in debug builds.
 #if DEBUG

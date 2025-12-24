@@ -3,18 +3,23 @@ using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Helpers;
+namespace PvPAdventure.Common;
 
+/// <summary>
+/// Provides static access to miscallaneous texture assets within the PvPAdventure mod.
+/// Automatically initializes when the mod system loads.
+/// All asset fields are intended for global access throughout the mod.
+/// </summary>
 public static class Ass
 {
-    // Spawn selector
+    // Spawn selector assets
     public static Asset<Texture2D> Question_Mark;
     public static Asset<Texture2D>[] MapBG;
     public static Asset<Texture2D> CustomPlayerBackground;
     public static Asset<Texture2D> Spawnbox;
     public static Asset<Texture2D> Stop_Icon;
 
-    // Admin tools
+    // Admin tools assets
     public static Asset<Texture2D> Pause;
     public static Asset<Texture2D> Points;
     public static Asset<Texture2D> Play;
@@ -26,8 +31,13 @@ public static class Ass
     public static Asset<Texture2D> TeamAssignerIcon;
     public static Asset<Texture2D> Spectate;
 
+    // Initialization flag
     public static bool Initialized { get; set; }
 
+    /// <summary>
+    /// Initializes static assets
+    /// Automatically runs once the mod system loads via <see cref="AssetLoader"/>
+    /// </summary>
     static Ass()
     {
         // Load MapBG
@@ -53,7 +63,10 @@ public static class Ass
     }
 }
 
-public class LoadAssets : ModSystem
+/// <summary>
+/// Initializes asset loading for the mod when the system is loaded with all assets in <see cref="Ass"/>
+/// </summary>
+public class AssetLoader : ModSystem
 {
     public override void Load() => _ = Ass.Initialized;
 }

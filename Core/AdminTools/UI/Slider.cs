@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Common;
 using ReLogic.Content;
 using Terraria;
 using Terraria.Audio;
@@ -9,7 +9,7 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Integrations.SharedUI;
+namespace PvPAdventure.Core.AdminTools.UI;
 
 public class Slider : UIElement
 {

@@ -6,7 +6,8 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Core.SpawnSelector;
 
 /// <summary>
-/// Draws the selected player heads on map when highlighting the UI element for the player
+/// Draws teammates' heads on the fullscreen map when hovering them.
+/// Also allows teleportation to teammates via <see cref="SpawnSelectorHooks"/> 
 /// </summary>
 internal class PlayerHeadsOnMap : ModSystem
 {
@@ -42,7 +43,7 @@ internal class PlayerHeadsOnMap : ModSystem
         //x -= 10f * mapScale;
         //y -= 10f * mapScale;
 
-        Vector2 headPos = new Vector2(x, y);
+        Vector2 headPos = new(x, y);
 
         float alpha = 1f;
         float scale = 1.6f*Main.UIScale;

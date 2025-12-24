@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Integrations.GameManagerIntegration;
-using PvPAdventure.Common.Integrations.TeamAssigner;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Common.Debug;
+using PvPAdventure.Core.AdminTools.GameManagerIntegration;
+using PvPAdventure.Core.AdminTools.TeamAssigner;
 using PvPAdventure.Core.Spectate;
 using PvPAdventure.System;
 using System;
@@ -14,8 +14,9 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.Integrations.HerosMod;
 
 [JITWhenModsEnabled("HEROsMod")]
-public sealed class HMIntegration : ModSystem
+public sealed class HerosModIntegration : ModSystem
 {
+    // Permission keys
     private const string PauseGamePermissionKey = "PauseGame";
     private const string PlayGamePermissionKey = "PlayGame";
     private const string TeamAssignerPermissionKey = "TeamAssigner";

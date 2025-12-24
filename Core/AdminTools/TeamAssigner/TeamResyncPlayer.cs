@@ -1,4 +1,4 @@
-﻿namespace PvPAdventure.Common.Integrations.TeamAssigner;
+﻿namespace PvPAdventure.Core.AdminTools.TeamAssigner;
 
 using Terraria;
 using Terraria.ID;

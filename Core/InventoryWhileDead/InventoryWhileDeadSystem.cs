@@ -3,7 +3,10 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.InventoryWhileDead;
 
-// Allows inventory access while player is dead.
+/// <summary>
+/// Allows inventory access while dead.
+/// </summary>
+[Autoload(Side=ModSide.Client)]
 internal class InventoryWhileDeadSystem : ModSystem
 {
     public override void Load()

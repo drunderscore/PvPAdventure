@@ -4,7 +4,7 @@ using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Integrations.GameManagerIntegration;
+using PvPAdventure.Core.AdminTools.GameManagerIntegration;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
@@ -17,7 +17,7 @@ namespace PvPAdventure.Common.Integrations.DragonLens.Tools;
 [ExtendsFromMod("DragonLens")]
 public class DLGameManagerTool : Tool
 {
-    public override string IconKey => DLIntegration.GameStarterKey;
+    public override string IconKey => DLIntegration.GameManagerKey;
     public override string DisplayName => Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.DisplayName");
     public override string Description => GetDescription();
     private string GetDescription()
@@ -66,15 +66,19 @@ public class DLGameManagerTool : Tool
         }
         else if (gm.CurrentPhase == GameManager.Phase.Waiting)
         {
+            // Start game with default time of 60 minutes
+            // Note: This option is usually for debugging purposes.
+            int rightClickTimeInFrames = 216000;
+
             if (Main.netMode == NetmodeID.SinglePlayer)
             {
-                gm.StartGame(time: 216000, countdownTimeInSeconds: 0); // 60 minutes
+                gm.StartGame(time: rightClickTimeInFrames, countdownTimeInSeconds: 0); 
             }
             else if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
                 packet.Write((byte)AdventurePacketIdentifier.StartGame);
-                packet.Write(216000);
+                packet.Write(rightClickTimeInFrames);
                 packet.Write(0);
                 packet.Send();
             }
