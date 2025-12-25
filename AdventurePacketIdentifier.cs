@@ -12,9 +12,10 @@ public enum AdventurePacketIdentifier : byte
     PauseGame,
     NpcStrikeTeam,
     Dash,
-    PlayerBed,
+    PlayerBed, // update player spawn point
     AdventureMirrorRightClickUse,
-    BedTeleport,
     SetPointsRequest,
     SSC, // Server Sided Character
+    BedTeleport, // teleport to a bed spawn point
+    TeamSpectate, // sync world region for spectating player
 }

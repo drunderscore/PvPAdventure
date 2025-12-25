@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Common.Debug;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
@@ -26,7 +26,7 @@ public class SpawnSelectorBasePanel : UIPanel
         VAlign = 0.0f;
         Top.Set(52, 0);
 
-        BackgroundColor = new Color(33, 43, 79) * 0.8f;
+        BackgroundColor = new Color(33, 43, 79) * 1f;
         SetPadding(0f);
 
         BuildLayout();

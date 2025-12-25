@@ -1,12 +1,13 @@
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.Common.Integrations.TeamAssigner;
 using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.SpawnSelector.Systems;
 using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using Steamworks;
+using PvPAdventure.Core.SpawnSelector;
+using PvPAdventure.System;
 using System;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
+using PvPAdventure.Core.AdminTools.TeamAssigner;
 
 namespace PvPAdventure;
 
@@ -376,6 +378,11 @@ public class PvPAdventure : Mod
             case AdventurePacketIdentifier.SSC:
                 {
                     ModContent.GetInstance<SSCSystem>().HandlePacket(reader, whoAmI);
+                    break;
+                }
+            case AdventurePacketIdentifier.TeamSpectate:
+                {
+                    RemoteClient.CheckSection(whoAmI, reader.ReadVector2());
                     break;
                 }
         }

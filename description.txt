@@ -1,26 +1,20 @@
-The complete Terraria PvP Adventure experience.
+[c/FFFF00:Terraria PvP Adventure]
+A competitive PvP community game mode that brings the full Terraria experience into fast, high-stakes matches.
 
-BSD 2-Clause License
+Started in 2020, TPVPA is built around 3-hour long, bi-weekly games with 12–18 players. 
+Earn points by taking down bosses, or hunt other players and steal their points. 
+We keep things as vanilla as we can—but that simple idea has grown into 5+ years of active development.
 
-Copyright (c) 2025, James Puleo & contributors
+[c/00FF88:Highlights]
+- A working scoreboard built for competitive play
+- Anti-snowball mechanics to keep games close
+- Per-weapon PvP damage falloff + balancing
+- PvP and PvE hitsounds + killsounds
+- Endgame armor reworks for PvP
+- Beetle Scale Mail levels up from kills
+- Spectre armor team-heals from PvP damage
+And more
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+At the highest level, TPVPA plays like an e-sport: 
+live-casted invitational matches featuring some of the best Terraria 
+players in the world—speedrun record holders and veterans with years of PvP experience.

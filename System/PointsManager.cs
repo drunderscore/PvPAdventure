@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Integrations.PointsSetter;
+using PvPAdventure.Core.AdminTools.PointsSetter;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -269,7 +269,6 @@ public class PointsManager : ModSystem
             else
                 UiScoreboard.Invalidate();
         }
-
 
         if (config.Combat.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
             ModContent.GetInstance<BountyManager>().Award(killer, victim);

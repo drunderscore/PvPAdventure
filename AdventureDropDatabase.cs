@@ -117,7 +117,7 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.Harpy:
                 foreach (var drop in drops)
                 {
-                    ModifyDropRate(drop, ItemID.GiantHarpyFeather, 1, 75);
+                    ModifyDropRate(drop, ItemID.GiantHarpyFeather, 1, 20);
                     ModifyDropRate(drop, ItemID.Feather, 1, 1);
                 }
                 break;
@@ -130,7 +130,7 @@ public class AdventureDropDatabase : ModSystem
                 break;
             case NPCID.IceGolem:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.IceFeather, 1, 1);
+                    ModifyDropRate(drop, ItemID.IceFeather, 1, 2);
                 break;
 
             case NPCID.Necromancer:
@@ -241,7 +241,7 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.RedDevil:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.UnholyTrident, 1, 10);
-                npcLoot.Add(ItemDropRule.Common(ItemID.FireFeather, 10, 1, 1));
+                npcLoot.Add(ItemDropRule.Common(ItemID.FireFeather, 7, 1, 1));
 
                 break;
 
@@ -351,8 +351,7 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.Clinger:
             case NPCID.SeekerHead:
             case NPCID.DesertGhoulCorruption:
-                foreach (var drop in drops)
-                    npcLoot.Add(ItemDropRule.Common(ItemID.RottenChunk, 1, 1, 1));
+                    npcLoot.Add(ItemDropRule.Common(ItemID.RottenChunk, 2, 1, 1));
                 break;
             case NPCID.EyeofCthulhu:
                 foreach (var drop in drops)
@@ -550,7 +549,7 @@ public class AdventureDropDatabase : ModSystem
 
                 foreach (var drop in drops)
                 {
-                            ModifyDropRate(drop, ItemID.FishronWings, 1, 1);
+                            ModifyDropRate(drop, ItemID.FishronWings, 0, 1);
                     }
 
                 var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
@@ -571,7 +570,7 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.HallowBoss:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.RainbowWings, 1, 1);
+                    ModifyDropRate(drop, ItemID.RainbowWings, 0, 1);
                 break;
 
             case NPCID.TheDestroyer:

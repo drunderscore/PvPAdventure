@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Helpers;
 using ReLogic.Content;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +8,6 @@ using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static PvPAdventure.System.RegionManager;
 
 namespace PvPAdventure.System;
 

@@ -1,11 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Helpers;
-using PvPAdventure.Core.SpawnSelector.Systems;
+using PvPAdventure.Common;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -69,7 +69,7 @@ internal class SpawnSelectorQuestionMark : UIPanel
 
         if (IsMouseHovering)
         {
-            Main.instance.MouseText("Random Teleport");
+            Main.instance.MouseText(Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.RandomTeleport"));
         }
 
         // Draw question mark

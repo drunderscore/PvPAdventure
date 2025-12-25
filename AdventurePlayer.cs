@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Discord.Rest;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
 using PvPAdventure.System;
 using PvPAdventure.System.Client;
 using Terraria;
@@ -21,7 +19,6 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
-using Mono.Cecil.Cil;
 using static PvPAdventure.AdventurePlayer;
 using PvPAdventure.Content.Items;
 
@@ -76,6 +73,8 @@ public class AdventurePlayer : ModPlayer
     private Stopwatch _pingPongStopwatch;
     public TimeSpan? Latency { get; private set; }
     public int[] PvPImmuneTime { get; } = new int[Main.maxPlayers];
+
+    public int[] GroupImmuneTime { get; } = new int[100];
 
     private DiscordRestClient _discordClient;
 
@@ -394,7 +393,7 @@ public class AdventurePlayer : ModPlayer
         cursor.EmitLdarg0();
         cursor.EmitDelegate((Player self) =>
         {
-            self.setBonus = Language.GetTextValue("ArmorSetBonus.BeetleDamage");
+            self.setBonus = Language.GetTextValue("Mods.PvPAdventure.ArmorSetBonus.BeetleDamage");
             self.beetleOffense = true;
         });
         // ...then branch away so we skip the original code.
@@ -487,6 +486,13 @@ public class AdventurePlayer : ModPlayer
             if (PvPImmuneTime[i] > 0)
                 PvPImmuneTime[i]--;
         }
+       
+        for (var i = 0; i < GroupImmuneTime.Length; i++)
+        {
+            if (GroupImmuneTime[i] > 0)
+                GroupImmuneTime[i]--;
+        }
+    
         bool hasSpectreSet = IsSpectreSetEquipped();
         int currentHead = Player.armor[0].type;
         bool headChanged = IsSpectreHead(currentHead) && currentHead != lastSpectreHead;
@@ -998,9 +1004,17 @@ public class AdventurePlayer : ModPlayer
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
-            adventureConfig.Combat.MeleeInvincibilityFrames == 0)
+        if (info.DamageSource.SourceProjectileType != 0 &&
+           adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(
+               new(info.DamageSource.SourceProjectileType), out var immunityGroup))
+        {
+            GroupImmuneTime[immunityGroup.Id] = immunityGroup.Frames;
+        }
+        else if (adventureConfig.Combat.MeleeInvincibilityFrames == 0 &&
+                 info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
+        {
             PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
+        }
     }
 
     public override bool OnPickup(Item item)
@@ -2404,7 +2418,7 @@ public class PvPAdventurePlayer : ModPlayer
         hasReceivedStarterBag = tag.GetBool("hasReceivedStarterBag");
     }
 
-    public override void OnEnterWorld()
+   /* public override void OnEnterWorld()
     {
         if (!hasReceivedStarterBag)
         {
@@ -2419,6 +2433,7 @@ public class PvPAdventurePlayer : ModPlayer
             hasReceivedStarterBag = true;
         }
     }
+    */
 }
 
 

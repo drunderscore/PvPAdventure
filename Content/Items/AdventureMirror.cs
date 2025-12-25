@@ -2,6 +2,7 @@
 using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Content.Items;
@@ -25,7 +26,7 @@ internal class AdventureMirror : ModItem
         Item.useStyle = ItemUseStyleID.HoldUp;
         Item.UseSound = SoundID.Item6;
         Item.rare = ItemRarityID.Blue;
-        Item.value = Item.buyPrice(gold: 0);
+        Item.value = Item.buyPrice(platinum: 999);
         Item.noUseGraphic = false;
     }
     public override bool ConsumeItem(Player player) => false;
@@ -128,7 +129,7 @@ internal class AdventureMirror : ModItem
                 PopupText.NewText(new AdvancedPopupRequest
                 {
                     Color = Color.Crimson,
-                    Text = "wait until game starts!",
+                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.GameNotStarted"),
                     Velocity = new(0f, -4),
                     DurationInFrames = 120
                 }, player.Top + new Vector2(0, -4));
@@ -251,7 +252,7 @@ internal class AdventureMirror : ModItem
     public override void UpdateInventory(Player player)
     {
         // Force favorite every tick
-        // Redundant now that we disallowed unfavorite in ItemSlotHooks left click hook
-        //Item.favorited = true;
+        // A little redundant now that we disallowed unfavorite in ItemSlotHooks left click hook
+        Item.favorited = true;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.SpawnSelector.Players;
+using PvPAdventure.Core.SpawnSelector;
 using PvPAdventure.System;
 using ReLogic.Graphics;
 using Terraria;
@@ -11,6 +11,9 @@ using static PvPAdventure.System.RegionManager;
 
 namespace PvPAdventure.Core.Spawnbox;
 
+/// <summary>
+/// Draws the spawn box rectangle on the fullscreen map and minimap.
+/// </summary>
 public class SpawnboxMap : ModMapLayer
 {
     public override void Draw(ref MapOverlayDrawContext context, ref string text)
