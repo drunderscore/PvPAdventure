@@ -1,9 +1,11 @@
-using System;
-using System.ComponentModel;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
-using PvPAdventure.Common.Config.ConfigElements;
+using PvPAdventure.Core.ConfigElements;
+using PvPAdventure.Core.Helpers;
 using PvPAdventure.Core.Spectate;
+using System;
+using System.ComponentModel;
+using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
@@ -167,11 +169,17 @@ public class AdventureClientConfig : ModConfig
     #region Methods
     public override void OnChanged()
     {
-        var ss = ModContent.GetInstance<SpectateSystem>();
-        if (ss != null)
+        if (Main.dedServ)
+            return;
+
+        try
         {
-            ss.spectateElement._hAlign = SpectateUIPosition.X;
-            ss.spectateElement._vAlign = SpectateUIPosition.Y;
+            var ss = ModContent.GetInstance<SpectateSystem>();
+            ss?.ApplySpectateUiPosition(SpectateUIPosition);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("AdventureClientConfig.OnChanged failed: " + ex);
         }
     }
     #endregion
