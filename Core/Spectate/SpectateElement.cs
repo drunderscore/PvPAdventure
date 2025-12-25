@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ public class SpectateElement : UIElement
             _vAlign = cfg.SpectateUIPosition.Y;
         }
 
-        var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
+        var sp = ModContent.GetInstance<SpectateSystem>();
         bool all = ModContent.GetInstance<SpectateSystem>()?.ShowAllPlayers == true;
         List<int> ids = sp.GetTeammateIds(all);
 
@@ -53,8 +54,7 @@ public class SpectateElement : UIElement
         {
             Width.Set(Slot * 4, 0f);
 
-            var noTeammatesText = new UIText("No teammates to spectate");
-            noTeammatesText.HAlign = 0.5f;
+            UIText noTeammatesText = new("No teammates to spectate") { HAlign = 0.5f };
             Append(noTeammatesText);
 
             Recalculate();
@@ -73,12 +73,14 @@ public class SpectateElement : UIElement
         }
 
         string spectateText = "Click a teammate to spectate";
-        if (sp.TargetPlayerIndex is int ti && ti >= 0 && ti < Main.maxPlayers && Main.player[ti]?.active == true)
-            spectateText = "Spectating: " + Main.player[ti].name;
+        if (sp.TargetPlayerIndex is int targetIndex && targetIndex >= 0 && targetIndex < Main.maxPlayers && Main.player[targetIndex]?.active == true)
+            spectateText = "Spectating: " + Main.player[targetIndex].name;
 
-        UIText text = new(spectateText);
-        text.HAlign = 0.5f;
-        text.Top.Set(Slot + 6, 0f);
+        UIText text = new(spectateText)
+        {
+            HAlign = 0.5f,
+            Top = StyleDimension.FromPixelsAndPercent(Slot + 6, 0f)
+        };
         Append(text);
 
         Recalculate();
@@ -105,15 +107,22 @@ public class SpectateElement : UIElement
         {
             this.playerIndex = playerIndex;
 
-            bg = new Bg();
-            bg.Width.Set(0f, 1f);
-            bg.Height.Set(0f, 1f);
+            // Background
+            bg = new Bg()
+            {
+                Width = new StyleDimension(0f, 1f),
+                Height = new StyleDimension(0f, 1f),
+                IgnoresMouseInteraction = true
+            };
             Append(bg);
 
-            head = new Head(playerIndex);
-            head.Width.Set(0f, 1f);
-            head.Height.Set(0f, 1f);
-            head.IgnoresMouseInteraction = true;
+            // Head
+            head = new Head(playerIndex)
+            {
+                Width = new StyleDimension(40f, 0f),
+                Height = new StyleDimension(40f, 0f),
+                IgnoresMouseInteraction = true
+            };
             Append(head);
 
             OnLeftClick += Click;
@@ -141,7 +150,8 @@ public class SpectateElement : UIElement
                 }
             }
 
-            var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
+            var sp = ModContent.GetInstance<SpectateSystem>();
+
             bool selected = sp.TargetPlayerIndex == playerIndex;
             float s = selected ? 1f : 0.75f;
 
@@ -154,12 +164,11 @@ public class SpectateElement : UIElement
 
         private void Click(UIMouseEvent evt, UIElement listeningElement)
         {
-            var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
+            var sp = ModContent.GetInstance<SpectateSystem>();
 
             if (sp.TargetPlayerIndex == playerIndex)
             {
                 sp.SetTarget(null);
-                sp.SnapBackToSelf();
             }
             else
             {
@@ -167,7 +176,12 @@ public class SpectateElement : UIElement
             }
 
             if (Parent is SpectateElement row)
+            {
+#if DEBUG
+                Main.NewText("[DEBUG/SPECTATEELEMENT]: Rebuilding SpectateElement UI after click.");
+#endif
                 row.Rebuild();
+            }
         }
 
         private sealed class Bg : UIElement
@@ -194,11 +208,9 @@ public class SpectateElement : UIElement
             }
         }
 
-        private sealed class Head : UIElement
+        private sealed class Head(int playerIndex) : UIElement
         {
-            private readonly int playerIndex;
-
-            public Head(int playerIndex) => this.playerIndex = playerIndex;
+            private readonly int playerIndex = playerIndex;
 
             protected override void DrawSelf(SpriteBatch spriteBatch)
             {
@@ -208,7 +220,8 @@ public class SpectateElement : UIElement
                 if (p == null || !p.active)
                     p = Main.LocalPlayer;
 
-                var sp = Main.LocalPlayer.GetModPlayer<SpectatePlayer>();
+                var sp = ModContent.GetInstance<SpectateSystem>();
+
                 float scale = sp.TargetPlayerIndex == playerIndex ? 1f : 0.75f;
                 Vector2 headPos = GetDimensions().Center() + new Vector2(-3, -2);
 
