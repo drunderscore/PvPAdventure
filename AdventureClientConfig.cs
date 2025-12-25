@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
-using PvPAdventure.Core.ConfigElements;
-using PvPAdventure.Core.Helpers;
+using PvPAdventure.Common.Config.ConfigElements;
+using PvPAdventure.Common.Debug;
 using PvPAdventure.Core.Spectate;
 using System;
 using System.ComponentModel;
