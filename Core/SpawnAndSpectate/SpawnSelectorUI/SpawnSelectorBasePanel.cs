@@ -1,26 +1,29 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Debug;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 
-namespace PvPAdventure.Core.SpawnSelector.UI;
+namespace PvPAdventure.Core.SpawnAndSpectate.SpawnSelectorUI;
 
 /// <summary>
 /// The base panel containing all elements for the spawn selector UI.
-/// Includes, for example <see cref="SpawnSelectorCharacter"/>, and <see cref="SpawnSelectorQuestionMark"/>.
+/// Includes, for example <see cref="SpawnSelectorCharacter"/>, and <see cref="SpawnSelectorRandomPanel"/>.
 /// </summary>
 public class SpawnSelectorBasePanel : UIPanel
 {
-    private UIPanel _randomPanel;
-    private readonly List<SpawnSelectorCharacter> _playerItems = new();
+    // UI components
+    private SpawnSelectorRandomPanel randomPanel;
 
-    private const float Spacing = 8f;
-    private const float HorizontalPadding = 16f;
-    private const float VerticalPadding = 12f;
+    // Collections
+    private readonly List<SpawnSelectorCharacter> playerItems = []; // list of teammate player UI items
+    
+    // Dimensions
+    private const float Spacing = 8f; // between items
+    private const float HorizontalPadding = 16f; // panel padding
+    private const float VerticalPadding = 12f; // panel padding
 
-    public override void OnInitialize()
+    public override void OnActivate()
     {
         HAlign = 0.5f;
         VAlign = 0.0f;
@@ -29,13 +32,13 @@ public class SpawnSelectorBasePanel : UIPanel
         BackgroundColor = new Color(33, 43, 79) * 1f;
         SetPadding(0f);
 
-        BuildLayout();
+        Rebuild();
     }
 
-    private void BuildLayout()
+    private void Rebuild()
     {
         RemoveAllChildren();
-        _playerItems.Clear();
+        playerItems.Clear();
 
         var players = new List<Player>();
         var local = Main.LocalPlayer;
@@ -55,11 +58,6 @@ public class SpawnSelectorBasePanel : UIPanel
                 players.Add(p);
             }
         }
-
-//#if DEBUG
-//        players.Add(Main.LocalPlayer);
-//        Main.NewText($"[DEBUG] Added local player '{Main.LocalPlayer.name}' to SpawnSelectorBasePanel");
-//#endif
 
         int playerCount = players.Count;
 
@@ -90,15 +88,15 @@ public class SpawnSelectorBasePanel : UIPanel
         {
             float x = startX + i * (itemWidth + Spacing);
 
-            var row = new SpawnSelectorCharacter(players[i]);
+            var row = new SpawnSelectorCharacter(players[i].whoAmI);
             row.Left.Set(x, 0f);
             row.Top.Set(y, 0f);
 
             Append(row);
-            _playerItems.Add(row);
+            playerItems.Add(row);
         }
 
-        _randomPanel = new SpawnSelectorQuestionMark(
+        randomPanel = new(
             startX,
             itemHeight,
             playerCount,
@@ -106,17 +104,10 @@ public class SpawnSelectorBasePanel : UIPanel
             Spacing,
             y
         );
-        Append(_randomPanel);
+        Append(randomPanel);
 
         Recalculate();
         RecalculateChildren();
-
-        Log.Debug($"UISpawnSelectorPanel.BuildLayout: players={playerCount}");
-    }
-
-    public void Rebuild()
-    {
-        BuildLayout();
     }
 
     public override void Update(GameTime gameTime)
@@ -140,10 +131,10 @@ public class SpawnSelectorBasePanel : UIPanel
         if (dims.Width <= 0f || dims.Height <= 0f)
             return true;
 
-        if (_randomPanel == null)
+        if (randomPanel == null)
             return true;
 
-        var randomDims = _randomPanel.GetDimensions();
+        var randomDims = randomPanel.GetDimensions();
         if (randomDims.Width <= 0f || randomDims.Height <= 0f)
             return true;
 
@@ -161,17 +152,13 @@ public class SpawnSelectorBasePanel : UIPanel
             players.Add(p.whoAmI);
         }
 
-//#if DEBUG
-//        players.Add(local.whoAmI);
-//#endif
-
-        if (players.Count != _playerItems.Count)
+        if (players.Count != playerItems.Count)
             return true;
 
         for (int i = 0; i < players.Count; i++)
         {
-            if (_playerItems[i] == null) return true;
-            if (_playerItems[i].PlayerIndex != players[i]) return true;
+            if (playerItems[i] == null) return true;
+            if (playerItems[i].PlayerIndex != players[i]) return true;
         }
 
         return false;

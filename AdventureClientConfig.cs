@@ -1,13 +1,7 @@
-using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
-using PvPAdventure.Common.Config.ConfigElements;
-using PvPAdventure.Common.Debug;
-using PvPAdventure.Core.Spectate;
 using System;
 using System.ComponentModel;
-using Terraria;
 using Terraria.Audio;
-using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 
 namespace PvPAdventure;
@@ -16,6 +10,7 @@ public class AdventureClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
+    #region Members
     [Header("General")]
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] public bool ShiftEnterOpensAllChat;
@@ -38,18 +33,10 @@ public class AdventureClientConfig : ModConfig
 
     [BackgroundColor(30, 90, 90)]
     [DefaultValue(true)] public bool ShowPopupText;
+
     [BackgroundColor(30, 90, 90)]
     [DefaultValue(true)] public bool PlaySound;
-
-    [Header("Spectate")]
-    [BackgroundColor(200, 30, 30, 150)]
-    [DefaultValue(true)] public bool SpectateTeammatesOnDeath;
-
-    [DefaultValue(typeof(Vector2), "0.5,0.9")]
-    [BackgroundColor(200, 30, 30, 150)]
-    [CustomModConfigItem(typeof(SpectateUIPositionConfigElement))]
-    public Vector2 SpectateUIPosition = new(0.5f,0.9f);
-
+    #endregion
 
     #region Configs
     public class PlayerOutlineConfig
@@ -166,21 +153,4 @@ public class AdventureClientConfig : ModConfig
     }
     #endregion
 
-    #region Methods
-    public override void OnChanged()
-    {
-        if (Main.dedServ)
-            return;
-
-        try
-        {
-            var ss = ModContent.GetInstance<SpectateSystem>();
-            ss?.ApplySpectateUiPosition(SpectateUIPosition);
-        }
-        catch (Exception ex)
-        {
-            Log.Error("AdventureClientConfig.OnChanged failed: " + ex);
-        }
-    }
-    #endregion
 }

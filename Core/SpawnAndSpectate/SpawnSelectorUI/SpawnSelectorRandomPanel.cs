@@ -9,14 +9,15 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnSelector.UI;
+namespace PvPAdventure.Core.SpawnAndSpectate.SpawnSelectorUI;
+
 
 /// <summary>
 /// A UI element representing a question mark button for random teleportation.
 /// </summary>
-internal class SpawnSelectorQuestionMark : UIPanel
+public class SpawnSelectorRandomPanel : UIPanel
 {
-    public SpawnSelectorQuestionMark(float startX, float itemHeight, int playerCount, float itemWidth, float Spacing, float y)
+    public SpawnSelectorRandomPanel(float startX, float itemHeight, int playerCount, float itemWidth, float Spacing, float y)
     {
         Width.Set(itemHeight, 0f);
         Height.Set(itemHeight, 0f);
@@ -33,22 +34,12 @@ internal class SpawnSelectorQuestionMark : UIPanel
     {
         base.LeftClick(evt);
 
-        // Redundant check, just to be sure we don't allow any shenanigans
         var gm = ModContent.GetInstance<GameManager>();
         if (gm.CurrentPhase != GameManager.Phase.Playing)
             return;
 
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            NetMessage.SendData(MessageID.RequestTeleportationByServer);
-        }
-        else
-        {
-            Main.LocalPlayer.TeleportationPotion();
-        }
-
+        Main.LocalPlayer.GetModPlayer<SpawnAndSpectatePlayer>().CommitRandomRespawn();
         Main.mapFullscreen = false;
-        SpawnSelectorSystem.SetEnabled(false);
     }
 
     public override void MouseOver(UIMouseEvent evt)
@@ -69,7 +60,7 @@ internal class SpawnSelectorQuestionMark : UIPanel
 
         if (IsMouseHovering)
         {
-            Main.instance.MouseText(Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.RandomTeleport"));
+            Main.instance.MouseText(Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.RandomTeleport"));
         }
 
         // Draw question mark
@@ -83,12 +74,12 @@ internal class SpawnSelectorQuestionMark : UIPanel
         );
         sb.Draw(tex, rect, Color.White);
 
-        // debug
+        // Debug
         //sb.Draw(TextureAssets.MagicPixel.Value, rect, Color.Red * 0.45f);
 
         // Draw teleportation potion
-        Item icon = new(ItemID.TeleportationPotion);
-        Vector2 pos = new(rect.X + 37, rect.Y + 36);
+        //Item icon = new(ItemID.TeleportationPotion);
+        //Vector2 pos = new(rect.X + 37, rect.Y + 36);
         //ItemSlot.DrawItemIcon(icon, 31, sb, pos, 1.0f, 32f, Color.White);
     }
 

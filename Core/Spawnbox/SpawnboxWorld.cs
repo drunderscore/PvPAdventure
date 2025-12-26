@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common;
-using PvPAdventure.Core.SpawnSelector;
+using PvPAdventure.Core.SpawnAndSpectate;
 using PvPAdventure.System;
 using ReLogic.Content;
 using System;
@@ -85,7 +85,7 @@ public class SpawnBoxWorld : ModSystem
         {
             // Set color
             var gm = ModContent.GetInstance<GameManager>();
-            var am = Main.LocalPlayer.GetModPlayer<SpawnSelectorPlayer>();
+            var am = Main.LocalPlayer.GetModPlayer<SpawnAndSpectatePlayer>();
             bool canPass = gm.CurrentPhase == GameManager.Phase.Playing && am.IsPlayerInSpawnRegion();
             Color color = Color.Black * (canPass ? 0.5f : 1f);
 

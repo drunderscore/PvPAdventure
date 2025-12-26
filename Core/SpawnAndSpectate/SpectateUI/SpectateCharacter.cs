@@ -10,61 +10,77 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnSelector.UI;
+namespace PvPAdventure.Core.SpawnAndSpectate.SpectateUI;
 
 /// <summary>
-/// Character row of a player in the spawn selector UI.
+/// Character row of a player in the spectate UI.
 /// </summary>
-internal class SpawnSelectorCharacter : UIPanel
+internal class SpectateCharacter : UIPanel
 {
     internal const float ItemWidth = 260f;
     internal const float ItemHeight = 72f;
 
-    private readonly Asset<Texture2D> _dividerTexture;
-    private readonly Asset<Texture2D> _innerPanelTexture;
-    private readonly Asset<Texture2D> _playerBGTexture;
+    private readonly Asset<Texture2D> dividerTexture;
+    private readonly Asset<Texture2D> innerPanelTexture;
+    private readonly Asset<Texture2D> playerBGTexture;
 
-    private readonly int _playerIndex;
-    public int PlayerIndex => _playerIndex;
+    private readonly int playerIndex;
+    public int PlayerIndex => playerIndex;
 
-    public SpawnSelectorCharacter(Player player)
+    public SpectateCharacter(Player player)
     {
-        _dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
-        _innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
+        dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
+        innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
         //_playerBGTexture = Main.Assets.Request<Texture2D>("Images/UI/PlayerBackground");
-        _playerBGTexture = Ass.CustomPlayerBackground;
+        playerBGTexture = Ass.CustomPlayerBackground;
 
-        _playerIndex = player.whoAmI;
+        playerIndex = player.whoAmI;
     }
 
-    public override void OnInitialize()
+    public override void OnActivate()
     {
         BorderColor = Color.Black;
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
-
         Height.Set(ItemHeight, 0f);
         Width.Set(ItemWidth, 0f);
-
         SetPadding(6f);
     }
 
-    private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
+    public override void MouseOver(UIMouseEvent evt)
     {
-        x += inset; y += inset; w -= inset * 2; h -= inset * 2;
-        int ew = tex.Width - c * 2;
-        int eh = tex.Height - c * 2;
+        base.MouseOver(evt);
+        SpawnAndSpectateSystem.HoveredPlayerIndex = playerIndex;
+    }
 
-        sb.Draw(tex, new Rectangle(x, y, c, c), new Rectangle(0, 0, c, c), color);
-        sb.Draw(tex, new Rectangle(x + c, y, w - c * 2, c), new Rectangle(c, 0, ew, c), color);
-        sb.Draw(tex, new Rectangle(x + w - c, y, c, c), new Rectangle(tex.Width - c, 0, c, c), color);
+    public override void MouseOut(UIMouseEvent evt)
+    {
+        base.MouseOut(evt);
+        if (SpawnAndSpectateSystem.HoveredPlayerIndex == playerIndex)
+            SpawnAndSpectateSystem.HoveredPlayerIndex = null;
+    }
 
-        sb.Draw(tex, new Rectangle(x, y + c, c, h - c * 2), new Rectangle(0, c, c, eh), color);
-        sb.Draw(tex, new Rectangle(x + c, y + c, w - c * 2, h - c * 2), new Rectangle(c, c, ew, eh), color);
-        sb.Draw(tex, new Rectangle(x + w - c, y + c, c, h - c * 2), new Rectangle(tex.Width - c, c, c, eh), color);
+    public override void LeftClick(UIMouseEvent evt)
+    {
+        base.LeftClick(evt);
+        SpawnAndSpectateSystem.ToggleSpectate(playerIndex);
+    }
 
-        sb.Draw(tex, new Rectangle(x, y + h - c, c, c), new Rectangle(0, tex.Height - c, c, c), color);
-        sb.Draw(tex, new Rectangle(x + c, y + h - c, w - c * 2, c), new Rectangle(c, tex.Height - c, ew, c), color);
-        sb.Draw(tex, new Rectangle(x + w - c, y + h - c, c, c), new Rectangle(tex.Width - c, tex.Height - c, c, c), color);
+    public override void RightClick(UIMouseEvent evt)
+    {
+        base.RightClick(evt);
+        SpawnAndSpectateSystem.ToggleSpectate(playerIndex);
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        bool hovered = IsMouseHovering;
+        bool selected = SpawnAndSpectateSystem.SelectedSpawnPlayerIndex == playerIndex;
+        bool spectated = SpawnAndSpectateSystem.SpectatePlayerIndex == playerIndex;
+
+        BackgroundColor = hovered ? new Color(73, 92, 161, 150) : new Color(63, 82, 151) * 0.8f;
+        BorderColor = spectated ? Color.Cyan : selected ? Color.Yellow : Color.Black;
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -73,7 +89,7 @@ internal class SpawnSelectorCharacter : UIPanel
 
         CalculatedStyle inner = GetInnerDimensions();
 
-        Player player = Main.player[_playerIndex];
+        Player player = Main.player[playerIndex];
         var dims = GetDimensions();
 
         if (player == null || !player.active)
@@ -96,10 +112,9 @@ internal class SpawnSelectorCharacter : UIPanel
 
 
         //DrawMask(sb, Ass.CornerMask4px.Value, rect, 9);
-        DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, _playerBGTexture.Value, Color.White, 5);
+        DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, playerBGTexture.Value, Color.White, 5);
         DrawMapFullscreenBackground(sb, rect, player);
 
-        //SpawnSelectorPlayer.ForceFullBrightOnce = true;
         try
         {
             Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
@@ -114,10 +129,6 @@ internal class SpawnSelectorCharacter : UIPanel
         {
             Log.Error("Failed to draw p: " + e);
         }
-        finally
-        {
-            //SpawnSelectorPlayer.ForceFullBrightOnce = false;
-        }
 
         // Use the actual layout widths, not the texture width
         const float leftColumnWidth = 106f;              // player background column
@@ -127,7 +138,7 @@ internal class SpawnSelectorCharacter : UIPanel
         float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
 
         // Name centered in the right-area
-        string name = string.IsNullOrEmpty(player.name) ? "Unknown p" : player.name + "";
+        string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name + "";
         float nameScale = 1f;
         if (player.name.Length > 16) nameScale = 0.85f;
         Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
@@ -141,7 +152,7 @@ internal class SpawnSelectorCharacter : UIPanel
         Utils.DrawBorderString(sb, name, namePos, Color.White, nameScale);
 
         // Draw divider
-        sb.Draw(_dividerTexture.Value, new Vector2(rightAreaLeft - 12, inner.Y + 21f), null, Color.White, 0f, Vector2.Zero, new Vector2(rightAreaWidth / 8 + 2.2f, 1f), SpriteEffects.None, 0f);
+        sb.Draw(dividerTexture.Value, new Vector2(rightAreaLeft - 12, inner.Y + 21f), null, Color.White, 0f, Vector2.Zero, new Vector2(rightAreaWidth / 8 + 2.2f, 1f), SpriteEffects.None, 0f);
 
         // Stat panel settings
         float statScale = 0.88f;
@@ -189,65 +200,56 @@ internal class SpawnSelectorCharacter : UIPanel
         }
 
         // Draw teleport to if it exists
-        if (!player.dead && IsMouseHovering)
+        if (IsMouseHovering)
         {
-            Main.instance.MouseText(Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.TeleportToPlayer"));
+            Main.LocalPlayer.mouseInterface = true;
+
+            if (!player.dead)
+            {
+                bool selected = SpawnAndSpectateSystem.SelectedSpawnPlayerIndex == player.whoAmI;
+                bool spectated = SpawnAndSpectateSystem.SpectatePlayerIndex == player.whoAmI;
+
+                string text = selected ? $"Selected spawn: {player.name}" : $"Select spawn: {player.name}";
+
+                if (Main.LocalPlayer.dead)
+                    text += spectated ? $"\nRight click to stop spectating {player.name}" : $"\nRight click to spectate {player.name}";
+
+                Main.instance.MouseText(text);
+            }
         }
     }
 
-    public override void MouseOver(UIMouseEvent evt)
+    #region Draw Helpers
+    // Draws a background with rounded edges by cutting the texture into nine slices
+    private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
     {
-        base.MouseOver(evt);
+        x += inset; y += inset; w -= inset * 2; h -= inset * 2;
+        int ew = tex.Width - c * 2;
+        int eh = tex.Height - c * 2;
 
-        Player p = Main.player[_playerIndex];
-        if (p == null || !p.active || p.dead)
-            return;
-        BackgroundColor = new Color(73, 92, 161, 150);
-        SpawnSelectorSystem.HoveredPlayerIndex = _playerIndex;
+        sb.Draw(tex, new Rectangle(x, y, c, c), new Rectangle(0, 0, c, c), color);
+        sb.Draw(tex, new Rectangle(x + c, y, w - c * 2, c), new Rectangle(c, 0, ew, c), color);
+        sb.Draw(tex, new Rectangle(x + w - c, y, c, c), new Rectangle(tex.Width - c, 0, c, c), color);
+
+        sb.Draw(tex, new Rectangle(x, y + c, c, h - c * 2), new Rectangle(0, c, c, eh), color);
+        sb.Draw(tex, new Rectangle(x + c, y + c, w - c * 2, h - c * 2), new Rectangle(c, c, ew, eh), color);
+        sb.Draw(tex, new Rectangle(x + w - c, y + c, c, h - c * 2), new Rectangle(tex.Width - c, c, c, eh), color);
+
+        sb.Draw(tex, new Rectangle(x, y + h - c, c, c), new Rectangle(0, tex.Height - c, c, c), color);
+        sb.Draw(tex, new Rectangle(x + c, y + h - c, w - c * 2, c), new Rectangle(c, tex.Height - c, ew, c), color);
+        sb.Draw(tex, new Rectangle(x + w - c, y + h - c, c, c), new Rectangle(tex.Width - c, tex.Height - c, c, c), color);
     }
 
-    public override void MouseOut(UIMouseEvent evt)
-    {
-        base.MouseOut(evt);
-
-        Player p = Main.player[_playerIndex];
-        if (p == null || !p.active || p.dead)
-            return;
-
-        BackgroundColor = new Color(63, 82, 151) * 0.8f;
-        if (SpawnSelectorSystem.HoveredPlayerIndex == _playerIndex)
-            SpawnSelectorSystem.HoveredPlayerIndex = -1;
-    }
-
-    public override void LeftClick(UIMouseEvent evt)
-    {
-        base.LeftClick(evt);
-
-        // Get the target player to teleport to
-        Player player = Main.player[_playerIndex];
-
-        if (player.dead)
-        {
-            // DONT allow teleporting to a dead player
-            return;
-        }
-
-        // Teleport to the target player
-        Main.LocalPlayer.UnityTeleport(player.position);
-
-        // close map
-        Main.mapFullscreen = false;
-    }
-
+    // Draws the inner panel background with a given width.
     private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
     {
-        spriteBatch.Draw(_innerPanelTexture.Value, position,
-            new Rectangle(0, 0, 8, _innerPanelTexture.Height()), Color.White);
+        spriteBatch.Draw(innerPanelTexture.Value, position,
+            new Rectangle(0, 0, 8, innerPanelTexture.Height()), Color.White);
 
         spriteBatch.Draw(
-            _innerPanelTexture.Value,
+            innerPanelTexture.Value,
             new Vector2(position.X + 8f, position.Y),
-            new Rectangle(8, 0, 8, _innerPanelTexture.Height()),
+            new Rectangle(8, 0, 8, innerPanelTexture.Height()),
             Color.White,
             0f,
             Vector2.Zero,
@@ -257,12 +259,13 @@ internal class SpawnSelectorCharacter : UIPanel
         );
 
         spriteBatch.Draw(
-            _innerPanelTexture.Value,
+            innerPanelTexture.Value,
             new Vector2(position.X + width - 8f, position.Y),
-            new Rectangle(16, 0, 8, _innerPanelTexture.Height()),
+            new Rectangle(16, 0, 8, innerPanelTexture.Height()),
             Color.White
         );
     }
+    #endregion
 
     // Finds the biome of the given player and draws it.
     public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Player player)
@@ -278,11 +281,11 @@ internal class SpawnSelectorCharacter : UIPanel
         if (tile == null)
             return;
 
-        int wall = tile.wall; // or tile.WallType in 1.4.4 tModLoader
+        int wall = tile.WallType;
         int bgIndex = -1;
         Color color = Color.White;
 
-        // Use *player depth* instead of screenPos
+        // Use player Y position to determine underground/cavern/hell layers
         float playerYWorld = player.Center.Y;
         float playerYTiles = playerYWorld / 16f;
 

@@ -5,7 +5,6 @@ using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using Steamworks;
-using PvPAdventure.Core.SpawnSelector;
 using System;
 using System.IO;
 using System.Linq;
@@ -18,6 +17,7 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
 using PvPAdventure.Core.AdminTools.TeamAssigner;
+using PvPAdventure.Core.SpawnAndSpectate;
 
 namespace PvPAdventure;
 
@@ -346,8 +346,11 @@ public class PvPAdventure : Mod
                         packet.Write(spawnY);
                         packet.Send(-1, whoAmI);
 #if DEBUG
-                        ChatHelper.BroadcastChatMessage(
+                        if (p != null && p.name != string.Empty)
+                        {
+                            ChatHelper.BroadcastChatMessage(
                             NetworkText.FromLiteral($"[DEBUG/SERVER] Player {p.name} set spawn to ({spawnX}, {spawnY})"), Color.White);
+                        }
 #endif
                     }
 
@@ -378,9 +381,17 @@ public class PvPAdventure : Mod
                     ModContent.GetInstance<SSCSystem>().HandlePacket(reader, whoAmI);
                     break;
                 }
-            case AdventurePacketIdentifier.TeamSpectate:
+            case AdventurePacketIdentifier.SpawnAndSpectateCommitRespawn:
                 {
-                    RemoteClient.CheckSection(whoAmI, reader.ReadVector2());
+                    var type = (SpawnAndSpectatePlayer.CommitRespawnType)reader.ReadByte();
+                    int targetIndex = reader.ReadInt32();
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        Player p = Main.player[whoAmI]; // <-- sender
+                        p.GetModPlayer<SpawnAndSpectatePlayer>().ReceiveCommitRespawnFromNet(type, targetIndex);
+                    }
+
                     break;
                 }
         }

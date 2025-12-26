@@ -12,7 +12,7 @@ using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnSelector;
+namespace PvPAdventure.Core.SpawnAndSpectate;
 
 /// <summary>
 /// Draws player bed spawn points on the fullscreen map.
@@ -78,7 +78,8 @@ internal class BedsOnMap : ModSystem
 
         // Team beds + teleports
         spawnBedTexture ??= TextureAssets.SpawnBed;
-        bool selectorEnabled = SpawnSelectorSystem.GetEnabled();
+        var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
+        bool selectorEnabled = sys.ui.CurrentState == sys.spawnSelectorState;
 
         for (int i = 0; i < Main.maxPlayers; i++)
         {

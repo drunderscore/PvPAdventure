@@ -3,11 +3,11 @@ using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.SpawnSelector;
+namespace PvPAdventure.Core.SpawnAndSpectate;
 
 /// <summary>
 /// Draws teammates' heads on the fullscreen map when hovering them.
-/// Also allows teleportation to teammates via <see cref="SpawnSelectorHooks"/> 
+/// Also allows teleportation to teammates via <see cref="SpawnAndSpectateHooks"/> 
 /// </summary>
 internal class PlayerHeadsOnMap : ModSystem
 {
@@ -25,7 +25,9 @@ internal class PlayerHeadsOnMap : ModSystem
     {
         if (!Main.mapFullscreen) return;
 
-        int idx = SpawnSelectorSystem.HoveredPlayerIndex;
+        if (SpawnAndSpectateSystem.HoveredPlayerIndex is not int idx)
+            return;
+
         if (idx < 0 || idx >= Main.maxPlayers) return;
 
         Player player = Main.player[idx];
@@ -37,6 +39,7 @@ internal class PlayerHeadsOnMap : ModSystem
         float x = tileX * mapScale + mapOffset.X;
         float y = tileY * mapScale + mapOffset.Y;
 
+        // Magic numbers from vanilla, adjusted a bit...
         x -= 7f;
         y -= 3f;
         //y -= 2f - mapScale / 5f * 2f;

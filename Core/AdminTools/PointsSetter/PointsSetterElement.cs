@@ -26,9 +26,9 @@ internal class PointsSetterElement : DraggablePanel
         Height.Set(210, 0);
     }
 
-    public override void OnInitialize()
+    public override void OnActivate()
     {
-        base.OnInitialize();
+        base.OnActivate();
         Rebuild();
     }
 

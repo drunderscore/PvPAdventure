@@ -39,6 +39,11 @@ internal class SSCSystem : ModSystem
 
     public override void OnWorldLoad()
     {
+#if DEBUG
+        // NOTE: TEMPORARY SKIP SSC FOR TESTING!!!!
+        return;
+#endif
+
         if (Main.netMode != NetmodeID.MultiplayerClient || requested)
         {
             return;

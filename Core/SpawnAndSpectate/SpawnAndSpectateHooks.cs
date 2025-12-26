@@ -1,0 +1,156 @@
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Content.Items;
+using ReLogic.Graphics;
+using ReLogic.Utilities;
+using Terraria;
+using Terraria.Audio;
+using Terraria.GameContent;
+using Terraria.ID;
+using Terraria.Localization;
+using Terraria.ModLoader;
+
+namespace PvPAdventure.Core.SpawnAndSpectate;
+
+/// <summary>
+/// Various player hooks related to teleporting, spawning, and spawn selector.
+/// </summary>
+public class SpawnAndSpectateHooks : ModSystem
+{
+    public override void Load()
+    {
+        On_Player.HasUnityPotion += ForceUnityPotionWhenSpawnSelectorIsEnabled;
+        On_Player.Spawn_SetPosition += ForceWorldSpawn;
+        On_SoundEngine.PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback += DisableMirrorSound;
+        On_Main.TriggerPing += SkipPingWhileHoveringSpawnSelector;
+        On_Main.DrawInterface_35_YouDied += DrawDeathText;
+    }
+
+    public override void Unload()
+    {
+        On_Player.HasUnityPotion -= ForceUnityPotionWhenSpawnSelectorIsEnabled;
+        On_Player.Spawn_SetPosition -= ForceWorldSpawn;
+        On_SoundEngine.PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback -= DisableMirrorSound;
+        On_Main.TriggerPing -= SkipPingWhileHoveringSpawnSelector;
+        On_Main.DrawInterface_35_YouDied -= DrawDeathText;
+    }
+
+    // Custom death text drawing to properly show respawn timer as 0 when spawn selector is open.
+    // Largely copied from Terraria source code with minor changes.
+    private void DrawDeathText(On_Main.orig_DrawInterface_35_YouDied orig)
+    {
+        if (!Main.LocalPlayer.dead)
+            return;
+
+        Player p = Main.LocalPlayer;
+
+        float y = -60f;
+        string str = Lang.inter[38].Value;
+
+        DynamicSpriteFontExtensionMethods.DrawString(
+            Main.spriteBatch, FontAssets.DeathText.Value, str,
+            new Vector2(Main.screenWidth / 2f - FontAssets.DeathText.Value.MeasureString(str).X / 2f, Main.screenHeight / 2f + y),
+            p.GetDeathAlpha(Color.Transparent), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+
+        if (p.lostCoins > 0)
+        {
+            y += 50f;
+            string dropped = Language.GetTextValue("Game.DroppedCoins", p.lostCoinString);
+
+            DynamicSpriteFontExtensionMethods.DrawString(
+                Main.spriteBatch, FontAssets.MouseText.Value, dropped,
+                new Vector2(Main.screenWidth / 2f - FontAssets.MouseText.Value.MeasureString(dropped).X / 2f,
+                    Main.screenHeight / 2f + y),
+                p.GetDeathAlpha(Color.Transparent), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+        }
+
+        float num2 = y + (p.lostCoins > 0 ? 24f : 50f) + 20f;
+        float scale = 0.7f;
+
+        // Vanilla-ish seconds remaining (ceil-ish behavior)
+        int seconds = (int)(1f + p.respawnTimer / 60f);
+
+        // My edit: when player is "ready" but blocked by spawn selection, display 0.
+        if (p.respawnTimer <= 2 && SpawnAndSpectateSystem.CurrentMode == SpawnAndSpectateSystem.SpawnSpectateMode.SpawnSelect)
+        {
+            seconds = 0;
+        }
+
+        string respawnText = Language.GetTextValue("Game.RespawnInSuffix", seconds.ToString());
+        if (seconds == 0)
+        {
+            //respawnText += " (choose your spawn)";
+        }
+
+        DynamicSpriteFontExtensionMethods.DrawString(
+            Main.spriteBatch, FontAssets.DeathText.Value, respawnText,
+            new Vector2(Main.screenWidth / 2f - FontAssets.MouseText.Value.MeasureString(respawnText).X * scale / 2f,
+                Main.screenHeight / 2f + num2),
+            p.GetDeathAlpha(Color.Transparent), 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+    }
+
+    private void SkipPingWhileHoveringSpawnSelector(On_Main.orig_TriggerPing orig, Vector2 position)
+    {
+        // Skip ping execution if our panel is being hovered
+        var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
+        if (sys != null && sys.ui.CurrentState != null && sys.ui.CurrentState.IsMouseHovering)
+        {
+            return;
+        }
+        orig(position);
+    }
+
+    private static bool ForceUnityPotionWhenSpawnSelectorIsEnabled(On_Player.orig_HasUnityPotion orig, Player self)
+    {
+        var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
+
+        if (sys.ui.CurrentState == sys.spawnSelectorState)
+        {
+            return true;
+        }
+
+        return orig(self);
+    }
+    private void ForceWorldSpawn(On_Player.orig_Spawn_SetPosition orig, Player self, int floorX, int floorY)
+    {
+        //orig(self, floorX, floorY);
+
+        // Force all respawns to world spawn
+        int spawnX = Main.spawnTileX;
+        int spawnY = Main.spawnTileY;
+
+        // Skip this for now.
+        //bool num = self.Spawn_GetPositionAtWorldSpawn(ref floorX, ref floorY);
+        //self.Spawn_SetPosition(floorX, floorY);
+
+        // Clears the area. Also skip this for now.
+        //if (num && !self.Spawn_IsAreaAValidWorldSpawn(floorX, floorY))
+        //{
+        //    Player.Spawn_ForceClearArea(floorX, floorY);
+        //}
+
+        if (self == Main.LocalPlayer)
+        {
+            Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;
+            Main.LocalPlayer.position.Y = spawnY * 16 - Main.LocalPlayer.height;
+        }
+    }
+    private SlotId DisableMirrorSound(On_SoundEngine.orig_PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback orig, ref SoundStyle style, Vector2? position, SoundUpdateCallback updatecallback)
+    {
+        if (style == SoundID.Item6)
+        {
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            if (!config.PlaySound)
+            {
+                Player p = Main.LocalPlayer;
+                if (p.HeldItem?.ModItem is AdventureMirror)
+                {
+                    return SlotId.Invalid; // suppress sound completely
+                }
+            }
+        }
+
+        // Otherwise normal playback
+        return orig.Invoke(ref style, position, updatecallback);
+    }
+}

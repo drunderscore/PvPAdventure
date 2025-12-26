@@ -21,22 +21,20 @@ internal class AdventureMirror : ModItem
         var config = ModContent.GetInstance<AdventureServerConfig>();
         int recallFrames = config.AdventureMirrorRecallFrames; // 5 seconds = 60 * 5
 
-        Item.useTime = recallFrames + 10; // +10 frames to ensure countdown shows
-        Item.useAnimation = recallFrames + 10; // +10 frames to ensure countdown 
+        Item.useTime = recallFrames + 3; // + a few frames to ensure countdown shows
+        Item.useAnimation = recallFrames + 3; // + a few frames to ensure countdown 
         Item.useStyle = ItemUseStyleID.HoldUp;
         Item.UseSound = SoundID.Item6;
         Item.rare = ItemRarityID.Blue;
-        Item.value = Item.buyPrice(platinum: 999);
+        Item.value = Item.buyPrice(gold: 5);
         Item.noUseGraphic = false;
     }
     public override bool ConsumeItem(Player player) => false;
+    public override bool? UseItem(Player player) => true;
 
     #region Right click use
     public override bool CanRightClick() => true;
-    public override bool AltFunctionUse(Player player)
-    {
-        return false;
-    }
+    public override bool AltFunctionUse(Player player) => false;
 
     public override void RightClick(Player player)
     {
@@ -237,17 +235,6 @@ internal class AdventureMirror : ModItem
         // Zoom out a bit to see the whole map
         Main.mapFullscreenScale = 0.01f; 
     }
-
-    public override void UseAnimation(Player player)
-    {
-        base.UseAnimation(player);
-    }
-
-    public override bool? UseItem(Player player)
-    {
-        return true;
-    }
-
 
     public override void UpdateInventory(Player player)
     {

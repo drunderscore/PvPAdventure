@@ -1201,16 +1201,21 @@ Mods: {
 			CannotTrash: нельзя удалить!
 			CannotSell: нельзя продать!
 			// CannotStore: cannot store!
+			// Cancelled: recall cancelled!
 		}
 
 		// DashKeybind.NoDashItem: you have no dash item!
 
-		SpawnSelector: {
-			ChooseYourSpawn: Выберите точку возрождения
-			TeleportToPlayer: Телепорт к {0}
-			RandomTeleport: Случайно
-			PlayersBed: Кровать игрока {0}
-			TeleportToPlayersBed: Телепорт к кровати игрока {0}
+		SpawnAndSpectate: {
+			// ChooseYourSpawn: Choose Your Spawn
+			// SpectateTitle: Spectate
+			// TeleportToPlayer: Teleport to {0}
+			// RandomTeleport: Random
+			// PlayersBed: "{0}'s Bed"
+			// TeleportToPlayersBed: Teleport to {0}'s Bed
+			// SpectatingPlayer: Spectating {0}
+			// ClickToSpectate: Click a teammate to spectate
+			// ExitSpectate: Exit Spectate Mode
 		}
 
 		Item: {

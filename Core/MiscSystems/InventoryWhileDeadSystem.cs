@@ -1,7 +1,7 @@
 ﻿using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.InventoryWhileDead;
+namespace PvPAdventure.Core.MiscSystems;
 
 /// <summary>
 /// Allows inventory access while dead.

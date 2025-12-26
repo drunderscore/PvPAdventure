@@ -8,11 +8,12 @@ using System.Reflection;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameInput;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnSelector;
+namespace PvPAdventure.Core.SpawnAndSpectate;
 
 /// <summary>
 /// Prevents the Adventure Mirror from being removed from the player inventory via trashing, selling etc.
@@ -186,7 +187,7 @@ public class AdventureMirrorHooks : ModSystem
                         int num = Main.superFastStack + 1;
                         for (int i = 0; i < num; i++)
                         {
-                            if (((Main.mouseItem.IsTheSameAs(inv[slot]) && ItemLoader.CanStack(Main.mouseItem, inv[slot])) || Main.mouseItem.type == 0) && (Main.mouseItem.stack < Main.mouseItem.maxStack || Main.mouseItem.type == 0))
+                            if (((Main.mouseItem.IsTheSameAs(inv[slot]) && ItemLoader.CanStack(Main.mouseItem, inv[slot])) || Main.mouseItem.type == ItemID.None) && (Main.mouseItem.stack < Main.mouseItem.maxStack || Main.mouseItem.type == ItemID.None))
                             {
                                 ItemSlot.PickupItemIntoMouse(inv, context, slot, player);
                                 SoundEngine.PlaySound(12);
