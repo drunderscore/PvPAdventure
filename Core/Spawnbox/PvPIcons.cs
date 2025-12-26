@@ -33,7 +33,7 @@ public class PvPIconDrawerLayer : ModSystem
 
             // If they JUST left the region, start 120 tick timer.
             if (wasInRegion && !inRegion)
-                mp.PvPEnabledIconTimer = 120;
+                mp.PvPEnabledIconTimer = 240; // 4 seconds
 
             // If they re-enter, cancel the timer.
             if (inRegion)

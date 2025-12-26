@@ -4,20 +4,18 @@ using PvPAdventure.Common;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnAndSpectate.SpawnSelectorUI;
-
+namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
 /// <summary>
 /// A UI element representing a question mark button for random teleportation.
 /// </summary>
-public class SpawnSelectorRandomPanel : UIPanel
+public class RandomTeleportPanel : UIPanel
 {
-    public SpawnSelectorRandomPanel(float startX, float itemHeight, int playerCount, float itemWidth, float Spacing, float y)
+    public RandomTeleportPanel(float startX, float itemHeight, int playerCount, float itemWidth, float Spacing, float y)
     {
         Width.Set(itemHeight, 0f);
         Height.Set(itemHeight, 0f);
@@ -38,8 +36,18 @@ public class SpawnSelectorRandomPanel : UIPanel
         if (gm.CurrentPhase != GameManager.Phase.Playing)
             return;
 
-        Main.LocalPlayer.GetModPlayer<SpawnAndSpectatePlayer>().CommitRandomRespawn();
-        Main.mapFullscreen = false;
+        var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
+
+        if (SpawnAndSpectateSystem.IsAliveSpawnRegionInstant)
+        {
+            respawnPlayer.RandomTeleport();
+            return;
+        }
+
+        if (Main.LocalPlayer.dead)
+        {
+            respawnPlayer.ToggleCommitRandom();
+        }
     }
 
     public override void MouseOver(UIMouseEvent evt)
@@ -60,7 +68,27 @@ public class SpawnSelectorRandomPanel : UIPanel
 
         if (IsMouseHovering)
         {
-            Main.instance.MouseText(Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.RandomTeleport"));
+            string text;
+            var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
+            bool readyToRespawn = SpawnAndSpectateSystem.CanRespawn;
+            bool committed = respawnPlayer.IsRandomCommitted;
+
+            if (readyToRespawn)
+            {
+                text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.Random");
+            }
+            else if (Main.LocalPlayer.dead)
+            {
+                text = committed
+                    ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelRandomSpawn")
+                    : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectRandomSpawn");
+            }
+            else
+            {
+                text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.Random");
+            }
+
+            Main.instance.MouseText(text);
         }
 
         // Draw question mark
@@ -86,5 +114,15 @@ public class SpawnSelectorRandomPanel : UIPanel
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
+
+        if (!Main.LocalPlayer.dead)
+        {
+            BorderColor = Color.Black;
+            return;
+        }
+
+        var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
+        bool committed = respawnPlayer != null && respawnPlayer.IsRandomCommitted;
+        BorderColor = committed ? Color.Yellow : Color.Black;
     }
 }

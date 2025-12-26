@@ -71,7 +71,7 @@ public class SpawnAndSpectateHooks : ModSystem
         int seconds = (int)(1f + p.respawnTimer / 60f);
 
         // My edit: when player is "ready" but blocked by spawn selection, display 0.
-        if (p.respawnTimer <= 2 && SpawnAndSpectateSystem.CurrentMode == SpawnAndSpectateSystem.SpawnSpectateMode.SpawnSelect)
+        if (p.respawnTimer <= 2 && SpawnAndSpectateSystem.CanRespawn)
         {
             seconds = 0;
         }
@@ -79,7 +79,7 @@ public class SpawnAndSpectateHooks : ModSystem
         string respawnText = Language.GetTextValue("Game.RespawnInSuffix", seconds.ToString());
         if (seconds == 0)
         {
-            //respawnText += " (choose your spawn)";
+            respawnText += "";
         }
 
         DynamicSpriteFontExtensionMethods.DrawString(
@@ -129,6 +129,7 @@ public class SpawnAndSpectateHooks : ModSystem
         //    Player.Spawn_ForceClearArea(floorX, floorY);
         //}
 
+        // Note: This is ran on the SERVER, so we need to ensure we only execute this for the local client.
         if (self == Main.LocalPlayer)
         {
             Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;

@@ -4,133 +4,16 @@ using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static PvPAdventure.Core.SpawnAndSpectate.SpawnAndSpectateSystem;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
 
 /// <summary>
-/// Player-specific logic for managing spawn region detection.
-/// Also manages spawn selection features in the mod.
+/// Mnaging spawn region detection and spawn point syncing for players.
 /// </summary>
-public class SpawnAndSpectatePlayer : ModPlayer
+public class SpawnPointPlayer : ModPlayer
 {
-    // Spawn point last sent to server
+    // Spawn point last sent to server, updated when changed
     private Point _lastSpawn = new(-1, -1);
-
-    internal enum CommitRespawnType : byte
-    {
-        Random,
-        Teammate
-    }
-
-    private bool _respawnCommitted;
-    private CommitRespawnType _commitType;
-    private int _commitTargetIndex = -1;
-
-    private bool TryApplyTeammateSpawn(int targetIndex)
-    {
-        if (targetIndex < 0 || targetIndex >= Main.maxPlayers)
-            return false;
-
-        Player target = Main.player[targetIndex];
-        if (target == null || !target.active || target.dead)
-            return false;
-
-        Vector2 pos = target.Center + new Vector2(48f, 0f);
-        Player.SpawnX = (int)(pos.X / 16f);
-        Player.SpawnY = (int)(pos.Y / 16f);
-        return true;
-    }
-
-    private void CommitRespawn(CommitRespawnType type, int targetIndex)
-    {
-        _respawnCommitted = true;
-        _commitType = type;
-        _commitTargetIndex = targetIndex;
-
-        if (type == CommitRespawnType.Teammate)
-            TryApplyTeammateSpawn(targetIndex);
-
-        Player.respawnTimer = 1;
-
-        if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI == Main.myPlayer)
-        {
-            ModPacket p = Mod.GetPacket();
-            p.Write((byte)AdventurePacketIdentifier.SpawnAndSpectateCommitRespawn);
-            p.Write((byte)type);
-            p.Write(targetIndex);
-            p.Send();
-        }
-    }
-
-    internal void ReceiveCommitRespawnFromNet(CommitRespawnType type, int targetIndex)
-    {
-        _respawnCommitted = true;
-        _commitType = type;
-        _commitTargetIndex = targetIndex;
-
-        if (type == CommitRespawnType.Teammate)
-            TryApplyTeammateSpawn(targetIndex);
-
-        Player.respawnTimer = 1;
-    }
-
-    public void CommitRandomRespawn()
-    {
-        CommitRespawn(CommitRespawnType.Random, -1);
-    }
-
-    public void CommitTeammateRespawn(int targetIndex)
-    {
-        CommitRespawn(CommitRespawnType.Teammate, targetIndex);
-    }
-
-    public override void UpdateDead()
-    {
-        if (_respawnCommitted)
-        {
-            return;
-        }
-
-        if (Player.respawnTimer <= 2)
-        {
-            if (SpawnAndSpectateSystem.SelectedSpawnPlayerIndex is int idx)
-            {
-                CommitRespawn(CommitRespawnType.Teammate, idx);
-                return;
-            }
-
-            Player.respawnTimer = 2;
-
-            if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
-            {
-                SpawnAndSpectateSystem.SetMode(SpawnSpectateMode.SpawnSelect);
-            }
-        }
-    }
-
-    public override void OnRespawn()
-    {
-        if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
-        {
-            SpawnAndSpectateSystem.ClearSpectate();
-            SpawnAndSpectateSystem.HoveredPlayerIndex = null;
-            SpawnAndSpectateSystem.SelectedSpawnPlayerIndex = null;
-            SpawnAndSpectateSystem.SetMode(SpawnSpectateMode.None);
-        }
-
-        if (!_respawnCommitted)
-            return;
-
-        if (_commitType == CommitRespawnType.Random)
-        {
-            if (Main.netMode != NetmodeID.MultiplayerClient) // server or SP
-                Player.TeleportationPotion();
-        }
-
-        _respawnCommitted = false;
-        _commitTargetIndex = -1;
-    }
 
     public override void OnHurt(Player.HurtInfo info)
     {
@@ -201,7 +84,7 @@ public class SpawnAndSpectatePlayer : ModPlayer
             if (!HasValidBedSpawn(other))
                 continue;
 
-            Vector2 teammateBedTile = new Vector2(other.SpawnX, other.SpawnY);
+            Vector2 teammateBedTile = new(other.SpawnX, other.SpawnY);
             float distanceToTeammateBed = Vector2.Distance(teammateBedTile * 16f, Player.Center);
 
             if (distanceToTeammateBed <= 25*16f)
@@ -217,37 +100,16 @@ public class SpawnAndSpectatePlayer : ModPlayer
         if (Main.dedServ || Player.whoAmI != Main.myPlayer)
             return;
 
-        if (_respawnCommitted)
-        {
-            SpawnAndSpectateSystem.SetMode(SpawnSpectateMode.None);
-            return;
-        }
-
-        bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
-
-        if (playing)
-        {
-            if (Player.dead)
-            {
-                if (Player.respawnTimer <= 1)
-                    SpawnAndSpectateSystem.SetMode(SpawnSpectateMode.SpawnSelect);
-                else
-                    SpawnAndSpectateSystem.SetMode(SpawnSpectateMode.Spectate);
-            }
-            else if (IsPlayerInSpawnRegion())
-            {
-                SpawnAndSpectateSystem.SetMode(SpawnSpectateMode.SpawnSelect);
-            }
-            else
-            {
-                SpawnAndSpectateSystem.SetMode(SpawnSpectateMode.None);
-            }
-        }
-
         if (Main.netMode == NetmodeID.MultiplayerClient)
         {
             UpdatePlayerSpawnpoint();
         }
+
+        // Toggle spawn and spectate system
+        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing && IsPlayerInSpawnRegion())
+            SpawnAndSpectateSystem.SetEnabled(true);
+        else
+            SpawnAndSpectateSystem.SetEnabled(false);
     }
 
     private static bool HasValidBedSpawn(Player player)
@@ -298,7 +160,9 @@ public class SpawnAndSpectatePlayer : ModPlayer
 
 #if DEBUG
         if (Player != null && Player.name != string.Empty)
+        {
             Main.NewText($"[DEBUG/MODPLAYER] Sync spawn for {Player.name}: ({current.X}, {current.Y})");
+        }
 #endif
     }
 }

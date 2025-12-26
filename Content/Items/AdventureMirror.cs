@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.SpawnAndSpectate;
 using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
@@ -104,14 +105,6 @@ internal class AdventureMirror : ModItem
 
     public override bool CanUseItem(Player player)
     {
-        // If this player moves, cancel their use
-        if (player.velocity.LengthSquared() > 0)
-        {
-            //if (player.whoAmI == Main.myPlayer)
-                //PopupTextHelper.NewText("stay still!", player);
-            return false;
-        }
-
         // Redundant check, just to be sure we don't allow any shenanigans
         var gm = ModContent.GetInstance<GameManager>();
         if (gm.CurrentPhase != GameManager.Phase.Playing)
@@ -136,6 +129,23 @@ internal class AdventureMirror : ModItem
 
         }
 
+        // If this player moves, cancel their use
+        if (player.velocity.LengthSquared() > 0)
+        {
+            // Create and display the popup text (locally)
+            if (player.whoAmI == Main.myPlayer)
+            {
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.CannotUseWhileMoving"),
+                    Velocity = new(0f, -4),
+                    DurationInFrames = 120
+                }, player.Top + new Vector2(0, -4));
+            }
+            return false;
+        }
+
         return true;
     }
 
@@ -152,18 +162,35 @@ internal class AdventureMirror : ModItem
     {
         base.UseStyle(player, heldItemFrame);
 
-        //if (IsPlayerInSpawnRegion(player))
+        //if (ModContent.GetInstance<SpawnPointPlayer>().IsPlayerInSpawnRegion())
         //{
-        //    //PopupTextHelper.NewText("cannot use in spawn!", player);
-        //    //CancelItemUse(player);
-        //    //return;
+        //    if (player.whoAmI == Main.myPlayer)
+        //    {
+        //        PopupText.NewText(new AdvancedPopupRequest
+        //        {
+        //            Color = Color.Crimson,
+        //            Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.CannotUseInSpawn"),
+        //            Velocity = new(0f, -4),
+        //            DurationInFrames = 120
+        //        }, player.Top + new Vector2(0, -4));
+        //    }
+        //    CancelItemUse(player);
+        //    return;
         //}
 
         // If this player moves, cancel their use
         if (player.velocity.LengthSquared() > 0)
         {
-            //if (player.whoAmI == Main.myPlayer)
-                //PopupTextHelper.NewText("stay still!", player);
+            if (player.whoAmI == Main.myPlayer)
+            {
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.Cancelled"),
+                    Velocity = new(0f, -4),
+                    DurationInFrames = 120
+                }, player.Top + new Vector2(0, -4));
+            }
             CancelItemUse(player);
             return;
         }
@@ -184,7 +211,7 @@ internal class AdventureMirror : ModItem
             // Create and display the popup text
             PopupText.NewText(new AdvancedPopupRequest
             {
-                Color = Color.GreenYellow,
+                Color = Color.MediumPurple,
                 Text = secondsLeft.ToString(),
                 Velocity = new(0f, -4),
                 DurationInFrames = 120
@@ -192,11 +219,10 @@ internal class AdventureMirror : ModItem
             return;
         }
 
-        // Teleport the player who used the item to their spawn and open their map 
+        // Teleport the player who used the item to their spawn
         if (player.whoAmI == Main.myPlayer && player.itemTime == 1)
         {
             TeleportToSpawn(player);
-            OpenFullscreenMap();
         }
     }
 
@@ -211,29 +237,6 @@ internal class AdventureMirror : ModItem
         //}
 
         player.Teleport(playerSpawnPos);
-    }
-
-    private void OpenFullscreenMap()
-    {
-        // Do nothing if config value is false
-        var config = ModContent.GetInstance<AdventureClientConfig>();
-        if (!config.OpenMapAfterRecall)
-            return;
-
-        // First we must close inventory, otherwise map is not allowed to open
-        Main.playerInventory = false;
-
-        // Open fullscreen map
-        Main.mapFullscreen = true;
-
-        // Center the map
-        float worldCenterX = Main.maxTilesX / 2f;
-        float worldCenterY = Main.maxTilesY / 2f;
-        Main.mapFullscreenPos.X = worldCenterX;
-        Main.mapFullscreenPos.Y = worldCenterY;
-
-        // Zoom out a bit to see the whole map
-        Main.mapFullscreenScale = 0.01f; 
     }
 
     public override void UpdateInventory(Player player)

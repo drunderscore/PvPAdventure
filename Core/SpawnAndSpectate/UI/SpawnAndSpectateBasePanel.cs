@@ -4,19 +4,19 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 
-namespace PvPAdventure.Core.SpawnAndSpectate.SpawnSelectorUI;
+namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
 /// <summary>
-/// The base panel containing all elements for the spawn selector UI.
-/// Includes, for example <see cref="SpawnSelectorCharacter"/>, and <see cref="SpawnSelectorRandomPanel"/>.
+/// The base panel containing all elements for the spawn and spectate UI.
+/// Includes, for example <see cref="SpawnAndSpectateCharacter"/>, and <see cref="SpectateExitPanel"/>.
 /// </summary>
-public class SpawnSelectorBasePanel : UIPanel
+public class SpawnAndSpectateBasePanel : UIPanel
 {
     // UI components
-    private SpawnSelectorRandomPanel randomPanel;
+    private RandomTeleportPanel randomPanel;
 
     // Collections
-    private readonly List<SpawnSelectorCharacter> playerItems = []; // list of teammate player UI items
+    private readonly List<SpawnAndSpectateCharacter> playerItems = []; // list of teammate player UI items
     
     // Dimensions
     private const float Spacing = 8f; // between items
@@ -27,7 +27,7 @@ public class SpawnSelectorBasePanel : UIPanel
     {
         HAlign = 0.5f;
         VAlign = 0.0f;
-        Top.Set(52, 0);
+        Top.Set(62, 0);
 
         BackgroundColor = new Color(33, 43, 79) * 1f;
         SetPadding(0f);
@@ -61,8 +61,8 @@ public class SpawnSelectorBasePanel : UIPanel
 
         int playerCount = players.Count;
 
-        float itemWidth = SpawnSelectorCharacter.ItemWidth;
-        float itemHeight = SpawnSelectorCharacter.ItemHeight;
+        float itemWidth = SpawnAndSpectateCharacter.ItemWidth;
+        float itemHeight = SpawnAndSpectateCharacter.ItemHeight;
         float randomWidth = itemHeight;
 
         float contentWidth = playerCount * itemWidth
@@ -88,7 +88,7 @@ public class SpawnSelectorBasePanel : UIPanel
         {
             float x = startX + i * (itemWidth + Spacing);
 
-            var row = new SpawnSelectorCharacter(players[i].whoAmI);
+            var row = new SpawnAndSpectateCharacter(players[i].whoAmI);
             row.Left.Set(x, 0f);
             row.Top.Set(y, 0f);
 
@@ -112,6 +112,11 @@ public class SpawnSelectorBasePanel : UIPanel
 
     public override void Update(GameTime gameTime)
     {
+        if (IsMouseHovering)
+        {
+            Main.LocalPlayer.mouseInterface = true; // disable item use when hovering
+        }
+
         if (NeedsRebuild())
         {
             Rebuild();

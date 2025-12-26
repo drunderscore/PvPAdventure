@@ -381,15 +381,18 @@ public class PvPAdventure : Mod
                     ModContent.GetInstance<SSCSystem>().HandlePacket(reader, whoAmI);
                     break;
                 }
-            case AdventurePacketIdentifier.SpawnAndSpectateCommitRespawn:
+            case AdventurePacketIdentifier.RespawnCommit:
                 {
-                    var type = (SpawnAndSpectatePlayer.CommitRespawnType)reader.ReadByte();
-                    int targetIndex = reader.ReadInt32();
+                    if (Main.netMode != NetmodeID.Server)
+                        break;
 
-                    if (Main.netMode == NetmodeID.Server)
+                    var commit = (RespawnPlayer.RespawnCommit)reader.ReadByte();
+                    int teammateIndex = reader.ReadInt32();
+
+                    Player p = Main.player[whoAmI];
+                    if (p != null && p.active)
                     {
-                        Player p = Main.player[whoAmI]; // <-- sender
-                        p.GetModPlayer<SpawnAndSpectatePlayer>().ReceiveCommitRespawnFromNet(type, targetIndex);
+                        p.GetModPlayer<RespawnPlayer>().ApplyCommitFromNet(commit, teammateIndex);
                     }
 
                     break;

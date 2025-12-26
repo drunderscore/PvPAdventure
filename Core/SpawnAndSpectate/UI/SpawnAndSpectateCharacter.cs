@@ -2,20 +2,22 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common;
 using PvPAdventure.Common.Debug;
+using PvPAdventure.System;
 using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
+using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SpawnAndSpectate.SpectateUI;
+namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
 /// <summary>
-/// Character row of a player in the spectate UI.
+/// Character row of a player in the spawn selector UI.
 /// </summary>
-internal class SpectateCharacter : UIPanel
+internal class SpawnAndSpectateCharacter : UIPanel
 {
     internal const float ItemWidth = 260f;
     internal const float ItemHeight = 72f;
@@ -27,34 +29,49 @@ internal class SpectateCharacter : UIPanel
     private readonly int playerIndex;
     public int PlayerIndex => playerIndex;
 
-    public SpectateCharacter(Player player)
+    public SpawnAndSpectateCharacter(int _playerIndex)
     {
+        // Set player index
+        playerIndex = _playerIndex;
+
+        // Load assets
         dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
         innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
-        //_playerBGTexture = Main.Assets.Request<Texture2D>("Images/UI/PlayerBackground");
         playerBGTexture = Ass.CustomPlayerBackground;
-
-        playerIndex = player.whoAmI;
+        //_playerBGTexture = Main.Assets.Request<Texture2D>("Images/UI/PlayerBackground");
     }
 
     public override void OnActivate()
     {
         BorderColor = Color.Black;
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
+
         Height.Set(ItemHeight, 0f);
         Width.Set(ItemWidth, 0f);
+
         SetPadding(6f);
     }
 
     public override void MouseOver(UIMouseEvent evt)
     {
         base.MouseOver(evt);
+
+        Player p = Main.player[playerIndex];
+        if (p == null || !p.active || p.dead)
+            return;
+        BackgroundColor = new Color(73, 92, 161, 150);
         SpawnAndSpectateSystem.HoveredPlayerIndex = playerIndex;
     }
 
     public override void MouseOut(UIMouseEvent evt)
     {
         base.MouseOut(evt);
+
+        Player p = Main.player[playerIndex];
+        if (p == null || !p.active || p.dead)
+            return;
+
+        BackgroundColor = new Color(63, 82, 151) * 0.8f;
         if (SpawnAndSpectateSystem.HoveredPlayerIndex == playerIndex)
             SpawnAndSpectateSystem.HoveredPlayerIndex = null;
     }
@@ -62,13 +79,38 @@ internal class SpectateCharacter : UIPanel
     public override void LeftClick(UIMouseEvent evt)
     {
         base.LeftClick(evt);
-        SpawnAndSpectateSystem.ToggleSpectate(playerIndex);
+
+        var gm = ModContent.GetInstance<GameManager>();
+        if (gm.CurrentPhase != GameManager.Phase.Playing)
+            return;
+
+        var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
+
+        // Alive + in spawn region: instant teleport, no commit, no border semantics.
+        if (SpawnAndSpectateSystem.IsAliveSpawnRegionInstant)
+        {
+            respawnPlayer.TeammateTeleport(playerIndex);
+            return;
+        }
+
+        // Dead: click selects (and spectates) the teammate. Only one selection at a time.
+        if (Main.LocalPlayer.dead && SpawnAndSpectateSystem.IsValidTeammateIndex(playerIndex))
+        {
+            bool wasSelected = respawnPlayer.IsTeammateCommitted(playerIndex);
+            respawnPlayer.ToggleCommitTeammate(playerIndex);
+
+            bool isSelectedNow = respawnPlayer.IsTeammateCommitted(playerIndex);
+            if (isSelectedNow)
+                SpawnAndSpectateSystem.TrySetSpectate(playerIndex);
+            else if (wasSelected && SpawnAndSpectateSystem.SpectatePlayerIndex == playerIndex)
+                SpawnAndSpectateSystem.ClearSpectate();
+        }
     }
 
     public override void RightClick(UIMouseEvent evt)
     {
         base.RightClick(evt);
-        SpawnAndSpectateSystem.ToggleSpectate(playerIndex);
+        SpawnAndSpectateSystem.ToggleSpectateOnPlayerIndex(playerIndex);
     }
 
     public override void Update(GameTime gameTime)
@@ -76,11 +118,13 @@ internal class SpectateCharacter : UIPanel
         base.Update(gameTime);
 
         bool hovered = IsMouseHovering;
-        bool selected = SpawnAndSpectateSystem.SelectedSpawnPlayerIndex == playerIndex;
+
+        var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
+        bool selectedSpawn = respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex);
         bool spectated = SpawnAndSpectateSystem.SpectatePlayerIndex == playerIndex;
 
         BackgroundColor = hovered ? new Color(73, 92, 161, 150) : new Color(63, 82, 151) * 0.8f;
-        BorderColor = spectated ? Color.Cyan : selected ? Color.Yellow : Color.Black;
+        BorderColor = spectated ? Color.Cyan : selectedSpawn ? Color.Yellow : Color.Black;
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -194,6 +238,11 @@ internal class SpectateCharacter : UIPanel
 
         // Draw player respawn timer if it exists
         string respawnTimeInSeconds = (player.respawnTimer / 60 + 1).ToString();
+
+        // Override text for spawn selector mode
+        if (player.respawnTimer <= 2)
+            respawnTimeInSeconds = 0.ToString();
+
         if (player.respawnTimer != 0)
         {
             Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, pos + new Vector2(31, 4), Color.Gray, scale: 1f);
@@ -206,13 +255,31 @@ internal class SpectateCharacter : UIPanel
 
             if (!player.dead)
             {
-                bool selected = SpawnAndSpectateSystem.SelectedSpawnPlayerIndex == player.whoAmI;
-                bool spectated = SpawnAndSpectateSystem.SpectatePlayerIndex == player.whoAmI;
+                var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
+                var spawnPointPlayer = Main.LocalPlayer.GetModPlayer<SpawnPointPlayer>();
+                bool ready = SpawnAndSpectateSystem.CanRespawn || spawnPointPlayer.IsPlayerInSpawnRegion();
+                bool selectedSpawn = respawnPlayer.IsTeammateCommitted(player.whoAmI);
 
-                string text = selected ? $"Selected spawn: {player.name}" : $"Select spawn: {player.name}";
+                string text;
+                if (ready)
+                {
+                    // No prior commit at the ready gate: first click will commit and execute immediately.
+                    text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayer", player.name);
+                }
+                else
+                {
+                    text = selectedSpawn
+                        ? $"{player.name} selected for spawn"
+                        : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectPlayerSpawn", player.name);
+                }
 
-                if (Main.LocalPlayer.dead)
-                    text += spectated ? $"\nRight click to stop spectating {player.name}" : $"\nRight click to spectate {player.name}";
+                bool canSpectate = SpawnAndSpectateSystem.IsAliveSpawnRegionInstant;
+                if (canSpectate)
+                {
+                    text += SpawnAndSpectateSystem.SpectatePlayerIndex == player.whoAmI
+                        ? "\n" + Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.StopSpectatingPlayer", player.name)
+                        : "\n" + Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SpectatePlayer", player.name);
+                }
 
                 Main.instance.MouseText(text);
             }
@@ -220,25 +287,6 @@ internal class SpectateCharacter : UIPanel
     }
 
     #region Draw Helpers
-    // Draws a background with rounded edges by cutting the texture into nine slices
-    private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
-    {
-        x += inset; y += inset; w -= inset * 2; h -= inset * 2;
-        int ew = tex.Width - c * 2;
-        int eh = tex.Height - c * 2;
-
-        sb.Draw(tex, new Rectangle(x, y, c, c), new Rectangle(0, 0, c, c), color);
-        sb.Draw(tex, new Rectangle(x + c, y, w - c * 2, c), new Rectangle(c, 0, ew, c), color);
-        sb.Draw(tex, new Rectangle(x + w - c, y, c, c), new Rectangle(tex.Width - c, 0, c, c), color);
-
-        sb.Draw(tex, new Rectangle(x, y + c, c, h - c * 2), new Rectangle(0, c, c, eh), color);
-        sb.Draw(tex, new Rectangle(x + c, y + c, w - c * 2, h - c * 2), new Rectangle(c, c, ew, eh), color);
-        sb.Draw(tex, new Rectangle(x + w - c, y + c, c, h - c * 2), new Rectangle(tex.Width - c, c, c, eh), color);
-
-        sb.Draw(tex, new Rectangle(x, y + h - c, c, c), new Rectangle(0, tex.Height - c, c, c), color);
-        sb.Draw(tex, new Rectangle(x + c, y + h - c, w - c * 2, c), new Rectangle(c, tex.Height - c, ew, c), color);
-        sb.Draw(tex, new Rectangle(x + w - c, y + h - c, c, c), new Rectangle(tex.Width - c, tex.Height - c, c, c), color);
-    }
 
     // Draws the inner panel background with a given width.
     private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
@@ -264,6 +312,25 @@ internal class SpectateCharacter : UIPanel
             new Rectangle(16, 0, 8, innerPanelTexture.Height()),
             Color.White
         );
+    }
+
+    private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
+    {
+        x += inset; y += inset; w -= inset * 2; h -= inset * 2;
+        int ew = tex.Width - c * 2;
+        int eh = tex.Height - c * 2;
+
+        sb.Draw(tex, new Rectangle(x, y, c, c), new Rectangle(0, 0, c, c), color);
+        sb.Draw(tex, new Rectangle(x + c, y, w - c * 2, c), new Rectangle(c, 0, ew, c), color);
+        sb.Draw(tex, new Rectangle(x + w - c, y, c, c), new Rectangle(tex.Width - c, 0, c, c), color);
+
+        sb.Draw(tex, new Rectangle(x, y + c, c, h - c * 2), new Rectangle(0, c, c, eh), color);
+        sb.Draw(tex, new Rectangle(x + c, y + c, w - c * 2, h - c * 2), new Rectangle(c, c, ew, eh), color);
+        sb.Draw(tex, new Rectangle(x + w - c, y + c, c, h - c * 2), new Rectangle(tex.Width - c, c, c, eh), color);
+
+        sb.Draw(tex, new Rectangle(x, y + h - c, c, c), new Rectangle(0, tex.Height - c, c, c), color);
+        sb.Draw(tex, new Rectangle(x + c, y + h - c, w - c * 2, c), new Rectangle(c, tex.Height - c, ew, c), color);
+        sb.Draw(tex, new Rectangle(x + w - c, y + h - c, c, c), new Rectangle(tex.Width - c, tex.Height - c, c, c), color);
     }
     #endregion
 
@@ -333,9 +400,9 @@ internal class SpectateCharacter : UIPanel
             color = Color.White;
 
             if (player.dead)
-                color = new Color(100, 100, 100, 255);
+                color = new Color(50, 50, 50, 255);
 
-            // Use the *player’s* X position instead of camera center
+            // Use the *player’s* X position
             int midTileX = tileX;
 
             if (player.ZoneSkyHeight)
@@ -346,7 +413,7 @@ internal class SpectateCharacter : UIPanel
                 bgIndex = player.ZoneDesert ? 37 : 6;
             else if (player.ZoneHallow)
                 bgIndex = player.ZoneDesert ? 38 : 7;
-            // "Ocean" style edges: use player’s tileY + tileX instead of screenPos
+            // "Ocean" style edges: use player’s tileY + tileX
             else if (playerYTiles < Main.worldSurface + 10.0 &&
                      (midTileX < 380 || midTileX > Main.maxTilesX - 380))
                 bgIndex = 10;

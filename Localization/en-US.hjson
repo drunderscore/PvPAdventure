@@ -1196,28 +1196,30 @@ Mods: {
 
 		AdventureMirror: {
 			GameNotStarted: wait until game starts!
+			CannotUseInSpawn: cannot use in spawn!
+			CannotUseWhileMoving: cannot use while moving!
 			CannotDrop: cannot drop!
 			CannotUnfavorite: cannot unfavorite!
 			CannotTrash: cannot trash!
 			CannotSell: cannot sell!
 			CannotStore: cannot store!
-			Cancelled: recall cancelled!
+			Cancelled: cancelled!
 		}
 
 		DashKeybind.NoDashItem: you have no dash item!
 
 		SpawnAndSpectate: {
 			ChooseYourSpawn: Choose Your Spawn
-			SpectateTitle: Spectate
 			TeleportToPlayer: Teleport to {0}
-			RandomTeleport: Random
+			Random: Random
 			PlayersBed: "{0}'s Bed"
 			TeleportToPlayersBed: Teleport to {0}'s Bed
-			SpectatingPlayer: Spectating {0}
-			ClickToSpectate: Click a teammate to spectate
-			ExitSpectate: Exit Spectate Mode
-			SelectSpawn: Select {0}'s Spawn
-			SelectedSpawn: Selected {0}'s Spawn
+			SelectRandomSpawn: Select Random Spawn
+			CancelRandomSpawn: Cancel Random Spawn
+			SelectPlayerSpawn: Select {0}'s Spawn
+			CancelPlayerSpawn: Cancel {0}'s Spawn
+			SpectatePlayer: "Right click to spectate {0}"
+			StopSpectating: "Right click to stop spectating {0}"
 		}
 
 		Item: {

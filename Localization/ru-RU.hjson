@@ -1208,14 +1208,14 @@ Mods: {
 
 		SpawnAndSpectate: {
 			// ChooseYourSpawn: Choose Your Spawn
-			// SpectateTitle: Spectate
 			// TeleportToPlayer: Teleport to {0}
-			// RandomTeleport: Random
+			// Random: Random
 			// PlayersBed: "{0}'s Bed"
 			// TeleportToPlayersBed: Teleport to {0}'s Bed
-			// SpectatingPlayer: Spectating {0}
-			// ClickToSpectate: Click a teammate to spectate
-			// ExitSpectate: Exit Spectate Mode
+			// SelectRandomSpawn: Select Random Spawn
+			// CancelRandomSpawn: Cancel Random Spawn
+			// SelectPlayerSpawn: Select {0}'s Spawn
+			// CancelPlayerSpawn: Cancel {0}'s Spawn
 		}
 
 		Item: {

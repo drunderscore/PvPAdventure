@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.SpawnAndSpectate.SpawnSelectorUI;
-using PvPAdventure.Core.SpawnAndSpectate.SpectateUI;
+using PvPAdventure.Core.SpawnAndSpectate.UI;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
@@ -19,73 +18,109 @@ public class SpawnAndSpectateSystem : ModSystem
 {
     // UI elements and states
     public UserInterface ui;
-    public SpawnSelectorState spawnSelectorState; // allows spawn selection and spectating
-    public SpectateState spectateState; // allows spectating only
-    public enum SpawnSpectateMode
-    {
-        None,
-        Spectate,
-        SpawnSelect
-    }
-    public static SpawnSpectateMode CurrentMode { get; private set; }
-    public static void SetMode(SpawnSpectateMode mode)
-    {
-        if (CurrentMode == mode)
-            return;
+    public SpawnAndSpectateState spawnSelectorState; // allows spawn selection and spectating
 
-        CurrentMode = mode;
+    // Track whether the spawn selector is enabled
+    private static bool Enabled;
+    public static void SetEnabled(bool newValue) => Enabled = newValue;
+    public static bool GetEnabled() => Enabled;
 
-        var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
-        sys.ui.SetState(mode switch
+    // Client-side gate set by RespawnPlayer.UpdateDead when the local timer freezes at 2.
+    private static bool _canRespawn;
+    public static bool CanRespawn => _canRespawn;
+    public static void SetCanRespawn(bool value) => _canRespawn = value;
+    public static bool ShouldShowUI
+    {
+        get
         {
-            SpawnSpectateMode.None => null,
-            SpawnSpectateMode.Spectate => sys.spectateState,
-            SpawnSpectateMode.SpawnSelect => sys.spawnSelectorState,
-            _ => null
-        });
+            Player p = Main.LocalPlayer;
+            if (p == null)
+                return false;
+
+            // Always visible when dead.
+            if (p.dead)
+                return true;
+
+            // Visible when alive only inside spawn region.
+            return Enabled;
+        }
     }
 
-    public static bool IsRespawnFrozen(Player p) => p != null && p.dead && p.respawnTimer == 2;
-
-    public static bool IsValidTeammateTarget(int idx, bool requireAlive)
+    public static bool IsAliveSpawnRegionInstant
     {
+        get
+        {
+            Player p = Main.LocalPlayer;
+            return p != null && !p.dead && Enabled;
+        }
+    }
+
+    public static bool IsDeadSelectionPhase
+    {
+        get
+        {
+            Player p = Main.LocalPlayer;
+            return p != null && p.dead && p.respawnTimer > 2;
+        }
+    }
+
+    public static bool IsDeadReadyPhase
+    {
+        get
+        {
+            Player p = Main.LocalPlayer;
+            return p != null && p.dead && p.respawnTimer == 2;
+        }
+    }
+
+    public static bool IsValidTeammateIndex(int idx)
+    {
+        // Must be valid index
         if (idx < 0 || idx >= Main.maxPlayers)
             return false;
 
+        // Get my player and target player
         Player local = Main.LocalPlayer;
         Player t = Main.player[idx];
 
+        // Must be valid player
         if (local == null || t == null || !t.active)
             return false;
 
+        // Must not be self
         if (t.whoAmI == local.whoAmI)
             return false;
 
+        // Must be on same team
         if (local.team == 0 || t.team != local.team)
             return false;
 
-        if (requireAlive && t.dead)
+        // Must be alive
+        if (t.dead)
             return false;
 
         return true;
     }
 
-    public static void ToggleSpectate(int idx)
+    public static void ToggleSpectateOnPlayerIndex(int idx)
     {
-        if (!Main.LocalPlayer.dead)
+        bool canSpectate = Main.LocalPlayer.dead || IsAliveSpawnRegionInstant;
+        if (!canSpectate)
             return;
 
-        if (!IsValidTeammateTarget(idx, requireAlive: true))
+        if (!IsValidTeammateIndex(idx))
             return;
 
         SpectatePlayerIndex = (SpectatePlayerIndex == idx) ? null : idx;
     }
 
-    public static void ToggleSpawnSelection(int idx)
+    public static void ToggleSpawnSelectionOnPlayerIndex(int idx)
     {
-        if (!IsValidTeammateTarget(idx, requireAlive: true))
+        // Must be able to respawn on teammate
+        if (!IsValidTeammateIndex(idx))
             return;
 
+        // Toggle spawn selection
         SelectedSpawnPlayerIndex = (SelectedSpawnPlayerIndex == idx) ? null : idx;
     }
 
@@ -99,7 +134,8 @@ public class SpawnAndSpectateSystem : ModSystem
         // Initialize the UI states
         ui = new();
         spawnSelectorState = new();
-        spectateState = new();
+
+        SetCanRespawn(false);
 
         // Draw on map
         Main.OnPostFullscreenMapDraw += DrawOnFullscreenMap;
@@ -107,34 +143,27 @@ public class SpawnAndSpectateSystem : ModSystem
 
     public override void Unload()
     {
+        SetCanRespawn(false);
         Main.OnPostFullscreenMapDraw -= DrawOnFullscreenMap;
     }
-
-    public static bool MapSpectateOpen { get; private set; }
-
-    private static UIState GetStateForMode(SpawnSpectateMode mode, SpawnAndSpectateSystem sys) => mode switch
-    {
-        SpawnSpectateMode.None => null,
-        SpawnSpectateMode.Spectate => sys.spectateState,
-        SpawnSpectateMode.SpawnSelect => sys.spawnSelectorState,
-        _ => null
-    };
 
     public override void UpdateUI(GameTime gameTime)
     {
         if (ui == null)
             return;
 
-        UIState desired = GetStateForMode(CurrentMode, this);
-        if (ui.CurrentState != desired)
+        if (!ShouldShowUI)
         {
-            ui.SetState(desired);
+            if (ui.CurrentState != null)
+                ui.SetState(null);
+
+            return;
         }
 
-        if (ui.CurrentState != null)
-        {
-            ui.Update(gameTime);
-        }
+        if (ui.CurrentState != spawnSelectorState)
+            ui.SetState(spawnSelectorState);
+
+        ui.Update(gameTime);
     }
 
     #region Spectating
@@ -145,7 +174,8 @@ public class SpawnAndSpectateSystem : ModSystem
 
     public static void TrySetSpectate(int playerIndex)
     {
-        if (!Main.LocalPlayer.dead)
+        bool canSpectate = Main.LocalPlayer.dead || IsAliveSpawnRegionInstant;
+        if (!canSpectate)
             return;
 
         if (playerIndex < 0 || playerIndex >= Main.maxPlayers)
@@ -165,7 +195,9 @@ public class SpawnAndSpectateSystem : ModSystem
     {
         Player local = Main.LocalPlayer;
 
-        if (local == null || !local.active || !local.dead)
+        bool canSpectate = local != null && local.active && (local.dead || IsAliveSpawnRegionInstant);
+
+        if (!canSpectate)
         {
             SpectatePlayerIndex = null;
             return;
@@ -184,12 +216,15 @@ public class SpawnAndSpectateSystem : ModSystem
             return;
         }
 
-        Vector2 zoom = Main.GameViewMatrix.Zoom;
-        Vector2 halfView = new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
-        halfView /= zoom;
+        // Center camera on player with correct zoom
+        //Vector2 zoom = Main.GameViewMatrix.Zoom;
+        //Vector2 halfView = new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f / zoom;
+        //Vector2 focus = target.MountedCenter;
+        //Vector2 viewMatrixTranslation = Main.GameViewMatrix.Translation / zoom;
+        //Main.screenPosition = focus - halfView - viewMatrixTranslation;
 
-        // Center screen on target player
-        Main.screenPosition = target.Center - halfView;
+        // TeamSpectate code
+        Main.screenPosition = Main.player[target.whoAmI].position - new Vector2(Main.screenWidth, Main.screenHeight) / 2;
     }
 
     #endregion
