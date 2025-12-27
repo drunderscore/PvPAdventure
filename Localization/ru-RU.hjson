@@ -1211,9 +1211,8 @@ Mods: {
 		SpawnAndSpectate: {
 			// ChooseYourSpawn: Choose Your Spawn
 			// TeleportToPlayer: Teleport to {0}
-			// Random: Random
-			// WorldSpawn: World Spawn
-			// TeleportToWorldSpawn: Teleport to World Spawn
+			// Random: Random Teleport
+			// WorldSpawn: Teleport to World Spawn
 			// PlayersBed: "{0}'s Bed"
 			// TeleportToPlayersBed: Teleport to {0}'s Bed
 			// SelectRandomSpawn: Select Random Spawn
@@ -1222,8 +1221,8 @@ Mods: {
 			// CancelWorldSpawn: Cancel World Spawn
 			// SelectPlayerSpawn: Select {0}'s Spawn
 			// CancelPlayerSpawn: Cancel {0}'s Spawn
-			// SpectatePlayer: Right click to spectate {0}
-			// StopSpectatingPlayer: Right click to stop spectating {0}
+			// SpectatePlayer: Lock Spectate {0}
+			// StopSpectatingPlayer: Unlock Spectate {0}
 		}
 
 		Item: {

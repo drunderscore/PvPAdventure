@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
 using Terraria.UI;
@@ -25,5 +26,20 @@ public class SpawnAndSpectateState : UIState
 
         Append(basePanel);
         Append(chooseYourSpawnPanel);
+    }
+
+    public void Rebuild()
+    {
+#if DEBUG
+        Main.NewText("[DEBUG] Rebuilding SpawnAndSpectateState");
+#endif
+
+        RemoveAllChildren();
+        basePanel = null;
+        chooseYourSpawnPanel = null;
+
+        // Re-run normal construction
+        OnActivate();
+        Recalculate();
     }
 }

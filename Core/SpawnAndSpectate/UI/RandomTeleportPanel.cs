@@ -66,10 +66,10 @@ public class RandomTeleportPanel : UIPanel
         {
             string text;
             var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
-            //bool readyToRespawn = SpawnAndSpectateSystem.CanRespawn;
+            bool readyToRespawn = SpawnAndSpectateSystem.CanRespawn;
             bool committed = respawnPlayer.IsRandomCommitted;
 
-            if (Main.LocalPlayer.dead)
+            if (Main.LocalPlayer.dead && !readyToRespawn)
             {
                 text = committed
                     ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelRandomSpawn")
@@ -83,16 +83,26 @@ public class RandomTeleportPanel : UIPanel
             Main.instance.MouseText(text);
         }
 
-        // Draw question mark
+        // Draw question mark centered
         var d = GetDimensions();
         var tex = Ass.Question_Mark.Value;
-        var rect = new Rectangle(
-            (int)(d.X + (d.Width - tex.Width) * 0.5f),
-            (int)(d.Y + (d.Height - tex.Height) * 0.5f),
-            tex.Width,
-            tex.Height
+
+        float baseScale = 0.9f;
+        float hoverScale = 0.9f;
+
+        float scale = IsMouseHovering ? hoverScale : baseScale;
+
+        sb.Draw(
+            tex,
+            position: new(d.X + d.Width * 0.5f, d.Y + d.Height * 0.5f),
+            sourceRectangle: null,
+            color: Color.White,
+            rotation: 0f,
+            origin: tex.Size() * 0.5f,
+            scale: scale,
+            effects: SpriteEffects.None,
+            layerDepth: 0f
         );
-        sb.Draw(tex, rect, Color.White);
 
         // Debug
         //sb.Draw(TextureAssets.MagicPixel.Value, rect, Color.Red * 0.45f);
@@ -115,6 +125,12 @@ public class RandomTeleportPanel : UIPanel
 
         var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
         bool committed = respawnPlayer != null && respawnPlayer.IsRandomCommitted;
-        BorderColor = committed ? Color.Yellow : Color.Black;
+
+        if (committed)
+            BackgroundColor = Color.Yellow;
+        else if (IsMouseHovering)
+            BackgroundColor = new Color(73, 92, 161, 150);
+        else
+            BackgroundColor = new Color(63, 82, 151);
     }
 }

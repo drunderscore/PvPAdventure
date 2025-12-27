@@ -89,7 +89,7 @@ internal class SpawnAndSpectateCharacter : UIPanel
         Player p = Main.player[playerIndex];
         if (p == null || !p.active || p.dead)
             return;
-        BackgroundColor = new Color(73, 92, 161, 150);
+        //BackgroundColor = new Color(73, 92, 161, 150);
         SpawnAndSpectateSystem.HoveredPlayerIndex = playerIndex;
     }
 
@@ -106,8 +106,22 @@ internal class SpawnAndSpectateCharacter : UIPanel
             SpawnAndSpectateSystem.HoveredPlayerIndex = null;
     }
 
+    private bool IsClickOnSpectateButton(UIMouseEvent evt)
+    {
+        if (spectateButton == null)
+            return false;
+
+        if (spectateButton.ContainsPoint(evt.MousePosition))
+            return true;
+
+        return spectateButton.IsMouseHovering;
+    }
+
     public override void LeftClick(UIMouseEvent evt)
     {
+        if (IsClickOnSpectateButton(evt))
+            return;
+
         base.LeftClick(evt);
 
         var gm = ModContent.GetInstance<GameManager>();
@@ -140,7 +154,7 @@ internal class SpawnAndSpectateCharacter : UIPanel
     public override void RightClick(UIMouseEvent evt)
     {
         base.RightClick(evt);
-        SpawnAndSpectateSystem.ToggleSpectateOnPlayerIndex(playerIndex);
+        //SpawnAndSpectateSystem.ToggleSpectateOnPlayerIndex(playerIndex);
     }
 
     public override void Update(GameTime gameTime)
@@ -158,15 +172,15 @@ internal class SpawnAndSpectateCharacter : UIPanel
 
         var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
         bool selectedSpawn = respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex);
-
-        if (hovering)
-            BackgroundColor = new Color(73, 92, 161, 150);
-        else if (selectedSpawn)
+        
+        if (selectedSpawn)
             BackgroundColor = Color.Yellow;
+        else if (hovering && !spectateButton.IsMouseHovering)
+            BackgroundColor = new Color(73, 92, 161, 150);
         else
             BackgroundColor = new Color(63, 82, 151) * 0.8f;
 
-        BorderColor = selectedSpawn ? Color.Yellow : Color.Black;
+        //BorderColor = selectedSpawn ? Color.Yellow : Color.Black;
 
         base.Update(gameTime);
     }
@@ -204,6 +218,10 @@ internal class SpawnAndSpectateCharacter : UIPanel
 
             Main.instance.MouseText(text);
         }
+        else
+        {
+            Main.instance.MouseText("Cannot respawn (player dead)");
+        }
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -213,11 +231,11 @@ internal class SpawnAndSpectateCharacter : UIPanel
         CalculatedStyle inner = GetInnerDimensions();
 
         Player player = Main.player[playerIndex];
-        var dims = GetDimensions();
+        var d = GetDimensions();
 
         if (player == null || !player.active)
         {
-            var rect2 = dims.ToRectangle();
+            var rect2 = d.ToRectangle();
 
             Utils.DrawBorderString(sb, "Unable to find player :(", rect2.Location.ToVector2() + new Vector2(50, 0), Color.White);
             return;
@@ -246,7 +264,7 @@ internal class SpawnAndSpectateCharacter : UIPanel
             Color myTeamColor = Main.teamColor[Main.LocalPlayer.team];
 
             //Main.PlayerRenderer.DrawPlayer(Main.Camera,player,playerDrawPos,player.fullRotation,player.fullRotationOrigin,0f,0.9f);
-            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, headDrawPos, scale: 1.0f, borderColor: myTeamColor);
+            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, headDrawPos, scale: 1.2f, borderColor: myTeamColor);
         }
         catch (Exception e)
         {
@@ -273,7 +291,6 @@ internal class SpawnAndSpectateCharacter : UIPanel
             nameScale = 0.85f;
 
         Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
-
 
         Vector2 namePos = new(
             rightAreaCenterX - nameSize.X * 0.5f,
@@ -325,15 +342,47 @@ internal class SpawnAndSpectateCharacter : UIPanel
         Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
 
         // Draw player respawn timer if it exists
-        string respawnTimeInSeconds = (player.respawnTimer / 60 + 1).ToString();
-
-        // Override text for spawn selector mode
-        if (player.respawnTimer <= 2)
-            respawnTimeInSeconds = 0.ToString();
-
         if (player.respawnTimer != 0)
         {
-            Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, pos + new Vector2(31, 4), Color.Gray, scale: 1f);
+            // Draw dead icon
+            var tex = Ass.Dead_Icon.Value;
+            Vector2 skullCenter = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
+
+            sb.Draw(
+                tex,
+                position: skullCenter,
+                sourceRectangle: null,
+                color: Color.White * 0.5f,
+                rotation: 0f,
+                origin: tex.Size() * 0.5f,
+                scale: 0.09f,
+                effects: SpriteEffects.None,
+                layerDepth: 0f
+            );
+
+            string respawnTimeInSeconds = (player.respawnTimer / 60 + 1).ToString();
+
+            // Override text for spawn selector mode
+            if (player.respawnTimer <= 2)
+                respawnTimeInSeconds = "0";
+
+            // Testing
+            //respawnTimeInSeconds = "abcde";
+
+            float timerScale = 1f;
+
+            Vector2 timerSize = FontAssets.DeathText.Value.MeasureString(respawnTimeInSeconds) * timerScale;
+
+            Vector2 timerPos = new(
+                rect.X + (rect.Width - timerSize.X) * 0.5f,
+                rect.Y + (rect.Height - timerSize.Y) * 0.5f
+            );
+
+            // manual adjustment
+            timerPos.Y += 10;
+
+
+            Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, timerPos, Color.LightGray, scale: timerScale);
         }
 
         // Draw teleport to if it exists

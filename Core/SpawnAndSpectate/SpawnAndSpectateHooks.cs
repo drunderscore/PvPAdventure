@@ -45,6 +45,26 @@ public class SpawnAndSpectateHooks : ModSystem
         Player p = Main.LocalPlayer;
 
         float y = -60f;
+
+        // If we are spectating someone and seconds is at 0, move the y down
+        bool spectating = SpawnAndSpectateSystem.HoverSpectatePlayerIndex.HasValue
+                            || SpawnAndSpectateSystem.SpectatePlayerIndex.HasValue
+                            || SpawnAndSpectateSystem.HoveringWorldSpawn;
+
+        // Seconds remaining until respawn
+        int seconds = (int)(1f + p.respawnTimer / 60f);
+
+        // When spawn selector is open and can respawn, show 0 seconds remaining
+        if (p.respawnTimer <= 2 && SpawnAndSpectateSystem.CanRespawn)
+        {
+            seconds = 0;
+        }
+
+        if (spectating || seconds == 0)
+        {
+            y += 260f;
+        }
+
         string str = Lang.inter[38].Value;
 
         // Draw "You were slain" text
@@ -69,22 +89,7 @@ public class SpawnAndSpectateHooks : ModSystem
         y += (p.lostCoins > 0 ? 24f : 50f) + 20f;
         float scale = 0.7f;
 
-        // Seconds remaining until respawn
-        int seconds = (int)(1f + p.respawnTimer / 60f);
-
-        // When spawn selector is open and can respawn, show 0 seconds remaining
-        if (p.respawnTimer <= 2 && SpawnAndSpectateSystem.CanRespawn)
-        {
-            seconds = 0;
-        }
-
         string respawnText = Language.GetTextValue("Game.RespawnInSuffix", seconds.ToString());
-
-        // If we are spectating someone and seconds is at 0, skip drawing the respawn timer
-        if (seconds == 0 && SpawnAndSpectateSystem.SpectatePlayerIndex.HasValue)
-        {
-            return;
-        }
 
         // Draw respawn timer
         DynamicSpriteFontExtensionMethods.DrawString(

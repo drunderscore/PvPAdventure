@@ -64,10 +64,10 @@ public class WorldSpawnPanel : UIPanel
         {
             string text;
             var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
-            //bool readyToRespawn = SpawnAndSpectateSystem.CanRespawn;
+            bool readyToRespawn = SpawnAndSpectateSystem.CanRespawn;
             bool committed = respawnPlayer.IsWorldSpawnCommitted;
 
-            if (Main.LocalPlayer.dead)
+            if (Main.LocalPlayer.dead && !readyToRespawn)
             {
                 text = committed
                     ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelWorldSpawn")
@@ -84,21 +84,27 @@ public class WorldSpawnPanel : UIPanel
         // Draw green spawn point icon
         var d = GetDimensions();
         var tex = TextureAssets.SpawnPoint.Value;
+
         Vector2 pos = new(
             d.X + d.Width * 0.5f,
             d.Y + d.Height * 0.5f
         );
 
+        float baseScale = 1.6f;
+        float hoverScale = 1.6f;
+
+        float scale = IsMouseHovering ? hoverScale : baseScale;
+
         sb.Draw(
             tex,
             pos,
-            null,
-            Color.White,
-            0f,
-            tex.Size() * 0.5f, // origin = center
-            1.5f,                // scale 2x
-            SpriteEffects.None,
-            0f
+            sourceRectangle: null,
+            color: Color.White,
+            rotation: 0f,
+            origin: tex.Size() * 0.5f,
+            scale: scale,
+            effects: SpriteEffects.None,
+            layerDepth: 0f
         );
 
         // Debug
@@ -114,6 +120,9 @@ public class WorldSpawnPanel : UIPanel
     {
         base.Update(gameTime);
 
+        // Drive camera preview while hovering this panel.
+        SpawnAndSpectateSystem.HoveringWorldSpawn = IsMouseHovering;
+
         if (!Main.LocalPlayer.dead)
         {
             BorderColor = Color.Black;
@@ -122,6 +131,12 @@ public class WorldSpawnPanel : UIPanel
 
         var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
         bool committed = respawnPlayer != null && respawnPlayer.IsWorldSpawnCommitted;
-        BorderColor = committed ? Color.Yellow : Color.Black;
+
+        if (committed)
+            BackgroundColor = Color.Yellow;
+        else if (IsMouseHovering)
+            BackgroundColor = new Color(73, 92, 161, 150);
+        else
+            BackgroundColor = new Color(63, 82, 151);
     }
 }

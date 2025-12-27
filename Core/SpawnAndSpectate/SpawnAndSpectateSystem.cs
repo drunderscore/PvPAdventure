@@ -35,6 +35,9 @@ public class SpawnAndSpectateSystem : ModSystem
     public static int? SpectatePlayerIndex = null; // Currently spectated player
     public static int? SelectedSpawnPlayerIndex = null; // Currently selected player to spawn on
     public static int? HoverSpectatePlayerIndex = null; // Temporary spectate while hovering a row
+
+    public static bool HoveringWorldSpawn;
+
     public static bool ShouldShowUI
     {
         get
@@ -120,21 +123,32 @@ public class SpawnAndSpectateSystem : ModSystem
         Main.OnPostFullscreenMapDraw -= DrawOnFullscreenMap;
     }
 
+    private bool _wasShowingUI;
     public override void UpdateUI(GameTime gameTime)
     {
         if (ui == null)
             return;
 
-        if (!ShouldShowUI)
+        bool show = ShouldShowUI;
+
+        if (!show)
         {
+            _wasShowingUI = false;
+
+            HoveringWorldSpawn = false;
             if (ui.CurrentState != null)
                 ui.SetState(null);
 
             return;
         }
 
-        if (ui.CurrentState != spawnSelectorState)
+        // entering UI this frame
+        if (!_wasShowingUI || ui.CurrentState != spawnSelectorState)
+        {
+            spawnSelectorState.Rebuild();
             ui.SetState(spawnSelectorState);
+            _wasShowingUI = true;
+        }
 
         ui.Update(gameTime);
     }
@@ -171,7 +185,10 @@ public class SpawnAndSpectateSystem : ModSystem
         }
 
         if (!IsValidTeammateIndex(idx))
+        {
+            HoverSpectatePlayerIndex = null;
             return;
+        }
 
         HoverSpectatePlayerIndex = idx;
     }
@@ -183,18 +200,33 @@ public class SpawnAndSpectateSystem : ModSystem
     }
 
     /// <summary>
-    /// If a target player exists, moves the screen position to follow the spectated player.
+    /// Adjusts the screen position to follow the current spectated player or the world spawn point during spectate mode.
     /// </summary>
     public override void ModifyScreenPosition()
     {
         Player local = Main.LocalPlayer;
 
         bool canSpectate = local != null && local.active && (local.dead || IsAliveSpawnRegionInstant);
-
         if (!canSpectate)
         {
             HoverSpectatePlayerIndex = null;
             SpectatePlayerIndex = null;
+            HoveringWorldSpawn = false;
+            return;
+        }
+
+        // World spawn preview takes priority over player hover/lock.
+        if (HoveringWorldSpawn)
+        {
+            Vector2 spawnWorld = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
+            Vector2 targetTopLeft = spawnWorld - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+
+            // Snap:
+            Main.screenPosition = targetTopLeft;
+
+            // Smooth:
+            //Main.screenPosition = Vector2.Lerp(Main.screenPosition, targetTopLeft, 0.18f);
+
             return;
         }
 
@@ -220,7 +252,7 @@ public class SpawnAndSpectateSystem : ModSystem
             return;
         }
 
-        Main.screenPosition = target.position - new Vector2(Main.screenWidth, Main.screenHeight) / 2f;
+        Main.screenPosition = target.position - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
     }
 
     #endregion

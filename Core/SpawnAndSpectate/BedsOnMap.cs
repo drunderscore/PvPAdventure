@@ -56,6 +56,7 @@ internal class BedsOnMap : ModSystem
         Player localPlayer = Main.LocalPlayer;
         var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
         bool selectorEnabled = sys.ui.CurrentState == sys.spawnSelectorState;
+        bool hoveringWorldSpawn = SpawnAndSpectateSystem.HoveringWorldSpawn;
 
         // Draw world spawn point + handle teleport
         var worldSpawnHover = context.Draw(
@@ -63,18 +64,18 @@ internal class BedsOnMap : ModSystem
                 position: new Vector2(Main.spawnTileX, Main.spawnTileY),
                 color: Color.White,
                 frame: new SpriteFrame(1, 1),
-                scaleIfNotSelected: 1.0f,
+                scaleIfNotSelected: hoveringWorldSpawn ? 1.8f : 1.0f,
                 scaleIfSelected: 1.8f,
                 alignment: Alignment.Bottom,
                 spriteEffects: SpriteEffects.None
-            );
+        );
 
-        if (worldSpawnHover.IsMouseOver)
+        if (worldSpawnHover.IsMouseOver || SpawnAndSpectateSystem.HoveringWorldSpawn)
         {
             Main.LocalPlayer.mouseInterface = true;
 
             text = selectorEnabled
-                ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToWorldSpawn")
+                ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.WorldSpawn")
                 : Language.GetTextValue("UI.SpawnPoint");
 
             if (selectorEnabled && Main.mouseLeft && Main.mouseLeftRelease)

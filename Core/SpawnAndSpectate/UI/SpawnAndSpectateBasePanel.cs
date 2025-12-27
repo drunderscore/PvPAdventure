@@ -156,6 +156,10 @@ public class SpawnAndSpectateBasePanel : UIPanel
         if (NeedsRebuild())
         {
             Rebuild();
+
+#if DEBUG
+            Main.NewText("[DEBUG]: Rebuilt SpawnAndSpectateBasePanel");
+#endif
         }
 
         base.Update(gameTime);
