@@ -14,43 +14,50 @@ Mods: {
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
-			DLStartGameTool.DisplayName: DL Start Game Tool
-			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
+			// DLAdminManagerTool.DisplayName: D L Admin Manager Tool
+			// DLEndGameTool.DisplayName: D L End Game Tool
+			// DLEndGameToolRightClick.DisplayName: D L End Game Tool Right Click
 			DLPauseTool.DisplayName: DL Pause Tool
-			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
-			DLGameStarterTool.DisplayName: D L Game Starter Tool
-			DLGameStarterToolRightClick.DisplayName: D L Game Starter Tool Right Click
 			DLPointsSetterTool.DisplayName: D L Points Setter Tool
-			DLGameManagerTool.DisplayName: D L Game Manager Tool
-			DLGameManagerToolRightClick.DisplayName: D L Game Manager Tool Right Click
-			// DLSpectateTool.DisplayName: D L Spectate Tool
+			DLStartGameTool.DisplayName: DL Start Game Tool
+			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
+			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
 		}
 
 		Tools: {
-			DLGameManagerTool: {
-				DisplayName: Game Manager
+			DLStartGameTool: {
+				// DisplayName: Start Game
+				// AdjustGameTime: Adjust Game Time
 
 				Description: {
-					RightClickToEndGame: End the game. Right click to end the game instantly
-					CountdownInProgress: A countdown is already in progress!
-					RightClickToStartGame: Start the game. Right click to start game instantly
-					UnknownState: Error: The game is in an unknown state
+					// StartGameDescription: Allows you to start the game. Right click to start instantly
+					// AdjustGameTimeDescription: Allows you to adjust the game time.
+					// CountdownInProgress: A countdown is already in progress!
 				}
 
-				RightClickName: DLStartGameTool Right Click
-				CannotStart: Cannot start the game while a countdown is in progress
-				ReallyEndGame: Really end game?
-				Yes: Yes
-				No: No
-				StartGame: Start Game
-				Time: Time
-				Countdown: Countdown
-				StartExclamation: Start!
+				// RightClickName: DLStartGameTool Right Click
+				// CannotStart: Cannot start the game while a countdown is in progress
+				// ReallyEndGame: Really end game?
+				// Time: Time
+				// Countdown: Countdown
+				// StartExclamation: Start!
+				// Apply: Apply
+			}
+
+			DLEndGameTool: {
+				// DisplayName: End Game
+				// Description: Ends the game timer. Right click to end the game instantly
+				// ReallyEndGame: Really end game?
+				// CountdownInProgress: Cannot end the game while a countdown is in progress
+				// GameNotStartedYet: Game hasn't started yet!
+				// Yes: Yes
+				// No: No
+				// RightClickName: DLEndGameTool Right Click
 			}
 
 			DLTeamAssignerTool: {
 				DisplayName: Team Assigner
-				TitlePanelName: Assign Teams
+				// AssignTeams: Assign Teams
 				Description: Assign teams for the game
 			}
 
@@ -65,13 +72,13 @@ Mods: {
 
 			DLPointsSetterTool: {
 				DisplayName: Points Setter
-				TitlePanelName: Set Points
+				// SetPoints: Set Points
 				Description: The tool has no description! Add one in .hjson files!
 			}
 
-			DLSpectateTool: {
-				// DisplayName: DLSpectateTool
-				// Description: The tool has no description! Add one in .hjson files!
+			DLAdminManagerTool: {
+				// DisplayName: Admin Manager
+				// Description: Allows you to manage admin status of all players in the lobby.
 			}
 		}
 
@@ -1210,9 +1217,9 @@ Mods: {
 
 		SpawnAndSpectate: {
 			// ChooseYourSpawn: Choose Your Spawn
-			// TeleportToPlayer: Teleport to {0}
-			// Random: Random Teleport
-			// WorldSpawn: Teleport to World Spawn
+			// TeleportToPlayer: "{0}"
+			// Random: Random
+			// WorldSpawn: World Spawn
 			// PlayersBed: "{0}'s Bed"
 			// TeleportToPlayersBed: Teleport to {0}'s Bed
 			// SelectRandomSpawn: Select Random Spawn
@@ -1221,8 +1228,8 @@ Mods: {
 			// CancelWorldSpawn: Cancel World Spawn
 			// SelectPlayerSpawn: Select {0}'s Spawn
 			// CancelPlayerSpawn: Cancel {0}'s Spawn
-			// SpectatePlayer: Lock Spectate {0}
-			// StopSpectatingPlayer: Unlock Spectate {0}
+			// SpectatePlayer: Spectate {0}
+			// StopSpectatingPlayer: Unspectate {0}
 		}
 
 		Item: {

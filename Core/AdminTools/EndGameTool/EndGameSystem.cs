@@ -4,27 +4,26 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.AdminTools.TeamAssigner;
+namespace PvPAdventure.Core.AdminTools.EndGameTool;
 
-/// <summary>
-/// The system responsible for managing the team selector UI.
-/// </summary>
 [Autoload(Side = ModSide.Client)]
-public class TeamAssignerSystem : ModSystem
+internal class EndGameSystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState teamAssignerState;
+    public UIState endGameUIState;
 
     // State
-    public bool IsActive() => ui?.CurrentState == teamAssignerState;
-    public void ToggleActive() => ui.SetState(IsActive() ? null : teamAssignerState);
+    public bool IsActive() => ui?.CurrentState == endGameUIState;
+    public void ToggleActive() => ui.SetState(IsActive() ? null : endGameUIState);
 
     public override void OnWorldLoad()
     {
         ui = new();
-        teamAssignerState = new();
-        teamAssignerState.Append(new TeamAssignerPanel());
+        endGameUIState = new();
+        endGameUIState.Append(new EndGamePanel());
+
+        ui.SetState(null);
     }
     public override void UpdateUI(GameTime gameTime)
     {
@@ -38,7 +37,7 @@ public class TeamAssignerSystem : ModSystem
         if (index != -1)
         {
             layers.Insert(index, new LegacyGameInterfaceLayer(
-                name: "PvPAdventure: TeamAssignerSystem",
+                name: "PvPAdventure: EndGameSystem",
                 drawMethod: () =>
                 {
                     if (IsActive())
@@ -47,6 +46,7 @@ public class TeamAssignerSystem : ModSystem
 
                         // Debug
                         //Main.spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.Red * 0.5f);
+
                         return true;
                     }
                     return true;
@@ -56,3 +56,5 @@ public class TeamAssignerSystem : ModSystem
         }
     }
 }
+
+

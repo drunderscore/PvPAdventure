@@ -1,7 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Debug;
-using PvPAdventure.Core.AdminTools.GameManagerIntegration;
-using PvPAdventure.Core.AdminTools.TeamAssigner;
+using PvPAdventure.Core.AdminTools.AdminManagerTool;
+using PvPAdventure.Core.AdminTools.EndGameTool;
+using PvPAdventure.Core.AdminTools.StartGameTool;
 using PvPAdventure.System;
 using System;
 using Terraria;
@@ -41,7 +42,7 @@ public sealed class HerosModIntegration : ModSystem
         // Pause game
         herosMod.Call("AddSimpleButton",
             PauseGamePermissionKey,
-            Ass.Pause,
+            Ass.Icon_PauseGame,
             (Action)(() =>
             {
                 var pm = ModContent.GetInstance<PauseManager>();
@@ -61,13 +62,13 @@ public sealed class HerosModIntegration : ModSystem
     {
         herosMod.Call("AddSimpleButton",
             PlayGamePermissionKey,
-            Ass.Play,
+            Ass.Icon_StartGame,
             (Action)(() =>
             {
                 var gm = ModContent.GetInstance<GameManager>();
                 if (gm.CurrentPhase == GameManager.Phase.Playing)
                 {
-                    ModContent.GetInstance<GameManagerSystem>().ShowEndDialog();
+                    ModContent.GetInstance<StartGameSystem>().ShowExtendGameDialog();
                 }
                 else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
                 {
@@ -78,7 +79,7 @@ public sealed class HerosModIntegration : ModSystem
                 }
                 else
                 {
-                    var gms = ModContent.GetInstance<GameManagerSystem>();
+                    var gms = ModContent.GetInstance<StartGameSystem>();
                     if (gms.IsActive())
                     {
                         gms.Hide();
@@ -103,7 +104,7 @@ public sealed class HerosModIntegration : ModSystem
                 }
                 else
                 {
-                    var gss = ModContent.GetInstance<GameManagerSystem>();
+                    var gss = ModContent.GetInstance<StartGameSystem>();
                     if (gss.IsActive())
                     {
                         return "Close game starter";
@@ -120,18 +121,18 @@ public sealed class HerosModIntegration : ModSystem
     {
         herosMod.Call("AddSimpleButton",
             TeamAssignerPermissionKey,
-            Ass.TeamAssignerIcon,
+            Ass.Icon_TeamAssigner,
             () =>
             {
                 // Toggle active state of team selector
-                var tas = ModContent.GetInstance<TeamAssignerSystem>();
+                var tas = ModContent.GetInstance<AdminManagerSystem>();
                 tas.ToggleActive();
             },
             (Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamAssignerPermissionKey)),
             () =>
             {
                 // Update text depending on state
-                var tas = ModContent.GetInstance<TeamAssignerSystem>();
+                var tas = ModContent.GetInstance<AdminManagerSystem>();
                 if (!tas.IsActive())
                 {
                     return "Open team assigner";

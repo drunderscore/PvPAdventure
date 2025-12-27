@@ -6,12 +6,10 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using Terraria.ModLoader.UI;
-using Terraria.UI;
 
-namespace PvPAdventure.Core.AdminTools.GameManagerIntegration;
+namespace PvPAdventure.Core.AdminTools.EndGameTool;
 
-internal class EndGameElement : DraggablePanel
+internal class EndGamePanel : DraggablePanel
 {
     private readonly UITextPanel<string> yesButton;
     private readonly UITextPanel<string> noButton;
@@ -20,10 +18,10 @@ internal class EndGameElement : DraggablePanel
     protected override float MinResizeH => 100f;
     protected override void OnClosePanelLeftClick()
     {
-        ModContent.GetInstance<GameManagerSystem>().Hide();
+        ModContent.GetInstance<EndGameSystem>().ToggleActive();
     }
 
-    public EndGameElement() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.ReallyEndGame"))
+    public EndGamePanel() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.ReallyEndGame"))
     {
         Width.Set(400, 0);
         Height.Set(100, 0);
@@ -32,7 +30,7 @@ internal class EndGameElement : DraggablePanel
         ContentPanel.SetPadding(12f);
 
         // No
-        noButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.No"))
+        noButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.No"))
         {
             Width = { Pixels = 120f },
             Height = { Pixels = 40f },
@@ -45,10 +43,10 @@ internal class EndGameElement : DraggablePanel
             //Main.instance.MouseText("Click to cancel prompt");
         };
         noButton.OnMouseOut += (_, _) => noButton.BorderColor = Color.Black;
-        noButton.OnLeftClick += (_, _) => ModContent.GetInstance<GameManagerSystem>().Hide();
+        noButton.OnLeftClick += (_, _) => ModContent.GetInstance<EndGameSystem>().ToggleActive();
 
         // Yes
-        yesButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.Yes"))
+        yesButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.Yes"))
         {
             Width = { Pixels = 120f },
             Height = { Pixels = 40f },
@@ -74,7 +72,7 @@ internal class EndGameElement : DraggablePanel
                 packet.Send();
             }
 
-            ModContent.GetInstance<GameManagerSystem>().Hide();
+            ModContent.GetInstance<EndGameSystem>().ToggleActive();
         };
 
         ContentPanel.Append(noButton);

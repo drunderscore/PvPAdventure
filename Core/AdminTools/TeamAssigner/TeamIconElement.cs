@@ -69,7 +69,7 @@ public class TeamIconElement : UIElement
         }
 
         // Always rebuild UI
-        if (Parent?.Parent is TeamAssignerElement panel)
+        if (Parent?.Parent is TeamAssignerPanel panel)
             panel.needsRebuild = true;
     }
 

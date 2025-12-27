@@ -5,6 +5,7 @@ using DragonLens.Content.GUI;
 using DragonLens.Content.Themes.BoxProviders;
 using DragonLens.Content.Themes.IconProviders;
 using DragonLens.Content.Tools;
+using DragonLens.Content.Tools.Developer;
 using DragonLens.Content.Tools.Editors;
 using DragonLens.Content.Tools.Gameplay;
 using DragonLens.Content.Tools.Map;
@@ -86,11 +87,12 @@ public class DLLayout : ModSystem
             // left PvPAdventure toolbar
             n.Add(
                 new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
-                .AddTool<DLGameManagerTool>()
+                .AddTool<DLStartGameTool>()
+                .AddTool<DLEndGameTool>()
+                .AddTool<DLPauseTool>()
                 .AddTool<DLTeamAssignerTool>()
                 .AddTool<DLPointsSetterTool>()
-                .AddTool<DLPauseTool>()
-                .AddTool<PlayerManager>()
+                .AddTool<DLAdminManagerTool>()
             );
         },
         ThemeHandler.GetBoxProvider<SimpleBoxes>(),
@@ -115,18 +117,21 @@ public class DLLayout : ModSystem
                 .AddTool<Time>()
                 .AddTool<Weather>()
                 .AddTool<SpawnTool>() // enemy spawn rate
+                .AddTool<PlayerManager>()
+                .AddTool<PlayerEditorTool>()
                 .AddTool<CustomizeTool>()
             );
 
             // left PvPAdventure toolbar
             n.Add(
-                new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
-                .AddTool<DLGameManagerTool>()
-                .AddTool<DLTeamAssignerTool>()
-                .AddTool<DLPointsSetterTool>()
-                .AddTool<DLPauseTool>()
-                .AddTool<PlayerManager>()
-            );
+               new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
+               .AddTool<DLStartGameTool>()
+               .AddTool<DLEndGameTool>()
+               .AddTool<DLPauseTool>()
+               .AddTool<DLTeamAssignerTool>()
+               .AddTool<DLPointsSetterTool>()
+               .AddTool<DLAdminManagerTool>()
+           );
 
             // right toolbar
             n.Add(
@@ -137,6 +142,7 @@ public class DLLayout : ModSystem
                 .AddTool<InfiniteReach>()
                 .AddTool<NoClip>()
                 .AddTool<SystemEditorTool>()
+                .AddTool<AssetManager>()
             );
 
             // left map toolbar
