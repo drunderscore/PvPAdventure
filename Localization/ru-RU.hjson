@@ -1196,12 +1196,14 @@ Mods: {
 
 		AdventureMirror: {
 			GameNotStarted: дождитесь начала игры!
+			// CannotUseInSpawn: cannot use in spawn!
+			// CannotUseWhileMoving: cannot use while moving!
 			CannotDrop: нельзя выбросить!
 			CannotUnfavorite: нельзя убрать из избранного!
 			CannotTrash: нельзя удалить!
 			CannotSell: нельзя продать!
 			// CannotStore: cannot store!
-			// Cancelled: recall cancelled!
+			// Cancelled: cancelled!
 		}
 
 		// DashKeybind.NoDashItem: you have no dash item!
@@ -1210,12 +1212,18 @@ Mods: {
 			// ChooseYourSpawn: Choose Your Spawn
 			// TeleportToPlayer: Teleport to {0}
 			// Random: Random
+			// WorldSpawn: World Spawn
+			// TeleportToWorldSpawn: Teleport to World Spawn
 			// PlayersBed: "{0}'s Bed"
 			// TeleportToPlayersBed: Teleport to {0}'s Bed
 			// SelectRandomSpawn: Select Random Spawn
 			// CancelRandomSpawn: Cancel Random Spawn
+			// SelectWorldSpawn: Select World Spawn
+			// CancelWorldSpawn: Cancel World Spawn
 			// SelectPlayerSpawn: Select {0}'s Spawn
 			// CancelPlayerSpawn: Cancel {0}'s Spawn
+			// SpectatePlayer: Right click to spectate {0}
+			// StopSpectatingPlayer: Right click to stop spectating {0}
 		}
 
 		Item: {

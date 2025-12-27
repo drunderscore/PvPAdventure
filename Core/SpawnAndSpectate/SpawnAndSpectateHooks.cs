@@ -47,11 +47,13 @@ public class SpawnAndSpectateHooks : ModSystem
         float y = -60f;
         string str = Lang.inter[38].Value;
 
+        // Draw "You were slain" text
         DynamicSpriteFontExtensionMethods.DrawString(
             Main.spriteBatch, FontAssets.DeathText.Value, str,
             new Vector2(Main.screenWidth / 2f - FontAssets.DeathText.Value.MeasureString(str).X / 2f, Main.screenHeight / 2f + y),
             p.GetDeathAlpha(Color.Transparent), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
 
+        // Draw dropped coins text
         if (p.lostCoins > 0)
         {
             y += 50f;
@@ -64,28 +66,31 @@ public class SpawnAndSpectateHooks : ModSystem
                 p.GetDeathAlpha(Color.Transparent), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         }
 
-        float num2 = y + (p.lostCoins > 0 ? 24f : 50f) + 20f;
+        y += (p.lostCoins > 0 ? 24f : 50f) + 20f;
         float scale = 0.7f;
 
-        // Vanilla-ish seconds remaining (ceil-ish behavior)
+        // Seconds remaining until respawn
         int seconds = (int)(1f + p.respawnTimer / 60f);
 
-        // My edit: when player is "ready" but blocked by spawn selection, display 0.
+        // When spawn selector is open and can respawn, show 0 seconds remaining
         if (p.respawnTimer <= 2 && SpawnAndSpectateSystem.CanRespawn)
         {
             seconds = 0;
         }
 
         string respawnText = Language.GetTextValue("Game.RespawnInSuffix", seconds.ToString());
-        if (seconds == 0)
+
+        // If we are spectating someone and seconds is at 0, skip drawing the respawn timer
+        if (seconds == 0 && SpawnAndSpectateSystem.SpectatePlayerIndex.HasValue)
         {
-            respawnText += "";
+            return;
         }
 
+        // Draw respawn timer
         DynamicSpriteFontExtensionMethods.DrawString(
             Main.spriteBatch, FontAssets.DeathText.Value, respawnText,
             new Vector2(Main.screenWidth / 2f - FontAssets.MouseText.Value.MeasureString(respawnText).X * scale / 2f,
-                Main.screenHeight / 2f + num2),
+                Main.screenHeight / 2f + y),
             p.GetDeathAlpha(Color.Transparent), 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
     }
 

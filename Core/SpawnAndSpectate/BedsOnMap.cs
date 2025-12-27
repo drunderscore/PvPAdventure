@@ -54,18 +54,53 @@ internal class BedsOnMap : ModSystem
         // orig(self, ref context, ref text);
 
         Player localPlayer = Main.LocalPlayer;
+        var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
+        bool selectorEnabled = sys.ui.CurrentState == sys.spawnSelectorState;
 
-        // World spawn icon
-        if (context.Draw(
-                position: new Vector2(Main.spawnTileX, Main.spawnTileY),
+        // Draw world spawn point + handle teleport
+        var worldSpawnHover = context.Draw(
                 texture: TextureAssets.SpawnPoint.Value,
-                alignment: Alignment.Bottom
-            ).IsMouseOver)
+                position: new Vector2(Main.spawnTileX, Main.spawnTileY),
+                color: Color.White,
+                frame: new SpriteFrame(1, 1),
+                scaleIfNotSelected: 1.0f,
+                scaleIfSelected: 1.8f,
+                alignment: Alignment.Bottom,
+                spriteEffects: SpriteEffects.None
+            );
+
+        if (worldSpawnHover.IsMouseOver)
         {
-            text = Language.GetTextValue("UI.SpawnPoint");
+            Main.LocalPlayer.mouseInterface = true;
+
+            text = selectorEnabled
+                ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToWorldSpawn")
+                : Language.GetTextValue("UI.SpawnPoint");
+
+            if (selectorEnabled && Main.mouseLeft && Main.mouseLeftRelease)
+            {
+                if (Main.netMode == NetmodeID.SinglePlayer)
+                {
+                    Vector2 spawnWorld = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
+                    Main.LocalPlayer.Teleport(spawnWorld, TeleportationStyleID.RecallPotion);
+                    Main.mapFullscreen = false;
+                    return;
+                }
+
+                if (Main.netMode == NetmodeID.MultiplayerClient)
+                {
+                    ModPacket p = Mod.GetPacket();
+                    p.Write((byte)AdventurePacketIdentifier.WorldSpawnTeleport);
+                    p.Write((byte)Main.myPlayer);
+                    p.Send();
+
+                    Main.mapFullscreen = false;
+                    return;
+                }
+            }
         }
 
-        // Local player's bed (only if valid)
+        // Draw local player's bed
         if (HasValidBedSpawn(localPlayer))
         {
             Vector2 localBedPos = new(localPlayer.SpawnX, localPlayer.SpawnY);
@@ -76,10 +111,8 @@ internal class BedsOnMap : ModSystem
             }
         }
 
-        // Team beds + teleports
+        // Draw team beds + handle teleport
         spawnBedTexture ??= TextureAssets.SpawnBed;
-        var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
-        bool selectorEnabled = sys.ui.CurrentState == sys.spawnSelectorState;
 
         for (int i = 0; i < Main.maxPlayers; i++)
         {
@@ -107,13 +140,13 @@ internal class BedsOnMap : ModSystem
                 continue;
 
             // Hovering over this player's bed
-            text = Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.PlayersBed", player.name);
+            text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.PlayersBed", player.name);
 
             if (!selectorEnabled)
                 continue;
 
             // Selector is enabled, allow teleporting
-            text = Language.GetTextValue("Mods.PvPAdventure.SpawnSelector.TeleportToPlayersBed", player.name);
+            text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayersBed", player.name);
 
             if (Main.mouseLeft && Main.mouseLeftRelease)
             {
@@ -140,7 +173,7 @@ internal class BedsOnMap : ModSystem
         }
     }
 
-    internal static void HandlePacket(BinaryReader reader, int whoAmI)
+    public static void HandleBedTeleportPacket(BinaryReader reader, int whoAmI)
     {
         byte playerId = reader.ReadByte();
         short bedX = reader.ReadInt16();
@@ -179,6 +212,41 @@ internal class BedsOnMap : ModSystem
 #if DEBUG
         ChatHelper.BroadcastChatMessage(
             NetworkText.FromLiteral($"[DEBUG/SERVER] Player {player.name} teleported to bed ({bedX}, {bedY})."),
+            Color.White
+        );
+#endif
+    }
+    public static void HandleWorldSpawnPacket(BinaryReader reader, int whoAmI)
+    {
+        byte playerId = reader.ReadByte();
+
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        if (playerId != whoAmI)
+            return;
+
+        Player player = Main.player[playerId];
+        if (player is null || !player.active)
+            return;
+
+        Vector2 spawnWorld = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
+
+        player.Teleport(spawnWorld, TeleportationStyleID.RecallPotion);
+
+        NetMessage.SendData(
+            MessageID.TeleportEntity,
+            -1, -1, null,
+            number: 0,
+            number2: player.whoAmI,
+            number3: spawnWorld.X,
+            number4: spawnWorld.Y,
+            number5: TeleportationStyleID.RecallPotion
+        );
+
+#if DEBUG
+        ChatHelper.BroadcastChatMessage(
+            NetworkText.FromLiteral($"[DEBUG/SERVER] Player {player.name} teleported to world spawn ({spawnWorld.X}, {spawnWorld.Y})."),
             Color.White
         );
 #endif

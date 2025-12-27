@@ -19,6 +19,8 @@ namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 /// </summary>
 internal class SpawnAndSpectateCharacter : UIPanel
 {
+    private readonly bool isDebugTest;
+
     internal const float ItemWidth = 260f;
     internal const float ItemHeight = 72f;
 
@@ -29,10 +31,13 @@ internal class SpawnAndSpectateCharacter : UIPanel
     private readonly int playerIndex;
     public int PlayerIndex => playerIndex;
 
-    public SpawnAndSpectateCharacter(int _playerIndex)
+    // UI components
+    public SpectateButton spectateButton;
+
+    public SpawnAndSpectateCharacter(int _playerIndex, bool isDebugTest = false)
     {
-        // Set player index
         playerIndex = _playerIndex;
+        this.isDebugTest = isDebugTest;
 
         // Load assets
         dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
@@ -50,6 +55,31 @@ internal class SpawnAndSpectateCharacter : UIPanel
         Width.Set(ItemWidth, 0f);
 
         SetPadding(6f);
+
+        spectateButton = new SpectateButton(playerIndex);
+        Append(spectateButton);
+
+        UpdateSpectateButtonLayout();
+    }
+
+    private void UpdateSpectateButtonLayout()
+    {
+        if (spectateButton == null)
+            return;
+
+        const float leftColumnWidth = 106f;
+        float rightAreaWidth = ItemWidth - 22f - leftColumnWidth;
+
+        float panelWidth = rightAreaWidth + 24f;
+        float panelX = leftColumnWidth - 4f; // relative to inner-left
+        float panelY = -6f;
+
+        float x = panelX + panelWidth - spectateButton.Width.Pixels - 6f;
+        float y = panelY + 2f;
+
+        spectateButton.Left.Set(x, 0f);
+        spectateButton.Top.Set(y, 0f);
+        spectateButton.Recalculate();
     }
 
     public override void MouseOver(UIMouseEvent evt)
@@ -86,7 +116,7 @@ internal class SpawnAndSpectateCharacter : UIPanel
 
         var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
 
-        // Alive + in spawn region: instant teleport, no commit, no border semantics.
+        // Alive + in spawn region: instant teleport
         if (SpawnAndSpectateSystem.IsAliveSpawnRegionInstant)
         {
             respawnPlayer.TeammateTeleport(playerIndex);
@@ -115,16 +145,65 @@ internal class SpawnAndSpectateCharacter : UIPanel
 
     public override void Update(GameTime gameTime)
     {
-        base.Update(gameTime);
+        UpdateSpectateButtonLayout();
 
-        bool hovered = IsMouseHovering;
+        bool hovering =
+            IsMouseHovering ||
+            (spectateButton != null && spectateButton.IsMouseHovering);
+
+        if (hovering)
+            SpawnAndSpectateSystem.TrySetHoverSpectate(playerIndex);
+        else
+            SpawnAndSpectateSystem.ClearHoverSpectateIfMatch(playerIndex);
 
         var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
         bool selectedSpawn = respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex);
-        bool spectated = SpawnAndSpectateSystem.SpectatePlayerIndex == playerIndex;
 
-        BackgroundColor = hovered ? new Color(73, 92, 161, 150) : new Color(63, 82, 151) * 0.8f;
-        BorderColor = spectated ? Color.Cyan : selectedSpawn ? Color.Yellow : Color.Black;
+        if (hovering)
+            BackgroundColor = new Color(73, 92, 161, 150);
+        else if (selectedSpawn)
+            BackgroundColor = Color.Yellow;
+        else
+            BackgroundColor = new Color(63, 82, 151) * 0.8f;
+
+        BorderColor = selectedSpawn ? Color.Yellow : Color.Black;
+
+        base.Update(gameTime);
+    }
+
+    private void DrawHoverText(Player player)
+    {
+        Main.LocalPlayer.mouseInterface = true;
+
+        if (!player.dead)
+        {
+            var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
+            var spawnPointPlayer = Main.LocalPlayer.GetModPlayer<SpawnPointPlayer>();
+            bool ready = SpawnAndSpectateSystem.CanRespawn || spawnPointPlayer.IsPlayerInSpawnRegion();
+            bool selectedSpawn = respawnPlayer.IsTeammateCommitted(player.whoAmI);
+
+            string text;
+            if (ready)
+            {
+                text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayer", player.name);
+            }
+            else
+            {
+                text = selectedSpawn
+                    ? $"{player.name} selected for spawn"
+                    : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectPlayerSpawn", player.name);
+            }
+
+            //bool canSpectate = SpawnAndSpectateSystem.IsAliveSpawnRegionInstant;
+            //if (canSpectate)
+            //{
+                //text += SpawnAndSpectateSystem.SpectatePlayerIndex == player.whoAmI
+                    //? "\n" + Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.StopSpectatingPlayer", player.name)
+                    //: "\n" + Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SpectatePlayer", player.name);
+            //}
+
+            Main.instance.MouseText(text);
+        }
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -182,10 +261,19 @@ internal class SpawnAndSpectateCharacter : UIPanel
         float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
 
         // Name centered in the right-area
-        string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name + "";
+        string name;
+
+        if (isDebugTest)
+            name = "Test";
+        else
+            name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
+
         float nameScale = 1f;
-        if (player.name.Length > 16) nameScale = 0.85f;
+        if (name.Length > 16)
+            nameScale = 0.85f;
+
         Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
+
 
         Vector2 namePos = new(
             rightAreaCenterX - nameSize.X * 0.5f,
@@ -251,38 +339,7 @@ internal class SpawnAndSpectateCharacter : UIPanel
         // Draw teleport to if it exists
         if (IsMouseHovering)
         {
-            Main.LocalPlayer.mouseInterface = true;
-
-            if (!player.dead)
-            {
-                var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
-                var spawnPointPlayer = Main.LocalPlayer.GetModPlayer<SpawnPointPlayer>();
-                bool ready = SpawnAndSpectateSystem.CanRespawn || spawnPointPlayer.IsPlayerInSpawnRegion();
-                bool selectedSpawn = respawnPlayer.IsTeammateCommitted(player.whoAmI);
-
-                string text;
-                if (ready)
-                {
-                    // No prior commit at the ready gate: first click will commit and execute immediately.
-                    text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayer", player.name);
-                }
-                else
-                {
-                    text = selectedSpawn
-                        ? $"{player.name} selected for spawn"
-                        : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectPlayerSpawn", player.name);
-                }
-
-                bool canSpectate = SpawnAndSpectateSystem.IsAliveSpawnRegionInstant;
-                if (canSpectate)
-                {
-                    text += SpawnAndSpectateSystem.SpectatePlayerIndex == player.whoAmI
-                        ? "\n" + Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.StopSpectatingPlayer", player.name)
-                        : "\n" + Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SpectatePlayer", player.name);
-                }
-
-                Main.instance.MouseText(text);
-            }
+            DrawHoverText(player);
         }
     }
 
@@ -314,6 +371,7 @@ internal class SpawnAndSpectateCharacter : UIPanel
         );
     }
 
+    // Draws a nine-slice rectangle of a background.
     private void DrawNineSlice(SpriteBatch sb, int x, int y, int w, int h, Texture2D tex, Color color, int inset, int c = 5)
     {
         x += inset; y += inset; w -= inset * 2; h -= inset * 2;
@@ -402,7 +460,6 @@ internal class SpawnAndSpectateCharacter : UIPanel
             if (player.dead)
                 color = new Color(50, 50, 50, 255);
 
-            // Use the *player’s* X position
             int midTileX = tileX;
 
             if (player.ZoneSkyHeight)
@@ -413,7 +470,8 @@ internal class SpawnAndSpectateCharacter : UIPanel
                 bgIndex = player.ZoneDesert ? 37 : 6;
             else if (player.ZoneHallow)
                 bgIndex = player.ZoneDesert ? 38 : 7;
-            // "Ocean" style edges: use player’s tileY + tileX
+
+            // "Ocean" style edges
             else if (playerYTiles < Main.worldSurface + 10.0 &&
                      (midTileX < 380 || midTileX > Main.maxTilesX - 380))
                 bgIndex = 10;

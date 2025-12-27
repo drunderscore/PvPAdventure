@@ -228,15 +228,17 @@ internal class AdventureMirror : ModItem
 
     private void TeleportToSpawn(Player player)
     {
-        // Get player spawn pos
-        int twoTilesAbove = 2 * 16;
-        //Vector2 playerSpawnPos = new Vector2(player.SpawnX * 16, player.SpawnY * 16 - twoTilesAbove);
-        //if (player.SpawnX == -1 && player.SpawnY == -1)
-        //{
-            Vector2 playerSpawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - twoTilesAbove);
-        //}
+        //// Get player spawn pos
+        //int twoTilesAbove = 4 * 16;
+        ////Vector2 playerSpawnPos = new Vector2(player.SpawnX * 16, player.SpawnY * 16 - twoTilesAbove);
+        ////if (player.SpawnX == -1 && player.SpawnY == -1)
+        ////{
+        //    Vector2 playerSpawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - twoTilesAbove);
+        ////}
 
-        player.Teleport(playerSpawnPos);
+        //player.Teleport(playerSpawnPos);
+
+        player.Spawn(PlayerSpawnContext.RecallFromItem);
     }
 
     public override void UpdateInventory(Player player)

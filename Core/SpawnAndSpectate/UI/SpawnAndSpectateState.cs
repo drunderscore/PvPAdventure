@@ -17,7 +17,7 @@ public class SpawnAndSpectateState : UIState
         {
             HAlign = 0.5f,
             BackgroundColor = new Color(73, 94, 171),
-            Top = new StyleDimension(20, 0)
+            Top = new StyleDimension(40, 0)
         };
 
         // Base panel containing all UI components
