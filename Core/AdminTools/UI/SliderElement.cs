@@ -83,12 +83,17 @@ internal class SliderElement : UIElement
 
     private void UpdateLabelText()
     {
-        // Here we perform special value formatting for SliderElements that handles time values.
-        if(labelTextKey == "Time")
+        // Special formatting for time to format as minutes/hours (including negative).
+        //bool formatAsTime = step >= 1f && (Math.Abs(Min) >= 60f || Max >= 60f);
+
+        if (labelTextKey == "Time")
         {
-            int totalMinutes = Math.Max(0, (int)appliedValue);
-            int hours = totalMinutes / 60;
-            int minutes = totalMinutes % 60;
+            int totalMinutes = (int)Math.Round(appliedValue);
+            bool isNegative = totalMinutes < 0;
+
+            int absMinutes = Math.Abs(totalMinutes);
+            int hours = absMinutes / 60;
+            int minutes = absMinutes % 60;
 
             string part;
             if (hours > 0 && minutes > 0)
@@ -98,11 +103,12 @@ internal class SliderElement : UIElement
             else
                 part = $"{minutes} min{(minutes == 1 ? "" : "s")}";
 
-            Label.SetText($"Time: {part}");
+            string sign = isNegative ? "-" : string.Empty;
+            Label.SetText($"{labelTextKey}: {sign}{part}");
             return;
         }
 
-        int intVal = (int)appliedValue;
+        int intVal = (int)Math.Round(appliedValue);
         Label.SetText($"{labelTextKey}: {intVal}");
     }
 

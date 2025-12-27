@@ -1,5 +1,4 @@
-﻿
-using DragonLens.Core.Systems.ThemeSystem;
+﻿using DragonLens.Core.Systems.ThemeSystem;
 using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;

@@ -8,6 +8,7 @@ public enum AdventurePacketIdentifier : byte
     PlayerItemPickup,
     PlayerTeam,
     StartGame,
+    AdjustGameTime,
     EndGame,
     PauseGame,
     NpcStrikeTeam,

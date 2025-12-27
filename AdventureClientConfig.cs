@@ -29,9 +29,6 @@ public class AdventureClientConfig : ModConfig
 
     [Header("AdventureMirror")]
     [BackgroundColor(30, 90, 90)]
-    [DefaultValue(true)] public bool OpenMapAfterRecall;
-
-    [BackgroundColor(30, 90, 90)]
     [DefaultValue(true)] public bool ShowPopupText;
 
     [BackgroundColor(30, 90, 90)]

@@ -11,7 +11,7 @@ internal class PointsSetterSystem : ModSystem
 {
     public UserInterface ui;
     public UIState pointsSetterState;
-    public PointsSetterElement pointsSetterElement;
+    public PointsSetterPanel pointsSetterElement;
 
     public bool IsActive() => ui?.CurrentState == pointsSetterState;
 
@@ -29,7 +29,7 @@ internal class PointsSetterSystem : ModSystem
     {
         ui = new UserInterface();
         pointsSetterState = new UIState();
-        pointsSetterElement = new PointsSetterElement();
+        pointsSetterElement = new PointsSetterPanel();
         pointsSetterState.Append(pointsSetterElement);
     }
 

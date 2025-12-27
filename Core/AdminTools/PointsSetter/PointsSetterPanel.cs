@@ -19,9 +19,10 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.AdminTools.PointsSetter;
 
-internal class PointsSetterElement : DraggablePanel
+internal class PointsSetterPanel : DraggablePanel
 {
-    public PointsSetterElement() : base(title: Language.GetTextValue("Mods.PvPAdventure.Tools.DLPointsSetterTool.TitlePanelName"))
+    protected override float MinResizeW => 190f;
+    public PointsSetterPanel() : base(title: Language.GetTextValue("Mods.PvPAdventure.Tools.DLPointsSetterTool.SetPoints"))
     {
         Height.Set(210, 0);
     }
@@ -106,10 +107,10 @@ internal class PointsSetterElement : DraggablePanel
             BorderColor = Color.Black;
 
             int t = (int)team;
-            if (t < 0 || t >= TeamAssignerElement.TeamColors.Length)
+            if (t < 0 || t >= TeamAssignerPanel.TeamColors.Length)
                 t = 0;
 
-            BackgroundColor = TeamAssignerElement.TeamColors[t];
+            BackgroundColor = TeamAssignerPanel.TeamColors[t];
 
             const float leftPad = 10f;
             const float iconBox = 32f;

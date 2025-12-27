@@ -7,14 +7,13 @@ using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using Terraria.UI;
 
 namespace PvPAdventure.Core.AdminTools.TeamAssigner;
 
 /// <summary>
 /// The base element for the team assigner UI (title and content panel).
 /// </summary>
-internal class TeamAssignerElement : DraggablePanel
+public class TeamAssignerPanel : DraggablePanel
 {
     // Team colors: 0–5
     internal static readonly Color[] TeamColors =
@@ -29,14 +28,14 @@ internal class TeamAssignerElement : DraggablePanel
 
     public bool needsRebuild = false;
 
-    private readonly List<int> players = new();
+    private readonly List<int> players = []; // list of active player indices
     private readonly int[] lastTeams = new int[Main.maxPlayers];
     private readonly bool[] lastActive = new bool[Main.maxPlayers];
 
     private Asset<Texture2D> pvpAsset;
     private Asset<Texture2D> pvpAssetHover;
 
-    public TeamAssignerElement() : base(title: Language.GetTextValue("Mods.PvPAdventure.Tools.DLTeamAssignerTool.TitlePanelName"))
+    public TeamAssignerPanel() : base(title: Language.GetTextValue("Mods.PvPAdventure.Tools.DLTeamAssignerTool.AssignTeams"))
     {
         Width.Set(350, 0);
         Height.Set(460, 0);

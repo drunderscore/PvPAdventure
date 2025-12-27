@@ -201,6 +201,91 @@ public class GameManager : ModSystem
         CurrentPhase = Phase.Waiting;
     }
 
+    public void AdjustTimeRemaining(int deltaFrames)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            return;
+        }
+
+        if (CurrentPhase != Phase.Playing)
+        {
+            return;
+        }
+
+        int oldFrames = TimeRemaining;
+
+        int newValue = oldFrames + deltaFrames;
+        if (newValue < 0)
+        {
+            newValue = 0;
+        }
+
+        TimeRemaining = newValue;
+
+        if (TimeRemaining <= 0)
+        {
+            CurrentPhase = Phase.Waiting;
+        }
+
+        int appliedDeltaFrames = TimeRemaining - oldFrames;
+
+        string fromText = FormatHHMMSSFromFrames(oldFrames);
+        string toText = FormatHHMMSSFromFrames(TimeRemaining);
+        string deltaText = FormatDeltaMMSSFromFrames(appliedDeltaFrames);
+
+        string deltaHex = appliedDeltaFrames < 0 ? "FF0000" : (appliedDeltaFrames > 0 ? "00FF00" : "FFFFFF");
+        string deltaTagged = $"[c/{deltaHex}:{deltaText}]";
+
+        string msg = $"Game time adjusted from {fromText} to {toText} ({deltaTagged})";
+
+        if (Main.dedServ)
+        {
+            NetMessage.SendData(MessageID.WorldData);
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(msg), Color.White);
+        }
+        else if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(msg), Color.White);
+        }
+    }
+
+    private const int FramesPerSecond = 60;
+
+    private static string FormatHHMMSSFromFrames(int frames)
+    {
+        if (frames < 0)
+        {
+            frames = 0;
+        }
+
+        int totalSeconds = frames / FramesPerSecond;
+
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+
+        return $"{hours:00}:{minutes:00}:{seconds:00}";
+    }
+
+    private static string FormatDeltaMMSSFromFrames(int deltaFrames)
+    {
+        if (deltaFrames == 0)
+        {
+            return "+0:00";
+        }
+
+        string sign = deltaFrames > 0 ? "+" : "-";
+
+        int absFrames = deltaFrames > 0 ? deltaFrames : -deltaFrames;
+        int totalSeconds = absFrames / FramesPerSecond;
+
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+
+        return $"{sign}{minutes}:{seconds:00}";
+    }
+
     private void BroadcastEndGameSummary()
     {
         // Only the server (or singleplayer) should broadcast.
@@ -211,9 +296,9 @@ public class GameManager : ModSystem
 
         var pm = ModContent.GetInstance<PointsManager>();
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 1; i++)
         {
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(string.Empty), Color.White);
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("-----------------------------"), Color.White);
         }
 
         ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("The game has ended!"), Color.White);

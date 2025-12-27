@@ -4,27 +4,27 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.AdminTools.TeamAssigner;
+namespace PvPAdventure.Core.AdminTools.AdminManagerTool;
 
 /// <summary>
-/// The system responsible for managing the team selector UI.
+/// The system responsible for managing admins UI.
 /// </summary>
 [Autoload(Side = ModSide.Client)]
-public class TeamAssignerSystem : ModSystem
+public class AdminManagerSystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState teamAssignerState;
+    public UIState adminManagerState;
 
     // State
-    public bool IsActive() => ui?.CurrentState == teamAssignerState;
-    public void ToggleActive() => ui.SetState(IsActive() ? null : teamAssignerState);
+    public bool IsActive() => ui?.CurrentState == adminManagerState;
+    public void ToggleActive() => ui.SetState(IsActive() ? null : adminManagerState);
 
     public override void OnWorldLoad()
     {
         ui = new();
-        teamAssignerState = new();
-        teamAssignerState.Append(new TeamAssignerPanel());
+        adminManagerState = new();
+        adminManagerState.Append(new AdminManagerPanel());
     }
     public override void UpdateUI(GameTime gameTime)
     {
@@ -38,7 +38,7 @@ public class TeamAssignerSystem : ModSystem
         if (index != -1)
         {
             layers.Insert(index, new LegacyGameInterfaceLayer(
-                name: "PvPAdventure: TeamAssignerSystem",
+                name: "PvPAdventure: AdminManagerSystem",
                 drawMethod: () =>
                 {
                     if (IsActive())

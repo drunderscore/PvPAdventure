@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.AdminTools.EndGameTool;
 using PvPAdventure.Core.AdminTools.UI;
 using PvPAdventure.System;
 using Terraria;
@@ -7,12 +8,12 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.AdminTools.GameManagerIntegration;
+namespace PvPAdventure.Core.AdminTools.StartGameTool;
 
 /// <summary>
 /// The main UI element for starting a game (draggable title + content panel)
 /// </summary>
-internal class GameManagerElement : DraggablePanel
+internal class StartGamePanel : DraggablePanel
 {
     private readonly UITextPanel<string> _startButton;
     private readonly SliderElement _gameTimeSlider;
@@ -24,7 +25,7 @@ internal class GameManagerElement : DraggablePanel
     protected override float MinResizeH => 155f;
     protected override float MinResizeW => 220f;
 
-    public GameManagerElement() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.StartGame"))
+    public StartGamePanel() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.DisplayName"))
     {
         Width.Set(360, 0);
         Height.Set(180, 0);
@@ -33,7 +34,7 @@ internal class GameManagerElement : DraggablePanel
         ContentPanel.SetPadding(12);
 
         _gameTimeSlider = new SliderElement(
-            label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.Time"),
+            label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Time"),
             min: 0f,
             max: 195f,
             defaultValue: 195f,
@@ -47,7 +48,7 @@ internal class GameManagerElement : DraggablePanel
         ContentPanel.Append(_gameTimeSlider);
 
         _countdownSlider = new SliderElement(
-            label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.Countdown"),
+            label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Countdown"),
             min: 0f,
             max: 10f,
             defaultValue: 10f,
@@ -62,7 +63,7 @@ internal class GameManagerElement : DraggablePanel
         };
         ContentPanel.Append(_countdownSlider);
 
-        _startButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLGameManagerTool.StartExclamation"))
+        _startButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.StartExclamation"))
         {
             Width = { Pixels = 120f },
             Height = { Pixels = 40f },
@@ -87,13 +88,13 @@ internal class GameManagerElement : DraggablePanel
                 packet.Send();
             }
 
-            ModContent.GetInstance<GameManagerSystem>().Hide();
+            ModContent.GetInstance<StartGameSystem>().Hide();
         };
         ContentPanel.Append(_startButton);
     }
 
     protected override void OnClosePanelLeftClick()
     {
-        ModContent.GetInstance<GameManagerSystem>().Hide();
+        ModContent.GetInstance<StartGameSystem>().Hide();
     }
 }

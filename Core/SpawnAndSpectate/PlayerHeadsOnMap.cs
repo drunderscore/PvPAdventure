@@ -35,7 +35,8 @@ internal class PlayerHeadsOnMap : ModSystem
 
             Vector2 textPos = iconBottomCenter + new Vector2(0f, 8f * Main.UIScale);
 
-            string label = Language.GetTextValue("UI.SpawnPoint");
+            string label = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.WorldSpawn");
+            //string label = Language.GetTextValue("UI.SpawnPoint");
             float textScale = 1f * Main.UIScale;
 
             // Anchor centered horizontally, top-aligned vertically.

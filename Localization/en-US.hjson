@@ -14,43 +14,48 @@ Mods: {
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
-			DLStartGameTool.DisplayName: DL Start Game Tool
-			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
+			DLAdminManagerTool.DisplayName: DL Admin Manager Tool
+			DLEndGameTool.DisplayName: DL End Game Tool
+			DLEndGameToolRightClick.DisplayName: DL End Game Tool Right Click
 			DLPauseTool.DisplayName: DL Pause Tool
+			DLPointsSetterTool.DisplayName: DL Points Setter Tool
+			DLStartGameTool.DisplayName: DL Start Game Tool
 			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
-			DLGameStarterTool.DisplayName: D L Game Starter Tool
-			DLGameStarterToolRightClick.DisplayName: D L Game Starter Tool Right Click
-			DLPointsSetterTool.DisplayName: D L Points Setter Tool
-			DLGameManagerTool.DisplayName: D L Game Manager Tool
-			DLGameManagerToolRightClick.DisplayName: D L Game Manager Tool Right Click
-			DLSpectateTool.DisplayName: D L Spectate Tool
+			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
 		}
 
 		Tools: {
-			DLGameManagerTool: {
-				DisplayName: Game Manager
+			DLStartGameTool: {
+				DisplayName: Start Game
+				AdjustGameTime: Adjust Game Time
 
 				Description: {
-					RightClickToEndGame: End the game. Right click to end the game instantly
+					StartGameDescription: Allows you to start the game. Right click to start instantly
+					AdjustGameTimeDescription: Allows you to adjust the game time while the game is running.
 					CountdownInProgress: A countdown is already in progress!
-					RightClickToStartGame: Allows you to start the game. Right click to start instantly
-					UnknownState: Error: The game is in an unknown state
 				}
-
 				RightClickName: DLStartGameTool Right Click
 				CannotStart: Cannot start the game while a countdown is in progress
-				ReallyEndGame: Really end game?
-				Yes: Yes
-				No: No
-				StartGame: Start Game
 				Time: Time
 				Countdown: Countdown
 				StartExclamation: Start!
+				Apply: Apply
+			}
+
+			DLEndGameTool: {
+				DisplayName: End Game
+				Description: Ends the game timer. Right click to end the game instantly
+				ReallyEndGame: Really end game?
+				CountdownInProgress: Cannot end the game while a countdown is in progress
+				GameNotStartedYet: Game hasn't started yet!
+				Yes: Yes
+				No: No
+				RightClickName: DLEndGameTool Right Click
 			}
 
 			DLTeamAssignerTool: {
 				DisplayName: Team Assigner
-				TitlePanelName: Assign Teams
+				AssignTeams: Assign Teams
 				Description: Assign teams for the game
 			}
 
@@ -65,13 +70,14 @@ Mods: {
 
 			DLPointsSetterTool: {
 				DisplayName: Points Setter
-				TitlePanelName: Set Points
+				SetPoints: Set Points
 				Description: The tool has no description! Add one in .hjson files!
 			}
 
-			DLSpectateTool: {
-				DisplayName: DLSpectateTool
-				Description: The tool has no description! Add one in .hjson files!
+			DLAdminManagerTool: {
+				DisplayName: Admin Manager
+				Description: Allows you to manage admin status of all players in the lobby.
+				CannotRemoveYourOwnAdminPermissions: Cannot remove your own admin permissions!
 			}
 		}
 

@@ -17,20 +17,29 @@ public static class Ass
     public static Asset<Texture2D> CustomPlayerBackground;
     public static Asset<Texture2D>[] MapBG;
     public static Asset<Texture2D> Spawnbox;
-    public static Asset<Texture2D> Stop_Icon;
+    //public static Asset<Texture2D> Stop_Icon; //unused
     public static Asset<Texture2D> Question_Mark;
 
     // Admin tools assets
-    public static Asset<Texture2D> Pause;
-    public static Asset<Texture2D> Points;
-    public static Asset<Texture2D> Play;
     public static Asset<Texture2D> Reset;
     public static Asset<Texture2D> Resize;
     public static Asset<Texture2D> Slider;
     public static Asset<Texture2D> SliderHighlight;
     public static Asset<Texture2D> SliderGradient;
-    public static Asset<Texture2D> TeamAssignerIcon;
-    public static Asset<Texture2D> Spectate;
+
+    // Admin tool icons
+    public static Asset<Texture2D> Icon_StartGame;
+    public static Asset<Texture2D> Icon_PauseGame;
+    public static Asset<Texture2D> Icon_EndGame;
+    public static Asset<Texture2D> Icon_TeamAssigner;
+    public static Asset<Texture2D> Icon_PointsSetter;
+    public static Asset<Texture2D> Icon_AdminManager;
+
+    // On/off icons
+    public static Asset<Texture2D> Icon_On;
+    public static Asset<Texture2D> Icon_On_Hover;
+    public static Asset<Texture2D> Icon_Off;
+    public static Asset<Texture2D> Icon_Off_Hover;
 
     // Initialization flag
     public static bool Initialized { get; set; }
