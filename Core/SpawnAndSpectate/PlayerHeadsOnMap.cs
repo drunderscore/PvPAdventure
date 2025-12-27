@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
@@ -24,6 +25,34 @@ internal class PlayerHeadsOnMap : ModSystem
     private void DrawHighlightedPlayerOnMap(Vector2 mapOffset, float mapScale)
     {
         if (!Main.mapFullscreen) return;
+
+        if (SpawnAndSpectateSystem.HoveringWorldSpawn)
+        {
+            Vector2 iconBottomCenter = new(
+                (Main.spawnTileX + 0.5f) * mapScale + mapOffset.X,
+                Main.spawnTileY * mapScale + mapOffset.Y
+            );
+
+            Vector2 textPos = iconBottomCenter + new Vector2(0f, 8f * Main.UIScale);
+
+            string label = Language.GetTextValue("UI.SpawnPoint");
+            float textScale = 1f * Main.UIScale;
+
+            // Anchor centered horizontally, top-aligned vertically.
+            Main.spriteBatch.Begin();
+            Utils.DrawBorderString(
+                Main.spriteBatch,
+                label,
+                textPos,
+                Color.White,
+                textScale,
+                anchorx: 0.5f,
+                anchory: 0f
+            );
+            Main.spriteBatch.End();
+        }
+
+
 
         if (SpawnAndSpectateSystem.HoveredPlayerIndex is not int idx)
             return;
@@ -59,11 +88,21 @@ internal class PlayerHeadsOnMap : ModSystem
         // Draw player head
         Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, headPos, alpha, scale, border);
 
-        // Draw teleport to player text
+        // Draw teleport to player text (perfectly centered under the head)
         string name = player.name;
-        Vector2 size = FontAssets.MouseText.Value.MeasureString(name);
-        Vector2 pos = headPos + new Vector2(-size.X * 0.5f+7*Main.UIScale, 30f*Main.UIScale);
-        Utils.DrawBorderString(Main.spriteBatch, name, pos, Color.White, 1f*Main.UIScale);
+
+        // headPos is slightly left/top adjusted already.
+        Vector2 textAnchor = headPos + new Vector2(7f * Main.UIScale, 30f * Main.UIScale);
+
+        Utils.DrawBorderString(
+            Main.spriteBatch,
+            name,
+            textAnchor,
+            Color.White,
+            scale: 1f * Main.UIScale,
+            anchorx: 0.5f,
+            anchory: 0f
+        );
 
         Main.spriteBatch.End();
     }

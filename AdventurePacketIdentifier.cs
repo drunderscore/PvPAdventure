@@ -17,5 +17,6 @@ public enum AdventurePacketIdentifier : byte
     SetPointsRequest,
     SSC, // Server Sided Character
     BedTeleport, // teleport to a bed spawn point
+    WorldSpawnTeleport, // teleport to world spawn point
     RespawnCommit // set random or teammate spawn while dead
 }

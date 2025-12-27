@@ -324,7 +324,12 @@ public class PvPAdventure : Mod
                 }
             case AdventurePacketIdentifier.BedTeleport:
                 {
-                    BedsOnMap.HandlePacket(reader, whoAmI);
+                    BedsOnMap.HandleBedTeleportPacket(reader, whoAmI);
+                    break;
+                }
+            case AdventurePacketIdentifier.WorldSpawnTeleport:
+                {
+                    BedsOnMap.HandleWorldSpawnPacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.PlayerBed:

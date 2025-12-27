@@ -13,7 +13,8 @@ internal class RespawnPlayer : ModPlayer
     {
         None,
         Random,
-        Teammate
+        Teammate,
+        WorldSpawn
     }
 
     private RespawnCommit committedSpawn = RespawnCommit.None;
@@ -22,6 +23,7 @@ internal class RespawnPlayer : ModPlayer
     public bool HasCommit => committedSpawn != RespawnCommit.None;
     public bool IsRandomCommitted => committedSpawn == RespawnCommit.Random;
     public bool IsTeammateCommitted(int idx) => committedSpawn == RespawnCommit.Teammate && committedTeammateIndex == idx;
+    public bool IsWorldSpawnCommitted => committedSpawn == RespawnCommit.WorldSpawn;
 
     public void ToggleCommitRandom()
     {
@@ -49,6 +51,20 @@ internal class RespawnPlayer : ModPlayer
         }
 
         SetCommit(RespawnCommit.Teammate, idx);
+    }
+
+    public void ToggleCommitWorldSpawn()
+    {
+        if (!Player.dead)
+            return;
+
+        if (committedSpawn == RespawnCommit.WorldSpawn)
+        {
+            SetCommit(RespawnCommit.None, -1);
+            return;
+        }
+
+        SetCommit(RespawnCommit.WorldSpawn, -1);
     }
 
     private void ClearCommit()

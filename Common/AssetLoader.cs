@@ -13,11 +13,12 @@ namespace PvPAdventure.Common;
 public static class Ass
 {
     // Spawn selector assets
-    public static Asset<Texture2D> Question_Mark;
-    public static Asset<Texture2D>[] MapBG;
+    public static Asset<Texture2D> Dead_Icon;
     public static Asset<Texture2D> CustomPlayerBackground;
+    public static Asset<Texture2D>[] MapBG;
     public static Asset<Texture2D> Spawnbox;
     public static Asset<Texture2D> Stop_Icon;
+    public static Asset<Texture2D> Question_Mark;
 
     // Admin tools assets
     public static Asset<Texture2D> Pause;

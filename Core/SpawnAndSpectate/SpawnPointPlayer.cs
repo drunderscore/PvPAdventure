@@ -15,6 +15,18 @@ public class SpawnPointPlayer : ModPlayer
     // Spawn point last sent to server, updated when changed
     private Point _lastSpawn = new(-1, -1);
 
+    private bool _cachedInSpawnRegion;
+    private int _spawnRegionCooldown;
+    private Point _lastRegionTile = new(int.MinValue, int.MinValue);
+
+    private Point _ownBedTileCached = new(-1, -1);
+    private bool _ownBedValidCached;
+    private int _ownBedValidCooldown;
+
+    private Point _rawSpawnCached = new(-1, -1);
+    private bool _rawSpawnValidCached;
+    private int _rawSpawnValidCooldown;
+
     public override void OnHurt(Player.HurtInfo info)
     {
         base.OnHurt(info);
@@ -42,74 +54,95 @@ public class SpawnPointPlayer : ModPlayer
         }
     }
 
-    public bool IsPlayerInSpawnRegion()
-    {
-        // Is player in the world spawn region?
-        var regionManager = ModContent.GetInstance<RegionManager>();
-        Point tilePos = Player.Center.ToTileCoordinates();
-        var region = regionManager.GetRegionContaining(tilePos);
-        if (region != null)
-        {
-            return true;
-        }
-
-        // Is player in their own bed spawn region?
-        if (HasValidBedSpawn(Player))
-        {
-            Vector2 bedSpawnPoint = new(Player.SpawnX, Player.SpawnY);
-            float distanceToBedSpawn = Vector2.Distance(bedSpawnPoint * 16f, Player.Center);
-            if (distanceToBedSpawn <= 25 * 16f)
-            {
-                return true;
-            }
-        }
-
-        // Is player in any bed spawn region?
-        for (int i = 0; i < Main.maxPlayers; i++)
-        {
-            Player other = Main.player[i];
-
-            if (other == null || !other.active || other.whoAmI == Player.whoAmI)
-                continue;
-
-            // Only care about same team and non-zero team
-            if (other.team == 0 || other.team != Player.team)
-                continue;
-
-            // No bed set for this teammate
-            if (other.SpawnX == -1 || other.SpawnY == -1)
-                continue;
-
-            // Ensure bed is valid
-            if (!HasValidBedSpawn(other))
-                continue;
-
-            Vector2 teammateBedTile = new(other.SpawnX, other.SpawnY);
-            float distanceToTeammateBed = Vector2.Distance(teammateBedTile * 16f, Player.Center);
-
-            if (distanceToTeammateBed <= 25*16f)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public override void PostUpdate()
     {
         if (Main.dedServ || Player.whoAmI != Main.myPlayer)
             return;
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
             UpdatePlayerSpawnpoint();
-        }
 
-        // Toggle spawn and spectate system
-        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing && IsPlayerInSpawnRegion())
+        bool inSpawnRegion = IsPlayerInSpawnRegionCached();
+
+        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing && inSpawnRegion)
             SpawnAndSpectateSystem.SetEnabled(true);
         else
             SpawnAndSpectateSystem.SetEnabled(false);
+    }
+    public bool IsPlayerInSpawnRegion() => IsPlayerInSpawnRegionCached();
+
+    private bool IsPlayerInSpawnRegionCached()
+    {
+        Point tilePos = Player.Center.ToTileCoordinates();
+
+        if (_spawnRegionCooldown-- > 0 && tilePos == _lastRegionTile)
+            return _cachedInSpawnRegion;
+
+        _spawnRegionCooldown = 10; // re-check ~6 times/sec
+        _lastRegionTile = tilePos;
+        _cachedInSpawnRegion = ComputeIsPlayerInSpawnRegion(tilePos);
+        return _cachedInSpawnRegion;
+    }
+
+    private bool ComputeIsPlayerInSpawnRegion(Point tilePos)
+    {
+        // World spawn region via RegionManager
+        var regionManager = ModContent.GetInstance<RegionManager>();
+        if (regionManager.GetRegionContaining(tilePos) != null)
+            return true;
+
+        const float radiusWorld = 25f * 16f;
+        const float radiusSq = radiusWorld * radiusWorld;
+
+        // Own bed: distance first, validate only occasionally
+        if (Player.SpawnX >= 0 && Player.SpawnY >= 0)
+        {
+            Vector2 bedWorld = new(Player.SpawnX * 16f, Player.SpawnY * 16f);
+            if (Vector2.DistanceSquared(bedWorld, Player.Center) <= radiusSq)
+            {
+                Point bedTile = new(Player.SpawnX, Player.SpawnY);
+
+                if (bedTile != _ownBedTileCached)
+                {
+                    _ownBedTileCached = bedTile;
+                    _ownBedValidCooldown = 0; // force recheck
+                }
+
+                if (_ownBedValidCooldown-- <= 0)
+                {
+                    _ownBedValidCached = Player.CheckSpawn(bedTile.X, bedTile.Y);
+                    _ownBedValidCooldown = 30; // recheck twice/sec while near bed
+                }
+
+                if (_ownBedValidCached)
+                    return true;
+            }
+        }
+
+        // Teammates: distance first, only then expensive validation
+        for (int i = 0; i < Main.maxPlayers; i++)
+        {
+            Player other = Main.player[i];
+            if (other == null || !other.active || other.whoAmI == Player.whoAmI)
+                continue;
+
+            if (other.team == 0 || other.team != Player.team)
+                continue;
+
+            if (other.SpawnX < 0 || other.SpawnY < 0)
+                continue;
+
+            Vector2 bedWorld = new(other.SpawnX * 16f, other.SpawnY * 16f);
+            if (Vector2.DistanceSquared(bedWorld, Player.Center) > radiusSq)
+                continue;
+
+            if (!Player.CheckSpawn(other.SpawnX, other.SpawnY))
+                continue;
+
+            return true;
+        }
+
+        return false;
     }
 
     private static bool HasValidBedSpawn(Player player)
@@ -129,22 +162,21 @@ public class SpawnPointPlayer : ModPlayer
     // Update the player's bed spawnpoint to the server
     private void UpdatePlayerSpawnpoint()
     {
-        Point current;
+        Point raw = new(Player.SpawnX, Player.SpawnY);
 
-        // No bed set at all
-        if (Player.SpawnX == -1 || Player.SpawnY == -1)
+        if (raw != _rawSpawnCached)
         {
-            current = new Point(-1, -1);
+            _rawSpawnCached = raw;
+            _rawSpawnValidCooldown = 0; // force recheck on change
         }
-        // Bed set, but housing / tiles now invalid -> treat as no bed for the mod
-        else if (!Player.CheckSpawn(Player.SpawnX, Player.SpawnY))
+
+        if (_rawSpawnValidCooldown-- <= 0)
         {
-            current = new Point(-1, -1);
+            _rawSpawnValidCached = raw.X >= 0 && raw.Y >= 0 && Player.CheckSpawn(raw.X, raw.Y);
+            _rawSpawnValidCooldown = 60; // once/sec
         }
-        else
-        {
-            current = new Point(Player.SpawnX, Player.SpawnY);
-        }
+
+        Point current = _rawSpawnValidCached ? raw : new Point(-1, -1);
 
         if (current == _lastSpawn)
             return;
@@ -157,12 +189,5 @@ public class SpawnPointPlayer : ModPlayer
         packet.Write(current.X);
         packet.Write(current.Y);
         packet.Send();
-
-#if DEBUG
-        if (Player != null && Player.name != string.Empty)
-        {
-            Main.NewText($"[DEBUG/MODPLAYER] Sync spawn for {Player.name}: ({current.X}, {current.Y})");
-        }
-#endif
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Graphics.PackedVector;
 using PvPAdventure.System;
 using System.Collections.Generic;
 using Terraria;
@@ -110,8 +111,29 @@ public class PvPIconDrawerLayer : ModSystem
                     frameY: p.team
                 );
 
-                // Draw pvp icon
-                sb.Draw(pvpTex.Value, iconRect, iconSrc, Color.White * 1f);
+                float alpha = 1f;
+                float scale = 1f;
+
+                if (!mp.ShowPvPIcon && mp.PvPEnabledIconTimer > 0 && mp.PvPEnabledIconTimer <= 60)
+                {
+                    float t = mp.PvPEnabledIconTimer / 60f; // 60 -> 1, 0 -> 0
+                    alpha = t;
+                    scale = t; // shrinks to 0
+                }
+
+                Vector2 center = p.Top + new Vector2(0f, -headOffset - iconH * 0.5f) - Main.screenPosition;
+
+                int drawW = (int)(iconW * scale);
+                int drawH = (int)(iconH * scale);
+
+                iconRect = new(
+                    (int)(center.X - drawW * 0.5f),
+                    (int)(center.Y - drawH * 0.5f),
+                    drawW,
+                    drawH
+                );
+
+                sb.Draw(pvpTex.Value, iconRect, iconSrc, Color.White * alpha);
             }
 
             return true;

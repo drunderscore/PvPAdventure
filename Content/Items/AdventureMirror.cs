@@ -39,33 +39,9 @@ internal class AdventureMirror : ModItem
 
     public override void RightClick(Player player)
     {
-        // Redundant check, just to be sure we don't allow any shenanigans
-        var gm = ModContent.GetInstance<GameManager>();
-        if (gm.CurrentPhase != GameManager.Phase.Playing)
-        {
-            // Check if the config allows popup text
-            var config = ModContent.GetInstance<AdventureClientConfig>();
-            if (!config.ShowPopupText)
-                return;
-
-            // Create and display the popup text (locally)
-            if (player.whoAmI == Main.myPlayer)
-            {
-                PopupText.NewText(new AdvancedPopupRequest
-                {
-                    Color = Color.Crimson,
-                    Text = "wait until game starts!",
-                    Velocity = new(0f, -4),
-                    DurationInFrames = 120
-                }, player.Top + new Vector2(0, -4));
-            }
-            return;
-        }
-
-        if (player.whoAmI != Main.myPlayer)
+        if (player.whoAmI != Main.myPlayer || !CanUseItem(player))
             return;
 
-        // Find the slot of this item
         int index = -1;
         for (int i = 0; i < player.inventory.Length; i++)
         {
@@ -75,10 +51,8 @@ internal class AdventureMirror : ModItem
                 break;
             }
         }
-        if (index == -1)
-            return;
 
-        if (player.CCed || player.itemAnimation > 0 || player.reuseDelay > 0)
+        if (index == -1 || player.CCed || player.itemAnimation > 0 || player.reuseDelay > 0)
             return;
 
         if (Main.netMode == NetmodeID.SinglePlayer)
@@ -98,51 +72,28 @@ internal class AdventureMirror : ModItem
             p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
             p.Write((byte)player.whoAmI);
             p.Write((byte)index);
-            p.Send(); // to server
+            p.Send();
         }
     }
     #endregion
 
     public override bool CanUseItem(Player player)
     {
-        // Redundant check, just to be sure we don't allow any shenanigans
-        var gm = ModContent.GetInstance<GameManager>();
-        if (gm.CurrentPhase != GameManager.Phase.Playing)
+        if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
         {
-            // Check if the config allows popup text
-            var config = ModContent.GetInstance<AdventureClientConfig>();
-            if (!config.ShowPopupText)
-                return false;
-
-            // Create and display the popup text (locally)
-            if (player.whoAmI == Main.myPlayer)
-            {
-                PopupText.NewText(new AdvancedPopupRequest
-                {
-                    Color = Color.Crimson,
-                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.GameNotStarted"),
-                    Velocity = new(0f, -4),
-                    DurationInFrames = 120
-                }, player.Top + new Vector2(0, -4));
-            }
+            Warning(player, "Mods.PvPAdventure.AdventureMirror.GameNotStarted");
             return false;
-
         }
 
-        // If this player moves, cancel their use
+        if (player.GetModPlayer<SpawnPointPlayer>().IsPlayerInSpawnRegion())
+        {
+            Warning(player, "Mods.PvPAdventure.AdventureMirror.CannotUseInSpawn");
+            return false;
+        }
+
         if (player.velocity.LengthSquared() > 0)
         {
-            // Create and display the popup text (locally)
-            if (player.whoAmI == Main.myPlayer)
-            {
-                PopupText.NewText(new AdvancedPopupRequest
-                {
-                    Color = Color.Crimson,
-                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.CannotUseWhileMoving"),
-                    Velocity = new(0f, -4),
-                    DurationInFrames = 120
-                }, player.Top + new Vector2(0, -4));
-            }
+            Warning(player, "Mods.PvPAdventure.AdventureMirror.CannotUseWhileMoving");
             return false;
         }
 
@@ -162,35 +113,10 @@ internal class AdventureMirror : ModItem
     {
         base.UseStyle(player, heldItemFrame);
 
-        //if (ModContent.GetInstance<SpawnPointPlayer>().IsPlayerInSpawnRegion())
-        //{
-        //    if (player.whoAmI == Main.myPlayer)
-        //    {
-        //        PopupText.NewText(new AdvancedPopupRequest
-        //        {
-        //            Color = Color.Crimson,
-        //            Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.CannotUseInSpawn"),
-        //            Velocity = new(0f, -4),
-        //            DurationInFrames = 120
-        //        }, player.Top + new Vector2(0, -4));
-        //    }
-        //    CancelItemUse(player);
-        //    return;
-        //}
-
         // If this player moves, cancel their use
         if (player.velocity.LengthSquared() > 0)
         {
-            if (player.whoAmI == Main.myPlayer)
-            {
-                PopupText.NewText(new AdvancedPopupRequest
-                {
-                    Color = Color.Crimson,
-                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.Cancelled"),
-                    Velocity = new(0f, -4),
-                    DurationInFrames = 120
-                }, player.Top + new Vector2(0, -4));
-            }
+            Warning(player, "Mods.PvPAdventure.AdventureMirror.Cancelled");
             CancelItemUse(player);
             return;
         }
@@ -222,21 +148,8 @@ internal class AdventureMirror : ModItem
         // Teleport the player who used the item to their spawn
         if (player.whoAmI == Main.myPlayer && player.itemTime == 1)
         {
-            TeleportToSpawn(player);
+            player.Spawn(PlayerSpawnContext.RecallFromItem);
         }
-    }
-
-    private void TeleportToSpawn(Player player)
-    {
-        // Get player spawn pos
-        int twoTilesAbove = 2 * 16;
-        //Vector2 playerSpawnPos = new Vector2(player.SpawnX * 16, player.SpawnY * 16 - twoTilesAbove);
-        //if (player.SpawnX == -1 && player.SpawnY == -1)
-        //{
-            Vector2 playerSpawnPos = new(Main.spawnTileX * 16, Main.spawnTileY * 16 - twoTilesAbove);
-        //}
-
-        player.Teleport(playerSpawnPos);
     }
 
     public override void UpdateInventory(Player player)
@@ -245,4 +158,23 @@ internal class AdventureMirror : ModItem
         // A little redundant now that we disallowed unfavorite in ItemSlotHooks left click hook
         Item.favorited = true;
     }
+
+    // Helper warning popup text
+    private static void Warning(Player player, string localizationKey, Color color = default)
+    {
+        if (player.whoAmI != Main.myPlayer || !ModContent.GetInstance<AdventureClientConfig>().ShowPopupText)
+            return;
+
+        if (color == default)
+            color = Color.Crimson;
+
+        PopupText.NewText(new AdvancedPopupRequest
+        {
+            Color = color,
+            Text = Language.GetTextValue(localizationKey),
+            Velocity = new Vector2(0f, -4f),
+            DurationInFrames = 120
+        }, player.Top + new Vector2(0, -4));
+    }
+
 }
