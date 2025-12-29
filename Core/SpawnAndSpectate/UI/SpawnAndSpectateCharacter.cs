@@ -19,8 +19,6 @@ namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 /// </summary>
 internal class SpawnAndSpectateCharacter : UIPanel
 {
-    private readonly bool isDebugTest;
-
     internal const float ItemWidth = 260f;
     internal const float ItemHeight = 72f;
 
@@ -34,10 +32,9 @@ internal class SpawnAndSpectateCharacter : UIPanel
     // UI components
     public SpectateButton spectateButton;
 
-    public SpawnAndSpectateCharacter(int _playerIndex, bool isDebugTest = false)
+    public SpawnAndSpectateCharacter(int _playerIndex)
     {
         playerIndex = _playerIndex;
-        this.isDebugTest = isDebugTest;
 
         // Load assets
         dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
@@ -204,18 +201,9 @@ internal class SpawnAndSpectateCharacter : UIPanel
             else
             {
                 text = selectedSpawn
-                    ? $"{player.name} selected for spawn"
+                    ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelPlayerSpawn", player.name)
                     : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectPlayerSpawn", player.name);
             }
-
-            //bool canSpectate = SpawnAndSpectateSystem.IsAliveSpawnRegionInstant;
-            //if (canSpectate)
-            //{
-                //text += SpawnAndSpectateSystem.SpectatePlayerIndex == player.whoAmI
-                    //? "\n" + Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.StopSpectatingPlayer", player.name)
-                    //: "\n" + Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SpectatePlayer", player.name);
-            //}
-
             Main.instance.MouseText(text);
         }
         else
@@ -279,12 +267,7 @@ internal class SpawnAndSpectateCharacter : UIPanel
         float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
 
         // Name centered in the right-area
-        string name;
-
-        if (isDebugTest)
-            name = "Test";
-        else
-            name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
+        string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
 
         float nameScale = 1f;
         if (name.Length > 16)
@@ -439,7 +422,6 @@ internal class SpawnAndSpectateCharacter : UIPanel
         sb.Draw(tex, new Rectangle(x + c, y + h - c, w - c * 2, c), new Rectangle(c, tex.Height - c, ew, c), color);
         sb.Draw(tex, new Rectangle(x + w - c, y + h - c, c, c), new Rectangle(tex.Width - c, tex.Height - c, c, c), color);
     }
-    #endregion
 
     // Finds the biome of the given player and draws it.
     public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Player player)
@@ -552,5 +534,5 @@ internal class SpawnAndSpectateCharacter : UIPanel
 
         sb.Draw(asset.Value, rect, color);
     }
-
+    #endregion
 }

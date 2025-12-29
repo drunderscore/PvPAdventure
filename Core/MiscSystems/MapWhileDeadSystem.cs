@@ -23,62 +23,47 @@ internal class MapWhileDeadSystem : ModSystem
     {
         orig(self);
 
-        // Allows you open the inventory
-        // This code is copied from somewhere else in the Terraria src
-        if (!Main.drawingPlayerChat && !Main.editSign && !Main.editChest && !Main.blockInput)
-        {
-            Main.player[Main.myPlayer].controlInv = PlayerInput.Triggers.Current.Inventory;
-            if (Main.player[Main.myPlayer].controlInv)
-            {
-                if (Main.player[Main.myPlayer].releaseInventory)
-                {
-                    Main.player[Main.myPlayer].ToggleInv();
-                }
-                Main.player[Main.myPlayer].releaseInventory = false;
-            }
-            else
-            {
-                Main.player[Main.myPlayer].releaseInventory = true;
-            }
-        }
+        // Only the local client should interpret local input and toggle global UI state
+        if (Main.dedServ || self.whoAmI != Main.myPlayer)
+            return;
 
-        // Allows you open the map
-        // This code is copied from somewhere else in the Terraria src
-        foreach (var key in Main.keyState.GetPressedKeys())
+        // Dont allow toggling while typing / editing UI text boxes
+        if (Main.drawingPlayerChat || Main.editSign || Main.editChest || Main.blockInput)
+            return;
+
+        bool mapDown = PlayerInput.Triggers.Current.MapFull; 
+        if (mapDown)
         {
-            if (key.ToString() == Main.cMapFull)
+#if DEBUG
+            Main.NewText("[DEBUG/MapWhileDeadSystem]: Map key pressed");
+#endif
+
+            if (self.releaseMapFullscreen)
             {
-                if (self.releaseMapFullscreen)
+                if (!Main.mapFullscreen)
                 {
-                    if (!Main.mapFullscreen)
-                    {
-                        Main.playerInventory = false;
-                        Main.player[Main.myPlayer].talkNPC = -1;
-                        Main.npcChatCornerItem = 0;
-                        //Main.PlaySound(10, -1, -1, 1, 1f, 0f);
-                        Main.mapFullscreenScale = 2.5f;
-                        Main.mapFullscreen = true;
-                        Main.resetMapFull = true;
-                    }
-                    else
-                    {
-                        //Main.PlaySound(10, -1, -1, 1, 1f, 0f);
-                        Main.mapFullscreen = false;
-                    }
+                    Main.playerInventory = false;
+                    self.talkNPC = -1;
+                    Main.npcChatCornerItem = 0;
+
+                    Main.mapFullscreenScale = 2.5f;
+                    Main.mapFullscreen = true;
+                    Main.resetMapFull = true;
                 }
-                self.releaseMapFullscreen = false;
+                else
+                {
+                    Main.mapFullscreen = false;
+                }
             }
-            else
-            {
-                self.releaseMapFullscreen = true;
-            }
+
+            self.releaseMapFullscreen = false;
         }
-        if (Main.keyState.GetPressedKeys().Length == 0)
+        else
         {
             self.releaseMapFullscreen = true;
         }
 
-        // Fix zooming not working (also copied code)
+        // Fix zooming not working
         if (Main.mapFullscreen)
         {
             float num7 = PlayerInput.ScrollWheelDelta / 120;

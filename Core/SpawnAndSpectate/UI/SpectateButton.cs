@@ -8,6 +8,10 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
+/// <summary>
+/// A small button that allows the player to spectate a teammate when clicked.
+/// Usually added to the top-right corner of a <see cref="SpawnAndSpectateCharacter"/>
+/// </summary>
 public sealed class SpectateButton : UIElement
 {
     private const float ButtonSize = 26f;

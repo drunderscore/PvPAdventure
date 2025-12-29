@@ -11,6 +11,9 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
+/// <summary>
+/// A panel that allows the player to respawn at the world spawn point.
+/// </summary>
 public class WorldSpawnPanel : UIPanel
 {
     public WorldSpawnPanel(float size)
