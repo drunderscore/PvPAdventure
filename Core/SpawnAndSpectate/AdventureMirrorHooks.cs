@@ -35,6 +35,7 @@ public class AdventureMirrorHooks : ModSystem
         On_Player.DropSelectedItem += Modify_DropSelectedItem;
 
         // Mouse interface getter hook called IgnoreMouseInterface
+        // Used to allow inventory interaction while using Adventure Mirror
         MethodInfo getter = typeof(PlayerInput).GetMethod("get_IgnoreMouseInterface", BindingFlags.Public | BindingFlags.Static);
         if (getter != null)
             ignoreMouseHook = new Hook(getter, OverrideIgnoreMouseInterface);

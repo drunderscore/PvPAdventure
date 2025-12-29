@@ -9,15 +9,16 @@ namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
 /// <summary>
 /// The base panel containing all elements for the spawn and spectate UI.
-/// Includes, for example <see cref="SpawnAndSpectateCharacter"/>, and <see cref="SpectateExitPanel"/>.
+/// Includes, for example
+/// <see cref="WorldSpawnPanel"/>
+/// <see cref="SpawnAndSpectateCharacter"/>
+/// <see cref="RandomTeleportPanel"/>
 /// </summary>
 public class SpawnAndSpectateBasePanel : UIPanel
 {
     // UI components
     private RandomTeleportPanel randomPanel;
     private WorldSpawnPanel worldSpawnPanel;
-
-    // Collections
     private readonly List<SpawnAndSpectateCharacter> playerItems = []; // list of teammate player UI items
     
     // Dimensions
@@ -61,13 +62,10 @@ public class SpawnAndSpectateBasePanel : UIPanel
         }
 
 #if DEBUG
-        bool addedDebugTestPlayer = false;
-
         if (Main.netMode == NetmodeID.SinglePlayer && players.Count == 0 && local != null && local.active)
         {
             // UI-only "test teammate" (uses the local player's actual data).
             players.Add(local);
-            addedDebugTestPlayer = true;
         }
 #endif
 
@@ -110,17 +108,8 @@ public class SpawnAndSpectateBasePanel : UIPanel
 
         for (int i = 0; i < playerCount; i++)
         {
-#if DEBUG
-            bool isDebugTest = false;
-            if (addedDebugTestPlayer && players[i].whoAmI == local.whoAmI)
-            {
-                isDebugTest = true;
-            }
-
-            var row = new SpawnAndSpectateCharacter(players[i].whoAmI, isDebugTest);
-#else
-        var row = new SpawnAndSpectateCharacter(players[i].whoAmI);
-#endif
+            // Create player item
+            var row = new SpawnAndSpectateCharacter(players[i].whoAmI);
 
             row.Left.Set(x, 0f);
             row.Top.Set(y, 0f);

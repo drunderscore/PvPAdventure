@@ -6,7 +6,7 @@ namespace PvPAdventure.Core.MiscSystems;
 /// <summary>
 /// Allows inventory access while dead.
 /// </summary>
-[Autoload(Side=ModSide.Client)]
+[Autoload(Side = ModSide.Client)]
 internal class InventoryWhileDeadSystem : ModSystem
 {
     public override void Load()
