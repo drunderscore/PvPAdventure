@@ -18,6 +18,7 @@ using Terraria.ModLoader.IO;
 
 using PvPAdventure.Core.AdminTools.TeamAssigner;
 using PvPAdventure.Core.SpawnAndSpectate;
+using PvPAdventure.Core.AdminTools.AdminManagerTool;
 
 namespace PvPAdventure;
 
@@ -218,7 +219,7 @@ public class PvPAdventure : Mod
                     {
                         foreach (var child in ts.teamAssignerState.Children)
                         {
-                            if (child is TeamAssignerElement panel)
+                            if (child is TeamAssignerPanel panel)
                             {
                                 panel.needsRebuild = true;
                                 break;
@@ -253,6 +254,19 @@ public class PvPAdventure : Mod
                             break;
 
                         gm.StartGame(time, countdown);
+                    }
+
+                    break;
+                }
+            case AdventurePacketIdentifier.AdjustGameTime:
+                {
+                    int deltaFrames = reader.ReadInt32();
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        var gm = ModContent.GetInstance<GameManager>();
+
+                        gm.AdjustTimeRemaining(deltaFrames);
                     }
 
                     break;

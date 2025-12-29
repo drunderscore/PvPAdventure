@@ -4,31 +4,31 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.AdminTools.GameManagerIntegration;
+namespace PvPAdventure.Core.AdminTools.StartGameTool;
 
 [Autoload(Side = ModSide.Client)]
-internal class GameManagerSystem : ModSystem
+internal class StartGameSystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState endGameUIState;
+    public UIState extendGameUIState;
     public UIState startGameUIState;
 
     // State
     public bool IsActive() => ui?.CurrentState != null;
 
-    public void ShowEndDialog() => ui.SetState(endGameUIState);
+    public void ShowExtendGameDialog() => ui.SetState(extendGameUIState);
     public void ShowStartDialog() => ui.SetState(startGameUIState);
     public void Hide() => ui.SetState(null);
 
     public override void OnWorldLoad()
     {
         ui = new();
-        endGameUIState = new();
-        endGameUIState.Append(new EndGameElement());
+        extendGameUIState = new();
+        extendGameUIState.Append(new ExtendGamePanel());
 
         startGameUIState = new();
-        startGameUIState.Append(new GameManagerElement());
+        startGameUIState.Append(new StartGamePanel());
 
         ui.SetState(null);
     }
