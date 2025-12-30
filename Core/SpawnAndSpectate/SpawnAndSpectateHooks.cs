@@ -15,6 +15,7 @@ namespace PvPAdventure.Core.SpawnAndSpectate;
 /// <summary>
 /// Various player hooks related to teleporting, spawning, and spawn selector.
 /// </summary>
+[Autoload(Side =ModSide.Client)]
 public class SpawnAndSpectateHooks : ModSystem
 {
     public override void Load()
@@ -123,29 +124,20 @@ public class SpawnAndSpectateHooks : ModSystem
     }
     private void ForceWorldSpawn(On_Player.orig_Spawn_SetPosition orig, Player self, int floorX, int floorY)
     {
-        //orig(self, floorX, floorY);
+        // Pick world spawn tiles as the requested floor position.
+        int fx = Main.spawnTileX;
+        int fy = Main.spawnTileY;
 
-        // Force all respawns to world spawn
-        int spawnX = Main.spawnTileX;
-        int spawnY = Main.spawnTileY;
+        bool ok = self.Spawn_GetPositionAtWorldSpawn(ref fx, ref fy);
 
-        // Skip this for now.
-        //bool num = self.Spawn_GetPositionAtWorldSpawn(ref floorX, ref floorY);
-        //self.Spawn_SetPosition(floorX, floorY);
-
-        // Clears the area. Also skip this for now.
-        //if (num && !self.Spawn_IsAreaAValidWorldSpawn(floorX, floorY))
-        //{
-        //    Player.Spawn_ForceClearArea(floorX, floorY);
-        //}
-
-        // Note: This is ran on the SERVER, so we need to ensure we only execute this for the local client.
-        if (self == Main.LocalPlayer)
+        if (ok && !self.Spawn_IsAreaAValidWorldSpawn(fx, fy))
         {
-            Main.LocalPlayer.position.X = spawnX * 16 + 8 - Main.LocalPlayer.width / 2;
-            Main.LocalPlayer.position.Y = spawnY * 16 - Main.LocalPlayer.height;
+            Player.Spawn_ForceClearArea(fx, fy);
         }
+
+        orig(self, fx, fy);
     }
+
     private SlotId DisableMirrorSound(On_SoundEngine.orig_PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback orig, ref SoundStyle style, Vector2? position, SoundUpdateCallback updatecallback)
     {
         if (style == SoundID.Item6)

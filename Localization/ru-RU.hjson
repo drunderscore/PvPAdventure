@@ -14,9 +14,9 @@ Mods: {
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
-			// DLAdminManagerTool.DisplayName: D L Admin Manager Tool
-			// DLEndGameTool.DisplayName: D L End Game Tool
-			// DLEndGameToolRightClick.DisplayName: D L End Game Tool Right Click
+			// DLAdminManagerTool.DisplayName: DL Admin Manager Tool
+			// DLEndGameTool.DisplayName: DL End Game Tool
+			// DLEndGameToolRightClick.DisplayName: DL End Game Tool Right Click
 			DLPauseTool.DisplayName: DL Pause Tool
 			DLPointsSetterTool.DisplayName: D L Points Setter Tool
 			DLStartGameTool.DisplayName: DL Start Game Tool
@@ -31,13 +31,12 @@ Mods: {
 
 				Description: {
 					// StartGameDescription: Allows you to start the game. Right click to start instantly
-					// AdjustGameTimeDescription: Allows you to adjust the game time.
+					// AdjustGameTimeDescription: Allows you to adjust the game time while the game is running.
 					// CountdownInProgress: A countdown is already in progress!
 				}
 
 				// RightClickName: DLStartGameTool Right Click
 				// CannotStart: Cannot start the game while a countdown is in progress
-				// ReallyEndGame: Really end game?
 				// Time: Time
 				// Countdown: Countdown
 				// StartExclamation: Start!
@@ -79,6 +78,7 @@ Mods: {
 			DLAdminManagerTool: {
 				// DisplayName: Admin Manager
 				// Description: Allows you to manage admin status of all players in the lobby.
+				// CannotRemoveYourOwnAdminPermissions: Cannot remove your own admin permissions!
 			}
 		}
 
@@ -203,6 +203,11 @@ Mods: {
 				DisplayName: Planteras Bulb Config
 				Tooltip: ""
 			}
+
+			MapSpawnConfig: {
+				// DisplayName: Map Spawn Config
+				// Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -242,6 +247,8 @@ Mods: {
 					SoundEffects: Sound Effects
 					AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
 					// Spectate: "[i:Binoculars] Spectate"
+					// RespawnAndAdventureMirror: Respawn And Adventure Mirror Header
+					// Spawn: Spawn
 				}
 
 				ShiftEnterOpensAllChat: {
@@ -283,13 +290,13 @@ Mods: {
 					Tooltip: Plays a sound while using the Adventure Mirror
 				}
 
-				SpectateTeammatesOnDeath: {
-					// Label: Spectate Teammates On Death
-					// Tooltip: ""
+				AutoSelectWorldSpawnWhenRespawning: {
+					// Label: "[i:MapSpawnConfig] Auto Select World Spawn When Respawning"
+					// Tooltip: When you die, the world spawn point is automatically selected as your spawn point
 				}
 
-				SpectateUIPosition: {
-					// Label: Spectate U I Position
+				SpawnUIPosition: {
+					// Label: Spawn U I Position
 					// Tooltip: ""
 				}
 			}

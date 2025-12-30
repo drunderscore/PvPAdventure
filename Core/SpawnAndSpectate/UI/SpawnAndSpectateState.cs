@@ -8,11 +8,15 @@ namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 public class SpawnAndSpectateState : UIState
 {
     // UI components
-    private SpawnAndSpectateBasePanel basePanel;
-    private UITextPanel<string> chooseYourSpawnPanel;
+    public SpawnAndSpectateBasePanel basePanel;
+    public UITextPanel<string> chooseYourSpawnPanel;
 
     public override void OnActivate()
     {
+#if DEBUG
+        Main.NewText("[DEBUG] Calling OnActivate() in SpawnAndSpectateState");
+#endif
+
         // Title panel
         chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.ChooseYourSpawn"), 0.8f, true)
         {
@@ -26,20 +30,5 @@ public class SpawnAndSpectateState : UIState
 
         Append(basePanel);
         Append(chooseYourSpawnPanel);
-    }
-
-    public void Rebuild()
-    {
-#if DEBUG
-        Main.NewText("[DEBUG] Rebuilding SpawnAndSpectateState");
-#endif
-
-        RemoveAllChildren();
-        basePanel = null;
-        chooseYourSpawnPanel = null;
-
-        // Re-run normal construction
-        OnActivate();
-        Recalculate();
     }
 }

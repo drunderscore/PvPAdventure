@@ -1,9 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
+using PvPAdventure.Common.Debug;
 using PvPAdventure.Core.SpawnAndSpectate.UI;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Config.UI;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
@@ -143,9 +146,10 @@ public class SpawnAndSpectateSystem : ModSystem
         }
 
         // entering UI this frame
+        // entering UI this frame
         if (!_wasShowingUI || ui.CurrentState != spawnSelectorState)
         {
-            spawnSelectorState.Rebuild();
+            spawnSelectorState = new SpawnAndSpectateState();
             ui.SetState(spawnSelectorState);
             _wasShowingUI = true;
         }
@@ -257,6 +261,8 @@ public class SpawnAndSpectateSystem : ModSystem
 
     #endregion
 
+    // We need 2 hooks, to draw both: on map and in game.
+    // Draw on fullscreen map
     private void DrawOnFullscreenMap(Vector2 mapPos, float mapScale)
     {
         if (!Main.mapFullscreen || ui?.CurrentState == null)
@@ -271,7 +277,12 @@ public class SpawnAndSpectateSystem : ModSystem
     // Draw on screen
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
-        int mouseTextIndex = layers.FindIndex(l => l.Name == "Vanilla: Mouse Text");
+        int mouseTextIndex = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 4");
+
+        // Change layer to draw behind the config so we can live apply config settings
+        if (IsAnyConfigUIOpen())
+            mouseTextIndex = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
+
         if (mouseTextIndex == -1)
             return;
 
@@ -287,5 +298,13 @@ public class SpawnAndSpectateSystem : ModSystem
             },
             InterfaceScaleType.UI
         ));
+    }
+
+    private bool IsAnyConfigUIOpen()
+    {
+        UIState s = Main.InGameUI?._currentState;
+        if (s != null && s is UIModConfig)
+            return true;
+        return false;
     }
 }

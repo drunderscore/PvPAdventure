@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
@@ -25,6 +26,12 @@ public class SpawnAndSpectateBasePanel : UIPanel
     private const float Spacing = 8f; // between items
     private const float HorizontalPadding = 16f; // panel padding
     private const float VerticalPadding = 12f; // panel padding
+
+    // Debug
+#if DEBUG
+    private static int s_debugExtraLocalCopies;
+#endif
+
     public override void OnActivate()
     {
         HAlign = 0.5f;
@@ -35,6 +42,47 @@ public class SpawnAndSpectateBasePanel : UIPanel
         SetPadding(0f);
 
         Rebuild();
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        if (IsMouseHovering)
+        {
+            Main.LocalPlayer.mouseInterface = true; // disable item use when hovering
+        }
+
+#if DEBUG
+        if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            if (Main.keyState.IsKeyDown(Keys.L) && !Main.oldKeyState.IsKeyDown(Keys.L))
+            {
+                Main.NewText("[DEBUG]: Added extra local copy with keys.L. Press keys.J to remove one");
+                s_debugExtraLocalCopies++;
+                Rebuild();
+            }
+            else if (Main.keyState.IsKeyDown(Keys.J) && !Main.oldKeyState.IsKeyDown(Keys.J))
+            {
+                if (s_debugExtraLocalCopies > 0)
+                {
+                    s_debugExtraLocalCopies--;
+                    Main.NewText("[DEBUG]: Removed extra local copy with keys.J. Press keys.L to add one");
+                }
+
+                Rebuild();
+            }
+        }   
+#endif
+
+        if (NeedsRebuild())
+        {
+            Rebuild();
+
+#if DEBUG
+            Main.NewText("[DEBUG]: Called Rebuild() in SpawnAndSpectateBasePanel");
+#endif
+        }
+
+        base.Update(gameTime);
     }
 
     private void Rebuild()
@@ -62,16 +110,19 @@ public class SpawnAndSpectateBasePanel : UIPanel
         }
 
 #if DEBUG
-        if (Main.netMode == NetmodeID.SinglePlayer && players.Count == 0 && local != null && local.active)
+        if (Main.netMode == NetmodeID.SinglePlayer && local != null && local.active)
         {
-            // UI-only "test teammate" (uses the local player's actual data).
-            players.Add(local);
+            for (int i = 0; i < s_debugExtraLocalCopies; i++)
+            {
+                players.Add(local);
+            }
         }
 #endif
 
         int playerCount = players.Count;
 
-        float itemWidth = SpawnAndSpectateCharacter.ItemWidth;
+        var density = SpawnAndSpectateCharacter.GetDensityForTeammateCount(playerCount);
+        float itemWidth = SpawnAndSpectateCharacter.GetItemWidth(density);
         float itemHeight = SpawnAndSpectateCharacter.ItemHeight;
 
         float worldWidth = itemHeight;
@@ -100,6 +151,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
         float y = VerticalPadding;
 
         worldSpawnPanel = new WorldSpawnPanel(itemHeight);
+        worldSpawnPanel.Activate();
         worldSpawnPanel.Left.Set(x, 0f);
         worldSpawnPanel.Top.Set(y, 0f);
         Append(worldSpawnPanel);
@@ -109,7 +161,8 @@ public class SpawnAndSpectateBasePanel : UIPanel
         for (int i = 0; i < playerCount; i++)
         {
             // Create player item
-            var row = new SpawnAndSpectateCharacter(players[i].whoAmI);
+            var row = new SpawnAndSpectateCharacter(players[i].whoAmI, density);
+            row.Activate();
 
             row.Left.Set(x, 0f);
             row.Top.Set(y, 0f);
@@ -127,6 +180,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
             x += Spacing;
 
         randomPanel = new RandomTeleportPanel(itemHeight);
+        randomPanel.Activate();
         randomPanel.Left.Set(x, 0f);
         randomPanel.Top.Set(y, 0f);
         Append(randomPanel);
@@ -134,26 +188,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
         Recalculate();
         RecalculateChildren();
     }
-
-    public override void Update(GameTime gameTime)
-    {
-        if (IsMouseHovering)
-        {
-            Main.LocalPlayer.mouseInterface = true; // disable item use when hovering
-        }
-
-        if (NeedsRebuild())
-        {
-            Rebuild();
-
-#if DEBUG
-            Main.NewText("[DEBUG]: Rebuilt SpawnAndSpectateBasePanel");
-#endif
-        }
-
-        base.Update(gameTime);
-    }
-
+    
     public override void Draw(SpriteBatch spriteBatch)
     {
         base.Draw(spriteBatch);
@@ -191,9 +226,12 @@ public class SpawnAndSpectateBasePanel : UIPanel
         }
 
 #if DEBUG
-        if (Main.netMode == NetmodeID.SinglePlayer && players.Count == 0 && local != null && local.active)
+        if (Main.netMode == NetmodeID.SinglePlayer && local != null && local.active)
         {
-            players.Add(local.whoAmI);
+            for (int i = 0; i < s_debugExtraLocalCopies; i++)
+            {
+                players.Add(local.whoAmI);
+            }
         }
 #endif
 
@@ -208,6 +246,15 @@ public class SpawnAndSpectateBasePanel : UIPanel
             if (playerItems[i].PlayerIndex != players[i])
                 return true;
         }
+
+        // MAYBE: Go through all playeritems and ensure they have a size?
+        //for (int i = 0; i < playerItems.Count; i++)
+        //{
+        //    var item = playerItems[i];
+        //    var itemDims = item.GetDimensions();
+        //    if (itemDims.Width <= 0f || itemDims.Height <= 0f)
+        //        return true;
+        //}
 
         return false;
     }

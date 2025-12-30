@@ -17,7 +17,7 @@ namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 /// <summary>
 /// Character row of a player in the spawn selector UI.
 /// </summary>
-internal class SpawnAndSpectateCharacter : UIPanel
+public class SpawnAndSpectateCharacter : UIPanel
 {
     internal const float ItemWidth = 260f;
     internal const float ItemHeight = 72f;
@@ -32,16 +32,48 @@ internal class SpawnAndSpectateCharacter : UIPanel
     // UI components
     public SpectateButton spectateButton;
 
-    public SpawnAndSpectateCharacter(int _playerIndex)
+    public enum RowDensity
+    {
+        Normal,
+        Compact,
+        UltraCompact
+    }
+
+    internal static RowDensity GetDensityForTeammateCount(int teammateCount)
+    {
+        if (teammateCount > 8)
+            return RowDensity.UltraCompact;
+
+        if (teammateCount >= 5)
+            return RowDensity.Compact;
+
+        return RowDensity.Normal;
+    }
+
+    internal static float GetItemWidth(RowDensity density)
+    {
+        return density switch
+        {
+            RowDensity.Compact => 200f,
+            RowDensity.UltraCompact => 110f,
+            _ => ItemWidth,// 260f
+        };
+    }
+
+    private readonly RowDensity rowDensity;
+    private readonly float itemWidth;
+
+    public SpawnAndSpectateCharacter(int _playerIndex, RowDensity density)
     {
         playerIndex = _playerIndex;
+        rowDensity = density;
+        itemWidth = GetItemWidth(density);
 
-        // Load assets
         dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
         innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
         playerBGTexture = Ass.CustomPlayerBackground;
-        //_playerBGTexture = Main.Assets.Request<Texture2D>("Images/UI/PlayerBackground");
     }
+
 
     public override void OnActivate()
     {
@@ -49,7 +81,7 @@ internal class SpawnAndSpectateCharacter : UIPanel
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
 
         Height.Set(ItemHeight, 0f);
-        Width.Set(ItemWidth, 0f);
+        Width.Set(itemWidth, 0f);
 
         SetPadding(6f);
 
@@ -62,20 +94,38 @@ internal class SpawnAndSpectateCharacter : UIPanel
     private void UpdateSpectateButtonLayout()
     {
         if (spectateButton == null)
+        {
             return;
+        }
 
-        const float leftColumnWidth = 106f;
-        float rightAreaWidth = ItemWidth - 22f - leftColumnWidth;
+        if (rowDensity == RowDensity.UltraCompact)
+        {
+            float x = itemWidth - spectateButton.Width.Pixels - 6f;
+            float y = 2f;
+
+            spectateButton.Left.Set(x, 0f);
+            spectateButton.Top.Set(y, 0f);
+            spectateButton.Recalculate();
+            return;
+        }
+
+        float leftColumnWidth = 106f;
+        if (rowDensity == RowDensity.Compact)
+        {
+            leftColumnWidth = 106f;
+        }
+
+        float rightAreaWidth = itemWidth - 22f - leftColumnWidth;
 
         float panelWidth = rightAreaWidth + 24f;
-        float panelX = leftColumnWidth - 4f; // relative to inner-left
+        float panelX = leftColumnWidth - 4f;
         float panelY = -6f;
 
-        float x = panelX + panelWidth - spectateButton.Width.Pixels - 6f;
-        float y = panelY + 2f;
+        float x2 = panelX + panelWidth - spectateButton.Width.Pixels - 6f;
+        float y2 = panelY + 2f;
 
-        spectateButton.Left.Set(x, 0f);
-        spectateButton.Top.Set(y, 0f);
+        spectateButton.Left.Set(x2, 0f);
+        spectateButton.Top.Set(y2, 0f);
         spectateButton.Recalculate();
     }
 
@@ -233,10 +283,16 @@ internal class SpawnAndSpectateCharacter : UIPanel
         Vector2 pos = new(inner.X, inner.Y);
         //sb.Draw(_playerBGTexture.Value, pos, Color.White*0.5f);
 
+        int leftRectWidth = 100;
+        if (rowDensity == RowDensity.UltraCompact)
+        {
+            leftRectWidth = (int)itemWidth;
+        }
+
         Rectangle rect = new(
             x: (int)pos.X - 6,
             y: (int)pos.Y - 6,
-            width: 100,
+            width: leftRectWidth,
             height: 72);
 
 
@@ -259,9 +315,20 @@ internal class SpawnAndSpectateCharacter : UIPanel
             Log.Error("Failed to draw p: " + e);
         }
 
+        if (rowDensity == RowDensity.UltraCompact)
+        {
+            // Draw teleport to if it exists
+            if (IsMouseHovering)
+            {
+                DrawHoverText(player);
+            }
+
+            return;
+        }
+
         // Use the actual layout widths, not the texture width
         const float leftColumnWidth = 106f;              // player background column
-        const float rightAreaWidth = ItemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
+        float rightAreaWidth = itemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
 
         float rightAreaLeft = inner.X + leftColumnWidth;
         float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
@@ -270,8 +337,14 @@ internal class SpawnAndSpectateCharacter : UIPanel
         string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
 
         float nameScale = 1f;
-        if (name.Length > 16)
+        if (rowDensity == RowDensity.Compact && name.Length > 12)
+        {
+            nameScale = 0.8f;
+        }
+        else if (name.Length > 16)
+        {
             nameScale = 0.85f;
+        }
 
         Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
 
@@ -295,8 +368,21 @@ internal class SpawnAndSpectateCharacter : UIPanel
         Vector2 panelPos = new(rightAreaLeft - 14, inner.Y + 29f);
         DrawPanel(sb, panelPos, panelWidth);
 
-        string hpText = $"{player.statLife} HP";
-        string mpText = $"{player.statMana} MP";
+        bool drawMana = rowDensity == RowDensity.Normal;
+
+        string hpText;
+        string mpText;
+
+        if (rowDensity == RowDensity.Compact)
+        {
+            hpText = player.statLife.ToString();
+            mpText = string.Empty;
+        }
+        else
+        {
+            hpText = $"{player.statLife} HP";
+            mpText = $"{player.statMana} MP";
+        }
 
         Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hpText) * statScale;
         Vector2 mpSize = FontAssets.MouseText.Value.MeasureString(mpText) * statScale;
@@ -306,9 +392,16 @@ internal class SpawnAndSpectateCharacter : UIPanel
 
         float heartW = heart.Width() * statScale;
         float manaW = mana.Width() * statScale;
+
         float hpBlockW = heartW + hpSize.X;
-        float mpBlockW = manaW + mpSize.X;
-        float totalWidth = hpBlockW + statGap + mpBlockW;
+
+        float totalWidth = hpBlockW;
+        if (drawMana)
+        {
+            float mpBlockW = manaW + mpSize.X;
+            totalWidth = hpBlockW + statGap + mpBlockW;
+        }
+
         float startX = panelPos.X + (panelWidth - totalWidth) * 0.5f;
         float y = panelPos.Y + 4f;
 
@@ -317,12 +410,15 @@ internal class SpawnAndSpectateCharacter : UIPanel
         startX += heartW;
         Utils.DrawBorderString(sb, hpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
         startX += hpSize.X;
-        startX += statGap;
 
         // Draw mana
-        sb.Draw(mana.Value, new Vector2(startX, y - 2), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
-        startX += manaW;
-        Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
+        if (drawMana)
+        {
+            startX += statGap;
+            sb.Draw(mana.Value, new Vector2(startX, y - 2), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
+            startX += manaW;
+            Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
+        }
 
         // Draw player respawn timer if it exists
         if (player.respawnTimer != 0)

@@ -1,4 +1,6 @@
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using PvPAdventure.Common.Config;
 using System;
 using System.ComponentModel;
 using Terraria.Audio;
@@ -23,16 +25,26 @@ public class AdventureClientConfig : ModConfig
     public PlayerOutlineConfig PlayerOutline = new();
 
     [Header("SoundEffects")]
-    [BackgroundColor(90, 50, 130)]
     [Expand(false,false)]
+    [BackgroundColor(200, 80, 150)]
     public SoundEffectConfig SoundEffect = new();
 
+    [Header("Spawn")]
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)] public bool AutoSelectWorldSpawnWhenRespawning;
+
+    //[DefaultValue(typeof(Vector2), "0.5,0")]
+    //[BackgroundColor(30, 150, 150)]
+    //[CustomModConfigItem(typeof(SpawnUIPositionConfigElement))]
+    //public Vector2 SpawnUIPosition = new(0.5f, 0f);
+
     [Header("AdventureMirror")]
-    [BackgroundColor(30, 90, 90)]
+    [BackgroundColor(90, 50, 130)]
     [DefaultValue(true)] public bool ShowPopupText;
 
-    [BackgroundColor(30, 90, 90)]
+    [BackgroundColor(90, 50, 130)]
     [DefaultValue(true)] public bool PlaySound;
+
     #endregion
 
     #region Configs

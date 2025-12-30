@@ -64,7 +64,7 @@ public class SpawnPointPlayer : ModPlayer
 
         bool inSpawnRegion = IsPlayerInSpawnRegionCached();
 
-        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing && inSpawnRegion && !Main.playerInventory)
+        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing && inSpawnRegion )
             SpawnAndSpectateSystem.SetEnabled(true);
         else
             SpawnAndSpectateSystem.SetEnabled(false);

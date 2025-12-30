@@ -17,6 +17,7 @@ internal class RespawnPlayer : ModPlayer
         WorldSpawn
     }
 
+    private bool _autoCommittedThisDeath; // when we die, we instantly select world spawn
     private RespawnCommit committedSpawn = RespawnCommit.None;
     private int committedTeammateIndex = -1;
 
@@ -128,7 +129,18 @@ internal class RespawnPlayer : ModPlayer
         bool isLocalPlayer = Player.whoAmI == Main.myPlayer;
 
         if (isLocalPlayer)
+        {
             SpawnAndSpectateSystem.SetCanRespawn(false);
+
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            bool autoSelectWorldSpawn = config.AutoSelectWorldSpawnWhenRespawning;
+
+            if (!_autoCommittedThisDeath && !HasCommit && Player.respawnTimer > 2 && autoSelectWorldSpawn)
+            {
+                SetCommit(RespawnCommit.WorldSpawn, -1);
+                _autoCommittedThisDeath = true;
+            }
+        }
 
         // Let vanilla count down until it reaches 2.
         if (Player.respawnTimer > 2)
@@ -137,26 +149,32 @@ internal class RespawnPlayer : ModPlayer
             return;
         }
 
-        // We are at (or below) 2: this is the selection/execution gate.
-        // If nothing is selected, freeze at 2 until the player chooses.
         if (!HasCommit)
         {
             Player.respawnTimer = 2;
 
             if (isLocalPlayer)
+            {
                 SpawnAndSpectateSystem.SetCanRespawn(true);
+            }
 
             return;
         }
 
-        // If something is selected and we just hit 2, immediately execute:
-        // force the timer below 2 so vanilla completes the respawn right now.
         if (Player.respawnTimer == 2)
         {
             Player.respawnTimer = 1;
         }
 
         base.UpdateDead();
+    }
+
+    public override void PostUpdate()
+    {
+        if (!Player.dead)
+        {
+            _autoCommittedThisDeath = false;
+        }
     }
 
     private void SendCommitToServer()

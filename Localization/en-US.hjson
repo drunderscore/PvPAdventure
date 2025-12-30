@@ -34,6 +34,7 @@ Mods: {
 					AdjustGameTimeDescription: Allows you to adjust the game time while the game is running.
 					CountdownInProgress: A countdown is already in progress!
 				}
+
 				RightClickName: DLStartGameTool Right Click
 				CannotStart: Cannot start the game while a countdown is in progress
 				Time: Time
@@ -202,6 +203,11 @@ Mods: {
 				DisplayName: Planteras Bulb Config
 				Tooltip: ""
 			}
+
+			MapSpawnConfig: {
+				DisplayName: Map Spawn Config
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -241,6 +247,8 @@ Mods: {
 					SoundEffects: Sound Effects
 					AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
 					Spectate: "[i:Binoculars] Spectate"
+					RespawnAndAdventureMirror: Respawn And Adventure Mirror Header
+					Spawn: Spawn
 				}
 
 				ShiftEnterOpensAllChat: {
@@ -282,14 +290,17 @@ Mods: {
 					Tooltip: Plays a sound while using the Adventure Mirror
 				}
 
-				SpectateTeammatesOnDeath: {
-					Label: Spectate Teammates On Death
-					Tooltip: ""
+				AutoSelectWorldSpawnWhenRespawning: {
+					Label: "[i:PvPAdventure/MapSpawnConfig] Auto Select World Spawn When Respawning"
+					Tooltip: When you die, the world spawn point is automatically selected as your spawn point
 				}
 
-				SpectateUIPosition: {
-					Label: Spectate U I Position
-					Tooltip: ""
+				SpawnUIPosition: {
+					Label: Spawn UI Position
+					Tooltip: 
+					'''Change position of spawn select and spectate UI. 
+					Supports live apply, so keep UI open while dragging sliders to see changes in real time.
+					'''
 				}
 			}
 
