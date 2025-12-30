@@ -30,11 +30,11 @@ public class PvPIconDrawerLayer : ModSystem
 
             var mp = p.GetModPlayer<PvPIconPlayer>();
 
-            bool wasInRegion = mp.ShowPvPIcon; 
+            bool wasInRegion = mp.ShowPvPIcon;
 
             // If they JUST left the region, start 120 tick timer.
             if (wasInRegion && !inRegion)
-                mp.PvPEnabledIconTimer = 240; // 4 seconds
+                mp.PvPEnabledIconTimer = 180; // 3 seconds
 
             // If they re-enter, cancel the timer.
             if (inRegion)
@@ -116,15 +116,35 @@ public class PvPIconDrawerLayer : ModSystem
 
                 if (!mp.ShowPvPIcon && mp.PvPEnabledIconTimer > 0 && mp.PvPEnabledIconTimer <= 60)
                 {
-                    float t = mp.PvPEnabledIconTimer / 60f; // 60 -> 1, 0 -> 0
-                    alpha = t;
-                    scale = t; // shrinks to 0
+                    const float peakScale = 1.42f;
+                    const float popFrac = 0.22f;
+
+                    float u = 1f - (mp.PvPEnabledIconTimer / 60f); // 0 -> 1 over the last 60 ticks
+
+                    if (u < popFrac)
+                    {
+                        float k = u / popFrac;
+                        k = k * k * (3f - 2f * k); // smoothstep
+                        scale = MathHelper.Lerp(1f, peakScale, k);
+                        alpha = 1f;
+                    }
+                    else
+                    {
+                        float v = (u - popFrac) / (1f - popFrac); // 0 -> 1
+                        float inv = 1f - v;
+
+                        scale = peakScale * inv * inv * inv * inv * inv; // fast zoom out
+                        alpha = inv;                   // only fade during zoom out
+                    }
                 }
 
                 Vector2 center = p.Top + new Vector2(0f, -headOffset - iconH * 0.5f) - Main.screenPosition;
 
                 int drawW = (int)(iconW * scale);
                 int drawH = (int)(iconH * scale);
+
+                if (drawW <= 0 || drawH <= 0 || alpha <= 0f)
+                    continue;
 
                 iconRect = new(
                     (int)(center.X - drawW * 0.5f),

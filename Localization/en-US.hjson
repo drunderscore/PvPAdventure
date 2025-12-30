@@ -34,6 +34,7 @@ Mods: {
 					AdjustGameTimeDescription: Allows you to adjust the game time while the game is running.
 					CountdownInProgress: A countdown is already in progress!
 				}
+
 				RightClickName: DLStartGameTool Right Click
 				CannotStart: Cannot start the game while a countdown is in progress
 				Time: Time
