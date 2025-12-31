@@ -91,7 +91,7 @@ public class SpawnPointPlayer : ModPlayer
         if (regionManager.GetRegionContaining(tilePos) != null)
             return true;
 
-        const float radiusWorld = 25f * 16f;
+        const float radiusWorld = 10f * 16f;
         const float radiusSq = radiusWorld * radiusWorld;
 
         // Own bed: distance first, validate only occasionally

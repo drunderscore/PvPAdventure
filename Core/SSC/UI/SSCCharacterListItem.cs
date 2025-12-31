@@ -15,8 +15,6 @@ namespace PvPAdventure.Core.SSC.UI;
 
 public class SSCCharacterListItem : UIPanel
 {
-    private const float GapToRightArea = 6f;
-
     private readonly string characterName;
     private readonly Player drawPlayer;
 

@@ -11,7 +11,7 @@ using Terraria.Utilities;
 
 namespace PvPAdventure.Core.SSC.UI;
 
-internal sealed class CreateSSCCharacterPanel : UIPanel
+internal sealed class SSCCreateCharacterPanel : UIPanel
 {
     readonly Player dummy;
 
@@ -19,7 +19,7 @@ internal sealed class CreateSSCCharacterPanel : UIPanel
     UISearchBar nameSearchBar;
     UITextPanel<LocalizedText> createButton;
 
-    public CreateSSCCharacterPanel(Player dummy)
+    public SSCCreateCharacterPanel(Player dummy)
     {
         this.dummy = dummy;
     }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.IO;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -20,7 +21,7 @@ public class ServerViewer : UIState
     private UIPanel Container;
     private UIList CharacterList;
     private UIScrollbar Scrollbar;
-    internal CreateSSCCharacterPanel CharacterCreationPanel;
+    internal SSCCreateCharacterPanel CharacterCreationPanel;
 
     private int lastBuildHash;
 
@@ -37,7 +38,7 @@ public class ServerViewer : UIState
         };
         Append(Root);
 
-        var title = new UITextPanel<LocalizedText>(Language.GetText("Mods.PvPAdventure.SSC.SelectPlayer"), 0.8f, large: true)
+        var title = new UITextPanel<LocalizedText>(Language.GetText("Mods.PvPAdventure.SSC.SelectPlayer"), 0.6f, large: true)
         {
             HAlign = 0.5f,
             Height = new StyleDimension(HeaderHeight, 0f),
@@ -52,7 +53,7 @@ public class ServerViewer : UIState
         {
             BackgroundColor = new Color(33, 43, 79) * 0.8f
         };
-        Container.Top.Set(HeaderHeight - 0f, 0f);
+        Container.Top.Set(HeaderHeight - 3f, 0f);
         Container.Width.Set(0f, 1f);
         Container.Height.Set(-HeaderHeight, 1f);
         Root.Append(Container);
@@ -75,7 +76,7 @@ public class ServerViewer : UIState
         Container.Append(Scrollbar);
 
         Player dummy = new Player();
-        CharacterCreationPanel = new CreateSSCCharacterPanel(dummy);
+        CharacterCreationPanel = new SSCCreateCharacterPanel(dummy);
 
         CharacterList.Clear();
         CharacterList.Add(CharacterCreationPanel);
@@ -84,6 +85,12 @@ public class ServerViewer : UIState
         lastBuildHash = 0;
 
         Root.Append(title);
+
+        var system = ModContent.GetInstance<ServerSystem>();
+        if (system.LastCharacterList != null)
+        {
+            Calc(system.LastCharacterList);
+        }
     }
 
     public void Calc(TagCompound obj)
@@ -110,27 +117,6 @@ public class ServerViewer : UIState
 
         int buildHash = 17;
         buildHash = (buildHash * 31) ^ list.Count;
-
-        for (int i = 0; i < list.Count; i++)
-        {
-            TagCompound tag = list[i];
-
-            string name = "";
-            long playTime = 0;
-
-            if (tag.ContainsKey("name"))
-            {
-                name = tag.GetString("name");
-            }
-
-            if (tag.ContainsKey("play_time"))
-            {
-                playTime = tag.GetLong("play_time");
-            }
-
-            buildHash = (buildHash * 31) ^ (name?.GetHashCode() ?? 0);
-            buildHash = (buildHash * 31) ^ playTime.GetHashCode();
-        }
 
         if (buildHash == lastBuildHash && CharacterList.Count > 0)
         {
@@ -163,6 +149,10 @@ public class ServerViewer : UIState
 
         CharacterList.Add(CharacterCreationPanel);
         CharacterList.Recalculate();
+
+#if DEBUG
+        Main.NewText("[DEBUG/ServerViewer: Calc() called");
+#endif
     }
 
     public override void Update(GameTime gameTime)
@@ -190,110 +180,32 @@ public class ServerViewer : UIState
 
     private static Player BuildPreviewPlayer(TagCompound tag)
     {
-        // This will show defaults unless you also send the below fields from NetSend.
-        // Recommended keys to include per character:
-        // - difficulty, lifeMax, life, manaMax, mana
-        // - skinVariant, hair, male
-        // - skinColor, eyeColor, hairColor, shirtColor, underShirtColor, pantsColor, shoeColor
         var p = new Player();
 
-        if (tag.ContainsKey("name"))
+        if (tag.ContainsKey("plr"))
         {
-            p.name = tag.GetString("name");
-        }
+            byte[] data = tag.GetByteArray("plr");
 
-        p.difficulty = PlayerDifficultyID.SoftCore;
-        if (tag.ContainsKey("difficulty"))
-        {
-            p.difficulty = (byte)tag.GetInt("difficulty");
-        }
+            var fd = new PlayerFileData("Preview", false)
+            {
+                Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
+            };
 
-        int lifeMax = 100;
-        int life = 100;
-        int manaMax = 20;
-        int mana = 20;
+            Player.LoadPlayerFromStream(fd, data, null);
 
-        if (tag.ContainsKey("lifeMax"))
-        {
-            lifeMax = tag.GetInt("lifeMax");
-        }
+            // Set life
+            if (tag.ContainsKey("lifeMax"))
+                fd.Player.statLifeMax2 = tag.GetInt("lifeMax");
+            else
+                fd.Player.statLifeMax2 = 100;
 
-        if (tag.ContainsKey("life"))
-        {
-            life = tag.GetInt("life");
-        }
-        else
-        {
-            life = lifeMax;
-        }
+            // Set mana
+            if (tag.ContainsKey("manaMax"))
+                fd.Player.statManaMax2 = tag.GetInt("manaMax");
+            else
+                fd.Player.statManaMax2 = 20;
 
-        if (tag.ContainsKey("manaMax"))
-        {
-            manaMax = tag.GetInt("manaMax");
-        }
-
-        if (tag.ContainsKey("mana"))
-        {
-            mana = tag.GetInt("mana");
-        }
-        else
-        {
-            mana = manaMax;
-        }
-
-        p.statLifeMax2 = lifeMax;
-        p.statLife = life;
-        p.statManaMax2 = manaMax;
-        p.statMana = mana;
-
-        if (tag.ContainsKey("male"))
-        {
-            p.Male = tag.GetBool("male");
-        }
-
-        if (tag.ContainsKey("skinVariant"))
-        {
-            p.skinVariant = tag.GetInt("skinVariant");
-        }
-
-        if (tag.ContainsKey("hair"))
-        {
-            p.hair = tag.GetInt("hair");
-        }
-
-        if (tag.ContainsKey("skinColor"))
-        {
-            p.skinColor = tag.Get<Color>("skinColor");
-        }
-
-        if (tag.ContainsKey("eyeColor"))
-        {
-            p.eyeColor = tag.Get<Color>("eyeColor");
-        }
-
-        if (tag.ContainsKey("hairColor"))
-        {
-            p.hairColor = tag.Get<Color>("hairColor");
-        }
-
-        if (tag.ContainsKey("shirtColor"))
-        {
-            p.shirtColor = tag.Get<Color>("shirtColor");
-        }
-
-        if (tag.ContainsKey("underShirtColor"))
-        {
-            p.underShirtColor = tag.Get<Color>("underShirtColor");
-        }
-
-        if (tag.ContainsKey("pantsColor"))
-        {
-            p.pantsColor = tag.Get<Color>("pantsColor");
-        }
-
-        if (tag.ContainsKey("shoeColor"))
-        {
-            p.shoeColor = tag.Get<Color>("shoeColor");
+            return fd.Player;
         }
 
         return p;

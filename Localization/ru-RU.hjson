@@ -453,6 +453,7 @@ Mods: {
 					Gameplay: "[i:Stopwatch] Gameplay"
 					General: "[i:Cog] General"
 					WorldGen: "[i:WorldGlobe] World Generation"
+					// SSC: "[i:4765] SSC"
 				}
 
 				Points: {
@@ -582,6 +583,21 @@ Mods: {
 
 				NpcBalance: {
 					// Label: Npc Balance
+					// Tooltip: ""
+				}
+
+				sscConfig: {
+					// Label: Server Sided Characters
+					// Tooltip: ""
+				}
+
+				StartItems: {
+					// Label: Start Items
+					// Tooltip: ""
+				}
+
+				respawnConfig: {
+					// Label: respawn Config
 					// Tooltip: ""
 				}
 			}
@@ -1196,6 +1212,22 @@ Mods: {
 					// Tooltip: ""
 				}
 			}
+
+			SSCConfig: {
+				// Tooltip: ""
+
+				StartItems: {
+					// Label: Start Items
+					// Tooltip: ""
+				}
+
+				UseSSC: {
+					// Label: Use SSC
+					// Tooltip: Forces players to select a server-sided character when joining the world
+				}
+			}
+
+			// RespawnConfig.Tooltip: ""
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry

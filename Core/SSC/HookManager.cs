@@ -3,18 +3,22 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using PvPAdventure.Core.MiscSystems;
 using Terraria;
 using Terraria.ID;
 using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using Terraria.UI;
 using Terraria.Utilities;
 
 namespace PvPAdventure.Core.SSC;
 
 public class HookManager : ModSystem
 {
+    /// <summary>
+    /// Gets or sets the player who is joining the game.
+    /// When set, contains original player data from when player first joins the world.
+    /// </summary>
     public static Player JoinPlayer;
 
     public override void Load()
@@ -96,8 +100,6 @@ public class HookManager : ModSystem
                 return; // Hook above ensures initialization only on the first entry into a world
             }
 
-            // JoinPlayer = Main.ActivePlayerFileData.Player.SerializedClone();
-
             JoinPlayer = (Player)Main.ActivePlayerFileData.Player.Clone();
 
             // UUID affects local map data; different characters with the same UUID share map exploration
@@ -163,7 +165,7 @@ public class HookManager : ModSystem
             try
             {
                 var plr = Player.SavePlayerFile_Vanilla(fileData);
-                var tplr = GetTPLR(fileData);
+                var tplr = PlayerIO.SaveData(fileData.Player);
 
                 var mp = Mod.GetPacket();
                 mp.Write((byte)AdventurePacketIdentifier.SSC);
@@ -185,10 +187,5 @@ public class HookManager : ModSystem
         }
 
         orig(fileData);
-    }
-
-    TagCompound GetTPLR(PlayerFileData fileData)
-    {
-        return PlayerIO.SaveData(fileData.Player);
     }
 }

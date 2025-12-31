@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using PvPAdventure.Core.MiscSystems;
 using Steamworks;
 using Terraria;
 using Terraria.Chat;
@@ -154,15 +155,12 @@ public class SSC : ModSystem
                 // Notify the client when the save succeeds
                 var KB = (data.LongLength + stream.Length) / 1024.0;
                 var size = $"[c/{(KB < 64 ? Color.Green.Hex3() : Color.Yellow.Hex3())}:{KB:N2} KB]";
-                var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                var time = DateTime.Now.ToString("HH:mm:ss");
                 ChatHelper.DisplayMessageOnClient(NetworkText.FromKey("Mods.PvPAdventure.SSC.SaveSuccessful", name, size, time),
                     Color.Green, from);
 #endif
 
-                if (first)
-                {
-                    NetMessage.TrySendData(MessageID.WorldData, from);
-                }
+                NetMessage.TrySendData(MessageID.WorldData, from);
 
                 break;
             }

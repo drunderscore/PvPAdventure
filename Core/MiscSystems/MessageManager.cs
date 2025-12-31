@@ -1,14 +1,15 @@
-﻿using System;
+﻿using PvPAdventure.Core.SSC;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.SSC;
+namespace PvPAdventure.Core.MiscSystems;
 
 /// <summary>
-/// Segments payloads above 60KB to avoid Terraria's 64 KB packet size limit.
+/// This is a helper system that segments payloads above 60KB to avoid Terraria's 64 KB packet size limit.
 /// DO NOT DELETE THIS CLASS: Removing this class risks corrupt joins/saves for large SSC characters.
 /// </summary>
 public class MessageManager : ModSystem
@@ -82,7 +83,7 @@ public class MessageManager : ModSystem
                 return;
             }
 
-            ModContent.GetInstance<SSC>().HandlePacket(new BinaryReader(new MemoryStream(data[4..])), from);
+            ModContent.GetInstance<SSC.SSC>().HandlePacket(new BinaryReader(new MemoryStream(data[4..])), from);
             return;
         }
 

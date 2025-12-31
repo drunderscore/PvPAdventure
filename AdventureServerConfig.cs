@@ -147,6 +147,15 @@ public class AdventureServerConfig : ModConfig
     [BackgroundColor(90, 70, 40)]
     [Expand(false, false)]
     public WorldGenerationConfig WorldGeneration { get; set; } = new();
+
+    [Header("SSC")]
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
+    public List<ItemDefinition> StartItems { get; set; } =
+    [
+        new ItemDefinition("PvPAdventure", "AdventureBag")
+    ];
+
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
         if (pendingConfig is not AdventureServerConfig pendingAdventureConfig)
