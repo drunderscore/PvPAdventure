@@ -1,11 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.SSC.UI;
 
-public class DraggableElement : UIPanel
+/// <summary>
+/// Drags this element (and therefore all children) by converting alignment-based layout to pixel layout on drag start.
+/// </summary>
+public class DraggableElement : UIElement
 {
     bool moving;
     Vector2 offset;
@@ -13,15 +15,29 @@ public class DraggableElement : UIPanel
     public void BeginDrag(UIMouseEvent evt)
     {
         moving = true;
-        offset = new Vector2(evt.MousePosition.X - Left.Pixels, evt.MousePosition.Y - Top.Pixels);
+
+        // Freeze current layout into pixel-based Left/Top so HAlign/VAlign don't fight dragging.
+        var dims = GetDimensions();
+        var parentDims = Parent?.GetDimensions();
+
+        if (parentDims != null)
+        {
+            HAlign = 0f;
+            VAlign = 0f;
+
+            Left.Set(dims.X - parentDims.Value.X, 0f);
+            Top.Set(dims.Y - parentDims.Value.Y, 0f);
+            Recalculate();
+        }
+
+        // Offset is always computed in screen-space.
+        offset = evt.MousePosition - dims.Position();
     }
 
     public void EndDrag(UIMouseEvent evt)
     {
         moving = false;
-        Left.Set(evt.MousePosition.X - offset.X, 0);
-        Top.Set(evt.MousePosition.Y - offset.Y, 0);
-        Recalculate();
+        UpdatePositionFromMouse(Main.MouseScreen);
     }
 
     public override void Update(GameTime gameTime)
@@ -35,49 +51,59 @@ public class DraggableElement : UIPanel
 
         if (moving)
         {
-            Left.Set(Main.mouseX - offset.X, 0f);
-            Top.Set(Main.mouseY - offset.Y, 0f);
-            Recalculate();
+            UpdatePositionFromMouse(Main.MouseScreen);
         }
 
         if (moving && !Main.mouseLeft)
         {
             moving = false;
-            Left.Set(Main.mouseX - offset.X, 0f);
-            Top.Set(Main.mouseY - offset.Y, 0f);
-            Recalculate();
+            UpdatePositionFromMouse(Main.MouseScreen);
         }
 
-        var space = Parent?.GetViewCullingArea();
-        var area = GetViewCullingArea();
-        if (space == null)
+        // Clamp to parent view
+        //var space = Parent?.GetViewCullingArea();
+        //var area = GetViewCullingArea();
+        //if (space == null)
+        //{
+        //    return;
+        //}
+
+        //if (!space.Value.Contains(area))
+        //{
+        //    if (area.X < space.Value.X)
+        //    {
+        //        Left.Pixels += space.Value.X - area.X;
+        //    }
+
+        //    if (area.X + area.Width > space.Value.Width)
+        //    {
+        //        Left.Pixels -= area.X + area.Width - space.Value.Width;
+        //    }
+
+        //    if (area.Y < space.Value.Y)
+        //    {
+        //        Top.Pixels += space.Value.Y - area.Y;
+        //    }
+
+        //    if (area.Y + area.Height > space.Value.Height)
+        //    {
+        //        Top.Pixels -= area.Y + area.Height - space.Value.Height;
+        //    }
+
+        //    Recalculate();
+        //}
+    }
+
+    private void UpdatePositionFromMouse(Vector2 mouseScreen)
+    {
+        var parentDims = Parent?.GetDimensions();
+        if (parentDims == null)
         {
             return;
         }
 
-        if (!space.Value.Contains(area))
-        {
-            if (area.X < space.Value.X)
-            {
-                Left.Pixels += space.Value.X - area.X;
-            }
-
-            if (area.X + area.Width > space.Value.Width)
-            {
-                Left.Pixels -= area.X + area.Width - space.Value.Width;
-            }
-
-            if (area.Y < space.Value.Y)
-            {
-                Top.Pixels += space.Value.Y - area.Y;
-            }
-
-            if (area.Y + area.Height > space.Value.Height)
-            {
-                Top.Pixels -= area.Y + area.Height - space.Value.Height;
-            }
-
-            Recalculate();
-        }
+        Left.Set(mouseScreen.X - parentDims.Value.X - offset.X, 0f);
+        Top.Set(mouseScreen.Y - parentDims.Value.Y - offset.Y, 0f);
+        Recalculate();
     }
 }

@@ -60,6 +60,20 @@ public class SSC : ModSystem
 
         return CachedPID;
     }
+    public static PlayerFileData LoadSSCPlayerFile(string steamId, string characterName)
+    {
+        string plrPath = Path.Combine(PATH, MapID, steamId, $"{characterName}.plr");
+
+        if (!File.Exists(plrPath))
+            return null;
+
+        var fileData = Player.GetFileData(plrPath, cloudSave: false);
+
+        fileData.MarkAsServerSide();
+
+        return fileData;
+    }
+
 
     public void HandlePacket(BinaryReader reader, int from)
     {
@@ -101,12 +115,12 @@ public class SSC : ModSystem
                 }
 
                 // Enforce max 3 characters per player per world
-                var playerDir = Path.Combine(PATH, MapID, id);
-                if (first && Directory.Exists(playerDir) && Directory.GetFiles(playerDir, "*.plr").Length >= 3)
-                {
-                    ChatHelper.DisplayMessageOnClient(NetworkText.FromLiteral("You can only have 3 SSC characters."), Color.Red, from);
-                    return;
-                }
+                //var playerDir = Path.Combine(PATH, MapID, id);
+                //if (first && Directory.Exists(playerDir) && Directory.GetFiles(playerDir, "*.plr").Length >= 3)
+                //{
+                //    ChatHelper.DisplayMessageOnClient(NetworkText.FromLiteral("You can only have 3 SSC characters."), Color.Red, from);
+                //    return;
+                //}
 
                 switch (first)
                 {

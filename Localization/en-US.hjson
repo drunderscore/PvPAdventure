@@ -34,6 +34,7 @@ Mods: {
 					AdjustGameTimeDescription: Allows you to adjust the game time while the game is running.
 					CountdownInProgress: A countdown is already in progress!
 				}
+
 				RightClickName: DLStartGameTool Right Click
 				CannotStart: Cannot start the game while a countdown is in progress
 				Time: Time
@@ -1232,7 +1233,7 @@ Mods: {
 		}
 
 		SSC: {
-			ChooseYourCharacter: Choose Your Character
+			SelectPlayer: Select Player
 			SaveSuccessful: Saved character '{0}' with size {1} at time: {2}
 			EmptyName: Character name cannot be empty
 			NameTooLong: Character name cannot exceed 16 characters

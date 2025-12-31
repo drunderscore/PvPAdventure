@@ -34,6 +34,9 @@ public class ServerSystem : ModSystem
         if (UI?.CurrentState != null)
         {
             UI.Update(gameTime);
+
+            // Debug
+            //(UI?.CurrentState as ServerViewer)?.Calc(LastCharacterList);
         }
     }
 
