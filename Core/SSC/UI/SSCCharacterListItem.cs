@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using ReLogic.Content;
+using ReLogic.Graphics;
 using System;
 using Terraria;
 using Terraria.GameContent;
@@ -13,13 +15,13 @@ namespace PvPAdventure.Core.SSC.UI;
 
 public class SSCCharacterListItem : UIPanel
 {
+    private const float GapToRightArea = 6f;
+
     private readonly string characterName;
-    private readonly long playTimeTicks;
+    private readonly Player drawPlayer;
 
     private readonly UICharacter playerPanel;
     private readonly UIText nameText;
-
-    private readonly Player drawPlayer;
 
     private readonly Asset<Texture2D> dividerTexture;
     private readonly Asset<Texture2D> innerPanelTexture;
@@ -30,12 +32,6 @@ public class SSCCharacterListItem : UIPanel
     private readonly UIText buttonLabel;
     private readonly UIText deleteButtonLabel;
 
-    private readonly UIImageButton playButton;
-    private readonly UIImageButton deleteButton;
-
-    private readonly Action<string> playAction;
-    private readonly Action<string> deleteAction;
-
     public SSCCharacterListItem(
         Player player,
         string name,
@@ -44,35 +40,7 @@ public class SSCCharacterListItem : UIPanel
         Action<string> playAction,
         Action<string> deleteAction)
     {
-        this.characterName = name;
-        this.playTimeTicks = playTimeTicks;
-        this.playAction = playAction;
-        this.deleteAction = deleteAction;
-
-        BorderColor = new Color(89, 116, 213) * 0.7f;
-        BackgroundColor = new Color(63, 82, 151) * 0.7f;
-
-        Height.Set(96f, 0f);
-        Width.Set(0f, 1f);
-        SetPadding(6f);
-
-        playerPanel = new UICharacter(player, animated: false, hasBackPanel: true, 1f, useAClone: true);
-        playerPanel.Left.Set(4f, 0f);
-        playerPanel.OnLeftDoubleClick += PlayGame;
-        OnLeftDoubleClick += PlayGame;
-        Append(playerPanel);
-
-        float contentLeft = 100f;
-
-        nameText = new UIText(name, 0.9f, large: false);
-        nameText.Left.Set(contentLeft, 0f);
-        nameText.Top.Set(6f, 0f);
-        Append(nameText);
-
-        Asset<Texture2D> playTex = Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay");
-        Asset<Texture2D> delTex = Main.Assets.Request<Texture2D>("Images/UI/ButtonDelete");
-
-        // Initialize more stuff
+        characterName = name;
         drawPlayer = player;
 
         dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
@@ -81,46 +49,69 @@ public class SSCCharacterListItem : UIPanel
         difficultyText = GetDifficultyLabel(player.difficulty);
         playtimeTextValue = new TimeSpan(playTimeTicks).ToString(@"dd\:hh\:mm\:ss");
 
-        playButton = new UIImageButton(playTex)
+        BorderColor = new Color(89, 116, 213) * 0.7f;
+        BackgroundColor = new Color(63, 82, 151) * 0.7f;
+
+        Height.Set(96f, 0f);
+        Width.Set(0f, 1f);
+        SetPadding(6f);
+
+        playerPanel = new UICharacter(player, animated: false, hasBackPanel: true, 1f, useAClone: true)
         {
-            VAlign = 1f
+            Left = { Pixels = 4f }
         };
-        playButton.Left.Set(4, 0f);
-        playButton.OnLeftClick += PlayGame;
-        playButton.OnMouseOver += PlayMouseOver;
-        playButton.OnMouseOut += ButtonMouseOut;
+        playerPanel.OnLeftDoubleClick += (_, _) => playAction?.Invoke(characterName);
+        OnLeftDoubleClick += (_, _) => playAction?.Invoke(characterName);
+        Append(playerPanel);
+
+        nameText = new UIText(name, 0.9f, large: false)
+        {
+            Top = { Pixels = 6f }
+        };
+        Append(nameText);
+
+        var playButton = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay"))
+        {
+            VAlign = 1f,
+            Left = { Pixels = 4f }
+        };
+        playButton.OnLeftClick += (_, _) => playAction?.Invoke(characterName);
+        playButton.OnMouseOver += (_, _) => buttonLabel.SetText(Language.GetTextValue("UI.Play"));
+        playButton.OnMouseOut += (_, _) => buttonLabel.SetText("");
         playButton.SetSnapPoint("Play", snapPointIndex);
         Append(playButton);
 
-        deleteButton = new UIImageButton(delTex)
+        var deleteButton = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonDelete"))
         {
             VAlign = 1f,
             HAlign = 1f
         };
-        deleteButton.OnLeftClick += DeleteGame;
-        deleteButton.OnMouseOver += DeleteMouseOver;
-        deleteButton.OnMouseOut += DeleteMouseOut;
+        deleteButton.OnLeftClick += (_, _) =>
+        {
+            if (Main.keyState.IsKeyDown(Keys.LeftShift))
+                deleteAction?.Invoke(characterName);
+        };
+        deleteButton.OnMouseOver += (_, _) => deleteButtonLabel.SetText("Shift+click to delete");
+        deleteButton.OnMouseOut += (_, _) => deleteButtonLabel.SetText("");
         deleteButton.SetSnapPoint("Delete", snapPointIndex);
         Append(deleteButton);
 
         buttonLabel = new UIText("")
         {
-            VAlign = 1f
+            VAlign = 1f,
+            Left = { Pixels = 28f },
+            Top = { Pixels = -3f }
         };
-        buttonLabel.Left.Set(28f, 0f);
-        buttonLabel.Top.Set(-3f, 0f);
         Append(buttonLabel);
 
         deleteButtonLabel = new UIText("")
         {
             VAlign = 1f,
-            HAlign = 1f
+            HAlign = 1f,
+            Left = { Pixels = -30f },
+            Top = { Pixels = -3f }
         };
-        deleteButtonLabel.Left.Set(-30f, 0f);
-        deleteButtonLabel.Top.Set(-3f, 0f);
         Append(deleteButtonLabel);
-
-       
     }
 
     public override void MouseOver(UIMouseEvent evt)
@@ -139,97 +130,45 @@ public class SSCCharacterListItem : UIPanel
         playerPanel.SetAnimated(false);
     }
 
-    private void PlayMouseOver(UIMouseEvent evt, UIElement listeningElement)
+    private void DrawPanel(SpriteBatch sb, Vector2 pos, float width)
     {
-        buttonLabel.SetText(Language.GetTextValue("UI.Play"));
+        var tex = innerPanelTexture.Value;
+        int h = tex.Height;
+
+        sb.Draw(tex, pos, new Rectangle(0, 0, 8, h), Color.White);
+        sb.Draw(tex, new Vector2(pos.X + 8f, pos.Y), new Rectangle(8, 0, 8, h), Color.White, 0f, Vector2.Zero, new Vector2((width - 16f) / 8f, 1f), SpriteEffects.None, 0f);
+        sb.Draw(tex, new Vector2(pos.X + width - 8f, pos.Y), new Rectangle(16, 0, 8, h), Color.White);
     }
 
-    private void DeleteMouseOver(UIMouseEvent evt, UIElement listeningElement)
+    protected override void DrawSelf(SpriteBatch sb)
     {
-        deleteButtonLabel.SetText(Language.GetTextValue("UI.Delete"));
-    }
-
-    private void DeleteMouseOut(UIMouseEvent evt, UIElement listeningElement)
-    {
-        deleteButtonLabel.SetText("");
-    }
-
-    private void ButtonMouseOut(UIMouseEvent evt, UIElement listeningElement)
-    {
-        buttonLabel.SetText("");
-    }
-
-    private void PlayGame(UIMouseEvent evt, UIElement listeningElement)
-    {
-        if (listeningElement == evt.Target)
-        {
-            playAction?.Invoke(characterName);
-        }
-    }
-
-    private void DeleteGame(UIMouseEvent evt, UIElement listeningElement)
-    {
-        deleteAction?.Invoke(characterName);
-    }
-
-    private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
-    {
-        spriteBatch.Draw(
-            innerPanelTexture.Value,
-            position,
-            new Rectangle(0, 0, 8, innerPanelTexture.Value.Height),
-            Color.White
-        );
-
-        spriteBatch.Draw(
-            innerPanelTexture.Value,
-            new Vector2(position.X + 8f, position.Y),
-            new Rectangle(8, 0, 8, innerPanelTexture.Value.Height),
-            Color.White,
-            0f,
-            Vector2.Zero,
-            new Vector2((width - 16f) / 8f, 1f),
-            SpriteEffects.None,
-            0f
-        );
-
-        spriteBatch.Draw(
-            innerPanelTexture.Value,
-            new Vector2(position.X + width - 8f, position.Y),
-            new Rectangle(16, 0, 8, innerPanelTexture.Value.Height),
-            Color.White
-        );
-    }
-
-    protected override void DrawSelf(SpriteBatch spriteBatch)
-    {
-        base.DrawSelf(spriteBatch);
+        base.DrawSelf(sb);
 
         CalculatedStyle inner = GetInnerDimensions();
+        CalculatedStyle playerOuter = playerPanel.GetOuterDimensions();
 
-        float rightAreaLeft = inner.X + 100f;
-        float rightAreaWidth = inner.Width - 100f;
+        float rightAreaLeft = playerOuter.X + playerOuter.Width + 6f;
+        float rightAreaRight = inner.X + inner.Width;
+        float rightAreaWidth = rightAreaRight - rightAreaLeft;
 
         if (rightAreaWidth <= 0f)
+        {
             return;
+        }
 
-        // Divider: under name, above the panels
+        nameText.Left.Pixels = rightAreaLeft - inner.X;
+
+        DynamicSpriteFont font = GetMouseTextFont();
+        if (font == null)
+        {
+            return;
+        }
+
         Texture2D div = dividerTexture.Value;
-        float dividerY = inner.Y + 26f;
-        spriteBatch.Draw(
-            div,
-            new Vector2(rightAreaLeft, dividerY),
-            new Rectangle(0, 0, div.Width, div.Height),
-            Color.White,
-            0f,
-            Vector2.Zero,
-            new Vector2(rightAreaWidth / div.Width, 1f),
-            SpriteEffects.None,
-            0f
-        );
+        float dividerY = inner.Y + 20f;
+        sb.Draw(div, new Vector2(rightAreaLeft, dividerY), new Rectangle(0, 0, div.Width, div.Height), Color.White, 0f, Vector2.Zero, new Vector2(rightAreaWidth / div.Width, 1f), SpriteEffects.None, 0f);
 
-        // 3 panels (left-to-right) below the divider
-        float panelY = inner.Y + 29f;
+        float panelY = inner.Y + 26f;
         float panelGap = 6f;
 
         float p1W = rightAreaWidth * 0.46f;
@@ -242,23 +181,22 @@ public class SSCCharacterListItem : UIPanel
             p2W = Math.Max(60f, rightAreaWidth - p1W - p3W - panelGap * 2f);
         }
 
-        Vector2 p1Pos = new Vector2(rightAreaLeft, panelY);
-        Vector2 p2Pos = new Vector2(rightAreaLeft + p1W + panelGap, panelY);
-        Vector2 p3Pos = new Vector2(rightAreaLeft + p1W + panelGap + p2W + panelGap, panelY);
+        Vector2 p1Pos = new(rightAreaLeft, panelY);
+        Vector2 p2Pos = new(rightAreaLeft + p1W + panelGap, panelY);
+        Vector2 p3Pos = new(rightAreaLeft + p1W + panelGap + p2W + panelGap, panelY);
 
-        DrawPanel(spriteBatch, p1Pos, p1W);
-        DrawPanel(spriteBatch, p2Pos, p2W);
-        DrawPanel(spriteBatch, p3Pos, p3W);
+        DrawPanel(sb, p1Pos, p1W);
+        DrawPanel(sb, p2Pos, p2W);
+        DrawPanel(sb, p3Pos, p3W);
 
-        // Panel 1: HP + MP with heart/mana icons
         float statScale = 0.88f;
-        float statGap = 5f * statScale;
+        float statGap = 8f * statScale; // slightly more space between HP and MP
 
         string hpText = $"{drawPlayer.statLife} HP";
         string mpText = $"{drawPlayer.statMana} MP";
 
-        Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hpText) * statScale;
-        Vector2 mpSize = FontAssets.MouseText.Value.MeasureString(mpText) * statScale;
+        Vector2 hpSize = font.MeasureString(hpText) * statScale;
+        Vector2 mpSize = font.MeasureString(mpText) * statScale;
 
         Asset<Texture2D> heart = TextureAssets.Heart;
         Asset<Texture2D> mana = TextureAssets.Mana;
@@ -273,57 +211,40 @@ public class SSCCharacterListItem : UIPanel
         float startX = p1Pos.X + (p1W - totalWidth) * 0.5f;
         float y = p1Pos.Y + 4f;
 
-        spriteBatch.Draw(heart.Value, new Vector2(startX, y), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
+        sb.Draw(heart.Value, new Vector2(startX, y), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
         startX += heartW;
+        Utils.DrawBorderString(sb, hpText, new Vector2(startX + 1f, y + 1f), Color.White, statScale);
+        startX += hpSize.X + statGap;
 
-        Utils.DrawBorderString(spriteBatch, hpText, new Vector2(startX + 1f, y + 1f), Color.White, statScale);
-        startX += hpSize.X;
-        startX += statGap;
-
-        spriteBatch.Draw(mana.Value, new Vector2(startX, y - 2f), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
+        sb.Draw(mana.Value, new Vector2(startX, y - 2f), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
         startX += manaW;
+        Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1f, y + 1f), Color.White, statScale);
 
-        Utils.DrawBorderString(spriteBatch, mpText, new Vector2(startX + 1f, y + 1f), Color.White, statScale);
-
-        // Panel 2: difficulty (Classic/Mediumcore/Hardcore/Journey)
-        DrawCenteredPanelText(spriteBatch, p2Pos, p2W, difficultyText, statScale);
-
-        // Panel 3: playtime
-        DrawCenteredPanelText(spriteBatch, p3Pos, p3W, playtimeTextValue, statScale);
+        DrawCenteredPanelText(sb, font, p2Pos, p2W, difficultyText, statScale);
+        DrawCenteredPanelText(sb, font, p3Pos, p3W, playtimeTextValue, statScale);
     }
 
-
-    private static void DrawCenteredPanelText(SpriteBatch spriteBatch, Vector2 panelPos, float panelW, string text, float scale)
+    private static void DrawCenteredPanelText(SpriteBatch sb, DynamicSpriteFont font, Vector2 panelPos, float panelW, string text, float scale)
     {
-        var font = FontAssets.MouseText.Value;
-        if (font == null) return;
-
-        Vector2 size = FontAssets.MouseText.Value.MeasureString(text) * scale;
-
+        Vector2 size = font.MeasureString(text) * scale;
         float x = panelPos.X + (panelW - size.X) * 0.5f;
-        float y = panelPos.Y + 4f;
-
-        Utils.DrawBorderString(spriteBatch, text, new Vector2(x + 1f, y + 1f), Color.White, scale);
+        Utils.DrawBorderString(sb, text, new Vector2(x + 1f, panelPos.Y + 5f), Color.White, scale);
     }
 
-    private static string GetDifficultyLabel(int difficulty)
+    private static DynamicSpriteFont GetMouseTextFont()
     {
-        if (difficulty == PlayerDifficultyID.MediumCore)
-        {
-            return "Mediumcore";
-        }
+        var asset = FontAssets.MouseText;
 
-        if (difficulty == PlayerDifficultyID.Hardcore)
-        {
-            return "Hardcore";
-        }
-
-        if (difficulty == PlayerDifficultyID.Creative)
-        {
-            return "Journey";
-        }
-
-        return "Classic";
+        if (asset != null && asset.IsLoaded && asset.Value != null)
+            return asset.Value;
+        return null;
     }
 
+    private static string GetDifficultyLabel(int difficulty) => difficulty switch
+    {
+        PlayerDifficultyID.MediumCore => "Mediumcore",
+        PlayerDifficultyID.Hardcore => "Hardcore",
+        PlayerDifficultyID.Creative => "Journey",
+        _ => "Classic",
+    };
 }

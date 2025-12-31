@@ -30,8 +30,7 @@ public class ServerViewer : UIState
 
         Root = new DraggableElement
         {
-            Width = new StyleDimension(650f, 0f),
-            MaxWidth = new StyleDimension(650f, 0f),
+            Width = new StyleDimension(530f, 0f),
             Top = new StyleDimension(220f - HeaderHeight, 0f),
             Height = new StyleDimension(400f, 0f),
             HAlign = 0.5f
@@ -49,12 +48,11 @@ public class ServerViewer : UIState
         title.OnLeftMouseDown += (evt, _) => Root.BeginDrag(evt);
         title.OnLeftMouseUp += (evt, _) => Root.EndDrag(evt);
 
-
         Container = new UIPanel
         {
             BackgroundColor = new Color(33, 43, 79) * 0.8f
         };
-        Container.Top.Set(HeaderHeight - 10f, 0f);
+        Container.Top.Set(HeaderHeight - 0f, 0f);
         Container.Width.Set(0f, 1f);
         Container.Height.Set(-HeaderHeight, 1f);
         Root.Append(Container);
