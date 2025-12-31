@@ -2,12 +2,9 @@ using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
-using PvPAdventure.Core.SpawnSelector.Systems;
 using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using Steamworks;
-using PvPAdventure.Core.SpawnSelector;
-using PvPAdventure.System;
 using System;
 using System.IO;
 using System.Linq;
@@ -20,6 +17,8 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
 using PvPAdventure.Core.AdminTools.TeamAssigner;
+using PvPAdventure.Core.SpawnAndSpectate;
+using PvPAdventure.Core.AdminTools.AdminManagerTool;
 
 namespace PvPAdventure;
 
@@ -220,7 +219,7 @@ public class PvPAdventure : Mod
                     {
                         foreach (var child in ts.teamAssignerState.Children)
                         {
-                            if (child is TeamAssignerElement panel)
+                            if (child is TeamAssignerPanel panel)
                             {
                                 panel.needsRebuild = true;
                                 break;
@@ -255,6 +254,19 @@ public class PvPAdventure : Mod
                             break;
 
                         gm.StartGame(time, countdown);
+                    }
+
+                    break;
+                }
+            case AdventurePacketIdentifier.AdjustGameTime:
+                {
+                    int deltaFrames = reader.ReadInt32();
+
+                    if (Main.netMode == NetmodeID.Server)
+                    {
+                        var gm = ModContent.GetInstance<GameManager>();
+
+                        gm.AdjustTimeRemaining(deltaFrames);
                     }
 
                     break;
@@ -326,7 +338,12 @@ public class PvPAdventure : Mod
                 }
             case AdventurePacketIdentifier.BedTeleport:
                 {
-                    BedsOnMap.HandlePacket(reader, whoAmI);
+                    BedsOnMap.HandleBedTeleportPacket(reader, whoAmI);
+                    break;
+                }
+            case AdventurePacketIdentifier.WorldSpawnTeleport:
+                {
+                    BedsOnMap.HandleWorldSpawnPacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.PlayerBed:
@@ -348,8 +365,11 @@ public class PvPAdventure : Mod
                         packet.Write(spawnY);
                         packet.Send(-1, whoAmI);
 #if DEBUG
-                        ChatHelper.BroadcastChatMessage(
+                        if (p != null && p.name != string.Empty)
+                        {
+                            ChatHelper.BroadcastChatMessage(
                             NetworkText.FromLiteral($"[DEBUG/SERVER] Player {p.name} set spawn to ({spawnX}, {spawnY})"), Color.White);
+                        }
 #endif
                     }
 
@@ -380,9 +400,20 @@ public class PvPAdventure : Mod
                     ModContent.GetInstance<SSC>().HandlePacket(reader, whoAmI);
                     break;
                 }
-            case AdventurePacketIdentifier.TeamSpectate:
+            case AdventurePacketIdentifier.RespawnCommit:
                 {
-                    RemoteClient.CheckSection(whoAmI, reader.ReadVector2());
+                    if (Main.netMode != NetmodeID.Server)
+                        break;
+
+                    var commit = (RespawnPlayer.RespawnCommit)reader.ReadByte();
+                    int teammateIndex = reader.ReadInt32();
+
+                    Player p = Main.player[whoAmI];
+                    if (p != null && p.active)
+                    {
+                        p.GetModPlayer<RespawnPlayer>().ApplyCommitFromNet(commit, teammateIndex);
+                    }
+
                     break;
                 }
         }

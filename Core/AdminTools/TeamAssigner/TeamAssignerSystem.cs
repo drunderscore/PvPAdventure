@@ -10,7 +10,7 @@ namespace PvPAdventure.Core.AdminTools.TeamAssigner;
 /// The system responsible for managing the team selector UI.
 /// </summary>
 [Autoload(Side = ModSide.Client)]
-internal class TeamAssignerSystem : ModSystem
+public class TeamAssignerSystem : ModSystem
 {
     // Components
     public UserInterface ui;
@@ -24,7 +24,7 @@ internal class TeamAssignerSystem : ModSystem
     {
         ui = new();
         teamAssignerState = new();
-        teamAssignerState.Append(new TeamAssignerElement());
+        teamAssignerState.Append(new TeamAssignerPanel());
     }
     public override void UpdateUI(GameTime gameTime)
     {

@@ -8,6 +8,7 @@ public enum AdventurePacketIdentifier : byte
     PlayerItemPickup,
     PlayerTeam,
     StartGame,
+    AdjustGameTime,
     EndGame,
     PauseGame,
     NpcStrikeTeam,
@@ -17,5 +18,6 @@ public enum AdventurePacketIdentifier : byte
     SetPointsRequest,
     SSC, // Server Sided Character
     BedTeleport, // teleport to a bed spawn point
-    TeamSpectate, // sync world region for spectating player
+    WorldSpawnTeleport, // teleport to world spawn point
+    RespawnCommit // set random or teammate spawn while dead
 }

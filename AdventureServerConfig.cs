@@ -273,7 +273,6 @@ public class AdventureServerConfig : ModConfig
             [DefaultValue(null)][NullAllowed] public Falloff DefaultFalloff { get; set; }
         }
 
-        [Range(0, 5 * 60)][DefaultValue(8)] public int MeleeInvincibilityFrames { get; set; }
         [Range(0, 60 * 2 * 60)]
         [DefaultValue(15 * 60)]
         public int RecentDamagePreservationFrames { get; set; }

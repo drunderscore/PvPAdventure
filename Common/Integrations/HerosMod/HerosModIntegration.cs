@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Debug;
-using PvPAdventure.Core.AdminTools.GameManagerIntegration;
-using PvPAdventure.Core.AdminTools.TeamAssigner;
-using PvPAdventure.Core.Spectate;
+using PvPAdventure.Core.AdminTools.AdminManagerTool;
+using PvPAdventure.Core.AdminTools.EndGameTool;
+using PvPAdventure.Core.AdminTools.StartGameTool;
 using PvPAdventure.System;
 using System;
 using Terraria;
@@ -20,7 +20,6 @@ public sealed class HerosModIntegration : ModSystem
     private const string PauseGamePermissionKey = "PauseGame";
     private const string PlayGamePermissionKey = "PlayGame";
     private const string TeamAssignerPermissionKey = "TeamAssigner";
-    private const string SpectatePermissionKey = "Spectate";
 
     public override void PostSetupContent()
     {
@@ -30,13 +29,11 @@ public sealed class HerosModIntegration : ModSystem
             herosMod.Call("AddPermission",PauseGamePermissionKey,"Pause / resume game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)));
             herosMod.Call("AddPermission",PlayGamePermissionKey,"Start / end game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PlayGamePermissionKey)));
             herosMod.Call("AddPermission",TeamAssignerPermissionKey,"Open team assigner",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamAssignerPermissionKey)));
-            herosMod.Call("AddPermission", SpectatePermissionKey, "Spectate mode",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, SpectatePermissionKey)));
 
             // Add buttons
             AddPauseButton(herosMod);
             AddPlayButton(herosMod);
             AddTeamAssignerButton(herosMod);
-            AddSpectateButton(herosMod);
         }
     }
 
@@ -45,7 +42,7 @@ public sealed class HerosModIntegration : ModSystem
         // Pause game
         herosMod.Call("AddSimpleButton",
             PauseGamePermissionKey,
-            Ass.Pause,
+            Ass.Icon_PauseGame,
             (Action)(() =>
             {
                 var pm = ModContent.GetInstance<PauseManager>();
@@ -65,13 +62,13 @@ public sealed class HerosModIntegration : ModSystem
     {
         herosMod.Call("AddSimpleButton",
             PlayGamePermissionKey,
-            Ass.Play,
+            Ass.Icon_StartGame,
             (Action)(() =>
             {
                 var gm = ModContent.GetInstance<GameManager>();
                 if (gm.CurrentPhase == GameManager.Phase.Playing)
                 {
-                    ModContent.GetInstance<GameManagerSystem>().ShowEndDialog();
+                    ModContent.GetInstance<StartGameSystem>().ShowExtendGameDialog();
                 }
                 else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
                 {
@@ -82,7 +79,7 @@ public sealed class HerosModIntegration : ModSystem
                 }
                 else
                 {
-                    var gms = ModContent.GetInstance<GameManagerSystem>();
+                    var gms = ModContent.GetInstance<StartGameSystem>();
                     if (gms.IsActive())
                     {
                         gms.Hide();
@@ -107,7 +104,7 @@ public sealed class HerosModIntegration : ModSystem
                 }
                 else
                 {
-                    var gss = ModContent.GetInstance<GameManagerSystem>();
+                    var gss = ModContent.GetInstance<StartGameSystem>();
                     if (gss.IsActive())
                     {
                         return "Close game starter";
@@ -124,18 +121,18 @@ public sealed class HerosModIntegration : ModSystem
     {
         herosMod.Call("AddSimpleButton",
             TeamAssignerPermissionKey,
-            Ass.TeamAssignerIcon,
+            Ass.Icon_TeamAssigner,
             () =>
             {
                 // Toggle active state of team selector
-                var tas = ModContent.GetInstance<TeamAssignerSystem>();
+                var tas = ModContent.GetInstance<AdminManagerSystem>();
                 tas.ToggleActive();
             },
             (Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamAssignerPermissionKey)),
             () =>
             {
                 // Update text depending on state
-                var tas = ModContent.GetInstance<TeamAssignerSystem>();
+                var tas = ModContent.GetInstance<AdminManagerSystem>();
                 if (!tas.IsActive())
                 {
                     return "Open team assigner";
@@ -162,40 +159,5 @@ public sealed class HerosModIntegration : ModSystem
             //Main.NewText($"✅ You regained permission to use the {permissionName} button!", Color.Green);
             Log.Info($"You regained permission for {permissionName} button. You can use it again.");
         }
-    }
-
-    private void AddSpectateButton(Mod herosMod)
-    {
-        // Pause game
-        herosMod.Call("AddSimpleButton",
-            PauseGamePermissionKey,
-            Ass.Question_Mark,
-            (Action)(() =>
-            {
-                var spec = ModContent.GetInstance<SpectateSystem>();
-                if (spec.IsActive())
-                {
-                    spec.ExitSpectateUI();
-                }
-                else
-                {
-                    spec.EnterSpectateUI(clearTarget: true);
-                }
-            }),
-            (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)),
-            (Func<string>)(() =>
-            {
-                var spec = ModContent.GetInstance<SpectateSystem>();
-
-                if (!spec.IsActive())
-                {
-                    return "Enter spectate mode";
-                }
-                else
-                {
-                    return "Exit spectate mode";
-                }
-            })
-        );
     }
 }

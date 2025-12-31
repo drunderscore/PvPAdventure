@@ -1,11 +1,7 @@
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
-using Microsoft.Xna.Framework;
-using Newtonsoft.Json;
-using PvPAdventure.Common.Config.ConfigElements;
-using PvPAdventure.Core.Spectate;
 using Terraria.Audio;
-using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 
 namespace PvPAdventure;
@@ -14,6 +10,7 @@ public class AdventureClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
+    #region Members
     [Header("General")]
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] public bool ShiftEnterOpensAllChat;
@@ -32,22 +29,11 @@ public class AdventureClientConfig : ModConfig
 
     [Header("AdventureMirror")]
     [BackgroundColor(30, 90, 90)]
-    [DefaultValue(true)] public bool OpenMapAfterRecall;
-
-    [BackgroundColor(30, 90, 90)]
     [DefaultValue(true)] public bool ShowPopupText;
+
     [BackgroundColor(30, 90, 90)]
     [DefaultValue(true)] public bool PlaySound;
-
-    [Header("Spectate")]
-    [BackgroundColor(200, 30, 30, 150)]
-    [DefaultValue(true)] public bool SpectateTeammatesOnDeath;
-
-    [DefaultValue(typeof(Vector2), "0.5,0.9")]
-    [BackgroundColor(200, 30, 30, 150)]
-    [CustomModConfigItem(typeof(SpectateUIPositionConfigElement))]
-    public Vector2 SpectateUIPosition = new(0.5f,0.9f);
-
+    #endregion
 
     #region Configs
     public class PlayerOutlineConfig
@@ -164,15 +150,4 @@ public class AdventureClientConfig : ModConfig
     }
     #endregion
 
-    #region Methods
-    public override void OnChanged()
-    {
-        var ss = ModContent.GetInstance<SpectateSystem>();
-        if (ss != null)
-        {
-            ss.spectateElement._hAlign = SpectateUIPosition.X;
-            ss.spectateElement._vAlign = SpectateUIPosition.Y;
-        }
-    }
-    #endregion
 }
