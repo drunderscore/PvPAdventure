@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.SSC.UI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -49,7 +50,12 @@ public class ServerSystem : ModSystem
             {
                 if (UI?.CurrentState != null)
                 {
+                    bool old = ModifyPlayerDrawInfo.ForceFullBrightOnce;
+                    ModifyPlayerDrawInfo.ForceFullBrightOnce = true;
+
                     UI.Draw(Main.spriteBatch, Main.gameTimeCache);
+
+                    ModifyPlayerDrawInfo.ForceFullBrightOnce = old;
                 }
 
                 return true;
