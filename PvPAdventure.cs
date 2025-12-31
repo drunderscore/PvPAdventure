@@ -377,7 +377,7 @@ public class PvPAdventure : Mod
                 }
             case AdventurePacketIdentifier.SSC:
                 {
-                    ModContent.GetInstance<SSCSystem>().HandlePacket(reader, whoAmI);
+                    ModContent.GetInstance<SSC>().HandlePacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.TeamSpectate:

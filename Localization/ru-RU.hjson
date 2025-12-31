@@ -14,6 +14,14 @@ Mods: {
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
+<<<<<<< Updated upstream
+=======
+			// DLAdminManagerTool.DisplayName: DL Admin Manager Tool
+			// DLEndGameTool.DisplayName: DL End Game Tool
+			// DLEndGameToolRightClick.DisplayName: DL End Game Tool Right Click
+			DLPauseTool.DisplayName: DL Pause Tool
+			DLPointsSetterTool.DisplayName: D L Points Setter Tool
+>>>>>>> Stashed changes
 			DLStartGameTool.DisplayName: DL Start Game Tool
 			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
 			DLPauseTool.DisplayName: DL Pause Tool
@@ -31,6 +39,7 @@ Mods: {
 				DisplayName: Game Manager
 
 				Description: {
+<<<<<<< Updated upstream
 					RightClickToEndGame: End the game. Right click to end the game instantly
 					CountdownInProgress: A countdown is already in progress!
 					RightClickToStartGame: Start the game. Right click to start game instantly
@@ -46,6 +55,30 @@ Mods: {
 				Time: Time
 				Countdown: Countdown
 				StartExclamation: Start!
+=======
+					// StartGameDescription: Allows you to start the game. Right click to start instantly
+					// AdjustGameTimeDescription: Allows you to adjust the game time while the game is running.
+					// CountdownInProgress: A countdown is already in progress!
+				}
+
+				// RightClickName: DLStartGameTool Right Click
+				// CannotStart: Cannot start the game while a countdown is in progress
+				// Time: Time
+				// Countdown: Countdown
+				// StartExclamation: Start!
+				// Apply: Apply
+			}
+
+			DLEndGameTool: {
+				// DisplayName: End Game
+				// Description: Ends the game timer. Right click to end the game instantly
+				// ReallyEndGame: Really end game?
+				// CountdownInProgress: Cannot end the game while a countdown is in progress
+				// GameNotStartedYet: Game hasn't started yet!
+				// Yes: Yes
+				// No: No
+				// RightClickName: DLEndGameTool Right Click
+>>>>>>> Stashed changes
 			}
 
 			DLTeamAssignerTool: {
@@ -69,9 +102,16 @@ Mods: {
 				Description: The tool has no description! Add one in .hjson files!
 			}
 
+<<<<<<< Updated upstream
 			DLSpectateTool: {
 				// DisplayName: DLSpectateTool
 				// Description: The tool has no description! Add one in .hjson files!
+=======
+			DLAdminManagerTool: {
+				// DisplayName: Admin Manager
+				// Description: Allows you to manage admin status of all players in the lobby.
+				// CannotRemoveYourOwnAdminPermissions: Cannot remove your own admin permissions!
+>>>>>>> Stashed changes
 			}
 		}
 
@@ -1211,6 +1251,16 @@ Mods: {
 			RandomTeleport: Случайно
 			PlayersBed: Кровать игрока {0}
 			TeleportToPlayersBed: Телепорт к кровати игрока {0}
+		}
+
+		SSC: {
+			// ChooseYourCharacter: Choose Your Character
+			// SaveSuccessful: Saved character '{0}' with size {1} at time: {2}
+			// EmptyName: Character name cannot be empty
+			// NameTooLong: Character name cannot exceed 16 characters
+			// NameError: Character name is invalid or contains invalid characters
+			// TooManyCharacters: Maximum 3 characters per world
+			// EraseSuccessful: Successfully removed '{0}'
 		}
 
 		Item: {
