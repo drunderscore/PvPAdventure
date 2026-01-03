@@ -56,7 +56,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
         {
             if (Main.keyState.IsKeyDown(Keys.L) && !Main.oldKeyState.IsKeyDown(Keys.L))
             {
-                Main.NewText("[DEBUG]: Added extra local copy with keys.L. Press keys.J to remove one");
+                Log.Chat("+1 character UI. Use J or L to adjust.");
                 s_debugExtraLocalCopies++;
                 Rebuild();
             }
@@ -65,7 +65,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
                 if (s_debugExtraLocalCopies > 0)
                 {
                     s_debugExtraLocalCopies--;
-                    Main.NewText("[DEBUG]: Removed extra local copy with keys.J. Press keys.L to add one");
+                    Log.Chat("-1 character UI. Use J or L to adjust.");
                 }
 
                 Rebuild();
@@ -77,9 +77,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
         {
             Rebuild();
 
-#if DEBUG
-            Main.NewText("[DEBUG]: Called Rebuild() in SpawnAndSpectateBasePanel");
-#endif
+            Log.Chat("Called Rebuild() in SpawnAndSpectateBasePanel");
         }
 
         base.Update(gameTime);

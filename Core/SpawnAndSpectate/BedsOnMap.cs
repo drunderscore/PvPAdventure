@@ -219,12 +219,7 @@ internal class BedsOnMap : ModSystem
             number5: TeleportationStyleID.RecallPotion
         );
 
-#if DEBUG
-        ChatHelper.BroadcastChatMessage(
-            NetworkText.FromLiteral($"[DEBUG/SERVER] Player {player.name} teleported to bed ({bedX}, {bedY})."),
-            Color.White
-        );
-#endif
+        Log.Chat($"[DEBUG/SERVER] Player {player.name} teleported to bed ({bedX}, {bedY}).");
     }
     public static void HandleWorldSpawnPacket(BinaryReader reader, int whoAmI)
     {
@@ -254,11 +249,6 @@ internal class BedsOnMap : ModSystem
             number5: TeleportationStyleID.RecallPotion
         );
 
-#if DEBUG
-        ChatHelper.BroadcastChatMessage(
-            NetworkText.FromLiteral($"[DEBUG/SERVER] Player {player.name} teleported to world spawn ({spawnWorld.X}, {spawnWorld.Y})."),
-            Color.White
-        );
-#endif
+        Log.Chat($"[DEBUG/SERVER] Player {player.name} teleported to world spawn ({spawnWorld.X}, {spawnWorld.Y}).");
     }
 }

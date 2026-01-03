@@ -1275,7 +1275,7 @@ Mods: {
 
 		SpawnAndSpectate: {
 			// ChooseYourSpawn: Choose Your Spawn
-			// TeleportToPlayer: "{0}"
+			// TeleportToPlayer: Teleport to {0}
 			// Random: Random
 			// WorldSpawn: World Spawn
 			// PlayersBed: "{0}'s Bed"

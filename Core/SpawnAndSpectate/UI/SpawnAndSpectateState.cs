@@ -13,9 +13,7 @@ public class SpawnAndSpectateState : UIState
 
     public override void OnActivate()
     {
-#if DEBUG
-        Main.NewText("[DEBUG] Calling OnActivate() in SpawnAndSpectateState");
-#endif
+        Log.Chat("OnActivate() called");
 
         // Title panel
         chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.ChooseYourSpawn"), 0.8f, true)

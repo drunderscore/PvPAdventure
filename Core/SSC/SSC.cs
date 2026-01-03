@@ -153,14 +153,14 @@ public class SSC : ModSystem
                     TagIO.ToStream(root, stream);
                     stream.Flush();
 
-#if DEBUG
                     // Notify the client when the save succeeds
                     var KB = (data.LongLength + stream.Length) / 1024.0;
-                    var size = $"[c/{(KB < 64 ? Color.Green.Hex3() : Color.Yellow.Hex3())}:{KB:N2} KB]";
+                    var size = $"{KB:N2} KB]";
                     var time = DateTime.Now.ToString("HH:mm:ss");
                     ChatHelper.DisplayMessageOnClient(NetworkText.FromKey("Mods.PvPAdventure.SSC.SaveSuccessful", name, size, time),
                         Color.Green, from);
-#endif
+
+                    Log.Chat($"Saved {name} at {time}");
 
                     NetMessage.TrySendData(MessageID.WorldData, from);
 

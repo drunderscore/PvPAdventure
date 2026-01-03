@@ -34,10 +34,6 @@ internal class MapWhileDeadSystem : ModSystem
         bool mapDown = PlayerInput.Triggers.Current.MapFull; 
         if (mapDown)
         {
-#if DEBUG
-            Main.NewText("[DEBUG/MapWhileDeadSystem]: Map key pressed");
-#endif
-
             if (self.releaseMapFullscreen)
             {
                 if (!Main.mapFullscreen)
