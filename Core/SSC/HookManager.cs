@@ -23,6 +23,9 @@ public class HookManager : ModSystem
 
     public override void Load()
     {
+        if (!SSCBuild.Enabled)
+            return;
+
         IL_MessageBuffer.GetData += ILHook0;
         IL_NetMessage.SendData += ILHook1;
         IL_MessageBuffer.GetData += ILHook2;
@@ -33,6 +36,12 @@ public class HookManager : ModSystem
 
     public override void Unload()
     {
+        if (!SSCBuild.Enabled)
+        {
+            JoinPlayer = null;
+            return;
+        }
+
         IL_MessageBuffer.GetData -= ILHook0;
         IL_NetMessage.SendData -= ILHook1;
         IL_MessageBuffer.GetData -= ILHook2;
@@ -109,11 +118,16 @@ public class HookManager : ModSystem
                 Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
                 Player = new Player
                 {
-                    name = PID, difficulty = game_mode,
+                    name = PID,
+                    difficulty = game_mode,
                     // MessageID -> StatLife:16  Ghost:13  Dead:12&16
-                    statLife = 0, statMana = 0, dead = true, ghost = true,
+                    statLife = 0,
+                    statMana = 0,
+                    dead = true,
+                    ghost = true,
                     // Prevent the automatic revive on entry from desyncing client and server
-                    respawnTimer = int.MaxValue, lastTimePlayerWasSaved = long.MaxValue,
+                    respawnTimer = int.MaxValue,
+                    lastTimePlayerWasSaved = long.MaxValue,
                     savedPerPlayerFieldsThatArentInThePlayerClass = new Player.SavedPlayerDataWithAnnoyingRules()
                 }
             };

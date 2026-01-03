@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Microsoft.Build.Tasks;
+using Microsoft.Xna.Framework;
 using PvPAdventure.Core.SSC.UI;
 using System.Collections.Generic;
 using System.IO;
@@ -19,9 +20,12 @@ public class ServerSystem : ModSystem
     internal TagCompound LastCharacterList;
     public static int Count;
     const int AutoSaveSeconds = 10;
-    
+
     public override void Load()
     {
+        if (!SSCBuild.Enabled)
+            return;
+
         if (!Main.dedServ)
         {
             UI = new UserInterface();
@@ -41,6 +45,9 @@ public class ServerSystem : ModSystem
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
+        if (!SSCBuild.Enabled)
+            return;
+
         var index = layers.FindIndex(layer => layer.Name.Equals("Vanilla: Mouse Text"));
         if (index != -1)
         {
@@ -62,6 +69,12 @@ public class ServerSystem : ModSystem
     }
     public override void NetSend(BinaryWriter writer)
     {
+        if (!SSCBuild.Enabled)
+        {
+            TagIO.Write(new TagCompound(), writer);
+            return;
+        }
+
         var root = new TagCompound();
 
         // SSC/ or SSC/<WORLD-ID>/, where the first level contains SteamID folders
@@ -95,6 +108,13 @@ public class ServerSystem : ModSystem
 
     public override void NetReceive(BinaryReader reader)
     {
+        if (!SSCBuild.Enabled)
+        {
+            _ = TagIO.Read(reader); // consume bytes
+            LastCharacterList = null;
+            return;
+        }
+
         var root = TagIO.Read(reader);
         LastCharacterList = root;
         (UI?.CurrentState as ServerViewer)?.Calc(root);
@@ -102,6 +122,9 @@ public class ServerSystem : ModSystem
 
     public override void PostUpdateEverything()
     {
+        if (!SSCBuild.Enabled)
+            return;
+
         //// Ghost leash
         //var Player = Main.LocalPlayer;
         //if (!Player.ghost)

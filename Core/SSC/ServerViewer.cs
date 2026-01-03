@@ -159,11 +159,13 @@ public class ServerViewer : UIState
     {
         base.Update(gameTime);
 
+#if DEBUG
         if (Main.keyState.IsKeyDown(Keys.I))
         {
             RemoveAllChildren();
             Activate();
         }
+#endif
     }
 
     private void EnsureCreationPanelOnly()
