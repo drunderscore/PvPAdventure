@@ -30,7 +30,7 @@ public class SpawnAndSpectateCharacter : UIPanel
     public int PlayerIndex => playerIndex;
 
     // UI components
-    public SpectateButton spectateButton;
+    //public SpectateButton spectateButton;
 
     public enum RowDensity
     {
@@ -88,51 +88,51 @@ public class SpawnAndSpectateCharacter : UIPanel
         // OnActivate doesn't work as intended :(
 
         // If fullscreen is open, dont add it
-        if (Main.mapFullscreen)
-            return;
-        spectateButton = new SpectateButton(playerIndex);
-        Append(spectateButton);
+        //if (Main.mapFullscreen)
+        //    return;
+        //spectateButton = new SpectateButton(playerIndex);
+        //Append(spectateButton);
 
-        UpdateSpectateButtonLayout();
+        //UpdateSpectateButtonLayout();
     }
 
-    private void UpdateSpectateButtonLayout()
-    {
-        if (spectateButton == null)
-        {
-            return;
-        }
+    //private void UpdateSpectateButtonLayout()
+    //{
+    //    if (spectateButton == null)
+    //    {
+    //        return;
+    //    }
 
-        if (rowDensity == RowDensity.UltraCompact)
-        {
-            float x = itemWidth - spectateButton.Width.Pixels - 6f;
-            float y = 2f;
+    //    if (rowDensity == RowDensity.UltraCompact)
+    //    {
+    //        float x = itemWidth - spectateButton.Width.Pixels - 6f;
+    //        float y = 2f;
 
-            spectateButton.Left.Set(x, 0f);
-            spectateButton.Top.Set(y, 0f);
-            spectateButton.Recalculate();
-            return;
-        }
+    //        spectateButton.Left.Set(x, 0f);
+    //        spectateButton.Top.Set(y, 0f);
+    //        spectateButton.Recalculate();
+    //        return;
+    //    }
 
-        float leftColumnWidth = 106f;
-        if (rowDensity == RowDensity.Compact)
-        {
-            leftColumnWidth = 106f;
-        }
+    //    float leftColumnWidth = 106f;
+    //    if (rowDensity == RowDensity.Compact)
+    //    {
+    //        leftColumnWidth = 106f;
+    //    }
 
-        float rightAreaWidth = itemWidth - 22f - leftColumnWidth;
+    //    float rightAreaWidth = itemWidth - 22f - leftColumnWidth;
 
-        float panelWidth = rightAreaWidth + 24f;
-        float panelX = leftColumnWidth - 4f;
-        float panelY = -6f;
+    //    float panelWidth = rightAreaWidth + 24f;
+    //    float panelX = leftColumnWidth - 4f;
+    //    float panelY = -6f;
 
-        float x2 = panelX + panelWidth - spectateButton.Width.Pixels - 6f;
-        float y2 = panelY + 2f;
+    //    float x2 = panelX + panelWidth - spectateButton.Width.Pixels - 6f;
+    //    float y2 = panelY + 2f;
 
-        spectateButton.Left.Set(x2, 0f);
-        spectateButton.Top.Set(y2, 0f);
-        spectateButton.Recalculate();
-    }
+    //    spectateButton.Left.Set(x2, 0f);
+    //    spectateButton.Top.Set(y2, 0f);
+    //    spectateButton.Recalculate();
+    //}
 
     public override void MouseOver(UIMouseEvent evt)
     {
@@ -162,21 +162,21 @@ public class SpawnAndSpectateCharacter : UIPanel
         SpawnAndSpectateSystem.ClearHoverSpectateIfMatch(playerIndex);
     }
 
-    private bool IsClickOnSpectateButton(UIMouseEvent evt)
-    {
-        if (spectateButton == null)
-            return false;
+    //private bool IsClickOnSpectateButton(UIMouseEvent evt)
+    //{
+    //    if (spectateButton == null)
+    //        return false;
 
-        if (spectateButton.ContainsPoint(evt.MousePosition))
-            return true;
+    //    if (spectateButton.ContainsPoint(evt.MousePosition))
+    //        return true;
 
-        return spectateButton.IsMouseHovering;
-    }
+    //    return spectateButton.IsMouseHovering;
+    //}
 
     public override void LeftClick(UIMouseEvent evt)
     {
-        if (IsClickOnSpectateButton(evt))
-            return;
+        //if (IsClickOnSpectateButton(evt))
+        //    return;
 
         base.LeftClick(evt);
 
@@ -198,6 +198,12 @@ public class SpawnAndSpectateCharacter : UIPanel
             }
             SpawnAndSpectateSystem.CancelFullscreenMapRestore();
             respawnPlayer.TeammateTeleport(playerIndex);
+
+            if (SpawnAndSpectateSystem.IsMapTeleportGated)
+            {
+                SpawnAndSpectateSystem.OnMapTeleportExecuted();
+            }
+
             return;
         }
 
@@ -222,11 +228,10 @@ public class SpawnAndSpectateCharacter : UIPanel
 
     public override void Update(GameTime gameTime)
     {
-        UpdateSpectateButtonLayout();
+        //UpdateSpectateButtonLayout();
 
-        bool hovering =
-            IsMouseHovering ||
-            (spectateButton != null && spectateButton.IsMouseHovering);
+        bool hovering = IsMouseHovering;
+            //||(spectateButton != null && spectateButton.IsMouseHovering);
 
         if (hovering)
             SpawnAndSpectateSystem.TrySetHoverSpectate(playerIndex);
@@ -240,12 +245,11 @@ public class SpawnAndSpectateCharacter : UIPanel
 
         if (selectedSpawn)
             BackgroundColor = Color.Yellow;
-        else if (hovering && spectateButton != null && !spectateButton.IsMouseHovering)
+        else if (hovering)
+        //else if (hovering && spectateButton != null && !spectateButton.IsMouseHovering)
             BackgroundColor = new Color(73, 92, 161, 150);
         else
             BackgroundColor = new Color(63, 82, 151) * 0.8f;
-
-        //BorderColor = selectedSpawn ? Color.Yellow : Color.Black;
 
         base.Update(gameTime);
     }

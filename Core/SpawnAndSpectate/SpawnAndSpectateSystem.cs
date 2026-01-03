@@ -47,6 +47,16 @@ public class SpawnAndSpectateSystem : ModSystem
     private bool _lastMapModeOpen;
     private static int MapTimer;
     public static int GetMapTimer;
+    public static bool IsInstantMapTeleport
+    {
+        get
+        {
+            if (!IsAliveSpawnRegionInstant)
+                return false;
+
+            return Main.LocalPlayer.GetModPlayer<SpawnPointPlayer>().IsPlayerInSpawnRegion();
+        }
+    }
 
     private const int MapTicksMax = 5 * 60;
 
@@ -86,7 +96,10 @@ public class SpawnAndSpectateSystem : ModSystem
         ClearMapCommit();
     }
 
-    public static bool ShouldCommitMapTeleport => IsMapTeleportGated && !CanRespawn;
+    public static bool ShouldCommitMapTeleport =>
+        IsMapTeleportGated &&
+        !IsInstantMapTeleport &&
+        !CanRespawn;
     public static bool IsMapWorldSpawnCommitted => _mapWorldSpawnCommitted;
     public static bool IsMapTeammateCommitted(int idx) => _mapCommittedTeammateIndex == idx;
 
@@ -105,9 +118,9 @@ public class SpawnAndSpectateSystem : ModSystem
     public static void ResetMapTimer()
     {
         var config = ModContent.GetInstance<AdventureServerConfig>();
-        var frames = config.AdventureMirrorRecallFrames;
+        int frames = config.MapRecallFrames;
 
-        MapTimer = MapTicksMax;
+        MapTimer = frames > 0 ? frames : MapTicksMax;
     }
 
     public static void ToggleMapCommitRandom()
@@ -171,30 +184,29 @@ public class SpawnAndSpectateSystem : ModSystem
         if (_mapRandomCommitted)
         {
             p.GetModPlayer<RespawnPlayer>().RandomTeleport();
-            ClearMapCommit();
-            ResetMapTimer();
-            Main.mapFullscreen = false;
+            OnMapTeleportExecuted();
             return;
         }
 
-        // World spawn
         if (_mapWorldSpawnCommitted)
         {
             if (Main.netMode == NetmodeID.SinglePlayer)
             {
                 Vector2 spawnWorld = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
                 p.Teleport(spawnWorld, TeleportationStyleID.RecallPotion);
-                //Main.mapFullscreen = false;
+                OnMapTeleportExecuted();
+                return;
             }
-            else if (Main.netMode == NetmodeID.MultiplayerClient)
+
+            if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 ModPacket pkt = Mod.GetPacket();
                 pkt.Write((byte)AdventurePacketIdentifier.WorldSpawnTeleport);
                 pkt.Write((byte)Main.myPlayer);
                 pkt.Send();
 
-                Main.mapFullscreen = false;
-                ResetMapTimer();
+                OnMapTeleportExecuted();
+                return;
             }
 
             ClearMapCommit();
@@ -206,8 +218,8 @@ public class SpawnAndSpectateSystem : ModSystem
         if (IsValidTeammateIndex(idx))
         {
             p.GetModPlayer<RespawnPlayer>().TeammateTeleport(idx);
-            Main.mapFullscreen = false;
-            _restoreFullscreenMapAfterHover = false;
+            OnMapTeleportExecuted();
+            return;
         }
 
         ClearMapCommit();
@@ -295,20 +307,18 @@ public class SpawnAndSpectateSystem : ModSystem
         if (ui == null)
             return;
 
+        // Toggle map
         bool mapSessionOpen = Main.mapFullscreen || _restoreFullscreenMapAfterHover;
 
         if (mapSessionOpen && !_lastMapModeOpen)
         {
-            Log.Chat("open map");
-
-            // Open the map and reset the timer
+            // Open map and reset the timer to max frames
             ResetMapTimer();
             ClearMapCommit();
         }
         else if (!mapSessionOpen && _lastMapModeOpen)
         {
-            Log.Chat("close map");
-            MapTimer = 0;
+            // Close map
             ClearMapCommit();
         }
 
@@ -322,7 +332,8 @@ public class SpawnAndSpectateSystem : ModSystem
         Player p = Main.LocalPlayer;
         if (p != null && !p.dead)
         {
-            SetCanRespawn(IsMapTeleportGated && MapTimer <= 0);
+            bool instant = IsInstantMapTeleport;
+            SetCanRespawn(instant || (IsMapTeleportGated && MapTimer <= 0));
         }
 
         if (mapSessionOpen && MapTimer == 0)
@@ -330,10 +341,12 @@ public class SpawnAndSpectateSystem : ModSystem
             TryExecuteMapCommit();
         }
 
+        // Hide SSC
         var ssc = ModContent.GetInstance<ServerSystem>();
         if (ssc != null && ssc.UI != null && ssc.UI?.CurrentState != null)
             return;
 
+        // Update state
         bool show = ShouldShowUI;
         if (!show)
         {
@@ -346,6 +359,7 @@ public class SpawnAndSpectateSystem : ModSystem
             return;
         }
 
+        // Update state
         if (!_wasShowingUI || ui.CurrentState != spawnSelectorState)
         {
             spawnSelectorState = new SpawnAndSpectateState();

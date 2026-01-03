@@ -42,7 +42,7 @@ internal class MapWhileDeadSystem : ModSystem
                     self.talkNPC = -1;
                     Main.npcChatCornerItem = 0;
 
-                    Main.mapFullscreenScale = 2.5f;
+                    //Main.mapFullscreenScale = 2.5f;
                     Main.mapFullscreen = true;
                     Main.resetMapFull = true;
                 }
