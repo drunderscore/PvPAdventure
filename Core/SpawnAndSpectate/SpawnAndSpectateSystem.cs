@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Media;
 using PvPAdventure.Common.Debug;
 using PvPAdventure.Core.SpawnAndSpectate.UI;
+using PvPAdventure.Core.SSC;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
@@ -130,6 +131,11 @@ public class SpawnAndSpectateSystem : ModSystem
     public override void UpdateUI(GameTime gameTime)
     {
         if (ui == null)
+            return;
+
+        // Hide when SSC UI is open
+        var ssc = ModContent.GetInstance<ServerSystem>();
+        if (ssc != null && ssc.UI != null && ssc.UI?.CurrentState != null)
             return;
 
         bool show = ShouldShowUI;

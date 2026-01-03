@@ -29,9 +29,14 @@ public abstract class DraggablePanel : UIElement
     // Overridable properties
     protected abstract void OnClosePanelLeftClick();
     protected virtual void OnRefreshPanelLeftClick() { }
+
+    /// <summary> Gets the minimum allowed width, in pixels, for resizing operations. </summary>
     protected virtual float MinResizeW => 350f;
+    /// <summary> Gets the minimum allowed height, in pixels, when resizing. </summary>
     protected virtual float MinResizeH => 210f;
+    /// <summary> Gets the maximum allowed width, in pixels, for resizing operations. </summary>
     protected virtual float MaxResizeW => 1000f;
+    /// <summary> Gets the maximum allowed height, in pixels, when resizing. </summary>
     protected virtual float MaxResizeH => 1000f;
 
     // Constructor sets the style of this panel.

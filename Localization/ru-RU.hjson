@@ -460,6 +460,7 @@ Mods: {
 					Gameplay: "[i:Stopwatch] Gameplay"
 					General: "[i:Cog] General"
 					WorldGen: "[i:WorldGlobe] World Generation"
+					// SSC: "[i:4765] SSC"
 				}
 
 				Points: {
@@ -589,6 +590,21 @@ Mods: {
 
 				NpcBalance: {
 					// Label: Npc Balance
+					// Tooltip: ""
+				}
+
+				sscConfig: {
+					// Label: Server Sided Characters
+					// Tooltip: ""
+				}
+
+				StartItems: {
+					// Label: Start Items
+					// Tooltip: ""
+				}
+
+				respawnConfig: {
+					// Label: respawn Config
 					// Tooltip: ""
 				}
 			}
@@ -1203,6 +1219,22 @@ Mods: {
 					// Tooltip: ""
 				}
 			}
+
+			SSCConfig: {
+				// Tooltip: ""
+
+				StartItems: {
+					// Label: Start Items
+					// Tooltip: ""
+				}
+
+				UseSSC: {
+					// Label: Use SSC
+					// Tooltip: Forces players to select a server-sided character when joining the world
+				}
+			}
+
+			// RespawnConfig.Tooltip: ""
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
@@ -1237,6 +1269,16 @@ Mods: {
 			// CancelPlayerSpawn: Cancel {0}'s Spawn
 			// SpectatePlayer: Spectate {0}
 			// StopSpectatingPlayer: Unspectate {0}
+		}
+
+		SSC: {
+			// SelectPlayer: Select Player
+			// SaveSuccessful: Saved character '{0}' with size {1} at time: {2}
+			// EmptyName: Character name cannot be empty
+			// NameTooLong: Character name cannot exceed 16 characters
+			// NameError: Character name is invalid or contains invalid characters
+			// TooManyCharacters: Maximum 3 characters per world
+			// EraseSuccessful: Successfully removed '{0}'
 		}
 
 		Item: {

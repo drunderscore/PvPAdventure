@@ -65,10 +65,12 @@ public class DLEndGameTool : Tool
         else if (gm._startGameCountdown.HasValue)
         {
             Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.CountdownInProgress"), Color.Red);
+            endGameSystem.Hide();
         }
         else if (gm.CurrentPhase == GameManager.Phase.Waiting)
         {
             Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.GameNotStartedYet"), Color.Red);
+            endGameSystem.Hide();
         }
     }
 

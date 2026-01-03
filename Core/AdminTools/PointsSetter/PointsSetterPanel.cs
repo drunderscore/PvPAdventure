@@ -21,10 +21,14 @@ namespace PvPAdventure.Core.AdminTools.PointsSetter;
 
 internal class PointsSetterPanel : DraggablePanel
 {
-    protected override float MinResizeW => 190f;
+    protected override float MinResizeW => 250f;
+
+    private readonly List<TeamRow> _rows = [];
+    private UITextPanel<string> applyButton;
+
     public PointsSetterPanel() : base(title: Language.GetTextValue("Mods.PvPAdventure.Tools.DLPointsSetterTool.SetPoints"))
     {
-        Height.Set(210, 0);
+        Height.Set(250, 0);
     }
 
     public override void OnActivate()
@@ -36,6 +40,9 @@ internal class PointsSetterPanel : DraggablePanel
     public void Rebuild()
     {
         ContentPanel.RemoveAllChildren();
+
+        _rows.Clear();
+        applyButton = null;
 
         var pm = ModContent.GetInstance<PointsManager>();
         if (pm?.Points == null)
@@ -57,8 +64,32 @@ internal class PointsSetterPanel : DraggablePanel
             };
 
             ContentPanel.Append(row);
+            _rows.Add(row);
+
             i++;
         }
+
+        applyButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Apply"))
+        {
+            Width = { Pixels = 120f },
+            Height = { Pixels = 40f },
+            HAlign = 0.5f,
+            VAlign = 1f
+        };
+        applyButton.OnMouseOver += (_, _) =>
+        {
+            applyButton.BorderColor = Color.Yellow;
+            //Main.instance.MouseText("Click to end game");
+        };
+        applyButton.OnMouseOut += (_, _) => applyButton.BorderColor = Color.Black;
+        applyButton.OnLeftClick += (_, __) =>
+        {
+            for (int r = 0; r < _rows.Count; r++)
+            {
+                _rows[r]?.TryApply();
+            }
+        };
+        ContentPanel.Append(applyButton);
 
         ContentPanel.Recalculate();
     }
@@ -97,6 +128,7 @@ internal class PointsSetterPanel : DraggablePanel
         private readonly Team _team;
         private readonly Action<Team, int> _commit;
         private readonly UIText _label;
+        private readonly MiniTextBox _input;
 
         public TeamRow(Team team, int points, Action<Team, int> commit)
         {
@@ -140,24 +172,30 @@ internal class PointsSetterPanel : DraggablePanel
                 VAlign = 0.5f
             };
 
+            _input = input;
+
             input.OnEnterPressed += () =>
             {
-                if (!int.TryParse(input.Text.Trim(), out int v))
-                    return;
-
-                SetPointsText(v);
-
-                var pm = ModContent.GetInstance<PointsManager>();
-                pm._points[_team] = v;
-                pm.UiScoreboard?.Invalidate();
-
-                _commit(_team, v);
-
-                // Clear text box
-                input.SetText(string.Empty);
+                TryApply();
             };
 
             Append(input);
+        }
+
+        public void TryApply()
+        {
+            if (!int.TryParse(_input.Text.Trim(), out int v))
+                return;
+
+            SetPointsText(v);
+
+            var pm = ModContent.GetInstance<PointsManager>();
+            pm._points[_team] = v;
+            pm.UiScoreboard?.Invalidate();
+
+            _commit(_team, v);
+
+            _input.SetText(string.Empty);
         }
 
         private void SetPointsText(int points)
@@ -271,7 +309,6 @@ internal class PointsSetterPanel : DraggablePanel
                     Main.drawingPlayerChat = false;
                     Unfocus();
                     OnEnterPressed?.Invoke();
-                    
                 }
 
                 if (++_blinkCount >= 20)
@@ -312,6 +349,7 @@ internal class PointsSetterPanel : DraggablePanel
             _focused = false;
             Main.blockInput = false;
         }
+
         public void SetText(string text)
         {
             Text = text ?? string.Empty;
@@ -346,5 +384,4 @@ internal class PointsSetterPanel : DraggablePanel
             return neg ? "-" + digits : digits;
         }
     }
-
 }

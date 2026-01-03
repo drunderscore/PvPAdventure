@@ -16,6 +16,7 @@ internal class EndGameSystem : ModSystem
     // State
     public bool IsActive() => ui?.CurrentState == endGameUIState;
     public void ToggleActive() => ui.SetState(IsActive() ? null : endGameUIState);
+    public void Hide() => ui.SetState(null);
 
     public override void OnWorldLoad()
     {
