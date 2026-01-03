@@ -10,9 +10,6 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
-/// <summary>
-/// A UI element representing a question mark button for random teleportation.
-/// </summary>
 public class RandomTeleportPanel : UIPanel
 {
     public RandomTeleportPanel(float size)
@@ -36,8 +33,16 @@ public class RandomTeleportPanel : UIPanel
 
         if (SpawnAndSpectateSystem.IsAliveSpawnRegionInstant)
         {
+            if (SpawnAndSpectateSystem.ShouldCommitMapTeleport)
+            {
+                SpawnAndSpectateSystem.ToggleMapCommitRandom();
+                return;
+            }
+
+            SpawnAndSpectateSystem.OnMapTeleportExecuted();
             respawnPlayer.RandomTeleport();
             return;
+
         }
 
         if (Main.LocalPlayer.dead)
@@ -46,30 +51,22 @@ public class RandomTeleportPanel : UIPanel
         }
     }
 
-    public override void MouseOver(UIMouseEvent evt)
-    {
-        base.MouseOver(evt);
-        BackgroundColor = new Color(73, 92, 161, 150);
-    }
-
-    public override void MouseOut(UIMouseEvent evt)
-    {
-        base.MouseOut(evt);
-        BackgroundColor = new Color(63, 82, 151) * 0.8f;
-    }
-
     public override void Draw(SpriteBatch sb)
     {
         base.Draw(sb);
 
         if (IsMouseHovering)
         {
-            string text;
-            var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
-            bool readyToRespawn = SpawnAndSpectateSystem.CanRespawn;
-            bool committed = respawnPlayer.IsRandomCommitted;
+            bool dead = Main.LocalPlayer.dead;
+            bool ready = dead ? !SpawnAndSpectateSystem.CanRespawn : SpawnAndSpectateSystem.ShouldCommitMapTeleport;
 
-            if (Main.LocalPlayer.dead && !readyToRespawn)
+            bool committed = dead
+                ? Main.LocalPlayer.GetModPlayer<RespawnPlayer>().IsRandomCommitted
+                : SpawnAndSpectateSystem.IsMapRandomCommitted;
+
+            string text;
+
+            if (ready)
             {
                 text = committed
                     ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelRandomSpawn")
@@ -83,48 +80,42 @@ public class RandomTeleportPanel : UIPanel
             Main.instance.MouseText(text);
         }
 
-        // Draw question mark centered
         var d = GetDimensions();
         var tex = Ass.Question_Mark.Value;
 
-        float baseScale = 0.9f;
-        float hoverScale = 0.9f;
-
-        float scale = IsMouseHovering ? hoverScale : baseScale;
-
         sb.Draw(
             tex,
-            position: new(d.X + d.Width * 0.5f, d.Y + d.Height * 0.5f),
+            position: new Vector2(d.X + d.Width * 0.5f, d.Y + d.Height * 0.5f),
             sourceRectangle: null,
             color: Color.White,
             rotation: 0f,
             origin: tex.Size() * 0.5f,
-            scale: scale,
+            scale: 0.9f,
             effects: SpriteEffects.None,
             layerDepth: 0f
         );
-
-        // Debug
-        //sb.Draw(TextureAssets.MagicPixel.Value, rect, Color.Red * 0.45f);
-
-        // Draw teleportation potion
-        //Item icon = new(ItemID.TeleportationPotion);
-        //Vector2 pos = new(rect.X + 37, rect.Y + 36);
-        //ItemSlot.DrawItemIcon(icon, 31, sb, pos, 1.0f, 32f, Color.White);
     }
 
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
 
-        if (!Main.LocalPlayer.dead)
+        bool dead = Main.LocalPlayer.dead;
+        bool gated = SpawnAndSpectateSystem.IsMapTeleportGated;
+
+        if (!dead && !gated)
         {
             BorderColor = Color.Black;
+            BackgroundColor = IsMouseHovering
+                ? new Color(73, 92, 161, 150)
+                : new Color(63, 82, 151) * 0.8f;
+
             return;
         }
 
-        var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
-        bool committed = respawnPlayer != null && respawnPlayer.IsRandomCommitted;
+        bool committed = dead
+            ? Main.LocalPlayer.GetModPlayer<RespawnPlayer>().IsRandomCommitted
+            : SpawnAndSpectateSystem.IsMapRandomCommitted;
 
         if (committed)
             BackgroundColor = Color.Yellow;

@@ -27,6 +27,31 @@ public class SpawnPointPlayer : ModPlayer
     private bool _rawSpawnValidCached;
     private int _rawSpawnValidCooldown;
 
+    public override void PostUpdate()
+    {
+        if (Main.dedServ || Player.whoAmI != Main.myPlayer)
+            return;
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            UpdatePlayerSpawnpoint();
+
+        bool inSpawnRegion = IsPlayerInSpawnRegionCached();
+        bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+
+        if (playing && inSpawnRegion)
+        {
+            SpawnAndSpectateSystem.SetEnabled(true);
+        }
+        else if (playing && (Main.mapFullscreen || SpawnAndSpectateSystem.IsFullscreenMapTemporarilyClosedForSpectate))
+        {
+            SpawnAndSpectateSystem.SetEnabled(true);
+        }
+        else
+        {
+            SpawnAndSpectateSystem.SetEnabled(false);
+        }
+    }
+
     public override void OnHurt(Player.HurtInfo info)
     {
         base.OnHurt(info);
@@ -53,22 +78,7 @@ public class SpawnPointPlayer : ModPlayer
             //}
         }
     }
-
-    public override void PostUpdate()
-    {
-        if (Main.dedServ || Player.whoAmI != Main.myPlayer)
-            return;
-
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-            UpdatePlayerSpawnpoint();
-
-        bool inSpawnRegion = IsPlayerInSpawnRegionCached();
-
-        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing && inSpawnRegion )
-            SpawnAndSpectateSystem.SetEnabled(true);
-        else
-            SpawnAndSpectateSystem.SetEnabled(false);
-    }
+    
     public bool IsPlayerInSpawnRegion() => IsPlayerInSpawnRegionCached();
 
     private bool IsPlayerInSpawnRegionCached()

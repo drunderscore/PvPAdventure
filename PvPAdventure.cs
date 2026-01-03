@@ -1,7 +1,11 @@
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.Content.Items;
+using PvPAdventure.Content.NPCs;
+using PvPAdventure.Core.AdminTools.AdminManagerTool;
+using PvPAdventure.Core.AdminTools.TeamAssigner;
 using PvPAdventure.Core.DashKeybind;
+using PvPAdventure.Core.SpawnAndSpectate;
 using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using Steamworks;
@@ -15,10 +19,6 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-
-using PvPAdventure.Core.AdminTools.TeamAssigner;
-using PvPAdventure.Core.SpawnAndSpectate;
-using PvPAdventure.Core.AdminTools.AdminManagerTool;
 
 namespace PvPAdventure;
 
@@ -176,6 +176,13 @@ public class PvPAdventure : Mod
                         return;
 
                     var npc = Main.npc[npcIndex];
+
+                    if (npc.ModNPC is AdventureSantaNPC)
+                    {
+                        return;
+                    }
+
+                    // FIXME: KeyNotFoundException for special NPCs
                     npc.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(npc, (Team)team);
 
                     break;

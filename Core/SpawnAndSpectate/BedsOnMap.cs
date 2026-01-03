@@ -15,8 +15,8 @@ using Terraria.UI;
 namespace PvPAdventure.Core.SpawnAndSpectate;
 
 /// <summary>
-/// Draws player bed spawn points on the fullscreen map.
-/// Also enables teleportation to teammates' beds by clicking on them.
+/// Draws player bed spawn points on the fullscreen map and allows teleportation to them.
+/// Draws world spawn point on the fullscreen map and allows teleportation to it.
 /// </summary>
 internal class BedsOnMap : ModSystem
 {
@@ -50,54 +50,67 @@ internal class BedsOnMap : ModSystem
 
     private void OnSpawnMapLayer(On_SpawnMapLayer.orig_Draw orig, SpawnMapLayer self, ref MapOverlayDrawContext context, ref string text)
     {
-        // We skip orig because we’re replacing how beds are drawn
-        // orig(self, ref context, ref text);
+        // Don't call original to prevent default spawn point drawing
+        // Keep for reference:
+        // orig(self, ref context, ref text); 
 
         Player localPlayer = Main.LocalPlayer;
         var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
-        bool selectorEnabled = sys.ui.CurrentState == sys.spawnSelectorState;
-        bool hoveringWorldSpawn = SpawnAndSpectateSystem.HoveringWorldSpawn;
+        bool selectorEnabled = sys.ui?.CurrentState == sys.spawnSelectorState;
 
-        // Draw world spawn point + handle teleport
+        bool panelHoverWorldSpawn = SpawnAndSpectateSystem.HoveringWorldSpawn;
+
+        // Draw world spawn point
         var worldSpawnHover = context.Draw(
-                texture: TextureAssets.SpawnPoint.Value,
-                position: new Vector2(Main.spawnTileX, Main.spawnTileY),
-                color: Color.White,
-                frame: new SpriteFrame(1, 1),
-                scaleIfNotSelected: hoveringWorldSpawn ? 1.8f : 1.0f,
-                scaleIfSelected: 1.8f,
-                alignment: Alignment.Bottom,
-                spriteEffects: SpriteEffects.None
+            texture: TextureAssets.SpawnPoint.Value,
+            position: new Vector2(Main.spawnTileX, Main.spawnTileY),
+            color: Color.White,
+            frame: new SpriteFrame(1, 1),
+            scaleIfNotSelected: panelHoverWorldSpawn ? 1.8f : 1.0f,
+            scaleIfSelected: 1.8f,
+            alignment: Alignment.Bottom,
+            spriteEffects: SpriteEffects.None
         );
 
-        if (worldSpawnHover.IsMouseOver || SpawnAndSpectateSystem.HoveringWorldSpawn)
+        bool iconHoverWorldSpawn = worldSpawnHover.IsMouseOver;
+        bool hoverWorldSpawn = iconHoverWorldSpawn || panelHoverWorldSpawn;
+
+        if (hoverWorldSpawn)
         {
-            Main.LocalPlayer.mouseInterface = true;
+            localPlayer.mouseInterface = true;
 
             text = selectorEnabled
                 ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.WorldSpawn")
                 : Language.GetTextValue("UI.SpawnPoint");
+        }
 
-            if (selectorEnabled && Main.mouseLeft && Main.mouseLeftRelease)
+        // Only allow teleporting if selector is enabled
+        if (selectorEnabled && iconHoverWorldSpawn && Main.mouseLeft && Main.mouseLeftRelease)
+        {
+            if (SpawnAndSpectateSystem.ShouldCommitMapTeleport)
             {
-                if (Main.netMode == NetmodeID.SinglePlayer)
-                {
-                    Vector2 spawnWorld = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
-                    Main.LocalPlayer.Teleport(spawnWorld, TeleportationStyleID.RecallPotion);
-                    Main.mapFullscreen = false;
-                    return;
-                }
+                SpawnAndSpectateSystem.ToggleMapCommitWorldSpawn();
+                return;
+            }
 
-                if (Main.netMode == NetmodeID.MultiplayerClient)
-                {
-                    ModPacket p = Mod.GetPacket();
-                    p.Write((byte)AdventurePacketIdentifier.WorldSpawnTeleport);
-                    p.Write((byte)Main.myPlayer);
-                    p.Send();
+            // If not committing, do the normal immediate behavior (kept minimal).
+            if (Main.netMode == NetmodeID.SinglePlayer)
+            {
+                Vector2 spawnWorld = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
+                localPlayer.Teleport(spawnWorld, TeleportationStyleID.RecallPotion);
+                Main.mapFullscreen = false;
+                return;
+            }
 
-                    Main.mapFullscreen = false;
-                    return;
-                }
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                ModPacket p = Mod.GetPacket();
+                p.Write((byte)AdventurePacketIdentifier.WorldSpawnTeleport);
+                p.Write((byte)Main.myPlayer);
+                p.Send();
+
+                Main.mapFullscreen = false;
+                return;
             }
         }
 
@@ -105,11 +118,8 @@ internal class BedsOnMap : ModSystem
         if (HasValidBedSpawn(localPlayer))
         {
             Vector2 localBedPos = new(localPlayer.SpawnX, localPlayer.SpawnY);
-
             if (context.Draw(TextureAssets.SpawnBed.Value, localBedPos, Alignment.Bottom).IsMouseOver)
-            {
                 text = Language.GetTextValue("UI.SpawnBed");
-            }
         }
 
         // Draw team beds + handle teleport
@@ -140,13 +150,11 @@ internal class BedsOnMap : ModSystem
             if (!hoverCheck.IsMouseOver)
                 continue;
 
-            // Hovering over this player's bed
             text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.PlayersBed", player.name);
 
             if (!selectorEnabled)
                 continue;
 
-            // Selector is enabled, allow teleporting
             text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayersBed", player.name);
 
             if (Main.mouseLeft && Main.mouseLeftRelease)
@@ -154,7 +162,7 @@ internal class BedsOnMap : ModSystem
                 if (Main.netMode == NetmodeID.SinglePlayer)
                 {
                     Vector2 spawn = new(player.SpawnX * 16, player.SpawnY * 16 - 48);
-                    Main.LocalPlayer.Teleport(spawn);
+                    localPlayer.Teleport(spawn);
                     Main.mapFullscreen = false;
                     return;
                 }
@@ -169,6 +177,7 @@ internal class BedsOnMap : ModSystem
                     p.Send();
 
                     Main.mapFullscreen = false;
+                    return;
                 }
             }
         }

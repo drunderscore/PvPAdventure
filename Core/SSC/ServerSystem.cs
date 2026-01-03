@@ -19,7 +19,7 @@ public class ServerSystem : ModSystem
     internal TagCompound LastCharacterList;
     public static int Count;
     const int AutoSaveSeconds = 10;
-    
+
     public override void Load()
     {
         if (!Main.dedServ)

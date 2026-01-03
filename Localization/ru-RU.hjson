@@ -236,6 +236,21 @@ Mods: {
 			}
 
 			Target.DisplayName: Target
+
+			AdventureSantaNPC: {
+				// DisplayName: Adventure Santa
+
+				TownNPCMood: {
+					// Content: I am content.
+					// NoHome: I hate not having a home.
+					// FarFromHome: I am too far from home.
+					// LoveSpace: I love having so much space.
+					// DislikeCrowded: I dislike how crowded I am.
+					// HateCrowded: I hate how crowded I am.
+					// LikeNPC_Princess: I like {NPCName}.
+					// Princess_LovesNPC: I like {NPCName}.
+				}
+			}
 		}
 
 		Configs: {
@@ -291,13 +306,17 @@ Mods: {
 				}
 
 				AutoSelectWorldSpawnWhenRespawning: {
-					// Label: "[i:MapSpawnConfig] Auto Select World Spawn When Respawning"
+					// Label: "[i:PvPAdventure/MapSpawnConfig] Auto Select World Spawn When Respawning"
 					// Tooltip: When you die, the world spawn point is automatically selected as your spawn point
 				}
 
 				SpawnUIPosition: {
-					// Label: Spawn U I Position
-					// Tooltip: ""
+					// Label: Spawn UI Position
+					/* Tooltip:
+						'''
+						Change position of spawn select and spectate UI. 
+						Supports live apply, so keep UI open while dragging sliders to see changes in real time.
+						''' */
 				}
 			}
 

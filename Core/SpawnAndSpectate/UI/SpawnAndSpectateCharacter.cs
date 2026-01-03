@@ -85,6 +85,11 @@ public class SpawnAndSpectateCharacter : UIPanel
 
         SetPadding(6f);
 
+        // OnActivate doesn't work as intended :(
+
+        // If fullscreen is open, dont add it
+        if (Main.mapFullscreen)
+            return;
         spectateButton = new SpectateButton(playerIndex);
         Append(spectateButton);
 
@@ -136,8 +141,9 @@ public class SpawnAndSpectateCharacter : UIPanel
         Player p = Main.player[playerIndex];
         if (p == null || !p.active || p.dead)
             return;
-        //BackgroundColor = new Color(73, 92, 161, 150);
+
         SpawnAndSpectateSystem.HoveredPlayerIndex = playerIndex;
+        SpawnAndSpectateSystem.TrySetHoverSpectate(playerIndex);
     }
 
     public override void MouseOut(UIMouseEvent evt)
@@ -149,8 +155,11 @@ public class SpawnAndSpectateCharacter : UIPanel
             return;
 
         BackgroundColor = new Color(63, 82, 151) * 0.8f;
+
         if (SpawnAndSpectateSystem.HoveredPlayerIndex == playerIndex)
             SpawnAndSpectateSystem.HoveredPlayerIndex = null;
+
+        SpawnAndSpectateSystem.ClearHoverSpectateIfMatch(playerIndex);
     }
 
     private bool IsClickOnSpectateButton(UIMouseEvent evt)
@@ -177,14 +186,21 @@ public class SpawnAndSpectateCharacter : UIPanel
 
         var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
 
-        // Alive + in spawn region: instant teleport
         if (SpawnAndSpectateSystem.IsAliveSpawnRegionInstant)
         {
+            if (!SpawnAndSpectateSystem.IsValidTeammateIndex(playerIndex))
+                return;
+
+            if (SpawnAndSpectateSystem.ShouldCommitMapTeleport)
+            {
+                SpawnAndSpectateSystem.ToggleMapCommitTeammate(playerIndex);
+                return;
+            }
+            SpawnAndSpectateSystem.CancelFullscreenMapRestore();
             respawnPlayer.TeammateTeleport(playerIndex);
             return;
         }
 
-        // Dead: click selects (and spectates) the teammate. Only one selection at a time.
         if (Main.LocalPlayer.dead && SpawnAndSpectateSystem.IsValidTeammateIndex(playerIndex))
         {
             bool wasSelected = respawnPlayer.IsTeammateCommitted(playerIndex);
@@ -218,11 +234,13 @@ public class SpawnAndSpectateCharacter : UIPanel
             SpawnAndSpectateSystem.ClearHoverSpectateIfMatch(playerIndex);
 
         var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
-        bool selectedSpawn = respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex);
-        
+        bool selectedSpawn = Main.LocalPlayer.dead
+            ? (respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex))
+            : SpawnAndSpectateSystem.IsMapTeammateCommitted(playerIndex);
+
         if (selectedSpawn)
             BackgroundColor = Color.Yellow;
-        else if (hovering && !spectateButton.IsMouseHovering)
+        else if (hovering && spectateButton != null && !spectateButton.IsMouseHovering)
             BackgroundColor = new Color(73, 92, 161, 150);
         else
             BackgroundColor = new Color(63, 82, 151) * 0.8f;
@@ -239,27 +257,27 @@ public class SpawnAndSpectateCharacter : UIPanel
         if (!player.dead)
         {
             var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
-            var spawnPointPlayer = Main.LocalPlayer.GetModPlayer<SpawnPointPlayer>();
-            bool ready = SpawnAndSpectateSystem.CanRespawn || spawnPointPlayer.IsPlayerInSpawnRegion();
-            bool selectedSpawn = respawnPlayer.IsTeammateCommitted(player.whoAmI);
 
-            string text;
-            if (ready)
-            {
-                text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayer", player.name);
-            }
-            else
-            {
-                text = selectedSpawn
+            bool ready = Main.LocalPlayer.dead
+                ? Main.LocalPlayer.respawnTimer <= 0
+                : !SpawnAndSpectateSystem.IsMapTeleportGated || SpawnAndSpectateSystem.CanRespawn;
+
+
+            bool selectedSpawn = Main.LocalPlayer.dead
+                ? respawnPlayer.IsTeammateCommitted(player.whoAmI)
+                : SpawnAndSpectateSystem.IsMapTeammateCommitted(player.whoAmI);
+
+            string text = ready
+                ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayer", player.name)
+                : selectedSpawn
                     ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelPlayerSpawn", player.name)
                     : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectPlayerSpawn", player.name);
-            }
+
             Main.instance.MouseText(text);
+            return;
         }
-        else
-        {
-            Main.instance.MouseText("Cannot respawn (player dead)");
-        }
+
+        Main.instance.MouseText("Cannot respawn (player dead)");
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -294,7 +312,6 @@ public class SpawnAndSpectateCharacter : UIPanel
             y: (int)pos.Y - 6,
             width: leftRectWidth,
             height: 72);
-
 
         //DrawMask(sb, Ass.CornerMask4px.Value, rect, 9);
         DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, playerBGTexture.Value, Color.White, 5);
@@ -476,14 +493,26 @@ public class SpawnAndSpectateCharacter : UIPanel
     // Draws the inner panel background with a given width.
     private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
     {
-        spriteBatch.Draw(innerPanelTexture.Value, position,
-            new Rectangle(0, 0, 8, innerPanelTexture.Height()), Color.White);
+        Color color = Color.White;
 
+        var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
+        bool selectedSpawn = Main.LocalPlayer.dead
+            ? (respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex))
+            : SpawnAndSpectateSystem.IsMapTeammateCommitted(playerIndex);
+        if (selectedSpawn)
+        {
+            color = Color.Yellow*0.5f;
+        }
+
+        // left
+        spriteBatch.Draw(innerPanelTexture.Value, position,new Rectangle(0, 0, 8, innerPanelTexture.Height()), color);
+
+        // middle
         spriteBatch.Draw(
             innerPanelTexture.Value,
             new Vector2(position.X + 8f, position.Y),
             new Rectangle(8, 0, 8, innerPanelTexture.Height()),
-            Color.White,
+            color,
             0f,
             Vector2.Zero,
             new Vector2((width - 16f) / 8f, 1f),
@@ -491,12 +520,8 @@ public class SpawnAndSpectateCharacter : UIPanel
             0f
         );
 
-        spriteBatch.Draw(
-            innerPanelTexture.Value,
-            new Vector2(position.X + width - 8f, position.Y),
-            new Rectangle(16, 0, 8, innerPanelTexture.Height()),
-            Color.White
-        );
+        // right
+        spriteBatch.Draw(innerPanelTexture.Value,new Vector2(position.X + width - 8f, position.Y),new Rectangle(16, 0, 8, innerPanelTexture.Height()),color);
     }
 
     // Draws a nine-slice rectangle of a background.

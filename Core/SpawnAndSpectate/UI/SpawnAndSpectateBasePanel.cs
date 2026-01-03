@@ -52,7 +52,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
         }
 
 #if DEBUG
-        if (Main.netMode == NetmodeID.SinglePlayer)
+        if (!Main.drawingPlayerChat)
         {
             if (Main.keyState.IsKeyDown(Keys.L) && !Main.oldKeyState.IsKeyDown(Keys.L))
             {
@@ -70,7 +70,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
 
                 Rebuild();
             }
-        }   
+        }
 #endif
 
         if (NeedsRebuild())
@@ -110,7 +110,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
         }
 
 #if DEBUG
-        if (Main.netMode == NetmodeID.SinglePlayer && local != null && local.active)
+        if (Main.netMode != NetmodeID.Server && local != null && local.active)
         {
             for (int i = 0; i < s_debugExtraLocalCopies; i++)
             {
@@ -226,7 +226,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
         }
 
 #if DEBUG
-        if (Main.netMode == NetmodeID.SinglePlayer && local != null && local.active)
+        if (Main.netMode != NetmodeID.Server && local != null && local.active)
         {
             for (int i = 0; i < s_debugExtraLocalCopies; i++)
             {

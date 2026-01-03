@@ -114,7 +114,7 @@ public class AdventureServerConfig : ModConfig
     [DefaultValue(4 * 60)]
     public int AdventureMirrorRecallFrames { get; set; }
     [BackgroundColor(40, 90, 40)]
-    [Range(0, 30 * 60)]
+    [Range(0, 10 * 60)]
     [DefaultValue(1.5 * 60)]
     public int SpawnImmuneFrames { get; set; }
 
