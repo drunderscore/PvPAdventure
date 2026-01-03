@@ -23,6 +23,9 @@ public class HookManager : ModSystem
 
     public override void Load()
     {
+        if (!SSCBuild.Enabled)
+            return;
+
         IL_MessageBuffer.GetData += ILHook0;
         IL_NetMessage.SendData += ILHook1;
         IL_MessageBuffer.GetData += ILHook2;
@@ -33,6 +36,12 @@ public class HookManager : ModSystem
 
     public override void Unload()
     {
+        if (!SSCBuild.Enabled)
+        {
+            JoinPlayer = null;
+            return;
+        }
+
         IL_MessageBuffer.GetData -= ILHook0;
         IL_NetMessage.SendData -= ILHook1;
         IL_MessageBuffer.GetData -= ILHook2;

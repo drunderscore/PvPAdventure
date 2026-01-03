@@ -14,7 +14,6 @@ using Terraria.ModLoader.IO;
 
 namespace PvPAdventure.Core.SSC;
 
-
 /// <summary>
 /// Managages player save files by SteamID and world
 /// and handles network packet routing for SSC operations.
@@ -78,6 +77,9 @@ public class SSC : ModSystem
 
     public void HandlePacket(BinaryReader reader, int from)
     {
+        if (!SSCBuild.Enabled)
+            return;
+
         var msg = reader.ReadByte();
         switch ((SSCMessageID)msg)
         {
@@ -308,3 +310,19 @@ public enum SSCMessageID : byte
 
     EraseSSC, // Client -> server: id, name
 }
+
+public static class SSCBuild
+{
+    public static bool Enabled
+    {
+        get
+        {
+#if DEBUG
+            return false;
+#else
+            return true;
+#endif
+        }
+    }
+}
+
