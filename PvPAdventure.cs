@@ -7,7 +7,7 @@ using PvPAdventure.Core.AdminTools.AdminManagerTool;
 using PvPAdventure.Core.AdminTools.TeamAssigner;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.SpawnAndSpectate;
-using PvPAdventure.Core.SSC;
+using PvPAdventure.Core.SSC_v3;
 using PvPAdventure.System;
 using Steamworks;
 using System;
@@ -245,7 +245,7 @@ public class PvPAdventure : Mod
                     if (Main.netMode == NetmodeID.Server)
                     {
                         var pm = ModContent.GetInstance<PauseManager>();
-                        pm.PauseGame();
+                        //pm.PauseGame();
                     }
 
                     break;
@@ -312,7 +312,7 @@ public class PvPAdventure : Mod
                 }
             case AdventurePacketIdentifier.SSC:
                 {
-                    ModContent.GetInstance<SSC>().HandlePacket(reader, whoAmI);
+                    SSC_v3.HandlePacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.Dash:

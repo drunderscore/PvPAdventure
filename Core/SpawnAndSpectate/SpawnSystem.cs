@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.SpawnAndSpectate.UI;
-using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using System.Collections.Generic;
 using Terraria;
@@ -365,6 +364,6 @@ public class SpawnSystem : ModSystem
     private static bool IsAnyConfigUIOpen()
     {
         UIState s = Main.InGameUI?._currentState;
-        return s is UIModConfig;
+        return s is UIModConfig || s is UIModConfigList || Main.ingameOptionsWindow;
     }
 }

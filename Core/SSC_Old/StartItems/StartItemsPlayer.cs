@@ -2,7 +2,7 @@
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.SSC.StartItems;
+namespace PvPAdventure.Core.SSC_Old.StartItems;
 
 internal class StartItemsPlayer : ModPlayer
 {
