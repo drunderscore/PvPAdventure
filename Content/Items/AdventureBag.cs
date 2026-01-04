@@ -11,7 +11,6 @@ public class AdventureBag : ModItem
     {
         ItemID.Sets.OpenableBag[Type] = true;
     }
-
     public override void SetDefaults()
     {
         Item.width = 32;
@@ -19,6 +18,7 @@ public class AdventureBag : ModItem
         Item.rare = ItemRarityID.Orange;
         Item.maxStack = 1;
         Item.consumable = true;
+        Item.value = Item.buyPrice(gold: 0);
     }
 
     public override bool CanRightClick()
@@ -28,14 +28,13 @@ public class AdventureBag : ModItem
 
     public override void RightClick(Player player)
     {
-        player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SilverPickaxe, 1);
-        player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SilverAxe, 1);
+        player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.CopperPickaxe, 1);
+        player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.CopperAxe, 1);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SlimeBed, 1);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Torch, 15);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Wood, 20);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.LifeCrystal, 5);
         player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.ManaCrystal, 4);
-        player.QuickSpawnItem(player.GetSource_OpenItem(Type), ModContent.ItemType<AdventureMirror>(), 1);
     }
     public override bool ConsumeItem(Player player)
     {

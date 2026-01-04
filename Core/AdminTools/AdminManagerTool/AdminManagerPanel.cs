@@ -166,9 +166,7 @@ internal class AdminManagerPanel : DraggablePanel
 
                     UpdateSummaryText();
 
-#if DEBUG
-                    Main.NewText(player.name + " admin: " + (isOn ? "yes" : "no"));
-#endif
+                    Log.Chat(player.name + " admin: " + (isOn ? "yes" : "no"));
                 })
             {
                 HAlign = 1f,
