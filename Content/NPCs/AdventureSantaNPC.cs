@@ -68,8 +68,6 @@ internal class AdventureSantaNPC : ModNPC
         var shop = new NPCShop(Type);
 
         shop.Add(ModContent.ItemType<AdventureBag>());
-        shop.Add(ModContent.ItemType<AdventureMirror>());
-
         shop.Register();
     }
 

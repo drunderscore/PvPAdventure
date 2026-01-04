@@ -1,9 +1,7 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using System.IO;
 using Terraria;
-using Terraria.Chat;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -16,7 +14,7 @@ namespace PvPAdventure.Core.SpawnAndSpectate;
 
 /// <summary>
 /// Draws player bed spawn points on the fullscreen map and allows teleportation to them.
-/// Draws world spawn point on the fullscreen map and allows teleportation to it.
+/// Also draws world spawn point on the fullscreen map and allows teleportation to it.
 /// </summary>
 internal class BedsOnMap : ModSystem
 {
@@ -219,7 +217,7 @@ internal class BedsOnMap : ModSystem
             number5: TeleportationStyleID.RecallPotion
         );
 
-        Log.Chat($"[DEBUG/SERVER] Player {player.name} teleported to bed ({bedX}, {bedY}).");
+        Log.Chat($"Player {player.name} teleported to bed ({bedX}, {bedY}).");
     }
     public static void HandleWorldSpawnPacket(BinaryReader reader, int whoAmI)
     {
@@ -249,6 +247,6 @@ internal class BedsOnMap : ModSystem
             number5: TeleportationStyleID.RecallPotion
         );
 
-        Log.Chat($"[DEBUG/SERVER] Player {player.name} teleported to world spawn ({spawnWorld.X}, {spawnWorld.Y}).");
+        Log.Chat($"Player {player.name} teleported to world spawn ({spawnWorld.X}, {spawnWorld.Y}).");
     }
 }

@@ -14,7 +14,6 @@ public enum AdventurePacketIdentifier : byte
     NpcStrikeTeam,
     Dash,
     PlayerBed, // update player spawn point
-    AdventureMirrorRightClickUse,
     SetPointsRequest,
     SSC, // Server Sided Character
     BedTeleport, // teleport to a bed spawn point

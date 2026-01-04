@@ -291,58 +291,6 @@ public class PvPAdventure : Mod
             case AdventurePacketIdentifier.Dash:
                 DashKeybindSystem.HandlePacket(reader, whoAmI);
                 break;
-            case AdventurePacketIdentifier.AdventureMirrorRightClickUse:
-                {
-                    byte playerId = reader.ReadByte();
-                    byte slot = reader.ReadByte();
-
-                    if (Main.netMode == NetmodeID.Server)
-                    {
-                        if (playerId != whoAmI)
-                            return;
-
-                        if (playerId < 0 || playerId >= Main.maxPlayers)
-                            return;
-
-                        Player player = Main.player[playerId];
-                        if (player is null || !player.active)
-                            return;
-
-                        if (slot < 0 || slot >= player.inventory.Length)
-                            return;
-
-                        Item item = player.inventory[slot];
-                        if (item?.ModItem is not AdventureMirror)
-                            return;
-
-                        ModPacket p = (ModPacket)GetPacket();
-                        p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
-                        p.Write(playerId);
-                        p.Write(slot);
-                        p.Send();
-                    }
-                    else if (Main.netMode == NetmodeID.MultiplayerClient)
-                    {
-                        Player player = Main.player[playerId];
-                        if (player is null || !player.active)
-                            return;
-
-                        if (slot < 0 || slot >= player.inventory.Length)
-                            return;
-
-                        Item item = player.inventory[slot];
-                        if (item?.ModItem is not AdventureMirror)
-                            return;
-
-                        // Visual state only
-                        player.selectedItem = slot;
-                        player.itemAnimation = item.useAnimation;
-                        player.itemAnimationMax = item.useAnimation;
-                        player.itemTime = item.useTime;
-                        player.itemTimeMax = item.useTime;
-                    }
-                    break;
-                }
             case AdventurePacketIdentifier.BedTeleport:
                 {
                     BedsOnMap.HandleBedTeleportPacket(reader, whoAmI);
@@ -371,13 +319,11 @@ public class PvPAdventure : Mod
                         packet.Write(spawnX);
                         packet.Write(spawnY);
                         packet.Send(-1, whoAmI);
-#if DEBUG
+
                         if (p != null && p.name != string.Empty)
                         {
-                            ChatHelper.BroadcastChatMessage(
-                            NetworkText.FromLiteral($"[DEBUG/SERVER] Player {p.name} set spawn to ({spawnX}, {spawnY})"), Color.White);
+                            Log.Chat($"Player {p.name} set spawn to ({spawnX}, {spawnY})");
                         }
-#endif
                     }
 
                     break;

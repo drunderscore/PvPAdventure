@@ -185,15 +185,6 @@ Mods: {
 				Tooltip: Used for crafting a Jungle Key
 			}
 
-			AdventureMirror: {
-				DisplayName: Зеркало приключений
-				Tooltip:
-					'''
-					Взгляните в зеркало, чтобы вернуться на точку возрождения
-					Правый клик — использовать
-					'''
-			}
-
 			MatteConfig: {
 				DisplayName: Matte Config
 				Tooltip: ""
@@ -260,9 +251,7 @@ Mods: {
 				Headers: {
 					General: "[i:Cog] General"
 					SoundEffects: Sound Effects
-					AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
 					// Spectate: "[i:Binoculars] Spectate"
-					// RespawnAndAdventureMirror: Respawn And Adventure Mirror Header
 					// Spawn: Spawn
 				}
 
@@ -564,11 +553,6 @@ Mods: {
 
 				OnlyDisplayWorldEvilBoss: {
 					Label: Only Display World Evil Boss
-					Tooltip: ""
-				}
-
-				AdventureMirrorRecallFrames: {
-					Label: Adventure Mirror Recall Frames
 					Tooltip: ""
 				}
 
@@ -1258,18 +1242,6 @@ Mods: {
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
 		Player.CannotRecall: Cannot recall!
-
-		AdventureMirror: {
-			GameNotStarted: дождитесь начала игры!
-			// CannotUseInSpawn: cannot use in spawn!
-			// CannotUseWhileMoving: cannot use while moving!
-			CannotDrop: нельзя выбросить!
-			CannotUnfavorite: нельзя убрать из избранного!
-			CannotTrash: нельзя удалить!
-			CannotSell: нельзя продать!
-			// CannotStore: cannot store!
-			// Cancelled: cancelled!
-		}
 
 		// DashKeybind.NoDashItem: you have no dash item!
 

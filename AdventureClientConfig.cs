@@ -33,18 +33,6 @@ public class AdventureClientConfig : ModConfig
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool AutoSelectWorldSpawnWhenRespawning;
 
-    //[DefaultValue(typeof(Vector2), "0.5,0")]
-    //[BackgroundColor(30, 150, 150)]
-    //[CustomModConfigItem(typeof(SpawnUIPositionConfigElement))]
-    //public Vector2 SpawnUIPosition = new(0.5f, 0f);
-
-    [Header("AdventureMirror")]
-    [BackgroundColor(90, 50, 130)]
-    [DefaultValue(true)] public bool ShowPopupText;
-
-    [BackgroundColor(90, 50, 130)]
-    [DefaultValue(true)] public bool PlaySound;
-
     #endregion
 
     #region Configs

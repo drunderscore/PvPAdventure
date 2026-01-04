@@ -22,7 +22,6 @@ public class SpawnAndSpectateHooks : ModSystem
     {
         On_Player.HasUnityPotion += ForceUnityPotionWhenSpawnSelectorIsEnabled;
         On_Player.Spawn_SetPosition += ForceWorldSpawn;
-        On_SoundEngine.PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback += DisableMirrorSound;
         On_Main.TriggerPing += SkipPingWhileHoveringSpawnSelector;
         On_Main.DrawInterface_35_YouDied += DrawDeathText;
     }
@@ -31,7 +30,6 @@ public class SpawnAndSpectateHooks : ModSystem
     {
         On_Player.HasUnityPotion -= ForceUnityPotionWhenSpawnSelectorIsEnabled;
         On_Player.Spawn_SetPosition -= ForceWorldSpawn;
-        On_SoundEngine.PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback -= DisableMirrorSound;
         On_Main.TriggerPing -= SkipPingWhileHoveringSpawnSelector;
         On_Main.DrawInterface_35_YouDied -= DrawDeathText;
     }
@@ -115,7 +113,7 @@ public class SpawnAndSpectateHooks : ModSystem
     {
         var sys = ModContent.GetInstance<SpawnAndSpectateSystem>();
 
-        if (sys.ui.CurrentState == sys.spawnSelectorState)
+        if (sys.ui.CurrentState == sys.spawnSelectorState && SpawnAndSpectateSystem.CanRespawn)
         {
             return true;
         }
@@ -136,24 +134,5 @@ public class SpawnAndSpectateHooks : ModSystem
         }
 
         orig(self, fx, fy);
-    }
-
-    private SlotId DisableMirrorSound(On_SoundEngine.orig_PlaySound_refSoundStyle_Nullable1_SoundUpdateCallback orig, ref SoundStyle style, Vector2? position, SoundUpdateCallback updatecallback)
-    {
-        if (style == SoundID.Item6)
-        {
-            var config = ModContent.GetInstance<AdventureClientConfig>();
-            if (!config.PlaySound)
-            {
-                Player p = Main.LocalPlayer;
-                if (p.HeldItem?.ModItem is AdventureMirror)
-                {
-                    return SlotId.Invalid; // suppress sound completely
-                }
-            }
-        }
-
-        // Otherwise normal playback
-        return orig.Invoke(ref style, position, updatecallback);
     }
 }

@@ -185,15 +185,6 @@ Mods: {
 				Tooltip: Used for crafting a Jungle Key
 			}
 
-			AdventureMirror: {
-				DisplayName: Adventure Mirror
-				Tooltip:
-					'''
-					Gaze in the mirror to return to spawn
-					Right click to use
-					'''
-			}
-
 			MatteConfig: {
 				DisplayName: Matte Config
 				Tooltip: ""
@@ -260,9 +251,7 @@ Mods: {
 				Headers: {
 					General: "[i:Cog] General"
 					SoundEffects: Sound Effects
-					AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
 					Spectate: "[i:Binoculars] Spectate"
-					RespawnAndAdventureMirror: Respawn And Adventure Mirror Header
 					Spawn: Spawn
 				}
 
@@ -288,21 +277,6 @@ Mods: {
 				SoundEffect: {
 					Label: "[i:507] Sound Effect"
 					Tooltip: ""
-				}
-
-				OpenMapAfterRecall: {
-					Label: Open Map After Recall Completes
-					Tooltip: Opens the map instantly after recall completes
-				}
-
-				ShowPopupText: {
-					Label: Show Countdown
-					Tooltip: Shows time remaining until recall completes above the player's head
-				}
-
-				PlaySound: {
-					Label: Play Sound
-					Tooltip: Plays a sound while using the Adventure Mirror
 				}
 
 				AutoSelectWorldSpawnWhenRespawning: {
@@ -1258,18 +1232,6 @@ Mods: {
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
 		Player.CannotRecall: Cannot recall!
-
-		AdventureMirror: {
-			GameNotStarted: wait until game starts!
-			CannotUseInSpawn: cannot use in spawn!
-			CannotUseWhileMoving: cannot use while moving!
-			CannotDrop: cannot drop!
-			CannotUnfavorite: cannot unfavorite!
-			CannotTrash: cannot trash!
-			CannotSell: cannot sell!
-			CannotStore: cannot store!
-			Cancelled: cancelled!
-		}
 
 		DashKeybind.NoDashItem: you have no dash item!
 

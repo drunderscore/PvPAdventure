@@ -287,7 +287,7 @@ public class DashKeybindPlayer : ModPlayer
 
     private void ApplyTabiDash(int direction)
     {
-        Log.Chat($"[DEBUG] Dashing with Tabi in direction: {direction} and velocity {16.9f}");
+        Log.Chat($"Dashing with Tabi in direction: {direction} and velocity {16.9f}");
         
         ApplyHorizontalVelocity(direction, 16.9f);
 
@@ -318,7 +318,7 @@ public class DashKeybindPlayer : ModPlayer
 
     private void ApplyShieldDash(int direction)
     {
-        Log.Chat($"[DEBUG] Dashing with Shield in direction: {direction} and velocity {14.5f}");
+        Log.Chat($"Dashing with Shield in direction: {direction} and velocity {14.5f}");
 
         ApplyHorizontalVelocity(direction, 14.5f);
         Player.eocDash = 15;
@@ -326,7 +326,7 @@ public class DashKeybindPlayer : ModPlayer
 
     private void ApplySolarDash(int direction)
     {
-        Log.Chat($"[DEBUG] Dashing with Solar in direction: {direction} and velocity {21.9f}");
+        Log.Chat($"Dashing with Solar in direction: {direction} and velocity {21.9f}");
 
         ApplyHorizontalVelocity(direction, 21.9f);
         Player.solarDashing = true;
@@ -350,7 +350,7 @@ public class DashKeybindPlayer : ModPlayer
 
     private void ApplyCrystalDash(int direction)
     {
-        Log.Chat($"[DEBUG] Dashing with Crystal in direction: {direction} and velocity {16.9f}");
+        Log.Chat($"Dashing with Crystal in direction: {direction} and velocity {16.9f}");
 
         ApplyHorizontalVelocity(direction, 16.9f);
 
