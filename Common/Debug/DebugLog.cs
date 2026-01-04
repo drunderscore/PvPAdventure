@@ -33,7 +33,24 @@ public static class Log
     public static void Chat(object message, [CallerFilePath] string file = "")
     {
 #if DEBUG
+        // Sanitize file name
         string fileName = Path.GetFileNameWithoutExtension(file);
+
+        // Truncate
+        if (fileName.Length > 19)
+            fileName = fileName[..19] + "..";
+
+        // Broadcast to Terraria chat to all clients
+        ChatHelper.BroadcastChatMessage(
+            text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),
+            color: Color.White
+            );
+#else
+        string fileName = Path.GetFileNameWithoutExtension(file);
+
+        var config = ModContent.GetInstance<PvPAdventureConfig>();
+        if (!config.EnableDebugMessages)
+            return;
 
         ChatHelper.BroadcastChatMessage(
             text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),

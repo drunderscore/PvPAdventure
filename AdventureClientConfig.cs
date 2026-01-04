@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
-using PvPAdventure.Common.Config;
 using System;
 using System.ComponentModel;
 using Terraria.Audio;
@@ -32,6 +31,12 @@ public class AdventureClientConfig : ModConfig
     [Header("Spawn")]
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool AutoSelectWorldSpawnWhenRespawning;
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)] public bool CloseMapOnHurt;
+
+    [Header("Debug")]
+    [DefaultValue(true)] public bool EnableDebugMessages;
 
     #endregion
 

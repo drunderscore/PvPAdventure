@@ -186,11 +186,6 @@ public class SpawnAndSpectateBasePanel : UIPanel
         Recalculate();
         RecalculateChildren();
     }
-    
-    public override void Draw(SpriteBatch spriteBatch)
-    {
-        base.Draw(spriteBatch);
-    }
 
     private bool NeedsRebuild()
     {

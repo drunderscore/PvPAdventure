@@ -1,13 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.System;
 using Terraria;
-using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
-using Terraria.ModLoader;
 using Terraria.UI;
+using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem_v2;
 
 namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
@@ -26,28 +24,20 @@ public class WorldSpawnPanel : UIPanel
     {
         base.LeftClick(evt);
 
-        var gm = ModContent.GetInstance<GameManager>();
-        if (gm.CurrentPhase != GameManager.Phase.Playing)
-            return;
+        Main.LocalPlayer.GetModPlayer<SpawnPlayer>().ToggleSelection(SpawnType.World);
+    }
 
-        var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
 
-        if (SpawnAndSpectateSystem.IsAliveSpawnRegionInstant)
-        {
-            if (SpawnAndSpectateSystem.ShouldCommitMapTeleport)
-            {
-                SpawnAndSpectateSystem.ToggleMapCommitWorldSpawn();
-                return;
-            }
+        var sp = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
+        bool selected = sp?.SelectedType == SpawnType.World;
 
-            Main.LocalPlayer.Spawn(PlayerSpawnContext.SpawningIntoWorld);
-            return;
-        }
-
-        if (Main.LocalPlayer.dead)
-        {
-            respawnPlayer.ToggleCommitWorldSpawn();
-        }
+        BackgroundColor =
+            selected ? new Color(220, 220, 0) :
+            IsMouseHovering ? new Color(73, 92, 161, 150) :
+            new Color(63, 82, 151) * 0.8f;
     }
 
     public override void Draw(SpriteBatch sb)
@@ -56,29 +46,17 @@ public class WorldSpawnPanel : UIPanel
 
         if (IsMouseHovering)
         {
-            bool dead = Main.LocalPlayer.dead;
-            bool ready = dead ? !SpawnAndSpectateSystem.CanRespawn : SpawnAndSpectateSystem.ShouldCommitMapTeleport;
+            SpectateSystem.HoveringType = SpawnType.World;
+            SpectateSystem.HoveredPlayerIndex = null;
 
-            bool committed = dead
-                ? Main.LocalPlayer.GetModPlayer<RespawnPlayer>().IsWorldSpawnCommitted
-                : SpawnAndSpectateSystem.IsMapWorldSpawnCommitted;
-
-            string text;
-
-            if (ready)
-            {
-                text = committed
-                    ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelWorldSpawn")
-                    : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectWorldSpawn");
-            }
-            else
-            {
-                text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.WorldSpawn");
-            }
-
-            Main.instance.MouseText(text);
+            DrawHoverText();
+        }
+        else if (SpectateSystem.HoveringType == SpawnType.World)
+        {
+            SpectateSystem.ClearHover();
         }
 
+        // Draw spawn point
         var d = GetDimensions();
         var tex = TextureAssets.SpawnPoint.Value;
 
@@ -88,48 +66,36 @@ public class WorldSpawnPanel : UIPanel
         );
 
         float scale = 1.6f;
-
-        sb.Draw(
-            tex,
-            pos,
-            sourceRectangle: null,
-            color: Color.White,
-            rotation: 0f,
-            origin: tex.Size() * 0.5f,
-            scale: scale,
-            effects: SpriteEffects.None,
-            layerDepth: 0f
-        );
+        sb.Draw(tex, pos, null, Color.White, 0f, tex.Size() * 0.5f, scale, SpriteEffects.None, 0f);
     }
 
-    public override void Update(GameTime gameTime)
+    private void DrawHoverText()
     {
-        base.Update(gameTime);
-
-        SpawnAndSpectateSystem.HoveringWorldSpawn = IsMouseHovering;
-
-        bool dead = Main.LocalPlayer.dead;
-        bool gated = SpawnAndSpectateSystem.IsMapTeleportGated;
-
-        if (!dead && !gated)
-        {
-            BorderColor = Color.Black;
-            BackgroundColor = IsMouseHovering
-                ? new Color(73, 92, 161, 150)
-                : new Color(63, 82, 151) * 0.8f;
-
+        Player p = Main.LocalPlayer;
+        if (p == null || !p.active)
             return;
+
+        // Prevent clicks/pings while hovering the UI element.
+        p.mouseInterface = true;
+
+        var sp = p.GetModPlayer<SpawnPlayer>();
+
+        bool committed = sp.SelectedType == SpawnType.World;
+        bool ready = !SpawnSystem_v2.CanTeleport;
+
+        string text;
+
+        if (ready)
+        {
+            text = committed
+                ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelWorldSpawn")
+                : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectWorldSpawn");
+        }
+        else
+        {
+            text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToWorldSpawn");
         }
 
-        bool committed = dead
-            ? Main.LocalPlayer.GetModPlayer<RespawnPlayer>().IsWorldSpawnCommitted
-            : SpawnAndSpectateSystem.IsMapWorldSpawnCommitted;
-
-        if (committed)
-            BackgroundColor = Color.Yellow;
-        else if (IsMouseHovering)
-            BackgroundColor = new Color(73, 92, 161, 150);
-        else
-            BackgroundColor = new Color(63, 82, 151);
+        Main.instance.MouseText(text);
     }
 }

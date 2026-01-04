@@ -253,6 +253,7 @@ Mods: {
 					SoundEffects: Sound Effects
 					// Spectate: "[i:Binoculars] Spectate"
 					// Spawn: Spawn
+					// Debug: "[i:Goggles] Debug"
 				}
 
 				ShiftEnterOpensAllChat: {
@@ -279,21 +280,6 @@ Mods: {
 					Tooltip: ""
 				}
 
-				OpenMapAfterRecall: {
-					Label: Open Map After Recall Completes
-					Tooltip: Opens the map instantly after recall completes
-				}
-
-				ShowPopupText: {
-					Label: Show Countdown
-					Tooltip: Shows time remaining until recall completes above the player's head
-				}
-
-				PlaySound: {
-					Label: Play Sound
-					Tooltip: Plays a sound while using the Adventure Mirror
-				}
-
 				AutoSelectWorldSpawnWhenRespawning: {
 					// Label: "[i:PvPAdventure/MapSpawnConfig] Auto Select World Spawn When Respawning"
 					// Tooltip: When you die, the world spawn point is automatically selected as your spawn point
@@ -306,6 +292,16 @@ Mods: {
 						Change position of spawn select and spectate UI. 
 						Supports live apply, so keep UI open while dragging sliders to see changes in real time.
 						''' */
+				}
+
+				CloseMapOnHurt: {
+					// Label: Close Map On Hurt
+					// Tooltip: Closes the fullscreen map if your player takes damage.
+				}
+
+				EnableDebugMessages: {
+					// Label: Enable Debug Messages
+					// Tooltip: Logs chat messages for most actions. Useful for developers or players investigating bugs.
 				}
 			}
 
@@ -554,6 +550,11 @@ Mods: {
 				OnlyDisplayWorldEvilBoss: {
 					Label: Only Display World Evil Boss
 					Tooltip: ""
+				}
+
+				MapRecallFrames: {
+					// Label: Map Recall Frames
+					// Tooltip: The number of frames the map timer is reset to when opening the map. Default: 300 (5 seconds)
 				}
 
 				SpawnImmuneFrames: {
@@ -1242,14 +1243,13 @@ Mods: {
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
 		Player.CannotRecall: Cannot recall!
-
 		// DashKeybind.NoDashItem: you have no dash item!
 
-		SpawnAndSpectate: {
+		Spawn: {
 			// ChooseYourSpawn: Choose Your Spawn
 			// TeleportToPlayer: Teleport to {0}
-			// Random: Random
-			// WorldSpawn: World Spawn
+			// Random: Random Teleport
+			// WorldSpawn: Teleport to World Spawn
 			// PlayersBed: "{0}'s Bed"
 			// TeleportToPlayersBed: Teleport to {0}'s Bed
 			// SelectRandomSpawn: Select Random Spawn
@@ -1258,8 +1258,6 @@ Mods: {
 			// CancelWorldSpawn: Cancel World Spawn
 			// SelectPlayerSpawn: Select {0}'s Spawn
 			// CancelPlayerSpawn: Cancel {0}'s Spawn
-			// SpectatePlayer: Spectate {0}
-			// StopSpectatingPlayer: Unspectate {0}
 		}
 
 		SSC: {

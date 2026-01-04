@@ -1,7 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.Debug;
-using PvPAdventure.System.Client;
+﻿using PvPAdventure.System.Client;
 using System;
 using System.IO;
 using Terraria;
@@ -26,6 +23,11 @@ namespace PvPAdventure.Core.DashKeybind;
 /// </remarks>
 public class DashKeybindSystem : ModSystem
 {
+    internal enum DashPacketType : byte
+    {
+        Request = 0,
+        Perform = 1
+    }
     public override void Load()
     {
         On_Player.DoCommonDashHandle += VanillaDashDetour;
@@ -62,11 +64,7 @@ public class DashKeybindSystem : ModSystem
 
         orig(self);
     }
-    internal enum DashPacketType : byte
-    {
-        Request = 0,
-        Perform = 1
-    }
+    
     internal static void HandlePacket(BinaryReader reader, int sender)
     {
         DashPacketType packetType = (DashPacketType)reader.ReadByte();

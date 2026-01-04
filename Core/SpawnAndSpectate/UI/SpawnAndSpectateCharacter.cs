@@ -18,8 +18,8 @@ namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 /// </summary>
 public class SpawnAndSpectateCharacter : UIPanel
 {
-    internal const float ItemWidth = 260f;
-    internal const float ItemHeight = 72f;
+    public const float ItemWidth = 260f;
+    public const float ItemHeight = 72f;
 
     private readonly Asset<Texture2D> dividerTexture;
     private readonly Asset<Texture2D> innerPanelTexture;
@@ -28,17 +28,17 @@ public class SpawnAndSpectateCharacter : UIPanel
     private readonly int playerIndex;
     public int PlayerIndex => playerIndex;
 
-    // UI components
-    //public SpectateButton spectateButton;
-
+    #region Row Density
     public enum RowDensity
     {
         Normal,
         Compact,
         UltraCompact
     }
+    private readonly RowDensity rowDensity;
+    private readonly float itemWidth;
 
-    internal static RowDensity GetDensityForTeammateCount(int teammateCount)
+    public static RowDensity GetDensityForTeammateCount(int teammateCount)
     {
         if (teammateCount > 8)
             return RowDensity.UltraCompact;
@@ -49,7 +49,7 @@ public class SpawnAndSpectateCharacter : UIPanel
         return RowDensity.Normal;
     }
 
-    internal static float GetItemWidth(RowDensity density)
+    public static float GetItemWidth(RowDensity density)
     {
         return density switch
         {
@@ -58,9 +58,8 @@ public class SpawnAndSpectateCharacter : UIPanel
             _ => ItemWidth,// 260f
         };
     }
-
-    private readonly RowDensity rowDensity;
-    private readonly float itemWidth;
+    
+    #endregion
 
     public SpawnAndSpectateCharacter(int _playerIndex, RowDensity density)
     {
@@ -73,7 +72,8 @@ public class SpawnAndSpectateCharacter : UIPanel
         playerBGTexture = Ass.CustomPlayerBackground;
     }
 
-
+    // Set properties when activating.
+    // Do not delete!
     public override void OnActivate()
     {
         BorderColor = Color.Black;
@@ -83,204 +83,101 @@ public class SpawnAndSpectateCharacter : UIPanel
         Width.Set(itemWidth, 0f);
 
         SetPadding(6f);
-
-        // OnActivate doesn't work as intended :(
-
-        // If fullscreen is open, dont add it
-        //if (Main.mapFullscreen)
-        //    return;
-        //spectateButton = new SpectateButton(playerIndex);
-        //Append(spectateButton);
-
-        //UpdateSpectateButtonLayout();
     }
-
-    //private void UpdateSpectateButtonLayout()
-    //{
-    //    if (spectateButton == null)
-    //    {
-    //        return;
-    //    }
-
-    //    if (rowDensity == RowDensity.UltraCompact)
-    //    {
-    //        float x = itemWidth - spectateButton.Width.Pixels - 6f;
-    //        float y = 2f;
-
-    //        spectateButton.Left.Set(x, 0f);
-    //        spectateButton.Top.Set(y, 0f);
-    //        spectateButton.Recalculate();
-    //        return;
-    //    }
-
-    //    float leftColumnWidth = 106f;
-    //    if (rowDensity == RowDensity.Compact)
-    //    {
-    //        leftColumnWidth = 106f;
-    //    }
-
-    //    float rightAreaWidth = itemWidth - 22f - leftColumnWidth;
-
-    //    float panelWidth = rightAreaWidth + 24f;
-    //    float panelX = leftColumnWidth - 4f;
-    //    float panelY = -6f;
-
-    //    float x2 = panelX + panelWidth - spectateButton.Width.Pixels - 6f;
-    //    float y2 = panelY + 2f;
-
-    //    spectateButton.Left.Set(x2, 0f);
-    //    spectateButton.Top.Set(y2, 0f);
-    //    spectateButton.Recalculate();
-    //}
-
-    public override void MouseOver(UIMouseEvent evt)
-    {
-        base.MouseOver(evt);
-
-        Player p = Main.player[playerIndex];
-        if (p == null || !p.active || p.dead)
-            return;
-
-        SpawnAndSpectateSystem.HoveredPlayerIndex = playerIndex;
-        SpawnAndSpectateSystem.TrySetHoverSpectate(playerIndex);
-    }
-
-    public override void MouseOut(UIMouseEvent evt)
-    {
-        base.MouseOut(evt);
-
-        Player p = Main.player[playerIndex];
-        if (p == null || !p.active || p.dead)
-            return;
-
-        BackgroundColor = new Color(63, 82, 151) * 0.8f;
-
-        if (SpawnAndSpectateSystem.HoveredPlayerIndex == playerIndex)
-            SpawnAndSpectateSystem.HoveredPlayerIndex = null;
-
-        SpawnAndSpectateSystem.ClearHoverSpectateIfMatch(playerIndex);
-    }
-
-    //private bool IsClickOnSpectateButton(UIMouseEvent evt)
-    //{
-    //    if (spectateButton == null)
-    //        return false;
-
-    //    if (spectateButton.ContainsPoint(evt.MousePosition))
-    //        return true;
-
-    //    return spectateButton.IsMouseHovering;
-    //}
 
     public override void LeftClick(UIMouseEvent evt)
     {
-        //if (IsClickOnSpectateButton(evt))
-        //    return;
-
         base.LeftClick(evt);
 
-        var gm = ModContent.GetInstance<GameManager>();
-        if (gm.CurrentPhase != GameManager.Phase.Playing)
+        bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+        if (!playing)
             return;
 
-        var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
-
-        if (SpawnAndSpectateSystem.IsAliveSpawnRegionInstant)
-        {
-            if (!SpawnAndSpectateSystem.IsValidTeammateIndex(playerIndex))
-                return;
-
-            if (SpawnAndSpectateSystem.ShouldCommitMapTeleport)
-            {
-                SpawnAndSpectateSystem.ToggleMapCommitTeammate(playerIndex);
-                return;
-            }
-            SpawnAndSpectateSystem.CancelFullscreenMapRestore();
-            respawnPlayer.TeammateTeleport(playerIndex);
-
-            if (SpawnAndSpectateSystem.IsMapTeleportGated)
-            {
-                SpawnAndSpectateSystem.OnMapTeleportExecuted();
-            }
-
+        Player local = Main.LocalPlayer;
+        if (local == null || !local.active)
             return;
-        }
 
-        if (Main.LocalPlayer.dead && SpawnAndSpectateSystem.IsValidTeammateIndex(playerIndex))
-        {
-            bool wasSelected = respawnPlayer.IsTeammateCommitted(playerIndex);
-            respawnPlayer.ToggleCommitTeammate(playerIndex);
+        // Only allow selecting valid teammates
+        if (!SpawnSystem_v2.IsValidTeammateIndex(playerIndex))
+            return;
 
-            bool isSelectedNow = respawnPlayer.IsTeammateCommitted(playerIndex);
-            if (isSelectedNow)
-                SpawnAndSpectateSystem.TrySetSpectate(playerIndex);
-            else if (wasSelected && SpawnAndSpectateSystem.SpectatePlayerIndex == playerIndex)
-                SpawnAndSpectateSystem.ClearSpectate();
-        }
-    }
-
-    public override void RightClick(UIMouseEvent evt)
-    {
-        base.RightClick(evt);
-        //SpawnAndSpectateSystem.ToggleSpectateOnPlayerIndex(playerIndex);
+        local.GetModPlayer<SpawnPlayer>()
+            .ToggleSelection(SpawnSystem_v2.SpawnType.Player, playerIndex);
     }
 
     public override void Update(GameTime gameTime)
     {
-        //UpdateSpectateButtonLayout();
-
-        bool hovering = IsMouseHovering;
-            //||(spectateButton != null && spectateButton.IsMouseHovering);
-
-        if (hovering)
-            SpawnAndSpectateSystem.TrySetHoverSpectate(playerIndex);
-        else
-            SpawnAndSpectateSystem.ClearHoverSpectateIfMatch(playerIndex);
-
-        var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
-        bool selectedSpawn = Main.LocalPlayer.dead
-            ? (respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex))
-            : SpawnAndSpectateSystem.IsMapTeammateCommitted(playerIndex);
-
-        if (selectedSpawn)
-            BackgroundColor = Color.Yellow;
-        else if (hovering)
-        //else if (hovering && spectateButton != null && !spectateButton.IsMouseHovering)
-            BackgroundColor = new Color(73, 92, 161, 150);
-        else
-            BackgroundColor = new Color(63, 82, 151) * 0.8f;
-
         base.Update(gameTime);
+
+        Player local = Main.LocalPlayer;
+        if (local == null || !local.active)
+            return;
+
+        Player target = Main.player[playerIndex];
+        bool validTarget =
+            target != null &&
+            target.active &&
+            !target.dead &&
+            SpawnSystem_v2.IsValidTeammateIndex(playerIndex);
+
+        bool hovering = IsMouseHovering && validTarget;
+
+        // Hover routing
+        if (hovering)
+        {
+            SpectateSystem.HoveringType = SpawnSystem_v2.SpawnType.Player;
+            SpectateSystem.HoveredPlayerIndex = playerIndex;
+
+            local.mouseInterface = true;
+        }
+        else
+        {
+            if (SpectateSystem.HoveringType == SpawnSystem_v2.SpawnType.Player &&
+                SpectateSystem.HoveredPlayerIndex == playerIndex)
+            {
+                SpectateSystem.ClearHover();
+            }
+        }
+
+        var sp = local.GetModPlayer<SpawnPlayer>();
+        bool selected =
+            sp.SelectedType == SpawnSystem_v2.SpawnType.Player &&
+            sp.SelectedPlayerIndex == playerIndex;
+
+        BackgroundColor =
+            selected ? Color.Gold :
+            hovering ? new Color(73, 92, 161, 150) :
+            new Color(63, 82, 151) * 0.8f;
     }
 
     private void DrawHoverText(Player player)
     {
-        Main.LocalPlayer.mouseInterface = true;
+        //Main.LocalPlayer.mouseInterface = true;
 
-        if (!player.dead)
-        {
-            var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
+        //if (!player.dead)
+        //{
+        //    var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
 
-            bool ready = Main.LocalPlayer.dead
-                ? Main.LocalPlayer.respawnTimer <= 0
-                : !SpawnAndSpectateSystem.IsMapTeleportGated || SpawnAndSpectateSystem.CanRespawn;
+        //    bool ready = Main.LocalPlayer.dead
+        //        ? Main.LocalPlayer.respawnTimer <= 0
+        //        : !SpawnSystem_v2.IsMapTeleportGated || SpawnAndSpectateSystem.CanRespawn;
 
 
-            bool selectedSpawn = Main.LocalPlayer.dead
-                ? respawnPlayer.IsTeammateCommitted(player.whoAmI)
-                : SpawnAndSpectateSystem.IsMapTeammateCommitted(player.whoAmI);
+        //    bool selectedSpawn = Main.LocalPlayer.dead
+        //        ? respawnPlayer.IsTeammateCommitted(player.whoAmI)
+        //        : SpawnAndSpectateSystem.IsMapTeammateCommitted(player.whoAmI);
 
-            string text = ready
-                ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayer", player.name)
-                : selectedSpawn
-                    ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelPlayerSpawn", player.name)
-                    : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectPlayerSpawn", player.name);
+        //    string text = ready
+        //        ? Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToPlayer", player.name)
+        //        : selectedSpawn
+        //            ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelPlayerSpawn", player.name)
+        //            : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectPlayerSpawn", player.name);
 
-            Main.instance.MouseText(text);
-            return;
-        }
+        //    Main.instance.MouseText(text);
+        //    return;
+        //}
 
-        Main.instance.MouseText("Cannot respawn (player dead)");
+        //Main.instance.MouseText("Cannot respawn (player dead)");
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -498,14 +395,14 @@ public class SpawnAndSpectateCharacter : UIPanel
     {
         Color color = Color.White;
 
-        var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
-        bool selectedSpawn = Main.LocalPlayer.dead
-            ? (respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex))
-            : SpawnAndSpectateSystem.IsMapTeammateCommitted(playerIndex);
-        if (selectedSpawn)
-        {
-            color = Color.Yellow*0.5f;
-        }
+        //var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
+        //bool selectedSpawn = Main.LocalPlayer.dead
+        //    ? (respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex))
+        //    : SpawnSystem_v2.SelectedPlayerIndex.HasValue;
+        //if (selectedSpawn)
+        //{
+        //    color = Color.Yellow*0.5f;
+        //}
 
         // left
         spriteBatch.Draw(innerPanelTexture.Value, position,new Rectangle(0, 0, 8, innerPanelTexture.Height()), color);

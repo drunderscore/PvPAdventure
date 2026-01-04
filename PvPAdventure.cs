@@ -1,3 +1,4 @@
+using DragonLens.Content.Tools.Gameplay;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.Content.Items;
@@ -19,6 +20,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
+using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem_v2;
 
 namespace PvPAdventure;
 
@@ -288,17 +290,37 @@ public class PvPAdventure : Mod
 
                     break;
                 }
+            case AdventurePacketIdentifier.SetPoints:
+                {
+                    var team = (Team)reader.ReadByte();
+                    var value = reader.ReadInt32();
+
+                    var pointsManager = ModContent.GetInstance<PointsManager>();
+                    pointsManager._points[team] = value;
+
+                    if (Main.dedServ)
+                    {
+                        NetMessage.SendData(MessageID.WorldData);
+                    }
+                    else
+                    {
+                        // Refresh scoreboard
+                        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
+                    }
+
+                    break;
+                }
+            case AdventurePacketIdentifier.SSC:
+                {
+                    ModContent.GetInstance<SSC>().HandlePacket(reader, whoAmI);
+                    break;
+                }
             case AdventurePacketIdentifier.Dash:
                 DashKeybindSystem.HandlePacket(reader, whoAmI);
                 break;
-            case AdventurePacketIdentifier.BedTeleport:
+            case AdventurePacketIdentifier.TeleportRequest:
                 {
-                    BedsOnMap.HandleBedTeleportPacket(reader, whoAmI);
-                    break;
-                }
-            case AdventurePacketIdentifier.WorldSpawnTeleport:
-                {
-                    BedsOnMap.HandleWorldSpawnPacket(reader, whoAmI);
+                    TeleportBedsOnMap.HandlePacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.PlayerBed:
@@ -328,44 +350,18 @@ public class PvPAdventure : Mod
 
                     break;
                 }
-            case AdventurePacketIdentifier.SetPointsRequest:
-                {
-                    var team = (Team)reader.ReadByte();
-                    var value = reader.ReadInt32();
-
-                    var pointsManager = ModContent.GetInstance<PointsManager>();
-                    pointsManager._points[team] = value;
-
-                    if (Main.dedServ)
-                    {
-                        NetMessage.SendData(MessageID.WorldData);
-                    }
-                    else
-                    {
-                        // Refresh scoreboard
-                        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
-                    }
-
-                    break;
-                }
-            case AdventurePacketIdentifier.SSC:
-                {
-                    ModContent.GetInstance<SSC>().HandlePacket(reader, whoAmI);
-                    break;
-                }
-            case AdventurePacketIdentifier.RespawnCommit:
+            
+            case AdventurePacketIdentifier.SpawnSelection:
                 {
                     if (Main.netMode != NetmodeID.Server)
                         break;
 
-                    var commit = (RespawnPlayer.RespawnCommit)reader.ReadByte();
-                    int teammateIndex = reader.ReadInt32();
+                    var type = (SpawnSystem_v2.SpawnType)reader.ReadByte();
+                    short idx = reader.ReadInt16();
 
                     Player p = Main.player[whoAmI];
                     if (p != null && p.active)
-                    {
-                        p.GetModPlayer<RespawnPlayer>().ApplyCommitFromNet(commit, teammateIndex);
-                    }
+                        p.GetModPlayer<SpawnPlayer>().ApplySelectionFromNet(type, idx);
 
                     break;
                 }

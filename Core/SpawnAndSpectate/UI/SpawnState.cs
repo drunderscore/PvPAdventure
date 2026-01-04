@@ -5,7 +5,7 @@ using Terraria.Localization;
 using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnAndSpectate.UI;
-public class SpawnAndSpectateState : UIState
+public class SpawnState : UIState
 {
     // UI components
     public SpawnAndSpectateBasePanel basePanel;
@@ -13,10 +13,10 @@ public class SpawnAndSpectateState : UIState
 
     public override void OnActivate()
     {
-        Log.Chat("OnActivate() called");
+        //Log.Chat("OnActivate() called");
 
         // Title panel
-        chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.ChooseYourSpawn"), 0.8f, true)
+        chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.Spawn.ChooseYourSpawn"), 0.7f, true)
         {
             HAlign = 0.5f,
             BackgroundColor = new Color(73, 94, 171),
