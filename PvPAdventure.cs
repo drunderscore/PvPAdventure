@@ -7,6 +7,8 @@ using PvPAdventure.Core.AdminTools.AdminManagerTool;
 using PvPAdventure.Core.AdminTools.TeamAssigner;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.SpawnAndSpectate;
+using PvPAdventure.Core.SSC;
+
 //using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using Steamworks;
@@ -340,6 +342,7 @@ public class PvPAdventure : Mod
                             Log.Chat($"Player {p.name} set spawn to ({spawnX}, {spawnY})");
                         }
                     }
+#endif
 
                     break;
                 }

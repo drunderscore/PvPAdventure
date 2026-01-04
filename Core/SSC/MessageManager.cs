@@ -1,12 +1,11 @@
-﻿//using PvPAdventure.Core.SSC;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.MiscSystems;
+namespace PvPAdventure.Core.SSC;
 
 /// <summary>
 /// This is a helper system that segments payloads above 60KB to avoid Terraria's 64 KB packet size limit.
@@ -37,7 +36,7 @@ public class MessageManager : ModSystem
 
             var mp = ModContent.GetInstance<PvPAdventure>().GetPacket();
             mp.Write((byte)AdventurePacketIdentifier.SSC);
-           // mp.Write((byte)SSCMessageID.MessageSegment);
+            mp.Write((byte)SSCMessageID.MessageSegment);
             mp.Write(true);
             mp.Send(to, ignore);
 
@@ -45,7 +44,7 @@ public class MessageManager : ModSystem
             {
                 mp = ModContent.GetInstance<PvPAdventure>().GetPacket();
                 mp.Write((byte)AdventurePacketIdentifier.SSC);
-               // mp.Write((byte)SSCMessageID.MessageSegment);
+                mp.Write((byte)SSCMessageID.MessageSegment);
                 mp.Write(false);
                 mp.Write(false);
                 mp.Write(frame.Current!.Length);
@@ -55,7 +54,7 @@ public class MessageManager : ModSystem
 
             mp = ModContent.GetInstance<PvPAdventure>().GetPacket();
             mp.Write((byte)AdventurePacketIdentifier.SSC);
-           // mp.Write((byte)SSCMessageID.MessageSegment);
+            mp.Write((byte)SSCMessageID.MessageSegment);
             mp.Write(false);
             mp.Write(true);
             mp.Write(hash);
@@ -83,7 +82,7 @@ public class MessageManager : ModSystem
                 return;
             }
 
-            //ModContent.GetInstance<SSC.SSC>().HandlePacket(new BinaryReader(new MemoryStream(data[4..])), from);
+            ModContent.GetInstance<SSC>().HandlePacket(new BinaryReader(new MemoryStream(data[4..])), from);
             return;
         }
 
