@@ -11,8 +11,7 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.SSC;
-
+namespace PvPAdventure.Core.SSC.UI;
 public class ServerViewer : UIState
 {
     private const float HeaderHeight = 52f;
