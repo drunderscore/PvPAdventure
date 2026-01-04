@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
@@ -23,16 +24,20 @@ public class AdventureClientConfig : ModConfig
     public PlayerOutlineConfig PlayerOutline = new();
 
     [Header("SoundEffects")]
-    [BackgroundColor(90, 50, 130)]
     [Expand(false,false)]
+    [BackgroundColor(200, 80, 150)]
     public SoundEffectConfig SoundEffect = new();
 
-    [Header("AdventureMirror")]
-    [BackgroundColor(30, 90, 90)]
-    [DefaultValue(true)] public bool ShowPopupText;
+    [Header("Spawn")]
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)] public bool AutoSelectWorldSpawnWhenRespawning;
 
-    [BackgroundColor(30, 90, 90)]
-    [DefaultValue(true)] public bool PlaySound;
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)] public bool CloseMapOnHurt;
+
+    [Header("Debug")]
+    [DefaultValue(true)] public bool EnableDebugMessages;
+
     #endregion
 
     #region Configs

@@ -185,15 +185,6 @@ Mods: {
 				Tooltip: Used for crafting a Jungle Key
 			}
 
-			AdventureMirror: {
-				DisplayName: Зеркало приключений
-				Tooltip:
-					'''
-					Взгляните в зеркало, чтобы вернуться на точку возрождения
-					Правый клик — использовать
-					'''
-			}
-
 			MatteConfig: {
 				DisplayName: Matte Config
 				Tooltip: ""
@@ -202,6 +193,11 @@ Mods: {
 			PlanterasBulbConfig: {
 				DisplayName: Planteras Bulb Config
 				Tooltip: ""
+			}
+
+			MapSpawnConfig: {
+				// DisplayName: Map Spawn Config
+				// Tooltip: ""
 			}
 		}
 
@@ -231,6 +227,21 @@ Mods: {
 			}
 
 			Target.DisplayName: Target
+
+			AdventureSantaNPC: {
+				// DisplayName: Adventure Santa
+
+				TownNPCMood: {
+					// Content: I am content.
+					// NoHome: I hate not having a home.
+					// FarFromHome: I am too far from home.
+					// LoveSpace: I love having so much space.
+					// DislikeCrowded: I dislike how crowded I am.
+					// HateCrowded: I hate how crowded I am.
+					// LikeNPC_Princess: I like {NPCName}.
+					// Princess_LovesNPC: I like {NPCName}.
+				}
+			}
 		}
 
 		Configs: {
@@ -240,8 +251,9 @@ Mods: {
 				Headers: {
 					General: "[i:Cog] General"
 					SoundEffects: Sound Effects
-					AdventureMirror: "[i:PvPAdventure/AdventureMirror] Adventure Mirror"
 					// Spectate: "[i:Binoculars] Spectate"
+					// Spawn: Spawn
+					// Debug: "[i:Goggles] Debug"
 				}
 
 				ShiftEnterOpensAllChat: {
@@ -268,29 +280,28 @@ Mods: {
 					Tooltip: ""
 				}
 
-				OpenMapAfterRecall: {
-					Label: Open Map After Recall Completes
-					Tooltip: Opens the map instantly after recall completes
+				AutoSelectWorldSpawnWhenRespawning: {
+					// Label: "[i:PvPAdventure/MapSpawnConfig] Auto Select World Spawn When Respawning"
+					// Tooltip: When you die, the world spawn point is automatically selected as your spawn point
 				}
 
-				ShowPopupText: {
-					Label: Show Countdown
-					Tooltip: Shows time remaining until recall completes above the player's head
+				SpawnUIPosition: {
+					// Label: Spawn UI Position
+					/* Tooltip:
+						'''
+						Change position of spawn select and spectate UI. 
+						Supports live apply, so keep UI open while dragging sliders to see changes in real time.
+						''' */
 				}
 
-				PlaySound: {
-					Label: Play Sound
-					Tooltip: Plays a sound while using the Adventure Mirror
+				CloseMapOnHurt: {
+					// Label: Close Map On Hurt
+					// Tooltip: Closes the fullscreen map if your player takes damage.
 				}
 
-				SpectateTeammatesOnDeath: {
-					// Label: Spectate Teammates On Death
-					// Tooltip: ""
-				}
-
-				SpectateUIPosition: {
-					// Label: Spectate U I Position
-					// Tooltip: ""
+				EnableDebugMessages: {
+					// Label: Enable Debug Messages
+					// Tooltip: Logs chat messages for most actions. Useful for developers or players investigating bugs.
 				}
 			}
 
@@ -541,9 +552,9 @@ Mods: {
 					Tooltip: ""
 				}
 
-				AdventureMirrorRecallFrames: {
-					Label: Adventure Mirror Recall Frames
-					Tooltip: ""
+				MapRecallFrames: {
+					// Label: Map Recall Frames
+					// Tooltip: The number of frames the map timer is reset to when opening the map. Default: 300 (5 seconds)
 				}
 
 				SpawnImmuneFrames: {
@@ -1232,26 +1243,13 @@ Mods: {
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
 		Player.CannotRecall: Cannot recall!
-
-		AdventureMirror: {
-			GameNotStarted: дождитесь начала игры!
-			// CannotUseInSpawn: cannot use in spawn!
-			// CannotUseWhileMoving: cannot use while moving!
-			CannotDrop: нельзя выбросить!
-			CannotUnfavorite: нельзя убрать из избранного!
-			CannotTrash: нельзя удалить!
-			CannotSell: нельзя продать!
-			// CannotStore: cannot store!
-			// Cancelled: cancelled!
-		}
-
 		// DashKeybind.NoDashItem: you have no dash item!
 
-		SpawnAndSpectate: {
+		Spawn: {
 			// ChooseYourSpawn: Choose Your Spawn
-			// TeleportToPlayer: "{0}"
-			// Random: Random
-			// WorldSpawn: World Spawn
+			// TeleportToPlayer: Teleport to {0}
+			// Random: Teleport to Random Location
+			// TeleportToWorldSpawn: Teleport to World Spawn
 			// PlayersBed: "{0}'s Bed"
 			// TeleportToPlayersBed: Teleport to {0}'s Bed
 			// SelectRandomSpawn: Select Random Spawn
@@ -1260,8 +1258,8 @@ Mods: {
 			// CancelWorldSpawn: Cancel World Spawn
 			// SelectPlayerSpawn: Select {0}'s Spawn
 			// CancelPlayerSpawn: Cancel {0}'s Spawn
-			// SpectatePlayer: Spectate {0}
-			// StopSpectatingPlayer: Unspectate {0}
+			// SelectBedSpawn: Select {0}'s Bed
+			// CancelBedSpawn: Cancel {0}'s Bed
 		}
 
 		SSC: {
