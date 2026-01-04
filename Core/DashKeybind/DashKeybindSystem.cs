@@ -1,4 +1,7 @@
-﻿using PvPAdventure.System.Client;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.Debug;
+using PvPAdventure.System.Client;
 using System;
 using System.IO;
 using Terraria;
@@ -23,11 +26,6 @@ namespace PvPAdventure.Core.DashKeybind;
 /// </remarks>
 public class DashKeybindSystem : ModSystem
 {
-    internal enum DashPacketType : byte
-    {
-        Request = 0,
-        Perform = 1
-    }
     public override void Load()
     {
         On_Player.DoCommonDashHandle += VanillaDashDetour;
@@ -64,7 +62,11 @@ public class DashKeybindSystem : ModSystem
 
         orig(self);
     }
-    
+    internal enum DashPacketType : byte
+    {
+        Request = 0,
+        Perform = 1
+    }
     internal static void HandlePacket(BinaryReader reader, int sender)
     {
         DashPacketType packetType = (DashPacketType)reader.ReadByte();
@@ -285,8 +287,9 @@ public class DashKeybindPlayer : ModPlayer
 
     private void ApplyTabiDash(int direction)
     {
-        Log.Chat($"Dashing with Tabi in direction: {direction} and velocity {16.9f}");
-        
+#if DEBUG
+        Main.NewText($"[DEBUG] Dashing with Tabi in direction: {direction} and velocity {16.9f}");
+#endif 
         ApplyHorizontalVelocity(direction, 16.9f);
 
         if (Main.netMode == NetmodeID.Server)
@@ -316,16 +319,18 @@ public class DashKeybindPlayer : ModPlayer
 
     private void ApplyShieldDash(int direction)
     {
-        Log.Chat($"Dashing with Shield in direction: {direction} and velocity {14.5f}");
-
+#if DEBUG
+        Main.NewText($"[DEBUG] Dashing with Shield in direction: {direction} and velocity {14.5f}");
+#endif 
         ApplyHorizontalVelocity(direction, 14.5f);
         Player.eocDash = 15;
     }
 
     private void ApplySolarDash(int direction)
     {
-        Log.Chat($"Dashing with Solar in direction: {direction} and velocity {21.9f}");
-
+#if DEBUG
+        Main.NewText($"[DEBUG] Dashing with Solar in direction: {direction} and velocity {21.9f}");
+#endif 
         ApplyHorizontalVelocity(direction, 21.9f);
         Player.solarDashing = true;
         Player.solarDashConsumedFlare = false;
@@ -348,8 +353,9 @@ public class DashKeybindPlayer : ModPlayer
 
     private void ApplyCrystalDash(int direction)
     {
-        Log.Chat($"Dashing with Crystal in direction: {direction} and velocity {16.9f}");
-
+#if DEBUG
+        Main.NewText($"[DEBUG] Dashing with Crystal in direction: {direction} and velocity {16.9f}");
+#endif 
         ApplyHorizontalVelocity(direction, 16.9f);
 
         if (Main.netMode == NetmodeID.Server)

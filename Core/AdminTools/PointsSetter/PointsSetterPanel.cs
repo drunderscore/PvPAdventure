@@ -106,7 +106,7 @@ internal class PointsSetterPanel : DraggablePanel
         {
             var mod = ModContent.GetInstance<PvPAdventure>();
             var p = mod.GetPacket();
-            p.Write((byte)AdventurePacketIdentifier.SetPoints);
+            p.Write((byte)AdventurePacketIdentifier.SetPointsRequest);
             p.Write((byte)team);
             p.Write(value);
             p.Send();

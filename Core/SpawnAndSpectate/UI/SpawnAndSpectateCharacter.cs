@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common;
+using PvPAdventure.Common.Debug;
 using PvPAdventure.System;
 using ReLogic.Content;
 using System;
@@ -10,17 +11,16 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
-using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
 namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
 /// <summary>
 /// Character row of a player in the spawn selector UI.
 /// </summary>
-public class UISpawnCharacter : UIPanel
+internal class SpawnAndSpectateCharacter : UIPanel
 {
-    public const float ItemWidth = 260f;
-    public const float ItemHeight = 72f;
+    internal const float ItemWidth = 260f;
+    internal const float ItemHeight = 72f;
 
     private readonly Asset<Texture2D> dividerTexture;
     private readonly Asset<Texture2D> innerPanelTexture;
@@ -29,173 +29,187 @@ public class UISpawnCharacter : UIPanel
     private readonly int playerIndex;
     public int PlayerIndex => playerIndex;
 
-    // UI
-    private UIBedButton bedButton;
-    
-    #region Row Density
-    public enum RowDensity
-    {
-        Normal,
-        Compact,
-        UltraCompact
-    }
-    private readonly RowDensity rowDensity;
-    private readonly float itemWidth;
+    // UI components
+    public SpectateButton spectateButton;
 
-    public static RowDensity GetDensityForTeammateCount(int teammateCount)
-    {
-        if (teammateCount > 8)
-            return RowDensity.UltraCompact;
-
-        if (teammateCount >= 5)
-            return RowDensity.Compact;
-
-        return RowDensity.Normal;
-    }
-
-    public static float GetItemWidth(RowDensity density)
-    {
-        return density switch
-        {
-            RowDensity.Compact => 200f,
-            RowDensity.UltraCompact => 110f,
-            _ => ItemWidth,// 260f
-        };
-    }
-    
-    #endregion
-
-    public UISpawnCharacter(int _playerIndex, RowDensity density)
+    public SpawnAndSpectateCharacter(int _playerIndex)
     {
         playerIndex = _playerIndex;
-        rowDensity = density;
-        itemWidth = GetItemWidth(density);
 
+        // Load assets
         dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
         innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
         playerBGTexture = Ass.CustomPlayerBackground;
-
-        // Bed button (top-right)
-        bedButton = new UIBedButton(playerIndex);
-        bedButton.Top.Set(-3f, 0f);
-        bedButton.Left.Set(itemWidth - 38, 0f);
-        Append(bedButton);
+        //_playerBGTexture = Main.Assets.Request<Texture2D>("Images/UI/PlayerBackground");
     }
 
-    // Set properties when activating.
-    // Do not delete!
     public override void OnActivate()
     {
         BorderColor = Color.Black;
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
 
         Height.Set(ItemHeight, 0f);
-        Width.Set(itemWidth, 0f);
+        Width.Set(ItemWidth, 0f);
 
         SetPadding(6f);
+
+        spectateButton = new SpectateButton(playerIndex);
+        Append(spectateButton);
+
+        UpdateSpectateButtonLayout();
+    }
+
+    private void UpdateSpectateButtonLayout()
+    {
+        if (spectateButton == null)
+            return;
+
+        const float leftColumnWidth = 106f;
+        float rightAreaWidth = ItemWidth - 22f - leftColumnWidth;
+
+        float panelWidth = rightAreaWidth + 24f;
+        float panelX = leftColumnWidth - 4f; // relative to inner-left
+        float panelY = -6f;
+
+        float x = panelX + panelWidth - spectateButton.Width.Pixels - 6f;
+        float y = panelY + 2f;
+
+        spectateButton.Left.Set(x, 0f);
+        spectateButton.Top.Set(y, 0f);
+        spectateButton.Recalculate();
+    }
+
+    public override void MouseOver(UIMouseEvent evt)
+    {
+        base.MouseOver(evt);
+
+        Player p = Main.player[playerIndex];
+        if (p == null || !p.active || p.dead)
+            return;
+        //BackgroundColor = new Color(73, 92, 161, 150);
+        SpawnAndSpectateSystem.HoveredPlayerIndex = playerIndex;
+    }
+
+    public override void MouseOut(UIMouseEvent evt)
+    {
+        base.MouseOut(evt);
+
+        Player p = Main.player[playerIndex];
+        if (p == null || !p.active || p.dead)
+            return;
+
+        BackgroundColor = new Color(63, 82, 151) * 0.8f;
+        if (SpawnAndSpectateSystem.HoveredPlayerIndex == playerIndex)
+            SpawnAndSpectateSystem.HoveredPlayerIndex = null;
+    }
+
+    private bool IsClickOnSpectateButton(UIMouseEvent evt)
+    {
+        if (spectateButton == null)
+            return false;
+
+        if (spectateButton.ContainsPoint(evt.MousePosition))
+            return true;
+
+        return spectateButton.IsMouseHovering;
     }
 
     public override void LeftClick(UIMouseEvent evt)
     {
+        if (IsClickOnSpectateButton(evt))
+            return;
+
         base.LeftClick(evt);
 
-        if (bedButton != null && bedButton.IsMouseHovering)
+        var gm = ModContent.GetInstance<GameManager>();
+        if (gm.CurrentPhase != GameManager.Phase.Playing)
             return;
 
-        bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
-        if (!playing)
-            return;
+        var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
 
-        Player local = Main.LocalPlayer;
-        if (local == null || !local.active)
+        // Alive + in spawn region: instant teleport
+        if (SpawnAndSpectateSystem.IsAliveSpawnRegionInstant)
+        {
+            respawnPlayer.TeammateTeleport(playerIndex);
             return;
+        }
 
-        // Only allow selecting valid teammates
-        if (!SpawnSystem.IsValidTeammateIndex(playerIndex))
-            return;
+        // Dead: click selects (and spectates) the teammate. Only one selection at a time.
+        if (Main.LocalPlayer.dead && SpawnAndSpectateSystem.IsValidTeammateIndex(playerIndex))
+        {
+            bool wasSelected = respawnPlayer.IsTeammateCommitted(playerIndex);
+            respawnPlayer.ToggleCommitTeammate(playerIndex);
 
-        local.GetModPlayer<SpawnPlayer>()
-            .ToggleSelection(SpawnSystem.SpawnType.Player, playerIndex);
+            bool isSelectedNow = respawnPlayer.IsTeammateCommitted(playerIndex);
+            if (isSelectedNow)
+                SpawnAndSpectateSystem.TrySetSpectate(playerIndex);
+            else if (wasSelected && SpawnAndSpectateSystem.SpectatePlayerIndex == playerIndex)
+                SpawnAndSpectateSystem.ClearSpectate();
+        }
+    }
+
+    public override void RightClick(UIMouseEvent evt)
+    {
+        base.RightClick(evt);
+        //SpawnAndSpectateSystem.ToggleSpectateOnPlayerIndex(playerIndex);
     }
 
     public override void Update(GameTime gameTime)
     {
-        base.Update(gameTime);
+        UpdateSpectateButtonLayout();
 
-        Player local = Main.LocalPlayer;
-        if (local == null || !local.active)
-            return;
+        bool hovering =
+            IsMouseHovering ||
+            (spectateButton != null && spectateButton.IsMouseHovering);
 
-        Player target = Main.player[playerIndex];
-        bool validTarget =
-            target != null &&
-            target.active &&
-            !target.dead &&
-            SpawnSystem.IsValidTeammateIndex(playerIndex);
-
-        bool hovering = IsMouseHovering && validTarget;
-
-        // Hover routing
         if (hovering)
-        {
-            if (SpectateSystem.HoveringType != SpawnType.Bed)
-            {
-                SpectateSystem.TrySetHover(SpawnType.Player, playerIndex);
-            }
-
-            local.mouseInterface = true;
-        }
+            SpawnAndSpectateSystem.TrySetHoverSpectate(playerIndex);
         else
-        {
-            if (SpectateSystem.HoveringType == SpawnSystem.SpawnType.Player &&
-                SpectateSystem.HoveredPlayerIndex == playerIndex)
-            {
-                SpectateSystem.ClearHoverIfMatch(SpawnType.Player, playerIndex);
-            }
-        }
+            SpawnAndSpectateSystem.ClearHoverSpectateIfMatch(playerIndex);
 
-        var sp = local.GetModPlayer<SpawnPlayer>();
-        bool selected =
-            sp.SelectedType == SpawnSystem.SpawnType.Player &&
-            sp.SelectedPlayerIndex == playerIndex;
+        var respawnPlayer = Main.LocalPlayer?.GetModPlayer<RespawnPlayer>();
+        bool selectedSpawn = respawnPlayer != null && respawnPlayer.IsTeammateCommitted(playerIndex);
+        
+        if (selectedSpawn)
+            BackgroundColor = Color.Yellow;
+        else if (hovering && !spectateButton.IsMouseHovering)
+            BackgroundColor = new Color(73, 92, 161, 150);
+        else
+            BackgroundColor = new Color(63, 82, 151) * 0.8f;
 
-        BackgroundColor =
-            selected ? Color.Gold :
-            hovering ? new Color(73, 92, 161, 150) :
-            new Color(63, 82, 151) * 0.8f;
+        //BorderColor = selectedSpawn ? Color.Yellow : Color.Black;
+
+        base.Update(gameTime);
     }
+
     private void DrawHoverText(Player player)
     {
-        if (player == null || !player.active)
-            return;
+        Main.LocalPlayer.mouseInterface = true;
 
         if (!player.dead)
         {
-            // Prevent clicks/pings while hovering the UI element.
-            player.mouseInterface = true;
-
-            var sp = player.GetModPlayer<SpawnPlayer>();
-
-            bool committed = sp.SelectedType == SpawnType.Player;
-            bool ready = !SpawnSystem.CanTeleport;
+            var respawnPlayer = Main.LocalPlayer.GetModPlayer<RespawnPlayer>();
+            var spawnPointPlayer = Main.LocalPlayer.GetModPlayer<SpawnPointPlayer>();
+            bool ready = SpawnAndSpectateSystem.CanRespawn || spawnPointPlayer.IsPlayerInSpawnRegion();
+            bool selectedSpawn = respawnPlayer.IsTeammateCommitted(player.whoAmI);
 
             string text;
-
             if (ready)
             {
-                text = committed
-                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelPlayerSpawn", player.name)
-                    : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectPlayerSpawn", player.name);
+                text = Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.TeleportToPlayer", player.name);
             }
             else
             {
-                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToPlayer", player.name);
+                text = selectedSpawn
+                    ? Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.CancelPlayerSpawn", player.name)
+                    : Language.GetTextValue("Mods.PvPAdventure.SpawnAndSpectate.SelectPlayerSpawn", player.name);
             }
             Main.instance.MouseText(text);
-            return;
         }
-
-        Main.instance.MouseText("Cannot respawn (player dead)");
+        else
+        {
+            Main.instance.MouseText("Cannot respawn (player dead)");
+        }
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -219,17 +233,12 @@ public class UISpawnCharacter : UIPanel
         Vector2 pos = new(inner.X, inner.Y);
         //sb.Draw(_playerBGTexture.Value, pos, Color.White*0.5f);
 
-        int leftRectWidth = 100;
-        if (rowDensity == RowDensity.UltraCompact)
-        {
-            leftRectWidth = (int)itemWidth;
-        }
-
         Rectangle rect = new(
             x: (int)pos.X - 6,
             y: (int)pos.Y - 6,
-            width: leftRectWidth,
+            width: 100,
             height: 72);
+
 
         //DrawMask(sb, Ass.CornerMask4px.Value, rect, 9);
         DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, playerBGTexture.Value, Color.White, 5);
@@ -250,20 +259,9 @@ public class UISpawnCharacter : UIPanel
             Log.Error("Failed to draw p: " + e);
         }
 
-        if (rowDensity == RowDensity.UltraCompact)
-        {
-            // Draw teleport to if it exists
-            if (IsMouseHovering)
-            {
-                DrawHoverText(player);
-            }
-
-            return;
-        }
-
         // Use the actual layout widths, not the texture width
         const float leftColumnWidth = 106f;              // player background column
-        float rightAreaWidth = itemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
+        const float rightAreaWidth = ItemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
 
         float rightAreaLeft = inner.X + leftColumnWidth;
         float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
@@ -272,14 +270,8 @@ public class UISpawnCharacter : UIPanel
         string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
 
         float nameScale = 1f;
-        if (rowDensity == RowDensity.Compact && name.Length > 12)
-        {
-            nameScale = 0.8f;
-        }
-        else if (name.Length > 16)
-        {
+        if (name.Length > 16)
             nameScale = 0.85f;
-        }
 
         Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
 
@@ -303,21 +295,8 @@ public class UISpawnCharacter : UIPanel
         Vector2 panelPos = new(rightAreaLeft - 14, inner.Y + 29f);
         DrawPanel(sb, panelPos, panelWidth);
 
-        bool drawMana = rowDensity == RowDensity.Normal;
-
-        string hpText;
-        string mpText;
-
-        if (rowDensity == RowDensity.Compact)
-        {
-            hpText = player.statLife.ToString();
-            mpText = string.Empty;
-        }
-        else
-        {
-            hpText = $"{player.statLife} HP";
-            mpText = $"{player.statMana} MP";
-        }
+        string hpText = $"{player.statLife} HP";
+        string mpText = $"{player.statMana} MP";
 
         Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hpText) * statScale;
         Vector2 mpSize = FontAssets.MouseText.Value.MeasureString(mpText) * statScale;
@@ -327,16 +306,9 @@ public class UISpawnCharacter : UIPanel
 
         float heartW = heart.Width() * statScale;
         float manaW = mana.Width() * statScale;
-
         float hpBlockW = heartW + hpSize.X;
-
-        float totalWidth = hpBlockW;
-        if (drawMana)
-        {
-            float mpBlockW = manaW + mpSize.X;
-            totalWidth = hpBlockW + statGap + mpBlockW;
-        }
-
+        float mpBlockW = manaW + mpSize.X;
+        float totalWidth = hpBlockW + statGap + mpBlockW;
         float startX = panelPos.X + (panelWidth - totalWidth) * 0.5f;
         float y = panelPos.Y + 4f;
 
@@ -345,15 +317,12 @@ public class UISpawnCharacter : UIPanel
         startX += heartW;
         Utils.DrawBorderString(sb, hpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
         startX += hpSize.X;
+        startX += statGap;
 
         // Draw mana
-        if (drawMana)
-        {
-            startX += statGap;
-            sb.Draw(mana.Value, new Vector2(startX, y - 2), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
-            startX += manaW;
-            Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
-        }
+        sb.Draw(mana.Value, new Vector2(startX, y - 2), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
+        startX += manaW;
+        Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
 
         // Draw player respawn timer if it exists
         if (player.respawnTimer != 0)
@@ -411,26 +380,14 @@ public class UISpawnCharacter : UIPanel
     // Draws the inner panel background with a given width.
     private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
     {
-        Color color = Color.White;
+        spriteBatch.Draw(innerPanelTexture.Value, position,
+            new Rectangle(0, 0, 8, innerPanelTexture.Height()), Color.White);
 
-        var sp = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
-
-        bool selectedSpawn = sp.SelectedType == SpawnType.Player && sp.SelectedPlayerIndex == playerIndex;
-
-        if (selectedSpawn)
-        {
-            color = Color.Yellow * 0.5f;
-        }
-
-        // left
-        spriteBatch.Draw(innerPanelTexture.Value, position,new Rectangle(0, 0, 8, innerPanelTexture.Height()), color);
-
-        // middle
         spriteBatch.Draw(
             innerPanelTexture.Value,
             new Vector2(position.X + 8f, position.Y),
             new Rectangle(8, 0, 8, innerPanelTexture.Height()),
-            color,
+            Color.White,
             0f,
             Vector2.Zero,
             new Vector2((width - 16f) / 8f, 1f),
@@ -438,8 +395,12 @@ public class UISpawnCharacter : UIPanel
             0f
         );
 
-        // right
-        spriteBatch.Draw(innerPanelTexture.Value,new Vector2(position.X + width - 8f, position.Y),new Rectangle(16, 0, 8, innerPanelTexture.Height()),color);
+        spriteBatch.Draw(
+            innerPanelTexture.Value,
+            new Vector2(position.X + width - 8f, position.Y),
+            new Rectangle(16, 0, 8, innerPanelTexture.Height()),
+            Color.White
+        );
     }
 
     // Draws a nine-slice rectangle of a background.

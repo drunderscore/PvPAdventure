@@ -17,10 +17,14 @@ Please also read:
 We follow these rules consistently:
 
 - Four roots:
-  - `PvPAdventure.Assets` — images and textures
-  - `PvPAdventure.Core` — main mechanics/features (most code should be here)
-  - `PvPAdventure.Common` — shared utilities, split by dependency surface area, asset loading
-  - `PvPAdventure.Content` — declarations/assets (items/projectiles/textures/ui), organized by mechanic
+  - `PvPAdventure.Assets` — textures
+  - `PvPAdventure.Core` — main mechanics/features
+  - `PvPAdventure.Common` — shared utilities, split by dependency surface area
+  - `PvPAdventure.Content` — declarations/assets (items/projectiles/textures/ui assets), organized by mechanic
+
+- Namespace depth limit: **max 4 segments**
+  - ✅ `PvPAdventure.Core.Spectate`
+  - ❌ `PvPAdventure.Core.Spectate.UI.Elements.PlayerHead`
 
 - Do not organize by type (avoid `Items/Projectiles/Systems` buckets). Organize by **mechanic / feature**:
   - ✅ `Common.SpawnSelector`, `Content.SpawnSelector`
@@ -40,13 +44,7 @@ High-level map of core areas:
 - `PvPAdventure` — root mod entry point; owns packet routing and top-level wiring
 - `Common.Config` — configuration settings for both client and server
 - `Core.AdminTools` — game management tools for admins
-- `Core.SpawnAndSpectateSystem` — spawn picking, spectate, bed teleport, etc
-
-Game Interface Layers (UI layers):
-- `Core.Spawnbox.PvPIcons` — draws icons above players while in spawn
-- `Core.Spawnbox.SpawnboxWorld` — draw a black rectangle around world spawn
-- `Core.Spawnbox.SpawnboxMap` — draws a black rectangle around world spawn in the map
-- `Core.SpawnAndSpectate.SpawnAndSpectateSystem` — draws the spawn/spectate UI in spawn and while dead
+- `Core.SpawnSelector` — spawn picking, bed teleport
 
 Match/gameplay systems (evolving):
 
@@ -56,7 +54,7 @@ Match/gameplay systems (evolving):
 - `System.BountyManager` — manages team bounty mechanics **[WIP]**
 - `System.RandomTeleportManager` — deprecated teleport system **[WIP]**
 
-Legacy god types (scheduled for refactor):
+Legacy “god” types (scheduled for refactor):
 
 - `AdventurePlayer` — **[WIP]**
 - `AdventureNPC` — **[WIP]**
@@ -87,9 +85,9 @@ Optional but helpful:
 
 ## Getting started
 
-### 1) Clone into tModLoader's `ModSources`
+### 1) Clone into tModLoader's `ModSources` (recommended)
 
-Locate tModLoader's mod source folder.
+tModLoader's mod source folder gives the best dev loop.
 
 Clone the repository into:
 
@@ -97,18 +95,18 @@ Clone the repository into:
 
 Ensure this folder was created:
 
-`../ModSources/PvPAdventure/`
+`.../ModSources/PvPAdventure/`
 
 ---
 
-### 2) Build the mod
+## Building the mod
 
 ### Option A (recommended): Build via Visual Studio
 
-1. Open the `.csproj` file in Visual Studio
+1. Open the `.csproj` file in Visual Studio (or open the project via tModLoader’s **Develop Mods** page).
 2. Press the green **Start** button to build and run the mod.
 
-This ensures the full build and compile pipeline runs and is the preferred workflow for developers.
+This reliably ensures the full build pipeline runs smoothly and is the preferred workflow for contributors.
 
 It also offers useful diagnostic tools and hot reload.
 
@@ -118,4 +116,4 @@ It also offers useful diagnostic tools and hot reload.
 2. Open **Workshop / Mods** → **Develop Mods**
 3. Build + Reload PvPAdventure
 
-This is the standard tML workflow and works well for users who don't have an IDE like Visual Studio.
+This matches the standard tML workflow and works well for fast iteration.

@@ -1,10 +1,6 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using log4net;
-using Microsoft.Xna.Framework;
-using Terraria;
-using Terraria.Chat;
-using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Debug;
@@ -25,38 +21,6 @@ public static class Log
             var m = ModContent.GetInstance<PvPAdventure>();
             return (m != null && m.Logger != null) ? m.Logger : LogManager.GetLogger("PvPAdventure");
         }
-    }
-
-    /// <summary>
-    /// Sends a debug Terraria chat message to everyone, e.g [DEBUG/FileName: Your Message]
-    /// </summary>
-    public static void Chat(object message, [CallerFilePath] string file = "")
-    {
-#if DEBUG
-        // Sanitize file name
-        string fileName = Path.GetFileNameWithoutExtension(file);
-
-        // Truncate
-        if (fileName.Length > 19)
-            fileName = fileName[..19] + "..";
-
-        // Broadcast to Terraria chat to all clients
-        ChatHelper.BroadcastChatMessage(
-            text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),
-            color: Color.White
-            );
-#else
-        string fileName = Path.GetFileNameWithoutExtension(file);
-
-        var config = ModContent.GetInstance<AdventureClientConfig>();
-        if (!config.EnableDebugMessages)
-            return;
-
-        ChatHelper.BroadcastChatMessage(
-            text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),
-            color: Color.White
-            );
-#endif
     }
 
     public static void Info(object message, [CallerFilePath] string file = "")

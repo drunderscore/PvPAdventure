@@ -2,7 +2,7 @@
 using Terraria.GameInput;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.SpawnAndSpectate;
+namespace PvPAdventure.Core.MiscSystems;
 
 /// <summary>
 /// Allows fullscreen map access while dead.
@@ -34,6 +34,10 @@ internal class MapWhileDeadSystem : ModSystem
         bool mapDown = PlayerInput.Triggers.Current.MapFull; 
         if (mapDown)
         {
+#if DEBUG
+            Main.NewText("[DEBUG/MapWhileDeadSystem]: Map key pressed");
+#endif
+
             if (self.releaseMapFullscreen)
             {
                 if (!Main.mapFullscreen)
@@ -42,7 +46,7 @@ internal class MapWhileDeadSystem : ModSystem
                     self.talkNPC = -1;
                     Main.npcChatCornerItem = 0;
 
-                    //Main.mapFullscreenScale = 2.5f;
+                    Main.mapFullscreenScale = 2.5f;
                     Main.mapFullscreen = true;
                     Main.resetMapFull = true;
                 }
