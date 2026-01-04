@@ -1,27 +1,32 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.Localization;
+using Terraria.UI;
 
 namespace PvPAdventure.Core.SpawnAndSpectate.UI;
 
 /// <summary>
-/// The base panel containing all elements for the spawn and spectate UI.
-/// Includes, for example
-/// <see cref="WorldSpawnPanel"/>
-/// <see cref="SpawnAndSpectateCharacter"/>
-/// <see cref="RandomTeleportPanel"/>
+/// The main state containing all elements for the spawn and spectate UI.
+/// Contains the following UI:
+/// <see cref="UIWorldSpawnPanel"/>
+/// <see cref="UISpawnCharacter"/> (which contains: <seealso cref="UIBedButton"/>)
+/// <see cref="UIRandomTeleportPanel"/>
 /// </summary>
-public class SpawnAndSpectateBasePanel : UIPanel
+public class UISpawnState : UIState
 {
     // UI components
-    private RandomTeleportPanel randomPanel;
-    private WorldSpawnPanel worldSpawnPanel;
-    private readonly List<SpawnAndSpectateCharacter> playerItems = []; // list of teammate player UI items
-    
+    private UIPanel backgroundPanel;
+    private UITextPanel<string> chooseYourSpawnPanel;
+
+    // UI components which are a part of backgroundPanel
+    private UIRandomTeleportPanel randomPanel;
+    private UIWorldSpawnPanel worldSpawnPanel;
+    private readonly List<UISpawnCharacter> playerItems = []; // list of teammate player UI items
+
     // Dimensions
     private const float Spacing = 8f; // between items
     private const float HorizontalPadding = 16f; // panel padding
@@ -34,14 +39,33 @@ public class SpawnAndSpectateBasePanel : UIPanel
 
     public override void OnActivate()
     {
-        HAlign = 0.5f;
-        VAlign = 0.0f;
-        Top.Set(82, 0);
+        Log.Chat("OnActivate() called");
 
-        BackgroundColor = new Color(33, 43, 79) * 1f;
-        SetPadding(0f);
+        // UI state settings
 
+        // Title
+        chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.Spawn.ChooseYourSpawn"), 0.75f, true)
+        {
+            HAlign = 0.5f,
+            BackgroundColor = new Color(73, 94, 171),
+            Top = new StyleDimension(42, 0)
+        };
+
+        // Background panel
+        backgroundPanel = new()
+        {
+            HAlign = 0.5f,
+            Top = new StyleDimension(82, 0),
+            BackgroundColor = new Color(33, 43, 79) * 1f
+        };
+        backgroundPanel.SetPadding(0f);
+        Append(backgroundPanel);
+
+        // Rebuild
         Rebuild();
+
+        // Add title last, on top of everything else
+        Append(chooseYourSpawnPanel);
     }
 
     public override void Update(GameTime gameTime)
@@ -56,8 +80,8 @@ public class SpawnAndSpectateBasePanel : UIPanel
         {
             if (Main.keyState.IsKeyDown(Keys.L) && !Main.oldKeyState.IsKeyDown(Keys.L))
             {
-                Log.Chat("+1 character UI. Use J or L to adjust.");
                 s_debugExtraLocalCopies++;
+                Log.Chat($"Extra copies: {s_debugExtraLocalCopies}. Use J or L to adjust.");
                 Rebuild();
             }
             else if (Main.keyState.IsKeyDown(Keys.J) && !Main.oldKeyState.IsKeyDown(Keys.J))
@@ -65,7 +89,7 @@ public class SpawnAndSpectateBasePanel : UIPanel
                 if (s_debugExtraLocalCopies > 0)
                 {
                     s_debugExtraLocalCopies--;
-                    Log.Chat("-1 character UI. Use J or L to adjust.");
+                    Log.Chat($"Extra copies: {s_debugExtraLocalCopies}. Use J or L to adjust.");
                 }
 
                 Rebuild();
@@ -76,7 +100,6 @@ public class SpawnAndSpectateBasePanel : UIPanel
         if (NeedsRebuild())
         {
             Rebuild();
-
             Log.Chat("Called Rebuild() in SpawnAndSpectateBasePanel");
         }
 
@@ -85,18 +108,18 @@ public class SpawnAndSpectateBasePanel : UIPanel
 
     private void Rebuild()
     {
-        RemoveAllChildren();
+        //backgroundPanel.RemoveAllChildren();
+        //RemoveChild(chooseYourSpawnPanel);
         playerItems.Clear();
 
         var players = new List<Player>();
-        var local = Main.LocalPlayer;
+        Player local = Main.LocalPlayer;
 
         if (local.team != 0)
         {
             for (int i = 0; i < Main.maxPlayers; i++)
             {
                 Player p = Main.player[i];
-
                 if (p == null || !p.active)
                     continue;
 
@@ -109,19 +132,15 @@ public class SpawnAndSpectateBasePanel : UIPanel
 
 #if DEBUG
         if (Main.netMode != NetmodeID.Server && local != null && local.active)
-        {
             for (int i = 0; i < s_debugExtraLocalCopies; i++)
-            {
                 players.Add(local);
-            }
-        }
 #endif
 
         int playerCount = players.Count;
 
-        var density = SpawnAndSpectateCharacter.GetDensityForTeammateCount(playerCount);
-        float itemWidth = SpawnAndSpectateCharacter.GetItemWidth(density);
-        float itemHeight = SpawnAndSpectateCharacter.ItemHeight;
+        var density = UISpawnCharacter.GetDensityForTeammateCount(playerCount);
+        float itemWidth = UISpawnCharacter.GetItemWidth(density);
+        float itemHeight = UISpawnCharacter.ItemHeight;
 
         float worldWidth = itemHeight;
         float randomWidth = itemHeight;
@@ -142,34 +161,32 @@ public class SpawnAndSpectateBasePanel : UIPanel
         float panelWidth = contentWidth + HorizontalPadding * 2f;
         float panelHeight = itemHeight + VerticalPadding * 2f;
 
-        Width.Set(panelWidth, 0f);
-        Height.Set(panelHeight, 0f);
+        backgroundPanel.Width.Set(panelWidth, 0f);
+        backgroundPanel.Height.Set(panelHeight, 0f);
 
         float x = HorizontalPadding;
         float y = VerticalPadding;
 
-        worldSpawnPanel = new WorldSpawnPanel(itemHeight);
-        worldSpawnPanel.Activate();
+        // World spawn
+        worldSpawnPanel = new UIWorldSpawnPanel(itemHeight);
         worldSpawnPanel.Left.Set(x, 0f);
         worldSpawnPanel.Top.Set(y, 0f);
-        Append(worldSpawnPanel);
+        backgroundPanel.Append(worldSpawnPanel);
 
         x += worldWidth + Spacing;
 
+        // Players
         for (int i = 0; i < playerCount; i++)
         {
-            // Create player item
-            var row = new SpawnAndSpectateCharacter(players[i].whoAmI, density);
-            row.Activate();
-
+            var row = new UISpawnCharacter(players[i].whoAmI, density);
             row.Left.Set(x, 0f);
             row.Top.Set(y, 0f);
+            row.Activate();
 
-            Append(row);
+            backgroundPanel.Append(row);
             playerItems.Add(row);
 
             x += itemWidth;
-
             if (i < playerCount - 1)
                 x += Spacing;
         }
@@ -177,20 +194,23 @@ public class SpawnAndSpectateBasePanel : UIPanel
         if (playerCount > 0)
             x += Spacing;
 
-        randomPanel = new RandomTeleportPanel(itemHeight);
-        randomPanel.Activate();
+        // Random
+        randomPanel = new UIRandomTeleportPanel(itemHeight);
         randomPanel.Left.Set(x, 0f);
         randomPanel.Top.Set(y, 0f);
-        Append(randomPanel);
+        backgroundPanel.Append(randomPanel);
 
-        Recalculate();
-        RecalculateChildren();
+        backgroundPanel.Recalculate();
+        backgroundPanel.RecalculateChildren();
     }
 
     private bool NeedsRebuild()
     {
-        var dims = GetDimensions();
-        if (dims.Width <= 0f || dims.Height <= 0f)
+        if (backgroundPanel == null)
+            return true;
+
+        var dims = backgroundPanel.GetDimensions();
+        if (dims.Width <= 1f || dims.Height <= 1f)
             return true;
 
         if (randomPanel == null)
@@ -220,12 +240,8 @@ public class SpawnAndSpectateBasePanel : UIPanel
 
 #if DEBUG
         if (Main.netMode != NetmodeID.Server && local != null && local.active)
-        {
             for (int i = 0; i < s_debugExtraLocalCopies; i++)
-            {
                 players.Add(local.whoAmI);
-            }
-        }
 #endif
 
         if (players.Count != playerItems.Count)
@@ -240,16 +256,6 @@ public class SpawnAndSpectateBasePanel : UIPanel
                 return true;
         }
 
-        // MAYBE: Go through all playeritems and ensure they have a size?
-        //for (int i = 0; i < playerItems.Count; i++)
-        //{
-        //    var item = playerItems[i];
-        //    var itemDims = item.GetDimensions();
-        //    if (itemDims.Width <= 0f || itemDims.Height <= 0f)
-        //        return true;
-        //}
-
         return false;
     }
-
 }

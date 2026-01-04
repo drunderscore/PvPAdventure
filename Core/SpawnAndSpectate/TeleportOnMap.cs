@@ -9,7 +9,7 @@ using Terraria.Localization;
 using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.UI;
-using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem_v2;
+using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
 
@@ -17,7 +17,8 @@ namespace PvPAdventure.Core.SpawnAndSpectate;
 /// Draws player bed spawn points on the fullscreen map and allows teleportation to them.
 /// Also draws world spawn point on the fullscreen map and allows teleportation to it.
 /// </summary>
-public class TeleportBedsOnMap : ModSystem
+[Autoload(Side =ModSide.Both)]
+public class TeleportOnMap : ModSystem
 {
     private Asset<Texture2D> spawnBedTexture;
 
@@ -54,7 +55,8 @@ public class TeleportBedsOnMap : ModSystem
         // orig(self, ref context, ref text); 
 
         Player localPlayer = Main.LocalPlayer;
-        var sys = ModContent.GetInstance<SpawnSystem_v2>();
+
+        var sys = ModContent.GetInstance<SpawnSystem>();
         bool selectorEnabled = sys.ui?.CurrentState == sys.spawnState;
 
         var sp = localPlayer.GetModPlayer<SpawnPlayer>();
@@ -95,8 +97,32 @@ public class TeleportBedsOnMap : ModSystem
         if (HasValidBedSpawn(localPlayer))
         {
             Vector2 localBedPos = new(localPlayer.SpawnX, localPlayer.SpawnY);
-            if (context.Draw(TextureAssets.SpawnBed.Value, localBedPos, Alignment.Bottom).IsMouseOver)
-                text = Language.GetTextValue("UI.SpawnBed");
+
+            var hoverLocalBed = context.Draw(
+                texture: TextureAssets.SpawnBed.Value,
+                position: localBedPos,
+                color: Color.White,
+                frame: new SpriteFrame(1, 1),
+                scaleIfNotSelected: 1.0f,
+                scaleIfSelected: selectorEnabled ? 1.8f : 1.0f,
+                alignment: Alignment.Bottom,
+                spriteEffects: SpriteEffects.None
+            );
+
+            if (hoverLocalBed.IsMouseOver)
+            {
+                localPlayer.mouseInterface = true;
+
+                text = selectorEnabled
+                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToPlayersBed", localPlayer.name)
+                    : Language.GetTextValue("UI.SpawnBed");
+
+                if (selectorEnabled && Main.mouseLeft && Main.mouseLeftRelease)
+                {
+                    sp.ToggleSelection(SpawnType.Bed, localPlayer.whoAmI);
+                    return;
+                }
+            }
         }
 
         // Draw team beds + handle teleport
@@ -104,6 +130,10 @@ public class TeleportBedsOnMap : ModSystem
 
         for (int i = 0; i < Main.maxPlayers; i++)
         {
+            // Skip drawing self bed twice
+            if (i == localPlayer.whoAmI)
+                continue;
+
             Player player = Main.player[i];
             if (player == null || !player.active || player.team != localPlayer.team)
                 continue;
@@ -169,7 +199,7 @@ public class TeleportBedsOnMap : ModSystem
             case SpawnType.Player:
                 {
                     short idx = reader.ReadInt16();
-                    if (!SpawnSystem_v2.IsValidTeammateIndex(requester, idx))
+                    if (!SpawnSystem.IsValidTeammateIndex(requester, idx))
                         return;
 
                     Player target = Main.player[idx];
@@ -180,17 +210,23 @@ public class TeleportBedsOnMap : ModSystem
             case SpawnType.Bed:
                 {
                     short idx = reader.ReadInt16();
-                    if (!SpawnSystem_v2.IsValidTeammateIndex(requester, idx))
+                    if (idx < 0 || idx >= Main.maxPlayers)
                         return;
 
                     Player bedOwner = Main.player[idx];
                     if (bedOwner == null || !bedOwner.active)
                         return;
 
+                    if (idx != requester.whoAmI)
+                    {
+                        if (requester.team == 0 || bedOwner.team != requester.team)
+                            return;
+                    }
+
                     if (bedOwner.SpawnX < 0 || bedOwner.SpawnY < 0 || !Player.CheckSpawn(bedOwner.SpawnX, bedOwner.SpawnY))
                         return;
 
-                    teleportPos = new Vector2(bedOwner.SpawnX, bedOwner.SpawnY - 3).ToWorldCoordinates();
+                    teleportPos = new Vector2(bedOwner.SpawnX, bedOwner.SpawnY - 6).ToWorldCoordinates();
                     break;
                 }
 

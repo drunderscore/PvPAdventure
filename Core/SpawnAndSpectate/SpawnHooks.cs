@@ -3,66 +3,60 @@ using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Graphics;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem_v2;
+using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
 
+[Autoload(Side =ModSide.Client)]
 public class SpawnHooks : ModSystem
 {
     public override void Load()
     {
         On_Player.HasUnityPotion += ForceUnityPotion;
         On_Player.Spawn_SetPosition += ApplySelectedSpawn;
-
-        if (!Main.dedServ)
-        {
-            On_Main.DrawInterface_35_YouDied += DrawDeathText;
-            On_Main.TriggerPing += SkipPingWhileHoveringSelector;
-        }
+        On_Main.DrawInterface_35_YouDied += DrawDeathText;
+        On_Main.TriggerPing += SkipPingWhileHoveringSelector;
     }
 
     public override void Unload()
     {
         On_Player.HasUnityPotion -= ForceUnityPotion;
         On_Player.Spawn_SetPosition -= ApplySelectedSpawn;
-
-        if (!Main.dedServ)
-        {
-            On_Main.DrawInterface_35_YouDied -= DrawDeathText;
-            On_Main.TriggerPing -= SkipPingWhileHoveringSelector;
-        }
+        On_Main.DrawInterface_35_YouDied -= DrawDeathText;
+        On_Main.TriggerPing -= SkipPingWhileHoveringSelector;
     }
 
-    static bool ForceUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)
+    private static bool ForceUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)
     {
-        var sys = ModContent.GetInstance<SpawnSystem_v2>();
-        if (sys?.ui?.CurrentState == sys?.spawnState)
+        var sys = ModContent.GetInstance<SpawnSystem>();
+        if (sys?.ui?.CurrentState == sys?.spawnState && SpawnSystem.CanTeleport)
             return true;
 
         return orig(self);
     }
 
-    static void TeleportAndSync(Player p, Vector2 pos)
+    private static void TeleportAndSync(Player p, Vector2 pos)
     {
-        p.Teleport(pos, Terraria.ID.TeleportationStyleID.RecallPotion);
+        p.Teleport(pos, TeleportationStyleID.RecallPotion);
 
-        if (Main.netMode == Terraria.ID.NetmodeID.Server)
+        if (Main.netMode == NetmodeID.Server)
         {
-            Terraria.NetMessage.SendData(
-                Terraria.ID.MessageID.TeleportEntity,
+            NetMessage.SendData(
+                MessageID.TeleportEntity,
                 -1, -1, null,
                 number: 0,
                 number2: p.whoAmI,
                 number3: pos.X,
                 number4: pos.Y,
-                number5: Terraria.ID.TeleportationStyleID.RecallPotion
+                number5: TeleportationStyleID.RecallPotion
             );
         }
     }
 
-    void ApplySelectedSpawn(On_Player.orig_Spawn_SetPosition orig, Player self, int floorX, int floorY)
+    private void ApplySelectedSpawn(On_Player.orig_Spawn_SetPosition orig, Player self, int floorX, int floorY)
     {
         SpawnPlayer sp = self.GetModPlayer<SpawnPlayer>();
         SpawnType type = sp.SelectedType;
@@ -91,8 +85,8 @@ public class SpawnHooks : ModSystem
 
         if (type == SpawnType.Random)
         {
-            if (Main.netMode == Terraria.ID.NetmodeID.MultiplayerClient)
-                Terraria.NetMessage.SendData(Terraria.ID.MessageID.RequestTeleportationByServer);
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                NetMessage.SendData(MessageID.RequestTeleportationByServer);
             else
                 self.TeleportationPotion();
 
@@ -104,7 +98,7 @@ public class SpawnHooks : ModSystem
         {
             int idx = sp.SelectedPlayerIndex;
 
-            if (SpawnSystem_v2.IsValidTeammateIndex(idx))
+            if (SpawnSystem.IsValidTeammateIndex(idx))
             {
                 Player t = Main.player[idx];
                 if (t != null && t.active && !t.dead)
@@ -115,16 +109,16 @@ public class SpawnHooks : ModSystem
         }
     }
 
-    void SkipPingWhileHoveringSelector(On_Main.orig_TriggerPing orig, Vector2 position)
+    private void SkipPingWhileHoveringSelector(On_Main.orig_TriggerPing orig, Vector2 position)
     {
-        var sys = ModContent.GetInstance<SpawnSystem_v2>();
+        var sys = ModContent.GetInstance<SpawnSystem>();
         if (sys?.ui?.CurrentState != null && sys.ui.CurrentState.IsMouseHovering)
             return;
 
         orig(position);
     }
 
-    void DrawDeathText(On_Main.orig_DrawInterface_35_YouDied orig)
+    private void DrawDeathText(On_Main.orig_DrawInterface_35_YouDied orig)
     {
         if (!Main.LocalPlayer.dead)
             return;
@@ -134,7 +128,7 @@ public class SpawnHooks : ModSystem
         float y = -60f;
         int seconds = (int)(1f + p.respawnTimer / 60f);
 
-        if (p.respawnTimer <= 2 && SpawnSystem_v2.CanTeleport)
+        if (p.respawnTimer <= 2 && SpawnSystem.CanTeleport)
             seconds = 0;
 
         if (SpectateSystem.HoveringType != SpawnType.None || seconds == 0)
@@ -180,14 +174,15 @@ public class SpawnHooks : ModSystem
         float scale = 0.7f;
 
         string respawnText = Language.GetTextValue("Game.RespawnInSuffix", seconds.ToString());
+        Vector2 respawnTextPos = new Vector2(
+                Main.screenWidth / 2f - FontAssets.MouseText.Value.MeasureString(respawnText).X * scale / 2f,
+                Main.screenHeight / 2f + y);
 
         DynamicSpriteFontExtensionMethods.DrawString(
             Main.spriteBatch,
             FontAssets.DeathText.Value,
             respawnText,
-            new Vector2(
-                Main.screenWidth / 2f - FontAssets.MouseText.Value.MeasureString(respawnText).X * scale / 2f,
-                Main.screenHeight / 2f + y),
+            respawnTextPos,
             p.GetDeathAlpha(Color.Transparent),
             0f,
             Vector2.Zero,

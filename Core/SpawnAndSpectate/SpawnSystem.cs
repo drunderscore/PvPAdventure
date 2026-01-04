@@ -14,10 +14,10 @@ using Terraria.UI;
 namespace PvPAdventure.Core.SpawnAndSpectate;
 
 [Autoload(Side = ModSide.Client)]
-public class SpawnSystem_v2 : ModSystem
+public class SpawnSystem : ModSystem
 {
     public UserInterface ui;
-    public SpawnState spawnState;
+    public UISpawnState spawnState;
 
     // The visibility of the state
     public static bool Enabled { get; private set; }
@@ -64,9 +64,6 @@ public class SpawnSystem_v2 : ModSystem
 
         Player t = Main.player[idx];
         if (t == null || !t.active || t.dead)
-            return false;
-
-        if (t.whoAmI == requester.whoAmI)
             return false;
 
         if (requester.team == 0 || t.team != requester.team)
@@ -172,17 +169,17 @@ public class SpawnSystem_v2 : ModSystem
         if (t.SpawnX < 0 || t.SpawnY < 0 || !Player.CheckSpawn(t.SpawnX, t.SpawnY))
             return;
 
-        Vector2 pos = new Vector2(t.SpawnX, t.SpawnY - 3).ToWorldCoordinates();
+        Vector2 pos = new Vector2(t.SpawnX, t.SpawnY - 6).ToWorldCoordinates();
         p.Teleport(pos, TeleportationStyleID.RecallPotion);
     }
 
     private void TryExecuteSelection(Player p)
     {
-        if (!CanTeleport || p == null || !p.active)
-        {
-            ClearSelection();
+        if (p == null || !p.active)
             return;
-        }
+
+        if (!CanTeleport)
+            return;
 
         if (p.dead)
             return;
@@ -211,20 +208,19 @@ public class SpawnSystem_v2 : ModSystem
             OnTeleportExecuted();
             return;
         }
+
         if (sp.SelectedType == SpawnType.Bed)
         {
             TeleportToBed(p, sp.SelectedPlayerIndex);
             OnTeleportExecuted();
             return;
         }
-
-        ClearSelection();
     }
 
     public override void OnWorldLoad()
     {
         ui = new UserInterface();
-        spawnState = new SpawnState();
+        spawnState = new UISpawnState();
 
         SetCanTeleport(false);
         Main.OnPostFullscreenMapDraw += DrawOnFullscreenMap;
@@ -287,7 +283,7 @@ public class SpawnSystem_v2 : ModSystem
 
         if (!wasShowingUI || ui.CurrentState != spawnState)
         {
-            spawnState = new SpawnState();
+            spawnState = new UISpawnState();
             ui.SetState(spawnState);
             wasShowingUI = true;
         }
@@ -353,7 +349,7 @@ public class SpawnSystem_v2 : ModSystem
             return;
 
         layers.Insert(idx, new LegacyGameInterfaceLayer(
-            "PvPAdventure: SpawnAndSpectate",
+            "PvPAdventure: SpawnSystem UI",
             delegate
             {
                 if (Main.mapFullscreen || ui?.CurrentState == null)

@@ -20,7 +20,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem_v2;
+using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
 namespace PvPAdventure;
 
@@ -320,7 +320,7 @@ public class PvPAdventure : Mod
                 break;
             case AdventurePacketIdentifier.TeleportRequest:
                 {
-                    TeleportBedsOnMap.HandlePacket(reader, whoAmI);
+                    TeleportOnMap.HandlePacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.PlayerBed:
@@ -356,7 +356,7 @@ public class PvPAdventure : Mod
                     if (Main.netMode != NetmodeID.Server)
                         break;
 
-                    var type = (SpawnSystem_v2.SpawnType)reader.ReadByte();
+                    var type = (Core.SpawnAndSpectate.SpawnSystem.SpawnType)reader.ReadByte();
                     short idx = reader.ReadInt16();
 
                     Player p = Main.player[whoAmI];

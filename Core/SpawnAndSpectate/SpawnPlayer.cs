@@ -1,8 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.System;
 using Terraria;
+using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
-using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem_v2;
+using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
 
@@ -43,20 +45,15 @@ public class SpawnPlayer : ModPlayer
         SelectedPlayerIndex = -1;
 
         if (Player.whoAmI == Main.myPlayer)
-            SpawnSystem_v2.SetCanTeleport(false);
+            SpawnSystem.SetCanTeleport(false);
     }
 
     public void ToggleSelection(SpawnType type, int playerIndex = -1)
     {
-        if ((type == SpawnType.Player || type == SpawnType.Bed) &&
-            !SpawnSystem_v2.IsValidTeammateIndex(playerIndex))
-        {
-            type = SpawnType.None;
-        }
-
         bool same =
             SelectedType == type &&
-            ((type != SpawnType.Player && type != SpawnType.Bed) || SelectedPlayerIndex == playerIndex);
+            ((type != SpawnType.Player && type != SpawnType.Bed) ||
+             SelectedPlayerIndex == playerIndex);
 
         if (same)
         {
@@ -65,8 +62,38 @@ public class SpawnPlayer : ModPlayer
             return;
         }
 
+        if (type == SpawnType.Player &&
+            !SpawnSystem.IsValidTeammateIndex(playerIndex))
+        {
+            type = SpawnType.None;
+        }
+
+        if (type == SpawnType.Bed)
+        {
+            bool ok = playerIndex == Player.whoAmI;
+
+            if (!ok)
+            {
+                if (Player.team == 0 || playerIndex < 0 || playerIndex >= Main.maxPlayers)
+                {
+                    ok = false;
+                }
+                else
+                {
+                    Player bedOwner = Main.player[playerIndex];
+                    ok = bedOwner != null && bedOwner.active && bedOwner.team == Player.team;
+                }
+            }
+
+            if (!ok)
+                type = SpawnType.None;
+        }
+
         SelectedType = type;
-        SelectedPlayerIndex = (type == SpawnType.Player || type == SpawnType.Bed) ? playerIndex : -1;
+        SelectedPlayerIndex =
+            (type == SpawnType.Player || type == SpawnType.Bed)
+                ? playerIndex
+                : -1;
 
         if (Player.dead && Player.respawnTimer == 2)
             Player.respawnTimer = 1;
@@ -91,14 +118,46 @@ public class SpawnPlayer : ModPlayer
 
     internal void ApplySelectionFromNet(SpawnType type, int idx)
     {
-        if (type == SpawnType.Player && !SpawnSystem_v2.IsValidTeammateIndex(idx))
+        if (type == SpawnType.Player && !SpawnSystem.IsValidTeammateIndex(idx))
             type = SpawnType.None;
 
+        if (type == SpawnType.Bed)
+        {
+            bool ok = idx == Player.whoAmI;
+
+            if (!ok)
+            {
+                if (Player.team == 0 || idx < 0 || idx >= Main.maxPlayers)
+                {
+                    ok = false;
+                }
+                else
+                {
+                    Player bedOwner = Main.player[idx];
+                    ok = bedOwner != null && bedOwner.active && bedOwner.team == Player.team;
+                }
+            }
+
+            if (!ok)
+                type = SpawnType.None;
+        }
+
         SelectedType = type;
-        SelectedPlayerIndex = type == SpawnType.Player ? idx : -1;
+        SelectedPlayerIndex =
+            (type == SpawnType.Player || type == SpawnType.Bed)
+                ? idx
+                : -1;
 
         if (Player.dead && Player.respawnTimer == 2)
             Player.respawnTimer = 1;
+    }
+
+    public bool IsPlayerInWorldSpawnRegion(Point tilePos)
+    {
+        var regionManager = ModContent.GetInstance<RegionManager>();
+        if (regionManager.GetRegionContaining(tilePos) != null)
+            return true;
+        return false;
     }
 
     private bool ComputeIsPlayerInSpawnRegion(Point tilePos)
@@ -159,10 +218,11 @@ public class SpawnPlayer : ModPlayer
 
     public override void PostUpdate()
     {
-        if (Main.netMode == Terraria.ID.NetmodeID.MultiplayerClient)
+        if (Main.netMode == NetmodeID.MultiplayerClient)
             UpdatePlayerSpawnpoint();
     }
 
+    // Keeps the respawn timer at 1 to allow for selection
     public override void UpdateDead()
     {
         if (Player.respawnTimer > 2)
@@ -178,7 +238,7 @@ public class SpawnPlayer : ModPlayer
             Player.respawnTimer = 2;
 
             if (Player.whoAmI == Main.myPlayer)
-                SpawnSystem_v2.SetCanTeleport(true);
+                SpawnSystem.SetCanTeleport(true);
 
             return;
         }
@@ -187,12 +247,12 @@ public class SpawnPlayer : ModPlayer
             Player.respawnTimer = 1;
 
         if (Player.whoAmI == Main.myPlayer)
-            SpawnSystem_v2.SetCanTeleport(false);
+            SpawnSystem.SetCanTeleport(false);
 
         base.UpdateDead();
     }
 
-    void UpdatePlayerSpawnpoint()
+    private void UpdatePlayerSpawnpoint()
     {
         Point raw = new(Player.SpawnX, Player.SpawnY);
 

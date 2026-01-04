@@ -1248,8 +1248,8 @@ Mods: {
 		Spawn: {
 			// ChooseYourSpawn: Choose Your Spawn
 			// TeleportToPlayer: Teleport to {0}
-			// Random: Random Teleport
-			// WorldSpawn: Teleport to World Spawn
+			// Random: Teleport to Random Location
+			// TeleportToWorldSpawn: Teleport to World Spawn
 			// PlayersBed: "{0}'s Bed"
 			// TeleportToPlayersBed: Teleport to {0}'s Bed
 			// SelectRandomSpawn: Select Random Spawn
@@ -1258,6 +1258,8 @@ Mods: {
 			// CancelWorldSpawn: Cancel World Spawn
 			// SelectPlayerSpawn: Select {0}'s Spawn
 			// CancelPlayerSpawn: Cancel {0}'s Spawn
+			// SelectBedSpawn: Select {0}'s Bed
+			// CancelBedSpawn: Cancel {0}'s Bed
 		}
 
 		SSC: {

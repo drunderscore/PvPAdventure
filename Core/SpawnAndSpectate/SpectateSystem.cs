@@ -1,7 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
-using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem_v2;
+using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
 
@@ -18,79 +17,107 @@ public class SpectateSystem : ModSystem
 
     public static void ClearHover()
     {
-        HoveredPlayerIndex = null;
         HoveringType = SpawnType.None;
+        HoveredPlayerIndex = null;
     }
 
-    private static void RestoreIfNeeded(Player local)
+    public static void TrySetHover(SpawnType type, int idx)
     {
-        if (MapRestore)
+        if (type == SpawnType.Bed)
         {
-            if (!local.GetModPlayer<SpawnPlayer>().HasSelection && !Main.mapFullscreen)
-                Main.mapFullscreen = true;
-
-            MapRestore = false;
+            HoveringType = SpawnType.Bed;
+            HoveredPlayerIndex = idx;
+            return;
         }
 
-        if (hasRestorePos)
-        {
-            Main.screenPosition = restoreScreenPos;
-            hasRestorePos = false;
-        }
+        if (HoveringType == SpawnType.Bed)
+            return;
+
+        if (type == SpawnType.Player && HoveringType != SpawnType.None)
+            return;
+
+        HoveringType = type;
+        HoveredPlayerIndex = idx;
     }
+
+    public static void ClearHoverIfMatch(SpawnType type, int idx)
+    {
+        if (HoveringType == type && HoveredPlayerIndex == idx)
+            ClearHover();
+    }
+
+    private static bool IsValidPlayer(int idx)
+    {
+        if (idx < 0 || idx >= Main.maxPlayers)
+            return false;
+
+        Player p = Main.player[idx];
+        return p != null && p.active && !p.dead;
+    }
+
+    private static bool IsValidBed(int idx)
+    {
+        if (idx < 0 || idx >= Main.maxPlayers)
+            return false;
+
+        Player p = Main.player[idx];
+        if (p == null || !p.active)
+            return false;
+
+        return p.SpawnX >= 0 &&
+               p.SpawnY >= 0 &&
+               Player.CheckSpawn(p.SpawnX, p.SpawnY);
+    }
+
     public override void ModifyScreenPosition()
     {
         Player local = Main.LocalPlayer;
         if (local == null || !local.active)
             return;
 
-        bool canUse = local.dead || SpawnSystem_v2.Enabled;
-
-        // If we cannot use spectate, restore + clear and exit.
-        if (!canUse)
+        if (!local.dead && !SpawnSystem.Enabled)
         {
-            if (MapRestore)
-            {
-                if (!local.GetModPlayer<SpawnPlayer>().HasSelection && !Main.mapFullscreen)
-                    Main.mapFullscreen = true;
-
-                MapRestore = false;
-            }
-
-            if (hasRestorePos)
-            {
-                Main.screenPosition = restoreScreenPos;
-                hasRestorePos = false;
-            }
-
-            ClearHover();
-            wasHovering = false;
+            Restore();
             return;
         }
 
-        bool inSpawnRegion = !local.dead && local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
+        ValidateHover();
 
-        if (HoveringType == SpawnType.Player)
-        {
-            if (HoveredPlayerIndex is not int idx || idx < 0 || idx >= Main.maxPlayers)
-            {
-                ClearHover();
-            }
-            else
-            {
-                Player t = Main.player[idx];
-                if (t == null || !t.active || t.dead)
-                    ClearHover();
-            }
-        }
+        bool inSpawnRegion =
+            !local.dead &&
+            local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
 
-        bool hovering = HoveringType != SpawnType.None &&
-                        !(inSpawnRegion && HoveringType == SpawnType.World);
+        bool hovering =
+            HoveringType != SpawnType.None &&
+            !(inSpawnRegion && HoveringType == SpawnType.World);
 
-        // Hover START
+        HandleHoverTransitions(local, hovering);
+
+        if (!hovering)
+            return;
+
+        ApplyCamera(inSpawnRegion);
+    }
+
+    private static void ValidateHover()
+    {
+        if (HoveringType == SpawnType.Player &&
+            !IsValidPlayer(HoveredPlayerIndex ?? -1))
+            ClearHover();
+
+        if (HoveringType == SpawnType.Bed &&
+            !IsValidBed(HoveredPlayerIndex ?? -1))
+            ClearHover();
+    }
+
+    private void HandleHoverTransitions(Player local, bool hovering)
+    {
         if (hovering && !wasHovering)
         {
-            restoreScreenPos = local.Center - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+            restoreScreenPos =
+                local.Center -
+                new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+
             hasRestorePos = true;
 
             if (Main.mapFullscreen)
@@ -100,45 +127,53 @@ public class SpectateSystem : ModSystem
             }
         }
 
-        // Hover END
         if (!hovering && wasHovering)
-        {
-            if (MapRestore)
-            {
-                if (!local.GetModPlayer<SpawnPlayer>().HasSelection && !Main.mapFullscreen)
-                    Main.mapFullscreen = true;
-
-                MapRestore = false;
-            }
-
-            if (hasRestorePos)
-            {
-                Main.screenPosition = restoreScreenPos;
-                hasRestorePos = false;
-            }
-        }
+            Restore();
 
         wasHovering = hovering;
-
-        if (!hovering)
-            return;
-
-        if (HoveringType == SpawnType.World)
-        {
-            if (inSpawnRegion)
-                return;
-
-            Vector2 spawnWorld = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
-            Main.screenPosition = spawnWorld - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
-            return;
-        }
-
-        if (HoveringType == SpawnType.Player && HoveredPlayerIndex is int pidx && pidx >= 0 && pidx < Main.maxPlayers)
-        {
-            Player target = Main.player[pidx];
-            if (target != null && target.active && !target.dead)
-                Main.screenPosition = target.position - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
-        }
     }
 
+    private static void Restore()
+    {
+        if (MapRestore)
+        {
+            Main.mapFullscreen = true;
+            MapRestore = false;
+        }
+
+        if (hasRestorePos)
+        {
+            Main.screenPosition = restoreScreenPos;
+            hasRestorePos = false;
+        }
+
+        ClearHover();
+        wasHovering = false;
+    }
+
+    private static void ApplyCamera(bool inSpawnRegion)
+    {
+        if (HoveringType == SpawnType.World)
+        {
+            // Only world spawn spectate is blocked in spawn region (handled by hovering calc).
+            Vector2 pos = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
+            Main.screenPosition = pos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+            return;
+        }
+
+        if (HoveredPlayerIndex is not int idx)
+            return;
+
+        Player p = Main.player[idx];
+        if (p == null || !p.active)
+            return;
+
+        Vector2 target =
+            HoveringType == SpawnType.Bed
+                ? new Vector2(p.SpawnX, p.SpawnY - 3).ToWorldCoordinates()
+                : p.position;
+
+        Main.screenPosition =
+            target - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+    }
 }
