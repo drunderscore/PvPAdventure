@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using PvPAdventure.Content.Items;
 using PvPAdventure.Core.DashKeybind;
-using PvPAdventure.Core.SSC;
+//using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using Steamworks;
 using System;
@@ -397,7 +397,7 @@ public class PvPAdventure : Mod
                 }
             case AdventurePacketIdentifier.SSC:
                 {
-                    ModContent.GetInstance<SSC>().HandlePacket(reader, whoAmI);
+                   // ModContent.GetInstance<SSC>().HandlePacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.RespawnCommit:
