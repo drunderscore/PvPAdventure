@@ -3,7 +3,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using PvPAdventure.Core.MiscSystems;
 using Terraria;
 using Terraria.ID;
 using Terraria.IO;

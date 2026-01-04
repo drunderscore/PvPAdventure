@@ -107,15 +107,15 @@ public class AdventureServerConfig : ModConfig
     [Header("Gameplay")]
     [BackgroundColor(40, 90, 40)]
     [Expand(false, false)]
-    public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = new();
+    public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = [];
 
     [BackgroundColor(40, 90, 40)]
     [Range(0, 60 * 60)]
     [DefaultValue(4 * 60)]
-    public int AdventureMirrorRecallFrames { get; set; }
+    public int MapRecallFrames { get; set; }
     [BackgroundColor(40, 90, 40)]
-    [Range(0, 30 * 60)]
-    [DefaultValue(1.5 * 60)]
+    [Range(0, 10 * 60)]
+    [DefaultValue(5 * 60)]
     public int SpawnImmuneFrames { get; set; }
 
     [BackgroundColor(40, 90, 40)]

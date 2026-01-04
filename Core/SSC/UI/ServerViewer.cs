@@ -149,9 +149,7 @@ public class ServerViewer : UIState
         CharacterList.Add(CharacterCreationPanel);
         CharacterList.Recalculate();
 
-#if DEBUG
-        Main.NewText("[DEBUG/ServerViewer: Calc() called");
-#endif
+        Log.Chat("Calc() called");
     }
 
     public override void Update(GameTime gameTime)
