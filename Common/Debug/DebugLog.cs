@@ -48,7 +48,7 @@ public static class Log
 #else
         string fileName = Path.GetFileNameWithoutExtension(file);
 
-        var config = ModContent.GetInstance<PvPAdventureConfig>();
+        var config = ModContent.GetInstance<AdventureClientConfig>();
         if (!config.EnableDebugMessages)
             return;
 

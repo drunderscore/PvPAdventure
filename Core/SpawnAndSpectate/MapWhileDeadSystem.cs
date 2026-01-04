@@ -2,7 +2,7 @@
 using Terraria.GameInput;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.MiscSystems;
+namespace PvPAdventure.Core.SpawnAndSpectate;
 
 /// <summary>
 /// Allows fullscreen map access while dead.

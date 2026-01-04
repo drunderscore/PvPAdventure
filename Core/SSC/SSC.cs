@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using PvPAdventure.Core.MiscSystems;
 using Steamworks;
 using Terraria;
 using Terraria.Chat;
