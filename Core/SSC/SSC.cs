@@ -18,7 +18,8 @@ namespace PvPAdventure.Core.SSC;
 public class SSC : ModSystem
 {
     private static string SSCFolder => Path.Combine(Main.SavePath, "PvPAdventureSSC");
-    public static string MapID => Main.ActiveWorldFileData?.Name ?? "UnknownWorld";
+    private static string MapID => Main.ActiveWorldFileData?.Name ?? "UnknownWorld";
+    private static readonly object ioLock = new();
 
     public static void SendJoinRequest()
     {
@@ -54,7 +55,7 @@ public class SSC : ModSystem
                 LoadPlayer(reader, from);
                 break;
             case SSCPacketType.SavePlayer:
-                SavePlayer(reader, from);
+                SavePlayer(reader);
                 break;
         }
     }
@@ -63,32 +64,39 @@ public class SSC : ModSystem
     {
         if (Main.netMode == NetmodeID.Server)
         {
-            // Read data
+            // Get data from client
             var steamId = reader.ReadString();
             var name = reader.ReadString();
 
-            // Create directories
-            Directory.CreateDirectory(Path.Combine(SSCFolder, MapID));
+            byte[] data;
+            TagCompound root;
+            bool isNew;
 
-            var plrPath = Path.Combine(SSCFolder, MapID, steamId, $"{name}.plr");
-            var tplrPath = Path.Combine(SSCFolder, MapID, steamId, $"{name}.tplr");
-            var dir = Path.Combine(SSCFolder, MapID, steamId);
-
-            Directory.CreateDirectory(dir);
-
-            // Check if player files exists
-            bool isNew = !File.Exists(plrPath) || !File.Exists(tplrPath);
-
-            if (isNew)
+            // Lock IO operations to prevent race conditions
+            lock (ioLock)
             {
-                CreateNewPlayer(plrPath, name);
+                // Create directories for SSC and player if they don't exist
+                Directory.CreateDirectory(Path.Combine(SSCFolder, MapID));
+
+                var dir = Path.Combine(SSCFolder, MapID, steamId);
+                Directory.CreateDirectory(dir);
+
+                var plrPath = Path.Combine(dir, $"{name}.plr");
+                var tplrPath = Path.Combine(dir, $"{name}.tplr");
+
+                isNew = !File.Exists(plrPath) || !File.Exists(tplrPath);
+
+                if (isNew)
+                {
+                    CreateNewPlayer(plrPath, name);
+                }
+
+                // Read player data from files
+                data = File.ReadAllBytes(plrPath);
+                root = TagIO.FromFile(tplrPath);
             }
 
-            // Read file
-            byte[] data = File.ReadAllBytes(plrPath);
-            TagCompound root = TagIO.FromFile(tplrPath);
-
-            // Send packet
+            // Send player data back to client
             var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
             p.Write((byte)AdventurePacketIdentifier.SSC);
             p.Write((byte)SSCPacketType.LoadPlayer);
@@ -134,7 +142,7 @@ public class SSC : ModSystem
             Log.Chat(isNew ? "Loaded new SSC player " : "Loaded existing SSC player " + fileData.Player.name);
 
             // Print chat to players with player and playtime
-            Main.NewText($"Loaded SSC player {Main.LocalPlayer.name} — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}");
+            Main.NewText($"Welcome to TPVPA, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}", Color.MediumPurple);
         }
     }
 
@@ -169,25 +177,29 @@ public class SSC : ModSystem
         Log.Chat("Created and saved new player " + name);
     }
 
-    private static void SavePlayer(BinaryReader reader, int fromWho)
+    private static void SavePlayer(BinaryReader reader)
     {
+        // Receive player data from client save system and save to server disk
         if (Main.netMode == NetmodeID.Server)
         {
+            // Read data from client
             var steamID = reader.ReadString();
             var name = reader.ReadString();
             var data = reader.ReadBytes(reader.ReadInt32());
             var root = TagIO.Read(reader);
-            var first = reader.ReadBoolean();
 
-            // Write to file
+            // Ensure directory exists
             Utils.TryCreatingDirectory(Path.Combine(SSCFolder, MapID, steamID));
 
+            // Write to file
             File.WriteAllBytes(Path.Combine(SSCFolder, MapID, steamID, $"{name}.plr"), data);
             TagIO.ToFile(root, Path.Combine(SSCFolder, MapID, steamID, $"{name}.tplr"));
 
+            // Flush to ensure data is written
             var stream = new MemoryStream();
             TagIO.ToStream(root, stream);
             stream.Flush();
+
             Log.Chat("Saved player " + name);
         }
     }

@@ -30,34 +30,6 @@ internal class SSCSaveSystem : ModSystem
         On_Player.InternalSavePlayerFile -= OverrideSavePlayerFile;
     }
 
-    public override void OnWorldLoad()
-    {
-        if (!SSCEnabled.IsEnabled)
-            return;
-
-        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
-
-        var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamId}.plr"), false)
-        {
-            Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
-            Player = new()
-            {
-                name = Main.LocalPlayer.name,
-                difficulty = PlayerDifficultyID.SoftCore,
-                statLife = 0,
-                statMana = 0,
-                dead = true,
-                ghost = true,
-                respawnTimer = int.MaxValue,
-                lastTimePlayerWasSaved = long.MaxValue,
-                savedPerPlayerFieldsThatArentInThePlayerClass = new Player.SavedPlayerDataWithAnnoyingRules()
-            }
-        };
-
-        // Enter as a ghost
-        fileData.SetAsActive();
-    }
-
     public override void PreSaveAndQuit()
     {
         if (!SSCEnabled.IsEnabled)
@@ -105,8 +77,8 @@ internal class SSCSaveSystem : ModSystem
             packet.Write(plr.Length);
             packet.Write(plr);
             TagIO.Write(tplr, packet);
-            packet.Write(fileData.Path == "Create.SSC");
             packet.Send();
+
             //Log.Chat("Client sent packet to save " + fileData.Player.name);
         }
         catch (Exception e)

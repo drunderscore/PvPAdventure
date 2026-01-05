@@ -11,16 +11,10 @@ public static class SSCEnabled
     {
         get
         {
-            
-
 #if DEBUG
             return true;
 #else
-            var config = ModContent.GetInstance<AdventureServerConfig>();
-            if (config != null)
-            {
-                return config.IsSSCEnabled;
-            }
+            return ModContent.GetInstance<AdventureServerConfig>()?.IsSSCEnabled ?? false;
 #endif
         }
     }

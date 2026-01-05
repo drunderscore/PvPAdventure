@@ -149,7 +149,6 @@ public class AdventureServerConfig : ModConfig
     public WorldGenerationConfig WorldGeneration { get; set; } = new();
 
     [Header("SSC")]
-
     [BackgroundColor(90, 40, 110)]
     [DefaultValue(true)]
     public bool IsSSCEnabled { get; set; }

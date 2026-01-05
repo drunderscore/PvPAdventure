@@ -621,6 +621,11 @@ Mods: {
 					Label: Start Mana
 					Tooltip: ""
 				}
+
+				IsSSCEnabled: {
+					Label: Is S S C Enabled
+					Tooltip: ""
+				}
 			}
 
 			PointsConfig: {
