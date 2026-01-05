@@ -611,6 +611,16 @@ Mods: {
 					// Label: respawn Config
 					// Tooltip: ""
 				}
+
+				StartLife: {
+					// Label: Start Life
+					// Tooltip: ""
+				}
+
+				StartMana: {
+					// Label: Start Mana
+					// Tooltip: ""
+				}
 			}
 
 			PointsConfig: {

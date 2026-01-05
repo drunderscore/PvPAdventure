@@ -7,7 +7,7 @@ using PvPAdventure.Core.AdminTools.AdminManagerTool;
 using PvPAdventure.Core.AdminTools.TeamAssigner;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.SpawnAndSpectate;
-using PvPAdventure.Core.SSC_v3;
+using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using Steamworks;
 using System;
@@ -312,7 +312,10 @@ public class PvPAdventure : Mod
                 }
             case AdventurePacketIdentifier.SSC:
                 {
-                    SSC_v3.HandlePacket(reader, whoAmI);
+                    if (!SSCEnabled.IsEnabled)
+                        return;
+
+                    SSC.HandlePacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.Dash:

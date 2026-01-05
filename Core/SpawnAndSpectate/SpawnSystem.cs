@@ -234,8 +234,11 @@ public class SpawnSystem : ModSystem
     public override void UpdateUI(GameTime gameTime)
     {
         Player local = Main.LocalPlayer;
-        if (local == null)
+        if (local == null || Main.LocalPlayer.ghost)
+        {
+            ui.SetState(null);
             return;
+        }
 
         bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
         bool inSpawnRegion = local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();

@@ -149,15 +149,38 @@ public class AdventureServerConfig : ModConfig
     public WorldGenerationConfig WorldGeneration { get; set; } = new();
 
     [Header("SSC")]
+
     [BackgroundColor(90, 40, 110)]
-    [Expand(false, false)]
-    public List<ItemDefinition> StartItems { get; set; } =
-    [
-        new ItemDefinition("PvPAdventure", "AdventureBag")
-    ];
+    [DefaultValue(true)]
+    public bool IsSSCEnabled { get; set; }
+
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false)]
+    public Dictionary<ItemDefinition, int> StartItems = new()
+    {
+        { new ItemDefinition("PvPAdventure", "AdventureBag"), 1 }
+    };
+
+    [BackgroundColor(90, 40, 110)]
+    [Slider]
+    [Increment(20)]
+    [Range(100, 500)]
+    [DefaultValue(100)]
+    public int StartLife = 100;
+
+    [BackgroundColor(90, 40, 110)]
+    [Slider]
+    [Increment(20)]
+    [Range(20, 200)]
+    [DefaultValue(20)]
+    public int StartMana = 20;
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
+#if DEBUG
+        return true;
+#endif
+
         if (pendingConfig is not AdventureServerConfig pendingAdventureConfig)
             return true;
 
