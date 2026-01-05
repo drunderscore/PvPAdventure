@@ -242,7 +242,6 @@ public class SpawnSystem : ModSystem
         bool sessionOpen = SessionOpen;
 
         Enabled = playing && !Main.playerInventory && (inSpawnRegion || sessionOpen);
-
         if (sessionOpen && !sessionWasOpen)
         {
             ResetMapTimer();

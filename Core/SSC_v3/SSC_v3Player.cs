@@ -11,7 +11,7 @@ public sealed class SSC_v3Player : ModPlayer
 
     public override void OnEnterWorld()
     {
-        Log.Chat("OnEnterWorld with " + Main.LocalPlayer.name);
+        //Log.Chat("OnEnterWorld with " + Main.LocalPlayer.name);
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
@@ -19,7 +19,7 @@ public sealed class SSC_v3Player : ModPlayer
         if (_sentJoin)
             return;
 
-        SSC_v3.SendJoinRequestOnce();
+        //SSC_v3.SendJoinRequestOnce();
 
         _sentJoin = true;
     }

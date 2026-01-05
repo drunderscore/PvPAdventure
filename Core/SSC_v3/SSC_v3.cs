@@ -1,14 +1,14 @@
 ﻿using Steamworks;
-using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Terraria;
+using Terraria.Chat;
 using Terraria.ID;
 using Terraria.IO;
+using Terraria.Localization;
 using Terraria.ModLoader;
-using Terraria.ModLoader.Engine;
 using Terraria.ModLoader.IO;
-using static Terraria.GameContent.NetModules.NetTeleportPylonModule;
 
 namespace PvPAdventure.Core.SSC_v3;
 
@@ -19,7 +19,7 @@ public class SSC_v3 : ModSystem
     public static string MapID => Main.ActiveWorldFileData?.Name ?? "NoWorldLoaded";
 
     private static readonly object _ioLock = new();
-    private static readonly Dictionary<int, string> _steamIdByWho = new();
+    private static readonly Dictionary<int, string> _steamIdByWho = [];
 
     private static bool _joinSentThisSession;
 
@@ -59,15 +59,15 @@ public class SSC_v3 : ModSystem
 
         string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
         var name = Main.LocalPlayer.name;
-
-        Log.Chat($"ClientJoin with steamId={steamId}, name={name}");
-
+        
         var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
         p.Write((byte)AdventurePacketIdentifier.SSC);
         p.Write((byte)SSCPacketType.ClientJoin);
         p.Write(steamId);
         p.Write(name);
         p.Send();
+
+        Log.Chat($"Client sent join request with name {name}");
     }
 
     public static void HandlePacket(BinaryReader reader, int from)
@@ -77,114 +77,148 @@ public class SSC_v3 : ModSystem
         switch (msg)
         {
             case SSCPacketType.ClientJoin:
-                Log.Chat($"ClientJoin packet from " + from);
-                HandleClientJoin_Server(reader, from);
+                //Log.Chat($"ClientJoin packet from " + from);
+                ClientJoin(reader, from);
                 break;
-
-            case SSCPacketType.ServerCreateNewPlayer:
-                Log.Chat($"ServerCreateNewPlayer packet from " + from);
+            case SSCPacketType.ServerSendPlayerToClient:
+                //Log.Chat($"ServerSendPlayerToClient packet from " + from);
+                ClientHandleReceivedPlayer(reader, from);
+                break;
+            case SSCPacketType.ServerSavePlayer:
+                //Log.Chat($"ServerSavePlayer packet from " + from);
+                SavePlayer(reader, from);
                 break;
         }
     }
 
-    private static void HandleClientJoin_Server(BinaryReader reader, int from)
+    private static void ClientJoin(BinaryReader reader, int from)
     {
-        if (Main.netMode != NetmodeID.Server)
-            return;
-
-        var steamId = reader.ReadString();
-        var name = reader.ReadString();
-
-        _steamIdByWho[from] = steamId;
-
-        EnsureWorldDirectory_Server();
-
-        var (plrPath, tplrPath, dir) = GetServerPaths(steamId, name);
-
-        lock (_ioLock)
+        if (Main.netMode == NetmodeID.Server)
         {
-            Directory.CreateDirectory(dir);
+            var steamId = reader.ReadString();
+            var name = reader.ReadString();
 
-            // Check if player files exists
-            if (!File.Exists(plrPath) && !File.Exists(tplrPath))
+            _steamIdByWho[from] = steamId;
+
+            EnsureWorldDirectory_Server();
+
+            var (plrPath, tplrPath, dir) = GetServerPaths(steamId, name);
+
+            lock (_ioLock)
             {
-                Log.Chat($"Creating new player: " + name);
+                Directory.CreateDirectory(dir);
 
-                // Send to client
+                // Check if player files exists
+                bool isNew = !File.Exists(plrPath) || !File.Exists(tplrPath);
+
+                if (isNew)
+                {
+                    Log.Chat($"Creating new player: {name}");
+                    CreateNewPlayer(plrPath, name);
+                }
+                else
+                {
+                    Log.Chat($"Player found! Loading player!");
+                }
+
+                // Read file
+                byte[] data = File.ReadAllBytes(plrPath);
+                TagCompound root = TagIO.FromFile(tplrPath);
+
+                // Send packet
                 var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
-
                 p.Write((byte)AdventurePacketIdentifier.SSC);
-                p.Write((byte)SSCPacketType.ServerCreateNewPlayer);
-                p.Write(steamId);
-                p.Write(name);
+                p.Write((byte)SSCPacketType.ServerSendPlayerToClient);
+                p.Write(isNew);
+                p.Write(data.Length);
+                p.Write(data);
+                TagIO.Write(root, p);
                 p.Send(toClient: from);
             }
-            else
-            {
-                //plrBytes = null;
-                //tplrBytes = null;
-                Log.Chat($"Player found! Loading player!");
-            }
         }
-
-        
     }
 
-    private static void CreateNewPlayer(BinaryReader reader)
+    private static void ClientHandleReceivedPlayer(BinaryReader reader, int from)
     {
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
-        var steamId = reader.ReadString();
-        var name = reader.ReadString();
+        bool isNew = reader.ReadBoolean();
 
-        var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamId}.plr"), false)
+        int len = reader.ReadInt32();
+        byte[] data = reader.ReadBytes(len);
+        TagCompound root = TagIO.Read(reader);
+
+        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
+
+        var ms = new MemoryStream();
+        TagIO.ToStream(root, ms);
+
+        var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamId}.SSC"),cloudSave: false)
         {
             Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
-            Player = new Player
-            {
-                name = name,
-                difficulty = 0,
-                statLife = 500,
-                statMana = 40,
-                //dead = true,
-                //ghost = true,
-                // Prevent the automatic revive on entry from desyncing client and server
-                //respawnTimer = int.MaxValue,
-                //lastTimePlayerWasSaved = long.MaxValue,
-                //savedPerPlayerFieldsThatArentInThePlayerClass = new Player.SavedPlayerDataWithAnnoyingRules()
-            }
         };
+
+        Player.LoadPlayerFromStream(fileData, data, ms.ToArray());
+        fileData.MarkAsServerSide();
+        fileData.SetAsActive();
+
+        fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
+        Player.Hooks.EnterWorld(Main.myPlayer);
+
+        Log.Chat(isNew ? "Loaded NEW SSC player" : "Loaded SSC player");
     }
 
-    //private static void ReadPlayerData(BinaryReader reader)
-    //{
-    //    if (Main.netMode == NetmodeID.MultiplayerClient)
-    //    {
-    //        var data = reader.ReadBytes(reader.ReadInt32());
-    //        var root = TagIO.Read(reader);
+    private static void CreateNewPlayer(string plrPath, string name)
+    {
+        Player player = new Player();
 
-    //        var memoryStream = new MemoryStream();
-    //        TagIO.ToStream(root, memoryStream);
+        player.name = "aooga";
+        player.difficulty = PlayerDifficultyID.SoftCore;
 
-    //        // Set file_data.Path to SSC to enable cloud saves, and keep PlayTime so new saves retain time played.
-    //        var file_data = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{GetPID()}.SSC"), false)
-    //        {
-    //            Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
-    //        };
-    //        // data includes playtime and it will be added into file_data
-    //        Player.LoadPlayerFromStream(file_data, data, memoryStream.ToArray());
-    //        file_data.MarkAsServerSide();
-    //        file_data.SetAsActive();
+        player.statLifeMax2 = 500;
+        player.statLife = 500;
 
-    //        file_data.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
-    //        Player.Hooks.EnterWorld(Main.myPlayer); 
-    //    }
-    //}
+        player.statManaMax = 40;
+        player.statManaMax2 = 40;
+        player.statMana = 40;
+
+        var fileData = new PlayerFileData(plrPath, cloudSave: false)
+        {
+            Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
+            Player = player,
+        };
+        Log.Chat("Created new player " + name + " with " + player.statLifeMax2 + " HP");
+
+        Player.InternalSavePlayerFile(fileData);
+    }
+
+    private static void SavePlayer(BinaryReader reader, int fromWho)
+    {
+        Log.Chat("Server trying to save player");
+        var steamID = reader.ReadString();
+        var name = reader.ReadString();
+        var data = reader.ReadBytes(reader.ReadInt32());
+        var root = TagIO.Read(reader);
+        var first = reader.ReadBoolean();
+
+        // Write to file
+        Utils.TryCreatingDirectory(Path.Combine(PATH, MapID, steamID));
+
+        File.WriteAllBytes(Path.Combine(PATH, MapID, steamID, $"{name}.plr"), data);
+        TagIO.ToFile(root, Path.Combine(PATH, MapID, steamID, $"{name}.tplr"));
+
+        var stream = new MemoryStream();
+        TagIO.ToStream(root, stream);
+        stream.Flush();
+        Log.Chat("Server successfully saved player");
+    }
 }
 
 public enum SSCPacketType : byte
 {
     ClientJoin,
-    ServerCreateNewPlayer
+    ServerCreateNewPlayer,
+    ServerSendPlayerToClient,
+    ServerSavePlayer
 }

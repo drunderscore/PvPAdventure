@@ -344,7 +344,7 @@ public class PvPAdventure : Mod
 
                         if (p != null && p.name != string.Empty)
                         {
-                            Log.Chat($"Player {p.name} set spawn to ({spawnX}, {spawnY})");
+                            //Log.Chat($"Player {p.name} set spawn to ({spawnX}, {spawnY})");
                         }
                     }
 

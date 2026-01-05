@@ -82,7 +82,7 @@
 //                return;
 //            }
 
-//            ModContent.GetInstance<SSC>().HandlePacket(new BinaryReader(new MemoryStream(data[4..])), from);
+//            ModContent.GetInstance<SSC_v3>().HandlePacket(new BinaryReader(new MemoryStream(data[4..])), from);
 //            return;
 //        }
 

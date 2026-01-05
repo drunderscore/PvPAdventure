@@ -12,6 +12,7 @@
 	  <None Remove="Assets\SpawnSelector\**" />
 	</ItemGroup>
 	<ItemGroup>
+		<Folder Include="Core\SSC_v3\NewFolder\" />
 		<Folder Include="Discord" />
 		<Folder Include="lib\Native\" />
 	</ItemGroup>
