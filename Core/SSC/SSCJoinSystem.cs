@@ -7,6 +7,11 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.SSC;
 
+/// <summary>
+/// Joins the world as a ghost, 
+/// and after a small delay sends a request to join as a proper SSC character.
+/// Hopefully reworked in the future for smoother player experience.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
 public class SSCJoinSystem : ModSystem
 {
@@ -18,29 +23,10 @@ public class SSCJoinSystem : ModSystem
             return;
 
         _sent = false;
-        _delayTicks = 60; // 1 seconds
-
-        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
-
-        var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamId}.plr"), false)
-        {
-            Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
-            Player = new()
-            {
-                name = Main.LocalPlayer.name,
-                difficulty = PlayerDifficultyID.SoftCore,
-                statLife = 0,
-                statMana = 0,
-                dead = true,
-                ghost = true,
-                respawnTimer = int.MaxValue,
-                lastTimePlayerWasSaved = long.MaxValue,
-                savedPerPlayerFieldsThatArentInThePlayerClass = new Player.SavedPlayerDataWithAnnoyingRules()
-            }
-        };
+        _delayTicks = 120; // 1 second
 
         // Enter as a ghost
-        fileData.SetAsActive();
+        Main.LocalPlayer.ghost = true;
     }
 
     public override void PostUpdateEverything()

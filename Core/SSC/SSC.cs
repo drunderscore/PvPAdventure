@@ -1,4 +1,5 @@
-﻿using Steamworks;
+﻿using Discord;
+using Steamworks;
 using System;
 using System.IO;
 using Terraria;
@@ -26,20 +27,30 @@ public class SSC : ModSystem
         if (!SSCEnabled.IsEnabled)
             return;
 
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
-            var name = Main.LocalPlayer.name;
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            return;
 
-            var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            p.Write((byte)AdventurePacketIdentifier.SSC);
-            p.Write((byte)SSCPacketType.ClientJoin);
-            p.Write(steamId);
-            p.Write(name);
-            p.Send();
+        Player pLocal = Main.LocalPlayer;
 
-            Log.Chat($"Client joined with name {name}");
-        }
+        var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        p.Write((byte)AdventurePacketIdentifier.SSC);
+        p.Write((byte)SSCPacketType.ClientJoin);
+
+        p.Write(SteamUser.GetSteamID().m_SteamID.ToString());
+        p.Write(pLocal.name);
+
+        // Appearance
+        p.Write(pLocal.skinVariant);
+        p.Write(pLocal.hair);
+        ColorReader.WriteColor(p, pLocal.skinColor);
+        ColorReader.WriteColor(p, pLocal.eyeColor);
+        ColorReader.WriteColor(p, pLocal.hairColor);
+        ColorReader.WriteColor(p, pLocal.shirtColor);
+        ColorReader.WriteColor(p, pLocal.underShirtColor);
+        ColorReader.WriteColor(p, pLocal.pantsColor);
+        ColorReader.WriteColor(p, pLocal.shoeColor);
+
+        p.Send();
     }
 
     public static void HandlePacket(BinaryReader reader, int from)
@@ -52,7 +63,7 @@ public class SSC : ModSystem
                 ClientJoin(reader, from);
                 break;
             case SSCPacketType.LoadPlayer:
-                LoadPlayer(reader, from);
+                LoadPlayer(reader);
                 break;
             case SSCPacketType.SavePlayer:
                 SavePlayer(reader);
@@ -67,6 +78,21 @@ public class SSC : ModSystem
             // Get data from client
             var steamId = reader.ReadString();
             var name = reader.ReadString();
+
+            PlayerAppearance appearance = new()
+            {
+                SkinVariant = reader.ReadInt32(),
+                Hair = reader.ReadInt32(),
+
+                SkinColor = ColorReader.ReadColor(reader),
+                EyeColor = ColorReader.ReadColor(reader),
+                HairColor = ColorReader.ReadColor(reader),
+
+                ShirtColor = ColorReader.ReadColor(reader),
+                UnderShirtColor = ColorReader.ReadColor(reader),
+                PantsColor = ColorReader.ReadColor(reader),
+                ShoeColor = ColorReader.ReadColor(reader)
+            };
 
             byte[] data;
             TagCompound root;
@@ -88,7 +114,7 @@ public class SSC : ModSystem
 
                 if (isNew)
                 {
-                    CreateNewPlayer(plrPath, name);
+                    CreateNewPlayer(plrPath, name, appearance);
                 }
 
                 // Read player data from files
@@ -108,12 +134,13 @@ public class SSC : ModSystem
         }
     }
 
-    private static void LoadPlayer(BinaryReader reader, int from)
+    private static void LoadPlayer(BinaryReader reader)
     {
+        // Receive data from server, load the player and spawn into the world
         if (Main.netMode == NetmodeID.MultiplayerClient)
         {
-            bool isNew = reader.ReadBoolean();
 
+            bool isNew = reader.ReadBoolean();
             int len = reader.ReadInt32();
             byte[] data = reader.ReadBytes(len);
             TagCompound root = TagIO.Read(reader);
@@ -135,9 +162,13 @@ public class SSC : ModSystem
             fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
             Player.Hooks.EnterWorld(Main.myPlayer);
 
-            // Apply life and mana again to ensure
+            // Apply max life and mana again to ensure
             //SSCStarterItems.ApplyStartLife(Main.LocalPlayer);
             //SSCStarterItems.ApplyStartMana(Main.LocalPlayer);
+            if (fileData.Player.statLife != fileData.Player.statLifeMax)
+                fileData.Player.statLife = fileData.Player.statLifeMax;
+            if (fileData.Player.statMana != fileData.Player.statManaMax)
+                fileData.Player.statMana = fileData.Player.statManaMax;
 
             Log.Chat(isNew ? "Loaded new SSC player " : "Loaded existing SSC player " + fileData.Player.name);
 
@@ -152,7 +183,7 @@ public class SSC : ModSystem
         return $"{hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
     }
 
-    private static void CreateNewPlayer(string plrPath, string name)
+    private static void CreateNewPlayer(string plrPath, string name, PlayerAppearance appearance)
     {
         // Create a brand new empty player on the server
         var fileData = new PlayerFileData(plrPath, cloudSave: false)
@@ -164,6 +195,7 @@ public class SSC : ModSystem
                 difficulty = PlayerDifficultyID.SoftCore,
             }
         };
+        ApplyAppearance(fileData.Player, appearance);
 
         // Apply config options
         SSCStarterItems.ApplyStartItems(fileData.Player);
@@ -175,6 +207,20 @@ public class SSC : ModSystem
         Player.InternalSavePlayerFile(fileData);
 
         Log.Chat("Created and saved new player " + name);
+    }
+
+    private static void ApplyAppearance(Player p, PlayerAppearance a)
+    {
+        p.skinVariant = a.SkinVariant;
+        p.hair = a.Hair;
+
+        p.skinColor = a.SkinColor;
+        p.eyeColor = a.EyeColor;
+        p.hairColor = a.HairColor;
+        p.shirtColor = a.ShirtColor;
+        p.underShirtColor = a.UnderShirtColor;
+        p.pantsColor = a.PantsColor;
+        p.shoeColor = a.ShoeColor;
     }
 
     private static void SavePlayer(BinaryReader reader)
