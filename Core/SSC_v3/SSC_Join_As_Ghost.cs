@@ -25,17 +25,40 @@ internal class SSC_Join_As_Ghost : ModSystem
     public override void Load()
     {
         IL_MessageBuffer.GetData += ILHook2;
+        On_Player.InternalSavePlayerFile += OnHook3;
     }
 
     public override void Unload()
     {
         IL_MessageBuffer.GetData -= ILHook2;
+        On_Player.InternalSavePlayerFile -= OnHook3;
+    }
+
+    public override void PreSaveAndQuit()
+    {
+        SendPacketToSavePlayerFile();
+        base.PreSaveAndQuit();
+    }
+
+    void OnHook3(On_Player.orig_InternalSavePlayerFile orig, PlayerFileData fileData)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient &&
+            fileData.ServerSideCharacter && fileData.Path.EndsWith("SSC"))
+        {
+            SendPacketToSavePlayerFile();
+
+            return;
+        }
+
+        orig(fileData);
     }
 
     public override void OnWorldLoad()
     {
+        SSC_v3.SendJoinRequestOnce();
+
         _pendingJoinDelay = true;
-        _joinDelayTicks = 240; // 2 seconds
+        _joinDelayTicks = 10; // 4 seconds
         HasTwoSecondsPassed = false;
     }
 
@@ -55,26 +78,9 @@ internal class SSC_Join_As_Ghost : ModSystem
 #if DEBUG
         if (Main.keyState.IsKeyDown(Keys.I) && Main.oldKeyState.IsKeyUp(Keys.I))
         {
-            var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
-            var fileData = Main.ActivePlayerFileData;
-            var name = fileData.Player.name;
-            var plr = Player.SavePlayerFile_Vanilla(fileData);
-            var tplr = PlayerIO.SaveData(fileData.Player);
-
-            var packet = Mod.GetPacket();
-            packet.Write((byte)AdventurePacketIdentifier.SSC);
-            packet.Write((byte)SSCPacketType.ServerSavePlayer);
-            packet.Write(steamID);
-            packet.Write(name);
-            packet.Write(plr.Length);
-            packet.Write(plr);
-            TagIO.Write(tplr, packet);
-            packet.Write(fileData.Path == "Create.SSC");
-            packet.Send();
-
-            Log.Chat("Client sent packet to save " + fileData.Player.name);
+            SendPacketToSavePlayerFile();
         }
-#endif 
+#endif
 
         if (!_pendingJoinDelay)
             return;
@@ -89,8 +95,7 @@ internal class SSC_Join_As_Ghost : ModSystem
         HasTwoSecondsPassed = true;
         _pendingJoinDelay = false;
 
-        // This is typically what you actually want after the delay:
-         SSC_v3.SendJoinRequestOnce();
+        SSC_v3.SendJoinRequestOnce();
     }
 
     void ILHook2(ILContext il)
@@ -118,32 +123,64 @@ internal class SSC_Join_As_Ghost : ModSystem
             var game_mode = i.ReadByte();
             if (Netplay.Connection.State != 2)
             {
-                return; 
+                return;
             }
 
-            var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
+            //var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
 
-            var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamID}.plr"), false)
-            {
-                Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
-                Player = new Player
-                {
-                    name = Main.LocalPlayer.name,
-                    difficulty = game_mode,
-                    statLife = 0,
-                    statMana = 0,
-                    dead = true,
-                    ghost = true,
-                    respawnTimer = int.MaxValue,
-                    lastTimePlayerWasSaved = long.MaxValue,
-                    savedPerPlayerFieldsThatArentInThePlayerClass = new Player.SavedPlayerDataWithAnnoyingRules()
-                }
-            };
-            fileData.MarkAsServerSide();
-            fileData.SetAsActive();
-            Log.Chat("Set active player to ghost temporarily");
+            //var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamID}.plr"), false)
+            //{
+            //    Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
+            //    Player = new Player
+            //    {
+            //        name = Main.LocalPlayer.name,
+            //        difficulty = game_mode,
+            //        statLife = 0,
+            //        statMana = 0,
+            //        dead = true,
+            //        ghost = true,
+            //        respawnTimer = int.MaxValue,
+            //        lastTimePlayerWasSaved = long.MaxValue,
+            //        savedPerPlayerFieldsThatArentInThePlayerClass = new Player.SavedPlayerDataWithAnnoyingRules()
+            //    }
+            //};
+            //fileData.MarkAsServerSide();
+            //fileData.SetAsActive();
+            //Log.Chat("Set active player to ghost temporarily");
 
             //ModContent.GetInstance<ServerSystem>().UI?.SetState(new ServerViewer()); // 唯一设置界面的地方
+
+            //SSC_v3.SendJoinRequestOnce();
         });
+    }
+
+    void SendPacketToSavePlayerFile()
+    {
+        try
+        {
+            var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
+            var fileData = Main.ActivePlayerFileData;
+            var name = fileData.Player.name;
+            var plr = Player.SavePlayerFile_Vanilla(fileData);
+            var tplr = PlayerIO.SaveData(fileData.Player);
+
+            var packet = Mod.GetPacket();
+            packet.Write((byte)AdventurePacketIdentifier.SSC);
+            packet.Write((byte)SSCPacketType.ServerSavePlayer);
+            packet.Write(steamID);
+            packet.Write(name);
+            packet.Write(plr.Length);
+            packet.Write(plr);
+            TagIO.Write(tplr, packet);
+            packet.Write(fileData.Path == "Create.SSC");
+            packet.Send();
+            Log.Chat("Client sent packet to save " + fileData.Player.name);
+        }
+        catch (Exception e)
+        {
+            Mod.Logger.Error(e);
+            Log.Chat(e);
+        }
+
     }
 }
