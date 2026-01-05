@@ -166,14 +166,14 @@ public class SSC_v3 : ModSystem
         fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
         Player.Hooks.EnterWorld(Main.myPlayer);
 
-        Log.Chat(isNew ? "Loaded NEW SSC player" : "Loaded SSC player");
+        Log.Chat(isNew ? "Loaded NEW SSC player" : "Loaded existing SSC player" + fileData.Player.name);
     }
 
     private static void CreateNewPlayer(string plrPath, string name)
     {
-        Player player = new Player();
+        Player player = new();
 
-        player.name = "aooga";
+        player.name = name;
         player.difficulty = PlayerDifficultyID.SoftCore;
 
         player.statLifeMax2 = 500;
@@ -195,7 +195,6 @@ public class SSC_v3 : ModSystem
 
     private static void SavePlayer(BinaryReader reader, int fromWho)
     {
-        Log.Chat("Server trying to save player");
         var steamID = reader.ReadString();
         var name = reader.ReadString();
         var data = reader.ReadBytes(reader.ReadInt32());
@@ -211,7 +210,7 @@ public class SSC_v3 : ModSystem
         var stream = new MemoryStream();
         TagIO.ToStream(root, stream);
         stream.Flush();
-        Log.Chat("Server successfully saved player");
+        Log.Chat("Server successfully saved player " + name);
     }
 }
 

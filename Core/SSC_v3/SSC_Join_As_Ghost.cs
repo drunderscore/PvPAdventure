@@ -52,6 +52,7 @@ internal class SSC_Join_As_Ghost : ModSystem
             return;
 
         // Save when pressing I
+#if DEBUG
         if (Main.keyState.IsKeyDown(Keys.I) && Main.oldKeyState.IsKeyUp(Keys.I))
         {
             var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
@@ -73,6 +74,7 @@ internal class SSC_Join_As_Ghost : ModSystem
 
             Log.Chat("Client sent packet to save " + fileData.Player.name);
         }
+#endif 
 
         if (!_pendingJoinDelay)
             return;
