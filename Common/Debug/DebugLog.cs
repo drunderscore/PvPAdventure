@@ -47,12 +47,14 @@ public static class Log
 
     private static bool ShouldSend()
     {
-#if DEBUG
-        return true;
-#else
         var config = ModContent.GetInstance<AdventureClientConfig>();
-        return config != null && config.EnableDebugMessages;
-#endif
+        return config != null && config.ShowDebugMessages;
+//#if DEBUG
+        //return true;
+//#else
+        //var config = ModContent.GetInstance<AdventureClientConfig>();
+        //return config != null && config.EnableDebugMessages;
+//#endif
     }
 
     private static string GetFileLabel(string file)

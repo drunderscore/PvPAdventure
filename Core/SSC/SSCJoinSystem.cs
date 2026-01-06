@@ -1,9 +1,8 @@
 ﻿using Steamworks;
-using System.IO;
 using Terraria;
 using Terraria.ID;
-using Terraria.IO;
 using Terraria.ModLoader;
+using static PvPAdventure.Core.SSC.SSC;
 
 namespace PvPAdventure.Core.SSC;
 
@@ -22,7 +21,7 @@ public class SSCJoinSystem : ModSystem
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
-        if (!SSCEnabled.IsEnabled)
+        if (!SSC.IsEnabled)
             return;
 
         _sent = false;
@@ -47,12 +46,35 @@ public class SSCJoinSystem : ModSystem
         }
 
         _sent = true;
-        SSC.SendJoinRequest();
+        SendJoinRequest();
     }
 
     public override void OnWorldUnload()
     {
         _sent = false;
         _delayTicks = 0;
+    }
+
+    public static void SendJoinRequest()
+    {
+        if (!IsEnabled)
+            return;
+
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            return;
+
+        Player player = Main.LocalPlayer;
+
+        var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.SSC);
+        packet.Write((byte)SSCPacketType.ClientJoin);
+
+        packet.Write(SteamUser.GetSteamID().m_SteamID.ToString());
+        packet.Write(player.name);
+
+        // Appearance
+        Appearance.WriteAppearence(packet, player);
+
+        packet.Send();
     }
 }

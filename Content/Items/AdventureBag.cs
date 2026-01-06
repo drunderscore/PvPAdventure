@@ -41,6 +41,6 @@ public class AdventureBag : ModItem
     public override void ModifyTooltips(List<TooltipLine> tooltips)
     {
         // Add custom tooltip line
-        tooltips.Add(new TooltipLine(Mod, "PvPBagInfo", "Contains essential items for your PvP Adventure"));
+        //tooltips.Add(new TooltipLine(Mod, "PvPBagInfo", "Contains essential items for your PvP Adventure"));
     }
 }

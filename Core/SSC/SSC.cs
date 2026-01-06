@@ -1,5 +1,4 @@
-﻿using Discord;
-using Steamworks;
+﻿using Steamworks;
 using System;
 using System.IO;
 using Terraria;
@@ -7,6 +6,9 @@ using Terraria.ID;
 using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
+using Terraria.Net;
+using static PvPAdventure.Core.SSC.Appearance;
+using static Terraria.GameContent.Animations.IL_Actions.NPCs;
 
 namespace PvPAdventure.Core.SSC;
 
@@ -14,44 +16,29 @@ namespace PvPAdventure.Core.SSC;
 /// Provides server-side character (SSC) functionality.
 /// Stores player files on the server at ..tModLoader/PvPAdventureSSC/[WorldName]/[SteamID]/[PlayerName].plr
 /// Stores temporary player data at ..tModLoader/Players/[SteamID].SSC
+/// Also <see cref="SSCJoinSystem"/> <seealso cref="SSCSaveSystem"/>
 /// </summary>
 [Autoload(Side = ModSide.Both)]
 public class SSC : ModSystem
 {
+    // Whether SSC is enabled from config
+    public static bool IsEnabled => ModContent.GetInstance<AdventureServerConfig>()?.IsSSCEnabled ?? false;
+
+    // Folder to store SSC files
     private static string SSCFolder => Path.Combine(Main.SavePath, "PvPAdventureSSC");
     private static string MapID => Main.ActiveWorldFileData?.Name ?? "UnknownWorld";
+
+    // Lock object used for IO operations
     private static readonly object ioLock = new();
 
-    public static void SendJoinRequest()
+    // Packet types
+    public enum SSCPacketType : byte
     {
-        if (!SSCEnabled.IsEnabled)
-            return;
-
-        if (Main.netMode != NetmodeID.MultiplayerClient)
-            return;
-
-        Player pLocal = Main.LocalPlayer;
-
-        var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
-        p.Write((byte)AdventurePacketIdentifier.SSC);
-        p.Write((byte)SSCPacketType.ClientJoin);
-
-        p.Write(SteamUser.GetSteamID().m_SteamID.ToString());
-        p.Write(pLocal.name);
-
-        // Appearance
-        p.Write(pLocal.skinVariant);
-        p.Write(pLocal.hair);
-        ColorReader.WriteColor(p, pLocal.skinColor);
-        ColorReader.WriteColor(p, pLocal.eyeColor);
-        ColorReader.WriteColor(p, pLocal.hairColor);
-        ColorReader.WriteColor(p, pLocal.shirtColor);
-        ColorReader.WriteColor(p, pLocal.underShirtColor);
-        ColorReader.WriteColor(p, pLocal.pantsColor);
-        ColorReader.WriteColor(p, pLocal.shoeColor);
-
-        p.Send();
+        ClientJoin,
+        LoadPlayer,
+        SavePlayer
     }
+    private const int MaxPlayerFileBytes = 1024 * 1024; // = 1 MB
 
     public static void HandlePacket(BinaryReader reader, int from)
     {
@@ -73,65 +60,49 @@ public class SSC : ModSystem
 
     private static void ClientJoin(BinaryReader reader, int from)
     {
-        if (Main.netMode == NetmodeID.Server)
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        // Get data from client
+        string steamIdFromClient = reader.ReadString();
+        string nameFromClient = reader.ReadString();
+        PlayerAppearance appearance = ReadAppearence(reader);
+
+        byte[] data;
+        TagCompound root;
+        bool isNew;
+
+        lock (ioLock)
         {
-            // Get data from client
-            var steamId = reader.ReadString();
-            var name = reader.ReadString();
+            Directory.CreateDirectory(Path.Combine(SSCFolder, MapID));
 
-            PlayerAppearance appearance = new()
+            string dir = Path.Combine(SSCFolder, MapID, steamIdFromClient);
+            Directory.CreateDirectory(dir);
+
+            string plrPath = Path.Combine(dir, nameFromClient + ".plr");
+            string tplrPath = Path.Combine(dir, nameFromClient + ".tplr");
+
+            isNew = !File.Exists(plrPath) || !File.Exists(tplrPath);
+
+            if (isNew)
             {
-                SkinVariant = reader.ReadInt32(),
-                Hair = reader.ReadInt32(),
-
-                SkinColor = ColorReader.ReadColor(reader),
-                EyeColor = ColorReader.ReadColor(reader),
-                HairColor = ColorReader.ReadColor(reader),
-
-                ShirtColor = ColorReader.ReadColor(reader),
-                UnderShirtColor = ColorReader.ReadColor(reader),
-                PantsColor = ColorReader.ReadColor(reader),
-                ShoeColor = ColorReader.ReadColor(reader)
-            };
-
-            byte[] data;
-            TagCompound root;
-            bool isNew;
-
-            // Lock IO operations to prevent race conditions
-            lock (ioLock)
-            {
-                // Create directories for SSC and player if they don't exist
-                Directory.CreateDirectory(Path.Combine(SSCFolder, MapID));
-
-                var dir = Path.Combine(SSCFolder, MapID, steamId);
-                Directory.CreateDirectory(dir);
-
-                var plrPath = Path.Combine(dir, $"{name}.plr");
-                var tplrPath = Path.Combine(dir, $"{name}.tplr");
-
-                isNew = !File.Exists(plrPath) || !File.Exists(tplrPath);
-
-                if (isNew)
-                {
-                    CreateNewPlayer(plrPath, name, appearance);
-                }
-
-                // Read player data from files
-                data = File.ReadAllBytes(plrPath);
-                root = TagIO.FromFile(tplrPath);
+                CreateNewPlayer(plrPath, nameFromClient, appearance);
             }
 
-            // Send player data back to client
-            var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            p.Write((byte)AdventurePacketIdentifier.SSC);
-            p.Write((byte)SSCPacketType.LoadPlayer);
-            p.Write(isNew);
-            p.Write(data.Length);
-            p.Write(data);
-            TagIO.Write(root, p);
-            p.Send(toClient: from);
+            data = File.ReadAllBytes(plrPath);
+            root = TagIO.FromFile(tplrPath);
         }
+
+        var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        p.Write((byte)AdventurePacketIdentifier.SSC);
+        p.Write((byte)SSCPacketType.LoadPlayer);
+        p.Write(isNew);
+        p.Write(data.Length);
+        p.Write(data);
+        TagIO.Write(root, p);
+        p.Send(toClient: from);
+
+        Log.Chat("Server sent SSC load for " + nameFromClient + " bytes=" + data.Length);
     }
 
     private static void LoadPlayer(BinaryReader reader)
@@ -139,49 +110,64 @@ public class SSC : ModSystem
         // Receive data from server, load the player and spawn into the world
         if (Main.netMode == NetmodeID.MultiplayerClient)
         {
-
-            bool isNew = reader.ReadBoolean();
-            int len = reader.ReadInt32();
-            byte[] data = reader.ReadBytes(len);
-            TagCompound root = TagIO.Read(reader);
-
-            string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
-
-            var ms = new MemoryStream();
-            TagIO.ToStream(root, ms);
-
-            var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamId}.SSC"), cloudSave: false)
+            try
             {
-                Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
-            };
+                bool isNew = reader.ReadBoolean();
 
-            Player.LoadPlayerFromStream(fileData, data, ms.ToArray());
-            fileData.MarkAsServerSide();
-            fileData.SetAsActive();
+                int len = reader.ReadInt32();
+                if (len < 0 || len > MaxPlayerFileBytes)
+                {
+                    Log.Chat("Client received invalid SSC player length: " + len);
+                    return;
+                }
 
-            fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
-            Player.Hooks.EnterWorld(Main.myPlayer);
+                byte[] data = reader.ReadBytes(len);
+                if (data.Length != len)
+                {
+                    Log.Chat("Client received truncated SSC player data: " + data.Length + "/" + len);
+                    return;
+                }
 
-            // Apply max life and mana again to ensure
-            //SSCStarterItems.ApplyStartLife(Main.LocalPlayer);
-            //SSCStarterItems.ApplyStartMana(Main.LocalPlayer);
-            if (fileData.Player.statLife != fileData.Player.statLifeMax)
-                fileData.Player.statLife = fileData.Player.statLifeMax;
-            if (fileData.Player.statMana != fileData.Player.statManaMax)
-                fileData.Player.statMana = fileData.Player.statManaMax;
+                TagCompound root = TagIO.Read(reader);
 
-            Log.Chat(isNew ? "Loaded new SSC player " : "Loaded existing SSC player " + fileData.Player.name);
+                string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
 
-            // Print chat to players with player and playtime
-            Main.NewText($"Welcome to TPVPA, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}", Color.MediumPurple);
+                var ms = new MemoryStream();
+                TagIO.ToStream(root, ms);
+
+                var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamId}.SSC"), cloudSave: false)
+                {
+                    Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
+                };
+
+                // Load player
+                Player.LoadPlayerFromStream(fileData, data, ms.ToArray());
+                fileData.MarkAsServerSide();
+
+                // Enter world
+                fileData.SetAsActive();
+                fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
+                Player.Hooks.EnterWorld(Main.myPlayer);
+
+                // Set current life and mana to max life and mana again to ensure it gets applied
+                if (fileData.Player.statLife != fileData.Player.statLifeMax)
+                    fileData.Player.statLife = fileData.Player.statLifeMax;
+                if (fileData.Player.statMana != fileData.Player.statManaMax)
+                    fileData.Player.statMana = fileData.Player.statManaMax;
+
+                Log.Chat((isNew ? "Loaded new SSC player " : "Loaded existing SSC player ") + fileData.Player.name);
+                Main.NewText($"Welcome to TPVPA, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}", Color.MediumPurple);
+            }
+            catch (Exception e)
+            {
+                Log.Chat("Client failed loading SSC player: " + e);
+                Log.Error("Client failed loading SSC player: " + e);
+                return;
+            }
         }
     }
 
-    public static string FormatPlayTime(TimeSpan t)
-    {
-        int hours = (int)t.TotalHours;
-        return $"{hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
-    }
+    
 
     private static void CreateNewPlayer(string plrPath, string name, PlayerAppearance appearance)
     {
@@ -195,12 +181,13 @@ public class SSC : ModSystem
                 difficulty = PlayerDifficultyID.SoftCore,
             }
         };
-        ApplyAppearance(fileData.Player, appearance);
+        // Apply appearance
+        Appearance.ApplyAppearance(fileData.Player, appearance);
 
         // Apply config options
-        SSCStarterItems.ApplyStartItems(fileData.Player);
-        SSCStarterItems.ApplyStartLife(fileData.Player);
-        SSCStarterItems.ApplyStartMana(fileData.Player);
+        StartingItems.ApplyStartItems(fileData.Player);
+        StartingItems.ApplyStartLife(fileData.Player);
+        StartingItems.ApplyStartMana(fileData.Player);
 
         // Save the player
         //fileData.MarkAsServerSide();
@@ -209,51 +196,75 @@ public class SSC : ModSystem
         Log.Chat("Created and saved new player " + name);
     }
 
-    private static void ApplyAppearance(Player p, PlayerAppearance a)
-    {
-        p.skinVariant = a.SkinVariant;
-        p.hair = a.Hair;
-
-        p.skinColor = a.SkinColor;
-        p.eyeColor = a.EyeColor;
-        p.hairColor = a.HairColor;
-        p.shirtColor = a.ShirtColor;
-        p.underShirtColor = a.UnderShirtColor;
-        p.pantsColor = a.PantsColor;
-        p.shoeColor = a.ShoeColor;
-    }
-
     private static void SavePlayer(BinaryReader reader)
     {
-        // Receive player data from client save system and save to server disk
-        if (Main.netMode == NetmodeID.Server)
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        try
         {
-            // Read data from client
-            var steamID = reader.ReadString();
-            var name = reader.ReadString();
-            var data = reader.ReadBytes(reader.ReadInt32());
-            var root = TagIO.Read(reader);
+            // Read data from client (trusted for storage again)
+            string steamIdFromClient = reader.ReadString();
+            string nameFromClient = reader.ReadString();
 
-            // Ensure directory exists
-            Utils.TryCreatingDirectory(Path.Combine(SSCFolder, MapID, steamID));
+            int len = reader.ReadInt32();
+            if (len < 0 || len > MaxPlayerFileBytes)
+            {
+                Log.Chat("Server received invalid SSC save length: " + len);
+                return;
+            }
 
-            // Write to file
-            File.WriteAllBytes(Path.Combine(SSCFolder, MapID, steamID, $"{name}.plr"), data);
-            TagIO.ToFile(root, Path.Combine(SSCFolder, MapID, steamID, $"{name}.tplr"));
+            byte[] data = reader.ReadBytes(len);
+            if (data.Length != len)
+            {
+                Log.Chat("Server received truncated SSC save: " + data.Length + "/" + len);
+                return;
+            }
 
-            // Flush to ensure data is written
-            var stream = new MemoryStream();
-            TagIO.ToStream(root, stream);
-            stream.Flush();
+            TagCompound root;
+            try
+            {
+                root = TagIO.Read(reader);
+            }
+            catch (Exception e)
+            {
+                Log.Chat("Server failed reading SSC tplr data for " + nameFromClient);
+                ModContent.GetInstance<PvPAdventure>().Logger.Error(e);
+                return;
+            }
 
-            Log.Chat("Saved player " + name);
+            lock (ioLock)
+            {
+                Utils.TryCreatingDirectory(Path.Combine(SSCFolder, MapID, steamIdFromClient));
+
+                string plrPath = Path.Combine(SSCFolder, MapID, steamIdFromClient, nameFromClient + ".plr");
+                string tplrPath = Path.Combine(SSCFolder, MapID, steamIdFromClient, nameFromClient + ".tplr");
+
+                File.WriteAllBytes(plrPath, data);
+                TagIO.ToFile(root, tplrPath);
+            }
+
+            Log.Chat("Server received SSC save for " + nameFromClient + " bytes=" + len);
+
+            var config = ModContent.GetInstance<AdventureClientConfig>();
+            if (config.ShowSavePlayerMessages)
+            {
+                string time = DateTime.Now.ToString("HH:mm:ss");
+                Main.NewText($"{Main.LocalPlayer.name} saved at {time}", Color.MediumPurple);
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Chat("Server failed saving SSC player");
+            ModContent.GetInstance<PvPAdventure>().Logger.Error(e);
         }
     }
-}
 
-public enum SSCPacketType : byte
-{
-    ClientJoin,
-    LoadPlayer,
-    SavePlayer
+    #region Helpers
+    public static string FormatPlayTime(TimeSpan t) 
+    { 
+        int hours = (int)t.TotalHours; 
+        return $"{hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}"; 
+    }
+    #endregion
 }

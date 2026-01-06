@@ -1,13 +1,11 @@
-﻿using Microsoft.Xna.Framework.Input;
-using Steamworks;
+﻿using Steamworks;
 using System;
-using System.IO;
 using Terraria;
 using Terraria.ID;
 using Terraria.IO;
 using Terraria.ModLoader;
-using Terraria.ModLoader.Engine;
 using Terraria.ModLoader.IO;
+using static PvPAdventure.Core.SSC.SSC;
 
 namespace PvPAdventure.Core.SSC;
 
@@ -19,7 +17,7 @@ internal class SSCSaveSystem : ModSystem
 {
     public override void Load()
     {
-        if (!SSCEnabled.IsEnabled)
+        if (!SSC.IsEnabled)
             return;
 
         On_Player.InternalSavePlayerFile += OverrideSavePlayerFile;
@@ -32,7 +30,7 @@ internal class SSCSaveSystem : ModSystem
 
     public override void PreSaveAndQuit()
     {
-        if (!SSCEnabled.IsEnabled)
+        if (!SSC.IsEnabled)
             return;
 
         // Save player file before quitting
@@ -56,7 +54,7 @@ internal class SSCSaveSystem : ModSystem
         orig(fileData);
     }
 
-    private void SendPacketToSavePlayerFile()
+    public void SendPacketToSavePlayerFile()
     {
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
@@ -68,6 +66,7 @@ internal class SSCSaveSystem : ModSystem
             var name = fileData.Player.name;
             var plr = Player.SavePlayerFile_Vanilla(fileData);
             var tplr = PlayerIO.SaveData(fileData.Player);
+            ClientBackup.WriteBackup(name, plr, tplr);
 
             var packet = Mod.GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.SSC);

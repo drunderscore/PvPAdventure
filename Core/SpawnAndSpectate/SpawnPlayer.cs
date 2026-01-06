@@ -1,8 +1,7 @@
-﻿using Microsoft.Xna.Framework;
-using PvPAdventure.System;
+﻿using PvPAdventure.System;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
@@ -50,6 +49,9 @@ public class SpawnPlayer : ModPlayer
 
     public void ToggleSelection(SpawnType type, int playerIndex = -1)
     {
+        SpawnType prevType = SelectedType;
+        int prevIdx = SelectedPlayerIndex;
+
         bool same =
             SelectedType == type &&
             ((type != SpawnType.Player && type != SpawnType.Bed) ||
@@ -57,15 +59,20 @@ public class SpawnPlayer : ModPlayer
 
         if (same)
         {
+            if (Player.whoAmI == Main.myPlayer)
+                Log.Chat("Cancel spawn: " + FormatSpawn(prevType, prevIdx));
+
             ClearSelection();
             SendSelectionIfNeeded();
             return;
         }
 
+        // Validate requested selection (may rewrite to None)
         if (type == SpawnType.Player &&
             !SpawnSystem.IsValidTeammateIndex(playerIndex))
         {
             type = SpawnType.None;
+            playerIndex = -1;
         }
 
         if (type == SpawnType.Bed)
@@ -86,19 +93,46 @@ public class SpawnPlayer : ModPlayer
             }
 
             if (!ok)
+            {
                 type = SpawnType.None;
+                playerIndex = -1;
+            }
         }
 
         SelectedType = type;
+
         SelectedPlayerIndex =
             (type == SpawnType.Player || type == SpawnType.Bed)
                 ? playerIndex
                 : -1;
 
+        if (Player.whoAmI == Main.myPlayer)
+        {
+            if (SelectedType == SpawnType.None)
+            {
+                if (prevType != SpawnType.None)
+                    Log.Chat("Cancel spawn: " + FormatSpawn(prevType, prevIdx));
+            }
+            else
+            {
+                Log.Chat("Selected spawn: " + FormatSpawn(SelectedType, SelectedPlayerIndex));
+            }
+        }
+
         if (Player.dead && Player.respawnTimer == 2)
             Player.respawnTimer = 1;
 
         SendSelectionIfNeeded();
+    }
+
+    private static string FormatSpawn(SpawnType type, int idx)
+    {
+        return type switch
+        {
+            SpawnType.Player => $"Player ({Main.player[idx].name})",
+            SpawnType.Bed => $"Bed ({Main.player[idx].name})",
+            _ => type.ToString()
+        };
     }
 
     private void SendSelectionIfNeeded()
@@ -289,5 +323,20 @@ public class SpawnPlayer : ModPlayer
         var cfg = ModContent.GetInstance<AdventureClientConfig>();
         if (cfg.CloseMapOnHurt && Main.mapFullscreen)
             Main.mapFullscreen = false;
+    }
+
+    public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
+    {
+        base.Kill(damage, hitDirection, pvp, damageSource);
+
+        if (Player.whoAmI != Main.myPlayer)
+            return;
+
+        var cfg = ModContent.GetInstance<AdventureClientConfig>();
+        if (!cfg.AutoSelectWorldSpawnOnDeath)
+            return;
+
+        if (SelectedType == SpawnType.None)
+            ToggleSelection(SpawnType.World);
     }
 }

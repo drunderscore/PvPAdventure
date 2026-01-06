@@ -146,8 +146,8 @@ public class SpawnSystem : ModSystem
 
     private static void TeleportToBed(Player p, int idx)
     {
-        if (!IsValidTeammateIndex(idx))
-            return;
+        //if (!IsValidTeammateIndex(idx))
+            //return;
 
         Player t = Main.player[idx];
         if (t == null || !t.active)
@@ -186,6 +186,16 @@ public class SpawnSystem : ModSystem
         SpawnPlayer sp = p.GetModPlayer<SpawnPlayer>();
         if (sp.SelectedType == SpawnType.None)
             return;
+
+        if (p.whoAmI == Main.myPlayer)
+        {
+            string extra =
+                (sp.SelectedType == SpawnType.Player || sp.SelectedType == SpawnType.Bed)
+                    ? " (" + Main.player[sp.SelectedPlayerIndex].name + ")"
+                    : "";
+
+            Log.Chat("Executing spawn: " + sp.SelectedType + extra);
+        }
 
         if (sp.SelectedType == SpawnType.Random)
         {
@@ -302,7 +312,7 @@ public class SpawnSystem : ModSystem
         if (Main.LocalPlayer != null && Main.LocalPlayer.dead && Main.mapFullscreen)
         {
             int secondsLeft = (Main.LocalPlayer.respawnTimer + 59) / 60;
-            if (secondsLeft < 0)
+            if (Main.LocalPlayer.respawnTimer <= 2)
                 secondsLeft = 0;
 
             text = "Dead: " + secondsLeft.ToString();

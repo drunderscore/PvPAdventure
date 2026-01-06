@@ -1,29 +1,32 @@
-﻿using System.IO;
+using System.IO;
+using Terraria;
+using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.SSC;
 
-/// <summary>
-/// Used for copying the joined player's appearance to the server-side character.
-/// </summary>
-public struct PlayerAppearance
+public static class Appearance
 {
-    public int SkinVariant;
-    public int Hair;
+    /// <summary>
+    /// Used for copying the joined player's appearance to the server-side character.
+    /// </summary>
+    public struct PlayerAppearance
+    {
+        public bool Male;
+        public int SkinVariant;
+        public int Hair;
 
-    public Color SkinColor;
-    public Color EyeColor;
-    public Color HairColor;
+        public Color SkinColor;
+        public Color EyeColor;
+        public Color HairColor;
 
-    public Color ShirtColor;
-    public Color UnderShirtColor;
-    public Color PantsColor;
-    public Color ShoeColor;
-}
+        public Color ShirtColor;
+        public Color UnderShirtColor;
+        public Color PantsColor;
+        public Color ShoeColor;
+    }
 
-// Converts color to/from binary because Terraria's BinaryReader does not support Color directly.
-public static class ColorReader
-{
-    public static void WriteColor(BinaryWriter w, Color c)
+    // Converts color to bytes because BinaryWriter does not support sending Color.
+    private static void WriteColor(BinaryWriter w, Color c)
     {
         w.Write(c.R);
         w.Write(c.G);
@@ -31,7 +34,7 @@ public static class ColorReader
         w.Write(c.A);
     }
 
-    public static Color ReadColor(BinaryReader r)
+    private static Color ReadColor(BinaryReader r)
     {
         return new Color(
             r.ReadByte(),
@@ -39,6 +42,48 @@ public static class ColorReader
             r.ReadByte(),
             r.ReadByte()
         );
+    }
+    public static void WriteAppearence(ModPacket packet, Player player)
+    {
+        packet.Write(player.Male);
+        packet.Write(player.skinVariant);
+        packet.Write(player.hair);
+        WriteColor(packet, player.skinColor);
+        WriteColor(packet, player.eyeColor);
+        WriteColor(packet, player.hairColor);
+        WriteColor(packet, player.shirtColor);
+        WriteColor(packet, player.underShirtColor);
+        WriteColor(packet, player.pantsColor);
+        WriteColor(packet, player.shoeColor);
+    }
+    public static PlayerAppearance ReadAppearence(BinaryReader reader)
+    {
+        return new PlayerAppearance
+        {
+            Male = reader.ReadBoolean(),
+            SkinVariant = reader.ReadInt32(),
+            Hair = reader.ReadInt32(),
+            SkinColor = ReadColor(reader),
+            EyeColor = ReadColor(reader),
+            HairColor = ReadColor(reader),
+            ShirtColor = ReadColor(reader),
+            UnderShirtColor = ReadColor(reader),
+            PantsColor = ReadColor(reader),
+            ShoeColor = ReadColor(reader)
+        };
+    }
+    public static void ApplyAppearance(Player p, PlayerAppearance a)
+    {
+        p.Male = a.Male;
+        p.skinVariant = a.SkinVariant;
+        p.hair = a.Hair;
+        p.skinColor = a.SkinColor;
+        p.eyeColor = a.EyeColor;
+        p.hairColor = a.HairColor;
+        p.shirtColor = a.ShirtColor;
+        p.underShirtColor = a.UnderShirtColor;
+        p.pantsColor = a.PantsColor;
+        p.shoeColor = a.ShoeColor;
     }
 }
 

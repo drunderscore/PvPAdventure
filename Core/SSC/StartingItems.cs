@@ -4,7 +4,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.SSC;
 
-public static class SSCStarterItems
+public static class StartingItems
 {
     public static void ApplyStartItems(Player player)
     {
@@ -29,7 +29,6 @@ public static class SSCStarterItems
             Log.Chat("Start item " + itemDef.DisplayName + " added");
         }
     }
-
     public static void ApplyStartLife(Player player)
     {
         var config = ModContent.GetInstance<AdventureServerConfig>();
@@ -62,4 +61,3 @@ public static class SSCStarterItems
         player.statMana = player.statManaMax;
     }
 }
-

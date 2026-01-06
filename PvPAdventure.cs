@@ -307,7 +307,7 @@ public class PvPAdventure : Mod
                 }
             case AdventurePacketIdentifier.SSC:
                 {
-                    if (!SSCEnabled.IsEnabled)
+                    if (!SSC.IsEnabled)
                         return;
 
                     SSC.HandlePacket(reader, whoAmI);
