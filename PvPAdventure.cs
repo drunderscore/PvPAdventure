@@ -8,6 +8,8 @@ using PvPAdventure.Core.AdminTools.TeamAssigner;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.SpawnAndSpectate;
 using PvPAdventure.Core.SSC;
+
+//using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using Steamworks;
 using System;
@@ -178,13 +180,6 @@ public class PvPAdventure : Mod
                         return;
 
                     var npc = Main.npc[npcIndex];
-
-                    if (npc.ModNPC is AdventureSantaNPC)
-                    {
-                        return;
-                    }
-
-                    // FIXME: KeyNotFoundException for special NPCs
                     npc.GetGlobalNPC<AdventureNpc>().MarkNextStrikeForTeam(npc, (Team)team);
 
                     break;
@@ -344,12 +339,13 @@ public class PvPAdventure : Mod
                         packet.Write(spawnX);
                         packet.Write(spawnY);
                         packet.Send(-1, whoAmI);
-
+#if DEBUG
                         if (p != null && p.name != string.Empty)
                         {
                             //Log.Chat($"Player {p.name} set spawn to ({spawnX}, {spawnY})");
                         }
                     }
+#endif
 
                     break;
                 }
