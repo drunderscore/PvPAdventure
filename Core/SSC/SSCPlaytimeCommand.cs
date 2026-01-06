@@ -22,6 +22,6 @@ public class SSCPlaytimeCommand : ModCommand
         }
 
         var playTime = fileData.GetPlayTime();
-        Main.NewText($"Playtime: {SSC.FormatPlayTime(playTime)}", Color.MediumPurple);
+        $"{Main.LocalPlayer.name} - Playtime: {SSC.FormatPlayTime(playTime)}", Color.MediumPurple);
     }
 }

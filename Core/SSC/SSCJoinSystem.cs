@@ -19,13 +19,16 @@ public class SSCJoinSystem : ModSystem
     private int _delayTicks;
     public override void OnWorldLoad()
     {
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            return;
+
         if (!SSCEnabled.IsEnabled)
             return;
 
         _sent = false;
-        _delayTicks = 120; // 1 second
+        _delayTicks = 60; // 1 second
 
-        // Enter as a ghost
+        // Enter as a ghost initially
         Main.LocalPlayer.ghost = true;
     }
 

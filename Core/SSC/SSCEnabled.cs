@@ -11,11 +11,7 @@ public static class SSCEnabled
     {
         get
         {
-#if DEBUG
-            return true;
-#else
             return ModContent.GetInstance<AdventureServerConfig>()?.IsSSCEnabled ?? false;
-#endif
         }
     }
 }

@@ -12,10 +12,9 @@ namespace PvPAdventure;
 
 public class AdventureServerConfig : ModConfig
 {
-    #region Members
-
     public override ConfigScope Mode => ConfigScope.ServerSide;
 
+    #region Members
     [Header("Points")]
     [BackgroundColor(140, 100, 20)]
     [Expand(false, false)]

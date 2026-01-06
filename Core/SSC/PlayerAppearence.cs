@@ -20,6 +20,7 @@ public struct PlayerAppearance
     public Color ShoeColor;
 }
 
+// Converts color to/from binary because Terraria's BinaryReader does not support Color directly.
 public static class ColorReader
 {
     public static void WriteColor(BinaryWriter w, Color c)
