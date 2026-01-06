@@ -7,7 +7,6 @@ using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.System;
 
@@ -51,8 +50,6 @@ public class CombatManager : ModSystem
 
     public const int PvPImmunityCooldownId = -100;
     public const int PaladinsShieldReflectImmunityCooldownId = -101;
-    public const int GroupCooldownId = -1000;
-    public const int MaximumNumberOfGroupCooldownId = 100;
 
     public override void Load()
     {
@@ -171,25 +168,10 @@ public class CombatManager : ModSystem
 
                 if (pvp)
                 {
-                    if (damageSource.SourceProjectileType != 0)
-                    {
-                        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-                        if (adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(new ProjectileDefinition(
-                                damageSource.SourceProjectileType), out var immunityGroup) &&
-                            adventurePlayer.GroupImmuneTime[immunityGroup.Id] > 0)
-                        {
-                            cooldownCounter = GroupCooldownId - immunityGroup.Id;
-                            flag = false;
-                        }
-                    }
-
-                    if (flag)
-                    {
-                        // Overwrite the cooldown counter, so that if the hurt succeeds, no other counter gets modified.
-                        cooldownCounter = PvPImmunityCooldownId;
-                        // Set the flag deciding if this hurt should proceed.
-                        flag = adventurePlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] == 0;
-                    }
+                    // Overwrite the cooldown counter, so that if the hurt succeeds, no other counter gets modified.
+                    cooldownCounter = PvPImmunityCooldownId;
+                    // Set the flag deciding if this hurt should proceed.
+                    flag = adventurePlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] == 0;
                 }
             });
     }

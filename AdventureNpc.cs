@@ -47,7 +47,7 @@ public class AdventureNpc : GlobalNPC
         // Prevent Empress of Light from targeting players during daytime, so she will despawn. REMOVED
         //On_NPC.TargetClosest += OnNPCTargetClosest;
         // Prevent Empress of Light from being enraged, so she won't instantly kill players. REMOVED
-         //On_NPC.ShouldEmpressBeEnraged += OnNPCShouldEmpressBeEnraged;
+        //On_NPC.ShouldEmpressBeEnraged += OnNPCShouldEmpressBeEnraged;
         // Clients and servers sync the Shimmer buff upon all collisions constantly for NPCs.
         // Mark it as quiet so just the server does this.
         IL_NPC.Collision_WaterCollision += EditNPCCollision_WaterCollision;
@@ -116,26 +116,22 @@ public class AdventureNpc : GlobalNPC
             // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
             entity.immortal = true;
 
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-
         // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
         if (NPCID.Search.TryGetName(entity.type, out var name))
         {
-            var definition = new NPCDefinition(name);
+            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+            var definition = new NPCDefinition(entity.type);
 
+            if (adventureConfig.BossBalance.TryGetValue(definition, out var entry))
             {
-                if (adventureConfig.NpcBalance.LifeMaxMultipliers.TryGetValue(definition, out var multiplier))
-                    entity.lifeMax = (int)(entity.lifeMax * multiplier.Value);
-            }
+                float lifeMult = entry.LifeMaxMultiplier;
+                entity.lifeMax = (int)(entity.lifeMax * lifeMult);
+                entity.life = entity.lifeMax;
 
-            {
-                if (adventureConfig.NpcBalance.DamageMultipliers.TryGetValue(definition, out var multiplier))
-                    entity.damage = (int)(entity.damage * multiplier.Value);
-            }
+                float dmgMult = entry.DamageMultiplier;
+                entity.damage = (int)(entity.damage * dmgMult);
 
-            // FIXME: What if config changes mid game? might desync form the config which might break some contracts?
-            if (adventureConfig.Combat.TeamLifeNpcs.ContainsKey(definition))
-            {
+                // FIXME: What if config changes mid game? might desync form the config which might break some contracts?
                 foreach (var team in Enum.GetValues<Team>())
                 {
                     if (team == Team.None)
@@ -172,7 +168,7 @@ public class AdventureNpc : GlobalNPC
 
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
-        if (adventureConfig.NpcSpawnAnnouncements.Contains(new NPCDefinition(npc.type)))
+        if (adventureConfig.BossSpawnAnnouncements.Contains(new NPCDefinition(npc.type)))
         {
             if (Main.netMode == NetmodeID.SinglePlayer)
                 Main.NewText(Language.GetTextValue("Announcement.HasAwoken", npc.TypeName), 175, 75);
@@ -219,7 +215,7 @@ public class AdventureNpc : GlobalNPC
                 NPC otherTwin = FindOtherTwin(npc);
                 if (otherTwin != null && otherTwin.active && otherTwin.life <= 1)
                 {
-                  
+
                     int killingPlayer = npc.lastInteraction;
 
                     if (killingPlayer != 255 && killingPlayer < Main.maxPlayers && Main.player[killingPlayer].active)
@@ -500,12 +496,28 @@ public class AdventureNpc : GlobalNPC
                 var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
                 var npcDefinition = new NPCDefinition((realLifeNpc ?? self).type);
 
-                foreach (var team in teamLife.Keys)
+                // Look up team-life share for this NPC from config
+                float share = 0f;
+
+                if (adventureConfig.BossBalance.TryGetValue(npcDefinition, out var entry))
+                    share = entry.TeamLifeShare;
+
+                if (share > 0f)
                 {
-                    if (team != adventureNpc._lastStrikeTeam)
-                        teamLife[team] = Math.Max(currentLife,
-                            (int)(teamLife[team] -
-                                  (damage * adventureConfig.Combat.TeamLifeNpcs[npcDefinition].Share)));
+                    // Copy keys to avoid modifying the dictionary while iterating
+                    foreach (var team in teamLife.Keys.ToList())
+                    {
+                        if (team == adventureNpc._lastStrikeTeam)
+                            continue;
+
+                        var currentTeamLife = teamLife[team];
+                        var newTeamLifeForOther = currentTeamLife - (int)(damage * share);
+
+                        if (newTeamLifeForOther < currentLife)
+                            newTeamLifeForOther = currentLife;
+
+                        teamLife[team] = newTeamLifeForOther;
+                    }
                 }
 
                 // Can't deal 0 damage!

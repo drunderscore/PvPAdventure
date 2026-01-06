@@ -199,6 +199,11 @@ Mods: {
 				DisplayName: Map Spawn Config
 				Tooltip: ""
 			}
+
+			PointsConfigItem: {
+				DisplayName: Points Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -457,7 +462,7 @@ Mods: {
 				DisplayName: Adventure Server Config
 
 				Headers: {
-					Points: "[i:GoldCoin] Points"
+					Points: "[i:PvPAdventure/PointsConfigItem] Points"
 					Combat: "[i:273] Combat"
 					Items: "[i:Chest] Items"
 					NPCs: "[i:267] NPCs"
@@ -465,6 +470,7 @@ Mods: {
 					General: "[i:Cog] General"
 					WorldGen: "[i:WorldGlobe] World Generation"
 					SSC: "[i:4765] SSC"
+					Bosses: "[i:2112] Bosses"
 				}
 
 				Points: {
@@ -609,6 +615,11 @@ Mods: {
 
 				respawnConfig: {
 					Label: respawn Config
+					Tooltip: ""
+				}
+
+				BossSpawnAnnouncements: {
+					Label: Boss Spawn Announcements
 					Tooltip: ""
 				}
 			}

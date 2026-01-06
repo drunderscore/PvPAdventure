@@ -36,7 +36,7 @@ public class AdventureClientConfig : ModConfig
     [DefaultValue(true)] public bool CloseMapOnHurt;
 
     [Header("Debug")]
-    [DefaultValue(true)] public bool EnableDebugMessages;
+    [DefaultValue(false)] public bool EnableDebugMessages;
 
     #endregion
 

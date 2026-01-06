@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Discord.Rest;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using PvPAdventure.System;
 using PvPAdventure.System.Client;
 using Terraria;
@@ -19,6 +21,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
+using Mono.Cecil.Cil;
 using static PvPAdventure.AdventurePlayer;
 using PvPAdventure.Content.Items;
 
@@ -26,7 +29,6 @@ namespace PvPAdventure;
 
 public class AdventurePlayer : ModPlayer
 {
-
     public RestSelfUser DiscordUser => _discordClient?.CurrentUser;
     public DamageInfo RecentDamageFromPlayer { get; private set; }
     public int Kills { get; private set; }
@@ -74,8 +76,6 @@ public class AdventurePlayer : ModPlayer
     private Stopwatch _pingPongStopwatch;
     public TimeSpan? Latency { get; private set; }
     public int[] PvPImmuneTime { get; } = new int[Main.maxPlayers];
-
-    public int[] GroupImmuneTime { get; } = new int[100];
 
     private DiscordRestClient _discordClient;
 
@@ -394,7 +394,7 @@ public class AdventurePlayer : ModPlayer
         cursor.EmitLdarg0();
         cursor.EmitDelegate((Player self) =>
         {
-            self.setBonus = Language.GetTextValue("Mods.PvPAdventure.ArmorSetBonus.BeetleDamage");
+            self.setBonus = Language.GetTextValue("ArmorSetBonus.BeetleDamage");
             self.beetleOffense = true;
         });
         // ...then branch away so we skip the original code.
@@ -416,21 +416,11 @@ public class AdventurePlayer : ModPlayer
         if (targetRegion != null && !targetRegion.AllowCombat)
             return false;
 
-        // Detect new swing RIGHT HERE before collision check
-        if (Player.itemAnimation > 0 && _lastItemAnimation == 0)
-        {
-            _currentMeleeUseId++;
-            _lastItemAnimation = Player.itemAnimation;
-        }
-
-        var targetAdventurePlayer = target.GetModPlayer<AdventurePlayer>();
-
-        // Check if target is immune to THIS specific swing
-        if (targetAdventurePlayer._meleeImmuneBySwing.TryGetValue((Player.whoAmI, _currentMeleeUseId), out var remainingTime) && remainingTime > 0)
+        if (_playerMeleeInvincibleTime[target.whoAmI] > 0)
             return false;
 
-        var immunityFrames = Player.itemAnimation + 2;
-        targetAdventurePlayer._meleeImmuneBySwing[(Player.whoAmI, _currentMeleeUseId)] = immunityFrames;
+        _playerMeleeInvincibleTime[target.whoAmI] =
+            ModContent.GetInstance<AdventureServerConfig>().WeaponBalance.ImmunityFrames.TrueMelee;
 
         return true;
     }
@@ -444,7 +434,7 @@ public class AdventurePlayer : ModPlayer
 
         var targetRegion = ModContent.GetInstance<RegionManager>()
             .GetRegionIntersecting(target.Hitbox.ToTileRectangle());
-        
+
         if (targetRegion != null && !targetRegion.AllowCombat)
             return false;
 
@@ -465,9 +455,7 @@ public class AdventurePlayer : ModPlayer
         // FIXME: This does not truly belong here.
         Player.hostile = true;
     }
-    private int _currentMeleeUseId = 0;
-    private int _lastItemAnimation = 0;
-    private readonly Dictionary<(int attackerWho, int useId), int> _meleeImmuneBySwing = new();
+
     public override void PreUpdate()
     {
         for (var i = 0; i < _playerMeleeInvincibleTime.Length; i++)
@@ -499,13 +487,6 @@ public class AdventurePlayer : ModPlayer
             if (PvPImmuneTime[i] > 0)
                 PvPImmuneTime[i]--;
         }
-       
-        for (var i = 0; i < GroupImmuneTime.Length; i++)
-        {
-            if (GroupImmuneTime[i] > 0)
-                GroupImmuneTime[i]--;
-        }
-    
         bool hasSpectreSet = IsSpectreSetEquipped();
         int currentHead = Player.armor[0].type;
         bool headChanged = IsSpectreHead(currentHead) && currentHead != lastSpectreHead;
@@ -520,26 +501,6 @@ public class AdventurePlayer : ModPlayer
         {
             lastSpectreHead = currentHead;
         }
-        // Track when a new swing starts (itemAnimation goes from low to high)
-        if (Player.itemAnimation > _lastItemAnimation + 1 && Player.HeldItem.CountsAsClass(DamageClass.Melee))
-        {
-            _currentMeleeUseId++;
-        }
-        _lastItemAnimation = Player.itemAnimation;
-
-        // Decay immunity timers and clean up expired entries
-        var expiredKeys = new List<(int, int)>();
-        foreach (var key in _meleeImmuneBySwing.Keys.ToList())
-        {
-            _meleeImmuneBySwing[key]--;
-            if (_meleeImmuneBySwing[key] <= 0)
-                expiredKeys.Add(key);
-        }
-        foreach (var key in expiredKeys)
-            _meleeImmuneBySwing.Remove(key);
-
-        // Update last animation at the END of the frame
-        _lastItemAnimation = Player.itemAnimation;
     }
     public override void PostUpdate()
     {
@@ -642,7 +603,7 @@ public class AdventurePlayer : ModPlayer
             return;
 
         RecentDamageFromPlayer = new((byte)damagerPlayer.whoAmI,
-            ModContent.GetInstance<AdventureServerConfig>().Combat.RecentDamagePreservationFrames);
+            ModContent.GetInstance<AdventureServerConfig>().WeaponBalance.ImmunityFrames.RecentDamagePreservationFrames);
     }
 
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genDust,
@@ -730,14 +691,6 @@ public class AdventurePlayer : ModPlayer
         if (Player.hasPaladinShield)
         {
             Player.buffImmune[BuffID.PaladinsShield] = true;
-        }
-
-        if (Player.active)
-        {
-            Player.buffImmune[BuffID.Confused] = true;
-            Player.buffImmune[BuffID.BrokenArmor] = true;
-            Player.buffImmune[BuffID.Electrified] = true;
-
         }
     }
 
@@ -857,7 +810,7 @@ public class AdventurePlayer : ModPlayer
     {
         deathProcessedThisLife = false;
     }
-    
+
     public override void ProcessTriggers(TriggersSet triggersSet)
     {
         var pointsManager = ModContent.GetInstance<PointsManager>();
@@ -944,80 +897,67 @@ public class AdventurePlayer : ModPlayer
             packet.Send(toWho, fromWho);
         }
     }
-
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
-        if (!modifiers.PvP)
+        modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
         {
-            modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
-            {
-                var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-                info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayers);
-            };
+            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+            info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayers);
+            if (info.PvP)
+                info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayersFromPlayer);
+        };
+
+        if (!modifiers.PvP)
             return;
-        }
+
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-        var playerDamageBalance = adventureConfig.Combat.PlayerDamageBalance;
+        var weaponBalance = adventureConfig.WeaponBalance;
         var sourcePlayer = Main.player[modifiers.DamageSource.SourcePlayerIndex];
         var tileDistance = Player.Distance(sourcePlayer.position) / 16.0f;
         var hasIncurredFalloff = false;
-        float totalPvPMultiplier = 1f;
+
         // Track base armor penetration
         float baseArmorPen = 0f;
         bool isMagicDamage = false;
+
         var sourceItem = modifiers.DamageSource.SourceItem;
         if (sourceItem != null && !sourceItem.IsAir)
         {
-            // Breaker Blade bonus damage against high HP targets
-            if (sourceItem.type == ItemID.BreakerBlade && Player.statLife >= Player.statLifeMax2 * 0.9f)
-            {
-                modifiers.IncomingDamageMultiplier *= 2.5f;
-            }
-            if (sourceItem.type == ItemID.Flamethrower)
-            {
-                modifiers.ArmorPenetration += 15;
-            }
-            if (sourceItem.type == ItemID.CrystalVileShard)
-            {
-                modifiers.ArmorPenetration += 10;
-            }
-            if (sourceItem.type == ItemID.NettleBurst)
-            {
-                modifiers.ArmorPenetration += 10;
-            }
-
             var itemDefinition = new ItemDefinition(sourceItem.type);
-            if (playerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition, out var multiplier))
-                totalPvPMultiplier *= multiplier;
-            if (playerDamageBalance.ItemFalloff.TryGetValue(itemDefinition, out var falloff) &&
+            if (weaponBalance.Damage.ItemDamage.TryGetValue(itemDefinition, out var multiplier))
+                modifiers.IncomingDamageMultiplier *= multiplier;
+            if (weaponBalance.Falloff.PerItem.TryGetValue(itemDefinition, out var falloff) &&
                 falloff != null)
             {
-                totalPvPMultiplier *= falloff.CalculateMultiplier(tileDistance);
+                modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
-            if (playerDamageBalance.ItemArmorPenetration.TryGetValue(itemDefinition, out var armorPen))
+            if (weaponBalance.ArmorPenetration.ItemAP.TryGetValue(itemDefinition, out var armorPen))
             {
                 baseArmorPen = Math.Clamp(armorPen, 0f, 1f);
             }
+
             // Check if this is a magic weapon
             if (sourceItem.CountsAsClass(DamageClass.Magic))
                 isMagicDamage = true;
         }
+
         if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
         {
             var projectileDefinition = new ProjectileDefinition(modifiers.DamageSource.SourceProjectileType);
-            if (playerDamageBalance.ProjectileDamageMultipliers.TryGetValue(projectileDefinition, out var multiplier))
-                totalPvPMultiplier *= multiplier;
-            if (playerDamageBalance.ProjectileFalloff.TryGetValue(projectileDefinition, out var falloff) &&
+            if (weaponBalance.Damage.ProjectileDamage.TryGetValue(projectileDefinition, out var multiplier))
+                modifiers.IncomingDamageMultiplier *= multiplier;
+            if (weaponBalance.Falloff.PerProjectile.TryGetValue(projectileDefinition, out var falloff) &&
                 falloff != null)
             {
-                totalPvPMultiplier *= falloff.CalculateMultiplier(tileDistance);
+                modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
-            if (playerDamageBalance.ProjectileArmorPenetration.TryGetValue(projectileDefinition, out var armorPen))
+            if (weaponBalance.ArmorPenetration.ProjectileAP.TryGetValue(projectileDefinition, out var armorPen))
             {
                 baseArmorPen = Math.Clamp(armorPen, 0f, 1f);
             }
+
             // Check if the projectile is magic damage
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
@@ -1026,27 +966,24 @@ public class AdventurePlayer : ModPlayer
                     isMagicDamage = true;
             }
         }
-        if (!hasIncurredFalloff && playerDamageBalance.DefaultFalloff != null)
-            totalPvPMultiplier *= playerDamageBalance.DefaultFalloff.CalculateMultiplier(tileDistance);
+
+        if (!hasIncurredFalloff && weaponBalance.Falloff.Default != null)
+            modifiers.IncomingDamageMultiplier *= weaponBalance.Falloff.Default.CalculateMultiplier(tileDistance);
+
         // Apply Spectre Hood armor penetration bonus for magic damage
         float finalArmorPen = baseArmorPen;
         if (isMagicDamage && sourcePlayer.ghostHeal)
         {
-            float ghostHealPenBonus = adventureConfig.Combat.GhostHealArmorPenetration;
+            // Formula: increase by configured percentage of remaining penetration
+            float ghostHealPenBonus = adventureConfig.Other.SpectreHealing.HealerArmorPenetration;
             finalArmorPen = baseArmorPen + (1f - baseArmorPen) * ghostHealPenBonus;
         }
+
+        // Apply final armor penetration
         if (finalArmorPen > 0f)
         {
             modifiers.ScalingArmorPenetration += finalArmorPen;
         }
-        modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
-        {
-            var cfg = ModContent.GetInstance<AdventureServerConfig>();
-            info.Damage = (int)(info.Damage * totalPvPMultiplier);
-            info.Damage = Math.Max(info.Damage, cfg.MinimumDamageReceivedByPlayers);
-            if (info.PvP)
-                info.Damage = Math.Max(info.Damage, cfg.MinimumDamageReceivedByPlayersFromPlayer);
-        };
     }
 
     public override void OnHurt(Player.HurtInfo info)
@@ -1056,108 +993,13 @@ public class AdventurePlayer : ModPlayer
 
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
-        // Spawn Volcano projectile when hit by Volcano sword
-        if (info.DamageSource.SourceItem != null &&
-            info.DamageSource.SourceItem.type == ItemID.FieryGreatsword &&
-            Main.netMode != NetmodeID.MultiplayerClient)
-        {
-            int owner = info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers
-                ? info.DamageSource.SourcePlayerIndex
-                : -1;
-
-            int proj = Projectile.NewProjectile(
-                Player.GetSource_OnHurt(info.DamageSource),
-                Player.Center,
-                Vector2.Zero,
-                ProjectileID.Volcano,
-                    (int)(info.SourceDamage * 0.75f), // 75% damage like vanilla
-                0f,
-                owner,
-                0f,
-                0f
-            );
-
-            if (proj >= 0 && proj < Main.maxProjectiles && Main.netMode == NetmodeID.Server)
-            {
-                NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
-            }
-        }
-        if (info.DamageSource.SourceItem != null &&
-    info.DamageSource.SourceItem.type == ItemID.Muramasa &&
-    Main.netMode != NetmodeID.MultiplayerClient)
-        {
-            int owner = info.DamageSource.SourcePlayerIndex;
-            if (owner < 0 || owner >= Main.maxPlayers) ;
-
-            Player attacker = Main.player[owner];
-            int direction = Math.Sign(attacker.Center.X - Player.Center.X);
-            if (direction == 0) direction = 1;
-
-            int num5 = 1;
-
-            for (int j = 0; j < num5; j++)
-            {
-                Rectangle hitbox = Player.Hitbox;
-                hitbox.Inflate(30, 16);
-                hitbox.Y -= 8;
-
-                Vector2 randomPos = Main.rand.NextVector2FromRectangle(hitbox);
-                Vector2 center = hitbox.Center.ToVector2();
-
-                Vector2 velocity = (center - randomPos).SafeNormalize(new Vector2(direction, Player.gravDir)) * 8f;
-
-                float rotationFactor = (float)(Main.rand.Next(2) * 2 - 1) * (0.62831855f + 2.5132742f * Main.rand.NextFloat());
-                rotationFactor *= 0.5f;
-
-                velocity = velocity.RotatedBy(0.7853981852531433);
-
-                int steps = 3;
-                int rotationSteps = 10 * steps;
-                int velocitySteps = 5;
-                int totalSteps = velocitySteps * steps;
-
-                Vector2 spawnPos = center;
-                for (int k = 0; k < totalSteps; k++)
-                {
-                    spawnPos -= velocity;
-                    velocity = velocity.RotatedBy(-rotationFactor / rotationSteps);
-                }
-
-                spawnPos += Player.velocity * velocitySteps;
-
-                // Create the projectile
-                int proj = Projectile.NewProjectile(
-                    Player.GetSource_OnHurt(info.DamageSource),
-                    spawnPos,
-                    velocity,
-                    ProjectileID.Muramasa,
-                    (int)(info.SourceDamage * 0.5f), // 50% damage like vanilla
-                    0f,
-                    owner,
-                    rotationFactor,
-                    0f
-                );
-
-                if (proj >= 0 && proj < Main.maxProjectiles && Main.netMode == NetmodeID.Server)
-                {
-                    NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
-                }
-            }
-        }
         // Only play hit markers on clients that we hurt that aren't ourselves
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        if (info.DamageSource.SourceProjectileType != 0 &&
-           adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(
-               new(info.DamageSource.SourceProjectileType), out var immunityGroup))
-        {
-            GroupImmuneTime[immunityGroup.Id] = immunityGroup.Frames;
-        }
-        else if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
-        {
-            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
-        }
+        if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
+            adventureConfig.WeaponBalance.ImmunityFrames.TrueMelee == 0)
+            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
     }
 
     public override bool OnPickup(Item item)
@@ -1255,7 +1097,7 @@ public class AdventurePlayer : ModPlayer
 
             for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
             {
-                if ((Player.armor[0].type == ItemID.TikiMask && Player.armor[1].type == ItemID.TikiShirt &&Player.armor[2].type == ItemID.TikiPants) || (Player.armor[0].type == ItemID.ObsidianHelm && Player.armor[1].type == ItemID.ObsidianShirt && Player.armor[2].type == ItemID.ObsidianPants) || (Player.armor[0].type == ItemID.BeeHeadgear && Player.armor[1].type == ItemID.BeeBreastplate && Player.armor[2].type == ItemID.BeeGreaves) || (Player.armor[0].type == ItemID.SpiderMask && Player.armor[1].type == ItemID.SpiderBreastplate && Player.armor[2].type == ItemID.SpiderGreaves))
+                if ((Player.armor[0].type == ItemID.TikiMask && Player.armor[1].type == ItemID.TikiShirt && Player.armor[2].type == ItemID.TikiPants) || (Player.armor[0].type == ItemID.ObsidianHelm && Player.armor[1].type == ItemID.ObsidianShirt && Player.armor[2].type == ItemID.ObsidianPants) || (Player.armor[0].type == ItemID.BeeHeadgear && Player.armor[1].type == ItemID.BeeBreastplate && Player.armor[2].type == ItemID.BeeGreaves) || (Player.armor[0].type == ItemID.SpiderMask && Player.armor[1].type == ItemID.SpiderBreastplate && Player.armor[2].type == ItemID.SpiderGreaves))
                 {
                     largeWhipIncrease = true;
                     break;
@@ -1377,15 +1219,8 @@ public class TurtleDashPlayer : ModPlayer
             float dashSpeedReduction = Player.velocity.X * 0.05f;
             Player.velocity.X -= dashSpeedReduction;
         }
-        if (Player.HasBuff(BuffID.BabyEater) && IsInADashState)
-        {
-            float dashSpeedReduction = Player.velocity.X * -0.03f;
-            Player.velocity.X -= dashSpeedReduction;
-            //Dont think I didnt notice this.
-        }
         //thanks mr fargo
     }
-
 }
 public class NewIchorPlayer : ModPlayer
 {
@@ -1940,7 +1775,7 @@ public class MarkedPlayer : ModPlayer
             if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
             {
                 Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
-                if (proj != null && proj.active && ( proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
+                if (proj != null && proj.active && (proj.CountsAsClass(DamageClass.SummonMeleeSpeed)))
                 {
                     isSummon = true;
                 }
@@ -2547,7 +2382,6 @@ public class HellhexPlayer : ModPlayer
         }
     }
 }
-
 public class PvPAdventurePlayer : ModPlayer
 {
     public bool hasReceivedStarterBag = false;
@@ -2562,7 +2396,7 @@ public class PvPAdventurePlayer : ModPlayer
         hasReceivedStarterBag = tag.GetBool("hasReceivedStarterBag");
     }
 
-   /* public override void OnEnterWorld()
+    public override void OnEnterWorld()
     {
         if (!hasReceivedStarterBag)
         {
@@ -2573,11 +2407,9 @@ public class PvPAdventurePlayer : ModPlayer
             var beachBallItem = new Item();
             beachBallItem.SetDefaults(ItemID.BeachBall);
             Player.inventory[2] = beachBallItem; // Adds to third inventory slot
-
             hasReceivedStarterBag = true;
         }
     }
-    */
 }
 
 
@@ -2619,7 +2451,7 @@ public class ShadowFlamePlayer : ModPlayer
 
         if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameArrow)
         {
-            int maxDuration = 2 * 60;
+            int maxDuration = 3 * 60;
             float damageRatio = Math.Min(info.Damage / 30f, 1f);
             shadowflameDuration = (int)(maxDuration * damageRatio);
         }
@@ -2629,13 +2461,13 @@ public class ShadowFlamePlayer : ModPlayer
         }
         else if (info.DamageSource.SourceProjectileType == ProjectileID.ShadowFlameKnife)
         {
-            int maxDuration = 60 * 2;
+            int maxDuration = 60 * 3;
             float damageRatio = Math.Min(info.Damage / 25f, 1f);
             shadowflameDuration = (int)(maxDuration * damageRatio);
         }
         else if (info.DamageSource.SourceProjectileType == ProjectileID.DarkLance)
         {
-            shadowflameDuration = 66 * 3; // 3.33 seconds
+            shadowflameDuration = 66 * 6; // 6.66 seconds
         }
 
         if (shadowflameDuration > 0)
@@ -2654,7 +2486,7 @@ public class ShadowFlamePlayer : ModPlayer
             }
             Player.lifeRegenTime = 0;
 
-            Player.lifeRegen -= 20; // 10 dps
+            Player.lifeRegen -= 30;
         }
     }
 

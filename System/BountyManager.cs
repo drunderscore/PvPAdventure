@@ -128,7 +128,10 @@ public class BountyManager : ModSystem
             {
                 Width = { Percent = 1.0f },
                 Height = { Percent = 1.0f },
-                PaddingTop = 60.0f, PaddingBottom = 30.0f, PaddingLeft = 30.0f, PaddingRight = 30.0f
+                PaddingTop = 60.0f,
+                PaddingBottom = 30.0f,
+                PaddingLeft = 30.0f,
+                PaddingRight = 30.0f
             };
 
             var scrollbar = new UIScrollbar
@@ -295,7 +298,7 @@ public class BountyManager : ModSystem
     {
         var team = (Team)killer.team;
 
-        var eligibleBounties = ModContent.GetInstance<AdventureServerConfig>().Bounties
+        var eligibleBounties = ModContent.GetInstance<AdventureServerConfig>().Bounties.ClaimableItems
             .Where(IsBountyAvailable)
             .Select(bounty => bounty.Items)
             .Select(items => items.Select(item => new Item(item.Item.Type, item.Stack, item.Prefix.Type)).ToArray())
