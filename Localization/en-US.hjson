@@ -628,17 +628,17 @@ Mods: {
 				Tooltip: ""
 
 				Npc: {
-					Label: Npc
+					Label: Points Per Boss
 					Tooltip: ""
 				}
 
 				Boss: {
-					Label: Boss
+					Label: Boss Kill Points
 					Tooltip: ""
 				}
 
 				PlayerKill: {
-					Label: Player Kill
+					Label: Player Kill Points
 					Tooltip: ""
 				}
 			}
@@ -835,12 +835,12 @@ Mods: {
 				Tooltip: ""
 
 				ItemAP: {
-					Label: Item A P
+					Label: Item Armor Penetration
 					Tooltip: ""
 				}
 
 				ProjectileAP: {
-					Label: Projectile A P
+					Label: Projectile Armor Penetration
 					Tooltip: ""
 				}
 			}

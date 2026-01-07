@@ -1,3 +1,4 @@
+using PvPAdventure.Common.Config.Elements;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,7 +25,6 @@ public class AdventureServerConfig : ModConfig
     [Expand(false, false)]
     public BountiesConfig Bounties { get; set; } = new();
 
-
     [BackgroundColor(140, 100, 20)]
     [Expand(false, false)]
     public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = [];
@@ -46,6 +46,7 @@ public class AdventureServerConfig : ModConfig
     [BackgroundColor(40, 60, 110)]
     [ReloadRequired]
     [Expand(false, false)]
+    [CustomModConfigItem(typeof(CustomDictionaryElement))]
     public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = [];
 
     [BackgroundColor(40, 60, 110)]
@@ -54,6 +55,7 @@ public class AdventureServerConfig : ModConfig
 
     [BackgroundColor(40, 60, 110)]
     [Expand(false, false)]
+    [CustomModConfigItem(typeof(CustomDictionaryElement))]
     public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = [];
 
     [BackgroundColor(40, 60, 110)]
@@ -63,6 +65,7 @@ public class AdventureServerConfig : ModConfig
 
     [BackgroundColor(90, 40, 110)]
     [Expand(false, false)]
+    [CustomModConfigItem(typeof(CustomDictionaryElement))]
     public Dictionary<NPCDefinition, BossBalanceEntry> BossBalance { get; set; } = [];
 
     [BackgroundColor(90, 40, 110)]
@@ -199,8 +202,10 @@ public class AdventureServerConfig : ModConfig
 
     public class PointsConfig
     {
+        // Points per boss
         [Expand(false, false)]
-        public Dictionary<NPCDefinition, NpcPoints> Npc { get; set; } = [];
+        [CustomModConfigItem(typeof(CustomDictionaryElement))]
+        public Dictionary<NPCDefinition, NpcPoints> Npc { get; set; } = []; 
 
         [Expand(false, false)]
         public NpcPoints Boss { get; set; } = new()
@@ -290,9 +295,11 @@ public class AdventureServerConfig : ModConfig
         public class DamageConfig
         {
             [Expand(false, false)]
+            [CustomModConfigItem(typeof(CustomDictionaryElement))]
             public Dictionary<ItemDefinition, float> ItemDamage { get; set; } = [];
 
             [Expand(false, false)]
+            [CustomModConfigItem(typeof(CustomDictionaryElement))]
             public Dictionary<ProjectileDefinition, float> ProjectileDamage { get; set; } = [];
         }
 
@@ -301,11 +308,13 @@ public class AdventureServerConfig : ModConfig
             [Increment(0.01f)]
             [Range(0.0f, 1.0f)]
             [Expand(false, false)]
+            [CustomModConfigItem(typeof(CustomDictionaryElement))]
             public Dictionary<ItemDefinition, float> ItemAP { get; set; } = [];
 
             [Increment(0.01f)]
             [Range(0.0f, 1.0f)]
             [Expand(false, false)]
+            [CustomModConfigItem(typeof(CustomDictionaryElement))]
             public Dictionary<ProjectileDefinition, float> ProjectileAP { get; set; } = [];
         }
 
@@ -330,9 +339,11 @@ public class AdventureServerConfig : ModConfig
             public Falloff Default { get; set; }
 
             [Expand(false, false)]
+            [CustomModConfigItem(typeof(CustomDictionaryElement))]
             public Dictionary<ItemDefinition, Falloff> PerItem { get; set; } = [];
 
             [Expand(false, false)]
+            [CustomModConfigItem(typeof(CustomDictionaryElement))]
             public Dictionary<ProjectileDefinition, Falloff> PerProjectile { get; set; } = [];
         }
 

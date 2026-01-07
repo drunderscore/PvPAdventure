@@ -235,8 +235,6 @@ public class PvPAdventure : Mod
                 }
             case AdventurePacketIdentifier.PauseGame:
                 {
-                    bool isPaused = reader.ReadBoolean();
-
                     if (Main.netMode == NetmodeID.Server)
                     {
                         var pm = ModContent.GetInstance<PauseManager>();
@@ -336,13 +334,7 @@ public class PvPAdventure : Mod
                         packet.Write(spawnX);
                         packet.Write(spawnY);
                         packet.Send(-1, whoAmI);
-#if DEBUG
-                        if (p != null && p.name != string.Empty)
-                        {
-                            Log.Chat($"Player {p.name} set spawn to ({spawnX}, {spawnY})");
-                        }
                     }
-#endif
 
                     break;
                 }
