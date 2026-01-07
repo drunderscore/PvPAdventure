@@ -7,7 +7,6 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
-using static PvPAdventure.AdventureServerConfig;
 
 namespace PvPAdventure;
 
@@ -27,6 +26,7 @@ public class AdventureServerConfig : ModConfig
 
     [BackgroundColor(140, 100, 20)]
     [Expand(false, false)]
+    [CustomModConfigItem(typeof(InvasionDictionaryElement))]
     public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = [];
 
     [Header("Combat")]
@@ -46,7 +46,7 @@ public class AdventureServerConfig : ModConfig
     [BackgroundColor(40, 60, 110)]
     [ReloadRequired]
     [Expand(false, false)]
-    [CustomModConfigItem(typeof(CustomDictionaryElement))]
+    [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
     public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = [];
 
     [BackgroundColor(40, 60, 110)]
@@ -55,7 +55,7 @@ public class AdventureServerConfig : ModConfig
 
     [BackgroundColor(40, 60, 110)]
     [Expand(false, false)]
-    [CustomModConfigItem(typeof(CustomDictionaryElement))]
+    [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
     public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = [];
 
     [BackgroundColor(40, 60, 110)]
@@ -65,7 +65,7 @@ public class AdventureServerConfig : ModConfig
 
     [BackgroundColor(90, 40, 110)]
     [Expand(false, false)]
-    [CustomModConfigItem(typeof(CustomDictionaryElement))]
+    [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
     public Dictionary<NPCDefinition, BossBalanceEntry> BossBalance { get; set; } = [];
 
     [BackgroundColor(90, 40, 110)]
@@ -204,7 +204,7 @@ public class AdventureServerConfig : ModConfig
     {
         // Points per boss
         [Expand(false, false)]
-        [CustomModConfigItem(typeof(CustomDictionaryElement))]
+        [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
         public Dictionary<NPCDefinition, NpcPoints> Npc { get; set; } = []; 
 
         [Expand(false, false)]
@@ -295,11 +295,11 @@ public class AdventureServerConfig : ModConfig
         public class DamageConfig
         {
             [Expand(false, false)]
-            [CustomModConfigItem(typeof(CustomDictionaryElement))]
+            [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             public Dictionary<ItemDefinition, float> ItemDamage { get; set; } = [];
 
             [Expand(false, false)]
-            [CustomModConfigItem(typeof(CustomDictionaryElement))]
+            [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             public Dictionary<ProjectileDefinition, float> ProjectileDamage { get; set; } = [];
         }
 
@@ -308,13 +308,13 @@ public class AdventureServerConfig : ModConfig
             [Increment(0.01f)]
             [Range(0.0f, 1.0f)]
             [Expand(false, false)]
-            [CustomModConfigItem(typeof(CustomDictionaryElement))]
+            [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             public Dictionary<ItemDefinition, float> ItemAP { get; set; } = [];
 
             [Increment(0.01f)]
             [Range(0.0f, 1.0f)]
             [Expand(false, false)]
-            [CustomModConfigItem(typeof(CustomDictionaryElement))]
+            [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             public Dictionary<ProjectileDefinition, float> ProjectileAP { get; set; } = [];
         }
 
@@ -339,11 +339,11 @@ public class AdventureServerConfig : ModConfig
             public Falloff Default { get; set; }
 
             [Expand(false, false)]
-            [CustomModConfigItem(typeof(CustomDictionaryElement))]
+            [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             public Dictionary<ItemDefinition, Falloff> PerItem { get; set; } = [];
 
             [Expand(false, false)]
-            [CustomModConfigItem(typeof(CustomDictionaryElement))]
+            [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             public Dictionary<ProjectileDefinition, Falloff> PerProjectile { get; set; } = [];
         }
 

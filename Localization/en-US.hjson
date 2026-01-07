@@ -474,7 +474,7 @@ Mods: {
 				}
 
 				Points: {
-					Label: Points
+					Label: "[i:PvPAdventure/MatteConfig] Points"
 					Tooltip: ""
 				}
 
@@ -485,7 +485,7 @@ Mods: {
 
 				InvasionSizes: {
 					Label: Invasion Sizes
-					Tooltip: ""
+					Tooltip: "Change how many enemies need to be defeated to complete an invasion"
 				}
 
 				WeaponBalance: {
