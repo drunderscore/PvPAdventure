@@ -254,6 +254,7 @@ Mods: {
 					Spectate: "[i:Binoculars] Spectate"
 					Spawn: Spawn
 					Debug: "[i:Goggles] Debug"
+					HealthBars: Health Bars Header
 				}
 
 				ShiftEnterOpensAllChat: {
@@ -302,6 +303,26 @@ Mods: {
 				EnableDebugMessages: {
 					Label: Enable Debug Messages
 					Tooltip: Logs chat messages for most actions. Useful for developers or players investigating bugs.
+				}
+
+				ShowHealthBars: {
+					Label: Show Health Bars
+					Tooltip: ""
+				}
+
+				HealthbarScale: {
+					Label: Healthbar Scale
+					Tooltip: ""
+				}
+
+				HealthbarYOffset: {
+					Label: Healthbar Y Offset
+					Tooltip: ""
+				}
+
+				Theme: {
+					Label: Theme
+					Tooltip: ""
 				}
 			}
 

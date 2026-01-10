@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using PvPAdventure.Common.Config.Elements;
 using System;
 using System.ComponentModel;
 using Terraria.Audio;
@@ -34,6 +35,34 @@ public class AdventureClientConfig : ModConfig
 
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool CloseMapOnHurt;
+
+    [Header("HealthBars")]
+   [BackgroundColor(200, 30, 30, 150)]
+   [DefaultValue(true)]
+   [CustomModConfigItem(typeof(HealthbarShowElement))]
+   public bool ShowHealthBars;
+
+   [BackgroundColor(200, 30, 30, 150)]
+   [Increment(0.5f)]
+   [Range(1f, 2f)]
+   [DefaultValue(1.0f)]
+   [Slider]
+   [CustomModConfigItem(typeof(HealthbarScaleElement))]
+   public float HealthbarScale;
+
+   [Increment(1)]
+   [Range(0, 100)]
+   [DefaultValue(0)]
+   [BackgroundColor(200, 30, 30, 150)]
+   [CustomModConfigItem(typeof(HealthbarOffsetElement))]
+   public int HealthbarYOffset;
+
+   [DrawTicks]
+   [CustomModConfigItem(typeof(HealthbarStyleConfigElement))]
+   [OptionStrings(["Vanilla", "Fancy", "Golden", "Leaf", "Retro", "Sticks", "StoneGold", "Tribute", "TwigLeaf", "Valkyrie"])]
+   [DefaultValue("Fancy")]
+   [BackgroundColor(200, 30, 30, 150)]
+   public string Theme;
 
     [Header("Debug")]
     [DefaultValue(true)] public bool EnableDebugMessages;
