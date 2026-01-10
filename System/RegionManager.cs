@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.SpawnAndSpectate;
 using ReLogic.Content;
+using SubworldLibrary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -45,6 +47,10 @@ public class RegionManager : ModSystem
         // as expected.
         var collisionVelocity = orig(position, velocity, width, height, fallthrough, fall2, gravdir);
 
+        // Subworld and spawn region
+        bool inSubworld = SubworldSystem.AnyActive(Mod);
+        Region spawnRegion = _regions.Count > 0 ? _regions[0] : null;
+
         var sourceHitbox = new Rectangle((int)position.X, (int)position.Y, width, height).ToTileRectangle();
         var sourceIntersections = GetRegionsIntersecting(sourceHitbox).ToHashSet();
 
@@ -69,16 +75,19 @@ public class RegionManager : ModSystem
 
         foreach (var region in sourceIntersections)
         {
-            if (!region.CanExit)
+            // subworld always allows exit
+            bool canExit = inSubworld || region.CanExit; 
+
+            if (!canExit)
             {
                 var innerBounds = region.CollisionRingBounds;
-                innerBounds.Inflate(-1, -1); // shrink 1 tile on all sides
+                innerBounds.Inflate(-1, -1);
 
                 if (innerBounds.Contains(sourceHitbox) && !innerBounds.Contains(destHitboxX))
-                    collisionVelocity.X = 0.0f;
+                    collisionVelocity.X = 0f;
 
                 if (innerBounds.Contains(sourceHitbox) && !innerBounds.Contains(destHitboxY))
-                    collisionVelocity.Y = 0.0f;
+                    collisionVelocity.Y = 0f;
             }
         }
 
@@ -91,17 +100,16 @@ public class RegionManager : ModSystem
 
             foreach (var region in differingIntersections)
             {
-                // If this region is in the source intersections, it must not be in the destination intersections.
-                // This means you have exited this region.
-                if (sourceIntersections.Contains(region))
+                if (source.Contains(region))
                 {
-                    if (!region.CanExit)
+                    // Exiting a region
+                    bool canExit = inSubworld || region.CanExit;
+                    if (!canExit)
                         return true;
                 }
-                // This region is not in the source intersections, it must be in the destination intersections.
-                // This means you have entered this region.
                 else
                 {
+                    // Entering a region
                     if (!region.CanEnter)
                         return true;
                 }

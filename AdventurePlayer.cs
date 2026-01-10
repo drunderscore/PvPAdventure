@@ -21,6 +21,7 @@ using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
 using static PvPAdventure.AdventurePlayer;
 using PvPAdventure.Content.Items;
+using SubworldLibrary;
 
 namespace PvPAdventure;
 
@@ -405,6 +406,9 @@ public class AdventurePlayer : ModPlayer
 
     public override bool CanHitPvp(Item item, Player target)
     {
+        if (SubworldSystem.AnyActive())
+            return true;
+
         var myRegion = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
 
         if (myRegion != null && !myRegion.AllowCombat)
@@ -437,6 +441,9 @@ public class AdventurePlayer : ModPlayer
 
     public override bool CanHitPvpWithProj(Projectile proj, Player target)
     {
+        if (SubworldSystem.AnyActive())
+            return true;
+
         var myRegion = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
 
         if (myRegion != null && !myRegion.AllowCombat)

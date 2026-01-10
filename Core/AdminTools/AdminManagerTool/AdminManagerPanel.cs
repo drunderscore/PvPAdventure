@@ -14,6 +14,8 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.AdminTools.AdminManagerTool;
 
+
+[JITWhenModsEnabled("DragonLens")]
 internal class AdminManagerPanel : DraggablePanel
 {
     private readonly List<int> playerIndices = [];

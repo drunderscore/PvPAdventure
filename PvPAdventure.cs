@@ -1,6 +1,5 @@
 using MonoMod.Cil;
 using PvPAdventure.Core.DashKeybind;
-using PvPAdventure.Core.SubworldArenas;
 using PvPAdventure.System;
 using System;
 using PvPAdventure.Core.AdminTools.TeamAssigner;
@@ -301,21 +300,6 @@ public class PvPAdventure : Mod
             case AdventurePacketIdentifier.Dash:
                 DashKeybindSystem.HandlePacket(reader, whoAmI);
                 break;
-
-            case AdventurePacketIdentifier.SubworldJoin:
-                {
-                    byte index = reader.ReadByte();
-                    if (Main.netMode == NetmodeID.Server)
-                        SWSystem.HandleJoinFromClient(index, whoAmI);
-                    break;
-                }
-
-            case AdventurePacketIdentifier.SubworldCounts:
-                {
-                    if (Main.netMode == NetmodeID.MultiplayerClient)
-                        SWSystem.HandleCountsPacket(reader);
-                    break;
-                }
         }
     }
 }

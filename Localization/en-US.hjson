@@ -22,6 +22,8 @@ Mods: {
 			DLStartGameTool.DisplayName: DL Start Game Tool
 			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
 			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
+			OpenLoadoutMenu.DisplayName: Open Loadout Menu
+			DashKeybind.DisplayName: Dash Keybind
 		}
 
 		Tools: {
@@ -1262,15 +1264,7 @@ Mods: {
 			CancelBedSpawn: Cancel {0}'s Bed
 		}
 
-		SSC: {
-			SelectPlayer: Select Player
-			SaveSuccessful: Saved character '{0}' with size {1} at time: {2}
-			EmptyName: Character name cannot be empty
-			NameTooLong: Character name cannot exceed 16 characters
-			NameError: Character name is invalid or contains invalid characters
-			TooManyCharacters: Maximum 3 characters per world
-			EraseSuccessful: Successfully removed '{0}'
-		}
+		Subworlds.ArenasSubworld.DisplayName: Arenas 1
 
 		Item: {
 			Disabled: Cannot be used in this gamemode

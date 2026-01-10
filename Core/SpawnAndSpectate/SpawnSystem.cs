@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.SpawnAndSpectate.UI;
 using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
+using SubworldLibrary;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent;
@@ -241,8 +242,9 @@ public class SpawnSystem : ModSystem
         bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
         bool inSpawnRegion = local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
         bool sessionOpen = SessionOpen;
+        bool inSubworld = SubworldSystem.AnyActive();
 
-        Enabled = playing && !Main.playerInventory && (inSpawnRegion || sessionOpen);
+        Enabled = playing && !Main.playerInventory && (inSpawnRegion || sessionOpen) && !inSubworld;
 
         if (sessionOpen && !sessionWasOpen)
         {

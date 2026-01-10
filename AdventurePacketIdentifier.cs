@@ -17,11 +17,7 @@ public enum AdventurePacketIdentifier : byte
     SSC, // Server Sided Character
     PlayerBed, // update player spawn point
     TeleportRequest, // teleport to beds or world spawn
-    SpawnSelection // set random or player spawn while respawn timer or map timer is running
-    Dash,
-    PlayerBed,
+    SpawnSelection, // set random or player spawn while respawn timer or map timer is running
     AdventureMirrorRightClickUse,
     BedTeleport,
-    SubworldJoin,
-    SubworldCounts
 }

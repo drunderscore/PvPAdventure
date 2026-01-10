@@ -1,4 +1,5 @@
-﻿using PvPAdventure.System.Client;
+﻿using Microsoft.Xna.Framework.Input;
+using PvPAdventure.System.Client;
 using System;
 using System.IO;
 using Terraria;

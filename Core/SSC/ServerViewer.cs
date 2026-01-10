@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Core.Arenas.UI;
 using PvPAdventure.Core.SSC.UI;
 using System.Collections.Generic;
 using Terraria;
@@ -17,7 +18,7 @@ public class ServerViewer : UIState
 {
     private const float HeaderHeight = 52f;
 
-    private DraggableElement Root;
+    private UI.DraggableElement Root;
     private UIPanel Container;
     private UIList CharacterList;
     private UIScrollbar Scrollbar;
@@ -29,7 +30,7 @@ public class ServerViewer : UIState
     {
         RemoveAllChildren();
 
-        Root = new DraggableElement
+        Root = new UI.DraggableElement
         {
             Width = new StyleDimension(530f, 0f),
             Top = new StyleDimension(220f - HeaderHeight, 0f),
