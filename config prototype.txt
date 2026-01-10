@@ -1,0 +1,42 @@
+Point System
+	award bounty every kill
+invasion sizes
+
+team npc life
+
+
+Weapon Balance
+	Damage
+		Item Damage
+		Projectile Damage
+	Armor Penatration
+		Item AP
+		Projectile AP
+	Falloff
+		Item Falloff
+			default
+			per item
+		Projectile Falloff
+
+	Projectile bounce damage reduction
+	Projectile Line of Sight damage reduction
+	
+	Immunity Frames
+		True Melee
+		Per player global
+		Iframe groups (coming soon)
+
+
+
+
+world generation
+
+-all world gen settings
+
+other
+	Spectre Healing
+		PvP Heal Multiplier
+		PvP Self Heal Multiplier
+		PvP Heal Range
+		PvE Heal Range
+		Healer Armor Penetration

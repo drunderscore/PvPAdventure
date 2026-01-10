@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Helpers;
-using PvPAdventure.Core.SpawnSelector.Players;
+using PvPAdventure.Common;
+using PvPAdventure.Core.SpawnAndSpectate;
 using PvPAdventure.System;
 using ReLogic.Content;
 using System;
@@ -12,6 +12,9 @@ using Terraria.UI;
 
 namespace PvPAdventure.Core.Spawnbox;
 
+/// <summary>
+/// Draws the spawn box rectangle in the world.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
 public class SpawnBoxWorld : ModSystem
 {
@@ -82,7 +85,7 @@ public class SpawnBoxWorld : ModSystem
         {
             // Set color
             var gm = ModContent.GetInstance<GameManager>();
-            var am = Main.LocalPlayer.GetModPlayer<AdventureMirrorPlayer>();
+            var am = Main.LocalPlayer.GetModPlayer<SpawnPlayer>();
             bool canPass = gm.CurrentPhase == GameManager.Phase.Playing && am.IsPlayerInSpawnRegion();
             Color color = Color.Black * (canPass ? 0.5f : 1f);
 

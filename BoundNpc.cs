@@ -60,7 +60,7 @@ public abstract class BoundNpc : ModNPC
         if (NPC.AnyNPCs(NPC.type) || NPC.AnyNPCs(TransformInto))
             return 0.0f;
 
-        return ModContent.GetInstance<AdventureConfig>().BoundSpawnChance;
+        return ModContent.GetInstance<AdventureServerConfig>().BoundSpawnChance;
     }
 
     protected virtual void Transform(int whoAmI)

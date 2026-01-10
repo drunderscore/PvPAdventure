@@ -26,7 +26,7 @@ public class AdventureItem : GlobalItem
 
     public override void SetDefaults(Item item)
     {
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         if (item.type == ItemID.LihzahrdPowerCell)
         {
@@ -40,7 +40,8 @@ public class AdventureItem : GlobalItem
 
         if (RecallItems[item.type])
         {
-            var recallTime = adventureConfig.RecallFrames;
+            //var recallTime = adventureConfig.RecallFrames;
+            var recallTime = 240; // 4 seconds
             item.useTime = recallTime * 2;
             item.useAnimation = recallTime * 2;
         }
@@ -130,20 +131,20 @@ public class AdventureItem : GlobalItem
                 return false;
         }
 
-        return !ModContent.GetInstance<AdventureConfig>().PreventUse
+        return !ModContent.GetInstance<AdventureServerConfig>().PreventUse
             .Any(itemDefinition => item.type == itemDefinition.Type);
     }
 
     // NOTE: This will not remove already-equipped accessories from players.
     public override bool CanEquipAccessory(Item item, Player player, int slot, bool modded)
     {
-        return !ModContent.GetInstance<AdventureConfig>().PreventUse
+        return !ModContent.GetInstance<AdventureServerConfig>().PreventUse
             .Any(itemDefinition => item.type == itemDefinition.Type);
     }
 
     public override bool? CanBeChosenAsAmmo(Item ammo, Item weapon, Player player)
     {
-        if (ModContent.GetInstance<AdventureConfig>().PreventUse
+        if (ModContent.GetInstance<AdventureServerConfig>().PreventUse
             .Any(itemDefinition => ammo.type == itemDefinition.Type))
             return false;
 
@@ -152,9 +153,9 @@ public class AdventureItem : GlobalItem
 
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
     {
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
-
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
         var itemDefinition = new ItemDefinition(item.type);
+
         if (adventureConfig.Combat.PlayerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition,
                 out var multiplier))
         {
@@ -164,6 +165,17 @@ public class AdventureItem : GlobalItem
             {
                 IsModifier = true,
                 IsModifierBad = true
+            });
+        }
+
+        if (adventureConfig.Combat.PlayerDamageBalance.ItemArmorPenetration.TryGetValue(itemDefinition,
+                out var armorPen))
+        {
+            tooltips.Add(new TooltipLine(Mod, "CombatPlayerArmorPenetration",
+                $"+{(int)(armorPen * 100)}% PvP armor penetration")
+            {
+                IsModifier = true,
+                IsModifierBad = false
             });
         }
 
@@ -239,64 +251,15 @@ public class AdventureItem : GlobalItem
     public override bool? PrefixChance(Item item, int pre, UnifiedRandom rand)
     {
         // Prevent the item from spawning with a prefix, being placed into a reforge window, and loading with a prefix.
-        if ((pre == -1 || pre == -3 || pre > 0) && ModContent.GetInstance<AdventureConfig>().RemovePrefixes)
+        if ((pre == -1 || pre == -3 || pre > 0) && ModContent.GetInstance<AdventureServerConfig>().RemovePrefixes)
             return false;
 
         return null;
     }
 
     // This is likely unnecessary if we are overriding PrefixChance, but might as well.
-    public override bool CanReforge(Item item) => !ModContent.GetInstance<AdventureConfig>().RemovePrefixes;
-
-
-    public class AdventureBag : ModItem
-    {
-        public override string Texture => $"PvPAdventure/Assets/Item/AdventureBag";
-        public override void SetStaticDefaults()
-        {
-            ItemID.Sets.OpenableBag[Type] = true;
-        }
-
-        public override void SetDefaults()
-        {
-            Item.width = 32;
-            Item.height = 32;
-            Item.rare = ItemRarityID.Orange;
-            Item.maxStack = 1;
-            Item.consumable = true;
-        }
-
-        public override bool CanRightClick()
-        {
-            return true;
-        }
-
-        public override void RightClick(Player player)
-        {
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SilverPickaxe, 1);    
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SilverAxe, 1);        
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Ambrosia, 1);         
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.SlimeBed, 1);        
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Torch, 15);          
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.Wood, 20);             
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.LifeCrystal, 5);       
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.ManaCrystal, 4);        
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MiningPotion, 2);       
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.WormholePotion, 4);
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ItemID.MagicMirror, 1);
-            player.QuickSpawnItem(player.GetSource_OpenItem(Type), ModContent.ItemType<AdventureMirror>(), 1);
-        }
-
-        public override bool ConsumeItem(Player player)
-        {
-            return true;
-        }
-        public override void ModifyTooltips(List<TooltipLine> tooltips)
-        {
-            // Add custom tooltip line
-            tooltips.Add(new TooltipLine(Mod, "PvPBagInfo", "Contains essential items for your PvP Adventure"));
-        }
-    }
+    public override bool CanReforge(Item item) => !ModContent.GetInstance<AdventureServerConfig>().RemovePrefixes;
+    
     public class BlightFruit : ModItem
     {
         public override string Texture => $"PvPAdventure/Assets/Item/BlightFruit";
@@ -495,7 +458,7 @@ public class QuiverNerf : GlobalItem
             item.type == ItemID.ScytheWhip || item.type == ItemID.MaceWhip ||
             item.type == ItemID.RainbowWhip)
             {
-                tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without Pygmy Necklace, Hercules Beetle, or certain Set Bonuses")
+                tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without certain Set Bonuses")
                 {
                     OverrideColor = new Color(255, 100, 100)
                 });

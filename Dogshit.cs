@@ -592,10 +592,10 @@ namespace PvPAdventure
                 Main.tileSolid[225] = true;
                 CaveHouseBiome caveHouseBiome = GenVars.configuration.CreateBiome<CaveHouseBiome>();
 
-                int random = passConfig.Get<WorldGenRange>("CaveHouseCount").GetRandom(WorldGen.genRand) * 5;
+                int random = passConfig.Get<WorldGenRange>("CaveHouseCount").GetRandom(WorldGen.genRand) * 4;
                 int random2 = passConfig.Get<WorldGenRange>("UnderworldChestCount").GetRandom(WorldGen.genRand) * 1;
-                int num = passConfig.Get<WorldGenRange>("CaveChestCount").GetRandom(WorldGen.genRand) * 4;
-                int random3 = passConfig.Get<WorldGenRange>("AdditionalDesertHouseCount").GetRandom(WorldGen.genRand) * 3;
+                int num = passConfig.Get<WorldGenRange>("CaveChestCount").GetRandom(WorldGen.genRand) * 2;
+                int random3 = passConfig.Get<WorldGenRange>("AdditionalDesertHouseCount").GetRandom(WorldGen.genRand) * 2;
 
                 if (Main.starGame)
                 {
@@ -770,7 +770,7 @@ namespace PvPAdventure
                     var hiveBiome = GenVars.configuration.CreateBiome<HiveBiome>();
                     var honeyPatchBiome = GenVars.configuration.CreateBiome<HoneyPatchBiome>();
                     double hiveNum = (double)Main.maxTilesX / 4200.0;
-                    int extraHives = WorldGen.genRand.Next((int)(7.0 * hiveNum), (int)(11.0 * hiveNum));
+                    int extraHives = WorldGen.genRand.Next((int)(7.0 * hiveNum), (int)(7.0 * hiveNum));
 
                     for (int i = 0; i < extraHives; i++)
                     {

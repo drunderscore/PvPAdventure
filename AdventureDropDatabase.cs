@@ -9,7 +9,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Mono.Cecil.Cil;
 using static PvPAdventure.System.BountyManager;
-using static PvPAdventure.AdventureConfig;
+using static PvPAdventure.AdventureServerConfig;
 using PvPAdventure.System;
 using System.Collections.Generic;
 
@@ -116,11 +116,21 @@ public class AdventureDropDatabase : ModSystem
                 break;
             case NPCID.Harpy:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.GiantHarpyFeather, 1, 75);
+                {
+                    ModifyDropRate(drop, ItemID.GiantHarpyFeather, 1, 20);
+                    ModifyDropRate(drop, ItemID.Feather, 1, 1);
+                }
+                break;
+            case NPCID.WyvernHead:
+                foreach (var drop in drops)
+                {
+                    npcLoot.RemoveWhere(drop => true);
+                    npcLoot.Add(ItemDropRule.Common(ItemID.SoulofFlight, 1, 10, 20));
+                }
                 break;
             case NPCID.IceGolem:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.IceFeather, 1, 1);
+                    ModifyDropRate(drop, ItemID.IceFeather, 1, 2);
                 break;
 
             case NPCID.Necromancer:
@@ -231,7 +241,7 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.RedDevil:
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.UnholyTrident, 1, 10);
-                npcLoot.Add(ItemDropRule.Common(ItemID.FireFeather, 10, 1, 1));
+                npcLoot.Add(ItemDropRule.Common(ItemID.FireFeather, 7, 1, 1));
 
                 break;
 
@@ -334,10 +344,22 @@ public class AdventureDropDatabase : ModSystem
                     ModifyDropRate(drop, ItemID.GoldRing, 1, 10);
                 }
                 break;
-
+            case NPCID.Corruptor:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.RottenChunk, 1, 1);
+                break;
+            case NPCID.Clinger:
+            case NPCID.SeekerHead:
+            case NPCID.DesertGhoulCorruption:
+                    npcLoot.Add(ItemDropRule.Common(ItemID.RottenChunk, 2, 1, 1));
+                break;
             case NPCID.EyeofCthulhu:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.Binoculars, 1, 1);
+                ModifyDropRate(drop, ItemID.Binoculars, 1, 1);
+                npcLoot.Add(ItemDropRule.Common(ItemID.VilePowder, 1, 10, 10));
+                npcLoot.RemoveWhere(drop =>
+    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.CorruptSeeds) ||
+    drop is LeadingConditionRule);
                 break;
 
             case NPCID.DungeonSpirit:
@@ -430,7 +452,7 @@ public class AdventureDropDatabase : ModSystem
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
                 npcLoot.Add(ItemDropRule.Common(ItemID.IlluminantHook, 4, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 5, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
 
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
@@ -442,7 +464,7 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.BigMimicCorruption:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
                 npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 5, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
                     ItemID.ClingerStaff,
@@ -456,7 +478,7 @@ public class AdventureDropDatabase : ModSystem
                 break;
 
             case NPCID.SkeletronHead:
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey, 1, 3, 3));
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldenKey, 1, 2, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.Marrow, 1000, 1000, 1000));
 
                 foreach (var drop in drops)
@@ -489,24 +511,24 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.WallofFlesh:
 
-                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
+                //npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
-                var wofFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.WallofFlesh));
-                wofFirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
-                    ItemID.WarriorEmblem,
-                    ItemID.RangerEmblem,
-                    ItemID.SorcererEmblem,
-                    ItemID.SummonerEmblem
-                ));
-                npcLoot.Add(wofFirstKillRule);
-                npcLoot.Add(
-                    new OneFromRulesRule(1,
-                        ItemDropRule.Common(ItemID.WarriorEmblem),
-                        ItemDropRule.Common(ItemID.RangerEmblem),
-                        ItemDropRule.Common(ItemID.SorcererEmblem),
-                        ItemDropRule.Common(ItemID.SummonerEmblem)
-                    )
-                );
+                //var wofFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.WallofFlesh));
+                //wofFirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
+                //    ItemID.WarriorEmblem,
+                //    ItemID.RangerEmblem,
+                //    ItemID.SorcererEmblem,
+                //    ItemID.SummonerEmblem
+                //));
+                //npcLoot.Add(wofFirstKillRule);
+                //npcLoot.Add(
+                //    new OneFromRulesRule(1,
+                //        ItemDropRule.Common(ItemID.WarriorEmblem),
+                //        ItemDropRule.Common(ItemID.RangerEmblem),
+                //        ItemDropRule.Common(ItemID.SorcererEmblem),
+                //        ItemDropRule.Common(ItemID.SummonerEmblem)
+                //    )
+                //);
                 npcLoot.Add(
                     new OneFromRulesRule(1,
                         ItemDropRule.Common(ItemID.FireWhip),
@@ -527,12 +549,8 @@ public class AdventureDropDatabase : ModSystem
 
                 foreach (var drop in drops)
                 {
-                    if (drop is OneFromOptionsNotScaledWithLuckDropRule oneFromOptionsNotScaledWithLuckDropRule)
-                    {
-                        oneFromOptionsNotScaledWithLuckDropRule.dropIds = oneFromOptionsNotScaledWithLuckDropRule
-                            .dropIds.Where(id => id != ItemID.FishronWings).ToArray();
+                            ModifyDropRate(drop, ItemID.FishronWings, 0, 1);
                     }
-                }
 
                 var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
                 dukefirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
@@ -551,8 +569,8 @@ public class AdventureDropDatabase : ModSystem
 
 
             case NPCID.HallowBoss:
-                npcLoot.RemoveWhere(drop =>
-                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.RainbowWings));
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.RainbowWings, 0, 1);
                 break;
 
             case NPCID.TheDestroyer:
@@ -617,7 +635,7 @@ public class AdventureDropDatabase : ModSystem
     public static IItemDropRule OnItemDropDatabaseRegisterToGlobal(On_ItemDropDatabase.orig_RegisterToGlobal orig,
         ItemDropDatabase self, IItemDropRule entry)
     {
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
 
         var disallowed = false;
 
@@ -696,6 +714,72 @@ public class AdventureDropDatabase : ModSystem
             else
             {
                 ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find any biome key drop rates (2500) in RegisterGlobalRules method");
+            }
+        }
+    }
+    public class SoulDropEdit : ModSystem
+    {
+        private static ILHook globalRulesHook;
+
+
+        private const int NewSoulDropRate = 3; // denominator
+
+        public override void PostSetupContent()
+        {
+            MethodInfo method = typeof(Terraria.GameContent.ItemDropRules.ItemDropDatabase).GetMethod("RegisterGlobalRules",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            globalRulesHook = new ILHook(method, SoulDropILEdit);
+        }
+
+        public override void Unload()
+        {
+            globalRulesHook?.Dispose();
+        }
+
+        private static void SoulDropILEdit(ILContext il)
+        {
+            ILCursor cursor = new ILCursor(il);
+            int replacedCount = 0;
+
+
+            while (cursor.TryGotoNext(MoveType.Before,
+                i => i.MatchLdcI4(5))) 
+            {
+
+                var nextCursor = cursor.Clone();
+                bool isSoulDrop = false;
+
+
+                for (int j = 0; j < 100; j++) 
+                {
+                    if (nextCursor.TryGotoNext(MoveType.After,
+                        i => i.MatchLdcI4(520) || i.MatchLdcI4(521))) 
+                    {
+                        isSoulDrop = true;
+                        break;
+                    }
+                }
+
+                if (isSoulDrop)
+                {
+                    cursor.Remove();
+                    cursor.Emit(OpCodes.Ldc_I4, NewSoulDropRate); 
+                    replacedCount++;
+                    ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced soul drop rate 5 with {NewSoulDropRate} (instance {replacedCount})");
+                }
+                else
+                {
+                    cursor.Index++;
+                }
+            }
+
+            if (replacedCount > 0)
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully changed {replacedCount} soul drop rates from 5 to {NewSoulDropRate}");
+            }
+            else
+            {
+                ModContent.GetInstance<PvPAdventure>().Logger.Error("Failed to find any soul drop rates (5) in RegisterGlobalRules method");
             }
         }
     }

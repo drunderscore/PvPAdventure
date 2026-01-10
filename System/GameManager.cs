@@ -80,7 +80,7 @@ public class GameManager : ModSystem
         if (Main.invasionType == InvasionID.None)
             return;
 
-        var adventureConfig = ModContent.GetInstance<AdventureConfig>();
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
         if (!adventureConfig.InvasionSizes.TryGetValue(type, out var invasionSize))
             return;
 
@@ -201,6 +201,210 @@ public class GameManager : ModSystem
         CurrentPhase = Phase.Waiting;
     }
 
+    public void AdjustTimeRemaining(int deltaFrames)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            return;
+        }
+
+        if (CurrentPhase != Phase.Playing)
+        {
+            return;
+        }
+
+        int oldFrames = TimeRemaining;
+
+        int newValue = oldFrames + deltaFrames;
+        if (newValue < 0)
+        {
+            newValue = 0;
+        }
+
+        TimeRemaining = newValue;
+
+        if (TimeRemaining <= 0)
+        {
+            CurrentPhase = Phase.Waiting;
+        }
+
+        int appliedDeltaFrames = TimeRemaining - oldFrames;
+
+        string fromText = FormatHHMMSSFromFrames(oldFrames);
+        string toText = FormatHHMMSSFromFrames(TimeRemaining);
+        string deltaText = FormatDeltaMMSSFromFrames(appliedDeltaFrames);
+
+        string deltaHex = appliedDeltaFrames < 0 ? "FF0000" : (appliedDeltaFrames > 0 ? "00FF00" : "FFFFFF");
+        string deltaTagged = $"[c/{deltaHex}:{deltaText}]";
+
+        string msg = $"Game time adjusted from {fromText} to {toText} ({deltaTagged})";
+
+        if (Main.dedServ)
+        {
+            NetMessage.SendData(MessageID.WorldData);
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(msg), Color.White);
+        }
+        else if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(msg), Color.White);
+        }
+    }
+
+    private const int FramesPerSecond = 60;
+
+    private static string FormatHHMMSSFromFrames(int frames)
+    {
+        if (frames < 0)
+        {
+            frames = 0;
+        }
+
+        int totalSeconds = frames / FramesPerSecond;
+
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+
+        return $"{hours:00}:{minutes:00}:{seconds:00}";
+    }
+
+    private static string FormatDeltaMMSSFromFrames(int deltaFrames)
+    {
+        if (deltaFrames == 0)
+        {
+            return "+0:00";
+        }
+
+        string sign = deltaFrames > 0 ? "+" : "-";
+
+        int absFrames = deltaFrames > 0 ? deltaFrames : -deltaFrames;
+        int totalSeconds = absFrames / FramesPerSecond;
+
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+
+        return $"{sign}{minutes}:{seconds:00}";
+    }
+
+    private void BroadcastEndGameSummary()
+    {
+        // Only the server (or singleplayer) should broadcast.
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            return;
+        }
+
+        var pm = ModContent.GetInstance<PointsManager>();
+
+        for (int i = 0; i < 1; i++)
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("-----------------------------"), Color.White);
+        }
+
+        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("The game has ended!"), Color.White);
+
+        var scoredTeams = pm.Points
+            .Where(kvp => kvp.Key != Team.None)
+            .Where(kvp => kvp.Value > 0)
+            .OrderByDescending(kvp => kvp.Value)
+            .ToList();
+
+        if (scoredTeams.Count == 0)
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("No teams scored any points."),Color.White);
+            return;
+        }
+
+        var maxPoints = scoredTeams[0].Value;
+        var winningTeams = scoredTeams
+            .Where(kvp => kvp.Value == maxPoints)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        if (winningTeams.Count == 1)
+        {
+            var team = winningTeams[0];
+
+            ChatHelper.BroadcastChatMessage(
+                NetworkText.FromLiteral($"{team} Team wins with {maxPoints} points!"),
+                Main.teamColor[(int)team]);
+        }
+        else
+        {
+            // Multiple winners
+            var winnersText = string.Join(", ", winningTeams.Select(t => $"{t} Team"));
+
+            ChatHelper.BroadcastChatMessage(
+                NetworkText.FromLiteral($"Tie! {winnersText} lead with {maxPoints} points."),
+                Color.White);
+        }
+
+        int rank = 1;
+
+        // Print team summary row, containing team points and MVP.
+        foreach (var (team, points) in scoredTeams)
+        {
+            Player bestPlayer = null;
+            var bestKills = -1;
+            var bestDeaths = int.MaxValue;
+            var bestKd = -1f;
+
+            foreach (var player in Main.ActivePlayers)
+            {
+                if ((Team)player.team != team)
+                {
+                    continue;
+                }
+
+                var ap = player.GetModPlayer<AdventurePlayer>();
+                var kills = ap.Kills;
+                var deaths = ap.Deaths;
+
+                float kd = deaths <= 0 ? kills : kills / (float)deaths;
+
+                var isBetter = false;
+
+                if (kills > bestKills)
+                {
+                    isBetter = true;
+                }
+                else if (kills == bestKills)
+                {
+                    if (deaths < bestDeaths)
+                    {
+                        isBetter = true;
+                    }
+                    else if (deaths == bestDeaths && kd > bestKd)
+                    {
+                        isBetter = true;
+                    }
+                }
+
+                if (isBetter)
+                {
+                    bestPlayer = player;
+                    bestKills = kills;
+                    bestDeaths = deaths;
+                    bestKd = kd;
+                }
+            }
+
+            string teamSummaryRow = $"{rank}. {team} Team: {points} points.";
+
+            if (bestPlayer != null)
+            {
+                var bestAp = bestPlayer.GetModPlayer<AdventurePlayer>();
+                teamSummaryRow += $" MVP: {bestPlayer.name} (K/D: {bestAp.Kills}/{bestAp.Deaths})";
+            }
+
+            ChatHelper.BroadcastChatMessage(
+                text: NetworkText.FromLiteral(teamSummaryRow),
+                color: Main.teamColor[(int)team]);
+
+            rank++;
+        }
+    }
+
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
     private void OnPhaseChange(Phase newPhase)
     {
@@ -231,6 +435,7 @@ public class GameManager : ModSystem
                         NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
                 }
 
+                    // Teleport all players to spawn
                 var spawnPosition = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
                 foreach (var player in Main.ActivePlayers)
                 {
@@ -244,7 +449,10 @@ public class GameManager : ModSystem
 
                 UpdateFreezeTime(true);
 
-                    break;
+                // Broadcast end game summary
+                BroadcastEndGameSummary();
+
+                break;
             }
             case Phase.Playing:
             {
@@ -408,7 +616,7 @@ public class GameManager : ModSystem
             if (Main.netMode == NetmodeID.SinglePlayer)
                 return;
 
-            var crashoutMessages = ModContent.GetInstance<AdventureConfig>().CrashoutMessages;
+            var crashoutMessages = ModContent.GetInstance<AdventureServerConfig>().CrashoutMessages;
             var message = crashoutMessages[Main.rand.Next(0, crashoutMessages.Count)];
 
             ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{caller.Player.name} crashed out: {message}"),

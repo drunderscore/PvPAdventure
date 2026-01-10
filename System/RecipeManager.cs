@@ -257,12 +257,9 @@ public class RecipeManager : ModSystem
         public static int[] PrimaryItems => new int[] {
             ItemID.PlanteraMasterTrophy,
             ItemID.GrenadeLauncher,
-            ItemID.LeafBlower,
-            ItemID.WaspGun,
             ItemID.NettleBurst,
             ItemID.FlowerPow,
             ItemID.VenusMagnum,
-            ItemID.Seedler,
         };
 
         public override void AddRecipeGroups()
@@ -810,7 +807,7 @@ public class RecipeManager : ModSystem
                 foreach (int itemID in AnyPlantera1.PrimaryItems.Where(id => id != ItemID.PlanteraMasterTrophy))
                 {
                     Recipe.Create(itemID)
-                        .AddRecipeGroup($"PvPAdventure:AnyPlanteraPrimaryExclude{itemID}", 3)
+                        .AddRecipeGroup($"PvPAdventure:AnyPlanteraPrimaryExclude{itemID}", 2)
                         .AddCondition(shimmerCondition)
                         .DisableDecraft()
                         .Register();

@@ -295,7 +295,7 @@ public class BountyManager : ModSystem
     {
         var team = (Team)killer.team;
 
-        var eligibleBounties = ModContent.GetInstance<AdventureConfig>().Bounties
+        var eligibleBounties = ModContent.GetInstance<AdventureServerConfig>().Bounties
             .Where(IsBountyAvailable)
             .Select(bounty => bounty.Items)
             .Select(items => items.Select(item => new Item(item.Item.Type, item.Stack, item.Prefix.Type)).ToArray())
@@ -386,15 +386,15 @@ public class BountyManager : ModSystem
 
     public void IncrementTransactionId() => TransactionId++;
 
-    private bool IsBountyAvailable(AdventureConfig.Bounty bounty)
+    private bool IsBountyAvailable(AdventureServerConfig.Bounty bounty)
     {
         // This set requires pre-hardmode, but the world is hardmode.
-        if (bounty.Conditions.WorldProgression == AdventureConfig.Condition.WorldProgressionState.PreHardmode &&
+        if (bounty.Conditions.WorldProgression == AdventureServerConfig.Condition.WorldProgressionState.PreHardmode &&
             Main.hardMode)
             return false;
 
         // This set requires hardmode, but the world is pre-hardmode.
-        if (bounty.Conditions.WorldProgression == AdventureConfig.Condition.WorldProgressionState.Hardmode &&
+        if (bounty.Conditions.WorldProgression == AdventureServerConfig.Condition.WorldProgressionState.Hardmode &&
             !Main.hardMode)
             return false;
 
