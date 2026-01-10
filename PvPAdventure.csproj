@@ -16,6 +16,9 @@
 		<Folder Include="lib\Native\" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Include="Content\Items\ConfigItems\HPVanillaConfigItem.cs" />
+	</ItemGroup>
+	<ItemGroup>
 		<Reference Include="Discord.Net.Core">
 			<HintPath>lib\Discord.Net.Core.dll</HintPath>
 		</Reference>

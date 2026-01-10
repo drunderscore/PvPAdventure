@@ -199,6 +199,11 @@ Mods: {
 				DisplayName: Map Spawn Config
 				Tooltip: ""
 			}
+
+			HPVanillaConfigItem: {
+				DisplayName: HP Vanilla Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -254,7 +259,7 @@ Mods: {
 					Spectate: "[i:Binoculars] Spectate"
 					Spawn: Spawn
 					Debug: "[i:Goggles] Debug"
-					HealthBars: Health Bars Header
+					Healthbars: "[i:PvPAdventure/HPVanillaConfigItem] Healthbars"
 				}
 
 				ShiftEnterOpensAllChat: {

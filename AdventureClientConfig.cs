@@ -36,33 +36,31 @@ public class AdventureClientConfig : ModConfig
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool CloseMapOnHurt;
 
-    [Header("HealthBars")]
-   [BackgroundColor(200, 30, 30, 150)]
-   [DefaultValue(true)]
-   [CustomModConfigItem(typeof(HealthbarShowElement))]
-   public bool ShowHealthBars;
+    [Header("Healthbars")]
+    [BackgroundColor(200, 30, 30, 150)]
+    [DefaultValue(true)]
+    [CustomModConfigItem(typeof(HealthbarShowElement))]
+    public bool ShowHealthBars = true;
 
-   [BackgroundColor(200, 30, 30, 150)]
-   [Increment(0.5f)]
-   [Range(1f, 2f)]
-   [DefaultValue(1.0f)]
-   [Slider]
-   [CustomModConfigItem(typeof(HealthbarScaleElement))]
-   public float HealthbarScale;
+    [BackgroundColor(200, 30, 30, 150)]
+    [DefaultValue(true)]
+    //[CustomModConfigItem(typeof(HealthbarShowElement))]
+    public bool ShowManaBars = true;
 
-   [Increment(1)]
-   [Range(0, 100)]
-   [DefaultValue(0)]
-   [BackgroundColor(200, 30, 30, 150)]
-   [CustomModConfigItem(typeof(HealthbarOffsetElement))]
-   public int HealthbarYOffset;
+    [BackgroundColor(200, 30, 30, 150)]
+    [Increment(0.5f)]
+    [Range(1f, 2f)]
+    [DefaultValue(1.0f)]
+    [Slider]
+    [CustomModConfigItem(typeof(HealthbarScaleElement))]
+    public float HealthbarScale = 1.0f;
 
-   [DrawTicks]
-   [CustomModConfigItem(typeof(HealthbarStyleConfigElement))]
-   [OptionStrings(["Vanilla", "Fancy", "Golden", "Leaf", "Retro", "Sticks", "StoneGold", "Tribute", "TwigLeaf", "Valkyrie"])]
-   [DefaultValue("Fancy")]
-   [BackgroundColor(200, 30, 30, 150)]
-   public string Theme;
+    [Increment(1)]
+    [Range(0, 100)]
+    [DefaultValue(80)]
+    [BackgroundColor(200, 30, 30, 150)]
+    [CustomModConfigItem(typeof(HealthbarOffsetElement))]
+    public int HealthbarYOffset = 80;
 
     [Header("Debug")]
     [DefaultValue(true)] public bool EnableDebugMessages;
