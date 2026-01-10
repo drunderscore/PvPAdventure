@@ -24,6 +24,7 @@ Mods: {
 			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
 			OpenLoadoutMenu.DisplayName: Open Loadout Menu
 			DashKeybind.DisplayName: Dash Keybind
+			OpenArenasMenu.DisplayName: Open Arenas Menu
 		}
 
 		Tools: {

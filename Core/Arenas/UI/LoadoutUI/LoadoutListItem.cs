@@ -48,7 +48,18 @@ public sealed class LoadoutListItem : UIPanel
             Left = { Pixels = -20f, Precent = 1f }
         };
         playButton.OnLeftClick += (_, _) => equip?.Invoke(def.Name);
-        playButton.OnMouseOver += (_, _) => Main.instance.MouseText("Play");
+        playButton.OnMouseOver += (_, _) =>
+        {
+            playButton.OnUpdate += _ =>
+            {
+                if (!Main.LocalPlayer.mouseInterface)
+                {
+                    Main.LocalPlayer.mouseInterface = true;
+                    Main.instance.MouseText("Play");
+                }
+            };
+        };
+
         Append(playButton);
     }
 
@@ -177,6 +188,26 @@ public sealed class LoadoutListItem : UIPanel
                 Main.LocalPlayer.mouseInterface = true;
                 Main.HoverItem = item.Clone();
                 Main.hoverItemName = item.Name;
+            }
+
+            // Draw stack
+            if (item.stack > 1)
+            {
+                string stackText = item.stack.ToString();
+
+                Vector2 textSize = FontAssets.ItemStack.Value.MeasureString(stackText);
+                Vector2 textPos = dim.Position() + new Vector2(
+                    dim.Width - textSize.X / 4f - 24f,
+                    dim.Height - textSize.Y + 12f
+                );
+
+                Utils.DrawBorderString(
+                    sb,
+                    stackText,
+                    textPos,
+                    Color.White,
+                    0.65f
+                );
             }
         }
     }

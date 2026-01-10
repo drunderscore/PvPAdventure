@@ -20,9 +20,9 @@ internal class ArenasPlayer : ModPlayer
             LoadoutUI.ArenasLoadoutUISystem.Toggle();
         }
 
-        if (keybinds.Arenas.JustPressed && gm.CurrentPhase == GameManager.Phase.Waiting)
+        //if (keybinds.Arenas.JustPressed && gm.CurrentPhase == GameManager.Phase.Waiting)
         {
-            JoinUI.ArenasJoinUISystem.Toggle();
+            //JoinUI.ArenasJoinUISystem.Toggle();
         }
     }
 

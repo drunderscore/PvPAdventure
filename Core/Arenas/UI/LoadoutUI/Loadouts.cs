@@ -10,8 +10,6 @@ namespace PvPAdventure.Core.Arenas.UI.LoadoutUI;
 /// </summary>
 public static class Loadouts
 {
-    private static readonly int Wings = ItemID.BetsyWings;
-
     public static readonly LoadoutDef Melee =
         new()
         {
@@ -21,7 +19,7 @@ public static class Loadouts
             Legs = ItemID.BeetleLeggings,
             Accessories =
             {
-                Wings,
+                ItemID.BetsyWings,
                 ItemID.WarriorEmblem,
                 ItemID.MechanicalGlove,
                 ItemID.AnkhShield,
@@ -33,6 +31,11 @@ public static class Loadouts
                 new LoadoutItem(ItemID.TheEyeOfCthulhu),
                 new LoadoutItem(ItemID.IceRod),
                 new LoadoutItem(ItemID.GreaterHealingPotion, 10),
+                new LoadoutItem(ItemID.Dynamite, 60),
+                new LoadoutItem(ItemID.HoneyBucket),
+                new LoadoutItem(ItemID.GrayBrick, 999),
+                new LoadoutItem(ItemID.WoodPlatform, 999),
+                new LoadoutItem(ItemID.Binoculars),
             },
             EquipmentHook = ItemID.ChristmasHook
         };
@@ -46,7 +49,7 @@ public static class Loadouts
             Legs = ItemID.ShroomiteLeggings,
             Accessories =
             {
-                Wings,
+                ItemID.BetsyWings,
                 ItemID.RangerEmblem,
                 ItemID.MagicQuiver,
                 ItemID.AnkhShield,
@@ -58,6 +61,11 @@ public static class Loadouts
                 new LoadoutItem(ItemID.ChlorophyteBullet, 9999),
                 new LoadoutItem(ItemID.IceRod),
                 new LoadoutItem(ItemID.GreaterHealingPotion, 10),
+                new LoadoutItem(ItemID.Dynamite, 60),
+                new LoadoutItem(ItemID.HoneyBucket),
+                new LoadoutItem(ItemID.GrayBrick, 999),
+                new LoadoutItem(ItemID.BorealWoodPlatform, 999),
+                new LoadoutItem(ItemID.Binoculars),
             },
             EquipmentHook = ItemID.LunarHook
         };
@@ -71,7 +79,7 @@ public static class Loadouts
             Legs = ItemID.SpectrePants,
             Accessories =
             {
-                Wings,
+                ItemID.BetsyWings,
                 ItemID.SorcererEmblem,
                 ItemID.CelestialCuffs,
                 ItemID.AnkhShield,
@@ -83,6 +91,11 @@ public static class Loadouts
                 new LoadoutItem(ItemID.ManaPotion, 20),
                 new LoadoutItem(ItemID.IceRod),
                 new LoadoutItem(ItemID.GreaterHealingPotion, 10),
+                new LoadoutItem(ItemID.Dynamite, 60),
+                new LoadoutItem(ItemID.HoneyBucket),
+                new LoadoutItem(ItemID.GrayBrick, 999),
+                new LoadoutItem(ItemID.WoodPlatform, 999),
+                new LoadoutItem(ItemID.Binoculars),
             },
             EquipmentHook = ItemID.SpookyHook
         };
@@ -96,7 +109,7 @@ public static class Loadouts
             Legs = ItemID.SpookyLeggings,
             Accessories =
             {
-                Wings,
+                ItemID.BetsyWings,
                 ItemID.SummonerEmblem,
                 ItemID.PapyrusScarab,
                 ItemID.AnkhShield,
@@ -108,9 +121,15 @@ public static class Loadouts
                 new LoadoutItem(ItemID.MaceWhip),
                 new LoadoutItem(ItemID.IceRod),
                 new LoadoutItem(ItemID.GreaterHealingPotion, 10),
+                new LoadoutItem(ItemID.Dynamite, 60),
+                new LoadoutItem(ItemID.HoneyBucket),
+                new LoadoutItem(ItemID.GrayBrick, 999),
+                new LoadoutItem(ItemID.BorealWoodPlatform, 999),
+                new LoadoutItem(ItemID.Binoculars),
             },
             EquipmentHook = ItemID.ChristmasHook
         };
 }
+
 
 

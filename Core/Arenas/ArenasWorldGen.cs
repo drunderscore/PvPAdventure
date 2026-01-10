@@ -17,7 +17,6 @@ public class ArenasWorldGen : ModSystem
         [
             Pass("AdjustWorldHeight", AdjustWorldHeight),
             Pass("ArenasMiniWorld", ArenasMiniWorld),
-            Pass("BottomMud", BottomMudLayer),
         ];
     }
 
