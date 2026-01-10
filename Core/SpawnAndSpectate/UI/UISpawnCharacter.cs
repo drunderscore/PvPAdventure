@@ -359,7 +359,7 @@ public class UISpawnCharacter : UIPanel
         if (player.respawnTimer != 0)
         {
             // Draw dead icon
-            var tex = Ass.Dead_Icon.Value;
+            var tex = Ass.Icon_Dead.Value;
             Vector2 skullCenter = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
 
             sb.Draw(

@@ -13,16 +13,16 @@ namespace PvPAdventure.Common;
 public static class Ass
 {
     // Spawn selector assets
-    public static Asset<Texture2D> Dead_Icon;
     public static Asset<Texture2D> CustomPlayerBackground;
     public static Asset<Texture2D>[] MapBG;
+    public static Asset<Texture2D> Icon_Dead;
+    //public static Asset<Texture2D> Icon_Forbidden; //unused
+    public static Asset<Texture2D> Icon_Question_Mark;
     public static Asset<Texture2D> Spawnbox;
-    //public static Asset<Texture2D> Stop_Icon; //unused
-    public static Asset<Texture2D> Question_Mark;
 
     // Admin tools assets
-    public static Asset<Texture2D> Reset;
-    public static Asset<Texture2D> Resize;
+    public static Asset<Texture2D> Icon_Reset;
+    public static Asset<Texture2D> Icon_Resize;
     public static Asset<Texture2D> Slider;
     public static Asset<Texture2D> SliderHighlight;
     public static Asset<Texture2D> SliderGradient;
@@ -55,7 +55,7 @@ public static class Ass
         for (int i = 1; i <= 42; i++)
         {
             MapBG[i - 1] = ModContent.Request<Texture2D>(
-                $"PvPAdventure/Assets/Ass/MapBG{i}",
+                $"PvPAdventure/Assets/Ass/MapBGs/MapBG{i}",
                 AssetRequestMode.AsyncLoad);
         }
 
