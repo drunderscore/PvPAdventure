@@ -4,6 +4,7 @@ using PvPAdventure.Core.SpawnAndSpectate.UI;
 using PvPAdventure.System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -28,9 +29,10 @@ public class SpawnSystem : ModSystem
     {
         None,
         World,
+        MyBed,
         Random,
-        Player,
-        Bed
+        Teammate,
+        TeammateBed
     }
 
     // Map timer
@@ -119,6 +121,7 @@ public class SpawnSystem : ModSystem
         }
 
         p.TeleportationPotion();
+        SoundEngine.PlaySound(SoundID.Item6, p.Center);
     }
 
     private static void TeleportToPlayer(Player p, int idx)
@@ -135,7 +138,7 @@ public class SpawnSystem : ModSystem
             var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
             pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
             pkt.Write((byte)Main.myPlayer);
-            pkt.Write((byte)SpawnType.Player);
+            pkt.Write((byte)SpawnType.Teammate);
             pkt.Write((short)idx);
             pkt.Send();
             return;
@@ -144,7 +147,7 @@ public class SpawnSystem : ModSystem
         p.UnityTeleport(t.position);
     }
 
-    private static void TeleportToBed(Player p, int idx)
+    private static void TeleportToTeammatesBed(Player p, int idx)
     {
         //if (!IsValidTeammateIndex(idx))
             //return;
@@ -159,7 +162,7 @@ public class SpawnSystem : ModSystem
             var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
             pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
             pkt.Write((byte)Main.myPlayer);
-            pkt.Write((byte)SpawnType.Bed);
+            pkt.Write((byte)SpawnType.TeammateBed);
             pkt.Write((short)idx);
             pkt.Send();
             return;
@@ -169,6 +172,26 @@ public class SpawnSystem : ModSystem
             return;
 
         Vector2 pos = new Vector2(t.SpawnX, t.SpawnY - 6).ToWorldCoordinates();
+        p.Teleport(pos, TeleportationStyleID.RecallPotion);
+    }
+
+    private static void TeleportMyBed(Player p)
+    {
+        if (p.SpawnX < 0 || p.SpawnY < 0 || !Player.CheckSpawn(p.SpawnX, p.SpawnY))
+            return;
+
+        Vector2 pos = new Vector2(p.SpawnX, p.SpawnY - 6).ToWorldCoordinates();
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
+            pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
+            pkt.Write((byte)Main.myPlayer);
+            pkt.Write((byte)SpawnType.MyBed);
+            pkt.Send();
+            return;
+        }
+
         p.Teleport(pos, TeleportationStyleID.RecallPotion);
     }
 
@@ -190,7 +213,7 @@ public class SpawnSystem : ModSystem
         if (p.whoAmI == Main.myPlayer)
         {
             string extra =
-                (sp.SelectedType == SpawnType.Player || sp.SelectedType == SpawnType.Bed)
+                (sp.SelectedType == SpawnType.Teammate || sp.SelectedType == SpawnType.TeammateBed)
                     ? " (" + Main.player[sp.SelectedPlayerIndex].name + ")"
                     : "";
 
@@ -211,16 +234,23 @@ public class SpawnSystem : ModSystem
             return;
         }
 
-        if (sp.SelectedType == SpawnType.Player)
+        if (sp.SelectedType == SpawnType.MyBed)
+        {
+            TeleportMyBed(p);
+            OnTeleportExecuted();
+            return;
+        }
+
+        if (sp.SelectedType == SpawnType.Teammate)
         {
             TeleportToPlayer(p, sp.SelectedPlayerIndex);
             OnTeleportExecuted();
             return;
         }
 
-        if (sp.SelectedType == SpawnType.Bed)
+        if (sp.SelectedType == SpawnType.TeammateBed)
         {
-            TeleportToBed(p, sp.SelectedPlayerIndex);
+            TeleportToTeammatesBed(p, sp.SelectedPlayerIndex);
             OnTeleportExecuted();
             return;
         }
@@ -254,7 +284,7 @@ public class SpawnSystem : ModSystem
         bool inSpawnRegion = local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
         bool sessionOpen = SessionOpen;
 
-        Enabled = playing && !Main.playerInventory && (inSpawnRegion || sessionOpen);
+        Enabled = playing && !Main.playerInventory && sessionOpen;
         if (sessionOpen && !sessionWasOpen)
         {
             ResetMapTimer();

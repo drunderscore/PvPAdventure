@@ -1,5 +1,6 @@
 ﻿using PvPAdventure.System;
 using Terraria;
+using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -54,7 +55,7 @@ public class SpawnPlayer : ModPlayer
 
         bool same =
             SelectedType == type &&
-            ((type != SpawnType.Player && type != SpawnType.Bed) ||
+            ((type != SpawnType.TeammateBed && type != SpawnType.TeammateBed) ||
              SelectedPlayerIndex == playerIndex);
 
         if (same)
@@ -67,15 +68,14 @@ public class SpawnPlayer : ModPlayer
             return;
         }
 
-        // Validate requested selection (may rewrite to None)
-        if (type == SpawnType.Player &&
+        if (type == SpawnType.Teammate &&
             !SpawnSystem.IsValidTeammateIndex(playerIndex))
         {
             type = SpawnType.None;
             playerIndex = -1;
         }
 
-        if (type == SpawnType.Bed)
+        if (type == SpawnType.TeammateBed)
         {
             bool ok = playerIndex == Player.whoAmI;
 
@@ -102,7 +102,7 @@ public class SpawnPlayer : ModPlayer
         SelectedType = type;
 
         SelectedPlayerIndex =
-            (type == SpawnType.Player || type == SpawnType.Bed)
+            (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
                 ? playerIndex
                 : -1;
 
@@ -129,8 +129,8 @@ public class SpawnPlayer : ModPlayer
     {
         return type switch
         {
-            SpawnType.Player => $"Player ({Main.player[idx].name})",
-            SpawnType.Bed => $"Bed ({Main.player[idx].name})",
+            SpawnType.Teammate => $"Player ({Main.player[idx].name})",
+            SpawnType.TeammateBed => $"Bed ({Main.player[idx].name})",
             _ => type.ToString()
         };
     }
@@ -152,10 +152,10 @@ public class SpawnPlayer : ModPlayer
 
     internal void ApplySelectionFromNet(SpawnType type, int idx)
     {
-        if (type == SpawnType.Player && !SpawnSystem.IsValidTeammateIndex(idx))
+        if (type == SpawnType.Teammate && !SpawnSystem.IsValidTeammateIndex(idx))
             type = SpawnType.None;
 
-        if (type == SpawnType.Bed)
+        if (type == SpawnType.TeammateBed)
         {
             bool ok = idx == Player.whoAmI;
 
@@ -178,7 +178,7 @@ public class SpawnPlayer : ModPlayer
 
         SelectedType = type;
         SelectedPlayerIndex =
-            (type == SpawnType.Player || type == SpawnType.Bed)
+            (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
                 ? idx
                 : -1;
 

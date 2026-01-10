@@ -1,7 +1,7 @@
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Content.Items.ConfigItems;
-public class BoundsArmsDealerConfig : ModItem
+public class BoundArmsDealerConfig : ModItem
 {
     public override void SetDefaults()
     {

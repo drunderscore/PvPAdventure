@@ -1,5 +1,5 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -19,9 +19,11 @@ public sealed class UIBedButton : UIElement
 
     private readonly int playerIndex;
     private readonly Item bedIcon;
+    private bool hasBed;
 
-    public UIBedButton(int playerIndex)
+    public UIBedButton(int playerIndex, bool hasBed)
     {
+        this.hasBed = hasBed;
         this.playerIndex = playerIndex;
 
         bedIcon = new Item();
@@ -32,6 +34,13 @@ public sealed class UIBedButton : UIElement
         SetPadding(0f);
     }
 
+    private static bool HasValidBed(Player p)
+    {
+        return p.SpawnX >= 0 &&
+               p.SpawnY >= 0 &&
+               Player.CheckSpawn(p.SpawnX, p.SpawnY);
+    }
+
     public override void LeftClick(UIMouseEvent evt)
     {
         base.LeftClick(evt);
@@ -40,22 +49,26 @@ public sealed class UIBedButton : UIElement
         if (local == null || !local.active)
             return;
 
+        if (playerIndex < 0 || playerIndex >= Main.maxPlayers)
+            return;
+
+        if (!HasValidBed(Main.player[playerIndex]))
+        {
+            return;
+        }
+
         var sp = local.GetModPlayer<SpawnPlayer>();
 
         // Always allow clicking again to cancel, even if the bed owner became invalid.
         bool isSelected =
-            sp.SelectedType == SpawnType.Bed &&
+            sp.SelectedType == SpawnType.TeammateBed &&
             sp.SelectedPlayerIndex == playerIndex;
 
         if (isSelected)
         {
-            sp.ToggleSelection(SpawnType.Bed, playerIndex); // hits "same" => clears
+            sp.ToggleSelection(SpawnType.TeammateBed, playerIndex); // hits "same" => clears
             return;
         }
-
-        // Validate only for selecting (not canceling).
-        if (playerIndex < 0 || playerIndex >= Main.maxPlayers)
-            return;
 
         Player bedOwner = Main.player[playerIndex];
         if (bedOwner == null || !bedOwner.active)
@@ -75,7 +88,7 @@ public sealed class UIBedButton : UIElement
         if (!Player.CheckSpawn(bedOwner.SpawnX, bedOwner.SpawnY))
             return;
 
-        sp.ToggleSelection(SpawnType.Bed, playerIndex);
+        sp.ToggleSelection(SpawnType.TeammateBed, playerIndex);
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -99,30 +112,35 @@ public sealed class UIBedButton : UIElement
 
         if (IsMouseHovering && valid)
         {
-            SpectateSystem.TrySetHover(SpawnType.Bed, playerIndex);
+            SpectateSystem.TrySetHover(SpawnType.TeammateBed, playerIndex);
             local.mouseInterface = true;
         }
         else
         {
-            SpectateSystem.ClearHoverIfMatch(SpawnType.Bed, playerIndex);
+            SpectateSystem.ClearHoverIfMatch(SpawnType.TeammateBed, playerIndex);
         }
         // update end
 
         var dims = GetDimensions();
         Rectangle rect = dims.ToRectangle();
 
-        //Player local = Main.LocalPlayer;
-        var sp = local?.GetModPlayer<SpawnPlayer>();
+        var sp = local.GetModPlayer<SpawnPlayer>();
 
         bool selected =
-            sp != null &&
-            sp.SelectedType == SpawnSystem.SpawnType.Bed &&
-            sp.SelectedPlayerIndex == playerIndex;
+        sp != null &&
+        sp.SelectedType == SpawnSystem.SpawnType.TeammateBed &&
+        sp.SelectedPlayerIndex == playerIndex;
+
+        bool hasValidBed = HasValidBed(Main.player[playerIndex]);
 
         Texture2D bg =
             selected ? TextureAssets.InventoryBack14.Value :
             IsMouseHovering ? TextureAssets.InventoryBack15.Value :
             TextureAssets.InventoryBack7.Value;
+
+        if (!hasValidBed) bg = TextureAssets.InventoryBack5.Value;
+        //if (!hasValidBed) bg = TextureAssets.InventoryBack11.Value;
+        //if (!hasValidBed) bg = TextureAssets.InventoryBack2.Value;
 
         sb.Draw(bg, rect, Color.White);
 
@@ -130,6 +148,12 @@ public sealed class UIBedButton : UIElement
         float scale = ButtonSize / 32f;
 
         ItemSlot.DrawItemIcon(bedIcon,ItemSlot.Context.InventoryItem,sb,iconCenter,scale,ButtonSize,Color.White);
+
+        if (!hasValidBed) 
+        {
+            Vector2 origin = Ass.Icon_Forbidden.Value.Size() * 0.5f;
+            sb.Draw(Ass.Icon_Forbidden.Value, iconCenter, null, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
+        }
 
         if (IsMouseHovering)
         {
@@ -141,10 +165,11 @@ public sealed class UIBedButton : UIElement
             bool canRespawn = SpawnSystem.CanTeleport;
 
             string text =
+                !hasValidBed ? "No bed set" :
                 selected
                     ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelBedSpawn", name)
                     : canRespawn
-                        ? Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToPlayersBed", name)
+                        ? Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammatesBed", name)
                         : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectBedSpawn", name);
 
             Main.instance.MouseText(text);

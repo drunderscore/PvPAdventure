@@ -16,7 +16,7 @@ public static class Ass
     public static Asset<Texture2D> CustomPlayerBackground;
     public static Asset<Texture2D>[] MapBG;
     public static Asset<Texture2D> Icon_Dead;
-    //public static Asset<Texture2D> Icon_Forbidden; //unused
+    public static Asset<Texture2D> Icon_Forbidden;
     public static Asset<Texture2D> Icon_Question_Mark;
     public static Asset<Texture2D> Spawnbox;
 

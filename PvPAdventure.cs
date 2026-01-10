@@ -318,7 +318,7 @@ public class PvPAdventure : Mod
                 break;
             case AdventurePacketIdentifier.TeleportRequest:
                 {
-                    TeleportOnMap.HandlePacket(reader, whoAmI);
+                    TeleportNetHandler.HandlePacket(reader, whoAmI);
                     break;
                 }
             case AdventurePacketIdentifier.PlayerBed:
@@ -339,13 +339,7 @@ public class PvPAdventure : Mod
                         packet.Write(spawnX);
                         packet.Write(spawnY);
                         packet.Send(-1, whoAmI);
-#if DEBUG
-                        if (p != null && p.name != string.Empty)
-                        {
-                            //Log.Chat($"Player {p.name} set spawn to ({spawnX}, {spawnY})");
-                        }
                     }
-#endif
 
                     break;
                 }

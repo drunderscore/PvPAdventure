@@ -23,17 +23,24 @@ public class SpectateSystem : ModSystem
 
     public static void TrySetHover(SpawnType type, int idx)
     {
-        if (type == SpawnType.Bed)
+        if (type == SpawnType.MyBed)
         {
-            HoveringType = SpawnType.Bed;
+            HoveringType = SpawnType.MyBed;
             HoveredPlayerIndex = idx;
             return;
         }
 
-        if (HoveringType == SpawnType.Bed)
+        if (type == SpawnType.TeammateBed)
+        {
+            HoveringType = SpawnType.TeammateBed;
+            HoveredPlayerIndex = idx;
+            return;
+        }
+
+        if (HoveringType == SpawnType.TeammateBed)
             return;
 
-        if (type == SpawnType.Player && HoveringType != SpawnType.None)
+        if (type == SpawnType.Teammate && HoveringType != SpawnType.None)
             return;
 
         HoveringType = type;
@@ -83,13 +90,9 @@ public class SpectateSystem : ModSystem
 
         ValidateHover();
 
-        bool inSpawnRegion =
-            !local.dead &&
-            local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
+        bool inSpawnRegion =!local.dead && local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
 
-        bool hovering =
-            HoveringType != SpawnType.None &&
-            !(inSpawnRegion && HoveringType == SpawnType.World);
+        bool hovering = HoveringType != SpawnType.None;
 
         HandleHoverTransitions(local, hovering);
 
@@ -101,11 +104,11 @@ public class SpectateSystem : ModSystem
 
     private static void ValidateHover()
     {
-        if (HoveringType == SpawnType.Player &&
+        if (HoveringType == SpawnType.Teammate &&
             !IsValidPlayer(HoveredPlayerIndex ?? -1))
             ClearHover();
 
-        if (HoveringType == SpawnType.Bed &&
+        if (HoveringType == SpawnType.TeammateBed &&
             !IsValidBed(HoveredPlayerIndex ?? -1))
             ClearHover();
     }
@@ -153,27 +156,40 @@ public class SpectateSystem : ModSystem
 
     private static void ApplyCamera(bool inSpawnRegion)
     {
+        // Always spectate world spawn when hovering world spawn.
         if (HoveringType == SpawnType.World)
         {
-            // Only world spawn spectate is blocked in spawn region (handled by hovering calc).
             Vector2 pos = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
             Main.screenPosition = pos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
             return;
         }
 
-        if (HoveredPlayerIndex is not int idx)
+        if (HoveringType == SpawnType.MyBed)
+        {
+            Player me = Main.LocalPlayer;
+            Vector2 myBedPos = new Vector2(me.SpawnX, me.SpawnY - 3).ToWorldCoordinates();
+            Main.screenPosition = myBedPos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
             return;
+        }
 
-        Player p = Main.player[idx];
-        if (p == null || !p.active)
-            return;
+        if (HoveredPlayerIndex is int idx)
+        {
+            Player p = Main.player[idx];
+            if (p == null || !p.active)
+                return;
 
-        Vector2 target =
-            HoveringType == SpawnType.Bed
-                ? new Vector2(p.SpawnX, p.SpawnY - 3).ToWorldCoordinates()
-                : p.position;
-
-        Main.screenPosition =
-            target - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+            if (HoveringType == SpawnType.Teammate)
+            {
+                Vector2 teammatePos = p.position;
+                Main.screenPosition = teammatePos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+                return;
+            }
+            if (HoveringType == SpawnType.TeammateBed)
+            {
+                Vector2 teammateBedPos = new Vector2(p.SpawnX, p.SpawnY - 3).ToWorldCoordinates();
+                Main.screenPosition = teammateBedPos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+                return;
+            }
+        }
     }
 }

@@ -435,7 +435,7 @@ public class GameManager : ModSystem
                         NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
                 }
 
-                    // Teleport all players to spawn
+                // Teleport all players to spawn
                 var spawnPosition = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
                 foreach (var player in Main.ActivePlayers)
                 {
@@ -461,6 +461,9 @@ public class GameManager : ModSystem
                 spawnRegion.CanRandomTeleport = true;
                 spawnRegion.CanUseWormhole = true;
                 spawnRegion.CanExit = true;
+
+                // force open map (and spawn selector)
+                Main.mapFullscreen = true;
 
                 UpdateFreezeTime(false);
 

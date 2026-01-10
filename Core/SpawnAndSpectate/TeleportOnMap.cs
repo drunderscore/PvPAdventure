@@ -125,8 +125,8 @@ public class TeleportOnMap : ModSystem
         if (!HasValidBedSpawn(localPlayer))
             return false;
 
-        int idx = localPlayer.whoAmI;
-        bool isSelected = sp.SelectedType == SpawnType.Bed && sp.SelectedPlayerIndex == idx;
+        int me = localPlayer.whoAmI;
+        bool isSelected = sp.SelectedType == SpawnType.MyBed;
 
         Vector2 bedPos = new(localPlayer.SpawnX, localPlayer.SpawnY);
 
@@ -142,10 +142,11 @@ public class TeleportOnMap : ModSystem
             spriteEffects: SpriteEffects.None
         );
 
+        // Debug
+        //Main.NewText(sp.SelectedType);
+
         if (!hover.IsMouseOver)
             return false;
-
-        localPlayer.mouseInterface = true;
 
         if (!selectorEnabled)
         {
@@ -156,23 +157,23 @@ public class TeleportOnMap : ModSystem
         if (!canTeleport)
         {
             text = isSelected
-                ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelBedSpawn", localPlayer.name)
-                : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectBedSpawn", localPlayer.name);
+                ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelMyBed", localPlayer.name)
+                : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectMyBed", localPlayer.name);
 
             if (IsClick())
             {
-                sp.ToggleSelection(SpawnType.Bed, idx);
+                sp.ToggleSelection(SpawnType.MyBed, me);
                 return true;
             }
 
             return false;
         }
 
-        text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToPlayersBed", localPlayer.name);
+        text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToMyBed", localPlayer.name);
 
         if (IsClick())
         {
-            sp.ToggleSelection(SpawnType.Bed, idx);
+            sp.ToggleSelection(SpawnType.MyBed, me);
             return true;
         }
 
@@ -198,7 +199,7 @@ public class TeleportOnMap : ModSystem
             if (!HasValidBedSpawn(player))
                 continue;
 
-            bool isSelected = sp.SelectedType == SpawnType.Bed && sp.SelectedPlayerIndex == i;
+            bool isSelected = sp.SelectedType == SpawnType.TeammateBed && sp.SelectedPlayerIndex == i;
 
             Vector2 bedTilePos = new(player.SpawnX, player.SpawnY);
 
@@ -217,8 +218,6 @@ public class TeleportOnMap : ModSystem
             if (!hover.IsMouseOver)
                 continue;
 
-            localPlayer.mouseInterface = true;
-
             if (!selectorEnabled)
             {
                 text = Language.GetTextValue("Mods.PvPAdventure.Spawn.PlayersBed", player.name);
@@ -228,23 +227,23 @@ public class TeleportOnMap : ModSystem
             if (!canTeleport)
             {
                 text = isSelected
-                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelPlayersBed", player.name)
-                    : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectPlayersBed", player.name);
+                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammatesBed", player.name)
+                    : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammatesBed", player.name);
 
                 if (IsClick())
                 {
-                    sp.ToggleSelection(SpawnType.Bed, i);
+                    sp.ToggleSelection(SpawnType.TeammateBed, i);
                     return true;
                 }
 
                 return false;
             }
 
-            text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToPlayersBed", player.name);
+            text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammatesBed", player.name);
 
             if (IsClick())
             {
-                sp.ToggleSelection(SpawnType.Bed, i);
+                sp.ToggleSelection(SpawnType.TeammateBed, i);
                 return true;
             }
 
@@ -262,80 +261,6 @@ public class TeleportOnMap : ModSystem
             return false;
 
         return Player.CheckSpawn(player.SpawnX, player.SpawnY);
-    }
-
-    public static void HandlePacket(BinaryReader reader, int whoAmI)
-    {
-        if (Main.netMode != NetmodeID.Server)
-            return;
-
-        byte requesterId = reader.ReadByte();
-        SpawnType type = (SpawnType)reader.ReadByte();
-
-        if (requesterId != whoAmI)
-            return;
-
-        Player requester = Main.player[requesterId];
-        if (requester == null || !requester.active)
-            return;
-
-        Vector2 teleportPos;
-
-        switch (type)
-        {
-            case SpawnType.World:
-                teleportPos = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
-                break;
-
-            case SpawnType.Player:
-                {
-                    short idx = reader.ReadInt16();
-                    if (!SpawnSystem.IsValidTeammateIndex(requester, idx))
-                        return;
-
-                    Player target = Main.player[idx];
-                    teleportPos = target.position;
-                    break;
-                }
-
-            case SpawnType.Bed:
-                {
-                    short idx = reader.ReadInt16();
-                    if (idx < 0 || idx >= Main.maxPlayers)
-                        return;
-
-                    Player bedOwner = Main.player[idx];
-                    if (bedOwner == null || !bedOwner.active)
-                        return;
-
-                    if (idx != requester.whoAmI)
-                    {
-                        if (requester.team == 0 || bedOwner.team != requester.team)
-                            return;
-                    }
-
-                    if (bedOwner.SpawnX < 0 || bedOwner.SpawnY < 0 || !Player.CheckSpawn(bedOwner.SpawnX, bedOwner.SpawnY))
-                        return;
-
-                    teleportPos = new Vector2(bedOwner.SpawnX, bedOwner.SpawnY - 6).ToWorldCoordinates();
-                    break;
-                }
-
-            default:
-                return;
-        }
-
-        requester.Teleport(teleportPos, TeleportationStyleID.RecallPotion);
-
-        NetMessage.SendData(
-            MessageID.TeleportEntity,
-            -1, -1, null,
-            number: 0,
-            number2: requester.whoAmI,
-            number3: teleportPos.X,
-            number4: teleportPos.Y,
-            number5: TeleportationStyleID.RecallPotion
-        );
     }
 
 }

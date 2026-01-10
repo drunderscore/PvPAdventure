@@ -199,6 +199,16 @@ Mods: {
 				DisplayName: Map Spawn Config
 				Tooltip: ""
 			}
+
+			BoundArmsDealerConfig: {
+				DisplayName: Bound Arms Dealer Config
+				Tooltip: ""
+			}
+
+			ServerConfigItem: {
+				DisplayName: Server Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -602,7 +612,7 @@ Mods: {
 				}
 
 				AllowConfigModification: {
-					Label: "Allow Config Modification"
+					Label: Allow Config Modification
 					Tooltip: Discord IDs that are allowed to modify the server configuration
 				}
 
@@ -1268,19 +1278,22 @@ Mods: {
 
 		Spawn: {
 			ChooseYourSpawn: Choose Your Spawn
-			TeleportToPlayer: Teleport to {0}
-			Random: Teleport to Random Location
-			TeleportToWorldSpawn: Teleport to World Spawn
-			PlayersBed: "{0}'s Bed"
-			TeleportToPlayersBed: Teleport to {0}'s Bed
-			SelectRandomSpawn: Select Random Spawn
-			CancelRandomSpawn: Cancel Random Spawn
-			SelectWorldSpawn: Select World Spawn
-			CancelWorldSpawn: Cancel World Spawn
-			SelectPlayerSpawn: Select {0}'s Spawn
-			CancelPlayerSpawn: Cancel {0}'s Spawn
-			SelectBedSpawn: Select {0}'s Bed
-			CancelBedSpawn: Cancel {0}'s Bed
+			TeleportToTeammate: Teleport to {0}
+			Random: Teleport to random location
+			TeleportToWorldSpawn: Teleport to world spawn
+			TeammatesBed: "{0}'s Bed"
+			TeleportToTeammatesBed: Teleport to {0}'s bed
+			SelectRandomSpawn: Select random spawn
+			CancelRandomSpawn: Cancel random spawn
+			SelectWorldSpawn: Select world spawn
+			CancelWorldSpawn: Cancel world spawn
+			SelectTeammateSpawn: Select {0}'s spawn
+			CancelTeammateSpawn: Cancel {0}'s spawn
+			SelectBedSpawn: Select {0}'s bed
+			CancelBedSpawn: Cancel {0}'s bed
+			SelectMyBed: Select my bed
+			CancelMyBed: Cancel my bed
+			TeleportToMyBed: Teleport to my bed
 		}
 
 		Item: {
