@@ -72,7 +72,7 @@ public class UISpawnState : UIState
     {
         if (IsMouseHovering)
         {
-            Main.LocalPlayer.mouseInterface = true; // disable item use when hovering
+            //Main.LocalPlayer.mouseInterface = true; // disable item use when hovering
         }
 
 #if DEBUG

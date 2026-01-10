@@ -12,10 +12,9 @@ namespace PvPAdventure;
 
 public class AdventureServerConfig : ModConfig
 {
-    #region Members
-
     public override ConfigScope Mode => ConfigScope.ServerSide;
 
+    #region Members
     [Header("Points")]
     [BackgroundColor(140, 100, 20)]
     [Expand(false, false)]
@@ -148,16 +147,40 @@ public class AdventureServerConfig : ModConfig
     [Expand(false, false)]
     public WorldGenerationConfig WorldGeneration { get; set; } = new();
 
+    #region SSC
     [Header("SSC")]
     [BackgroundColor(90, 40, 110)]
-    [Expand(false, false)]
-    public List<ItemDefinition> StartItems { get; set; } =
-    [
-        new ItemDefinition("PvPAdventure", "AdventureBag")
-    ];
+    [DefaultValue(true)]
+    public bool IsSSCEnabled { get; set; } = true;
+
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false)]
+    public Dictionary<ItemDefinition, int> StartItems { get; set; } = new()
+{
+    { new ItemDefinition("PvPAdventure", "AdventureBag"), 1 }
+};
+
+    [BackgroundColor(90, 40, 110)]
+    [Slider]
+    [Increment(20)]
+    [Range(100, 500)]
+    [DefaultValue(100)]
+    public int StartLife { get; set; } = 100;
+
+    [BackgroundColor(90, 40, 110)]
+    [Slider]
+    [Increment(20)]
+    [Range(20, 200)]
+    [DefaultValue(20)]
+    public int StartMana { get; set; } = 20;
+    #endregion
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
+#if DEBUG
+        return true;
+#endif
+
         if (pendingConfig is not AdventureServerConfig pendingAdventureConfig)
             return true;
 
