@@ -114,9 +114,13 @@ public class SpawnSystem : ModSystem
 
     private static void TeleportRandom(Player p)
     {
-        if (Main.netMode == Terraria.ID.NetmodeID.MultiplayerClient)
+        if (Main.netMode == NetmodeID.MultiplayerClient)
         {
-            Terraria.NetMessage.SendData(Terraria.ID.MessageID.RequestTeleportationByServer);
+            var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
+            pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
+            pkt.Write((byte)Main.myPlayer);
+            pkt.Write((byte)SpawnType.Random);
+            pkt.Send();
             return;
         }
 

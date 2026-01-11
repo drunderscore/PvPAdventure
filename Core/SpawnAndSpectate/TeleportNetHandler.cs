@@ -2,6 +2,7 @@
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
+using Terraria.ModLoader;
 using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
@@ -76,18 +77,35 @@ public static class TeleportNetHandler
                     ).ToWorldCoordinates();
                     break;
                 }
+            case SpawnType.Random:
+                {
+                    // Use vanilla logic to choose a random teleport destination
+                    Vector2 oldPos = requester.position;
+
+                    requester.TeleportationPotion();
+
+                    // TeleportationPotion() already moved the player.
+                    // We must re-sync the final position to all clients.
+                    NetMessage.SendData(
+                        MessageID.TeleportEntity,
+                        -1, -1, null,
+                        number: 0,
+                        number2: requester.whoAmI,
+                        number3: requester.position.X,
+                        number4: requester.position.Y,
+                        number5: TeleportationStyleID.RecallPotion
+                    );
+
+                    // Play teleport sound for everyone (local guaranteed)
+                    TeleportFxNet.Send(requester.whoAmI);
+                    return;
+                }
 
             default:
                 return;
         }
 
         requester.Teleport(teleportPos, TeleportationStyleID.RecallPotion);
-
-        // Play teleport sound
-        SoundEngine.PlaySound(
-            SoundID.Item6,
-            teleportPos
-        );
 
         NetMessage.SendData(
             MessageID.TeleportEntity,
@@ -98,5 +116,44 @@ public static class TeleportNetHandler
             number4: teleportPos.Y,
             number5: TeleportationStyleID.RecallPotion
         );
+
+        // Send teleport sound effect to all clients
+        TeleportFxNet.Send(whoAmI);
     }
 }
+
+public static class TeleportFxNet
+{
+    public static void Send(int who)
+    {
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        ModPacket p = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        p.Write((byte)AdventurePacketIdentifier.TeleportFx);
+        p.Write((byte)who);
+        p.Send(); // to all clients
+    }
+
+    public static void Receive(BinaryReader r)
+    {
+        if (Main.dedServ)
+            return;
+
+        int who = r.ReadByte();
+        if (who < 0 || who >= Main.maxPlayers)
+            return;
+
+        // Guarantee local hears it
+        if (who == Main.myPlayer)
+        {
+            SoundEngine.PlaySound(SoundID.Item6);
+            return;
+        }
+
+        Player plr = Main.player[who];
+        if (plr != null && plr.active)
+            SoundEngine.PlaySound(SoundID.Item6, plr.Center);
+    }
+}
+

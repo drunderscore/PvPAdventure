@@ -19,5 +19,6 @@ public enum AdventurePacketIdentifier : byte
     TeleportRequest, // teleport to beds or world spawn
     SpawnSelection, // set random or player spawn while respawn timer or map timer is running
     AdventureMirrorRightClickUse,
-    HoldingMap
+    HoldingMap,
+    TeleportFx // teleport effects
 }

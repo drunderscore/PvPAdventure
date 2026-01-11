@@ -320,6 +320,9 @@ public class SpawnPlayer : ModPlayer
     {
         base.OnHurt(info);
 
+        if (Player.whoAmI != Main.LocalPlayer.whoAmI)
+            return;
+
         var cfg = ModContent.GetInstance<AdventureClientConfig>();
         if (cfg.CloseMapOnHurt && Main.mapFullscreen)
             Main.mapFullscreen = false;

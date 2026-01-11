@@ -361,6 +361,9 @@ public class PvPAdventure : Mod
             case AdventurePacketIdentifier.HoldingMap:
                     MapHoldingNetHandler.HandlePacket(reader, whoAmI);
                     break;
+            case AdventurePacketIdentifier.TeleportFx:
+                    TeleportFxNet.Receive(reader);
+                    break;
         }
     }
 }
