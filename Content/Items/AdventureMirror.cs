@@ -26,7 +26,7 @@ internal class AdventureMirror : ModItem
         Item.useStyle = ItemUseStyleID.HoldUp;
         Item.UseSound = SoundID.Item6;
         Item.rare = ItemRarityID.Blue;
-        Item.value = Item.buyPrice(gold: 5);
+        Item.value = Item.buyPrice(gold: 0);
         Item.noUseGraphic = false;
     }
     public override bool ConsumeItem(Player player) => false;

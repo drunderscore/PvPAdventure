@@ -214,6 +214,16 @@ Mods: {
 				// DisplayName: Adventure Mirror
 				// Tooltip: ""
 			}
+
+			AdminManagerConfigItem: {
+				// DisplayName: Admin Manager Config Item
+				// Tooltip: ""
+			}
+
+			ForbiddenIconConfigItem: {
+				// DisplayName: Forbidden Icon Config Item
+				// Tooltip: ""
+			}
 		}
 
 		NPCs: {
