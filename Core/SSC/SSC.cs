@@ -42,6 +42,9 @@ public class SSC : ModSystem
 
     public static void HandlePacket(BinaryReader reader, int from)
     {
+        if (!IsEnabled)
+            return;
+
         var msg = (SSCPacketType)reader.ReadByte();
 
         switch (msg)

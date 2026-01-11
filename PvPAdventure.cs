@@ -7,6 +7,7 @@ using PvPAdventure.Core.AdminTools.AdminManagerTool;
 using PvPAdventure.Core.AdminTools.TeamAssigner;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.SpawnAndSpectate;
+using PvPAdventure.Core.SpawnAndSpectate.HoldingMap;
 using PvPAdventure.Core.SSC;
 
 //using PvPAdventure.Core.SSC;
@@ -306,21 +307,17 @@ public class PvPAdventure : Mod
                     break;
                 }
             case AdventurePacketIdentifier.SSC:
-                {
-                    if (!SSC.IsEnabled)
-                        return;
+                SSC.HandlePacket(reader, whoAmI);
+                break;
 
-                    SSC.HandlePacket(reader, whoAmI);
-                    break;
-                }
             case AdventurePacketIdentifier.Dash:
                 DashKeybindSystem.HandlePacket(reader, whoAmI);
                 break;
+
             case AdventurePacketIdentifier.TeleportRequest:
-                {
-                    TeleportNetHandler.HandlePacket(reader, whoAmI);
-                    break;
-                }
+                TeleportNetHandler.HandlePacket(reader, whoAmI);
+                break;
+
             case AdventurePacketIdentifier.PlayerBed:
                 {
                     byte playerId = reader.ReadByte();
@@ -343,7 +340,6 @@ public class PvPAdventure : Mod
 
                     break;
                 }
-            
             case AdventurePacketIdentifier.SpawnSelection:
                 {
                     if (Main.netMode != NetmodeID.Server)
@@ -358,6 +354,13 @@ public class PvPAdventure : Mod
 
                     break;
                 }
+            case AdventurePacketIdentifier.AdventureMirrorRightClickUse:
+                    AdventureMirrorNetHandler.HandlePacket(reader, whoAmI);
+                    break;
+
+            case AdventurePacketIdentifier.HoldingMap:
+                    MapHoldingNetHandler.HandlePacket(reader, whoAmI);
+                    break;
         }
     }
 }

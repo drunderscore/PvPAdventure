@@ -1,7 +1,7 @@
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Content.Items.ConfigItems;
-public class StopIconConfigItem : ModItem
+public class ForbiddenIconConfigItem : ModItem
 {
     public override void SetDefaults()
     {

@@ -1,7 +1,7 @@
 ﻿using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.MiscSystems;
+namespace PvPAdventure.Core.SpawnAndSpectate.DeadSystems;
 
 /// <summary>
 /// Allows inventory access while dead.

@@ -209,6 +209,11 @@ Mods: {
 				// DisplayName: Server Config Item
 				// Tooltip: ""
 			}
+
+			AdventureMirror: {
+				// DisplayName: Adventure Mirror
+				// Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -1294,6 +1299,18 @@ Mods: {
 			// SelectMyBed: Select my bed
 			// CancelMyBed: Cancel my bed
 			// TeleportToMyBed: Teleport to my bed
+		}
+
+		AdventureMirror: {
+			// GameNotStarted: wait until game starts!
+			// CannotUseInSpawn: cannot use in spawn!
+			// CannotUseWhileMoving: cannot use while moving!
+			// CannotDrop: cannot drop!
+			// CannotUnfavorite: cannot unfavorite!
+			// CannotTrash: cannot trash!
+			// CannotSell: cannot sell!
+			// CannotStore: cannot store!
+			// Cancelled: cancelled!
 		}
 
 		Item: {
