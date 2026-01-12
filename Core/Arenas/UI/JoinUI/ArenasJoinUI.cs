@@ -1,8 +1,6 @@
 ﻿using SubworldLibrary;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ModLoader;
 using Terraria.UI;
-using Microsoft.Xna.Framework;
 using System;
 
 namespace PvPAdventure.Core.Arenas.UI.JoinUI;
@@ -27,7 +25,7 @@ public class ArenasJoinUI : UIState
         };
         Append(Root);
 
-        var title = new UITextPanel<string>("Arena", 0.7f, large: true)
+        var title = new UITextPanel<string>("Arenas", 0.7f, large: true)
         {
             HAlign = 0.5f,
             Height = new StyleDimension(TitleHeight, 0f),

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StructureHelper;
+using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
@@ -16,7 +17,7 @@ public class ArenasWorldGen : ModSystem
         return
         [
             Pass("AdjustWorldHeight", AdjustWorldHeight),
-            Pass("ArenasMiniWorld", ArenasMiniWorld),
+            Pass("Arenas", GenerateArenas),
         ];
     }
 
@@ -30,13 +31,28 @@ public class ArenasWorldGen : ModSystem
         Main.spawnTileY += 45;
     }
 
-    private static void ArenasMiniWorld()
+    private static void GenerateArenas()
     {
-        // size: 680x169
+        // size: ~680x169
 
         var mod = ModContent.GetInstance<PvPAdventure>();
-        const string path = "Core/Arenas/Structures/arenas_v2";
-        Point16 pos = new(0, 0);
+        const string path = "Core/Arenas/Structures/arenas_v3";
+
+        Point16 dims = StructureHelper.API.Generator.GetStructureDimensions(path, mod);
+
+        const int margin = 20;
+
+        int x = (Main.maxTilesX - dims.X) / 2;
+        int y = (Main.maxTilesY - dims.Y) / 2;
+
+        x = Utils.Clamp(x, margin, Main.maxTilesX - dims.X - margin);
+        y = Utils.Clamp(y, margin, Main.maxTilesY - dims.Y - margin);
+
+        Point16 pos = new(x, y);
+
+        Log.Debug($"Miniworld dims: {dims.X}x{dims.Y}");
+        Log.Debug($"World dims: {Main.maxTilesX}x{Main.maxTilesY}");
+        Log.Debug($"Placing at: {pos.X},{pos.Y}");
 
         if (!StructureHelper.API.Generator.IsInBounds(path, mod, pos))
         {
@@ -45,20 +61,22 @@ public class ArenasWorldGen : ModSystem
             return;
         }
 
-        StructureHelper.API.Generator.GenerateStructure(path, pos, mod);
-    }
-
-    private static void BottomMudLayer()
-    {
-        int bottom = Main.maxTilesY - 2;
-
-        for (int x = 0; x < Main.maxTilesX; x++)
+        // Optional but strongly recommended on dedicated server to avoid huge SendTileSquare net payloads.
+        int oldNetMode = Main.netMode;
+        try
         {
-            for (int y = bottom; y > bottom - 10; y--)
-            {
-                WorldGen.KillTile(x, y, noItem: true);
-                WorldGen.PlaceTile(x, y, TileID.Mud, mute: true, forced: true);
-            }
+            if (Main.netMode == NetmodeID.Server)
+                Main.netMode = NetmodeID.SinglePlayer;
+
+            StructureHelper.API.Generator.GenerateStructure(
+                path,
+                pos,
+                mod
+            );
+        }
+        finally
+        {
+            Main.netMode = oldNetMode;
         }
     }
 

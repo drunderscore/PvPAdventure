@@ -33,14 +33,6 @@ public class ArenasJoinUISystem : ModSystem
     public override void UpdateUI(GameTime gameTime)
     {
         Interface?.Update(gameTime);
-
-#if DEBUG
-        if (Main.keyState.IsKeyDown(Keys.F1) && Main.oldKeyState.IsKeyUp(Keys.F1))
-        {
-            Log.Chat("Toggling Arenas Join UI with F1");
-            Toggle();  // Debug rebuild
-        }
-#endif
     }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)

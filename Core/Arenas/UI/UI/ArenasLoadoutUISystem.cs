@@ -31,6 +31,27 @@ public class ArenasLoadoutUISystem : ModSystem
         State = null;
     }
 
+    public static void Show()
+    {
+        if (Interface == null || State == null)
+            return;
+
+        Interface.SetState(State);
+    }
+
+    public static void Hide()
+    {
+        Interface?.SetState(null);
+    }
+
+    public static void Toggle()
+    {
+        if (Interface?.CurrentState == null)
+            Show();
+        else
+            Hide();
+    }
+
     public override void UpdateUI(GameTime gameTime)
     {
         Interface?.Update(gameTime);
@@ -59,25 +80,5 @@ public class ArenasLoadoutUISystem : ModSystem
             },
             InterfaceScaleType.UI));
     }
-
-    public static void Show()
-    {
-        if (Interface == null || State == null)
-            return;
-
-        Interface.SetState(State);
-    }
-
-    public static void Hide()
-    {
-        Interface?.SetState(null);
-    }
-
-    public static void Toggle()
-    {
-        if (Interface?.CurrentState == null)
-            Show();
-        else
-            Hide();
-    }
+    
 }

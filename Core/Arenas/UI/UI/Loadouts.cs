@@ -1,5 +1,6 @@
-﻿using Terraria.ID;
+﻿using System.Collections.Generic;
 using Terraria.GameContent.UI.Elements;
+using Terraria.ID;
 
 namespace PvPAdventure.Core.Arenas.UI.LoadoutUI;
 
@@ -10,7 +11,7 @@ namespace PvPAdventure.Core.Arenas.UI.LoadoutUI;
 /// </summary>
 public static class Loadouts
 {
-    public static readonly LoadoutDef Melee =
+    public static readonly Loadout Melee =
         new()
         {
             Name = "Melee",
@@ -37,10 +38,10 @@ public static class Loadouts
                 new LoadoutItem(ItemID.WoodPlatform, 999),
                 new LoadoutItem(ItemID.Binoculars),
             },
-            EquipmentHook = ItemID.ChristmasHook
+            GrapplingHook = ItemID.ChristmasHook
         };
 
-    public static readonly LoadoutDef Ranger =
+    public static readonly Loadout Ranger =
         new()
         {
             Name = "Ranger",
@@ -67,10 +68,10 @@ public static class Loadouts
                 new LoadoutItem(ItemID.BorealWoodPlatform, 999),
                 new LoadoutItem(ItemID.Binoculars),
             },
-            EquipmentHook = ItemID.LunarHook
+            GrapplingHook = ItemID.LunarHook
         };
 
-    public static readonly LoadoutDef Mage =
+    public static readonly Loadout Mage =
         new()
         {
             Name = "Mage",
@@ -97,10 +98,10 @@ public static class Loadouts
                 new LoadoutItem(ItemID.WoodPlatform, 999),
                 new LoadoutItem(ItemID.Binoculars),
             },
-            EquipmentHook = ItemID.SpookyHook
+            GrapplingHook = ItemID.SpookyHook
         };
 
-    public static readonly LoadoutDef Summoner =
+    public static readonly Loadout Summoner =
         new()
         {
             Name = "Summoner",
@@ -127,9 +128,25 @@ public static class Loadouts
                 new LoadoutItem(ItemID.BorealWoodPlatform, 999),
                 new LoadoutItem(ItemID.Binoculars),
             },
-            EquipmentHook = ItemID.ChristmasHook
+            GrapplingHook = ItemID.ChristmasHook
         };
 }
 
+public class Loadout
+{
+    public string Name;
 
+    public int Head;
+    public int Body;
+    public int Legs;
 
+    public List<int> Accessories = [];              // 0-6, max 6 items
+    public List<LoadoutItem> Hotbar = [];            // 0–10, max 10 items
+    public int GrapplingHook;
+}
+
+public readonly struct LoadoutItem(int type, int stack = 1)
+{
+    public readonly int Type = type;
+    public readonly int Stack = stack;
+}
