@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Graphics;
 using Terraria;
 using Terraria.GameContent;
@@ -10,7 +9,7 @@ using static PvPAdventure.Core.SpawnAndSpectate.SpawnSystem;
 
 namespace PvPAdventure.Core.SpawnAndSpectate;
 
-[Autoload(Side =ModSide.Client)]
+[Autoload(Side = ModSide.Client)]
 public class SpawnHooks : ModSystem
 {
     public override void Load()
@@ -94,7 +93,7 @@ public class SpawnHooks : ModSystem
             return;
         }
 
-        if (type == SpawnType.Player)
+        if (type == SpawnType.Teammate)
         {
             int idx = sp.SelectedPlayerIndex;
 

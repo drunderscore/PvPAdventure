@@ -12,8 +12,17 @@
 	  <None Remove="Assets\SpawnSelector\**" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Compile Remove="Content\Items\ConfigItems\AdminManagerConfigItem.cs" />
+	  <Compile Remove="Content\Items\ConfigItems\ForbiddenIconConfigItem.cs" />
+	</ItemGroup>
+	<ItemGroup>
 		<Folder Include="Discord" />
 		<Folder Include="lib\Native\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="Content\Items\ConfigItems\AdminManagerConfigItem.cs" />
+	  <None Include="Content\Items\ConfigItems\ForbiddenIconConfigItem.cs" />
+	  <None Include="Content\Items\ConfigItems\ServerConfigItem.cs" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Discord.Net.Core">

@@ -1,9 +1,11 @@
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using log4net;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Chat;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
@@ -28,35 +30,45 @@ public static class Log
     }
 
     /// <summary>
-    /// Sends a debug Terraria chat message to everyone, e.g [DEBUG/FileName: Your Message]
+    /// Sends a debug Terraria chat message to everyone, e.g. "[DEBUG/FileName]: Your Message"
+    /// In DEBUG builds, always enabled. In non-DEBUG builds, gated by AdventureClientConfig.EnableDebugMessages.
     /// </summary>
-    public static void Chat(object message, [CallerFilePath] string file = "")
+    public static void Chat(object message, bool showTime = true, [CallerFilePath] string file = "")
     {
-#if DEBUG
-        // Sanitize file name
-        string fileName = Path.GetFileNameWithoutExtension(file);
-
-        // Truncate
-        if (fileName.Length > 19)
-            fileName = fileName[..19] + "..";
-
-        // Broadcast to Terraria chat to all clients
-        ChatHelper.BroadcastChatMessage(
-            text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),
-            color: Color.White
-            );
-#else
-        string fileName = Path.GetFileNameWithoutExtension(file);
-
-        var config = ModContent.GetInstance<AdventureClientConfig>();
-        if (!config.EnableDebugMessages)
+        if (!ShouldSend())
             return;
 
-        ChatHelper.BroadcastChatMessage(
-            text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),
-            color: Color.White
-            );
-#endif
+        string time = showTime ? $"[{DateTime.Now.ToString("HH:mm:ss")}] " : "";
+        string fileName = GetFileLabel(file);
+        string text = $"{time}[DEBUG/{fileName}]: {message}";
+
+        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(text), Color.White);
+    }
+
+    private static bool ShouldSend()
+    {
+        var config = ModContent.GetInstance<AdventureClientConfig>();
+        return config != null && config.ShowDebugMessages;
+//#if DEBUG
+        //return true;
+//#else
+        //var config = ModContent.GetInstance<AdventureClientConfig>();
+        //return config != null && config.EnableDebugMessages;
+//#endif
+    }
+
+    private static string GetFileLabel(string file)
+    {
+        string name = Path.GetFileNameWithoutExtension(file);
+        if (string.IsNullOrWhiteSpace(name))
+            return "Unknown";
+
+        // Keep label compact
+        const int MaxFileLabelLen = 21;
+        if (name.Length > MaxFileLabelLen)
+            name = name.Substring(0, MaxFileLabelLen - 2) + "..";
+
+        return name;
     }
 
     public static void Info(object message, [CallerFilePath] string file = "")

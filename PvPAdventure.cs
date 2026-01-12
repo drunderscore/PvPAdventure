@@ -1,5 +1,10 @@
 using MonoMod.Cil;
 using PvPAdventure.Core.DashKeybind;
+using PvPAdventure.Core.SpawnAndSpectate;
+using PvPAdventure.Core.SpawnAndSpectate.HoldingMap;
+using PvPAdventure.Core.SSC;
+
+//using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using System;
 using PvPAdventure.Core.AdminTools.TeamAssigner;
@@ -227,7 +232,7 @@ public class PvPAdventure : Mod
                     if (Main.netMode == NetmodeID.Server)
                     {
                         var pm = ModContent.GetInstance<PauseManager>();
-                        pm.PauseGame();
+                        //pm.PauseGame();
                     }
 
                     break;
@@ -293,13 +298,63 @@ public class PvPAdventure : Mod
                     break;
                 }
             case AdventurePacketIdentifier.SSC:
-                {
-                    ModContent.GetInstance<SSC>().HandlePacket(reader, whoAmI);
-                    break;
-                }
+                SSC.HandlePacket(reader, whoAmI);
+                break;
+
             case AdventurePacketIdentifier.Dash:
                 DashKeybindSystem.HandlePacket(reader, whoAmI);
                 break;
+
+            case AdventurePacketIdentifier.TeleportRequest:
+                TeleportNetHandler.HandlePacket(reader, whoAmI);
+                break;
+
+            case AdventurePacketIdentifier.PlayerBed:
+                {
+                    byte playerId = reader.ReadByte();
+                    int spawnX = reader.ReadInt32();
+                    int spawnY = reader.ReadInt32();
+
+                    Player p = Main.player[playerId];
+                    p.SpawnX = spawnX;
+                    p.SpawnY = spawnY;
+
+                    if (Main.dedServ)
+                    {
+                        ModPacket packet = (ModPacket)GetPacket();
+                        packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
+                        packet.Write(playerId);
+                        packet.Write(spawnX);
+                        packet.Write(spawnY);
+                        packet.Send(-1, whoAmI);
+                    }
+
+                    break;
+                }
+            case AdventurePacketIdentifier.SpawnSelection:
+                {
+                    if (Main.netMode != NetmodeID.Server)
+                        break;
+
+                    var type = (Core.SpawnAndSpectate.SpawnSystem.SpawnType)reader.ReadByte();
+                    short idx = reader.ReadInt16();
+
+                    Player p = Main.player[whoAmI];
+                    if (p != null && p.active)
+                        p.GetModPlayer<SpawnPlayer>().ApplySelectionFromNet(type, idx);
+
+                    break;
+                }
+            case AdventurePacketIdentifier.AdventureMirrorRightClickUse:
+                    AdventureMirrorNetHandler.HandlePacket(reader, whoAmI);
+                    break;
+
+            case AdventurePacketIdentifier.HoldingMap:
+                    MapHoldingNetHandler.HandlePacket(reader, whoAmI);
+                    break;
+            case AdventurePacketIdentifier.TeleportFx:
+                    TeleportFxNet.Receive(reader);
+                    break;
         }
     }
 }

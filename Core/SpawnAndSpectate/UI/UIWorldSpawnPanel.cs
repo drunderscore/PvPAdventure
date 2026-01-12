@@ -75,9 +75,6 @@ public class UIWorldSpawnPanel : UIPanel
         if (p == null || !p.active)
             return;
 
-        // Prevent clicks/pings while hovering the UI element.
-        p.mouseInterface = true;
-
         var sp = p.GetModPlayer<SpawnPlayer>();
 
         bool committed = sp.SelectedType == SpawnType.World;

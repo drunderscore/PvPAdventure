@@ -76,7 +76,9 @@ public class UISpawnCharacter : UIPanel
         playerBGTexture = Ass.CustomPlayerBackground;
 
         // Bed button (top-right)
-        bedButton = new UIBedButton(playerIndex);
+        var player = Main.player[playerIndex];
+        bool hasBed = player.SpawnX != -1 && player.SpawnY != -1;
+        bedButton = new UIBedButton(playerIndex, hasBed);
         bedButton.Top.Set(-3f, 0f);
         bedButton.Left.Set(itemWidth - 38, 0f);
         Append(bedButton);
@@ -115,7 +117,7 @@ public class UISpawnCharacter : UIPanel
             return;
 
         local.GetModPlayer<SpawnPlayer>()
-            .ToggleSelection(SpawnSystem.SpawnType.Player, playerIndex);
+            .ToggleSelection(SpawnSystem.SpawnType.Teammate, playerIndex);
     }
 
     public override void Update(GameTime gameTime)
@@ -138,25 +140,25 @@ public class UISpawnCharacter : UIPanel
         // Hover routing
         if (hovering)
         {
-            if (SpectateSystem.HoveringType != SpawnType.Bed)
+            if (SpectateSystem.HoveringType != SpawnType.TeammateBed)
             {
-                SpectateSystem.TrySetHover(SpawnType.Player, playerIndex);
+                SpectateSystem.TrySetHover(SpawnType.Teammate, playerIndex);
             }
 
             local.mouseInterface = true;
         }
         else
         {
-            if (SpectateSystem.HoveringType == SpawnSystem.SpawnType.Player &&
+            if (SpectateSystem.HoveringType == SpawnSystem.SpawnType.Teammate &&
                 SpectateSystem.HoveredPlayerIndex == playerIndex)
             {
-                SpectateSystem.ClearHoverIfMatch(SpawnType.Player, playerIndex);
+                SpectateSystem.ClearHoverIfMatch(SpawnType.Teammate, playerIndex);
             }
         }
 
         var sp = local.GetModPlayer<SpawnPlayer>();
         bool selected =
-            sp.SelectedType == SpawnSystem.SpawnType.Player &&
+            sp.SelectedType == SpawnSystem.SpawnType.Teammate &&
             sp.SelectedPlayerIndex == playerIndex;
 
         BackgroundColor =
@@ -176,7 +178,7 @@ public class UISpawnCharacter : UIPanel
 
             var sp = player.GetModPlayer<SpawnPlayer>();
 
-            bool committed = sp.SelectedType == SpawnType.Player;
+            bool committed = sp.SelectedType == SpawnType.Teammate;
             bool ready = !SpawnSystem.CanTeleport;
 
             string text;
@@ -184,12 +186,12 @@ public class UISpawnCharacter : UIPanel
             if (ready)
             {
                 text = committed
-                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelPlayerSpawn", player.name)
-                    : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectPlayerSpawn", player.name);
+                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammateSpawn", player.name)
+                    : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammateSpawn", player.name);
             }
             else
             {
-                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToPlayer", player.name);
+                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammate", player.name);
             }
             Main.instance.MouseText(text);
             return;
@@ -359,7 +361,7 @@ public class UISpawnCharacter : UIPanel
         if (player.respawnTimer != 0)
         {
             // Draw dead icon
-            var tex = Ass.Dead_Icon.Value;
+            var tex = Ass.Icon_Dead.Value;
             Vector2 skullCenter = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
 
             sb.Draw(
@@ -415,7 +417,7 @@ public class UISpawnCharacter : UIPanel
 
         var sp = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
 
-        bool selectedSpawn = sp.SelectedType == SpawnType.Player && sp.SelectedPlayerIndex == playerIndex;
+        bool selectedSpawn = sp.SelectedType == SpawnType.Teammate && sp.SelectedPlayerIndex == playerIndex;
 
         if (selectedSpawn)
         {

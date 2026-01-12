@@ -52,7 +52,7 @@ public class UIRandomTeleportPanel : UIPanel
 
         // Draw question mark
         var d = GetDimensions();
-        var tex = Ass.Question_Mark.Value;
+        var tex = Ass.Icon_Question_Mark.Value;
 
         Vector2 pos = new(
             d.X + d.Width * 0.5f,

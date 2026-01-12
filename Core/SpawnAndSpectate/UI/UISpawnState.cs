@@ -24,6 +24,7 @@ public class UISpawnState : UIState
 
     // UI components which are a part of backgroundPanel
     private UIRandomTeleportPanel randomPanel;
+    private UIMyBedButton myBedPanel;
     private UIWorldSpawnPanel worldSpawnPanel;
     private readonly List<UISpawnCharacter> playerItems = []; // list of teammate player UI items
 
@@ -72,7 +73,7 @@ public class UISpawnState : UIState
     {
         if (IsMouseHovering)
         {
-            Main.LocalPlayer.mouseInterface = true; // disable item use when hovering
+            //Main.LocalPlayer.mouseInterface = true; // disable item use when hovering
         }
 
 #if DEBUG
@@ -153,7 +154,7 @@ public class UISpawnState : UIState
         }
 
         float contentWidth =
-            worldWidth +
+            worldWidth + worldWidth +
             (playerCount * itemWidth) +
             randomWidth +
             (gaps * Spacing);
@@ -173,6 +174,14 @@ public class UISpawnState : UIState
         worldSpawnPanel.Top.Set(y, 0f);
         backgroundPanel.Append(worldSpawnPanel);
 
+        x += worldWidth + Spacing;
+
+        // My bed button
+        bool hasSelfBed = Main.LocalPlayer.SpawnX != -1 && Main.LocalPlayer.SpawnY != -1;
+        myBedPanel = new UIMyBedButton(itemHeight, hasSelfBed);
+        myBedPanel.Left.Set(x, 0f);
+        myBedPanel.Top.Set(y, 0f);
+        backgroundPanel.Append(myBedPanel);
         x += worldWidth + Spacing;
 
         // Players

@@ -30,13 +30,16 @@ public class AdventureClientConfig : ModConfig
 
     [Header("Spawn")]
     [BackgroundColor(30, 150, 150)]
-    [DefaultValue(true)] public bool AutoSelectWorldSpawnWhenRespawning;
+    [DefaultValue(true)] public bool AutoSelectWorldSpawnOnDeath;
 
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool CloseMapOnHurt;
 
     [Header("Debug")]
-    [DefaultValue(true)] public bool EnableDebugMessages;
+    [DefaultValue(false)] public bool ShowDebugMessages;
+    //[DefaultValue(true)] public bool ShowPopupMessages;
+    //[DefaultValue(true)] public bool ShowAdminMessages;
+    [DefaultValue(true)] public bool ShowSavePlayerMessages;
 
     #endregion
 
