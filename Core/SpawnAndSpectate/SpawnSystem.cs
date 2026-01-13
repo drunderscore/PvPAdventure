@@ -321,7 +321,7 @@ public class SpawnSystem : ModSystem
         if (CanTeleport)
             TryExecuteSelection(local);
 
-        bool show = local.dead || Enabled;
+        bool show = playing && (local.dead || Enabled);
         if (!show)
         {
             wasShowingUI = false;

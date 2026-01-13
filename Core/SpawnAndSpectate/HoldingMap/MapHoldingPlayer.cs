@@ -76,7 +76,7 @@ public sealed class MapHoldingPlayer : ModPlayer
     private void SendHoldingMapState(int playerIndex, bool holding, int toWho, int fromWho)
     {
         ModPacket packet = Mod.GetPacket();
-        packet.Write((byte)AdventurePacketIdentifier.HoldingMap);
+        packet.Write((byte)AdventurePacketIdentifier.MapHolding);
         packet.Write((byte)VisualsPacketType.MapHoldingState);
         packet.Write((byte)playerIndex);
         packet.Write(holding);

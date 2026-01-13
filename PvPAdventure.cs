@@ -1,14 +1,14 @@
 using MonoMod.Cil;
+using PvPAdventure.Core.AdminTools.TeamAssigner;
+using PvPAdventure.Core.Arenas;
 using PvPAdventure.Core.DashKeybind;
 using PvPAdventure.Core.SpawnAndSpectate;
 using PvPAdventure.Core.SpawnAndSpectate.HoldingMap;
 using PvPAdventure.Core.SSC;
-
+using PvPAdventure.Core.SSC;
 //using PvPAdventure.Core.SSC;
 using PvPAdventure.System;
 using System;
-using PvPAdventure.Core.AdminTools.TeamAssigner;
-using PvPAdventure.Core.SSC;
 using System.IO;
 using System.Linq;
 using Terraria;
@@ -349,11 +349,14 @@ public class PvPAdventure : Mod
                     AdventureMirrorNetHandler.HandlePacket(reader, whoAmI);
                     break;
 
-            case AdventurePacketIdentifier.HoldingMap:
+            case AdventurePacketIdentifier.MapHolding:
                     MapHoldingNetHandler.HandlePacket(reader, whoAmI);
                     break;
             case AdventurePacketIdentifier.TeleportFx:
                     TeleportFxNet.Receive(reader);
+                    break;
+            case AdventurePacketIdentifier.ArenaPlayerCount:
+                    ArenaPlayerCountNet.Receive(reader);
                     break;
         }
     }

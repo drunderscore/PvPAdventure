@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Arenas.UI.JoinUI;
-using PvPAdventure.Core.Arenas.UI.LoadoutUI;
+using PvPAdventure.Core.Arenas.UI;
 using PvPAdventure.System.Client;
 using SubworldLibrary;
 using System.Collections.Generic;
@@ -32,8 +31,8 @@ public class ArenasSubworld : Subworld
             var keybinds = ModContent.GetInstance<Keybinds>();
 
             string loadoutKeybind =
-                keybinds.Loadout.GetAssignedKeys().Count > 0
-                    ? keybinds.Loadout.GetAssignedKeys()[0]
+                keybinds.ArenasMenu.GetAssignedKeys().Count > 0
+                    ? keybinds.ArenasMenu.GetAssignedKeys()[0]
                     : "Unbound";
 
             Main.dayTime = true;
@@ -51,9 +50,19 @@ public class ArenasSubworld : Subworld
         // become a ghost
         //Main.LocalPlayer.ghost = true;
 
-        ArenasJoinUISystem.Hide();
-        ArenasLoadoutUISystem.Show();
+        //ArenasUISystem.Toggle();
     }
+
+    public override void OnEnter()
+    {
+        //ArenaPlayerCountNet.Broadcast();
+    }
+    public override void OnExit()
+    {
+        //ArenaPlayerCountNet.Broadcast();
+    }
+
+    // Modify light here
     public override bool GetLight(Tile tile, int x, int y, ref FastRandom rand, ref Vector3 color)
     {
         return base.GetLight(tile, x, y, ref rand, ref color);

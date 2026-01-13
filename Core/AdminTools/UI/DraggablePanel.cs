@@ -8,10 +8,9 @@ using Terraria.UI;
 namespace PvPAdventure.Core.AdminTools.UI;
 
 /// <summary>
-/// Class used to define common properties for admin tool window panels,
-/// such as 
-/// <see cref="PointsSetter"/> 
-/// <seealso cref="GameStarter"/>, etc.
+/// Class used to define common properties for admin tool window panels.
+/// Includes dragging, resizing, close and refresh buttons.
+/// Also includes a title bar.
 /// </summary>
 public abstract class DraggablePanel : UIElement
 {

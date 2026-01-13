@@ -1,5 +1,4 @@
-﻿using PvPAdventure.Core.Arenas.UI.JoinUI;
-using PvPAdventure.Core.Arenas.UI.LoadoutUI;
+﻿using PvPAdventure.Core.Arenas.UI;
 using PvPAdventure.System;
 using PvPAdventure.System.Client;
 using SubworldLibrary;
@@ -14,19 +13,26 @@ internal class ArenasPlayer : ModPlayer
     #region Keybind handling
     public override void ProcessTriggers(TriggersSet triggersSet)
     {
+        if (!ArenasUISystem.IsEnabled)
+            return;
+
         var keybinds = ModContent.GetInstance<Keybinds>();
         var gm = ModContent.GetInstance<GameManager>();
 
         // Toggle UI
-        if (keybinds.Loadout.JustPressed && gm.CurrentPhase == GameManager.Phase.Waiting)
+        if (keybinds.ArenasMenu.JustPressed)
         {
-            ArenasLoadoutUISystem.Toggle();
-        }
+            if (gm.CurrentPhase == GameManager.Phase.Waiting)
+            {
+                ArenasUISystem.Toggle();
+            }
+            else
+            {
+                ArenasUISystem.Close();
+                Main.NewText("Arenas is unavailable when game is playing!", Color.Orange);
+            }
+        } 
 
-        if (keybinds.Arenas.JustPressed && gm.CurrentPhase == GameManager.Phase.Waiting)
-        {
-            ArenasJoinUISystem.Toggle();
-        }
     }
     #endregion
 

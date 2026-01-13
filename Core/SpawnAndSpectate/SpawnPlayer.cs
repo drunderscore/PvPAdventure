@@ -259,7 +259,7 @@ public class SpawnPlayer : ModPlayer
     // Keeps the respawn timer at 1 to allow for selection
     public override void UpdateDead()
     {
-        if (Player.respawnTimer > 2)
+        if (Player.respawnTimer > 2 || ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Waiting)
         {
             base.UpdateDead();
             return;

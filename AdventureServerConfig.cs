@@ -1,7 +1,8 @@
+using PvPAdventure.Core.Arenas.UI;
+using PvPAdventure.System;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using PvPAdventure.System;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -14,207 +15,11 @@ public class AdventureServerConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ServerSide;
 
-    #region Members
+    #region Points
     [Header("Points")]
     [BackgroundColor(140, 100, 20)]
     [Expand(false, false)]
     public PointsConfig Points { get; set; } = new();
-
-    [BackgroundColor(140, 100, 20)]
-    [Expand(false, false)]
-    public List<Bounty> Bounties { get; set; } = new();
-
-    [Header("Combat")]
-    [BackgroundColor(40, 90, 40)]
-    [Expand(false, false)]
-    public CombatConfig Combat { get; set; } = new();
-
-    [Header("Items")]
-    [BackgroundColor(40, 60, 110)]
-    [Expand(false, false)]
-    public List<ItemDefinition> PreventUse { get; set; } = new();
-
-    [BackgroundColor(40, 60, 110)]
-    public bool RemovePrefixes { get; set; }
-
-    [BackgroundColor(40, 60, 110)]
-    [ReloadRequired]
-    [Expand(false, false)]
-    public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = new();
-
-    [BackgroundColor(40, 60, 110)]
-    [Expand(false, false)]
-    public List<ItemDefinition> PreventAutoReuse { get; set; } = new();
-
-    [BackgroundColor(40, 60, 110)]
-    [Expand(false, false)]
-    public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = new();
-
-    [Header("NPCs")]
-    [BackgroundColor(90, 40, 110)]
-    [Expand(false, false)]
-    public List<NPCDefinition> NpcSpawnAnnouncements { get; set; } = new()
-    {
-        new(NPCID.CultistBoss)
-    };
-
-    [BackgroundColor(90, 40, 110)]
-    [Expand(false, false)]
-    public List<NPCDefinition> BossOrder { get; set; } =
-    [
-        new(NPCID.KingSlime),
-        new(NPCID.EyeofCthulhu),
-        new(NPCID.EaterofWorldsHead),
-        new(NPCID.BrainofCthulhu),
-        new(NPCID.QueenBee),
-        new(NPCID.SkeletronHead),
-        new(NPCID.Deerclops),
-        new(NPCID.WallofFlesh),
-
-        new(NPCID.QueenSlimeBoss),
-        new(NPCID.Retinazer),
-        new(NPCID.TheDestroyer),
-        new(NPCID.SkeletronPrime),
-        new(NPCID.Plantera),
-        new(NPCID.Golem),
-        new(NPCID.DukeFishron),
-        new(NPCID.HallowBoss),
-        new(NPCID.CultistBoss)
-    ];
-
-    [BackgroundColor(90, 40, 110)]
-    [DefaultValue(true)]
-    public bool OnlyDisplayWorldEvilBoss { get; set; }
-
-    [BackgroundColor(90, 40, 110)]
-    [Expand(false, false)]
-    public List<ProjectileDefinition> BossInvulnerableProjectiles { get; set; } =
-    [
-        new(ProjectileID.Dynamite),
-        new(ProjectileID.StickyDynamite),
-        new(ProjectileID.BouncyDynamite)
-    ];
-
-    [BackgroundColor(90, 40, 110)]
-    [DefaultValue(0.25f)]
-    public float BoundSpawnChance { get; set; }
-
-    [BackgroundColor(90, 40, 110)]
-    [Expand(false, false)]
-    public NpcBalanceConfig NpcBalance { get; set; } = new();
-
-    [Header("Gameplay")]
-    [BackgroundColor(40, 90, 40)]
-    [Expand(false, false)]
-    public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = [];
-
-    [BackgroundColor(40, 90, 40)]
-    [Range(0, 60 * 60)]
-    [DefaultValue(4 * 60)]
-    public int MapRecallFrames { get; set; }
-    [BackgroundColor(40, 90, 40)]
-    [Range(0, 10 * 60)]
-    [DefaultValue(5 * 60)]
-    public int SpawnImmuneFrames { get; set; }
-
-    [BackgroundColor(40, 90, 40)]
-    [Range(0, 600)]
-    public int MinimumDamageReceivedByPlayers { get; set; }
-
-    [BackgroundColor(40, 90, 40)]
-    [Range(0, 600)]
-    public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
-
-    [Header("General")]
-    [BackgroundColor(50, 60, 80)]
-    [Expand(false, false)]
-    public List<string> CrashoutMessages { get; set; } =
-    [
-        "Is it break yet?",
-        "Getting mogged by Matte \"Heat Ray\" Sevai",
-        "If you aren't good enough, go play THC",
-        "39 buried. 0 Tabis.",
-        "That right there is 100% skill issue",
-        "Too many surface RTPs"
-    ];
-
-    [BackgroundColor(50, 60, 80)]
-    [Expand(false, false)]
-    public List<string> AllowConfigModification { get; set; } = [];
-
-    [Header("WorldGen")]
-    [BackgroundColor(90, 70, 40)]
-    [Expand(false, false)]
-    public WorldGenerationConfig WorldGeneration { get; set; } = new();
-
-    #region SSC
-    [Header("SSC")]
-    [BackgroundColor(90, 40, 110)]
-    [DefaultValue(true)]
-    public bool IsSSCEnabled { get; set; } = true;
-
-    [BackgroundColor(90, 40, 110)]
-    [Expand(false)]
-    public Dictionary<ItemDefinition, int> StartItems { get; set; } = new()
-{
-    { new ItemDefinition("PvPAdventure", "AdventureBag"), 1 }
-};
-
-    [BackgroundColor(90, 40, 110)]
-    [Slider]
-    [Increment(20)]
-    [Range(100, 500)]
-    [DefaultValue(100)]
-    public int StartLife { get; set; } = 100;
-
-    [BackgroundColor(90, 40, 110)]
-    [Slider]
-    [Increment(20)]
-    [Range(20, 200)]
-    [DefaultValue(20)]
-    public int StartMana { get; set; } = 20;
-    #endregion
-
-    public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
-    {
-#if DEBUG
-        return true;
-#endif
-
-        if (pendingConfig is not AdventureServerConfig pendingAdventureConfig)
-            return true;
-
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-        var discordId = Main.player[whoAmI].GetModPlayer<AdventurePlayer>().DiscordUser?.Id;
-        if (discordId == null)
-            return false;
-
-        if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        {
-            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-            return false;
-        }
-
-        // You must have access by this point, but then you removed yourself!
-        // Don't do that.
-        if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        {
-            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-            return false;
-        }
-
-        return true;
-    }
-
-    #endregion
-
-    #region NestedConfigTypes
-
-    public class InvasionSizeValue
-    {
-        [Range(0, 1000)] public int Value { get; set; }
-    }
-
     public class PointsConfig
     {
         public Dictionary<NPCDefinition, NpcPoints> Npc { get; set; } = new();
@@ -235,20 +40,14 @@ public class AdventureServerConfig : ModConfig
         }
     }
 
-    public class ConfigItem
+    [BackgroundColor(140, 100, 20)]
+    [Expand(false, false)]
+    public List<Bounty> Bounties { get; set; } = new();
+    public class Bounty
     {
-        public ItemDefinition Item { get; set; } = new();
-        public PrefixDefinition Prefix { get; set; } = new();
-        private int _stack = 1;
-
-        // NOTE: Just for QOL. Can be screwed with by changing the above item after setting this.
-        public int Stack
-        {
-            get => _stack;
-            set => _stack = Math.Clamp(value, 1, new Item(Item.Type, 1, Prefix.Type).maxStack);
-        }
+        public List<ConfigItem> Items { get; set; } = [];
+        public Condition Conditions { get; set; } = new();
     }
-
     public class Condition
     {
         public enum WorldProgressionState
@@ -268,12 +67,13 @@ public class AdventureServerConfig : ModConfig
         public bool CollectedAllMechanicalBossSouls { get; set; }
     }
 
-    public class Bounty
-    {
-        public List<ConfigItem> Items { get; set; } = [];
-        public Condition Conditions { get; set; } = new();
-    }
+    #endregion
 
+    #region Combat
+    [Header("Combat")]
+    [BackgroundColor(40, 90, 40)]
+    [Expand(false, false)]
+    public CombatConfig Combat { get; set; } = new();
     public class CombatConfig
     {
         public class PlayerDamageBalanceConfig
@@ -346,7 +146,33 @@ public class AdventureServerConfig : ModConfig
 
         public Dictionary<ProjectileDefinition, ImmunityGroup> ProjectileDamageImmunityGroup { get; set; } = new();
     }
+    #endregion
 
+    #region Items
+    [Header("Items")]
+    [BackgroundColor(40, 60, 110)]
+    [Expand(false, false)]
+    public List<ItemDefinition> PreventUse { get; set; } = new();
+
+    [BackgroundColor(40, 60, 110)]
+    public bool RemovePrefixes { get; set; }
+
+    [BackgroundColor(40, 60, 110)]
+    [ReloadRequired]
+    [Expand(false, false)]
+    public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = new();
+
+    [BackgroundColor(40, 60, 110)]
+    [Expand(false, false)]
+    public List<ItemDefinition> PreventAutoReuse { get; set; } = new();
+
+    [BackgroundColor(40, 60, 110)]
+    [Expand(false, false)]
+    public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = new();
+    public class ChestItemReplacement
+    {
+        public List<ConfigItem> Items { get; set; } = new();
+    }
     public class Statistics : IEquatable<Statistics>
     {
         // FIXME: tModLoader does not have struct support, so nullables (System.Nullable) won't work -- and would
@@ -452,6 +278,127 @@ public class AdventureServerConfig : ModConfig
         }
     }
 
+    #endregion
+
+    #region NPCs
+    [Header("NPCs")]
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
+    public List<NPCDefinition> NpcSpawnAnnouncements { get; set; } = new()
+    {
+        new(NPCID.CultistBoss)
+    };
+
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
+    public List<NPCDefinition> BossOrder { get; set; } =
+    [
+        new(NPCID.KingSlime),
+        new(NPCID.EyeofCthulhu),
+        new(NPCID.EaterofWorldsHead),
+        new(NPCID.BrainofCthulhu),
+        new(NPCID.QueenBee),
+        new(NPCID.SkeletronHead),
+        new(NPCID.Deerclops),
+        new(NPCID.WallofFlesh),
+
+        new(NPCID.QueenSlimeBoss),
+        new(NPCID.Retinazer),
+        new(NPCID.TheDestroyer),
+        new(NPCID.SkeletronPrime),
+        new(NPCID.Plantera),
+        new(NPCID.Golem),
+        new(NPCID.DukeFishron),
+        new(NPCID.HallowBoss),
+        new(NPCID.CultistBoss)
+    ];
+
+    [BackgroundColor(90, 40, 110)]
+    [DefaultValue(true)]
+    public bool OnlyDisplayWorldEvilBoss { get; set; }
+
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
+    public List<ProjectileDefinition> BossInvulnerableProjectiles { get; set; } =
+    [
+        new(ProjectileID.Dynamite),
+        new(ProjectileID.StickyDynamite),
+        new(ProjectileID.BouncyDynamite)
+    ];
+
+    [BackgroundColor(90, 40, 110)]
+    [DefaultValue(0.25f)]
+    public float BoundSpawnChance { get; set; }
+
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false, false)]
+    public NpcBalanceConfig NpcBalance { get; set; } = new();
+    public class NpcBalanceConfig
+    {
+        public class FloatStatistic
+        {
+            [Range(0.0f, 5.0f)] public float Value { get; set; }
+        }
+
+        public Dictionary<NPCDefinition, FloatStatistic> LifeMaxMultipliers { get; set; } = new();
+        public Dictionary<NPCDefinition, FloatStatistic> DamageMultipliers { get; set; } = new();
+        public bool NoMechanicalBossSummonDrops { get; set; }
+    }
+
+    #endregion
+
+    #region Gameplay
+    [Header("Gameplay")]
+    [BackgroundColor(40, 90, 40)]
+    [Expand(false, false)]
+    public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = [];
+    public class InvasionSizeValue
+    {
+        [Range(0, 1000)] public int Value { get; set; }
+    }
+
+    [BackgroundColor(40, 90, 40)]
+    [Range(0, 60 * 60)]
+    [DefaultValue(4 * 60)]
+    public int MapRecallFrames { get; set; }
+    [BackgroundColor(40, 90, 40)]
+    [Range(0, 10 * 60)]
+    [DefaultValue(5 * 60)]
+    public int SpawnImmuneFrames { get; set; }
+
+    [BackgroundColor(40, 90, 40)]
+    [Range(0, 600)]
+    public int MinimumDamageReceivedByPlayers { get; set; }
+
+    [BackgroundColor(40, 90, 40)]
+    [Range(0, 600)]
+    public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
+    #endregion
+
+    #region General
+    [Header("General")]
+    [BackgroundColor(50, 60, 80)]
+    [Expand(false, false)]
+    public List<string> CrashoutMessages { get; set; } =
+    [
+        "Is it break yet?",
+        "Getting mogged by Matte \"Heat Ray\" Sevai",
+        "If you aren't good enough, go play THC",
+        "39 buried. 0 Tabis.",
+        "That right there is 100% skill issue",
+        "Too many surface RTPs"
+    ];
+
+    [BackgroundColor(50, 60, 80)]
+    [Expand(false, false)]
+    public List<string> AllowConfigModification { get; set; } = [];
+    #endregion
+
+    #region WorldGen
+    [Header("WorldGen")]
+    [BackgroundColor(90, 70, 40)]
+    [Expand(false, false)]
+    public WorldGenerationConfig WorldGeneration { get; set; } = new();
     public class WorldGenerationConfig
     {
         [DefaultValue(2)] public int LifeFruitChanceDenominator { get; set; } = 2;
@@ -470,23 +417,135 @@ public class AdventureServerConfig : ModConfig
         [Range(1, 999999)]
         [DefaultValue(300)] public int ChlorophyteGrowLimitModifier { get; set; } = 300;
     }
+    #endregion
 
-    public class NpcBalanceConfig
+    #region SSC
+    [Header("SSC")]
+    [BackgroundColor(90, 40, 110)]
+    [DefaultValue(true)]
+    public bool IsSSCEnabled { get; set; } = true;
+
+    [BackgroundColor(90, 40, 110)]
+    [Expand(false)]
+    public Dictionary<ItemDefinition, int> StartItems { get; set; } = new()
     {
-        public class FloatStatistic
+        { new ItemDefinition("PvPAdventure", "AdventureBag"), 1 }
+    };
+
+    [BackgroundColor(90, 40, 110)]
+    [Slider]
+    [Increment(20)]
+    [Range(100, 500)]
+    [DefaultValue(100)]
+    public int StartLife { get; set; } = 100;
+
+    [BackgroundColor(90, 40, 110)]
+    [Slider]
+    [Increment(20)]
+    [Range(20, 200)]
+    [DefaultValue(20)]
+    public int StartMana { get; set; } = 20;
+    #endregion
+
+    #region Arenas
+    [Header("Arenas")]
+    [BackgroundColor(90, 70, 160)]
+    [DefaultValue(true)]
+    public bool IsArenasEnabled { get; set; } = true;
+
+    [Expand(false, false)]
+    [BackgroundColor(90, 70, 160)]
+    public List<Loadout> ArenaLoadouts { get; set; } =
+    [
+        new Loadout
         {
-            [Range(0.0f, 5.0f)] public float Value { get; set; }
+            Name = "Melee",
+
+            Head = new ItemDefinition(ItemID.HallowedMask),
+            Body = new ItemDefinition(ItemID.HallowedPlateMail),
+            Legs = new ItemDefinition(ItemID.HallowedGreaves),
+
+            Accessories =
+            {
+                new ItemDefinition(ItemID.WarriorEmblem),
+                new ItemDefinition(ItemID.FireGauntlet)
+            },
+
+            Hotbar =
+            {
+                new LoadoutItem(new ItemDefinition(ItemID.TerraBlade)),
+                new LoadoutItem(new ItemDefinition(ItemID.GreaterHealingPotion), 30)
+            },
+
+            GrapplingHook = new ItemDefinition(ItemID.AmethystHook)
         }
 
-        public Dictionary<NPCDefinition, FloatStatistic> LifeMaxMultipliers { get; set; } = new();
-        public Dictionary<NPCDefinition, FloatStatistic> DamageMultipliers { get; set; } = new();
-        public bool NoMechanicalBossSummonDrops { get; set; }
-    }
+    ];
 
-    public class ChestItemReplacement
+    public class Loadout
     {
-        public List<ConfigItem> Items { get; set; } = new();
+        public string Name { get; set; }
+
+        public ItemDefinition Head { get; set; }
+        public ItemDefinition Body { get; set; }
+        public ItemDefinition Legs { get; set; }
+
+        public List<ItemDefinition> Accessories { get; set; } = [];
+        public List<LoadoutItem> Hotbar { get; set; } = [];
+
+        public ItemDefinition GrapplingHook { get; set; }
+    }
+    public class LoadoutItem(ItemDefinition item, int stack=1)
+    {
+        public ItemDefinition Item { get; set; } = item;
+        public int Stack { get; set; } = stack;
+    }
+    #endregion
+
+    // Validate that a client can make the changes they are requesting.
+    public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
+    {
+#if DEBUG
+        return true;
+#endif
+
+        if (pendingConfig is not AdventureServerConfig pendingAdventureConfig)
+            return true;
+
+        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var discordId = Main.player[whoAmI].GetModPlayer<AdventurePlayer>().DiscordUser?.Id;
+        if (discordId == null)
+            return false;
+
+        if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
+        {
+            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
+            return false;
+        }
+
+        // You must have access by this point, but then you removed yourself!
+        // Don't do that.
+        if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
+        {
+            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
+            return false;
+        }
+
+        return true;
     }
 
-    #endregion
+    // Helper class for defining items in config with prefix and stack.
+    public class ConfigItem
+    {
+        public ItemDefinition Item { get; set; } = new();
+        public PrefixDefinition Prefix { get; set; } = new();
+        private int _stack = 1;
+
+        // NOTE: Just for QOL. Can be screwed with by changing the above item after setting this.
+        public int Stack
+        {
+            get => _stack;
+            set => _stack = Math.Clamp(value, 1, new Item(Item.Type, 1, Prefix.Type).maxStack);
+        }
+    }
 }

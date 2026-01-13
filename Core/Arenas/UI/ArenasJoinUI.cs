@@ -1,14 +1,29 @@
-﻿using SubworldLibrary;
+﻿using Microsoft.Xna.Framework;
+using SubworldLibrary;
+using System;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
-using System;
 
-namespace PvPAdventure.Core.Arenas.UI.JoinUI;
+namespace PvPAdventure.Core.Arenas.UI;
 
 public class ArenasJoinUI : UIState
 {
-    private const float TitleHeight = 52f;
+    // Player count
+    private static int arenaPlayerCount;
 
+    private UITextPanel<string> enterButton;
+
+    public static void SetPlayerCount(int count)
+    {
+        arenaPlayerCount = count;
+    }
+    private static string GetEnterText()
+    {
+        return $"Enter Arena 1";
+    }
+
+    // UI
+    private const float TitleHeight = 52f;
     private DraggableElement Root;
     private UIPanel Container;
 
@@ -18,9 +33,9 @@ public class ArenasJoinUI : UIState
 
         Root = new DraggableElement
         {
-            Width = new StyleDimension(400f, 0f),
-            Top = new StyleDimension(50f, 0f),
-            Height = new StyleDimension(210f, 0f),
+            Width = new StyleDimension(380f, 0f),
+            Top = new StyleDimension(100f, 0f),
+            Height = new StyleDimension(150f, 0f),
             HAlign = 0.5f
         };
         Append(Root);
@@ -54,23 +69,19 @@ public class ArenasJoinUI : UIState
         list.Top.Set(12f, 0f);
         Container.Append(list);
 
-        var enterButton = CreateButton(
-            "Enter Arena",
-            () => SubworldSystem.Enter<ArenasSubworld>()
+        enterButton = CreateButton(
+            GetEnterText(),
+            () =>
+            {
+                SubworldSystem.Enter<ArenasSubworld>();
+            }
         );
-
-        var exitButton = CreateButton(
-            "Exit Arena",
-            () => SubworldSystem.Exit()
-        );
-
         list.Add(enterButton);
-        list.Add(exitButton);
 
         Root.Append(title);
     }
 
-    private static UITextPanel<string> CreateButton(string text, Action onClick)
+    public static UITextPanel<string> CreateButton(string text, Action onClick)
     {
         var button = new UITextPanel<string>(text, 0.6f, large: true)
         {
@@ -85,5 +96,13 @@ public class ArenasJoinUI : UIState
         button.OnMouseOut += (_, _) => button.BorderColor = Color.Black;
 
         return button;
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        if (enterButton != null)
+            enterButton.SetText(GetEnterText());
     }
 }

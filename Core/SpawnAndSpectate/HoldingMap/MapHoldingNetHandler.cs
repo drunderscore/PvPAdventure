@@ -30,7 +30,7 @@ public static class MapHoldingNetHandler
 
                         // Broadcast to all clients (including sender is fine; excluding sender is also fine).
                         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-                        packet.Write((byte)AdventurePacketIdentifier.HoldingMap);
+                        packet.Write((byte)AdventurePacketIdentifier.MapHolding);
                         packet.Write((byte)MapHoldingPlayer.VisualsPacketType.MapHoldingState);
                         packet.Write((byte)playerIndex);
                         packet.Write(holding);

@@ -220,7 +220,7 @@ public class TeleportOnMap : ModSystem
 
             if (!selectorEnabled)
             {
-                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.PlayersBed", player.name);
+                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeammatesBed", player.name);
                 return false;
             }
 

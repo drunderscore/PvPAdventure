@@ -1,4 +1,5 @@
 ﻿using Steamworks;
+using SubworldLibrary;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -18,6 +19,9 @@ public class SSCJoinSystem : ModSystem
     private int _delayTicks;
     public override void OnWorldLoad()
     {
+        if (SubworldSystem.AnyActive())
+            return;
+
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 

@@ -517,6 +517,7 @@ Mods: {
 					General: "[i:Cog] General"
 					WorldGen: "[i:WorldGlobe] World Generation"
 					SSC: "[i:PvPAdventure/ServerConfigItem] SSC"
+					Arenas: "[i:PvPAdventure/MatteConfig] Arenas"
 				}
 
 				Points: {
@@ -673,6 +674,16 @@ Mods: {
 						Data storage on the server is located in the folder: 
 						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
 						'''
+				}
+
+				ArenaLoadouts: {
+					Label: Arena Loadouts
+					Tooltip: ""
+				}
+
+				IsArenasEnabled: {
+					Label: Is Arenas Enabled
+					Tooltip: ""
 				}
 			}
 
@@ -1288,6 +1299,64 @@ Mods: {
 			}
 
 			RespawnConfig.Tooltip: ""
+
+			Loadout: {
+				Tooltip: ""
+
+				Name: {
+					Label: Name
+					Tooltip: ""
+				}
+
+				Head: {
+					Label: Head
+					Tooltip: ""
+				}
+
+				Body: {
+					Label: Body
+					Tooltip: ""
+				}
+
+				Legs: {
+					Label: Legs
+					Tooltip: ""
+				}
+
+				Accessories: {
+					Label: Accessories
+					Tooltip: ""
+				}
+
+				Hotbar: {
+					Label: Hotbar
+					Tooltip: ""
+				}
+
+				GrapplingHook: {
+					Label: Grappling Hook
+					Tooltip: ""
+				}
+			}
+
+			LoadoutItem: {
+				Tooltip: ""
+
+				Type: {
+					Label: Type
+					Tooltip: ""
+				}
+
+				Stack: {
+					Label: Stack
+					Tooltip: ""
+				}
+
+				Item: {
+					Tooltip: ""
+					Label: Item
+				}
+			}
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
@@ -1315,7 +1384,7 @@ Mods: {
 		}
 
 		Subworlds.ArenasSubworld.DisplayName: Arenas 1
-		
+
 		AdventureMirror: {
 			GameNotStarted: wait until game starts!
 			CannotUseInSpawn: cannot use in spawn!
