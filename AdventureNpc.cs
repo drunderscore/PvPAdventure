@@ -47,7 +47,7 @@ public class AdventureNpc : GlobalNPC
         // Prevent Empress of Light from targeting players during daytime, so she will despawn. REMOVED
         //On_NPC.TargetClosest += OnNPCTargetClosest;
         // Prevent Empress of Light from being enraged, so she won't instantly kill players. REMOVED
-         //On_NPC.ShouldEmpressBeEnraged += OnNPCShouldEmpressBeEnraged;
+        //On_NPC.ShouldEmpressBeEnraged += OnNPCShouldEmpressBeEnraged;
         // Clients and servers sync the Shimmer buff upon all collisions constantly for NPCs.
         // Mark it as quiet so just the server does this.
         IL_NPC.Collision_WaterCollision += EditNPCCollision_WaterCollision;
@@ -66,7 +66,31 @@ public class AdventureNpc : GlobalNPC
         On_NPC.StrikeNPC_HitInfo_bool_bool += OnNPCStrikeNPC;
         On_NetMessage.SendStrikeNPC += OnNetMessageSendStrikeNPC;
     }
+    //private void OnNPCTargetClosest(On_NPC.orig_TargetClosest orig, NPC self, bool faceTarget, Vector2? checkPosition)
+    //{ //bosses that despawn themselves if underground. NOT USING CURRENTLY
+    //    if (self.type == NPCID.HallowBoss || self.type == NPCID.TheDestroyer || self.type == NPCID.DukeFishron || self.type == NPCID.SkeletronPrime)
+    //    {
+    //        int originalTarget = self.target;
 
+    //        orig(self, faceTarget, checkPosition);
+
+    //        if (self.HasValidTarget)
+    //        {
+    //            Player targetPlayer = Main.player[self.target];
+
+    //            float playerTileY = targetPlayer.Center.Y / 16f;
+    //            if (playerTileY > Main.worldSurface)
+    //            {
+    //                self.target = 255;
+    //                self.targetRect = default;
+    //            }
+    //        }
+    //    }
+    //    else
+    //    {
+    //        orig(self, faceTarget, checkPosition);
+    //    }
+    //}
     private void OnNPCScaleStats(On_NPC.orig_ScaleStats orig, NPC self, int? activeplayerscount,
         GameModeData gamemodedata, float? strengthoverride)
     {
