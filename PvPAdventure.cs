@@ -241,7 +241,7 @@ public class PvPAdventure : Mod
                     if (Main.netMode == NetmodeID.Server)
                     {
                         var pm = ModContent.GetInstance<PauseManager>();
-                        //pm.PauseGame();
+                        pm.PauseGame();
                     }
 
                     break;
