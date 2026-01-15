@@ -295,7 +295,6 @@ public class RecipeManager : ModSystem
             ItemID.Flairon,
             ItemID.Tsunami,
             ItemID.TempestStaff,
-            ItemID.FishronWings,
         };
 
         public override void AddRecipeGroups()

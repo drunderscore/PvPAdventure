@@ -511,7 +511,7 @@ public class AdventureDropDatabase : ModSystem
 
             case NPCID.WallofFlesh:
 
-                //npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
+                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
                 //var wofFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.WallofFlesh));
                 //wofFirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
@@ -551,20 +551,6 @@ public class AdventureDropDatabase : ModSystem
                 {
                             ModifyDropRate(drop, ItemID.FishronWings, 0, 1);
                     }
-
-                var dukefirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.DukeFishron));
-                dukefirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
-                    ItemID.BubbleGun,
-                    ItemID.Tsunami
-                ));
-                dukefirstKillRule.OnFailedConditions(ItemDropRule.OneFromOptions(1,
-                    ItemID.RazorbladeTyphoon,
-                    ItemID.Tsunami,
-                    ItemID.TempestStaff,
-                    ItemID.BubbleGun,
-                    ItemID.Flairon
-                ));
-                npcLoot.Add(dukefirstKillRule);
                 break;
 
 
