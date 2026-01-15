@@ -2,11 +2,13 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.System;
+using PvPAdventure.Common.Players;
+using PvPAdventure.Common.Statistics;
+using PvPAdventure.Core.Discord;
+using PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
-using Terraria.Map;
 using Terraria.ModLoader;
 
 namespace PvPAdventure;

@@ -749,6 +749,120 @@ Mods: {
 					Tooltip: ""
 				}
 			}
+
+			AdventureServerConfig: {
+				DisplayName: Adventure Server Config
+
+				Points: {
+					Label: Points
+					Tooltip: ""
+				}
+
+				Bounties: {
+					Label: Bounties
+					Tooltip: ""
+				}
+
+				Combat: {
+					Label: Combat
+					Tooltip: ""
+				}
+
+				PreventUse: {
+					Label: Prevent Use
+					Tooltip: ""
+				}
+
+				NpcSpawnAnnouncements: {
+					Label: Npc Spawn Announcements
+					Tooltip: ""
+				}
+
+				BossOrder: {
+					Label: Boss Order
+					Tooltip: ""
+				}
+
+				OnlyDisplayWorldEvilBoss: {
+					Label: Only Display World Evil Boss
+					Tooltip: ""
+				}
+
+				BossInvulnerableProjectiles: {
+					Label: Boss Invulnerable Projectiles
+					Tooltip: ""
+				}
+
+				InvasionSizes: {
+					Label: Invasion Sizes
+					Tooltip: ""
+				}
+
+				RecallFrames: {
+					Label: Recall Frames
+					Tooltip: ""
+				}
+
+				SpawnImmuneFrames: {
+					Label: Spawn Immune Frames
+					Tooltip: ""
+				}
+
+				CrashoutMessages: {
+					Label: Crashout Messages
+					Tooltip: ""
+				}
+
+				AllowConfigModification: {
+					Label: Allow Config Modification
+					Tooltip: ""
+				}
+
+				BoundSpawnChance: {
+					Label: Bound Spawn Chance
+					Tooltip: ""
+				}
+
+				RemovePrefixes: {
+					Label: Remove Prefixes
+					Tooltip: ""
+				}
+
+				ItemStatistics: {
+					Label: Item Statistics
+					Tooltip: ""
+				}
+
+				WorldGeneration: {
+					Label: World Generation
+					Tooltip: ""
+				}
+
+				PreventAutoReuse: {
+					Label: Prevent Auto Reuse
+					Tooltip: ""
+				}
+
+				NpcBalance: {
+					Label: Npc Balance
+					Tooltip: ""
+				}
+
+				ChestItemReplacements: {
+					Label: Chest Item Replacements
+					Tooltip: ""
+				}
+
+				MinimumDamageReceivedByPlayers: {
+					Label: Minimum Damage Received By Players
+					Tooltip: ""
+				}
+
+				MinimumDamageReceivedByPlayersFromPlayer: {
+					Label: Minimum Damage Received By Players From Player
+					Tooltip: ""
+				}
+			}
 		}
 
 		Item: {
