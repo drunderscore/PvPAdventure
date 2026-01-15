@@ -1,5 +1,5 @@
 using MonoMod.Cil;
-using PvPAdventure.Common.Config;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.Utilities;

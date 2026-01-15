@@ -1,10 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
-using Discord;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using PvPAdventure.Common.Players;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -105,7 +103,7 @@ public class DiscordIdentification : ModSystem
         }
         else
         {
-            var adventurePlayer = Main.player[playerNumber].GetModPlayer<AdventurePlayer>();
+            var adventurePlayer = Main.player[playerNumber].GetModPlayer<DiscordAuthPlayer>();
 
             if (messageType == MessageID.SendPassword && Netplay.Clients[playerNumber].State == -1)
             {
@@ -127,7 +125,7 @@ public class DiscordIdentification : ModSystem
                     if (Main.player
                         .Where(predicatePlayer => predicatePlayer != null && predicatePlayer.active &&
                                                   predicatePlayer.whoAmI != playerNumber)
-                        .Select(predicatePlayer => predicatePlayer.GetModPlayer<AdventurePlayer>())
+                        .Select(predicatePlayer => predicatePlayer.GetModPlayer<DiscordAuthPlayer>())
                         .Any(predicatePlayer => predicatePlayer.DiscordUser?.Id == adventurePlayer.DiscordUser.Id))
                     {
                         NetMessage.BootPlayer(playerNumber,

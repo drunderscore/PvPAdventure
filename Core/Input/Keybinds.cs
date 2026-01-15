@@ -1,4 +1,8 @@
 using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.Statistics;
+using PvPAdventure.Common.Teams;
+using Terraria;
+using Terraria.GameInput;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Input;
@@ -15,5 +19,38 @@ public class Keybinds : ModSystem
         Scoreboard = KeybindLoader.RegisterKeybind(Mod, "Scoreboard", Keys.OemTilde);
         BountyShop = KeybindLoader.RegisterKeybind(Mod, "BountyShop", Keys.P);
         AllChat = KeybindLoader.RegisterKeybind(Mod, "AllChat", Keys.U);
+    }
+}
+
+internal class KeybindsPlayer : ModPlayer
+{
+    public override void ProcessTriggers(TriggersSet triggersSet)
+    {
+        var pointsManager = ModContent.GetInstance<PointsManager>();
+        var keybinds = ModContent.GetInstance<Keybinds>();
+
+        if (keybinds.Scoreboard.JustPressed)
+        {
+            pointsManager.BossCompletion.Active = true;
+            Main.InGameUI.SetState(pointsManager.UiScoreboard);
+        }
+        else if (keybinds.Scoreboard.JustReleased)
+        {
+            pointsManager.BossCompletion.Active = false;
+            Main.InGameUI.SetState(null);
+        }
+
+        if (keybinds.BountyShop.JustPressed)
+        {
+            var bountyShop = ModContent.GetInstance<BountyManager>().UiBountyShop;
+
+            if (Main.InGameUI.CurrentState == bountyShop)
+                Main.InGameUI.SetState(null);
+            else
+                Main.InGameUI.SetState(bountyShop);
+        }
+
+        if (keybinds.AllChat.JustPressed)
+            ModContent.GetInstance<TeamChatManager>().OpenAllChat();
     }
 }

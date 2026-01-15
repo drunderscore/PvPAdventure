@@ -1,6 +1,6 @@
 using System.Reflection;
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Config;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.Audio;
 using Terraria.Chat;

@@ -1,4 +1,4 @@
-using PvPAdventure.Common.Config;
+using PvPAdventure.Core.Config;
 using System.Linq;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;

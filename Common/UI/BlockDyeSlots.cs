@@ -11,7 +11,7 @@ using Terraria.UI;
 namespace PvPAdventure.Common.UI;
 
 [Autoload(Side = ModSide.Client)]
-public class DyeSlotBlocker : ModSystem
+public class BlockDyeSlots : ModSystem
 {
     private delegate void AccessorySlotLoaderDrawSlotDelegate(AccessorySlotLoader self, Item[] items, int context,
         int slot, bool flag3, int xLoc, int yLoc, bool skipCheck);

@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.Common.Config;
 using PvPAdventure.Common.Spawnbox;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.DataStructures;

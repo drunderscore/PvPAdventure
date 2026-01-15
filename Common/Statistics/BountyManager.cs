@@ -4,8 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Config;
-using PvPAdventure.Common.Players;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.Chat;
@@ -373,7 +372,7 @@ public class BountyManager : ModSystem
         var itemPickupsForThisTeam = new HashSet<int>(Main.player
             .Where(player => player.active)
             .Where(player => player.team == who.team)
-            .Select(player => player.GetModPlayer<AdventurePlayer>())
+            .Select(player => player.GetModPlayer<StatisticsPlayer>())
             .Select(player => player.ItemPickups)
             .SelectMany(set => set));
 

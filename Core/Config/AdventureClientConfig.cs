@@ -5,7 +5,7 @@ using PvPAdventure.Core.Utilities;
 using Terraria.Audio;
 using Terraria.ModLoader.Config;
 
-namespace PvPAdventure.Common.Config;
+namespace PvPAdventure.Core.Config;
 
 public class AdventureClientConfig : ModConfig
 {

@@ -1,4 +1,4 @@
-using PvPAdventure.Common.Config;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;

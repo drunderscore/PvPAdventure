@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Config;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.Chat;
 using Terraria.GameContent;

@@ -14,8 +14,8 @@ using Terraria.GameContent.NetModules;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.Net;
-using PvPAdventure.Common.Config;
 using PvPAdventure.Common.Spawnbox;
+using PvPAdventure.Core.Config;
 
 namespace PvPAdventure.Common.GameTimer;
 

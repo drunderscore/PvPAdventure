@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using MonoMod.Cil;
-using PvPAdventure.Common.Config;
-using PvPAdventure.Common.Players;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
@@ -150,7 +149,7 @@ public class CombatManager : ModSystem
             .EmitDelegate((Player self, PlayerDeathReason damageSource, bool pvp, ref int cooldownCounter,
                 ref bool flag) =>
             {
-                var adventurePlayer = self.GetModPlayer<AdventurePlayer>();
+                var combatPlayer = self.GetModPlayer<CombatPlayer>();
 
                 if (pvp)
                 {
@@ -159,7 +158,7 @@ public class CombatManager : ModSystem
                         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
                         if (adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(new ProjectileDefinition(
                                 damageSource.SourceProjectileType), out var immunityGroup) &&
-                            adventurePlayer.GroupImmuneTime[immunityGroup.Id] > 0)
+                            combatPlayer.GroupImmuneTime[immunityGroup.Id] > 0)
                         {
                             cooldownCounter = GroupCooldownId - immunityGroup.Id;
                             flag = false;
@@ -171,7 +170,7 @@ public class CombatManager : ModSystem
                         // Overwrite the cooldown counter, so that if the hurt succeeds, no other counter gets modified.
                         cooldownCounter = PvPImmunityCooldownId;
                         // Set the flag deciding if this hurt should proceed.
-                        flag = adventurePlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] == 0;
+                        flag = combatPlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] == 0;
                     }
                 }
             });
@@ -196,7 +195,7 @@ public class CombatManager : ModSystem
             .EmitLdarg0()
             // If we don't have a player owner somehow, allow it regardless.
             .EmitDelegate((Player self, Projectile projectile) => !projectile.TryGetOwner(out var owner) ||
-                                                                  self.GetModPlayer<AdventurePlayer>()
+                                                                  self.GetModPlayer<CombatPlayer>()
                                                                       .PvPImmuneTime[owner.whoAmI] > 0);
 
         // Find the first call to ModProjectile.CooldownSlot (property)...

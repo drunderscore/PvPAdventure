@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using PvPAdventure.Common.Combat;
-using PvPAdventure.Common.Players;
+using PvPAdventure.Core.Discord;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 
-namespace PvPAdventure.Common.Config;
+namespace PvPAdventure.Core.Config;
 
 public class AdventureServerConfig : ModConfig
 {
@@ -373,7 +373,7 @@ public class AdventureServerConfig : ModConfig
             return true;
 
         var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-        var discordId = Main.player[whoAmI].GetModPlayer<AdventurePlayer>().DiscordUser?.Id;
+        var discordId = Main.player[whoAmI].GetModPlayer<DiscordAuthPlayer>().DiscordUser?.Id;
         if (discordId == null)
             return false;
 

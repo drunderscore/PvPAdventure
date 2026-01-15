@@ -4,9 +4,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Config;
 using PvPAdventure.Common.Npcs;
-using PvPAdventure.Common.Players;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.Chat;
 using Terraria.Enums;
@@ -404,9 +403,9 @@ public class PointsManager : ModSystem
 
                     if (player != null)
                     {
-                        var adventurePlayer = player.GetModPlayer<AdventurePlayer>();
-                        var kills = adventurePlayer.Kills;
-                        var deaths = adventurePlayer.Deaths;
+                        var statisticsPlayer = player.GetModPlayer<StatisticsPlayer>();
+                        var kills = statisticsPlayer.Kills;
+                        var deaths = statisticsPlayer.Deaths;
 
                         kdPanel.Append(new UIText($"{kills} / {deaths}")
                         {
