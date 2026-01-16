@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Debug;
+using PvPAdventure.Core.Debug;
 using ReLogic.Content;
 using System;
 using System.Collections;

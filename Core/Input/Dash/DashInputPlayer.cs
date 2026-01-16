@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Debug;
 using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using System;
 using Terraria;

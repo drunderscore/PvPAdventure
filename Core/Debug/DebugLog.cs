@@ -8,7 +8,7 @@ using Terraria.Chat;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Debug;
+namespace PvPAdventure.Core.Debug;
 
 /// <summary>
 /// A static logging helper for PvPAdventure.
