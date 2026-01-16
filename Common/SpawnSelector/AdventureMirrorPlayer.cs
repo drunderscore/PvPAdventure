@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Content.Items;
+using PvPAdventure.Content.Items;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;

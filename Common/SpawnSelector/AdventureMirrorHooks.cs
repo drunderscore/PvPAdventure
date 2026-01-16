@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using MonoMod.RuntimeDetour;
-using PvPAdventure.Common.Content.Items;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Debug;
 using System;
 using System.Linq;

@@ -1,4 +1,4 @@
-﻿using PvPAdventure.Common.Content.Items;
+﻿using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Net;
 using System.IO;
 using Terraria;

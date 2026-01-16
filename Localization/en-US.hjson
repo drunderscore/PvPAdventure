@@ -152,7 +152,7 @@ Mods: {
 		Items: {
 			AdventureBag: {
 				DisplayName: Adventure Bag
-				Tooltip: Everything you need to start your PvP adventure!
+				Tooltip: Everything you need to start your adventure!
 			}
 
 			BlightFruit: {
@@ -200,28 +200,8 @@ Mods: {
 				Tooltip: ""
 			}
 
-			BoundArmsDealerConfig: {
-				DisplayName: Bound Arms Dealer Config
-				Tooltip: ""
-			}
-
-			ServerConfigItem: {
-				DisplayName: Server Config Item
-				Tooltip: ""
-			}
-
-			AdventureMirror: {
-				DisplayName: Adventure Mirror
-				Tooltip: ""
-			}
-
-			AdminManagerConfigItem: {
-				DisplayName: Admin Manager Config Item
-				Tooltip: ""
-			}
-
-			ForbiddenIconConfigItem: {
-				DisplayName: Forbidden Icon Config Item
+			PointsConfigItem: {
+				DisplayName: Points Config Item
 				Tooltip: ""
 			}
 		}
@@ -278,7 +258,7 @@ Mods: {
 					SoundEffects: Sound Effects
 					Spectate: "[i:Binoculars] Spectate"
 					Spawn: Spawn
-					Debug: "[i:AnnouncementBox] Notifications / Chat Messages"
+					Debug: "[i:Goggles] Debug"
 				}
 
 				ShiftEnterOpensAllChat: {
@@ -305,6 +285,11 @@ Mods: {
 					Tooltip: ""
 				}
 
+				AutoSelectWorldSpawnWhenRespawning: {
+					Label: "[i:PvPAdventure/MapSpawnConfig] Auto Select World Spawn When Respawning"
+					Tooltip: When you die, the world spawn point is automatically selected as your spawn point
+				}
+
 				SpawnUIPosition: {
 					Label: Spawn UI Position
 					Tooltip:
@@ -322,35 +307,6 @@ Mods: {
 				EnableDebugMessages: {
 					Label: Enable Debug Messages
 					Tooltip: Logs chat messages for most actions. Useful for developers or players investigating bugs.
-				}
-
-				ShowDebugMessages: {
-					Label: Show Debug Messages
-					Tooltip:
-						'''
-						Sends chat messages with many different things useful for development flow and debugging.
-						Recommended to keep Off for players.
-						'''
-				}
-
-				ShowSavePlayerMessages: {
-					Label: Show Save Player Messages
-					Tooltip: Sends a local chat message whenever the player file is saved.
-				}
-
-				AutoSelectWorldSpawnOnDeath: {
-					Label: "[i:PvPAdventure/MapSpawnConfig] Auto Select World Spawn On Death"
-					Tooltip: When you die, the world spawn point is automatically selected as your spawn point
-				}
-
-				ShowPopupMessages: {
-					Label: Show Popup Messages
-					Tooltip: ""
-				}
-
-				ShowAdminMessages: {
-					Label: Show Admin Messages
-					Tooltip: ""
 				}
 			}
 
@@ -506,18 +462,19 @@ Mods: {
 				DisplayName: Adventure Server Config
 
 				Headers: {
-					Points: "[i:GoldCoin] Points"
+					Points: "[i:PvPAdventure/PointsConfigItem] Points"
 					Combat: "[i:273] Combat"
 					Items: "[i:Chest] Items"
 					NPCs: "[i:267] NPCs"
 					Gameplay: "[i:Stopwatch] Gameplay"
 					General: "[i:Cog] General"
 					WorldGen: "[i:WorldGlobe] World Generation"
-					SSC: "[i:PvPAdventure/ServerConfigItem] SSC"
+					SSC: "[i:4765] SSC"
+					Bosses: "[i:2112] Bosses"
 				}
 
 				Points: {
-					Label: Points
+					Label: "[i:PvPAdventure/MatteConfig] Points"
 					Tooltip: ""
 				}
 
@@ -528,7 +485,7 @@ Mods: {
 
 				InvasionSizes: {
 					Label: Invasion Sizes
-					Tooltip: ""
+					Tooltip: "Change how many enemies need to be defeated to complete an invasion"
 				}
 
 				WeaponBalance: {
@@ -587,7 +544,7 @@ Mods: {
 				}
 
 				BoundSpawnChance: {
-					Label: "[i:PvPAdventure/BoundArmsDealerConfig] Bound Spawn Chance"
+					Label: Bound Spawn Chance
 					Tooltip: Percent chance that our bound NPCs spawn
 				}
 
@@ -646,30 +603,24 @@ Mods: {
 					Tooltip: ""
 				}
 
+				sscConfig: {
+					Label: Server Sided Characters
+					Tooltip: ""
+				}
+
 				StartItems: {
-					Label: "[i:PvPAdventure/AdventureBag] Starting Items"
-					Tooltip: The items a player starts with when joining with a new character.
+					Label: Start Items
+					Tooltip: ""
 				}
 
-				StartLife: {
-					Label: "[i:LifeCrystal] Starting Health"
-					Tooltip: The starting max health of a new character. Default to 100
+				respawnConfig: {
+					Label: respawn Config
+					Tooltip: ""
 				}
 
-				StartMana: {
-					Label: "[i:ManaCrystal] Starting Mana"
-					Tooltip: The starting max mana of a new character. Default to 20
-				}
-
-				IsSSCEnabled: {
-					Label: Is SSC Enabled
-					Tooltip:
-						'''
-						Whether to use server sided characters. 
-						Creates new characters on the server and prevents players from joining with local characters.
-						Data storage on the server is located in the folder: 
-						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
-						'''
+				BossSpawnAnnouncements: {
+					Label: Boss Spawn Announcements
+					Tooltip: ""
 				}
 			}
 
@@ -677,17 +628,17 @@ Mods: {
 				Tooltip: ""
 
 				Npc: {
-					Label: Npc
+					Label: Points Per Boss
 					Tooltip: ""
 				}
 
 				Boss: {
-					Label: Boss
+					Label: Boss Kill Points
 					Tooltip: ""
 				}
 
 				PlayerKill: {
-					Label: Player Kill
+					Label: Player Kill Points
 					Tooltip: ""
 				}
 			}
@@ -884,12 +835,12 @@ Mods: {
 				Tooltip: ""
 
 				ItemAP: {
-					Label: Item A P
+					Label: Item Armor Penetration
 					Tooltip: ""
 				}
 
 				ProjectileAP: {
-					Label: Projectile A P
+					Label: Projectile Armor Penetration
 					Tooltip: ""
 				}
 			}
@@ -1284,188 +1235,21 @@ Mods: {
 				}
 			}
 
+			SSCConfig: {
+				Tooltip: ""
+
+				StartItems: {
+					Label: Start Items
+					Tooltip: ""
+				}
+
+				UseSSC: {
+					Label: Use SSC
+					Tooltip: Forces players to select a server-sided character when joining the world
+				}
+			}
+
 			RespawnConfig.Tooltip: ""
-
-			ClientConfig: {
-				DisplayName: Client Config
-
-				Headers: {
-					General: General Header
-					SoundEffects: Sound Effects Header
-					Spawn: Spawn Header
-					Debug: Debug Header
-				}
-
-				ShiftEnterOpensAllChat: {
-					Label: Shift Enter Opens All Chat
-					Tooltip: ""
-				}
-
-				IsVanillaDashEnabled: {
-					Label: Is Vanilla Dash Enabled
-					Tooltip: ""
-				}
-
-				PlayerOutline: {
-					Label: Player Outline
-					Tooltip: ""
-				}
-
-				SoundEffect: {
-					Label: Sound Effect
-					Tooltip: ""
-				}
-
-				AutoSelectWorldSpawnWhenRespawning: {
-					Label: Auto Select World Spawn When Respawning
-					Tooltip: ""
-				}
-
-				CloseMapOnHurt: {
-					Label: Close Map On Hurt
-					Tooltip: ""
-				}
-
-				EnableDebugMessages: {
-					Label: Enable Debug Messages
-					Tooltip: ""
-				}
-			}
-
-			ServerConfig: {
-				DisplayName: Server Config
-
-				Headers: {
-					Points: Points Header
-					Combat: Combat Header
-					Items: Items Header
-					Bosses: Bosses Header
-					NPCs: N P Cs Header
-					Gameplay: Gameplay Header
-					General: General Header
-					WorldGen: World Gen Header
-				}
-
-				Points: {
-					Label: Points
-					Tooltip: ""
-				}
-
-				Bounties: {
-					Label: Bounties
-					Tooltip: ""
-				}
-
-				InvasionSizes: {
-					Label: Invasion Sizes
-					Tooltip: ""
-				}
-
-				WeaponBalance: {
-					Label: Weapon Balance
-					Tooltip: ""
-				}
-
-				Other: {
-					Label: Other
-					Tooltip: ""
-				}
-
-				PreventUse: {
-					Label: Prevent Use
-					Tooltip: ""
-				}
-
-				ItemStatistics: {
-					Label: Item Statistics
-					Tooltip: ""
-				}
-
-				PreventAutoReuse: {
-					Label: Prevent Auto Reuse
-					Tooltip: ""
-				}
-
-				ChestItemReplacements: {
-					Label: Chest Item Replacements
-					Tooltip: ""
-				}
-
-				RemovePrefixes: {
-					Label: Remove Prefixes
-					Tooltip: ""
-				}
-
-				BossBalance: {
-					Label: Boss Balance
-					Tooltip: ""
-				}
-
-				BossSpawnAnnouncements: {
-					Label: Boss Spawn Announcements
-					Tooltip: ""
-				}
-
-				BossOrder: {
-					Label: Boss Order
-					Tooltip: ""
-				}
-
-				BossInvulnerableProjectiles: {
-					Label: Boss Invulnerable Projectiles
-					Tooltip: ""
-				}
-
-				NoMechanicalBossSummonDrops: {
-					Label: No Mechanical Boss Summon Drops
-					Tooltip: ""
-				}
-
-				OnlyDisplayWorldEvilBoss: {
-					Label: Only Display World Evil Boss
-					Tooltip: ""
-				}
-
-				BoundSpawnChance: {
-					Label: Bound Spawn Chance
-					Tooltip: ""
-				}
-
-				MapRecallFrames: {
-					Label: Map Recall Frames
-					Tooltip: ""
-				}
-
-				SpawnImmuneFrames: {
-					Label: Spawn Immune Frames
-					Tooltip: ""
-				}
-
-				MinimumDamageReceivedByPlayers: {
-					Label: Minimum Damage Received By Players
-					Tooltip: ""
-				}
-
-				MinimumDamageReceivedByPlayersFromPlayer: {
-					Label: Minimum Damage Received By Players From Player
-					Tooltip: ""
-				}
-
-				CrashoutMessages: {
-					Label: Crashout Messages
-					Tooltip: ""
-				}
-
-				AllowConfigModification: {
-					Label: Allow Config Modification
-					Tooltip: ""
-				}
-
-				WorldGeneration: {
-					Label: World Generation
-					Tooltip: ""
-				}
-			}
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
@@ -1474,34 +1258,19 @@ Mods: {
 
 		Spawn: {
 			ChooseYourSpawn: Choose Your Spawn
-			TeleportToTeammate: Teleport to {0}
-			Random: Teleport to random location
-			TeleportToWorldSpawn: Teleport to world spawn
-			TeammatesBed: "{0}'s Bed"
-			TeleportToTeammatesBed: Teleport to {0}'s bed
-			SelectRandomSpawn: Select random spawn
-			CancelRandomSpawn: Cancel random spawn
-			SelectWorldSpawn: Select world spawn
-			CancelWorldSpawn: Cancel world spawn
-			SelectTeammateSpawn: Select {0}'s spawn
-			CancelTeammateSpawn: Cancel {0}'s spawn
-			SelectBedSpawn: Select {0}'s bed
-			CancelBedSpawn: Cancel {0}'s bed
-			SelectMyBed: Select my bed
-			CancelMyBed: Cancel my bed
-			TeleportToMyBed: Teleport to my bed
-		}
-
-		AdventureMirror: {
-			GameNotStarted: wait until game starts!
-			CannotUseInSpawn: cannot use in spawn!
-			CannotUseWhileMoving: cannot use while moving!
-			CannotDrop: cannot drop!
-			CannotUnfavorite: cannot unfavorite!
-			CannotTrash: cannot trash!
-			CannotSell: cannot sell!
-			CannotStore: cannot store!
-			Cancelled: cancelled!
+			TeleportToPlayer: Teleport to {0}
+			Random: Teleport to Random Location
+			TeleportToWorldSpawn: Teleport to World Spawn
+			PlayersBed: "{0}'s Bed"
+			TeleportToPlayersBed: Teleport to {0}'s Bed
+			SelectRandomSpawn: Select Random Spawn
+			CancelRandomSpawn: Cancel Random Spawn
+			SelectWorldSpawn: Select World Spawn
+			CancelWorldSpawn: Cancel World Spawn
+			SelectPlayerSpawn: Select {0}'s Spawn
+			CancelPlayerSpawn: Cancel {0}'s Spawn
+			SelectBedSpawn: Select {0}'s Bed
+			CancelBedSpawn: Cancel {0}'s Bed
 		}
 
 		Item: {
