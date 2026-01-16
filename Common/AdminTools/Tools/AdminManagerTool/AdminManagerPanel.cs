@@ -1,7 +1,6 @@
 ﻿using DragonLens.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common;
 using PvPAdventure.Core.Assets;
 using PvPAdventure.Core.Debug;
 using System;
@@ -13,7 +12,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.AdminManagerTool;
+namespace PvPAdventure.Common.AdminTools.Tools.AdminManagerTool;
 
 internal class AdminManagerPanel : UI.DraggablePanel
 {

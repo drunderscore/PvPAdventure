@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.Chat;
 using Terraria.GameContent;
@@ -11,11 +10,12 @@ using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Chat;
 
-namespace PvPAdventure.Common.GameTimer;
+namespace PvPAdventure.System;
 
 public class PauseManager : ModSystem
 {
     private bool _paused;
+    public bool IsPaused => _paused;
     private Interface _interface;
 
     public override void Load()
@@ -77,9 +77,11 @@ public class PauseManager : ModSystem
             if (!pauseManager._paused)
                 return true;
 
-            var size = ChatManager.GetStringSize(FontAssets.DeathText.Value, "PAUSED", Vector2.One);
+            string PAUSEDText = Language.GetTextValue("Mods.PvPAdventure.Pause.Paused");
 
-            ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, FontAssets.DeathText.Value, "PAUSED",
+            var size = ChatManager.GetStringSize(FontAssets.DeathText.Value, PAUSEDText, Vector2.One);
+
+            ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, FontAssets.DeathText.Value, PAUSEDText,
                 new Vector2((int)((Main.screenWidth / 2.0f) - (size.X / 2.0f)),
                     (int)(Main.screenHeight / 2.0f) - (size.Y / 2.0f)), Color.Red, 0.0f,
                 Vector2.Zero,
@@ -104,5 +106,16 @@ public class PauseManager : ModSystem
 
         public override string Command => "pause";
         public override CommandType Type => CommandType.Console;
+    }
+
+    public void PauseGame()
+    {
+        var pause = ModContent.GetInstance<PauseManager>();
+        pause._paused = !pause._paused;
+
+        ChatHelper.BroadcastChatMessage(NetworkText.FromKey($"Mods.PvPAdventure.Pause.{pause._paused}"),
+            Color.White);
+
+        NetMessage.SendData(MessageID.WorldData);
     }
 }

@@ -87,4 +87,9 @@ Documents/My Games/Terraria/tModLoader/ModSources/PvPAdventure
 - Put gameplay behavior in `Common/*` and shared infrastructure in `Core/*`.
 
 ## 6. CI
-- GitHub Actions runs on PRs to build the mod in order to ensure the mod builds successfully.
+
+We use GitHub Actions to ensure the mod builds.
+
+- Workflow: `.github/workflows/build.yml`
+- Runs on selected branches and PRs
+- Add your branch to the workflow to enable CI

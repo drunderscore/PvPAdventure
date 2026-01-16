@@ -7,7 +7,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.EndGameTool;
+namespace PvPAdventure.Common.AdminTools.Tools.EndGameTool;
 
 internal class EndGamePanel : UI.DraggablePanel
 {

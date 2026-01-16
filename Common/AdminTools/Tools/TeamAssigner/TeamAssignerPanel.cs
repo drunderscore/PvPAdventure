@@ -7,7 +7,7 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.TeamAssigner;
+namespace PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
 
 /// <summary>
 /// The base element for the team assigner UI (title and content panel).

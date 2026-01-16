@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.EndGameTool;
+namespace PvPAdventure.Common.AdminTools.Tools.EndGameTool;
 
 [Autoload(Side = ModSide.Client)]
 internal class EndGameSystem : ModSystem

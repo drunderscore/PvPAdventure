@@ -7,7 +7,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.StartGameTool;
+namespace PvPAdventure.Common.AdminTools.Tools.StartGameTool;
 
 public class ExtendGamePanel : UI.DraggablePanel
 {

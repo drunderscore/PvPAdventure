@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.AdminManagerTool;
+namespace PvPAdventure.Common.AdminTools.Tools.AdminManagerTool;
 
 /// <summary>
 /// The system responsible for managing admins UI.

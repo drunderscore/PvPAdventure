@@ -4,27 +4,33 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.TeamAssigner;
+namespace PvPAdventure.Common.AdminTools.Tools.StartGameTool;
 
-/// <summary>
-/// The system responsible for managing the team selector UI.
-/// </summary>
 [Autoload(Side = ModSide.Client)]
-public class TeamAssignerSystem : ModSystem
+internal class StartGameSystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState teamAssignerState;
+    public UIState extendGameUIState;
+    public UIState startGameUIState;
 
     // State
-    public bool IsActive() => ui?.CurrentState == teamAssignerState;
-    public void ToggleActive() => ui.SetState(IsActive() ? null : teamAssignerState);
+    public bool IsActive() => ui?.CurrentState != null;
+
+    public void ShowExtendGameDialog() => ui.SetState(extendGameUIState);
+    public void ShowStartDialog() => ui.SetState(startGameUIState);
+    public void Hide() => ui.SetState(null);
 
     public override void OnWorldLoad()
     {
         ui = new();
-        teamAssignerState = new();
-        teamAssignerState.Append(new TeamAssignerPanel());
+        extendGameUIState = new();
+        extendGameUIState.Append(new ExtendGamePanel());
+
+        startGameUIState = new();
+        startGameUIState.Append(new StartGamePanel());
+
+        ui.SetState(null);
     }
     public override void UpdateUI(GameTime gameTime)
     {
@@ -38,7 +44,7 @@ public class TeamAssignerSystem : ModSystem
         if (index != -1)
         {
             layers.Insert(index, new LegacyGameInterfaceLayer(
-                name: "PvPAdventure: TeamAssignerSystem",
+                name: "PvPAdventure: GameManagerSystem",
                 drawMethod: () =>
                 {
                     if (IsActive())
@@ -47,6 +53,7 @@ public class TeamAssignerSystem : ModSystem
 
                         // Debug
                         //Main.spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.Red * 0.5f);
+
                         return true;
                     }
                     return true;
@@ -56,3 +63,5 @@ public class TeamAssignerSystem : ModSystem
         }
     }
 }
+
+

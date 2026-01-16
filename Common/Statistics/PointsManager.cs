@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.AdminTools.PointsSetter;
+using PvPAdventure.Common.AdminTools.Tools.PointsSetter;
 using PvPAdventure.Core.Config;
 using System;
 using System.Collections.Generic;

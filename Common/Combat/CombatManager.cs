@@ -14,7 +14,7 @@ namespace PvPAdventure.Common.Combat;
 [Autoload(Side = ModSide.Both)]
 public class CombatManager : ModSystem
 {
-    private const bool PreventPersonalCombatModifications = true;
+    private const bool PreventPersonalCombatModifications = false;
 
     private static readonly HashSet<short> BossProjectiles =
     [
