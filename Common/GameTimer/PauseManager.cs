@@ -10,7 +10,7 @@ using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Chat;
 
-namespace PvPAdventure.System;
+namespace PvPAdventure.Common.GameTimer;
 
 public class PauseManager : ModSystem
 {

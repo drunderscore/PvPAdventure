@@ -37,7 +37,8 @@ public class ClientConfig : ModConfig
     [DefaultValue(true)] public bool CloseMapOnHurt;
 
     [Header("Debug")]
-    [DefaultValue(false)] public bool EnableDebugMessages;
+    [DefaultValue(false)] public bool ShowDebugMessages;
+    [DefaultValue(true)] public bool ShowSavePlayerMessages;
 
     #region Configs
     public class PlayerOutlineConfig

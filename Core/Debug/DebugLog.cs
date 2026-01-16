@@ -35,7 +35,7 @@ public static class Log
     {
         // Check if debug messages are enabled in config
         var config = ModContent.GetInstance<ClientConfig>();
-        if (!config.EnableDebugMessages)
+        if (!config.ShowDebugMessages)
             return;
 
         // Sanitize file name

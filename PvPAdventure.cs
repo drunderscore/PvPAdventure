@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using MonoMod.Cil;
 using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
@@ -7,7 +6,6 @@ using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Discord;
 using PvPAdventure.Core.Input.Dash;
 using PvPAdventure.Core.Net;
-using PvPAdventure.System;
 using System.IO;
 using System.Linq;
 using Terraria;
