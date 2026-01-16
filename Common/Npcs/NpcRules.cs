@@ -1,10 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using PvPAdventure.Common.DropRates;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
+using PvPAdventure.Content.NPCs;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.Audio;
@@ -19,21 +20,10 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Npcs;
 
-public class AdventureNpc : GlobalNPC
+public class NpcRules : GlobalNPC
 {
-    public override bool InstancePerEntity => true;
-    public DamageInfo LastDamageFromPlayer { get; set; }
-
-    public class DamageInfo(byte who)
-    {
-        public byte Who { get; } = who;
-    }
-
     public override void Load()
     {
-        if (Main.dedServ)
-            On_NPC.PlayerInteraction += OnNPCPlayerInteraction;
-
         // Prevent Empress of Light from targeting players during daytime, so she will despawn.
         On_NPC.TargetClosest += OnNPCTargetClosest;
         // Prevent Empress of Light from being enraged, so she won't instantly kill players.
@@ -152,37 +142,6 @@ public class AdventureNpc : GlobalNPC
             else if (Main.netMode == NetmodeID.Server)
                 ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Announcement.HasAwoken", npc.GetTypeNetName()),
                     new(175, 75, 255));
-        }
-    }
-
-    private static void OnNPCPlayerInteraction(On_NPC.orig_PlayerInteraction orig, NPC self, int player)
-    {
-        orig(self, player);
-
-        // If this is part of the Eater of Worlds, then mark ALL segments as last damaged by this player.
-        if (IsPartOfEaterOfWorlds((short)self.type))
-        {
-            foreach (var npc in Main.ActiveNPCs)
-            {
-                if (!IsPartOfEaterOfWorlds((short)npc.type))
-                    continue;
-
-                npc.GetGlobalNPC<AdventureNpc>().LastDamageFromPlayer = new DamageInfo((byte)player);
-            }
-        }
-        else if (IsPartOfTheDestroyer((short)self.type))
-        {
-            foreach (var npc in Main.ActiveNPCs)
-            {
-                if (!IsPartOfTheDestroyer((short)npc.type))
-                    continue;
-
-                npc.GetGlobalNPC<AdventureNpc>().LastDamageFromPlayer = new DamageInfo((byte)player);
-            }
-        }
-        else
-        {
-            self.GetGlobalNPC<AdventureNpc>().LastDamageFromPlayer = new DamageInfo((byte)player);
         }
     }
 
@@ -328,37 +287,6 @@ public class AdventureNpc : GlobalNPC
         }
     }
 
-    public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
-    {
-        var config = ModContent.GetInstance<AdventureServerConfig>();
-
-        var isBoss = npc.boss
-                     || IsPartOfEaterOfWorlds((short)npc.type)
-                     || IsPartOfTheDestroyer((short)npc.type);
-
-        if (isBoss && config.BossInvulnerableProjectiles.Any(projectileDefinition =>
-                projectileDefinition.Type == projectile.type))
-            return false;
-
-        return null;
-    }
-
-    public override void OnKill(NPC npc)
-    {
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-            return;
-
-        var lastDamageInfo = npc.GetGlobalNPC<AdventureNpc>().LastDamageFromPlayer;
-        if (lastDamageInfo == null)
-            return;
-
-        var lastDamager = Main.player[lastDamageInfo.Who];
-        if (lastDamager == null || !lastDamager.active)
-            return;
-
-        ModContent.GetInstance<PointsManager>().AwardNpcKillToTeam((Team)lastDamager.team, npc);
-    }
-
     public override bool? CanChat(NPC npc)
     {
         // This is now a possibility from our multiplayer pause.
@@ -418,20 +346,6 @@ public class AdventureNpc : GlobalNPC
         AdventureDropDatabase.ModifyNPCLoot(npc, npcLoot);
     }
 
-    // This only runs on the attacking player
-    public override void OnHitByItem(NPC npc, Player player, Item item, NPC.HitInfo hit, int damageDone)
-    {
-        if (!Main.dedServ)
-            PlayHitMarker(damageDone);
-    }
-
-    // This only runs on the attacking player
-    public override void OnHitByProjectile(NPC npc, Projectile projectile, NPC.HitInfo hit, int damageDone)
-    {
-        if (!Main.dedServ)
-            PlayHitMarker(damageDone);
-    }
-
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
     {
         if (ModContent.GetInstance<GameManager>()?.CurrentPhase == GameManager.Phase.Waiting)
@@ -478,13 +392,6 @@ public class AdventureNpc : GlobalNPC
         }
 
         return true;
-    }
-
-    private static void PlayHitMarker(int damage)
-    {
-        var marker = ModContent.GetInstance<AdventureClientConfig>().SoundEffect.NpcHitMarker;
-        if (marker != null)
-            SoundEngine.PlaySound(marker.Create(damage));
     }
 
     public static bool IsPartOfEaterOfWorlds(short type) =>
