@@ -1,6 +1,7 @@
 ﻿using MonoMod.Cil;
 using PvPAdventure.Common.Npcs;
 using PvPAdventure.Common.Spawnbox;
+using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using System;
@@ -234,8 +235,8 @@ internal class CombatPlayer : ModPlayer
 
     public override bool CanBeHitByNPC(NPC npc, ref int cooldownSlot)
     {
-        if (npc.boss || AdventureNpc.IsPartOfEaterOfWorlds((short)npc.type) ||
-            AdventureNpc.IsPartOfTheDestroyer((short)npc.type) || BossNpcsForImmunityCooldown.Contains((short)npc.type))
+        if (npc.boss || NpcStatistics.IsPartOfEaterOfWorlds((short)npc.type) ||
+            NpcStatistics.IsPartOfTheDestroyer((short)npc.type) || BossNpcsForImmunityCooldown.Contains((short)npc.type))
             cooldownSlot = ImmunityCooldownID.Bosses;
 
         return true;

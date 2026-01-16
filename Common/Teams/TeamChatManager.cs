@@ -10,7 +10,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI.Chat;
 
-namespace PvPAdventure.Common.Chat;
+namespace PvPAdventure.Common.Teams;
 
 [Autoload(Side = ModSide.Client)]
 public class TeamChatManager : ModSystem

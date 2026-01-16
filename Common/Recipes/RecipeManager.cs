@@ -3,7 +3,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Loot;
+namespace PvPAdventure.Common.Recipes;
 
 [Autoload(Side = ModSide.Both)]
 public class RecipeManager : ModSystem

@@ -4,7 +4,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.UI;
 
-internal class MouseInputWhenHoveringBuffIcons : ModSystem
+internal class AllowMouseInputWhenHoveringBuffIcons : ModSystem
 {
     public override void Load()
     {

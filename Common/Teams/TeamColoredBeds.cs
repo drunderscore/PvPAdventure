@@ -6,7 +6,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
 
-namespace PvPAdventure.Common.TeamBeds;
+namespace PvPAdventure.Common.Teams;
 
 [Autoload(Side = ModSide.Client)]
 public class TeamColoredBeds : ModSystem

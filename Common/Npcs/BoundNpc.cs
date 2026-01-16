@@ -4,7 +4,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Content.NPCs;
+namespace PvPAdventure.Common.Npcs;
 
 public abstract class BoundNpc : ModNPC
 {

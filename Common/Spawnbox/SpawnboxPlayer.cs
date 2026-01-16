@@ -23,7 +23,7 @@ internal class SpawnboxPlayer : ModPlayer
 
     public override void PreUpdate()
     {
-        if (AdventureItem.RecallItems[Player.inventory[Player.selectedItem].type] && !CanRecall())
+        if (ItemBalance.RecallItems[Player.inventory[Player.selectedItem].type] && !CanRecall())
         {
             Player.SetItemAnimation(0);
             Player.SetItemTime(0);
@@ -40,7 +40,7 @@ internal class SpawnboxPlayer : ModPlayer
     public override bool CanUseItem(Item item)
     {
         // Prevent a recall from being started at all for these conditions.
-        if (AdventureItem.RecallItems[item.type])
+        if (ItemBalance.RecallItems[item.type])
         {
             if (CanRecall())
                 return true;
@@ -61,7 +61,7 @@ internal class SpawnboxPlayer : ModPlayer
     }
     public override void PostHurt(Player.HurtInfo info)
     {
-        if (AdventureItem.RecallItems[Player.inventory[Player.selectedItem].type])
+        if (ItemBalance.RecallItems[Player.inventory[Player.selectedItem].type])
         {
             Player.SetItemAnimation(0);
             Player.SetItemTime(0);
