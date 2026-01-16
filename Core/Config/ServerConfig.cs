@@ -149,24 +149,21 @@ public class ServerConfig : ModConfig
 
     [BackgroundColor(90, 40, 110)]
     [Expand(false)]
-    public Dictionary<ItemDefinition, int> StartItems { get; set; } = new()
-    {
-        { new ItemDefinition("PvPAdventure", "AdventureBag"), 1 }
-    };
+    public Dictionary<ItemDefinition, int> StartItems { get; set; } = [];
 
     [BackgroundColor(90, 40, 110)]
     [Slider]
     [Increment(20)]
     [Range(100, 500)]
     [DefaultValue(100)]
-    public int StartLife { get; set; } = 100;
+    public int StartLife { get; set; } = 200;
 
     [BackgroundColor(90, 40, 110)]
     [Slider]
     [Increment(20)]
     [Range(20, 200)]
-    [DefaultValue(20)]
-    public int StartMana { get; set; } = 20;
+    [DefaultValue(40)]
+    public int StartMana { get; set; } = 40;
     #endregion
 
     #region Arenas

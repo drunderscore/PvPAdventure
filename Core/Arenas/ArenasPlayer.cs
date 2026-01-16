@@ -1,6 +1,7 @@
-﻿using PvPAdventure.Core.Arenas.UI;
-using PvPAdventure.System;
-using PvPAdventure.System.Client;
+﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Core.Arenas.UI;
+using PvPAdventure.Core.Input;
 using SubworldLibrary;
 using Terraria;
 using Terraria.GameInput;

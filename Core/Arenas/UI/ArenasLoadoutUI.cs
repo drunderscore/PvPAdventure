@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.Config;
 using SubworldLibrary;
 using System;
 using Terraria;
@@ -9,7 +11,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.UI;
-using static PvPAdventure.AdventureServerConfig;
+using static PvPAdventure.Core.Config.ServerConfig;
 
 namespace PvPAdventure.Core.Arenas.UI;
 
@@ -75,7 +77,7 @@ public class ArenasLoadoutUI : UIState
         list.Top.Set(12f, 0f);
 
         // Add loadouts
-        var cfg = ModContent.GetInstance<AdventureServerConfig>();
+        var cfg = ModContent.GetInstance<ServerConfig>();
         foreach (var loadout in cfg.ArenaLoadouts)
         {
             if (loadout.Name == string.Empty && loadout.Head.Type <= 0)

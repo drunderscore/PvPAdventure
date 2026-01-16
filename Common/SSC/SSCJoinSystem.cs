@@ -1,4 +1,5 @@
-﻿using PvPAdventure.Core.Net;
+﻿using PvPAdventure.Core.Debug;
+using PvPAdventure.Core.Net;
 using Steamworks;
 using Terraria;
 using Terraria.ID;
@@ -63,6 +64,8 @@ public class SSCJoinSystem : ModSystem
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
+
+        Log.Chat("send 2");
 
         Player player = Main.LocalPlayer;
 

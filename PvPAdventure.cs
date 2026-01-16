@@ -2,7 +2,9 @@ using Microsoft.Xna.Framework;
 using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
+using PvPAdventure.Common.SSC;
 using PvPAdventure.Common.Statistics;
+using PvPAdventure.Core.Arenas;
 using PvPAdventure.Core.Discord;
 using PvPAdventure.Core.Input.Dash;
 using PvPAdventure.Core.Net;
@@ -308,6 +310,12 @@ public class PvPAdventure : Mod
 
             case AdventurePacketIdentifier.TeleportFx:
                 TeleportFxNet.Receive(reader);
+                break;
+            case AdventurePacketIdentifier.SSC:
+                SSC.HandlePacket(reader, whoAmI);
+                break;
+            case AdventurePacketIdentifier.ArenaPlayerCount:
+                ArenaPlayerCountNet.Receive(reader);
                 break;
         }
     }

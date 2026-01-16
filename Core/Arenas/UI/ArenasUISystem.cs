@@ -1,11 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using PvPAdventure.System;
-using PvPAdventure.System.Client;
+using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Debug;
 using SubworldLibrary;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -20,7 +18,20 @@ public sealed class ArenasUISystem : ModSystem
     public static ArenasJoinUI JoinUIState;
 
     // Enabled check
-    public static bool IsEnabled => ModContent.GetInstance<AdventureServerConfig>()?.IsArenasEnabled ?? false;
+    public static bool IsEnabled
+    {
+        get
+        {
+            var config = ModContent.GetInstance<ServerConfig>();
+            if (config == null)
+            {
+                Log.Warn("ServerConfig not loaded – Arenas disabled by default");
+                return false;
+            }
+
+            return config.IsArenasEnabled;
+        }
+    }
 
     public override void OnWorldLoad()
     {

@@ -1,4 +1,5 @@
-﻿using StructureHelper;
+﻿using PvPAdventure.Core.Debug;
+using StructureHelper;
 using System;
 using System.Collections.Generic;
 using Terraria;

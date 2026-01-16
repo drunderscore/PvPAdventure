@@ -8,7 +8,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Content.Items;
+namespace PvPAdventure.Content.Items;
 
 /// <summary>
 /// An item that teleports the player to world spawn.
