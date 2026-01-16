@@ -18,11 +18,11 @@ public class ItemBalance : GlobalItem
 
     public override void SetDefaults(Item item)
     {
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
 
         if (RecallItems[item.type])
         {
-            var recallTime = adventureConfig.RecallFrames;
+            var recallTime = adventureConfig.MapRecallFrames;
             item.useTime = recallTime * 2;
             item.useAnimation = recallTime * 2;
         }

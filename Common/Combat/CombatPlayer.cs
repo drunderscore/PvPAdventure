@@ -93,7 +93,7 @@ internal class CombatPlayer : ModPlayer
         self.pvpDeath = false;
         orig(self, context);
         // Remove immune and immune time applied during spawn.
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
         self.immuneTime = adventureConfig.SpawnImmuneFrames;
         self.immune = self.immuneTime > 0;
     }
@@ -213,7 +213,7 @@ internal class CombatPlayer : ModPlayer
             return false;
 
         _playerMeleeInvincibleTime[target.whoAmI] =
-            ModContent.GetInstance<AdventureServerConfig>().Combat.MeleeInvincibilityFrames;
+            ModContent.GetInstance<ServerConfig>().WeaponBalance.ImmunityFrames.PerPlayerGlobal;
 
         return true;
     }
@@ -273,30 +273,24 @@ internal class CombatPlayer : ModPlayer
         if (!info.PvP)
             return;
 
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
 
         // Only play hit markers on clients that we hurt that aren't ourselves
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        if (info.DamageSource.SourceProjectileType != 0 &&
-            adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(
-                new(info.DamageSource.SourceProjectileType), out var immunityGroup))
-        {
-            GroupImmuneTime[immunityGroup.Id] = immunityGroup.Frames;
-        }
-        else if (adventureConfig.Combat.MeleeInvincibilityFrames == 0 &&
-                 info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
-        {
-            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.Combat.StandardInvincibilityFrames;
-        }
+        // Apply minimum damage received by players. This is done here to ensure it applies to all damage sources.
+        if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
+            adventureConfig.WeaponBalance.ImmunityFrames.TrueMelee == 0)
+            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
     }
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
         {
-            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+            var adventureConfig = ModContent.GetInstance<ServerConfig>();
             info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayers);
+
             if (info.PvP)
                 info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayersFromPlayer);
         };
@@ -304,23 +298,29 @@ internal class CombatPlayer : ModPlayer
         if (!modifiers.PvP)
             return;
 
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-        var playerDamageBalance = adventureConfig.Combat.PlayerDamageBalance;
+        if (modifiers.DamageSource.SourcePlayerIndex < 0)
+            return;
 
         var sourcePlayer = Main.player[modifiers.DamageSource.SourcePlayerIndex];
-        var tileDistance = Player.Distance(sourcePlayer.position) / 16.0f;
+        if (!sourcePlayer.active)
+            return;
 
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
+        var damageConfig = adventureConfig.WeaponBalance.Damage;
+        var falloffConfig = adventureConfig.WeaponBalance.Falloff;
+
+        var tileDistance = Player.Distance(sourcePlayer.position) / 16f;
         var hasIncurredFalloff = false;
 
         var sourceItem = modifiers.DamageSource.SourceItem;
         if (sourceItem != null && !sourceItem.IsAir)
         {
-            var itemDefinition = new ItemDefinition(sourceItem.type);
-            if (playerDamageBalance.ItemDamageMultipliers.TryGetValue(itemDefinition, out var multiplier))
+            var itemDef = new ItemDefinition(sourceItem.type);
+
+            if (damageConfig.ItemDamage.TryGetValue(itemDef, out var multiplier))
                 modifiers.IncomingDamageMultiplier *= multiplier;
 
-            if (playerDamageBalance.ItemFalloff.TryGetValue(itemDefinition, out var falloff) &&
-                falloff != null)
+            if (falloffConfig.PerItem.TryGetValue(itemDef, out var falloff) && falloff != null)
             {
                 modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
@@ -329,20 +329,23 @@ internal class CombatPlayer : ModPlayer
 
         if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
         {
-            var projectileDefinition = new ProjectileDefinition(modifiers.DamageSource.SourceProjectileType);
-            if (playerDamageBalance.ProjectileDamageMultipliers.TryGetValue(projectileDefinition, out var multiplier))
+            var projDef = new ProjectileDefinition(modifiers.DamageSource.SourceProjectileType);
+
+            if (damageConfig.ProjectileDamage.TryGetValue(projDef, out var multiplier))
                 modifiers.IncomingDamageMultiplier *= multiplier;
 
-            if (playerDamageBalance.ProjectileFalloff.TryGetValue(projectileDefinition, out var falloff) &&
-                falloff != null)
+            if (falloffConfig.PerProjectile.TryGetValue(projDef, out var falloff) && falloff != null)
             {
                 modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
         }
 
-        if (!hasIncurredFalloff && playerDamageBalance.DefaultFalloff != null)
-            modifiers.IncomingDamageMultiplier *= playerDamageBalance.DefaultFalloff.CalculateMultiplier(tileDistance);
+        if (!hasIncurredFalloff && falloffConfig.Default != null)
+        {
+            modifiers.IncomingDamageMultiplier *=
+                falloffConfig.Default.CalculateMultiplier(tileDistance);
+        }
     }
 
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genDust,
@@ -351,7 +354,7 @@ internal class CombatPlayer : ModPlayer
         // Only silence death sound on clients that we hurt that aren't ourselves
         if (!Main.dedServ && pvp && Player.whoAmI != Main.myPlayer && damageSource.SourcePlayerIndex == Main.myPlayer)
         {
-            var marker = ModContent.GetInstance<AdventureClientConfig>().SoundEffect.PlayerKillMarker;
+            var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerKillMarker;
             if (marker != null && marker.SilenceVanilla)
                 playSound = false;
         }
@@ -424,13 +427,13 @@ internal class CombatPlayer : ModPlayer
 
     private static void PlayHitMarker(int damage)
     {
-        var marker = ModContent.GetInstance<AdventureClientConfig>().SoundEffect.PlayerHitMarker;
+        var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerHitMarker;
         if (marker != null)
             SoundEngine.PlaySound(marker.Create(damage));
     }
     private static void PlayKillMarker(int damage)
     {
-        var marker = ModContent.GetInstance<AdventureClientConfig>().SoundEffect.PlayerKillMarker;
+        var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerKillMarker;
         if (marker != null)
             SoundEngine.PlaySound(marker.Create(damage));
     }
@@ -454,7 +457,7 @@ internal class CombatPlayer : ModPlayer
         if (!Main.dedServ && info.PvP && target.whoAmI != Main.myPlayer &&
             info.DamageSource.SourcePlayerIndex == Main.myPlayer)
         {
-            var marker = ModContent.GetInstance<AdventureClientConfig>().SoundEffect.PlayerHitMarker;
+            var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerHitMarker;
             if (marker != null && marker.SilenceVanilla)
                 return true;
         }

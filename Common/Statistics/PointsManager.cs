@@ -185,7 +185,7 @@ public class PointsManager : ModSystem
 
     public void AwardNpcKillToTeam(Team team, NPC npc)
     {
-        var config = ModContent.GetInstance<AdventureServerConfig>();
+        var config = ModContent.GetInstance<ServerConfig>();
 
         // Is this NPC assigned custom point values?
         if (!config.Points.Npc.TryGetValue(new NPCDefinition(npc.type), out var points))
@@ -243,7 +243,7 @@ public class PointsManager : ModSystem
 
     public void AwardPlayerKillToTeam(Player killer, Player victim)
     {
-        var config = ModContent.GetInstance<AdventureServerConfig>();
+        var config = ModContent.GetInstance<ServerConfig>();
         var killerTeam = (Team)killer.team;
 
         // Even if certain oddities allowed this to happen, no point exchanging would actually occur.
@@ -271,7 +271,7 @@ public class PointsManager : ModSystem
                 UiScoreboard.Invalidate();
         }
 
-        if (config.Combat.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
+        if (config.Bounties.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
             ModContent.GetInstance<BountyManager>().Award(killer, victim);
     }
 
@@ -446,7 +446,7 @@ public class PointsManager : ModSystem
             const int bossHeadTeamIconVisualSeparatorYOffset = 28;
             var teamIconsTexture = TextureAssets.Pvp[1].Value;
 
-            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+            var adventureConfig = ModContent.GetInstance<ServerConfig>();
             var bosses = adventureConfig.BossOrder
                 .Select(npcDefinition => (short)npcDefinition.Type)
                 // Remove invalid/unloaded NPCs
@@ -454,7 +454,7 @@ public class PointsManager : ModSystem
                 .ToList();
             var numberOfBosses = bosses.Count;
 
-            var onlyDisplayWorldEvilBoss = ModContent.GetInstance<AdventureServerConfig>().OnlyDisplayWorldEvilBoss &&
+            var onlyDisplayWorldEvilBoss = ModContent.GetInstance<ServerConfig>().OnlyDisplayWorldEvilBoss &&
                                            bosses.Contains(NPCID.EaterofWorldsHead) &&
                                            bosses.Contains(NPCID.BrainofCthulhu);
 

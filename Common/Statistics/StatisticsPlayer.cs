@@ -135,7 +135,7 @@ internal class StatisticsPlayer : ModPlayer
             return;
 
         RecentDamageFromPlayer = new((byte)damagerPlayer.whoAmI,
-            ModContent.GetInstance<AdventureServerConfig>().Combat.RecentDamagePreservationFrames);
+            ModContent.GetInstance<ServerConfig>().WeaponBalance.ImmunityFrames.RecentDamagePreservationFrames);
     }
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {

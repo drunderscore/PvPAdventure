@@ -49,7 +49,7 @@ public class PlayerOutlines : ModSystem
             if (!playerBounds.Intersects(screenBounds))
                 return;
 
-            var adventureClientConfig = ModContent.GetInstance<AdventureClientConfig>();
+            var adventureClientConfig = ModContent.GetInstance<ClientConfig>();
 
             if (!adventureClientConfig.PlayerOutline.Self && drawinfo.drawPlayer.whoAmI == Main.myPlayer)
                 return;

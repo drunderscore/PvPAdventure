@@ -42,7 +42,7 @@ public class TeamChatManager : ModSystem
 
     private void OnMainOpenPlayerChat(On_Main.orig_OpenPlayerChat orig)
     {
-        if (ModContent.GetInstance<AdventureClientConfig>().ShiftEnterOpensAllChat && Main.keyState.PressingShift())
+        if (ModContent.GetInstance<ClientConfig>().ShiftEnterOpensAllChat && Main.keyState.PressingShift())
             _channel = Channel.All;
         else
             _channel = Channel.Team;

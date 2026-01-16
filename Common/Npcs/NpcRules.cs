@@ -92,19 +92,15 @@ public class NpcRules : GlobalNPC
             // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
             entity.immortal = true;
 
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
 
         // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
         if (NPCID.Search.TryGetName(entity.type, out var name))
         {
+            if (adventureConfig.BossBalance.TryGetValue(new(name), out var bossBalance))
             {
-                if (adventureConfig.NpcBalance.LifeMaxMultipliers.TryGetValue(new(name), out var multiplier))
-                    entity.lifeMax = (int)(entity.lifeMax * multiplier.Value);
-            }
-
-            {
-                if (adventureConfig.NpcBalance.DamageMultipliers.TryGetValue(new(name), out var multiplier))
-                    entity.damage = (int)(entity.damage * multiplier.Value);
+                entity.lifeMax = (int)(entity.lifeMax * bossBalance.LifeMaxMultiplier);
+                entity.damage = (int)(entity.damage * bossBalance.DamageMultiplier);
             }
         }
     }
@@ -132,9 +128,9 @@ public class NpcRules : GlobalNPC
             }
         }
 
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
 
-        if (adventureConfig.NpcSpawnAnnouncements.Contains(new NPCDefinition(npc.type)))
+        if (adventureConfig.BossSpawnAnnouncements.Contains(new NPCDefinition(npc.type)))
         {
             if (Main.netMode == NetmodeID.SinglePlayer)
                 Main.NewText(Language.GetTextValue("Announcement.HasAwoken", npc.TypeName), 175, 75);

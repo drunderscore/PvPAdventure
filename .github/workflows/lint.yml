@@ -4,7 +4,7 @@ on:
   push:
     branches: 
       - erkys-features
-      - feature/missing-in-master
+      - feature/missinginmaster
   pull_request:
     branches: ["main"]
 

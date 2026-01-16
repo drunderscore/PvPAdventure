@@ -13,11 +13,508 @@ Mods: {
 			Scoreboard.DisplayName: Scoreboard
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
+			Dash.DisplayName: Dash
+			DLAdminManagerTool.DisplayName: DL Admin Manager Tool
+			DLEndGameTool.DisplayName: DL End Game Tool
+			DLEndGameToolRightClick.DisplayName: DL End Game Tool Right Click
+			DLPauseTool.DisplayName: DL Pause Tool
+			DLPointsSetterTool.DisplayName: DL Points Setter Tool
+			DLStartGameTool.DisplayName: DL Start Game Tool
+			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
+			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
+		}
+
+		Tools: {
+			DLStartGameTool: {
+				DisplayName: Start Game
+				AdjustGameTime: Adjust Game Time
+
+				Description: {
+					StartGameDescription: Allows you to start the game. Right click to start instantly
+					AdjustGameTimeDescription: Allows you to adjust the game time while the game is running.
+					CountdownInProgress: A countdown is already in progress!
+				}
+
+				RightClickName: DLStartGameTool Right Click
+				CannotStart: Cannot start the game while a countdown is in progress
+				Time: Time
+				Countdown: Countdown
+				StartExclamation: Start!
+				Apply: Apply
+			}
+
+			DLEndGameTool: {
+				DisplayName: End Game
+				Description: Ends the game timer. Right click to end the game instantly
+				ReallyEndGame: Really end game?
+				CountdownInProgress: Cannot end the game while a countdown is in progress
+				GameNotStartedYet: Game hasn't started yet!
+				Yes: Yes
+				No: No
+				RightClickName: DLEndGameTool Right Click
+			}
+
+			DLTeamAssignerTool: {
+				DisplayName: Team Assigner
+				AssignTeams: Assign Teams
+				Description: Assign teams for the game
+			}
+
+			DLPauseTool: {
+				DisplayName: {
+					True: Resume
+					False: Pause
+				}
+
+				Description: Click to {0} the game
+			}
+
+			DLPointsSetterTool: {
+				DisplayName: Points Setter
+				SetPoints: Set Points
+				Description: The tool has no description! Add one in .hjson files!
+			}
+
+			DLAdminManagerTool: {
+				DisplayName: Admin Manager
+				Description: Allows you to manage admin status of all players in the lobby.
+				CannotRemoveYourOwnAdminPermissions: Cannot remove your own admin permissions!
+			}
+		}
+
+		Buffs: {
+			Anathema: {
+				DisplayName: Anathema
+				Description: Enemy attacks can seek you out
+			}
+
+			Attuning: {
+				DisplayName: Attuning
+				Description: Your Spectre armor is attuning to your magic & mind!
+			}
+
+			BitingEmbrace: {
+				DisplayName: Summon Tagged
+				Description: Take 7 more damage from enemies
+			}
+
+			BrittleBones: {
+				DisplayName: Summon Tagged
+				Description: Take 6 more damage from enemies
+			}
+
+			BROISACHOJ: {
+				DisplayName: Encumbered
+				Description: Heavy armor slows your dash
+			}
+
+			Hellhex: {
+				DisplayName: Firecracked
+				Description: You are going to burst with hellfire at any moment!
+			}
+
+			Marked: {
+				DisplayName: Summon Tagged
+				Description: Take 9 more damage from enemiesTake 9 more damage from enemies
+			}
+
+			NewIchorPlayerDebuff: {
+				DisplayName: Ichor
+				Description: Defense reduced by one third
+			}
+
+			PlayerInSpawn: {
+				DisplayName: Spawn
+				Description: Gain PvP immunity but deal 0 damage
+			}
+
+			PressurePoints: {
+				DisplayName: Summon Tagged
+				Description: Take 6 more damage from enemies
+			}
+
+			ShatteredArmor: {
+				DisplayName: Shattered Armor
+				Description: You're armor has been shattered by a brutal blow!
+			}
+
+			ShinyStoneHotswap: {
+				DisplayName: Shiny Stone Hotswap
+				Description: Shiny Stone is charging up!
+			}
+
+			UncouthandBoring: {
+				DisplayName: Uncouth and Boring
+				Description: You are not yet a charming and mythical philosopher!
+			}
+		}
+
+		Items: {
+			AdventureBag: {
+				DisplayName: Adventure Bag
+				Tooltip: Everything you need to start your PvP adventure!
+			}
+
+			BlightFruit: {
+				DisplayName: Blight Fruit
+				Tooltip: ""
+			}
+
+			CorruptionKeyMold: {
+				DisplayName: Corruption Key Mold
+				Tooltip: Used for crafting a Corruption Key
+			}
+
+			DesertKeyMold: {
+				DisplayName: Desert Key Mold
+				Tooltip: Used for crafting a Desert Key
+			}
+
+			FrozenKeyMold: {
+				DisplayName: Frozen Key Mold
+				Tooltip: Used for crafting a Frozen Key
+			}
+
+			HallowedKeyMold: {
+				DisplayName: Hallowed Key Mold
+				Tooltip: Used for crafting a Hallowed Key
+			}
+
+			JungleKeyMold: {
+				DisplayName: Jungle Key Mold
+				Tooltip: Used for crafting a Jungle Key
+			}
+
+			MatteConfig: {
+				DisplayName: Matte Config
+				Tooltip: ""
+			}
+
+			PlanterasBulbConfig: {
+				DisplayName: Planteras Bulb Config
+				Tooltip: ""
+			}
+
+			MapSpawnConfig: {
+				DisplayName: Map Spawn Config
+				Tooltip: ""
+			}
+
+			BoundArmsDealerConfig: {
+				DisplayName: Bound Arms Dealer Config
+				Tooltip: ""
+			}
+
+			ServerConfigItem: {
+				DisplayName: Server Config Item
+				Tooltip: ""
+			}
+
+			AdventureMirror: {
+				DisplayName: Adventure Mirror
+				Tooltip: ""
+			}
+
+			AdminManagerConfigItem: {
+				DisplayName: Admin Manager Config Item
+				Tooltip: ""
+			}
+
+			ForbiddenIconConfigItem: {
+				DisplayName: Forbidden Icon Config Item
+				Tooltip: ""
+			}
+		}
+
+		NPCs: {
+			Bound: {
+				Merchant.DisplayName: Bound Merchant
+				ArmsDealer.DisplayName: Bound Arms Dealer
+				WitchDoctor.DisplayName: Bound Witch Doctor
+
+				Steampunker: {
+					DisplayName: Chained Steampunker
+					Chat: At long last, I'm saved! The strangest people chained me up, they mentioned something about a hardcore challenge...
+				}
+
+				Truffle: {
+					DisplayName: Buried Truffle
+					Chat: At long last, I'm saved! The strangest people buried me here, they mentioned something about a hardcore challenge...
+				}
+
+				Cyborg: {
+					DisplayName: Deactivated Cyborg
+					Chat: At long last, I'm saved! The strangest people turned me off, they mentioned something about a hardcore challenge...
+				}
+
+				Chat: At long last, I'm saved! The strangest people tied me up, they mentioned something about a hardcore challenge...
+				Demolitionist.DisplayName: Bound. Demolitionist
+			}
+
+			Target.DisplayName: Target
+
+			AdventureSantaNPC: {
+				DisplayName: Adventure Santa
+
+				TownNPCMood: {
+					Content: I am content.
+					NoHome: I hate not having a home.
+					FarFromHome: I am too far from home.
+					LoveSpace: I love having so much space.
+					DislikeCrowded: I dislike how crowded I am.
+					HateCrowded: I hate how crowded I am.
+					LikeNPC_Princess: I like {NPCName}.
+					Princess_LovesNPC: I like {NPCName}.
+				}
+			}
 		}
 
 		Configs: {
-			AdventureConfig: {
-				DisplayName: Server
+			AdventureClientConfig: {
+				DisplayName: Adventure Client Config
+
+				Headers: {
+					General: "[i:Cog] General"
+					SoundEffects: Sound Effects
+					Spectate: "[i:Binoculars] Spectate"
+					Spawn: Spawn
+					Debug: "[i:AnnouncementBox] Notifications / Chat Messages"
+				}
+
+				ShiftEnterOpensAllChat: {
+					Label: Shift Enter Opens All Chat
+					Tooltip: Pressing shift+enter opens the all chat
+				}
+
+				IsVanillaDashEnabled: {
+					Label: Is Vanilla Dash Enabled
+					Tooltip:
+						'''
+						On: Dash as usual by double tapping a movement direction (vanilla)
+						Off: Disables vanilla dash in favor of dash keybind
+						'''
+				}
+
+				PlayerOutline: {
+					Label: "[i:PvPAdventure/MatteConfig] Player Outline"
+					Tooltip: Visual outline around players
+				}
+
+				SoundEffect: {
+					Label: "[i:507] Sound Effect"
+					Tooltip: ""
+				}
+
+				SpawnUIPosition: {
+					Label: Spawn UI Position
+					Tooltip:
+						'''
+						Change position of spawn select and spectate UI. 
+						Supports live apply, so keep UI open while dragging sliders to see changes in real time.
+						'''
+				}
+
+				CloseMapOnHurt: {
+					Label: Close Map On Hurt
+					Tooltip: Closes the fullscreen map if your player takes damage.
+				}
+
+				EnableDebugMessages: {
+					Label: Enable Debug Messages
+					Tooltip: Logs chat messages for most actions. Useful for developers or players investigating bugs.
+				}
+
+				ShowDebugMessages: {
+					Label: Show Debug Messages
+					Tooltip:
+						'''
+						Sends chat messages with many different things useful for development flow and debugging.
+						Recommended to keep Off for players.
+						'''
+				}
+
+				ShowSavePlayerMessages: {
+					Label: Show Save Player Messages
+					Tooltip: Sends a local chat message whenever the player file is saved.
+				}
+
+				AutoSelectWorldSpawnOnDeath: {
+					Label: "[i:PvPAdventure/MapSpawnConfig] Auto Select World Spawn On Death"
+					Tooltip: When you die, the world spawn point is automatically selected as your spawn point
+				}
+
+				ShowPopupMessages: {
+					Label: Show Popup Messages
+					Tooltip: ""
+				}
+
+				ShowAdminMessages: {
+					Label: Show Admin Messages
+					Tooltip: ""
+				}
+			}
+
+			PlayerOutlineConfig: {
+				Tooltip: ""
+
+				Self: {
+					Label: Self
+					Tooltip: ""
+				}
+
+				Team: {
+					Label: Team
+					Tooltip: ""
+				}
+			}
+
+			SoundEffectConfig: {
+				Tooltip: ""
+
+				NpcHitMarker: {
+					Label: Npc Hit Marker
+					Tooltip: ""
+				}
+
+				PlayerHitMarker: {
+					Label: Player Hit Marker
+					Tooltip: ""
+				}
+
+				PlayerKillMarker: {
+					Label: Player Kill Marker
+					Tooltip: ""
+				}
+			}
+
+			HitMarkerConfig.Tooltip: ""
+
+			Hitsound: {
+				Tooltip: ""
+
+				OlBetsy: {
+					Label: Ol Betsy
+					Tooltip: ""
+				}
+
+				Buwee: {
+					Label: Buwee
+					Tooltip: ""
+				}
+
+				Blip: {
+					Label: Blip
+					Tooltip: ""
+				}
+
+				Crash: {
+					Label: Crash
+					Tooltip: ""
+				}
+
+				Squelchy: {
+					Label: Squelchy
+					Tooltip: ""
+				}
+
+				MarrowMurder: {
+					Label: Marrow Murder
+					Tooltip: ""
+				}
+
+				Part1: {
+					Label: Part1
+					Tooltip: ""
+				}
+			}
+
+			MarkerConfig`1: {
+				Sound: {
+					Label: Sound
+					Tooltip: ""
+				}
+
+				Volume: {
+					Label: Volume
+					Tooltip: ""
+				}
+
+				PitchMinimum: {
+					Label: Pitch Minimum
+					Tooltip: ""
+				}
+
+				PitchMaximum: {
+					Label: Pitch Maximum
+					Tooltip: ""
+				}
+			}
+
+			PlayerHitMarkerConfig: {
+				Tooltip: ""
+
+				SilenceVanilla: {
+					Label: Silence Vanilla
+					Tooltip: ""
+				}
+			}
+
+			PlayerKillMarkerConfig: {
+				Tooltip: ""
+
+				SilenceVanilla: {
+					Label: Silence Vanilla
+					Tooltip: ""
+				}
+			}
+
+			Killsound: {
+				Tooltip: ""
+
+				Zacharry: {
+					Label: Zacharry
+					Tooltip: ""
+				}
+
+				Ronaldoz: {
+					Label: Ronaldoz
+					Tooltip: ""
+				}
+
+				Sharkron: {
+					Label: Sharkron
+					Tooltip: ""
+				}
+
+				Shronker: {
+					Label: Shronker
+					Tooltip: ""
+				}
+
+				FatalCarCrash: {
+					Label: Fatal Car Crash
+					Tooltip: ""
+				}
+
+				Part2: {
+					Label: Part2
+					Tooltip: ""
+				}
+			}
+
+			AdventureServerConfig: {
+				DisplayName: Adventure Server Config
+
+				Headers: {
+					Points: "[i:GoldCoin] Points"
+					Combat: "[i:273] Combat"
+					Items: "[i:Chest] Items"
+					NPCs: "[i:267] NPCs"
+					Gameplay: "[i:Stopwatch] Gameplay"
+					General: "[i:Cog] General"
+					WorldGen: "[i:WorldGlobe] World Generation"
+					SSC: "[i:PvPAdventure/ServerConfigItem] SSC"
+				}
 
 				Points: {
 					Label: Points
@@ -29,24 +526,19 @@ Mods: {
 					Tooltip: ""
 				}
 
-				BossInvulnerableProjectiles: {
-					Label: Boss Invulnerable Projectiles
+				InvasionSizes: {
+					Label: Invasion Sizes
 					Tooltip: ""
 				}
 
-				Combat: {
-					Label: Combat
+				WeaponBalance: {
+					Label: Weapon Balance
 					Tooltip: ""
 				}
 
-				OnlyDisplayWorldEvilBoss: {
+				Other: {
+					Label: Other
 					Tooltip: ""
-					Label: Only Display World Evil Boss
-				}
-
-				BossOrder: {
-					Tooltip: ""
-					Label: Boss Order
 				}
 
 				PreventUse: {
@@ -54,23 +546,78 @@ Mods: {
 					Tooltip: ""
 				}
 
+				ItemStatistics: {
+					Label: Item Statistics
+					Tooltip: ""
+				}
+
+				PreventAutoReuse: {
+					Label: Prevent Auto Reuse
+					Tooltip: Overrides the client setting for autofire
+				}
+
+				ChestItemReplacements: {
+					Label: Chest Item Replacements
+					Tooltip: ""
+				}
+
+				RemovePrefixes: {
+					Label: Remove Prefixes
+					Tooltip: Disables prefixes and reforges
+				}
+
+				BossBalance: {
+					Label: Boss Balance
+					Tooltip: ""
+				}
+
 				NpcSpawnAnnouncements: {
 					Label: Npc Spawn Announcements
+					Tooltip: Shows the npc has Awoken! text
+				}
+
+				BossOrder: {
+					Label: Boss Order
 					Tooltip: ""
 				}
 
-				InvasionSizes: {
-					Label: Invasion Sizes
+				BossInvulnerableProjectiles: {
+					Label: Boss Invulnerable Projectiles
+					Tooltip: Bosses take 0 damage from these
+				}
+
+				BoundSpawnChance: {
+					Label: "[i:PvPAdventure/BoundArmsDealerConfig] Bound Spawn Chance"
+					Tooltip: Percent chance that our bound NPCs spawn
+				}
+
+				NoMechanicalBossSummonDrops: {
+					Label: No Mechanical Boss Summon Drops
 					Tooltip: ""
 				}
 
-				RecallFrames: {
-					Label: Recall Frames
+				OnlyDisplayWorldEvilBoss: {
+					Label: Only Display World Evil Boss
 					Tooltip: ""
+				}
+
+				MapRecallFrames: {
+					Label: Map Recall Frames
+					Tooltip: The number of frames the map timer is reset to when opening the map. Default: 300 (5 seconds)
 				}
 
 				SpawnImmuneFrames: {
 					Label: Spawn Immune Frames
+					Tooltip: ""
+				}
+
+				MinimumDamageReceivedByPlayers: {
+					Label: Minimum Damage Received By Players
+					Tooltip: ""
+				}
+
+				MinimumDamageReceivedByPlayersFromPlayer: {
+					Label: Minimum Damage Received By Players From Player
 					Tooltip: ""
 				}
 
@@ -81,32 +628,17 @@ Mods: {
 
 				AllowConfigModification: {
 					Label: Allow Config Modification
-					Tooltip: ""
-				}
-
-				BoundSpawnChance: {
-					Label: Bound Spawn Chance
-					Tooltip: ""
-				}
-
-				RemovePrefixes: {
-					Label: Remove Prefixes
-					Tooltip: ""
-				}
-
-				ItemStatistics: {
-					Label: Item Statistics
-					Tooltip: ""
+					Tooltip: Discord IDs that are allowed to modify the server configuration
 				}
 
 				WorldGeneration: {
-					Tooltip: ""
 					Label: World Generation
+					Tooltip: ""
 				}
 
-				PreventAutoReuse: {
-					Label: Prevent Auto Reuse
-					Tooltip: This will also prevent the autofire setting
+				Combat: {
+					Label: Combat
+					Tooltip: ""
 				}
 
 				NpcBalance: {
@@ -114,42 +646,43 @@ Mods: {
 					Tooltip: ""
 				}
 
-				ChestItemReplacements: {
-					Label: Chest Item Replacements
-					Tooltip: ""
+				StartItems: {
+					Label: "[i:PvPAdventure/AdventureBag] Starting Items"
+					Tooltip: The items a player starts with when joining with a new character.
 				}
 
-				MinimumDamageReceivedByPlayers: {
-					Tooltip: ""
-					Label: Minimum Damage Received By Players
+				StartLife: {
+					Label: "[i:LifeCrystal] Starting Health"
+					Tooltip: The starting max health of a new character. Default to 100
 				}
 
-				MinimumDamageReceivedByPlayersFromPlayer: {
-					Tooltip: ""
-					Label: Minimum Damage Received By Players From Player
+				StartMana: {
+					Label: "[i:ManaCrystal] Starting Mana"
+					Tooltip: The starting max mana of a new character. Default to 20
+				}
+
+				IsSSCEnabled: {
+					Label: Is SSC Enabled
+					Tooltip:
+						'''
+						Whether to use server sided characters. 
+						Creates new characters on the server and prevents players from joining with local characters.
+						Data storage on the server is located in the folder: 
+						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
+						'''
 				}
 			}
 
 			PointsConfig: {
 				Tooltip: ""
 
-				BossKill: {
-					Label: Boss Kill
+				Npc: {
+					Label: Npc
 					Tooltip: ""
 				}
 
 				Boss: {
 					Label: Boss
-					Tooltip: ""
-				}
-
-				ForNpcIds: {
-					Label: For Npc Ids
-					Tooltip: ""
-				}
-
-				Npc: {
-					Label: Npc
 					Tooltip: ""
 				}
 
@@ -178,6 +711,20 @@ Mods: {
 				}
 			}
 
+			BountiesConfig: {
+				Tooltip: ""
+
+				ClaimableItems: {
+					Label: Claimable Items
+					Tooltip: ""
+				}
+
+				AwardBountyEveryKill: {
+					Label: Award Bounty Every Kill
+					Tooltip: ""
+				}
+			}
+
 			Bounty: {
 				Tooltip: ""
 
@@ -188,6 +735,27 @@ Mods: {
 
 				Conditions: {
 					Label: Conditions
+					Tooltip: ""
+				}
+
+				CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
+			}
+
+			ConfigItem: {
+				Tooltip: ""
+
+				Item: {
+					Label: Item
+					Tooltip: ""
+				}
+
+				Prefix: {
+					Label: Prefix
+					Tooltip: ""
+				}
+
+				Stack: {
+					Label: Stack
 					Tooltip: ""
 				}
 			}
@@ -255,30 +823,120 @@ Mods: {
 				}
 			}
 
-			ConfigItem: {
+			InvasionSizeValue: {
 				Tooltip: ""
 
-				Item: {
-					Label: Item
+				Value: {
+					Label: Value
+					Tooltip: Number of enemies needed for invasions to end
+				}
+			}
+
+			WeaponBalanceConfig: {
+				Tooltip: ""
+
+				Damage: {
+					Label: Damage
 					Tooltip: ""
 				}
 
-				Prefix: {
-					Label: Prefix
+				ArmorPenetration: {
+					Label: Armor Penetration
 					Tooltip: ""
 				}
 
-				Stack: {
-					Label: Stack
+				Falloff: {
+					Label: Falloff
+					Tooltip: ""
+				}
+
+				ProjectileBounceDamageReduction: {
+					Label: Projectile Bounce Damage Reduction
+					Tooltip: ""
+				}
+
+				ProjectileLineOfSightDamageReduction: {
+					Label: Projectile Line Of Sight Damage Reduction
+					Tooltip: ""
+				}
+
+				ImmunityFrames: {
+					Label: Immunity Frames
 					Tooltip: ""
 				}
 			}
 
-			CombatConfig: {
+			DamageConfig: {
 				Tooltip: ""
 
-				MeleeInvincibilityFrames: {
-					Label: Melee Invincibility Frames
+				ItemDamage: {
+					Label: Item Damage
+					Tooltip: ""
+				}
+
+				ProjectileDamage: {
+					Label: Projectile Damage
+					Tooltip: ""
+				}
+			}
+
+			ArmorPenetrationConfig: {
+				Tooltip: ""
+
+				ItemAP: {
+					Label: Item A P
+					Tooltip: ""
+				}
+
+				ProjectileAP: {
+					Label: Projectile A P
+					Tooltip: ""
+				}
+			}
+
+			FalloffConfig: {
+				Tooltip: ""
+
+				Default: {
+					Label: Default
+					Tooltip: ""
+				}
+
+				PerItem: {
+					Label: Per Item
+					Tooltip: ""
+				}
+
+				PerProjectile: {
+					Label: Per Projectile
+					Tooltip: ""
+				}
+			}
+
+			Falloff: {
+				Tooltip: ""
+
+				Coefficient: {
+					Label: Coefficient
+					Tooltip: ""
+				}
+
+				Forward: {
+					Label: Forward
+					Tooltip: ""
+				}
+			}
+
+			ImmunityFramesConfig: {
+				Tooltip: ""
+
+				TrueMelee: {
+					Label: True Melee
+					Tooltip: ""
+				}
+
+				PerPlayerGlobal: {
+					Label: Per Player Global
 					Tooltip: ""
 				}
 
@@ -286,139 +944,44 @@ Mods: {
 					Label: Recent Damage Preservation Frames
 					Tooltip: ""
 				}
-
-				PlayerDamageBalance: {
-					Label: Player Damage Balance
-					Tooltip: ""
-				}
-
-				StandardInvincibilityFrames: {
-					Label: Standard Invincibility Frames
-					Tooltip: ""
-				}
-
-				GhostHealMultiplier: {
-					Label: Ghost Heal Multiplier
-					Tooltip: ""
-				}
-
-				GhostHealMaxDistance: {
-					Label: Ghost Heal Max Distance
-					Tooltip: ""
-				}
-
-				GhostHealMultiplierWearers: {
-					Label: Ghost Heal Multiplier Wearers
-					Tooltip: ""
-				}
-
-				GhostHealMaxDistanceNpc: {
-					Label: Ghost Heal Max Distance Npc
-					Tooltip: ""
-				}
-
-				ProjectileCollisionDamageReduction: {
-					Label: Projectile Collision Damage Reduction
-					Tooltip: ""
-				}
-
-				NoLineOfSightDamageReduction: {
-					Label: No Line Of Sight Damage Reduction
-					Tooltip: ""
-				}
-
-				AwardBountyEveryKill: {
-					Label: Award Bounty Every Kill
-					Tooltip: ""
-				}
-
-				ProjectileDamageImmunityGroup: {
-					Tooltip: ""
-					Label: Projectile Damage Immunity Group
-				}
 			}
 
-			AdventureClientConfig: {
-				DisplayName: Client
-
-				PlayerOutline: {
-					Label: Player Outline
-					Tooltip: ""
-				}
-
-				ShiftEnterOpensAllChat: {
-					Label: Shift Enter Opens All Chat
-					Tooltip: ""
-				}
-
-				ShowPauseMessage: {
-					Tooltip: ""
-					Label: Show Pause Message
-				}
-
-				SoundEffect: {
-					Label: Sound Effect
-					Tooltip: ""
-				}
-			}
-
-			PlayerOutlineConfig: {
+			OtherConfig: {
 				Tooltip: ""
 
-				Self: {
-					Label: Self
-					Tooltip: ""
-				}
-
-				Team: {
-					Label: Team
+				SpectreHealing: {
+					Label: Spectre Healing
 					Tooltip: ""
 				}
 			}
 
-			CannotModify: You are not permitted to modify this config.
-
-			PlayerDamageBalanceConfig: {
+			SpectreHealingConfig: {
 				Tooltip: ""
 
-				ItemDamageMultipliers: {
-					Label: Item Damage Multipliers
+				PvPHealMultiplier: {
+					Label: PvP Heal Multiplier
 					Tooltip: ""
 				}
 
-				ProjectileDamageMultipliers: {
-					Label: Projectile Damage Multipliers
+				PvPSelfHealMultiplier: {
+					Label: PvP Self Heal Multiplier
 					Tooltip: ""
 				}
 
-				ItemFalloff: {
-					Label: Item Falloff
+				PvPHealRange: {
+					Label: PvP Heal Range
 					Tooltip: ""
 				}
 
-				ProjectileFalloff: {
-					Label: Projectile Falloff
+				PvEHealRange: {
+					Label: PvE Heal Range
 					Tooltip: ""
 				}
 
-				DefaultFalloff: {
-					Tooltip: ""
-					Label: Default Falloff
-				}
-			}
-
-			Falloff: {
-				Coefficient: {
-					Tooltip: ""
-					Label: Coefficient
-				}
-
-				Forward: {
-					Label: Forward
+				HealerArmorPenetration: {
+					Label: Healer Armor Penetration
 					Tooltip: ""
 				}
-
-				Tooltip: ""
 			}
 
 			Statistics: {
@@ -465,8 +1028,8 @@ Mods: {
 				}
 
 				Value: {
-					Tooltip: ""
 					Label: Value
+					Tooltip: ""
 				}
 			}
 
@@ -488,199 +1051,207 @@ Mods: {
 				}
 			}
 
-			HitMarkerConfig: {
-				Sound: {
-					Label: Sound
-					Tooltip: ""
-				}
-
-				Volume: {
-					Label: Volume
-					Tooltip: ""
-				}
-
-				PitchMinimum: {
-					Label: Pitch Minimum
-					Tooltip: ""
-				}
-
-				PitchMaximum: {
-					Label: Pitch Maximum
-					Tooltip: ""
-				}
-
+			ChestItemReplacement: {
 				Tooltip: ""
 
-				SoundPath: {
+				Items: {
+					Label: Items
 					Tooltip: ""
-					Label: Sound Path
 				}
 			}
 
-			SoundEffectConfig: {
+			BossBalanceEntry: {
 				Tooltip: ""
 
-				NpcHitMarker: {
-					Label: Npc Hit Marker
+				LifeMaxMultiplier: {
+					Label: Life Max Multiplier
 					Tooltip: ""
 				}
 
-				PlayerHitMarker: {
-					Label: Player Hit Marker
+				DamageMultiplier: {
+					Label: Damage Multiplier
 					Tooltip: ""
 				}
 
-				PlayerKillMarker: {
-					Label: Player Kill Marker
+				TeamLifeShare: {
+					Label: Team Life Share
 					Tooltip: ""
 				}
-			}
-
-			PlayerHitMarkerConfig: {
-				Tooltip: ""
-
-				SilenceVanilla: {
-					Label: Silence Vanilla
-					Tooltip: ""
-				}
-			}
-
-			KillMarkerConfig: {
-				SoundPath: {
-					Tooltip: ""
-					Label: Sound Path
-				}
-			}
-
-			PlayerKillMarkerConfig: {
-				SilenceVanilla: {
-					Tooltip: ""
-					Label: Silence Vanilla
-				}
-
-				Tooltip: ""
-			}
-
-			MarkerConfig`1: {
-				PitchMaximum: {
-					Tooltip: ""
-					Label: Pitch Maximum
-				}
-
-				PitchMinimum: {
-					Tooltip: ""
-					Label: Pitch Minimum
-				}
-
-				Volume: {
-					Tooltip: ""
-					Label: Volume
-				}
-
-				Sound: {
-					Tooltip: ""
-					Label: Sound
-				}
-			}
-
-			Killsound: {
-				Part2: {
-					Label: Part2
-					Tooltip: ""
-				}
-
-				FatalCarCrash: {
-					Label: Fatal Car Crash
-					Tooltip: ""
-				}
-
-				Shronker: {
-					Label: Shronker
-					Tooltip: ""
-				}
-
-				Sharkron: {
-					Label: Sharkron
-					Tooltip: ""
-				}
-
-				Ronaldoz: {
-					Label: Ronaldoz
-					Tooltip: ""
-				}
-
-				Zacharry: {
-					Label: Zacharry
-					Tooltip: ""
-				}
-
-				Tooltip: ""
-			}
-
-			Hitsound: {
-				Part1: {
-					Label: Part1
-					Tooltip: ""
-				}
-
-				MarrowMurder: {
-					Label: Marrow Murder
-					Tooltip: ""
-				}
-
-				Squelchy: {
-					Label: Squelchy
-					Tooltip: ""
-				}
-
-				Crash: {
-					Label: Crash
-					Tooltip: ""
-				}
-
-				Blip: {
-					Label: Blip
-					Tooltip: ""
-				}
-
-				Buwee: {
-					Label: BuWEEEEE
-					Tooltip: ""
-				}
-
-				OlBetsy: {
-					Label: Ol' Betsy
-					Tooltip: ""
-				}
-
-				Tooltip: ""
 			}
 
 			WorldGenerationConfig: {
-				LifeFruitMinimumDistanceBetween: {
-					Tooltip: ""
-					Label: Life Fruit Minimum Distance Between
+				Tooltip: ""
+
+				LifeFruitChanceDenominator: {
+					Label: Life Fruit Chance Denominator
+					Tooltip: Lower means more
 				}
 
 				LifeFruitExpertChanceDenominator: {
-					Tooltip: ""
 					Label: Life Fruit Expert Chance Denominator
+					Tooltip: Lower means more
 				}
 
-				LifeFruitChanceDenominator: {
-					Tooltip: ""
-					Label: Life Fruit Chance Denominator
+				LifeFruitMinimumDistanceBetween: {
+					Label: Life Fruit Minimum Distance Between
+					Tooltip: Lower means closer together
 				}
-
-				Tooltip: ""
 
 				PlanteraBulbChanceDenominator: {
 					Label: Plantera Bulb Chance Denominator
-					Tooltip: ""
+					Tooltip: Lower means more
 				}
 
 				ChlorophyteSpreadChanceModifier: {
 					Label: Chlorophyte Spread Chance Modifier
+					Tooltip: % chance of spreading each check (higher means more)
+				}
+
+				ChlorophyteGrowChanceModifier: {
+					Label: Chlorophyte Grow Chance Modifier
+					Tooltip: Chance of new Chlorophyte veins spreading each check (lower means more)
+				}
+
+				ChlorophyteGrowLimitModifier: {
+					Label: Chlorophyte Grow Limit Modifier
+					Tooltip: Maximum Chlorophyte per 1000 block area
+				}
+			}
+
+			CannotModify: You are not permitted to modify this config.
+
+			CombatConfig: {
+				Tooltip: ""
+
+				MeleeInvincibilityFrames: {
+					Label: Melee Invincibility Frames
+					Tooltip: ""
+				}
+
+				RecentDamagePreservationFrames: {
+					Label: Recent Damage Preservation Frames
+					Tooltip: ""
+				}
+
+				PlayerDamageBalance: {
+					Label: Player Damage Balance
+					Tooltip: ""
+				}
+
+				StandardInvincibilityFrames: {
+					Label: Standard Invincibility Frames
+					Tooltip: ""
+				}
+
+				GhostHealMultiplier: {
+					Label: Ghost Heal Multiplier
+					Tooltip: ""
+				}
+
+				GhostHealMultiplierWearers: {
+					Label: Ghost Heal Multiplier Wearers
+					Tooltip: ""
+				}
+
+				GhostHealMaxDistance: {
+					Label: Ghost Heal Max Distance
+					Tooltip: ""
+				}
+
+				GhostHealMaxDistanceNpc: {
+					Label: Ghost Heal Max Distance Npc
+					Tooltip: ""
+				}
+
+				GhostHealArmorPenetration: {
+					Label: Ghost Heal Armor Penetration
+					Tooltip: ""
+				}
+
+				TeamLifeNpcs: {
+					Label: Team Life Npcs
+					Tooltip: ""
+				}
+
+				ProjectileCollisionDamageReduction: {
+					Label: Projectile Collision Damage Reduction
+					Tooltip: ""
+				}
+
+				NoLineOfSightDamageReduction: {
+					Label: No Line Of Sight Damage Reduction
+					Tooltip: ""
+				}
+
+				AwardBountyEveryKill: {
+					Label: Award Bounty Every Kill
+					Tooltip: ""
+				}
+
+				ProjectileDamageImmunityGroup: {
+					Label: Projectile Damage Immunity Group
+					Tooltip: ""
+				}
+			}
+
+			PlayerDamageBalanceConfig: {
+				Tooltip: ""
+
+				ItemDamageMultipliers: {
+					Label: Item Damage Multipliers
+					Tooltip: ""
+				}
+
+				ProjectileDamageMultipliers: {
+					Label: Projectile Damage Multipliers
+					Tooltip: ""
+				}
+
+				ItemArmorPenetration: {
+					Label: Item Armor Penetration
+					Tooltip: ""
+				}
+
+				ProjectileArmorPenetration: {
+					Label: Projectile Armor Penetration
+					Tooltip: ""
+				}
+
+				ItemFalloff: {
+					Label: Item Falloff
+					Tooltip: ""
+				}
+
+				ProjectileFalloff: {
+					Label: Projectile Falloff
+					Tooltip: ""
+				}
+
+				DefaultFalloff: {
+					Label: Default Falloff
+					Tooltip: ""
+				}
+			}
+
+			TeamLifeConfig: {
+				Tooltip: ""
+
+				Share: {
+					Label: Share
+					Tooltip: ""
+				}
+			}
+
+			ImmunityGroup: {
+				Tooltip: ""
+
+				Id: {
+					Label: Id
+					Tooltip: ""
+				}
+
+				Frames: {
+					Label: Frames
 					Tooltip: ""
 				}
 			}
@@ -702,11 +1273,6 @@ Mods: {
 					Label: No Mechanical Boss Summon Drops
 					Tooltip: ""
 				}
-
-				NoBiomeKeyDrops: {
-					Label: No Biome Key Drops
-					Tooltip: ""
-				}
 			}
 
 			FloatStatistic: {
@@ -718,40 +1284,67 @@ Mods: {
 				}
 			}
 
-			ChestItemReplacement: {
-				Tooltip: ""
+			RespawnConfig.Tooltip: ""
 
-				Items: {
-					Label: Items
+			ClientConfig: {
+				DisplayName: Client Config
+
+				Headers: {
+					General: General Header
+					SoundEffects: Sound Effects Header
+					Spawn: Spawn Header
+					Debug: Debug Header
+				}
+
+				ShiftEnterOpensAllChat: {
+					Label: Shift Enter Opens All Chat
+					Tooltip: ""
+				}
+
+				IsVanillaDashEnabled: {
+					Label: Is Vanilla Dash Enabled
+					Tooltip: ""
+				}
+
+				PlayerOutline: {
+					Label: Player Outline
+					Tooltip: ""
+				}
+
+				SoundEffect: {
+					Label: Sound Effect
+					Tooltip: ""
+				}
+
+				AutoSelectWorldSpawnWhenRespawning: {
+					Label: Auto Select World Spawn When Respawning
+					Tooltip: ""
+				}
+
+				CloseMapOnHurt: {
+					Label: Close Map On Hurt
+					Tooltip: ""
+				}
+
+				EnableDebugMessages: {
+					Label: Enable Debug Messages
 					Tooltip: ""
 				}
 			}
 
-			InvasionSizeValue: {
-				Value: {
-					Tooltip: ""
-					Label: Value
+			ServerConfig: {
+				DisplayName: Server Config
+
+				Headers: {
+					Points: Points Header
+					Combat: Combat Header
+					Items: Items Header
+					Bosses: Bosses Header
+					NPCs: N P Cs Header
+					Gameplay: Gameplay Header
+					General: General Header
+					WorldGen: World Gen Header
 				}
-
-				Tooltip: ""
-			}
-
-			ImmunityGroup: {
-				Tooltip: ""
-
-				Id: {
-					Label: Id
-					Tooltip: ""
-				}
-
-				Frames: {
-					Label: Frames
-					Tooltip: ""
-				}
-			}
-
-			AdventureServerConfig: {
-				DisplayName: Adventure Server Config
 
 				Points: {
 					Label: Points
@@ -763,8 +1356,18 @@ Mods: {
 					Tooltip: ""
 				}
 
-				Combat: {
-					Label: Combat
+				InvasionSizes: {
+					Label: Invasion Sizes
+					Tooltip: ""
+				}
+
+				WeaponBalance: {
+					Label: Weapon Balance
+					Tooltip: ""
+				}
+
+				Other: {
+					Label: Other
 					Tooltip: ""
 				}
 
@@ -773,8 +1376,33 @@ Mods: {
 					Tooltip: ""
 				}
 
-				NpcSpawnAnnouncements: {
-					Label: Npc Spawn Announcements
+				ItemStatistics: {
+					Label: Item Statistics
+					Tooltip: ""
+				}
+
+				PreventAutoReuse: {
+					Label: Prevent Auto Reuse
+					Tooltip: ""
+				}
+
+				ChestItemReplacements: {
+					Label: Chest Item Replacements
+					Tooltip: ""
+				}
+
+				RemovePrefixes: {
+					Label: Remove Prefixes
+					Tooltip: ""
+				}
+
+				BossBalance: {
+					Label: Boss Balance
+					Tooltip: ""
+				}
+
+				BossSpawnAnnouncements: {
+					Label: Boss Spawn Announcements
 					Tooltip: ""
 				}
 
@@ -783,28 +1411,43 @@ Mods: {
 					Tooltip: ""
 				}
 
-				OnlyDisplayWorldEvilBoss: {
-					Label: Only Display World Evil Boss
-					Tooltip: ""
-				}
-
 				BossInvulnerableProjectiles: {
 					Label: Boss Invulnerable Projectiles
 					Tooltip: ""
 				}
 
-				InvasionSizes: {
-					Label: Invasion Sizes
+				NoMechanicalBossSummonDrops: {
+					Label: No Mechanical Boss Summon Drops
 					Tooltip: ""
 				}
 
-				RecallFrames: {
-					Label: Recall Frames
+				OnlyDisplayWorldEvilBoss: {
+					Label: Only Display World Evil Boss
+					Tooltip: ""
+				}
+
+				BoundSpawnChance: {
+					Label: Bound Spawn Chance
+					Tooltip: ""
+				}
+
+				MapRecallFrames: {
+					Label: Map Recall Frames
 					Tooltip: ""
 				}
 
 				SpawnImmuneFrames: {
 					Label: Spawn Immune Frames
+					Tooltip: ""
+				}
+
+				MinimumDamageReceivedByPlayers: {
+					Label: Minimum Damage Received By Players
+					Tooltip: ""
+				}
+
+				MinimumDamageReceivedByPlayersFromPlayer: {
+					Label: Minimum Damage Received By Players From Player
 					Tooltip: ""
 				}
 
@@ -818,51 +1461,47 @@ Mods: {
 					Tooltip: ""
 				}
 
-				BoundSpawnChance: {
-					Label: Bound Spawn Chance
-					Tooltip: ""
-				}
-
-				RemovePrefixes: {
-					Label: Remove Prefixes
-					Tooltip: ""
-				}
-
-				ItemStatistics: {
-					Label: Item Statistics
-					Tooltip: ""
-				}
-
 				WorldGeneration: {
 					Label: World Generation
 					Tooltip: ""
 				}
-
-				PreventAutoReuse: {
-					Label: Prevent Auto Reuse
-					Tooltip: ""
-				}
-
-				NpcBalance: {
-					Label: Npc Balance
-					Tooltip: ""
-				}
-
-				ChestItemReplacements: {
-					Label: Chest Item Replacements
-					Tooltip: ""
-				}
-
-				MinimumDamageReceivedByPlayers: {
-					Label: Minimum Damage Received By Players
-					Tooltip: ""
-				}
-
-				MinimumDamageReceivedByPlayersFromPlayer: {
-					Label: Minimum Damage Received By Players From Player
-					Tooltip: ""
-				}
 			}
+		}
+
+		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
+		Player.CannotRecall: Cannot recall!
+		DashKeybind.NoDashItem: you have no dash item!
+
+		Spawn: {
+			ChooseYourSpawn: Choose Your Spawn
+			TeleportToTeammate: Teleport to {0}
+			Random: Teleport to random location
+			TeleportToWorldSpawn: Teleport to world spawn
+			TeammatesBed: "{0}'s Bed"
+			TeleportToTeammatesBed: Teleport to {0}'s bed
+			SelectRandomSpawn: Select random spawn
+			CancelRandomSpawn: Cancel random spawn
+			SelectWorldSpawn: Select world spawn
+			CancelWorldSpawn: Cancel world spawn
+			SelectTeammateSpawn: Select {0}'s spawn
+			CancelTeammateSpawn: Cancel {0}'s spawn
+			SelectBedSpawn: Select {0}'s bed
+			CancelBedSpawn: Cancel {0}'s bed
+			SelectMyBed: Select my bed
+			CancelMyBed: Cancel my bed
+			TeleportToMyBed: Teleport to my bed
+		}
+
+		AdventureMirror: {
+			GameNotStarted: wait until game starts!
+			CannotUseInSpawn: cannot use in spawn!
+			CannotUseWhileMoving: cannot use while moving!
+			CannotDrop: cannot drop!
+			CannotUnfavorite: cannot unfavorite!
+			CannotTrash: cannot trash!
+			CannotSell: cannot sell!
+			CannotStore: cannot store!
+			Cancelled: cancelled!
 		}
 
 		Item: {
@@ -871,53 +1510,18 @@ Mods: {
 			NoUndergroundQueenSlimeCrystal: Cannot be summoned here underground
 		}
 
-		Player.CannotRecall: Cannot recall!
-		Tiles.LockedLihzahrdChest.MapEntry: Locked Lihzahrd Chest
-		Sandstorm: "[c/FFC864:Desert winds are picking up...]"
-		Rain: "[c/6496FF:A storm is brewing overhead...]"
-
-		NPCs: {
-			Bound: {
-				Merchant.DisplayName: Bound Merchant
-				ArmsDealer.DisplayName: Bound Arms Dealer
-				WitchDoctor.DisplayName: Bound Witch Doctor
-
-				Steampunker: {
-					DisplayName: Chained Steampunker
-					Chat: At long last, I'm saved! The strangest people chained me up, they mentioned something about a hardcore challenge...
-				}
-
-				Truffle: {
-					DisplayName: Buried Truffle
-					Chat: At long last, I'm saved! The strangest people buried me here, they mentioned something about a hardcore challenge...
-				}
-
-				Cyborg: {
-					DisplayName: Deactivated Cyborg
-					Chat: At long last, I'm saved! The strangest people turned me off, they mentioned something about a hardcore challenge...
-				}
-
-				Chat: At long last, I'm saved! The strangest people tied me up, they mentioned something about a hardcore challenge...
-			}
-		}
-
-		Bounty.CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
-
 		Pause: {
 			True: "[c/FF0000:The game has been paused.]"
 			False: "[c/00FF00:The game has been resumed.]"
+			Paused: PAUSED
 		}
+
+		Sandstorm: "[c/FFC864:Desert winds are picking up...]"
+		Rain: "[c/6496FF:A storm is brewing overhead...]"
+		ArmorSetBonus.BeetleDamage:
+			'''
+			Gain Beetles from player kills
+			Beetles increase your melee damage and attack speed
+			'''
 	}
 }
-
-BuffDescription: {
-	BeetleMight1: Melee damage and speed increase by 15%
-	BeetleMight2: Melee damage and speed increase by 25%
-	BeetleMight3: Melee damage increase by 30% and melee speed increase by 50%
-}
-
-ArmorSetBonus.BeetleDamage:
-	'''
-	Gain Beetles from player kills
-	Beetles increase your melee damage and attack speed
-	'''

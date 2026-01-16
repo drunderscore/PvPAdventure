@@ -67,9 +67,9 @@ public class CombatProjectile : GlobalProjectile
         //   - Player life steal is entirely disregarded.
         //   - All nearby teammates are healed, instead of only the one with the largest health deficit.
 
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
 
-        var healMultiplier = adventureConfig.Combat.GhostHealMultiplier;
+        var healMultiplier = adventureConfig.Other.SpectreHealing.PvPHealMultiplier;
         healMultiplier -= self.numHits * 0.05f;
         if (healMultiplier <= 0f)
             return;
@@ -81,7 +81,7 @@ public class CombatProjectile : GlobalProjectile
         if (!self.CountsAsClass(DamageClass.Magic))
             return;
 
-        var maxDistance = adventureConfig.Combat.GhostHealMaxDistance;
+        var maxDistance = adventureConfig.Other.SpectreHealing.PvPHealRange;
         for (var i = 0; i < Main.maxPlayers; i++)
         {
             var player = Main.player[i];
@@ -97,7 +97,7 @@ public class CombatProjectile : GlobalProjectile
 
             var personalHeal = heal;
             if (player.ghostHeal)
-                personalHeal *= adventureConfig.Combat.GhostHealMultiplierWearers;
+                personalHeal *= adventureConfig.Other.SpectreHealing.PvPSelfHealMultiplier;
 
             // FIXME: Can't set the context properly because of poor TML visibility to ProjectileSourceID.
             Projectile.NewProjectile(
@@ -153,8 +153,8 @@ public class CombatProjectile : GlobalProjectile
         // ...and emit our own delegate to return the value.
         cursor.EmitDelegate(() =>
         {
-            var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-            return adventureConfig.Combat.GhostHealMaxDistanceNpc;
+            var adventureConfig = ModContent.GetInstance<ServerConfig>();
+            return adventureConfig.Other.SpectreHealing.PvEHealRange;
         });
     }
 
@@ -167,18 +167,18 @@ public class CombatProjectile : GlobalProjectile
             modifiers.Knockback /= 2;
         }
 
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
 
         var bounced =
             projectile.type == ProjectileID.ShadowBeamFriendly && projectile.localAI[1] > 0
             || projectile.type == ProjectileID.LightDisc && projectile.localAI[0] > 0;
 
         if (bounced)
-            modifiers.SourceDamage *= 1.0f - adventureConfig.Combat.ProjectileCollisionDamageReduction;
+            modifiers.SourceDamage *= adventureConfig.WeaponBalance.ProjectileBounceDamageReduction;
 
-        if (adventureConfig.Combat.NoLineOfSightDamageReduction.TryGetValue(new(projectile.type),
+        if (adventureConfig.WeaponBalance.ProjectileLineOfSightDamageReduction.TryGetValue(new(projectile.type),
                 out var damageReduction) && projectile.TryGetOwner(out var owner) && !Collision.CanHit(owner, target))
-            modifiers.SourceDamage *= 1.0f - damageReduction;
+            modifiers.SourceDamage *= damageReduction;
     }
 
     private void EditProjectileHandleMovement(ILContext il)

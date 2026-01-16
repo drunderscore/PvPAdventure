@@ -12,7 +12,7 @@ public class CombatNpc : GlobalNPC
 {
     public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
     {
-        var config = ModContent.GetInstance<AdventureServerConfig>();
+        var config = ModContent.GetInstance<ServerConfig>();
 
         var isBoss = npc.boss
                      || IsPartOfEaterOfWorlds((short)npc.type)
@@ -41,7 +41,7 @@ public class CombatNpc : GlobalNPC
 
     private static void PlayHitMarker(int damage)
     {
-        var marker = ModContent.GetInstance<AdventureClientConfig>().SoundEffect.NpcHitMarker;
+        var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.NpcHitMarker;
         if (marker != null)
             SoundEngine.PlaySound(marker.Create(damage));
     }

@@ -8,7 +8,7 @@ internal class PreventAutoReuse : GlobalItem
 {
     public override bool? CanAutoReuseItem(Item item, Player player)
     {
-        if (ModContent.GetInstance<AdventureServerConfig>().PreventAutoReuse.Contains(new(item.type)))
+        if (ModContent.GetInstance<ServerConfig>().PreventAutoReuse.Contains(new(item.type)))
             return false;
 
         return null;

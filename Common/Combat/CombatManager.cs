@@ -151,27 +151,19 @@ public class CombatManager : ModSystem
             {
                 var combatPlayer = self.GetModPlayer<CombatPlayer>();
 
-                if (pvp)
+                if (pvp && flag)
                 {
-                    if (damageSource.SourceProjectileType != 0)
-                    {
-                        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-                        if (adventureConfig.Combat.ProjectileDamageImmunityGroup.TryGetValue(new ProjectileDefinition(
-                                damageSource.SourceProjectileType), out var immunityGroup) &&
-                            combatPlayer.GroupImmuneTime[immunityGroup.Id] > 0)
-                        {
-                            cooldownCounter = GroupCooldownId - immunityGroup.Id;
-                            flag = false;
-                        }
-                    }
+                    // Overwrite the cooldown counter, so that if the hurt succeeds,
+                    // no other counter gets modified.
+                    cooldownCounter = PvPImmunityCooldownId;
 
-                    if (flag)
-                    {
-                        // Overwrite the cooldown counter, so that if the hurt succeeds, no other counter gets modified.
-                        cooldownCounter = PvPImmunityCooldownId;
-                        // Set the flag deciding if this hurt should proceed.
-                        flag = combatPlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] == 0;
-                    }
+                    // Set the flag deciding if this hurt should proceed,
+                    // using the updated config value.
+                    flag = combatPlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] <
+                           ModContent.GetInstance<ServerConfig>()
+                               .WeaponBalance
+                               .ImmunityFrames
+                               .PerPlayerGlobal;
                 }
             });
     }

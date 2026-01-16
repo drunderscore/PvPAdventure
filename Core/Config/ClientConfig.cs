@@ -1,26 +1,50 @@
-using System;
-using System.ComponentModel;
 using Newtonsoft.Json;
 using PvPAdventure.Core.Utilities;
+using System;
+using System.ComponentModel;
 using Terraria.Audio;
 using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Core.Config;
 
-public class AdventureClientConfig : ModConfig
+public class ClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
-    public PlayerOutlineConfig PlayerOutline { get; set; } = new();
-    public bool ShiftEnterOpensAllChat { get; set; }
-    [DefaultValue(true)] public bool ShowPauseMessage { get; set; }
+    #region General
+    [Header("General")]
+    [BackgroundColor(50, 70, 120)]
+    [DefaultValue(true)] public bool ShiftEnterOpensAllChat;
 
+    [BackgroundColor(50, 70, 120)]
+    [DefaultValue(true)] public bool IsVanillaDashEnabled;
+
+    [BackgroundColor(50, 70, 120)]
+    [Expand(false, false)]
+    public PlayerOutlineConfig PlayerOutline = new();
+    #endregion
+
+    [Header("SoundEffects")]
+    [Expand(false, false)]
+    [BackgroundColor(200, 80, 150)]
+    public SoundEffectConfig SoundEffect = new();
+
+    [Header("Spawn")]
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)] public bool AutoSelectWorldSpawnWhenRespawning;
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)] public bool CloseMapOnHurt;
+
+    [Header("Debug")]
+    [DefaultValue(false)] public bool EnableDebugMessages;
+
+    #region Configs
     public class PlayerOutlineConfig
     {
-        public bool Self { get; set; } = true;
-        public bool Team { get; set; } = true;
+        public bool Self = true;
+        public bool Team = true;
     }
-
     public class SoundEffectConfig
     {
         public abstract class MarkerConfig<TEnum>
@@ -28,21 +52,21 @@ public class AdventureClientConfig : ModConfig
             public const int HitMarkerMinimumDamage = 10;
             public const int HitMarkerMaximumDamage = 200;
 
-            public TEnum Sound { get; set; }
+            public TEnum Sound;
 
-            [DefaultValue(1.0f)] public float Volume { get; set; }
+            [DefaultValue(1.0f)] public float Volume;
 
             // FIXME: Description number should come from constant
             [Description("Desired pitch when dealing minimum damage (<=10)")]
             [Range(-1.0f, 1.0f)]
             [DefaultValue(0.75f)]
-            public float PitchMinimum { get; set; }
+            public float PitchMinimum;
 
             // FIXME: Description number should come from constant
             [Description("Desired pitch when dealing maximum damage (>=200)")]
             [Range(-1.0f, 1.0f)]
             [DefaultValue(-0.75f)]
-            public float PitchMaximum { get; set; }
+            public float PitchMaximum;
 
             [JsonIgnore] public abstract string SoundPath { get; }
 
@@ -115,18 +139,19 @@ public class AdventureClientConfig : ModConfig
 
         public class PlayerHitMarkerConfig : HitMarkerConfig
         {
-            public bool SilenceVanilla { get; set; }
+            public bool SilenceVanilla;
         }
 
         public class PlayerKillMarkerConfig : KillMarkerConfig
         {
-            public bool SilenceVanilla { get; set; }
+            public bool SilenceVanilla;
         }
 
-        [DefaultValue(null)] [NullAllowed] public HitMarkerConfig NpcHitMarker { get; set; }
-        [DefaultValue(null)] [NullAllowed] public PlayerHitMarkerConfig PlayerHitMarker { get; set; }
-        [DefaultValue(null)] [NullAllowed] public PlayerKillMarkerConfig PlayerKillMarker { get; set; }
-    }
+        [DefaultValue(null)][NullAllowed] public HitMarkerConfig NpcHitMarker;
+        [DefaultValue(null)][NullAllowed] public PlayerHitMarkerConfig PlayerHitMarker;
+        [DefaultValue(null)][NullAllowed] public PlayerKillMarkerConfig PlayerKillMarker;
 
-    public SoundEffectConfig SoundEffect { get; set; } = new();
+    }
+    #endregion
+
 }

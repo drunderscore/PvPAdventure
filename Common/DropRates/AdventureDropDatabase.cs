@@ -279,21 +279,21 @@ public static class AdventureDropDatabase
     public static IItemDropRule OnItemDropDatabaseRegisterToGlobal(On_ItemDropDatabase.orig_RegisterToGlobal orig,
         ItemDropDatabase self, IItemDropRule entry)
     {
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
 
         var disallowed = false;
 
-        disallowed |= entry is MechBossSpawnersDropRule && adventureConfig.NpcBalance.NoMechanicalBossSummonDrops;
+        disallowed |= entry is MechBossSpawnersDropRule && adventureConfig.NoMechanicalBossSummonDrops;
 
-        if (adventureConfig.NpcBalance.NoBiomeKeyDrops)
-        {
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.JungleKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CorruptionKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CrimsonKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.HallowedKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.FrozenKey };
-            disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.DungeonDesertKey };
-        }
+        //if (adventureConfig.BossBalance.NoBiomeKeyDrops)
+        //{
+        //    disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.JungleKey };
+        //    disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CorruptionKey };
+        //    disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.CrimsonKey };
+        //    disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.HallowedKey };
+        //    disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.FrozenKey };
+        //    disallowed |= entry is ItemDropWithConditionRule { itemId: ItemID.DungeonDesertKey };
+        //}
 
         if (!disallowed)
             orig(self, entry);

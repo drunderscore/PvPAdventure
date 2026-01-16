@@ -42,12 +42,12 @@ public class ItemQuality : GlobalItem
     public override bool? PrefixChance(Item item, int pre, UnifiedRandom rand)
     {
         // Prevent the item from spawning with a prefix, being placed into a reforge window, and loading with a prefix.
-        if ((pre == -1 || pre == -3 || pre > 0) && ModContent.GetInstance<AdventureServerConfig>().RemovePrefixes)
+        if ((pre == -1 || pre == -3 || pre > 0) && ModContent.GetInstance<ServerConfig>().RemovePrefixes)
             return false;
 
         return null;
     }
 
     // This is likely unnecessary if we are overriding PrefixChance, but might as well.
-    public override bool CanReforge(Item item) => !ModContent.GetInstance<AdventureServerConfig>().RemovePrefixes;
+    public override bool CanReforge(Item item) => !ModContent.GetInstance<ServerConfig>().RemovePrefixes;
 }

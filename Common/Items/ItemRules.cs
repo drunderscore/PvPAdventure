@@ -28,20 +28,20 @@ public class ItemRules : GlobalItem
                 return false;
         }
 
-        return !ModContent.GetInstance<AdventureServerConfig>().PreventUse
+        return !ModContent.GetInstance<ServerConfig>().PreventUse
             .Any(itemDefinition => item.type == itemDefinition.Type);
     }
 
     // NOTE: This will not remove already-equipped accessories from players.
     public override bool CanEquipAccessory(Item item, Player player, int slot, bool modded)
     {
-        return !ModContent.GetInstance<AdventureServerConfig>().PreventUse
+        return !ModContent.GetInstance<ServerConfig>().PreventUse
             .Any(itemDefinition => item.type == itemDefinition.Type);
     }
 
     public override bool? CanBeChosenAsAmmo(Item ammo, Item weapon, Player player)
     {
-        if (ModContent.GetInstance<AdventureServerConfig>().PreventUse
+        if (ModContent.GetInstance<ServerConfig>().PreventUse
             .Any(itemDefinition => ammo.type == itemDefinition.Type))
             return false;
 
