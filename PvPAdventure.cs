@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Discord;
+using PvPAdventure.Core.Input.Dash;
 using PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.Enums;
@@ -140,6 +141,9 @@ public class PvPAdventure : Mod
                 player.team = (int)team.Value;
                 break;
             }
+            case AdventurePacketIdentifier.Dash:
+                DashInputSystem.HandlePacket(reader, whoAmI);
+                break;
         }
     }
 }
