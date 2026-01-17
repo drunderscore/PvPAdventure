@@ -19,7 +19,7 @@ public class ArenasJoinUI : UIState
     }
     private static string GetEnterText()
     {
-        return $"Enter Arena 1";
+        return $"Enter Arena";
     }
 
     // UI
@@ -33,9 +33,9 @@ public class ArenasJoinUI : UIState
 
         Root = new DraggableElement
         {
-            Width = new StyleDimension(380f, 0f),
+            Width = new StyleDimension(240f, 0f),
             Top = new StyleDimension(100f, 0f),
-            Height = new StyleDimension(150f, 0f),
+            Height = new StyleDimension(192f, 0f),
             HAlign = 0.5f
         };
         Append(Root);
@@ -77,6 +77,17 @@ public class ArenasJoinUI : UIState
             }
         );
         list.Add(enterButton);
+
+        // Close button
+        var closeButton = CreateButton(
+            "Close Menu",
+            () =>
+            {
+                ArenasUISystem.Close();
+            }
+        );
+        closeButton.Top.Set(10, 0);
+        list.Add(closeButton);
 
         Root.Append(title);
     }

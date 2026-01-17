@@ -25,6 +25,7 @@ Mods: {
 			OpenLoadoutMenu.DisplayName: Open Loadout Menu
 			DashKeybind.DisplayName: Dash Keybind
 			OpenArenasMenu.DisplayName: Open Arenas Menu
+			ArenasMenu.DisplayName: Arenas Menu
 		}
 
 		Tools: {

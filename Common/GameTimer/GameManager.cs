@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Debug;
+using SubworldLibrary;
 using System;
 using System.IO;
 using System.Linq;
@@ -422,7 +424,8 @@ public class GameManager : ModSystem
                         var spawnRegion = regions[0];
                         spawnRegion.CanRandomTeleport = false;
                         spawnRegion.CanUseWormhole = false;
-                        spawnRegion.CanExit = false;
+                        //spawnRegion.CanExit = false;
+                        Log.Chat("new phase waiting");
                     }
 
                     // Remove everything that is hostile
@@ -442,7 +445,7 @@ public class GameManager : ModSystem
                     var spawnPosition = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
                     foreach (var player in Main.ActivePlayers)
                     {
-                        player.Teleport(spawnPosition, TeleportationStyleID.RecallPotion);
+                        //player.Teleport(spawnPosition, TeleportationStyleID.RecallPotion);
                         // FIXME: I think this is right-ish?
 
                         if (Main.dedServ)
@@ -466,7 +469,7 @@ public class GameManager : ModSystem
                     spawnRegion.CanExit = true;
 
                     // force open map (and spawn selector)
-                    Main.mapFullscreen = true;
+                    //Main.mapFullscreen = true;
 
                     UpdateFreezeTime(false);
 
@@ -486,7 +489,6 @@ public class GameManager : ModSystem
             packet.Writer.Write(freezeTimeModule.Enabled);
             NetManager.Instance.Broadcast(packet);
         }
-
     }
 
     public override void OnWorldLoad()

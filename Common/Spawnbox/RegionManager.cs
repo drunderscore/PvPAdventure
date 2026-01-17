@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Core.Utilities;
+using SubworldLibrary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,8 +37,8 @@ public class RegionManager : ModSystem
         On_Collision.TileCollision += OnCollisionTileCollision;
     }
 
-    private Vector2 OnCollisionTileCollision(On_Collision.orig_TileCollision orig, Vector2 position, Vector2 velocity,
-    int width, int height, bool fallthrough, bool fall2, int gravdir)
+    private Vector2 OnCollisionTileCollision(On_Collision.orig_TileCollision orig, 
+        Vector2 position,Vector2 velocity,int width,int height,bool fallthrough,bool fall2,int gravdir)
     {
         // Always call to the original to ensure we set Collision.up and Collision.down, and collide with real tiles
         // as expected.
@@ -46,12 +47,11 @@ public class RegionManager : ModSystem
         var sourceHitbox = new Rectangle((int)position.X, (int)position.Y, width, height).ToTileRectangle();
         var sourceIntersections = GetRegionsIntersecting(sourceHitbox).ToHashSet();
 
+        // Check both +velocity.X and +velocity.Y to know what direction is causing us to collide.
         var horizontalDestinationHitbox =
             new Rectangle((int)(position.X + velocity.X), (int)position.Y, width, height).ToTileRectangle();
-        var verticalDestinationHitbox = new Rectangle((int)position.X, (int)(position.Y + velocity.Y), width, height)
-            .ToTileRectangle();
-
-        // Check both +velocity.X and +velocity.Y to know what direction is causing us to collide.
+        var verticalDestinationHitbox =
+            new Rectangle((int)position.X, (int)(position.Y + velocity.Y), width, height).ToTileRectangle();
 
         if (ShouldPrevent(sourceIntersections, GetRegionsIntersecting(horizontalDestinationHitbox).ToHashSet()))
             collisionVelocity.X = 0.0f;
@@ -67,10 +67,10 @@ public class RegionManager : ModSystem
 
         foreach (var region in sourceIntersections)
         {
-            if (!region.CanExit)
+            if (!EffectiveCanExit(region))
             {
                 var innerBounds = region.CollisionRingBounds;
-                innerBounds.Inflate(-1, -1); // shrink 1 tile on all sides
+                innerBounds.Inflate(-1, -1);
 
                 if (innerBounds.Contains(sourceHitbox) && !innerBounds.Contains(destHitboxX))
                     collisionVelocity.X = 0.0f;
@@ -82,6 +82,17 @@ public class RegionManager : ModSystem
 
         return collisionVelocity;
 
+        bool IsSpawnRegion(Region r) => r.Order == 10; // or a better identifier if you have multiple regions
+
+        bool EffectiveCanExit(Region r)
+        {
+            // Allow leaving spawn when any subworld is active, even if phase is Waiting.
+            if (IsSpawnRegion(r) && SubworldSystem.AnyActive())
+                return true;
+
+            return r.CanExit;
+        }
+
         bool ShouldPrevent(HashSet<Region> source, HashSet<Region> destination)
         {
             var differingIntersections = new HashSet<Region>(source);
@@ -89,15 +100,13 @@ public class RegionManager : ModSystem
 
             foreach (var region in differingIntersections)
             {
-                // If this region is in the source intersections, it must not be in the destination intersections.
-                // This means you have exited this region.
-                if (sourceIntersections.Contains(region))
+                // Exiting a region
+                if (source.Contains(region))
                 {
-                    if (!region.CanExit)
+                    if (!EffectiveCanExit(region))
                         return true;
                 }
-                // This region is not in the source intersections, it must be in the destination intersections.
-                // This means you have entered this region.
+                // Entering a region
                 else
                 {
                     if (!region.CanEnter)
@@ -197,7 +206,7 @@ public class RegionManager : ModSystem
             _regions.Add(new Region
             {
                 Area = new(Main.spawnTileX - 25, Main.spawnTileY - 25, 50, 50),
-                Order = 10
+                Order = 10 // arbitrary number
             });
 
             SortRegions();

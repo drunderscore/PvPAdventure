@@ -314,9 +314,6 @@ public class PvPAdventure : Mod
             case AdventurePacketIdentifier.SSC:
                 SSC.HandlePacket(reader, whoAmI);
                 break;
-            case AdventurePacketIdentifier.ArenaPlayerCount:
-                ArenaPlayerCountNet.Receive(reader);
-                break;
         }
     }
 }

@@ -20,6 +20,5 @@ public enum AdventurePacketIdentifier : byte
     SpawnSelection, // set random or player spawn while respawn timer or map timer is running
     AdventureMirrorRightClickUse,
     HoldingMap,
-    TeleportFx, // teleport effects
-    ArenaPlayerCount
+    TeleportFx // teleport effects
 }

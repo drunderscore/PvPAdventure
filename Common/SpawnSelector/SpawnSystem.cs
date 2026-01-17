@@ -5,6 +5,7 @@ using PvPAdventure.Common.SpawnSelector.UI;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
+using SubworldLibrary;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
@@ -290,8 +291,10 @@ public class SpawnSystem : ModSystem
         bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
         bool inSpawnRegion = local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
         bool sessionOpen = SessionOpen;
+        bool inSubworld = SubworldSystem.AnyActive();
 
-        Enabled = playing && !Main.playerInventory && sessionOpen;
+        Enabled = playing && !Main.playerInventory && (inSpawnRegion || sessionOpen) && !inSubworld;
+
         if (sessionOpen && !sessionWasOpen)
         {
             ResetMapTimer();
@@ -321,7 +324,7 @@ public class SpawnSystem : ModSystem
         if (CanTeleport)
             TryExecuteSelection(local);
 
-        bool show = local.dead || Enabled;
+        bool show = playing && (local.dead || Enabled);
         if (!show)
         {
             wasShowingUI = false;

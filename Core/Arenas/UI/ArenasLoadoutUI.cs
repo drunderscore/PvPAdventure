@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Debug;
+using ReLogic.Content;
 using SubworldLibrary;
 using System;
 using Terraria;
@@ -39,11 +41,18 @@ public class ArenasLoadoutUI : UIState
     {
         RemoveAllChildren();
 
+        // Calculate height based on number of loadouts
+        var config = ModContent.GetInstance<ServerConfig>();
+        int loadoutsCount = config.ArenaLoadouts.Count;
+        int loadoutItemHeight = 74;
+        int baseHeight = 166;
+        int rootHeight = baseHeight + loadoutItemHeight * loadoutsCount;
+
         Root = new DraggableElement
         {
             Width = new StyleDimension(420f, 0f),
             Top = new StyleDimension(50f, 0f),
-            Height = new StyleDimension(468f, 0f),
+            Height = new StyleDimension(rootHeight, 0f),
             HAlign = 0.5f
         };
         Append(Root);
@@ -240,6 +249,7 @@ public class ArenasLoadoutUI : UIState
     {
         private readonly UICharacter preview;
         private readonly UIElement slotsRow;
+        private UIImageButton playButton;
 
         public LoadoutListItem(Player previewPlayer, Loadout loadout, Action<string> equip)
         {
@@ -269,26 +279,15 @@ public class ArenasLoadoutUI : UIState
 
             AddSlots(loadout);
 
-            var playButton = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay"))
+            playButton = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad))
             {
                 VAlign = 0.5f,
-                Left = { Pixels = -20f, Precent = 1f }
+                Left = { Pixels = -25f, Precent = 1f }
             };
             playButton.OnLeftClick += (_, _) => equip?.Invoke(loadout.Name);
-            playButton.OnMouseOver += (_, _) =>
-            {
-                playButton.OnUpdate += _ =>
-                {
-                    if (!Main.LocalPlayer.mouseInterface)
-                    {
-                        Main.LocalPlayer.mouseInterface = true;
-                        if (IsMouseHovering)
-                            Main.instance.MouseText("Play");
-                    }
-                };
-            };
 
             Append(playButton);
+            Recalculate();
         }
 
         private void AddSlots(Loadout def)
@@ -339,6 +338,17 @@ public class ArenasLoadoutUI : UIState
                 slotsRow.Append(slot);
 
                 x += 40f;
+            }
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
+
+            if (playButton?.IsMouseHovering == true)
+            {
+                Main.LocalPlayer.mouseInterface = true;
+                Main.instance.MouseText("Play");
             }
         }
 

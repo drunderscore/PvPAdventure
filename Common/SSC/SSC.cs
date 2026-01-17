@@ -60,7 +60,6 @@ public class SSC : ModSystem
     {
         if (!IsEnabled)
             return;
-        Log.Chat("receive packet");
 
         var msg = (SSCPacketType)reader.ReadByte();
 
@@ -80,8 +79,6 @@ public class SSC : ModSystem
 
     private static void ClientJoin(BinaryReader reader, int from)
     {
-        Log.Chat("receive client join");
-
         if (Main.netMode != NetmodeID.Server)
             return;
 

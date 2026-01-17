@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
 using SubworldLibrary;
@@ -50,6 +51,14 @@ public sealed class ArenasUISystem : ModSystem
 
     public static void Toggle()
     {
+        var gm = ModContent.GetInstance<GameManager>();
+        if (gm.CurrentPhase == GameManager.Phase.Playing)
+        {
+            Main.NewText("Arenas is unavailable when game is playing!", Color.Orange);
+            ArenasUISystem.Close();
+            return;
+        }
+
         // Toggle loadout UI if in arena subworld.
         if (SubworldSystem.AnyActive())
         {

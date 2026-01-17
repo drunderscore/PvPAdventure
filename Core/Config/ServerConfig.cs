@@ -214,10 +214,22 @@ public class ServerConfig : ModConfig
 
         public ItemDefinition GrapplingHook { get; set; }
     }
-    public class LoadoutItem(ItemDefinition item, int stack = 1)
+    public class LoadoutItem
     {
-        public ItemDefinition Item { get; set; } = item;
-        public int Stack { get; set; } = stack;
+        public ItemDefinition Item { get; set; } = new(ItemID.None);
+
+        [DefaultValue(1)]
+        public int Stack { get; set; } = 1;
+
+        public LoadoutItem()
+        {
+        }
+
+        public LoadoutItem(ItemDefinition item, int stack = 1)
+        {
+            Item = item;
+            Stack = stack;
+        }
     }
     #endregion
 

@@ -11,32 +11,6 @@ namespace PvPAdventure.Core.Arenas;
 
 internal class ArenasPlayer : ModPlayer
 {
-    #region Keybind handling
-    public override void ProcessTriggers(TriggersSet triggersSet)
-    {
-        if (!ArenasUISystem.IsEnabled)
-            return;
-
-        var keybinds = ModContent.GetInstance<Keybinds>();
-        var gm = ModContent.GetInstance<GameManager>();
-
-        // Toggle UI
-        if (keybinds.ArenasMenu.JustPressed)
-        {
-            if (gm.CurrentPhase == GameManager.Phase.Waiting)
-            {
-                ArenasUISystem.Toggle();
-            }
-            else
-            {
-                ArenasUISystem.Close();
-                Main.NewText("Arenas is unavailable when game is playing!", Color.Orange);
-            }
-        } 
-
-    }
-    #endregion
-
     private const int DamageLockDuration = 240; // 4 seconds
 
     private int damageLockTicks;

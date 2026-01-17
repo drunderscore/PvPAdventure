@@ -4,6 +4,7 @@ using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Core.Assets;
 using ReLogic.Content;
+using SubworldLibrary;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -86,7 +87,8 @@ public class SpawnBoxWorld : ModSystem
             // Set color
             var gm = ModContent.GetInstance<GameManager>();
             var am = Main.LocalPlayer.GetModPlayer<SpawnPlayer>();
-            bool canPass = gm.CurrentPhase == GameManager.Phase.Playing && am.IsPlayerInSpawnRegion();
+            bool canPass = gm.CurrentPhase == GameManager.Phase.Playing && am.IsPlayerInSpawnRegion()
+                || SubworldSystem.AnyActive() && am.IsPlayerInSpawnRegion();
             Color color = Color.Black * (canPass ? 0.5f : 1f);
 
             Texture2D tex = Ass.Spawnbox.Value;
