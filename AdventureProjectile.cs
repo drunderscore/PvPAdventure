@@ -866,7 +866,7 @@ public class AdventureProjectile : GlobalProjectile
             if (Main.dayTime)
             {
                 // Empress takes 75% less damage during the day
-                modifiers.FinalDamage *= 0.25f;
+                modifiers.FinalDamage *= 0.40f;
             }
         }
     }
@@ -1119,6 +1119,8 @@ public class AdventureProjectile : GlobalProjectile
                    projType == ProjectileID.Volcano ||
                    projType == ProjectileID.Muramasa ||
                    projType == ProjectileID.BloodCloudRaining ||
+                   projType == ProjectileID.Volcano ||
+                   projType == ProjectileID.CrystalLeafShot ||
                    projType == ProjectileID.SporeGas3;
         }
         public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)

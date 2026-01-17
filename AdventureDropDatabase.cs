@@ -512,23 +512,14 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.WallofFlesh:
 
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
-
-                //var wofFirstKillRule = new LeadingConditionRule(new FirstBossKillCondition(NPCID.WallofFlesh));
-                //wofFirstKillRule.OnSuccess(ItemDropRule.OneFromOptions(1,
-                //    ItemID.WarriorEmblem,
-                //    ItemID.RangerEmblem,
-                //    ItemID.SorcererEmblem,
-                //    ItemID.SummonerEmblem
-                //));
-                //npcLoot.Add(wofFirstKillRule);
-                //npcLoot.Add(
-                //    new OneFromRulesRule(1,
-                //        ItemDropRule.Common(ItemID.WarriorEmblem),
-                //        ItemDropRule.Common(ItemID.RangerEmblem),
-                //        ItemDropRule.Common(ItemID.SorcererEmblem),
-                //        ItemDropRule.Common(ItemID.SummonerEmblem)
-                //    )
-                //);
+                npcLoot.Add(
+                    new OneFromRulesRule(1,
+                        ItemDropRule.Common(ItemID.WarriorEmblem),
+                        ItemDropRule.Common(ItemID.RangerEmblem),
+                        ItemDropRule.Common(ItemID.SorcererEmblem),
+                        ItemDropRule.Common(ItemID.SummonerEmblem)
+                    )
+                );
                 npcLoot.Add(
                     new OneFromRulesRule(1,
                         ItemDropRule.Common(ItemID.FireWhip),
@@ -546,7 +537,14 @@ public class AdventureDropDatabase : ModSystem
             case NPCID.DukeFishron:
 
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
-
+                npcLoot.Add(
+                    new OneFromRulesRule(1,
+                        ItemDropRule.Common(ItemID.BubbleGun),
+                        ItemDropRule.Common(ItemID.Tsunami),
+                        ItemDropRule.Common(ItemID.RazorbladeTyphoon),
+                        ItemDropRule.Common(ItemID.Flairon)
+                    )
+                );
                 foreach (var drop in drops)
                 {
                             ModifyDropRate(drop, ItemID.FishronWings, 0, 1);
