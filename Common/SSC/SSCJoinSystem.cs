@@ -65,8 +65,6 @@ public class SSCJoinSystem : ModSystem
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
-        Log.Chat("send 2");
-
         Player player = Main.LocalPlayer;
 
         var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();

@@ -1,5 +1,6 @@
-using PvPAdventure.Core.Arenas.UI;
+using PvPAdventure.Common.Arenas;
 using PvPAdventure.Core.Config.ConfigElements;
+using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Discord;
 using System;
 using System.Collections.Generic;
@@ -506,6 +507,7 @@ public class ServerConfig : ModConfig
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
 #if DEBUG
+        Log.Chat("Server accepted changes!");
         return true;
 #endif
 
@@ -535,5 +537,17 @@ public class ServerConfig : ModConfig
 
         return true;
     }
+    //public override void HandleAcceptClientChangesReply(bool success, int player, NetworkText message)
+    //{
+    //base.HandleAcceptClientChangesReply(success, player, message);
+    //}
+    //public override void OnLoaded()
+    //{
+        //base.OnLoaded();
+    //}
+    //public override void OnChanged()
+    //{
+        //base.OnChanged();
+    //}
 
 }

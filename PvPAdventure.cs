@@ -1,23 +1,15 @@
-using Microsoft.Xna.Framework;
-using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
-using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Common.SpawnSelector.UI;
 using PvPAdventure.Common.SSC;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;
-using PvPAdventure.Core.Arenas;
 using PvPAdventure.Core.Discord;
 using PvPAdventure.Core.Input.Dash;
 using PvPAdventure.Core.Net;
 using System.IO;
-using System.Linq;
 using Terraria;
-using Terraria.Enums;
-using Terraria.ID;
 using Terraria.ModLoader;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
 namespace PvPAdventure;
 

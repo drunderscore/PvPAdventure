@@ -1,13 +1,9 @@
-﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.GameTimer;
-using PvPAdventure.Core.Arenas.UI;
-using PvPAdventure.Core.Input;
-using SubworldLibrary;
+﻿using SubworldLibrary;
 using Terraria;
 using Terraria.GameInput;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Arenas;
+namespace PvPAdventure.Common.Arenas;
 
 internal class ArenasPlayer : ModPlayer
 {

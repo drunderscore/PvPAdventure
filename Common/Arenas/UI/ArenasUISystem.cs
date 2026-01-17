@@ -1,5 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using DragonLens.Content.Tools.Gameplay;
+using Microsoft.Xna.Framework;
 using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
 using SubworldLibrary;
@@ -8,7 +10,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Arenas.UI;
+namespace PvPAdventure.Common.Arenas.UI;
 
 [Autoload(Side = ModSide.Client)]
 public sealed class ArenasUISystem : ModSystem
@@ -85,7 +87,18 @@ public sealed class ArenasUISystem : ModSystem
     }
 
     public override void UpdateUI(GameTime gameTime)
-        => Interface?.Update(gameTime);
+    {
+        var ss = ModContent.GetInstance<SpawnSelector.SpawnSystem>();
+        if (ss.ui.CurrentState != null)
+        {
+            if (Interface.CurrentState != null)
+            {
+                Interface.SetState(null);
+            }
+        }
+
+        Interface?.Update(gameTime);
+    }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {

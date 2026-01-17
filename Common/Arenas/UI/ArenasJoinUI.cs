@@ -1,10 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Arenas;
 using SubworldLibrary;
 using System;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Arenas.UI;
+namespace PvPAdventure.Common.Arenas.UI;
 
 public class ArenasJoinUI : UIState
 {
@@ -16,10 +17,6 @@ public class ArenasJoinUI : UIState
     public static void SetPlayerCount(int count)
     {
         arenaPlayerCount = count;
-    }
-    private static string GetEnterText()
-    {
-        return $"Enter Arena";
     }
 
     // UI
@@ -35,71 +32,69 @@ public class ArenasJoinUI : UIState
         {
             Width = new StyleDimension(240f, 0f),
             Top = new StyleDimension(100f, 0f),
-            Height = new StyleDimension(192f, 0f),
+            Height = new StyleDimension(150f, 0f),
             HAlign = 0.5f
         };
         Append(Root);
 
-        var title = new UITextPanel<string>("Arenas", 0.7f, large: true)
+        // Title
+        var title = new UITextPanel<string>("Arenas", 0.6f, large: true)
         {
             HAlign = 0.5f,
-            Height = new StyleDimension(TitleHeight, 0f),
             BackgroundColor = new Color(73, 94, 171)
         };
-        title.SetPadding(15f);
+        //title.SetPadding(0f);
+        title.Width.Set(0f, 1f);
+
         title.OnLeftMouseDown += (evt, _) => Root.BeginDrag(evt);
         title.OnLeftMouseUp += (evt, _) => Root.EndDrag(evt);
+
+        Root.Append(title);
+
+        // Force a layout pass so we can measure the title height
+        Root.Recalculate();
+        float panelHeight = title.GetOuterDimensions().Height;
 
         Container = new UIPanel
         {
             BackgroundColor = new Color(33, 43, 79) * 0.8f
         };
-        Container.Top.Set(TitleHeight - 12f, 0f);
+        Container.Top.Set(panelHeight, 0f);        
         Container.Width.Set(0f, 1f);
-        Container.Height.Set(-TitleHeight, 1f);
+        Container.Height.Set(-panelHeight, 1f);   
         Root.Append(Container);
 
         var list = new UIList
         {
-            PaddingTop = 8f
+            PaddingTop = 0f,
+            ListPadding = 8f
         };
-        list.Width.Set(-24f, 1f);
-        list.Height.Set(-24f, 1f);
-        list.Left.Set(12f, 0f);
-        list.Top.Set(12f, 0f);
+        list.Width.Set(0f, 1f);
+        list.Height.Set(0f, 1f);
+        list.Left.Set(0f, 0f);
+        list.Top.Set(0f, 0f);
         Container.Append(list);
 
-        enterButton = CreateButton(
-            GetEnterText(),
-            () =>
-            {
-                SubworldSystem.Enter<ArenasSubworld>();
-            }
-        );
+        enterButton = CreateButton("Enter Arenas", () => SubworldSystem.Enter<ArenasSubworld>());
+        enterButton.SetPadding(8f);
+        enterButton.MinHeight.Set(panelHeight, 0f); // same height as title (derived from scale)
         list.Add(enterButton);
 
-        // Close button
-        var closeButton = CreateButton(
-            "Close Menu",
-            () =>
-            {
-                ArenasUISystem.Close();
-            }
-        );
-        closeButton.Top.Set(10, 0);
+        var closeButton = CreateButton("Close Menu", ArenasUISystem.Close);
+        closeButton.SetPadding(8f);
+        closeButton.MinHeight.Set(panelHeight, 0f);
         list.Add(closeButton);
 
-        Root.Append(title);
+        // Recalc after modifications
+        Root.Recalculate();
     }
+
 
     public static UITextPanel<string> CreateButton(string text, Action onClick)
     {
-        var button = new UITextPanel<string>(text, 0.6f, large: true)
-        {
-            HAlign = 0.5f
-        };
-
-        button.SetPadding(10f);
+        var button = new UITextPanel<string>(text, 0.6f, large: true);
+        button.HAlign = 0.5f;
+        button.SetPadding(0f);
         button.Width.Set(0f, 1f);
 
         button.OnLeftClick += (_, _) => onClick();
@@ -112,8 +107,5 @@ public class ArenasJoinUI : UIState
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-
-        if (enterButton != null)
-            enterButton.SetText(GetEnterText());
     }
 }

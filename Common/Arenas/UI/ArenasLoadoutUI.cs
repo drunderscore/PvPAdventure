@@ -1,10 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Config;
-using PvPAdventure.Core.Debug;
 using ReLogic.Content;
 using SubworldLibrary;
 using System;
+using System.Text;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
@@ -13,9 +13,8 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.UI;
-using static PvPAdventure.Core.Config.ServerConfig;
 
-namespace PvPAdventure.Core.Arenas.UI;
+namespace PvPAdventure.Common.Arenas.UI;
 
 public class ArenasLoadoutUI : UIState
 {
@@ -44,13 +43,13 @@ public class ArenasLoadoutUI : UIState
         // Calculate height based on number of loadouts
         var config = ModContent.GetInstance<ServerConfig>();
         int loadoutsCount = config.ArenaLoadouts.Count;
-        int loadoutItemHeight = 74;
-        int baseHeight = 166;
+        int loadoutItemHeight = 72;
+        int baseHeight = 150;
         int rootHeight = baseHeight + loadoutItemHeight * loadoutsCount;
 
         Root = new DraggableElement
         {
-            Width = new StyleDimension(420f, 0f),
+            Width = new StyleDimension(402, 0f),
             Top = new StyleDimension(50f, 0f),
             Height = new StyleDimension(rootHeight, 0f),
             HAlign = 0.5f
@@ -76,14 +75,24 @@ public class ArenasLoadoutUI : UIState
         Container.Height.Set(-TitleHeight, 1f);
         Root.Append(Container);
 
-        var list = new UIList
-        {
-            PaddingTop = 8f
-        };
-        list.Width.Set(-24f, 1f);
-        list.Height.Set(-24f, 1f);
-        list.Left.Set(12f, 0f);
-        list.Top.Set(12f, 0f);
+        var list = new UIList();
+        list.Width.Set(0, 1f);
+        list.Height.Set(0f, 1f);
+        list.SetPadding(16);
+        list.PaddingTop = 6;
+        list.PaddingLeft = -4; // make room for scrollbar
+
+        var scrollbar = new UIScrollbar();
+        scrollbar.SetView(100f, 1000f); // will be corrected by list.UpdateScrollbar()
+        scrollbar.Height.Set(-12f, 1f);
+        scrollbar.Top.Set(12f, 0f);
+        //scrollbar.HAlign = 1f;
+        scrollbar.Left.Set(-12, 1);
+
+        list.SetScrollbar(scrollbar);
+
+        Container.Append(list);
+        Container.Append(scrollbar);
 
         // Add loadouts
         var cfg = ModContent.GetInstance<ServerConfig>();
@@ -97,7 +106,8 @@ public class ArenasLoadoutUI : UIState
 
         // Add exit button
         var exitButton = ArenasJoinUI.CreateButton("Exit Arena",SubworldSystem.Exit);
-        exitButton.MarginTop = 12f;
+        exitButton.MarginTop = 8f;
+        exitButton.SetPadding(8f);
         list.Add(exitButton);
 
         Container.Append(list);
@@ -251,9 +261,13 @@ public class ArenasLoadoutUI : UIState
         private readonly UIElement slotsRow;
         private UIImageButton playButton;
 
+        private readonly Loadout loadout;
+
         public LoadoutListItem(Player previewPlayer, Loadout loadout, Action<string> equip)
         {
-            Height.Set(72f, 0f);
+            this.loadout = loadout;
+
+            Height.Set(108f, 0f);
             Width.Set(0f, 1f);
             SetPadding(6f);
 
@@ -266,79 +280,116 @@ public class ArenasLoadoutUI : UIState
 
             var nameText = new UIText(loadout.Name ?? "Unnamed", 1.0f);
             nameText.Left.Set(72f, 0f);
-            nameText.VAlign = 0.01f;
+            //nameText.VAlign = 0.01f;
+            nameText.Top.Set(-2, 0);
             Append(nameText);
 
             slotsRow = new UIElement();
             slotsRow.Left.Set(72f, 0f);
-            slotsRow.Top.Set(-8, 0);
-            slotsRow.VAlign = 1;
-            slotsRow.Height.Set(26f, 0f);
             slotsRow.Width.Set(-96f, 1f);
             Append(slotsRow);
 
             AddSlots(loadout);
 
-            playButton = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad))
-            {
-                VAlign = 0.5f,
-                Left = { Pixels = -25f, Precent = 1f }
-            };
+            playButton = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad));
             playButton.OnLeftClick += (_, _) => equip?.Invoke(loadout.Name);
-
             Append(playButton);
+
+            Recalculate(); // ensure preview/button have dimensions
+
+            var pb = playButton.GetOuterDimensions();
+            var pr = preview.GetOuterDimensions();
+
+            // center under preview, and place just below it
+            playButton.Left.Set(pr.X + (pr.Width - pb.Width) * 0.5f - GetInnerDimensions().X, 0f);
+            playButton.Top.Set(pr.Y + pr.Height - GetInnerDimensions().Y, 0f);
+
             Recalculate();
         }
 
         private void AddSlots(Loadout def)
         {
+            const float Step = 40f;
+            const float Slot = 36f;
+            const int Cols = 7;
+
             float x = 0f;
+            float y = 16f;
+            int col = 0;
 
-            // Head slot
-            if (ItemOrAir(def.Head) != ItemID.None)
+            int count = 0;
+
+            void Add(Item it)
             {
-                var item = new Item();
-                item.SetDefaults(ItemOrAir(def.Head));
-
-                var slot = new UILoadoutItemSlot(item);
+                var slot = new UILoadoutItemSlot(it);
                 slot.Left.Set(x, 0f);
+                slot.Top.Set(y, 0f);
                 slotsRow.Append(slot);
 
-                x += 40;
+                count++;
+
+                col++;
+                x += Step;
+
+                if (col >= Cols)
+                {
+                    col = 0;
+                    x = 0f;
+                    y += Step;
+                }
             }
 
-            // First 2 Hotbar items
-            for (int i = 0; i < def.Hotbar.Count && i < 2; i++)
+            int t;
+
+            // Armor
+            t = ItemOrAir(def.Head);
+            if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
+
+            t = ItemOrAir(def.Body);
+            if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
+
+            t = ItemOrAir(def.Legs);
+            if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
+
+            // Accessories
+            for (int i = 0; i < def.Accessories.Count; i++)
+            {
+                t = ItemOrAir(def.Accessories[i]);
+                if (t == ItemID.None) continue;
+
+                var it = new Item();
+                it.SetDefaults(t);
+                Add(it);
+            }
+
+            // Hotbar
+            for (int i = 0; i < def.Hotbar.Count; i++)
             {
                 var li = def.Hotbar[i];
+                t = ItemOrAir(li.Item);
+                if (t == ItemID.None) continue;
 
-                if (ItemOrAir(li.Item) == ItemID.GreaterHealingPotion)
-                    continue;
-
-                var item = new Item();
-                item.SetDefaults(ItemOrAir(li.Item));
-                item.stack = li.Stack;
-
-                var slot = new UILoadoutItemSlot(item);
-                slot.Left.Set(x, 0f);
-                slotsRow.Append(slot);
-
-                x += 40f;
+                var it = new Item();
+                it.SetDefaults(t);
+                it.stack = li.Stack;
+                Add(it);
             }
-            //x += 12;
 
-            // First 3 accessories
-            for (int i = 0; i < def.Accessories.Count && i < 3; i++)
-            {
-                var item = new Item();
-                item.SetDefaults(ItemOrAir(def.Accessories[i]));
+            // Grapple
+            t = ItemOrAir(def.GrapplingHook);
+            if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
 
-                var slot = new UILoadoutItemSlot(item);
-                slot.Left.Set(x, 0f);
-                slotsRow.Append(slot);
+            if (count == 0)
+                return;
 
-                x += 40f;
-            }
+            int rows = (count + Cols - 1) / Cols;
+
+            float slotsHeight = y + (rows - 1) * Step + Slot; 
+            slotsRow.Top.Set(0f, 0f);
+            slotsRow.Height.Set(slotsHeight, 0f);
+
+            float extra = (rows - 1) * Step;
+            Height.Set(108f, 0f);
         }
 
         public override void Update(GameTime gameTime)
@@ -349,7 +400,69 @@ public class ArenasLoadoutUI : UIState
             {
                 Main.LocalPlayer.mouseInterface = true;
                 Main.instance.MouseText("Play");
+                return;
             }
+
+            if (IsMouseHovering)
+            {
+                Main.LocalPlayer.mouseInterface = true;
+                //Main.instance.MouseText(BuildTooltip(loadout));
+            }
+        }
+
+        private static string BuildTooltip(Loadout l)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append("Armor: ");
+            bool any = false;
+
+            int t = ItemOrAir(l.Head);
+            if (t > ItemID.None) { sb.Append(Lang.GetItemNameValue(t)); any = true; }
+
+            t = ItemOrAir(l.Body);
+            if (t > ItemID.None) { if (any) sb.Append(','); sb.Append(Lang.GetItemNameValue(t)); any = true; }
+
+            t = ItemOrAir(l.Legs);
+            if (t > ItemID.None) { if (any) sb.Append(','); sb.Append(Lang.GetItemNameValue(t)); }
+            sb.AppendLine();
+
+            sb.Append("Accessories: ");
+            any = false;
+            for (int i = 0; i < l.Accessories.Count && i < 5; i++)
+            {
+                t = ItemOrAir(l.Accessories[i]);
+                if (t <= ItemID.None)
+                    continue;
+
+                if (any) sb.Append(", ");
+                sb.Append(Lang.GetItemNameValue(t));
+                any = true;
+            }
+            sb.AppendLine();
+
+            sb.Append("Hotbar: ");
+            any = false;
+            for (int i = 0; i < l.Hotbar.Count && i < 10; i++)
+            {
+                var li = l.Hotbar[i];
+                t = ItemOrAir(li.Item);
+                if (t <= ItemID.None)
+                    continue;
+
+                if (any) sb.Append(", ");
+                sb.Append(Lang.GetItemNameValue(t));
+                if (li.Stack > 1) sb.Append(" x").Append(li.Stack);
+                any = true;
+            }
+            sb.AppendLine();
+
+            sb.Append("Grappling hook: ");
+            t = ItemOrAir(l.GrapplingHook);
+            if (t > ItemID.None)
+                sb.Append(Lang.GetItemNameValue(t));
+
+            return sb.ToString().TrimEnd();
         }
 
         public override void MouseOver(UIMouseEvent evt)

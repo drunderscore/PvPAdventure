@@ -576,20 +576,21 @@ public class GameManager : ModSystem
                 return;
             }
 
-            var gameManager = ModContent.GetInstance<GameManager>();
-            if (gameManager.CurrentPhase == Phase.Playing)
+            var gm = ModContent.GetInstance<GameManager>();
+            if (gm.CurrentPhase == Phase.Playing)
             {
-                caller.Reply("The game is already being played.", Color.Red);
+                //caller.Reply("The game is already being played.", Color.Red);
+                gm.EndGame();
                 return;
             }
 
-            if (gameManager._startGameCountdown.HasValue)
+            if (gm._startGameCountdown.HasValue)
             {
                 caller.Reply("The game is already being started.", Color.Red);
                 return;
             }
 
-            gameManager.StartGame(time);
+            gm.StartGame(time);
         }
 
         public override string Command => "startgame";

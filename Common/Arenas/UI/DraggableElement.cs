@@ -2,7 +2,7 @@
 using Terraria;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Arenas.UI;
+namespace PvPAdventure.Common.Arenas.UI;
 
 /// <summary>
 /// Drags this element (and therefore all children) by converting alignment-based layout to pixel layout on drag start.

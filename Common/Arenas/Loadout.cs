@@ -3,7 +3,7 @@ using System.ComponentModel;
 using Terraria.ID;
 using Terraria.ModLoader.Config;
 
-namespace PvPAdventure.Core.Arenas.UI;
+namespace PvPAdventure.Common.Arenas;
 
 public class Loadout
 {

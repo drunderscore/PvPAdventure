@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Arenas.UI;
 using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Input;
 using SubworldLibrary;
@@ -14,12 +13,12 @@ using Terraria.ModLoader;
 using Terraria.Utilities;
 using Terraria.WorldBuilding;
 
-namespace PvPAdventure.Core.Arenas;
+namespace PvPAdventure.Common.Arenas;
 
 public class ArenasSubworld : Subworld
 {
-    public override int Width => 780; // 680
-    public override int Height => 269; // 169
+    public override int Width => 1000; // 680
+    public override int Height => 600; // 169
 
     public override bool ShouldSave => false;
     public override bool NoPlayerSaving => true;
@@ -51,7 +50,7 @@ public class ArenasSubworld : Subworld
         // size: ~680x169
 
         var mod = ModContent.GetInstance<PvPAdventure>();
-        const string path = "Core/Arenas/Structures/arenas_v3";
+        const string path = "Common/Arenas/Structures/arenas_v3";
 
         Point16 dims = StructureHelper.API.Generator.GetStructureDimensions(path, mod);
 
