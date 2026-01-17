@@ -4,7 +4,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Statistics;
 
-internal class ProjectileKillFeedSource : GlobalProjectile
+internal class StatisticsProjectile : GlobalProjectile
 {
     private IEntitySource entitySource;
 
@@ -27,7 +27,7 @@ internal class ProjectileKillFeedSource : GlobalProjectile
 
     private static EntitySource_ItemUse GetItemUseSource(Projectile projectile, Projectile lastProjectile)
     {
-        var global = projectile.GetGlobalProjectile<ProjectileKillFeedSource>();
+        var global = projectile.GetGlobalProjectile<StatisticsProjectile>();
 
         if (global.entitySource is EntitySource_ItemUse itemUse)
             return itemUse;

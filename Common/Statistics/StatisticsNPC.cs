@@ -2,11 +2,11 @@
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
-using AdventureNpc = PvPAdventure.Common.Statistics.NpcStatistics;
+using AdventureNpc = PvPAdventure.Common.Statistics.StatisticsNPC;
 
 namespace PvPAdventure.Common.Statistics;
 
-public class NpcStatistics : GlobalNPC
+public class StatisticsNPC : GlobalNPC
 {
     public override bool InstancePerEntity => true;
     public DamageInfo LastDamageFromPlayer { get; set; }

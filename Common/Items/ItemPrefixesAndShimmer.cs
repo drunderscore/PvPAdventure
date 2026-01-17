@@ -9,7 +9,7 @@ namespace PvPAdventure.Common.Items;
 // - Registers circular shimmer transforms.
 // - Removes prefixes (spawn/reforge/load) when configured.
 // - Prevents reforging when prefixes are removed.
-public class ItemQuality : GlobalItem
+public class ItemPrefixesAndShimmer : GlobalItem
 {
     public override void SetStaticDefaults()
     {

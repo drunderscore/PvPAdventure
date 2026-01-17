@@ -5,12 +5,11 @@ using MonoMod.Cil;
 using PvPAdventure.Common.DropRates;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
+using PvPAdventure.Content.NPCs;
 using PvPAdventure.Core.Config;
 using Terraria;
-using Terraria.Audio;
 using Terraria.Chat;
 using Terraria.DataStructures;
-using Terraria.Enums;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.Localization;
@@ -53,7 +52,7 @@ public class NpcRules : GlobalNPC
                 return;
 
             // If this is a boss, we want it to scale based on the number of players on a specific team...
-            if (self.boss || NpcStatistics.IsPartOfEaterOfWorlds((short)self.type) || NpcStatistics.IsPartOfTheDestroyer((short)self.type))
+            if (self.boss || StatisticsNPC.IsPartOfEaterOfWorlds((short)self.type) || StatisticsNPC.IsPartOfTheDestroyer((short)self.type))
             {
                 // FIXME: Ignore None team
                 var closestPlayerIndex = self.FindClosestPlayer();
@@ -118,7 +117,7 @@ public class NpcRules : GlobalNPC
                     continue;
 
                 // This NPC in the world is a bound NPC of ours, and it transforms into the NPC that just spawned...
-                if (worldNpc.ModNPC is BoundNpc boundWorldNpc && npc.type == boundWorldNpc.TransformInto)
+                if (worldNpc.ModNPC is BoundNPC boundWorldNpc && npc.type == boundWorldNpc.TransformInto)
                 {
                     // ...so now it must go.
                     worldNpc.life = 0;
@@ -298,7 +297,7 @@ public class NpcRules : GlobalNPC
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), id));
         }
 
-        if (NpcStatistics.IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
+        if (StatisticsNPC.IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
             AddNonExpertBossLoot(ItemID.WormScarf);
         else
         {

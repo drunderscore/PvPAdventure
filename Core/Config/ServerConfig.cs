@@ -1,3 +1,4 @@
+using PvPAdventure.Core.Arenas.UI;
 using PvPAdventure.Core.Config.ConfigElements;
 using PvPAdventure.Core.Discord;
 using System;
@@ -71,10 +72,7 @@ public class ServerConfig : ModConfig
 
     [BackgroundColor(90, 40, 110)]
     [Expand(false, false)]
-    public List<NPCDefinition> BossSpawnAnnouncements { get; set; } =
-    [
-        new(NPCID.CultistBoss)
-    ];
+    public List<NPCDefinition> BossSpawnAnnouncements { get; set; } = [new(NPCID.CultistBoss)];
 
     [BackgroundColor(90, 40, 110)]
     [Expand(false, false)]
@@ -82,12 +80,7 @@ public class ServerConfig : ModConfig
 
     [BackgroundColor(90, 40, 110)]
     [Expand(false, false)]
-    public List<ProjectileDefinition> BossInvulnerableProjectiles { get; set; } =
-    [
-        new(ProjectileID.Dynamite),
-        new(ProjectileID.StickyDynamite),
-        new(ProjectileID.BouncyDynamite)
-    ];
+    public List<ProjectileDefinition> BossInvulnerableProjectiles { get; set; } = [new(ProjectileID.Dynamite)];
 
     [BackgroundColor(90, 40, 110)]
     [DefaultValue(true)] public bool NoMechanicalBossSummonDrops { get; set; }
@@ -121,15 +114,7 @@ public class ServerConfig : ModConfig
     [Header("General")]
     [BackgroundColor(50, 60, 80)]
     [Expand(false, false)]
-    public List<string> CrashoutMessages { get; set; } =
-    [
-        "Is it break yet?",
-        "Getting mogged by Matte \"Heat Ray\" Sevai",
-        "If you aren't good enough, go play THC",
-        "39 buried. 0 Tabis.",
-        "That right there is 100% skill issue",
-        "Too many surface RTPs"
-    ];
+    public List<string> CrashoutMessages { get; set; } = [];
 
     [BackgroundColor(50, 60, 80)]
     [Expand(false, false)]
@@ -174,107 +159,12 @@ public class ServerConfig : ModConfig
 
     [Expand(false, false)]
     [BackgroundColor(90, 70, 160)]
-    public List<Loadout> ArenaLoadouts { get; set; } =
-    [
-        new Loadout
-        {
-            Name = "Melee",
-
-            Head = new ItemDefinition(ItemID.HallowedMask),
-            Body = new ItemDefinition(ItemID.HallowedPlateMail),
-            Legs = new ItemDefinition(ItemID.HallowedGreaves),
-
-            Accessories =
-            {
-                new ItemDefinition(ItemID.WarriorEmblem),
-                new ItemDefinition(ItemID.FireGauntlet)
-            },
-
-            Hotbar =
-            {
-                new LoadoutItem(new ItemDefinition(ItemID.TerraBlade)),
-                new LoadoutItem(new ItemDefinition(ItemID.GreaterHealingPotion), 30)
-            },
-
-            GrapplingHook = new ItemDefinition(ItemID.AmethystHook)
-        }
-
-    ];
-
-    public class Loadout
-    {
-        public string Name { get; set; }
-
-        public ItemDefinition Head { get; set; }
-        public ItemDefinition Body { get; set; }
-        public ItemDefinition Legs { get; set; }
-
-        public List<ItemDefinition> Accessories { get; set; } = [];
-        public List<LoadoutItem> Hotbar { get; set; } = [];
-
-        public ItemDefinition GrapplingHook { get; set; }
-    }
-    public class LoadoutItem
-    {
-        public ItemDefinition Item { get; set; } = new(ItemID.None);
-
-        [DefaultValue(1)]
-        public int Stack { get; set; } = 1;
-
-        public LoadoutItem()
-        {
-        }
-
-        public LoadoutItem(ItemDefinition item, int stack = 1)
-        {
-            Item = item;
-            Stack = stack;
-        }
-    }
+    public List<Loadout> ArenaLoadouts { get; set; } = [];
     #endregion
-
-    public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
-    {
-#if DEBUG
-        return true;
-#endif
-
-        if (pendingConfig is not ServerConfig pendingAdventureConfig)
-            return true;
-
-        var adventureConfig = ModContent.GetInstance<ServerConfig>();
-        var discordId = Main.player[whoAmI].GetModPlayer<DiscordAuthPlayer>().DiscordUser?.Id;
-
-
-        if (discordId == null)
-            return false;
-
-        if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        {
-            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-            return false;
-        }
-
-        // You must have access by this point, but then you removed yourself!
-        // Don't do that.
-        if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        {
-            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-            return false;
-        }
-
-        return true;
-    }
 
     #endregion
 
     #region NestedConfigTypes
-
-    public class InvasionSizeValue
-    {
-        [Range(0, 1000)] public int Value { get; set; }
-    }
-
     public class PointsConfig
     {
         // Points per boss
@@ -305,6 +195,15 @@ public class ServerConfig : ModConfig
 
         [DefaultValue(false)]
         public bool AwardBountyEveryKill { get; set; }
+        public class Bounty
+        {
+            public List<ConfigItem> Items { get; set; } = [];
+            public Condition Conditions { get; set; } = new();
+        }
+    }
+    public class InvasionSizeValue
+    {
+        [Range(0, 1000)] public int Value { get; set; }
     }
 
     public class ConfigItem
@@ -340,11 +239,7 @@ public class ServerConfig : ModConfig
         public bool CollectedAllMechanicalBossSouls { get; set; }
     }
 
-    public class Bounty
-    {
-        public List<ConfigItem> Items { get; set; } = [];
-        public Condition Conditions { get; set; } = new();
-    }
+    
 
     public class WeaponBalanceConfig
     {
@@ -607,4 +502,38 @@ public class ServerConfig : ModConfig
         public List<ConfigItem> Items { get; set; } = [];
     }
     #endregion
+
+    public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
+    {
+#if DEBUG
+        return true;
+#endif
+
+        if (pendingConfig is not ServerConfig pendingAdventureConfig)
+            return true;
+
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
+        var discordId = Main.player[whoAmI].GetModPlayer<DiscordAuthPlayer>().DiscordUser?.Id;
+
+
+        if (discordId == null)
+            return false;
+
+        if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
+        {
+            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
+            return false;
+        }
+
+        // You must have access by this point, but then you removed yourself!
+        // Don't do that.
+        if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
+        {
+            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
+            return false;
+        }
+
+        return true;
+    }
+
 }

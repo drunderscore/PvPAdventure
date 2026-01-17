@@ -18,8 +18,8 @@ namespace PvPAdventure.Core.Arenas;
 
 public class ArenasSubworld : Subworld
 {
-    public override int Width => 1000; // 680
-    public override int Height => 400; // 169
+    public override int Width => 780; // 680
+    public override int Height => 269; // 169
 
     public override bool ShouldSave => false;
     public override bool NoPlayerSaving => true;
@@ -57,6 +57,7 @@ public class ArenasSubworld : Subworld
 
         const int margin = 20;
 
+        // Center the structure
         int x = (Main.maxTilesX - dims.X) / 2;
         int y = (Main.maxTilesY - dims.Y) / 2;
 
@@ -76,7 +77,7 @@ public class ArenasSubworld : Subworld
             return;
         }
 
-        // Optional but strongly recommended on dedicated server to avoid huge SendTileSquare net payloads.
+        // Avoid huge SendTileSquare net payloads on dedicated servers
         int oldNetMode = Main.netMode;
         try
         {

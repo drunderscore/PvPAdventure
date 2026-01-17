@@ -10,7 +10,7 @@ namespace PvPAdventure.Common.Items;
 // - Blocks item use based on PreventUse config.
 // - Blocks equipping accessories based on PreventUse config.
 // - Blocks ammo selection based on PreventUse config.
-public class ItemRules : GlobalItem
+public class BannedItems : GlobalItem
 {
     public override bool CanUseItem(Item item, Player player)
     {
@@ -43,6 +43,14 @@ public class ItemRules : GlobalItem
     {
         if (ModContent.GetInstance<ServerConfig>().PreventUse
             .Any(itemDefinition => ammo.type == itemDefinition.Type))
+            return false;
+
+        return null;
+    }
+
+    public override bool? CanAutoReuseItem(Item item, Player player)
+    {
+        if (ModContent.GetInstance<ServerConfig>().PreventAutoReuse.Contains(new(item.type)))
             return false;
 
         return null;

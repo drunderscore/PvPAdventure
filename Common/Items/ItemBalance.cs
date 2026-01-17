@@ -6,26 +6,13 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Items;
 
-// - Exposes RecallItems set.
-// - Adjusts recall item use time/animation based on config.
 // - Applies config-driven per-item stat overrides.
 // - Overrides pick power for Spectre Pickaxe and Shroomite Digging Claw.
 public class ItemBalance : GlobalItem
 {
-    public static readonly bool[] RecallItems =
-        ItemID.Sets.Factory.CreateBoolSet(ItemID.MagicMirror, ItemID.CellPhone, ItemID.IceMirror, ItemID.Shellphone,
-            ItemID.ShellphoneSpawn);
-
     public override void SetDefaults(Item item)
     {
         var adventureConfig = ModContent.GetInstance<ServerConfig>();
-
-        if (RecallItems[item.type])
-        {
-            var recallTime = adventureConfig.MapRecallFrames;
-            item.useTime = recallTime * 2;
-            item.useAnimation = recallTime * 2;
-        }
 
         // Can't construct an ItemDefinition too early -- it'll call GetName and won't be graceful on failure.
         if (ItemID.Search.TryGetName(item.type, out var name) &&

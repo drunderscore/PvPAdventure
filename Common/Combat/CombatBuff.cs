@@ -4,7 +4,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Combat;
 
-public class AdventureBuff : GlobalBuff
+public class CombatBuff : GlobalBuff
 {
     public override void Update(int type, Player player, ref int buffIndex)
     {

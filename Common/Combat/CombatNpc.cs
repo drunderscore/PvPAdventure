@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.Audio;
@@ -8,16 +9,17 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Combat;
 
-public class CombatNpc : GlobalNPC
+public class CombatNPC : GlobalNPC
 {
     public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
     {
         var config = ModContent.GetInstance<ServerConfig>();
 
         var isBoss = npc.boss
-                     || IsPartOfEaterOfWorlds((short)npc.type)
-                     || IsPartOfTheDestroyer((short)npc.type);
+                     || StatisticsNPC.IsPartOfEaterOfWorlds((short)npc.type)
+                     || StatisticsNPC.IsPartOfTheDestroyer((short)npc.type);
 
+        // Prevent projectiles from hitting bosses if configured e.g dynamite.
         if (isBoss && config.BossInvulnerableProjectiles.Any(projectileDefinition =>
                 projectileDefinition.Type == projectile.type))
             return false;
@@ -45,10 +47,4 @@ public class CombatNpc : GlobalNPC
         if (marker != null)
             SoundEngine.PlaySound(marker.Create(damage));
     }
-
-    public static bool IsPartOfEaterOfWorlds(short type) =>
-        type is NPCID.EaterofWorldsHead or NPCID.EaterofWorldsBody or NPCID.EaterofWorldsTail;
-
-    public static bool IsPartOfTheDestroyer(short type) =>
-        type is NPCID.TheDestroyer or NPCID.TheDestroyerBody or NPCID.TheDestroyerTail;
 }

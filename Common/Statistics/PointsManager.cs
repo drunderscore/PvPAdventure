@@ -213,7 +213,7 @@ public class PointsManager : ModSystem
 
         // If this is part of the Eater of Worlds, mark ALL parts as defeated.
         // This specialization is not needed for The Destroyer -- only it's head is ever marked as a boss.
-        if (NpcStatistics.IsPartOfEaterOfWorlds((short)npc.type))
+        if (StatisticsNPC.IsPartOfEaterOfWorlds((short)npc.type))
         {
             _downedNpcs[team].Add(NPCID.EaterofWorldsHead);
             _downedNpcs[team].Add(NPCID.EaterofWorldsBody);

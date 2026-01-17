@@ -235,8 +235,8 @@ internal class CombatPlayer : ModPlayer
 
     public override bool CanBeHitByNPC(NPC npc, ref int cooldownSlot)
     {
-        if (npc.boss || NpcStatistics.IsPartOfEaterOfWorlds((short)npc.type) ||
-            NpcStatistics.IsPartOfTheDestroyer((short)npc.type) || BossNpcsForImmunityCooldown.Contains((short)npc.type))
+        if (npc.boss || StatisticsNPC.IsPartOfEaterOfWorlds((short)npc.type) ||
+            StatisticsNPC.IsPartOfTheDestroyer((short)npc.type) || BossNpcsForImmunityCooldown.Contains((short)npc.type))
             cooldownSlot = ImmunityCooldownID.Bosses;
 
         return true;
