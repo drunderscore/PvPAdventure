@@ -411,18 +411,6 @@ public class AdventureItem : GlobalItem
         }
     }
 }
-public class QuiverNerf : GlobalItem
-    {
-        public override void ModifyWeaponDamage(Item item, Player player, ref StatModifier damage)
-        {
-            QuiverNerfPlayer modPlayer = player.GetModPlayer<QuiverNerfPlayer>();
-
-            if (modPlayer.hasQuiver && item.useAmmo == AmmoID.Arrow)
-            {
-                damage += -0.1f;
-            }
-        }
-    }
     public class ItemTextChanges : GlobalItem
     {
         public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
@@ -480,22 +468,6 @@ public class QuiverNerf : GlobalItem
             if (item.type == ItemID.PhilosophersStone || item.type == ItemID.CharmofMyths)
             {
                 tooltips.Add(new TooltipLine(Mod, "FullHPRespawn", "Gain full health upon returning to the land of the living"));
-            }
-            if (item.type == ItemID.MagicQuiver || item.type == ItemID.MoltenQuiver)
-            {
-                for (int i = 0; i < tooltips.Count; i++)
-                {
-                    if (tooltips[i].Text.Contains("Increases arrow damage by 10%") ||
-                        tooltips[i].Text.Contains("arrow damage"))
-                    {
-                        tooltips[i].Text = "Greatly increases arrow speed";
-                        break;
-                    }
-                }
-                tooltips.Add(new TooltipLine(Mod, "QuiverNerf", "No longer grants arrow damage.\nPerhaps if it was a little more sneaky?")
-                {
-                    OverrideColor = new Color(255, 100, 100)
-                });
             }
             if (item.type == ItemID.ArcheryPotion)
             {

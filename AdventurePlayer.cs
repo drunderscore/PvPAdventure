@@ -1087,8 +1087,6 @@ public class AdventurePlayer : ModPlayer
     Main.netMode != NetmodeID.MultiplayerClient)
         {
             int owner = info.DamageSource.SourcePlayerIndex;
-            if (owner < 0 || owner >= Main.maxPlayers) ;
-
             Player attacker = Main.player[owner];
             int direction = Math.Sign(attacker.Center.X - Player.Center.X);
             if (direction == 0) direction = 1;
@@ -2677,27 +2675,6 @@ public class ShadowFlamePlayer : ModPlayer
                 Vector2 smokePos = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
                 Dust smoke = Dust.NewDustDirect(smokePos, 0, 0, DustID.Smoke, 0, -1f, 100, Color.Purple, 0.8f);
                 smoke.noGravity = true;
-            }
-        }
-    }
-}
-public class QuiverNerfPlayer : ModPlayer
-{
-    public bool hasQuiver = false;
-
-    public override void ResetEffects()
-    {
-        hasQuiver = false;
-    }
-
-    public override void PostUpdateEquips()
-    {
-        for (int i = 3; i < 8 + Player.GetAmountOfExtraAccessorySlotsToShow(); i++)
-        {
-            if (Player.armor[i].type == ItemID.MagicQuiver || Player.armor[i].type == ItemID.MoltenQuiver)
-            {
-                hasQuiver = true;
-                break;
             }
         }
     }
