@@ -7,7 +7,7 @@ namespace PvPAdventure.Core.SpawnAndSpectate.HoldingMap;
 
 public sealed class MapHoldingPlayer : ModPlayer
 {
-    // Synced state: "this player is currently holding the map"
+    // A state where this player currently has the fullscreen map open
     public bool HoldingMap;
 
     private bool _lastLocalState;
@@ -23,19 +23,23 @@ public sealed class MapHoldingPlayer : ModPlayer
 
         bool newState = Main.mapFullscreen && !Player.dead;
 
-        if (_lastLocalState == newState)
+        // Update new state.
+        if (HoldingMap == newState)
+        {
+            _lastLocalState = newState;
             return;
+        }
 
         _lastLocalState = newState;
         HoldingMap = newState;
 
-        SendHoldingMapState(Player.whoAmI, HoldingMap, toWho: -1, fromWho: Player.whoAmI);
+        SendHoldingMapState(Player.whoAmI, HoldingMap, toWho: -1, ignoreClient: -1);
     }
 
     public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
     {
         // When a client joins / requests sync, ensure they receive current state.
-        SendHoldingMapState(Player.whoAmI, HoldingMap, toWho, fromWho);
+        //SendHoldingMapState(Player.whoAmI, HoldingMap, toWho, ignoreClient: -1);
     }
 
     public override void CopyClientState(ModPlayer targetCopy)
@@ -47,12 +51,12 @@ public sealed class MapHoldingPlayer : ModPlayer
     public override void SendClientChanges(ModPlayer clientPlayer)
     {
         // This runs client-side; use it as a safety net for state drift.
-        var old = (MapHoldingPlayer)clientPlayer;
+        //var old = (MapHoldingPlayer)clientPlayer;
 
-        if (old.HoldingMap == HoldingMap)
-            return;
+        //if (old.HoldingMap == HoldingMap)
+            //return;
 
-        SendHoldingMapState(Player.whoAmI, HoldingMap, toWho: -1, fromWho: Player.whoAmI);
+        //SendHoldingMapState(Player.whoAmI, HoldingMap, toWho: -1, ignoreClient: Player.whoAmI);
     }
 
     public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
@@ -73,14 +77,14 @@ public sealed class MapHoldingPlayer : ModPlayer
         p.SetCompositeArmBack(true, Player.CompositeArmStretchAmount.Full, rotation);
     }
 
-    private void SendHoldingMapState(int playerIndex, bool holding, int toWho, int fromWho)
+    private void SendHoldingMapState(int playerIndex, bool holding, int toWho, int ignoreClient)
     {
         ModPacket packet = Mod.GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.HoldingMap);
         packet.Write((byte)VisualsPacketType.MapHoldingState);
         packet.Write((byte)playerIndex);
         packet.Write(holding);
-        packet.Send(toWho, fromWho);
+        packet.Send(toWho, ignoreClient);
     }
 
     internal enum VisualsPacketType : byte

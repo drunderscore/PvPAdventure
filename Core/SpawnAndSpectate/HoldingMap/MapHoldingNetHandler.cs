@@ -20,27 +20,35 @@ public static class MapHoldingNetHandler
 
                     if (Main.netMode == NetmodeID.Server)
                     {
-                        // Anti-spoof: a client may only set its own state.
+                        // whoAmI is the sender's network connection slot on server.
+                        string senderName = Main.player[playerIndex].name;
+
                         if (playerIndex != whoAmI)
+                        {
                             return;
+                        }
 
-                        Main.player[playerIndex]
-                            .GetModPlayer<MapHoldingPlayer>()
-                            .HoldingMap = holding;
+                        // Update ModPlayer's map holding state.
+                        Main.player[playerIndex].GetModPlayer<MapHoldingPlayer>().HoldingMap = holding;
 
-                        // Broadcast to all clients (including sender is fine; excluding sender is also fine).
+                        Log.Debug($"[HoldingMap] Server set state: {senderName} holding={holding}. Broadcasting...");
+
+                        // Send packet to all clients except the sender connection.
                         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
                         packet.Write((byte)AdventurePacketIdentifier.HoldingMap);
                         packet.Write((byte)MapHoldingPlayer.VisualsPacketType.MapHoldingState);
                         packet.Write((byte)playerIndex);
                         packet.Write(holding);
-                        packet.Send();
+
+                        packet.Send(toClient: -1, ignoreClient: whoAmI);
                     }
                     else
                     {
-                        Main.player[playerIndex]
-                            .GetModPlayer<MapHoldingPlayer>()
-                            .HoldingMap = holding;
+                        string fromName = Main.player[playerIndex].name;
+
+                        Log.Chat("Set " + fromName + " (client) map holding state to: " + holding);
+                        // Update ModPlayer's map holding state.
+                        Main.player[playerIndex].GetModPlayer<MapHoldingPlayer>().HoldingMap = holding;
                     }
 
                     break;
