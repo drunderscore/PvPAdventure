@@ -18,7 +18,7 @@ namespace PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
 [ExtendsFromMod("DragonLens")]
 public class DLPointsSetterTool : Tool
 {
-    public override string IconKey => DLIntegration.PointsSetterKey;
+    public override string IconKey => DLToolIcons.PointsSetterKey;
 
     public override string DisplayName => Language.GetTextValue("Mods.PvPAdventure.Tools.DLPointsSetterTool.DisplayName");
 
@@ -81,7 +81,7 @@ public class DLPointsSetterTool : Tool
         {
             GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
 
-            Texture2D tex = DLIntegration.GlowAlpha.Value;
+            Texture2D tex = DLToolIcons.GlowAlpha.Value;
             if (tex == null) return;
 
             Color color = new(255, 215, 150);

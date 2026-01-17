@@ -9,7 +9,7 @@ namespace PvPAdventure.Common.AdminTools.Compat.DragonLens;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
-public class DLIntegration : ModSystem
+public class DLToolIcons : ModSystem
 {
     // Keys
     public static string StartGameKey => "StartGame";

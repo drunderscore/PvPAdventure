@@ -17,7 +17,7 @@ namespace PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
 [ExtendsFromMod("DragonLens")]
 public class DLPauseTool : Tool
 {
-    public override string IconKey => DLIntegration.PauseKey;
+    public override string IconKey => DLToolIcons.PauseKey;
 
     public override string DisplayName =>
         Language.GetTextValue($"Mods.PvPAdventure.Tools.DLPauseTool.DisplayName.{ModContent.GetInstance<PauseManager>().IsPaused}");
@@ -55,7 +55,7 @@ public class DLPauseTool : Tool
         {
             GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
 
-            Texture2D tex = DLIntegration.GlowAlpha.Value;
+            Texture2D tex = DLToolIcons.GlowAlpha.Value;
             if (tex == null) return;
 
             Color color = new(255, 215, 150);

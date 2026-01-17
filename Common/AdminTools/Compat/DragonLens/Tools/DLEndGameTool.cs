@@ -18,7 +18,7 @@ namespace PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
 [ExtendsFromMod("DragonLens")]
 public class DLEndGameTool : Tool
 {
-    public override string IconKey => DLIntegration.EndGameKey;
+    public override string IconKey => DLToolIcons.EndGameKey;
     public override string DisplayName => Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.DisplayName");
     public override string Description => Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.Description");
     public override bool HasRightClick => true;
@@ -86,7 +86,7 @@ public class DLEndGameTool : Tool
         {
             GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
 
-            Texture2D tex = DLIntegration.GlowAlpha.Value;
+            Texture2D tex = DLToolIcons.GlowAlpha.Value;
             if (tex == null) return;
 
             Color color = new(255, 215, 150, 0);

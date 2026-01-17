@@ -17,7 +17,7 @@ namespace PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
 [ExtendsFromMod("DragonLens")]
 public class DLAdminManagerTool : Tool
 {
-    public override string IconKey => DLIntegration.AdminManagerKey;
+    public override string IconKey => DLToolIcons.AdminManagerKey;
     public override string DisplayName => Language.GetTextValue("Mods.PvPAdventure.Tools.DLAdminManagerTool.DisplayName");
     public override string Description => GetDescription();
     private string GetDescription()
@@ -55,7 +55,7 @@ public class DLAdminManagerTool : Tool
         {
             GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
 
-            Texture2D tex = DLIntegration.GlowAlpha.Value;
+            Texture2D tex = DLToolIcons.GlowAlpha.Value;
             if (tex == null) return;
 
             Color color = new(255, 215, 150, 0);
