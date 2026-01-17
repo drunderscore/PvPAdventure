@@ -112,8 +112,13 @@ public class SpawnHooks : ModSystem
     private void SkipPingWhileHoveringSelector(On_Main.orig_TriggerPing orig, Vector2 position)
     {
         var sys = ModContent.GetInstance<SpawnSystem>();
-        if (sys?.ui?.CurrentState != null && sys.ui.CurrentState.IsMouseHovering)
+        if (sys == null || sys.spawnState == null || sys.spawnState.backgroundPanel == null)
+            orig(position);
+
+        if (sys?.ui?.CurrentState != null && sys.spawnState.backgroundPanel.IsMouseHovering)
+        {
             return;
+        }
 
         orig(position);
     }

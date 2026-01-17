@@ -23,7 +23,6 @@ public class TeleportOnMap : ModSystem
 {
     private Asset<Texture2D> spawnBedTexture;
 
-    #region Load Hooks
     public override void Load()
     {
         On_SpawnMapLayer.Draw += OnSpawnMapLayer;
@@ -41,7 +40,6 @@ public class TeleportOnMap : ModSystem
             spawnBedTexture = TextureAssets.SpawnBed;
         }
     }
-    #endregion
 
     private void OnSpawnMapLayer(On_SpawnMapLayer.orig_Draw orig,SpawnMapLayer self,ref MapOverlayDrawContext context, ref string text)
     {

@@ -20,7 +20,7 @@ namespace PvPAdventure.Common.SpawnSelector.UI;
 public class UISpawnState : UIState
 {
     // UI components
-    private UIPanel backgroundPanel;
+    public UIPanel backgroundPanel;
     private UITextPanel<string> chooseYourSpawnPanel;
 
     // UI components which are a part of backgroundPanel

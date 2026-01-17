@@ -523,7 +523,7 @@ Mods: {
 					WorldGen: "[i:WorldGlobe] World Generation"
 					SSC: "[i:PvPAdventure/ServerConfigItem] SSC"
 					Arenas: "[i:PvPAdventure/MatteConfig] Arenas"
-					Bosses: Bosses Header
+					Bosses: "[i:2112] Bosses"
 				}
 
 				Points: {

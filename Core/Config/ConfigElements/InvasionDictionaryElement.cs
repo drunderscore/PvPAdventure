@@ -98,9 +98,9 @@ internal class InvasionDictionaryElement : DictionaryElement
     private static readonly Dictionary<int, string> InvasionNames = new()
     {
         { InvasionID.None, "None" },
-        { InvasionID.GoblinArmy, "Goblin Army" },
+        { InvasionID.GoblinArmy, "[i:361] Goblin Army" }, // goblin battle standard
         { InvasionID.SnowLegion, "Snow Legion" },
-        { InvasionID.PirateInvasion, "Pirate Invasion" },
-        { InvasionID.MartianMadness, "Martian Madness" }
+        { InvasionID.PirateInvasion, "[i:1315] Pirate Invasion" }, // pirate map
+        { InvasionID.MartianMadness, "[i:2769] Martian Madness" } // cosmic car key
     };
 }

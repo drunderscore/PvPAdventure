@@ -34,6 +34,7 @@ Want to hack on PvPAdventure? Awesome! Here's what you need to get started.
 ### 3.2 Namespace reference
 
 #### `Common` (gameplay features)
+- `Common.AdminTools` — game timer, points setter, admin manager, team assigner, etc.
 - `Common.Combat` — PvP/PvE changes, i-frames, hit/kill markers, ghost heal/LoS adjustments, etc.
 - `Common.DropRates` — boss loot pool rewrites.
 - `Common.GameTimer` — match state, countdown, time remaining.
@@ -41,9 +42,11 @@ Want to hack on PvPAdventure? Awesome! Here's what you need to get started.
 - `Common.Npcs` — spawn rules, boss changes, hitmarker sound.
 - `Common.Recipes` — crafting recipes.
 - `Common.Spawnbox` — random teleport, movement rules, recall behavior.
+- `Common.SpawnSelector` — adventure mirror, bed/teammate teleports, select spawn when dead, etc.
+- `Common.SSC` — server sided character implementation.
 - `Common.Statistics` — K/D, boss score, bounties, team points, pickups.
 - `Common.Teams` — team chat, team beds.
-- `Common.UI` — outlines, slot/UI tweaks, etc.
+- `Common.UI` — player outlines, modify accessory slots, draw PvP icons, etc.
 
 #### `Core` (infrastructure)
 - `Core.Config` — client & server config.
