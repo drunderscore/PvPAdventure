@@ -18,7 +18,7 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Npcs;
 
-public class NpcRules : GlobalNPC
+public class NPCRules : GlobalNPC
 {
     public override void Load()
     {

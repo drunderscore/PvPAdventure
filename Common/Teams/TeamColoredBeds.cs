@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
-using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
@@ -11,13 +10,13 @@ namespace PvPAdventure.Common.Teams;
 [Autoload(Side = ModSide.Client)]
 public class TeamColoredBeds : ModSystem
 {
-    private static readonly Dictionary<Team, byte> _teamPaints = new()
+    private static readonly Dictionary<Terraria.Enums.Team, byte> _teamPaints = new()
     {
-        [Team.Red] = PaintID.RedPaint,
-        [Team.Green] = PaintID.GreenPaint,
-        [Team.Blue] = PaintID.BluePaint,
-        [Team.Yellow] = PaintID.YellowPaint,
-        [Team.Pink] = PaintID.PinkPaint
+        [Terraria.Enums.Team.Red] = PaintID.RedPaint,
+        [Terraria.Enums.Team.Green] = PaintID.GreenPaint,
+        [Terraria.Enums.Team.Blue] = PaintID.BluePaint,
+        [Terraria.Enums.Team.Yellow] = PaintID.YellowPaint,
+        [Terraria.Enums.Team.Pink] = PaintID.PinkPaint,
     };
 
     public override void PostSetupContent()
@@ -54,7 +53,7 @@ public class TeamColoredBeds : ModSystem
 
     private int BedAfterPlacement(int x, int y, int type, int style, int direction, int alternate)
     {
-        if (!_teamPaints.TryGetValue((Team)Main.LocalPlayer.team, out var paint))
+        if (!_teamPaints.TryGetValue((Terraria.Enums.Team)Main.LocalPlayer.team, out var paint))
             return 0;
 
         for (var xx = 0; xx < 4; xx++)

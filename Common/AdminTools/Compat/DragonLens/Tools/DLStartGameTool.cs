@@ -91,7 +91,8 @@ public class DLStartGameTool : Tool
         else if (Main.netMode == NetmodeID.MultiplayerClient)
         {
             var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            packet.Write((byte)AdventurePacketIdentifier.StartGame);
+            packet.Write((byte)AdventurePacketIdentifier.GameTimer);
+            packet.Write((byte)GameTimerNetHandler.GameTimerPacketType.StartGame);
             packet.Write(rightClickTimeInFrames);
             packet.Write(0);
             packet.Send();

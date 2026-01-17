@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
+using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Net;
 using ReLogic.Graphics;
@@ -106,7 +107,8 @@ internal class PointsSetterPanel : UI.DraggablePanel
         {
             var mod = ModContent.GetInstance<PvPAdventure>();
             var p = mod.GetPacket();
-            p.Write((byte)AdventurePacketIdentifier.SetPoints);
+            p.Write((byte)AdventurePacketIdentifier.GameTimer);
+            p.Write((byte)GameTimerNetHandler.GameTimerPacketType.SetPoints);
             p.Write((byte)team);
             p.Write(value);
             p.Send();

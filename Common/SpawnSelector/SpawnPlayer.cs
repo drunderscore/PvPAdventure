@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
@@ -262,6 +263,13 @@ public class SpawnPlayer : ModPlayer
     // Keeps the respawn timer at 1 to allow for selection
     public override void UpdateDead()
     {
+        // Normal update when in waiting phase
+        if (Player.respawnTimer > 2 || ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Waiting)
+        {
+            base.UpdateDead();
+            return;
+        }
+
         if (Player.respawnTimer > 2)
         {
             base.UpdateDead();

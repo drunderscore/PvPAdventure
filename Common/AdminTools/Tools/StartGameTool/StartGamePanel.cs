@@ -81,7 +81,8 @@ internal class StartGamePanel : UI.DraggablePanel
             else if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-                packet.Write((byte)AdventurePacketIdentifier.StartGame);
+                packet.Write((byte)AdventurePacketIdentifier.GameTimer);
+                packet.Write((byte)GameTimerNetHandler.GameTimerPacketType.StartGame);
                 packet.Write(_gameTimeInFrames);
                 packet.Write(_countdownTimeInSeconds);
                 packet.Send();

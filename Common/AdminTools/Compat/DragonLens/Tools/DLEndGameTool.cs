@@ -35,7 +35,8 @@ public class DLEndGameTool : Tool
             else if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-                packet.Write((byte)AdventurePacketIdentifier.EndGame);
+                packet.Write((byte)AdventurePacketIdentifier.GameTimer);
+                packet.Write((byte)GameTimerNetHandler.GameTimerPacketType.EndGame);
                 packet.Send();
             }
         }

@@ -12,6 +12,7 @@ using Terraria.UI.Chat;
 
 namespace PvPAdventure.Common.GameTimer;
 
+// Server-sided pause system.
 public class PauseManager : ModSystem
 {
     private bool _paused;
@@ -108,14 +109,32 @@ public class PauseManager : ModSystem
         public override CommandType Type => CommandType.Console;
     }
 
-    public void PauseGame()
+    private ulong _blockPauseUntilTick;
+
+    public void BlockPausingForSeconds(int seconds)
+    {
+        if (seconds <= 0)
+            return;
+
+        _blockPauseUntilTick = Main.GameUpdateCount + (ulong)seconds * 60;
+    }
+
+    public void TogglePause()
     {
         var pause = ModContent.GetInstance<PauseManager>();
-        pause._paused = !pause._paused;
 
-        ChatHelper.BroadcastChatMessage(NetworkText.FromKey($"Mods.PvPAdventure.Pause.{pause._paused}"),
+        bool nextPaused = !pause._paused;
+
+        if (Main.GameUpdateCount < pause._blockPauseUntilTick)
+            return;
+
+        pause._paused = nextPaused;
+
+        ChatHelper.BroadcastChatMessage(
+            NetworkText.FromKey($"Mods.PvPAdventure.Pause.{pause._paused}"),
             Color.White);
 
         NetMessage.SendData(MessageID.WorldData);
     }
+
 }

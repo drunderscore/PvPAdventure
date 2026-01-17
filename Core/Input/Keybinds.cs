@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;

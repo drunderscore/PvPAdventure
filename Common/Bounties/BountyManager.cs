@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Terraria;
@@ -17,7 +18,7 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Statistics;
+namespace PvPAdventure.Common.Bounties;
 
 [Autoload(Side = ModSide.Both)]
 public class BountyManager : ModSystem
@@ -388,7 +389,7 @@ public class BountyManager : ModSystem
 
     public void IncrementTransactionId() => TransactionId++;
 
-    private bool IsBountyAvailable(ServerConfig.Bounty bounty)
+    private bool IsBountyAvailable(ServerConfig.BountiesConfig.Bounty bounty)
     {
         // This set requires pre-hardmode, but the world is hardmode.
         if (bounty.Conditions.WorldProgression == ServerConfig.Condition.WorldProgressionState.PreHardmode &&

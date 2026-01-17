@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Statistics;
+using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Net;
 using ReLogic.Content;
 using Terraria;
@@ -66,7 +67,7 @@ public class TeamIconElement : UIElement
         {
             var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
-            new StatisticsPlayer.Team((byte)player.whoAmI, (Terraria.Enums.Team)teamIndex).Serialize(packet);
+            new Team((byte)player.whoAmI, (Terraria.Enums.Team)teamIndex).Serialize(packet);
             packet.Send();
         }
 

@@ -1,9 +1,12 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
+using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
+using PvPAdventure.Common.SpawnSelector.UI;
 using PvPAdventure.Common.SSC;
 using PvPAdventure.Common.Statistics;
+using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Arenas;
 using PvPAdventure.Core.Discord;
 using PvPAdventure.Core.Input.Dash;
@@ -42,224 +45,26 @@ public class PvPAdventure : Mod
 
         switch (id)
         {
-            case AdventurePacketIdentifier.BountyTransaction:
-                {
-                    var bountyTransaction = BountyManager.Transaction.Deserialize(reader);
-
-                    if (!Main.dedServ)
-                        break;
-
-                    var bountyManager = ModContent.GetInstance<BountyManager>();
-
-                    if (bountyTransaction.Id != ModContent.GetInstance<BountyManager>().TransactionId)
-                    {
-                        // Transaction ID doesn't match, likely out of sync. Sync now.
-                        NetMessage.SendData(MessageID.WorldData, whoAmI);
-                        break;
-                    }
-
-                    if (bountyTransaction.Team != Main.player[whoAmI].team)
-                        break;
-
-                    var teamBounties = bountyManager.Bounties[(Team)bountyTransaction.Team];
-
-                    if (bountyTransaction.PageIndex >= teamBounties.Count)
-                        break;
-
-                    var page = bountyManager.Bounties[(Team)bountyTransaction.Team][
-                        bountyTransaction.PageIndex];
-
-                    if (bountyTransaction.BountyIndex >= page.Bounties.Count)
-                        break;
-
-                    try
-                    {
-                        var bounty = page.Bounties[bountyTransaction.BountyIndex];
-
-                        foreach (var item in bounty)
-                        {
-                            var index = Item.NewItem(new BountyManager.ClaimEntitySource(), Main.player[whoAmI].position,
-                                Vector2.Zero, item, true, true);
-                            Main.timeItemSlotCannotBeReusedFor[index] = 54000;
-
-                            NetMessage.SendData(MessageID.InstancedItem, whoAmI, -1, null, index);
-
-                            Main.item[index].active = false;
-                        }
-                    }
-                    finally
-                    {
-                        bountyManager.Bounties[(Team)bountyTransaction.Team].Remove(page);
-                        bountyManager.IncrementTransactionId();
-                        NetMessage.SendData(MessageID.WorldData);
-                    }
-
-                    break;
-                }
             case AdventurePacketIdentifier.PlayerStatistics:
-                {
-                    var statistics = StatisticsPlayer.Statistics.Deserialize(reader);
-                    var player = Main.player[Main.dedServ ? whoAmI : statistics.Player];
+                PlayerStatisticsNetHandler.HandlePacket(reader, whoAmI);
+                break;
 
-                    statistics.Apply(player.GetModPlayer<StatisticsPlayer>());
-
-                    // FIXME: bruh thats a little dumb maybe
-                    if (!Main.dedServ)
-                        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
-
-                    break;
-                }
             case AdventurePacketIdentifier.PingPong:
-                {
-                    var pingPong = LatencyTrackerPlayer.PingPong.Deserialize(reader);
-                    if (Main.dedServ)
-                    {
-                        Main.player[whoAmI].GetModPlayer<LatencyTrackerPlayer>().OnPingPongReceived(pingPong);
-                    }
-                    else
-                    {
-                        ModPacket packet = (ModPacket)GetPacket();
-                        packet.Write((byte)AdventurePacketIdentifier.PingPong);
-                        pingPong.Serialize(packet);
-                        packet.Send();
-                    }
+                PingPongNetHandler.HandlePacket(reader, whoAmI);
+                break;
 
-                    break;
-                }
             case AdventurePacketIdentifier.PlayerItemPickup:
-                {
-                    var itemPickup = StatisticsPlayer.ItemPickup.Deserialize(reader);
-                    if (Main.dedServ)
-                    {
-                        var player = Main.player[whoAmI];
-                        itemPickup.Apply(player.GetModPlayer<StatisticsPlayer>());
-                        ModContent.GetInstance<BountyManager>()
-                            .OnPlayerItemPickupsUpdated(player, itemPickup.Items.ToHashSet());
-                    }
+                PlayerItemPickupNetHandler.HandlePacket(reader, whoAmI);
+                break;
 
-                    break;
-                }
             case AdventurePacketIdentifier.PlayerTeam:
-                {
-                    var team = StatisticsPlayer.Team.Deserialize(reader);
+                PlayerTeamNetHandler.HandlePacket(reader, whoAmI);
+                break;
 
-                    if (Main.netMode == NetmodeID.Server)
-                    {
-                        if (team.Player < 0 || team.Player >= Main.maxPlayers)
-                            return;
+            case AdventurePacketIdentifier.GameTimer:
+                GameTimerNetHandler.HandlePacket(reader, whoAmI);
+                break;
 
-                        Player target = Main.player[team.Player];
-                        if (target == null || !target.active)
-                            return;
-
-                        target.team = (int)team.Value;
-
-                        ModPacket packet = (ModPacket)GetPacket();
-                        packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
-                        team.Serialize(packet);
-                        packet.Send();
-                        return;
-                    }
-
-                    if (team.Player < Main.maxPlayers)
-                    {
-                        Player target = Main.player[team.Player];
-                        if (target != null && target.active)
-                            target.team = (int)team.Value;
-                    }
-
-                    // Update scoreboard
-                    if (!Main.dedServ)
-                        ModContent.GetInstance<PointsManager>().UiScoreboard?.Invalidate();
-
-                    // Update team assigner
-                    var ts = ModContent.GetInstance<TeamAssignerSystem>();
-                    if (ts?.teamAssignerState != null)
-                    {
-                        foreach (var child in ts.teamAssignerState.Children)
-                        {
-                            if (child is TeamAssignerPanel panel)
-                            {
-                                panel.needsRebuild = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    break;
-                }
-            case AdventurePacketIdentifier.PauseGame:
-                {
-                    bool isPaused = reader.ReadBoolean();
-
-                    if (Main.netMode == NetmodeID.Server)
-                    {
-                        var pm = ModContent.GetInstance<PauseManager>();
-                        pm.PauseGame();
-                    }
-
-                    break;
-                }
-            case AdventurePacketIdentifier.StartGame:
-                {
-                    int time = reader.ReadInt32();
-                    int countdown = reader.ReadInt32();
-
-                    if (Main.netMode == NetmodeID.Server)
-                    {
-                        var gm = ModContent.GetInstance<GameManager>();
-
-                        if (gm.CurrentPhase == GameManager.Phase.Playing || gm._startGameCountdown.HasValue)
-                            break;
-
-                        gm.StartGame(time, countdown);
-                    }
-
-                    break;
-                }
-            case AdventurePacketIdentifier.AdjustGameTime:
-                {
-                    int deltaFrames = reader.ReadInt32();
-
-                    if (Main.netMode == NetmodeID.Server)
-                    {
-                        var gm = ModContent.GetInstance<GameManager>();
-
-                        gm.AdjustTimeRemaining(deltaFrames);
-                    }
-
-                    break;
-                }
-            case AdventurePacketIdentifier.EndGame:
-                {
-                    if (Main.netMode == NetmodeID.Server)
-                    {
-                        var gm = ModContent.GetInstance<GameManager>();
-                        gm.EndGame();
-                    }
-
-                    break;
-                }
-            case AdventurePacketIdentifier.SetPoints:
-                {
-                    var team = (Team)reader.ReadByte();
-                    var value = reader.ReadInt32();
-
-                    var pointsManager = ModContent.GetInstance<PointsManager>();
-                    pointsManager._points[team] = value;
-
-                    if (Main.dedServ)
-                    {
-                        NetMessage.SendData(MessageID.WorldData);
-                    }
-                    else
-                    {
-                        // Refresh scoreboard
-                        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
-                    }
-
-                    break;
-                }
             case AdventurePacketIdentifier.Dash:
                 DashInputSystem.HandlePacket(reader, whoAmI);
                 break;
@@ -269,48 +74,21 @@ public class PvPAdventure : Mod
                 break;
 
             case AdventurePacketIdentifier.PlayerBed:
-                {
-                    byte playerId = reader.ReadByte();
-                    int spawnX = reader.ReadInt32();
-                    int spawnY = reader.ReadInt32();
+                PlayerBedNetHandler.HandlePacket(reader, whoAmI);
+                break;
 
-                    Player p = Main.player[playerId];
-                    p.SpawnX = spawnX;
-                    p.SpawnY = spawnY;
-
-                    if (Main.dedServ)
-                    {
-                        ModPacket packet = (ModPacket)GetPacket();
-                        packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
-                        packet.Write(playerId);
-                        packet.Write(spawnX);
-                        packet.Write(spawnY);
-                        packet.Send(-1, whoAmI);
-                    }
-
-                    break;
-                }
             case AdventurePacketIdentifier.SpawnSelection:
-                {
-                    if (Main.netMode != NetmodeID.Server)
-                        break;
+                SpawnNetHandler.HandlePacket(reader, whoAmI);
+                break;
 
-                    var type = (SpawnType)reader.ReadByte();
-                    short idx = reader.ReadInt16();
-
-                    Player p = Main.player[whoAmI];
-                    if (p != null && p.active)
-                        p.GetModPlayer<SpawnPlayer>().ApplySelectionFromNet(type, idx);
-
-                    break;
-                }
             case AdventurePacketIdentifier.AdventureMirrorRightClickUse:
                 AdventureMirrorNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.TeleportFx:
-                TeleportFxNet.Receive(reader);
+                TeleportFxNetHandler.Receive(reader);
                 break;
+
             case AdventurePacketIdentifier.SSC:
                 SSC.HandlePacket(reader, whoAmI);
                 break;

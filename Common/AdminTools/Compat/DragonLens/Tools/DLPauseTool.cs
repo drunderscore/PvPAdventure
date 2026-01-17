@@ -9,6 +9,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using static PvPAdventure.Common.GameTimer.GameTimerNetHandler;
 
 namespace PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
 
@@ -33,12 +34,13 @@ public class DLPauseTool : Tool
 
         if (Main.netMode == NetmodeID.SinglePlayer)
         {
-            pm.PauseGame();
+            pm.TogglePause();
         }
         else if (Main.netMode == NetmodeID.MultiplayerClient)
         {
             var packet = Mod.GetPacket();
-            packet.Write((byte)AdventurePacketIdentifier.PauseGame);
+            packet.Write((byte)AdventurePacketIdentifier.GameTimer);
+            packet.Write((byte)GameTimerPacketType.PauseGame);
             packet.Send();
         }
     }

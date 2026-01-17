@@ -68,7 +68,8 @@ public class ExtendGamePanel : UI.DraggablePanel
             else if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-                packet.Write((byte)AdventurePacketIdentifier.AdjustGameTime);
+                packet.Write((byte)AdventurePacketIdentifier.GameTimer);
+                packet.Write((byte)GameTimerNetHandler.GameTimerPacketType.AdjustGameTime);
                 packet.Write(timeAdjustInFrames);
                 packet.Send();
             }

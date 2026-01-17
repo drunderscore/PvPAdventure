@@ -46,7 +46,7 @@ public sealed class HerosModIntegration : ModSystem
             (Action)(() =>
             {
                 var pm = ModContent.GetInstance<PauseManager>();
-                pm.PauseGame();
+                pm.TogglePause();
             }),
             (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)),
             (Func<string>)(() =>

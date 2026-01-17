@@ -1,6 +1,6 @@
 ﻿namespace PvPAdventure.Common.Teams;
 
-using global::PvPAdventure.Common.Statistics;
+using global::PvPAdventure.Common.GameTimer;
 using global::PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.ID;
@@ -22,6 +22,9 @@ public class TeamResyncPlayer : ModPlayer
             _pendingResync = true;
             _resyncTimer = 0;
         }
+
+        // Disallow pause toggle from this tick and 3 seconds forwards
+        ModContent.GetInstance<PauseManager>().BlockPausingForSeconds(3);
     }
 
     public override void PostUpdate()
@@ -39,7 +42,7 @@ public class TeamResyncPlayer : ModPlayer
         packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
 
         // Send current team to server
-        new StatisticsPlayer.Team((byte)Player.whoAmI, (Terraria.Enums.Team)Player.team).Serialize(packet);
+        new Team((byte)Player.whoAmI, (Terraria.Enums.Team)Player.team).Serialize(packet);
 
         packet.Send();
     }

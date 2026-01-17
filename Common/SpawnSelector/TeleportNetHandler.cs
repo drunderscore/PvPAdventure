@@ -99,7 +99,7 @@ public static class TeleportNetHandler
                     );
 
                     // Play teleport sound for everyone (local guaranteed)
-                    TeleportFxNet.Send(requester.whoAmI);
+                    TeleportFxNetHandler.Send(requester.whoAmI);
                     return;
                 }
 
@@ -120,42 +120,9 @@ public static class TeleportNetHandler
         );
 
         // Send teleport sound effect to all clients
-        TeleportFxNet.Send(whoAmI);
+        TeleportFxNetHandler.Send(whoAmI);
     }
 }
 
-public static class TeleportFxNet
-{
-    public static void Send(int who)
-    {
-        if (Main.netMode != NetmodeID.Server)
-            return;
 
-        ModPacket p = ModContent.GetInstance<PvPAdventure>().GetPacket();
-        p.Write((byte)AdventurePacketIdentifier.TeleportFx);
-        p.Write((byte)who);
-        p.Send(); // to all clients
-    }
-
-    public static void Receive(BinaryReader r)
-    {
-        if (Main.dedServ)
-            return;
-
-        int who = r.ReadByte();
-        if (who < 0 || who >= Main.maxPlayers)
-            return;
-
-        // Guarantee local hears it
-        if (who == Main.myPlayer)
-        {
-            SoundEngine.PlaySound(SoundID.Item6);
-            return;
-        }
-
-        Player plr = Main.player[who];
-        if (plr != null && plr.active)
-            SoundEngine.PlaySound(SoundID.Item6, plr.Center);
-    }
-}
 
