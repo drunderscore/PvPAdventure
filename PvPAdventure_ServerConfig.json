@@ -618,8 +618,7 @@
           "WorldProgression": 2
         }
       }
-    ],
-    "AwardBountyEveryKill": false
+    ]
   },
   "InvasionSizes": {
     "1": {
@@ -696,10 +695,7 @@
         "Terraria/ChargedBlasterLaser": 0.0
       }
     },
-    "ArmorPenetration": {
-      "ItemAP": {},
-      "ProjectileAP": {}
-    },
+    "ArmorPenetration": {},
     "Falloff": {
       "Default": {
         "Coefficient": 1.0,
@@ -730,15 +726,10 @@
           "Coefficient": 1.5,
           "Forward": 25.0
         }
-      },
-      "PerProjectile": {}
+      }
     },
-    "ProjectileBounceDamageReduction": 0.0,
-    "ProjectileLineOfSightDamageReduction": {},
     "ImmunityFrames": {
-      "TrueMelee": 0,
-      "PerPlayerGlobal": 8,
-      "RecentDamagePreservationFrames": 900
+      "TrueMelee": 0
     }
   },
   "Other": {
@@ -746,8 +737,7 @@
       "PvPHealMultiplier": 0.79999995,
       "PvPSelfHealMultiplier": 0.5,
       "PvPHealRange": 1500.0,
-      "PvEHealRange": 1500.0,
-      "HealerArmorPenetration": 0.5
+      "PvEHealRange": 1500.0
     }
   },
   "PreventUse": [
@@ -1114,146 +1104,591 @@
   "BossBalance": {
     "Terraria/SkeletronHead": {
       "LifeMaxMultiplier": 1.49,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/SkeletronHand": {
       "LifeMaxMultiplier": 1.52,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/WallofFlesh": {
       "LifeMaxMultiplier": 1.49,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/Plantera": {
       "LifeMaxMultiplier": 1.52,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/HallowBoss": {
       "LifeMaxMultiplier": 1.49,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/Golem": {
       "LifeMaxMultiplier": 1.31,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/GolemFistLeft": {
       "LifeMaxMultiplier": 1.31,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/GolemFistRight": {
       "LifeMaxMultiplier": 1.31,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/CultistBoss": {
       "LifeMaxMultiplier": 1.49,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/MartianSaucerCore": {
       "LifeMaxMultiplier": 1.25,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     },
     "Terraria/DukeFishron": {
       "LifeMaxMultiplier": 1.49,
-      "DamageMultiplier": 1.0,
       "TeamLifeShare": 0.0
     }
   },
-  "NpcSpawnAnnouncements": [
+  "BossOrder": [
+    {
+      "Name": "KingSlime",
+      "DisplayName": "King Slime"
+    },
+    {
+      "Name": "EyeofCthulhu",
+      "DisplayName": "Eye of Cthulhu"
+    },
+    {
+      "Name": "EaterofWorldsHead",
+      "DisplayName": "Eater of Worlds"
+    },
+    {
+      "Name": "BrainofCthulhu",
+      "DisplayName": "Brain of Cthulhu"
+    },
+    {
+      "Name": "QueenBee",
+      "DisplayName": "Queen Bee"
+    },
+    {
+      "Name": "SkeletronHead",
+      "DisplayName": "Skeletron"
+    },
+    {
+      "Name": "Deerclops",
+      "DisplayName": "Deerclops"
+    },
+    {
+      "Name": "WallofFlesh",
+      "DisplayName": "Wall of Flesh"
+    },
+    {
+      "Name": "QueenSlimeBoss",
+      "DisplayName": "Queen Slime"
+    },
+    {
+      "Name": "Retinazer",
+      "DisplayName": "Retinazer"
+    },
+    {
+      "Name": "TheDestroyer",
+      "DisplayName": "The Destroyer"
+    },
+    {
+      "Name": "SkeletronPrime",
+      "DisplayName": "Skeletron Prime"
+    },
+    {
+      "Name": "Plantera",
+      "DisplayName": "Plantera"
+    },
+    {
+      "Name": "Golem",
+      "DisplayName": "Golem"
+    },
+    {
+      "Name": "DukeFishron",
+      "DisplayName": "Duke Fishron"
+    },
+    {
+      "Name": "HallowBoss",
+      "DisplayName": "Empress of Light"
+    },
     {
       "Name": "CultistBoss",
       "DisplayName": "Lunatic Cultist"
-    },
-    {
-      "Name": "RuneWizard",
-      "DisplayName": "Rune Wizard"
-    },
-    {
-      "Name": "GoldMouse",
-      "DisplayName": "Gold Mouse"
-    },
-    {
-      "Name": "MartianSaucer",
-      "DisplayName": "Martian Saucer"
-    },
-    {
-      "Name": "CultistTablet",
-      "DisplayName": "Mysterious Tablet"
-    },
-    {
-      "Name": "DoctorBones",
-      "DisplayName": "Doctor Bones"
-    },
-    {
-      "Name": "SandElemental",
-      "DisplayName": "Sand Elemental"
-    },
-    {
-      "Name": "IceGolem",
-      "DisplayName": "Ice Golem"
     }
   ],
-  "BossOrder": [
-    { "Name": "KingSlime", "DisplayName": "King Slime" },
-    { "Name": "EyeofCthulhu", "DisplayName": "Eye of Cthulhu" },
-    { "Name": "EaterofWorldsHead", "DisplayName": "Eater of Worlds" },
-    { "Name": "BrainofCthulhu", "DisplayName": "Brain of Cthulhu" },
-    { "Name": "QueenBee", "DisplayName": "Queen Bee" },
-    { "Name": "SkeletronHead", "DisplayName": "Skeletron" },
-    { "Name": "Deerclops", "DisplayName": "Deerclops" },
-    { "Name": "WallofFlesh", "DisplayName": "Wall of Flesh" },
-    { "Name": "QueenSlimeBoss", "DisplayName": "Queen Slime" },
-    { "Name": "Retinazer", "DisplayName": "Retinazer" },
-    { "Name": "TheDestroyer", "DisplayName": "The Destroyer" },
-    { "Name": "SkeletronPrime", "DisplayName": "Skeletron Prime" },
-    { "Name": "Plantera", "DisplayName": "Plantera" },
-    { "Name": "Golem", "DisplayName": "Golem" },
-    { "Name": "DukeFishron", "DisplayName": "Duke Fishron" },
-    { "Name": "HallowBoss", "DisplayName": "Empress of Light" },
-    { "Name": "CultistBoss", "DisplayName": "Lunatic Cultist" }
-  ],
   "BossInvulnerableProjectiles": [
-    { "Name": "Dynamite", "DisplayName": "Dynamite" },
-    { "Name": "StickyDynamite", "DisplayName": "Sticky Dynamite" },
-    { "Name": "BouncyDynamite", "DisplayName": "Bouncy Dynamite" },
-    { "Name": "Bomb", "DisplayName": "Bomb" },
-    { "Name": "StickyBomb", "DisplayName": "Sticky Bomb" },
-    { "Name": "BouncyBomb", "DisplayName": "Bouncy Bomb" }
+    {
+      "Name": "Dynamite",
+      "DisplayName": "Dynamite"
+    },
+    {
+      "Name": "StickyDynamite",
+      "DisplayName": "Sticky Dynamite"
+    },
+    {
+      "Name": "BouncyDynamite",
+      "DisplayName": "Bouncy Dynamite"
+    },
+    {
+      "Name": "Bomb",
+      "DisplayName": "Bomb"
+    },
+    {
+      "Name": "StickyBomb",
+      "DisplayName": "Sticky Bomb"
+    },
+    {
+      "Name": "BouncyBomb",
+      "DisplayName": "Bouncy Bomb"
+    }
   ],
-  "BoundSpawnChance": 0.25,
-  "NoMechanicalBossSummonDrops": true,
-  "OnlyDisplayWorldEvilBoss": true,
-  "MapRecallFrames": 240,
+  "BoundSpawnChance": 0.5,
   "SpawnImmuneFrames": 90,
-  "MinimumDamageReceivedByPlayers": 0,
   "MinimumDamageReceivedByPlayersFromPlayer": 5,
-  "CrashoutMessages": [
-    "Is it break yet?",
-    "Getting mogged by Matte \"Heat Ray\" Sevai",
-    "If you aren't good enough, go play THC",
-    "39 buried. 0 Tabis.",
-    "That right there is 100% skill issue",
-    "Too many surface RTPs"
-  ],
   "AllowConfigModification": [
     "168209541136121856"
   ],
   "WorldGeneration": {
-    "LifeFruitChanceDenominator": 2,
-    "LifeFruitExpertChanceDenominator": 2,
-    "LifeFruitMinimumDistanceBetween": 2,
     "PlanteraBulbChanceDenominator": 20,
-    "ChlorophyteSpreadChanceModifier": 100,
-    "ChlorophyteGrowChanceModifier": 300,
-    "ChlorophyteGrowLimitModifier": 300
-  }
+    "ChlorophyteSpreadChanceModifier": 100
+  },
+  "StartItems": {
+    "Terraria/Flamarang": 1
+  },
+  "StartLife": 380,
+  "ArenaLoadouts": [
+    {
+      "Name": "Early PHM",
+      "Head": {
+        "Name": "GoldHelmet",
+        "DisplayName": "Gold Helmet"
+      },
+      "Body": {
+        "Name": "GoldChainmail",
+        "DisplayName": "Gold Chainmail"
+      },
+      "Legs": {
+        "Name": "GoldGreaves",
+        "DisplayName": "Gold Greaves"
+      },
+      "Accessories": [
+        {
+          "Name": "HermesBoots",
+          "DisplayName": "Hermes Boots"
+        },
+        {
+          "Name": "CloudinaBottle",
+          "DisplayName": "Cloud in a Bottle"
+        },
+        {
+          "Name": "BandofRegeneration",
+          "DisplayName": "Band of Regeneration"
+        },
+        {
+          "Name": "Aglet",
+          "DisplayName": "Aglet"
+        },
+        {
+          "Name": "Shackle",
+          "DisplayName": "Shackle"
+        }
+      ],
+      "Hotbar": [
+        {
+          "Item": {
+            "Name": "EnchantedBoomerang",
+            "DisplayName": "Enchanted Boomerang"
+          }
+        },
+        {
+          "Item": {
+            "Name": "GoldBow",
+            "DisplayName": "Gold Bow"
+          }
+        },
+        {
+          "Item": {
+            "Name": "LesserHealingPotion",
+            "DisplayName": "Lesser Healing Potion"
+          },
+          "Stack": 30
+        },
+        {
+          "Item": {
+            "Name": "FlamingArrow",
+            "DisplayName": "Flaming Arrow"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Bomb",
+            "DisplayName": "Bomb"
+          },
+          "Stack": 50
+        },
+        {
+          "Item": {
+            "Name": "IceRod",
+            "DisplayName": "Ice Rod"
+          }
+        },
+        {
+          "Item": {
+            "Name": "HoneyBucket",
+            "DisplayName": "Honey Bucket"
+          }
+        },
+        {
+          "Item": {
+            "Name": "StoneBlock",
+            "DisplayName": "Stone Block"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "WoodPlatform",
+            "DisplayName": "Wood Platform"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Binoculars",
+            "DisplayName": "Binoculars"
+          }
+        }
+      ],
+      "GrapplingHook": {
+        "Name": "GrapplingHook",
+        "DisplayName": "Grappling Hook"
+      }
+    },
+    {
+      "Name": "Late PHM",
+      "Head": {
+        "Name": "MoltenHelmet",
+        "DisplayName": "Molten Helmet"
+      },
+      "Body": {
+        "Name": "MoltenBreastplate",
+        "DisplayName": "Molten Breastplate"
+      },
+      "Legs": {
+        "Name": "MoltenGreaves",
+        "DisplayName": "Molten Greaves"
+      },
+      "Accessories": [
+        {
+          "Name": "ObsidianShield",
+          "DisplayName": "Obsidian Shield"
+        },
+        {
+          "Name": "SpectreBoots",
+          "DisplayName": "Spectre Boots"
+        },
+        {
+          "Name": "FeralClaws",
+          "DisplayName": "Feral Claws"
+        },
+        {
+          "Name": "BandofRegeneration",
+          "DisplayName": "Band of Regeneration"
+        },
+        {
+          "Name": "CloudinaBottle",
+          "DisplayName": "Cloud in a Bottle"
+        }
+      ],
+      "Hotbar": [
+        {
+          "Item": {
+            "Name": "NightsEdge",
+            "DisplayName": "Night's Edge"
+          }
+        },
+        {
+          "Item": {
+            "Name": "MoltenFury",
+            "DisplayName": "Molten Fury"
+          }
+        },
+        {
+          "Item": {
+            "Name": "HealingPotion",
+            "DisplayName": "Healing Potion"
+          },
+          "Stack": 30
+        },
+        {
+          "Item": {
+            "Name": "HellfireArrow",
+            "DisplayName": "Hellfire Arrow"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Bomb",
+            "DisplayName": "Bomb"
+          },
+          "Stack": 75
+        },
+        {
+          "Item": {
+            "Name": "IceRod",
+            "DisplayName": "Ice Rod"
+          }
+        },
+        {
+          "Item": {
+            "Name": "HoneyBucket",
+            "DisplayName": "Honey Bucket"
+          }
+        },
+        {
+          "Item": {
+            "Name": "StoneBlock",
+            "DisplayName": "Stone Block"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "WoodPlatform",
+            "DisplayName": "Wood Platform"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Binoculars",
+            "DisplayName": "Binoculars"
+          }
+        }
+      ],
+      "GrapplingHook": {
+        "Name": "IvyWhip",
+        "DisplayName": "Ivy Whip"
+      }
+    },
+    {
+      "Name": "Early HM",
+      "Head": {
+        "Name": "MythrilHelmet",
+        "DisplayName": "Mythril Helmet"
+      },
+      "Body": {
+        "Name": "MythrilChainmail",
+        "DisplayName": "Mythril Chainmail"
+      },
+      "Legs": {
+        "Name": "MythrilGreaves",
+        "DisplayName": "Mythril Greaves"
+      },
+      "Accessories": [
+        {
+          "Name": "WarriorEmblem",
+          "DisplayName": "Warrior Emblem"
+        },
+        {
+          "Name": "LightningBoots",
+          "DisplayName": "Lightning Boots"
+        },
+        {
+          "Name": "AngelWings",
+          "DisplayName": "Angel Wings"
+        },
+        {
+          "Name": "ObsidianShield",
+          "DisplayName": "Obsidian Shield"
+        },
+        {
+          "Name": "PowerGlove",
+          "DisplayName": "Power Glove"
+        }
+      ],
+      "Hotbar": [
+        {
+          "Item": {
+            "Name": "MythrilSword",
+            "DisplayName": "Mythril Sword"
+          }
+        },
+        {
+          "Item": {
+            "Name": "ClockworkAssaultRifle",
+            "DisplayName": "Clockwork Assault Rifle"
+          }
+        },
+        {
+          "Item": {
+            "Name": "GreaterHealingPotion",
+            "DisplayName": "Greater Healing Potion"
+          },
+          "Stack": 30
+        },
+        {
+          "Item": {
+            "Name": "MusketBall",
+            "DisplayName": "Musket Ball"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Dynamite",
+            "DisplayName": "Dynamite"
+          },
+          "Stack": 25
+        },
+        {
+          "Item": {
+            "Name": "IceRod",
+            "DisplayName": "Ice Rod"
+          }
+        },
+        {
+          "Item": {
+            "Name": "HoneyBucket",
+            "DisplayName": "Honey Bucket"
+          }
+        },
+        {
+          "Item": {
+            "Name": "StoneBlock",
+            "DisplayName": "Stone Block"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "WoodPlatform",
+            "DisplayName": "Wood Platform"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Binoculars",
+            "DisplayName": "Binoculars"
+          }
+        }
+      ],
+      "GrapplingHook": {
+        "Name": "DualHook",
+        "DisplayName": "Dual Hook"
+      }
+    },
+    {
+      "Name": "Post-Mech",
+      "Head": {
+        "Name": "HallowedMask",
+        "DisplayName": "Hallowed Mask"
+      },
+      "Body": {
+        "Name": "HallowedPlateMail",
+        "DisplayName": "Hallowed Plate Mail"
+      },
+      "Legs": {
+        "Name": "HallowedGreaves",
+        "DisplayName": "Hallowed Greaves"
+      },
+      "Accessories": [
+        {
+          "Name": "FireGauntlet",
+          "DisplayName": "Fire Gauntlet"
+        },
+        {
+          "Name": "AvengerEmblem",
+          "DisplayName": "Avenger Emblem"
+        },
+        {
+          "Name": "FrostsparkBoots",
+          "DisplayName": "Frostspark Boots"
+        },
+        {
+          "Name": "FrozenWings",
+          "DisplayName": "Frozen Wings"
+        },
+        {
+          "Name": "ObsidianShield",
+          "DisplayName": "Obsidian Shield"
+        }
+      ],
+      "Hotbar": [
+        {
+          "Item": {
+            "Name": "TrueNightsEdge",
+            "DisplayName": "True Night's Edge"
+          }
+        },
+        {
+          "Item": {
+            "Name": "Megashark",
+            "DisplayName": "Megashark"
+          }
+        },
+        {
+          "Item": {
+            "Name": "GreaterHealingPotion",
+            "DisplayName": "Greater Healing Potion"
+          },
+          "Stack": 30
+        },
+        {
+          "Item": {
+            "Name": "CrystalBullet",
+            "DisplayName": "Crystal Bullet"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Dynamite",
+            "DisplayName": "Dynamite"
+          },
+          "Stack": 40
+        },
+        {
+          "Item": {
+            "Name": "IceRod",
+            "DisplayName": "Ice Rod"
+          }
+        },
+        {
+          "Item": {
+            "Name": "HoneyBucket",
+            "DisplayName": "Honey Bucket"
+          }
+        },
+        {
+          "Item": {
+            "Name": "StoneBlock",
+            "DisplayName": "Stone Block"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "WoodPlatform",
+            "DisplayName": "Wood Platform"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Binoculars",
+            "DisplayName": "Binoculars"
+          }
+        }
+      ],
+      "GrapplingHook": {
+        "Name": "DualHook",
+        "DisplayName": "Dual Hook"
+      }
+    }
+  ]
 }

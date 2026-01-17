@@ -506,7 +506,6 @@ public class ServerConfig : ModConfig
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
 #if DEBUG
-        Log.Chat("Server accepted changes!");
         return true;
 #endif
 
@@ -515,7 +514,6 @@ public class ServerConfig : ModConfig
 
         //var adventureConfig = ModContent.GetInstance<ServerConfig>();
         //var discordId = Main.player[whoAmI].GetModPlayer<DiscordAuthPlayer>().DiscordUser?.Id;
-
 
         //if (discordId == null)
         //    return false;
@@ -536,17 +534,18 @@ public class ServerConfig : ModConfig
 
         return true;
     }
-    //public override void HandleAcceptClientChangesReply(bool success, int player, NetworkText message)
-    //{
-    //base.HandleAcceptClientChangesReply(success, player, message);
-    //}
-    //public override void OnLoaded()
-    //{
-        //base.OnLoaded();
-    //}
-    //public override void OnChanged()
-    //{
-        //base.OnChanged();
-    //}
+    public override void HandleAcceptClientChangesReply(bool success, int player, NetworkText message)
+    {
+        Log.Chat("Server accepted changes!");
+        base.HandleAcceptClientChangesReply(success, player, message);
+    }
+    public override void OnLoaded()
+    {
+        base.OnLoaded();
+    }
+    public override void OnChanged()
+    {
+        base.OnChanged();
+    }
 
 }

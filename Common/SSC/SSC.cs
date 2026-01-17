@@ -175,7 +175,7 @@ public class SSC : ModSystem
                     fileData.Player.statMana = fileData.Player.statManaMax;
 
                 Log.Chat((isNew ? "Loaded new SSC player " : "Loaded existing SSC player ") + fileData.Player.name);
-                Main.NewText($"Welcome to TPVPA, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}", Color.MediumPurple);
+                Main.NewText($"Welcome, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}", Color.MediumPurple);
             }
             catch (Exception e)
             {

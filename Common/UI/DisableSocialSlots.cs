@@ -4,7 +4,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.UI;
 
-internal class BlockSocialSlots : ModSystem
+internal class DisableSocialSlots : ModSystem
 {
     public override void Load()
     {

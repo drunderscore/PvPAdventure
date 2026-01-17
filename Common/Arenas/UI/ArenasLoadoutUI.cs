@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Debug;
 using ReLogic.Content;
 using SubworldLibrary;
 using System;
@@ -56,24 +57,38 @@ public class ArenasLoadoutUI : UIState
         };
         Append(Root);
 
+        // Title
         var title = new UITextPanel<string>("Choose Your Loadout", 0.7f, large: true)
         {
             HAlign = 0.5f,
-            Height = new StyleDimension(TitleHeight, 0f),
             BackgroundColor = new Color(73, 94, 171)
         };
+        title.Width.Set(0f, 1f);
         title.SetPadding(15f);
         title.OnLeftMouseDown += (evt, _) => Root.BeginDrag(evt);
         title.OnLeftMouseUp += (evt, _) => Root.EndDrag(evt);
 
+        // Append once to measure height
+        Root.Append(title);
+        Root.Recalculate();
+
+        float panelHeight = title.GetOuterDimensions().Height;
+        if (panelHeight <= 1f)
+            panelHeight = TitleHeight;
+
+        // Container
         Container = new UIPanel
         {
             BackgroundColor = new Color(33, 43, 79) * 0.8f
         };
-        Container.Top.Set(TitleHeight - 12f, 0f);
+        Container.Top.Set(panelHeight, 0f);
         Container.Width.Set(0f, 1f);
-        Container.Height.Set(-TitleHeight, 1f);
+        Container.Height.Set(-panelHeight, 1f);
         Root.Append(Container);
+
+        // Ensure title is always drawn above everything else
+        title.Remove();
+        Root.Append(title);
 
         var list = new UIList();
         list.Width.Set(0, 1f);
@@ -91,7 +106,6 @@ public class ArenasLoadoutUI : UIState
 
         list.SetScrollbar(scrollbar);
 
-        Container.Append(list);
         Container.Append(scrollbar);
 
         // Add loadouts
@@ -111,9 +125,6 @@ public class ArenasLoadoutUI : UIState
         list.Add(exitButton);
 
         Container.Append(list);
-
-        // Add title last
-        Root.Append(title);
     }
 
     private static LoadoutListItem NewLoadout(Loadout loadout)
@@ -311,7 +322,7 @@ public class ArenasLoadoutUI : UIState
         {
             const float Step = 40f;
             const float Slot = 36f;
-            const int Cols = 7;
+            const int Cols = 8; // 3 armor items, 5 accessory items
 
             float x = 0f;
             float y = 16f;
@@ -408,61 +419,6 @@ public class ArenasLoadoutUI : UIState
                 Main.LocalPlayer.mouseInterface = true;
                 //Main.instance.MouseText(BuildTooltip(loadout));
             }
-        }
-
-        private static string BuildTooltip(Loadout l)
-        {
-            var sb = new StringBuilder();
-
-            sb.Append("Armor: ");
-            bool any = false;
-
-            int t = ItemOrAir(l.Head);
-            if (t > ItemID.None) { sb.Append(Lang.GetItemNameValue(t)); any = true; }
-
-            t = ItemOrAir(l.Body);
-            if (t > ItemID.None) { if (any) sb.Append(','); sb.Append(Lang.GetItemNameValue(t)); any = true; }
-
-            t = ItemOrAir(l.Legs);
-            if (t > ItemID.None) { if (any) sb.Append(','); sb.Append(Lang.GetItemNameValue(t)); }
-            sb.AppendLine();
-
-            sb.Append("Accessories: ");
-            any = false;
-            for (int i = 0; i < l.Accessories.Count && i < 5; i++)
-            {
-                t = ItemOrAir(l.Accessories[i]);
-                if (t <= ItemID.None)
-                    continue;
-
-                if (any) sb.Append(", ");
-                sb.Append(Lang.GetItemNameValue(t));
-                any = true;
-            }
-            sb.AppendLine();
-
-            sb.Append("Hotbar: ");
-            any = false;
-            for (int i = 0; i < l.Hotbar.Count && i < 10; i++)
-            {
-                var li = l.Hotbar[i];
-                t = ItemOrAir(li.Item);
-                if (t <= ItemID.None)
-                    continue;
-
-                if (any) sb.Append(", ");
-                sb.Append(Lang.GetItemNameValue(t));
-                if (li.Stack > 1) sb.Append(" x").Append(li.Stack);
-                any = true;
-            }
-            sb.AppendLine();
-
-            sb.Append("Grappling hook: ");
-            t = ItemOrAir(l.GrapplingHook);
-            if (t > ItemID.None)
-                sb.Append(Lang.GetItemNameValue(t));
-
-            return sb.ToString().TrimEnd();
         }
 
         public override void MouseOver(UIMouseEvent evt)

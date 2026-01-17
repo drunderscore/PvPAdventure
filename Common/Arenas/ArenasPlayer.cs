@@ -1,13 +1,12 @@
 ﻿using SubworldLibrary;
 using Terraria;
-using Terraria.GameInput;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Arenas;
 
 internal class ArenasPlayer : ModPlayer
 {
-    private const int DamageLockDuration = 240; // 4 seconds
+    private const int DamageLockDuration = 120; // 2 seconds
 
     private int damageLockTicks;
 
@@ -51,15 +50,23 @@ internal class ArenasPlayer : ModPlayer
 
     public bool CanSelectLoadout(out string reason)
     {
+        if (Player.dead)
+        {
+            int respawnTime = Player.respawnTimer;
+            reason = "dead. respawn timer: " + respawnTime;
+            return false;
+        }
+
         if (DamageLocked)
         {
-            reason = "recently damaged";
+            reason = "recently damaged. damage lock duration: " + DamageLockDuration;
             return false;
         }
 
         if (IsMoving)
         {
-            reason = "must stand still";
+            float speed = Player.velocity.LengthSquared();
+            reason = "must stand still. speed: " + speed;
             return false;
         }
 

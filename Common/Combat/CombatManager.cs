@@ -1,21 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using MonoMod.Cil;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Combat;
 
 [Autoload(Side = ModSide.Both)]
 public class CombatManager : ModSystem
 {
-    private const bool PreventPersonalCombatModifications = false;
-
     private static readonly HashSet<short> BossProjectiles =
     [
         ProjectileID.DeerclopsIceSpike,
@@ -56,12 +52,6 @@ public class CombatManager : ModSystem
 
     public override void Load()
     {
-        // Do not draw the PvP or team icons -- the server has full control over your PvP and team.
-        // TODO: In the future, the server should send a packet relaying if the player can toggle hostile and which teams they may join.
-        //       For now, let's just totally disable it.
-        if (PreventPersonalCombatModifications && !Main.dedServ)
-            On_Main.DrawPVPIcons += _ => { };
-
         // Re-network player hurt packets when dealing with PvP (part of our ModPlayer.ModifyHurt PvP fixes).
         // Remove player i-frames to allow ours to function.
         On_Player.Hurt_HurtInfo_bool += OnPlayerHurt;
@@ -89,12 +79,6 @@ public class CombatManager : ModSystem
         IL_Player.TeammateHasPalidinShieldAndCanTakeDamage += EditPlayerTeammateHasPalidinShieldAndCanTakeDamage;
         // Don't network player stealth.
         IL_Player.OnHurt_Part1 += EditPlayerOnHurt_Part1;
-    }
-
-    public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
-    {
-        return PreventPersonalCombatModifications && Main.dedServ &&
-               (messageType is MessageID.TogglePVP or MessageID.PlayerTeam);
     }
 
     private void OnPlayerHurt(On_Player.orig_Hurt_HurtInfo_bool orig, Player self, Player.HurtInfo info, bool quiet)

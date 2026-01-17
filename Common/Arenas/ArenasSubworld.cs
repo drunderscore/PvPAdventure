@@ -131,11 +131,7 @@ public class ArenasSubworld : Subworld
             Main.dayTime = true;
             Main.time = 12000;
 
-            Main.NewText("Welcome to arenas!", Color.MediumPurple);
-            Main.NewText(
-                $"Use [{loadoutKeybind}] to show loadouts to get started.",
-                Color.MediumPurple
-            );
+            Main.NewText($"Arenas - Use [{loadoutKeybind}] to show loadouts to get started.",Color.MediumPurple);
         }
     }
 

@@ -293,6 +293,10 @@ public class GameManager : ModSystem
 
     private void BroadcastEndGameSummary()
     {
+        // If in subworld, dont broadcast.
+        if (SubworldSystem.AnyActive())
+            return;
+
         // Only the server (or singleplayer) should broadcast.
         if (Main.netMode == NetmodeID.MultiplayerClient)
         {
