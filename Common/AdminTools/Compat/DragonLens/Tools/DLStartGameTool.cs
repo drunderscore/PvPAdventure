@@ -17,7 +17,7 @@ namespace PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
 [ExtendsFromMod("DragonLens")]
 public class DLStartGameTool : Tool
 {
-    public override string IconKey => DLIntegration.StartGameKey;
+    public override string IconKey => DLToolIcons.StartGameKey;
 
     public override string DisplayName => GetDisplayName();
 
@@ -149,7 +149,7 @@ public class DLStartGameTool : Tool
                 new Rectangle(position.X - 4, position.Y - 4, 46, 46),
                 ThemeHandler.ButtonColor.InvertColor());
 
-            Texture2D tex = DLIntegration.GlowAlpha.Value;
+            Texture2D tex = DLToolIcons.GlowAlpha.Value;
             if (tex == null)
             {
                 return;

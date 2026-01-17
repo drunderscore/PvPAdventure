@@ -1,7 +1,6 @@
 using PvPAdventure.Common.Arenas;
 using PvPAdventure.Core.Config.ConfigElements;
 using PvPAdventure.Core.Debug;
-using PvPAdventure.Core.Discord;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -511,29 +510,29 @@ public class ServerConfig : ModConfig
         return true;
 #endif
 
-        if (pendingConfig is not ServerConfig pendingAdventureConfig)
-            return true;
+        //if (pendingConfig is not ServerConfig pendingAdventureConfig)
+        //    return true;
 
-        var adventureConfig = ModContent.GetInstance<ServerConfig>();
-        var discordId = Main.player[whoAmI].GetModPlayer<DiscordAuthPlayer>().DiscordUser?.Id;
+        //var adventureConfig = ModContent.GetInstance<ServerConfig>();
+        //var discordId = Main.player[whoAmI].GetModPlayer<DiscordAuthPlayer>().DiscordUser?.Id;
 
 
-        if (discordId == null)
-            return false;
+        //if (discordId == null)
+        //    return false;
 
-        if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        {
-            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-            return false;
-        }
+        //if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
+        //{
+        //    message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
+        //    return false;
+        //}
 
-        // You must have access by this point, but then you removed yourself!
-        // Don't do that.
-        if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        {
-            message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-            return false;
-        }
+        //// You must have access by this point, but then you removed yourself!
+        //// Don't do that.
+        //if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
+        //{
+        //    message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
+        //    return false;
+        //}
 
         return true;
     }

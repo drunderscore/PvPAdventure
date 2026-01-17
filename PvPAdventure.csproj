@@ -7,16 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- Add discord -->
-		<Reference Include="Discord.Net.Core">
-			<HintPath>lib\Discord.Net.Core.dll</HintPath>
-		</Reference>
-		<Reference Include="Discord.Net.Rest">
-			<HintPath>lib\Discord.Net.Rest.dll</HintPath>
-		</Reference>
-		<Reference Include="System.Linq.Async">
-			<HintPath>lib\System.Linq.Async.dll</HintPath>
-		</Reference>
+
 
 		<!-- Add DragonLens for adding tools -->
 		<Reference Include="DragonLens">

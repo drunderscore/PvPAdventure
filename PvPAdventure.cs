@@ -4,7 +4,6 @@ using PvPAdventure.Common.SpawnSelector.UI;
 using PvPAdventure.Common.SSC;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;
-using PvPAdventure.Core.Discord;
 using PvPAdventure.Core.Input.Dash;
 using PvPAdventure.Core.Net;
 using System.IO;
@@ -20,15 +19,15 @@ public class PvPAdventure : Mod
         // This mod should only ever be loaded when connecting to a server, it should never be loaded beforehand.
         // We don't use Netplay.Disconnect here, as that's not initialized to true (but rather to default value, aka false), so instead
         // we'll check the connection status of our own socket.
-        if (Main.dedServ)
-        {
-            ModContent.GetInstance<DiscordIdentification>().PlayerJoin += (_, args) =>
-            {
-                // FIXME: We should allow or deny players based on proper criteria.
-                //        For now, let's allow everyone.
-                args.Allowed = true;
-            };
-        }
+        //if (Main.dedServ)
+        //{
+        //    ModContent.GetInstance<DiscordIdentification>().PlayerJoin += (_, args) =>
+        //    {
+        //        // FIXME: We should allow or deny players based on proper criteria.
+        //        //        For now, let's allow everyone.
+        //        args.Allowed = true;
+        //    };
+        //}
     }
 
     public override void HandlePacket(BinaryReader reader, int whoAmI)
