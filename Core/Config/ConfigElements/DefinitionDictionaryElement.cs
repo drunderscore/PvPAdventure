@@ -106,14 +106,14 @@ internal class DefinitionDictionaryElement : DictionaryElement
         var expandedField = t.GetField("expanded", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         if (expandedField != null && expandedField.FieldType == typeof(bool))
         {
-            Log.Debug("UIElement expanded=false");
+            //Log.Debug("UIElement expanded=false");
             expandedField.SetValue(element, false);
         }
 
         var pendingField = t.GetField("pendingChanges", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         if (pendingField != null && pendingField.FieldType == typeof(bool))
         {
-            Log.Debug("UIElement pendingChanges=true");
+            //Log.Debug("UIElement pendingChanges=true");
             pendingField.SetValue(element, true);
         }
     }

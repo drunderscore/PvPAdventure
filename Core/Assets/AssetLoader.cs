@@ -1,6 +1,8 @@
-﻿using System.Reflection;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
+using System;
+using System.Reflection;
+using Terraria;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Assets;
@@ -35,11 +37,14 @@ public static class Ass
     public static Asset<Texture2D> Icon_PointsSetter;
     public static Asset<Texture2D> Icon_AdminManager;
 
-    // On/off icons
+    // On/off icons for admin manager
     public static Asset<Texture2D> Icon_On;
     public static Asset<Texture2D> Icon_On_Hover;
     public static Asset<Texture2D> Icon_Off;
     public static Asset<Texture2D> Icon_Off_Hover;
+
+    // Arenas
+    public static Asset<Texture2D> Icon_Arenas;
 
     // Initialization flag
     public static bool Initialized { get; set; }
@@ -50,25 +55,34 @@ public static class Ass
     /// </summary>
     static Ass()
     {
-        // Load MapBG
+        // Load MapBGs
         MapBG = new Asset<Texture2D>[42];
         for (int i = 1; i <= 42; i++)
         {
             MapBG[i - 1] = ModContent.Request<Texture2D>(
-                $"PvPAdventure/Assets/Ass/MapBGs/MapBG{i}",
+                $"PvPAdventure/Assets/Custom/MapBGs/MapBG{i}",
                 AssetRequestMode.AsyncLoad);
         }
 
-        // Load Ass folder
-        foreach (FieldInfo f in typeof(Ass).GetFields())
+        // Load all assets from Assets/Custom
+        foreach (FieldInfo f in typeof(Ass).GetFields(BindingFlags.Public | BindingFlags.Static))
         {
-            if (f.FieldType == typeof(Asset<Texture2D>))
+            if (f.FieldType != typeof(Asset<Texture2D>))
             {
-                var asset = ModContent.Request<Texture2D>(
-                    $"PvPAdventure/Assets/Ass/{f.Name}",
-                    AssetRequestMode.AsyncLoad);
-                f.SetValue(null, asset);
+                continue;
             }
+
+            string name = f.Name;
+
+            string rootPath = $"PvPAdventure/Assets/Custom/{name}";
+
+            if (ModContent.RequestIfExists(rootPath, out Asset<Texture2D> asset, AssetRequestMode.AsyncLoad))
+            {
+                f.SetValue(null, asset);
+                continue;
+            }
+
+            throw new Exception($"Missing texture for Ass.{name}. Expected texture at {rootPath}.");
         }
     }
 }

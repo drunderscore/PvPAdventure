@@ -31,6 +31,8 @@ internal class DisablePvPIcons : ModSystem
 
     private void ModifyDrawPvPIcons(On_Main.orig_DrawPVPIcons orig)
     {
+        //return;
+
         if (Main.EquipPage == 1)
         {
             if (Main.hidePVPIcons)
@@ -102,7 +104,7 @@ internal class DisablePvPIcons : ModSystem
                         Main.teamCooldown = Main.teamCooldownLen;
                         SoundEngine.PlaySound(12);
                         Main.player[Main.myPlayer].team = i;
-                        NetMessage.SendData(45, -1, -1, null, Main.myPlayer);
+                        NetMessage.SendData(MessageID.PlayerTeam, -1, -1, null, Main.myPlayer);
                     }
                 }
             }

@@ -1,13 +1,13 @@
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Content.Items.ConfigItems;
-public class BoundArmsDealerConfig : ModItem
+public class TeamConfigItem : ModItem
 {
     public override void SetDefaults()
     {
         base.SetDefaults();
 
-        Item.width = 32;
-        Item.height = 44;
+        Item.width = 36;
+        Item.height = 36;
     }
 }

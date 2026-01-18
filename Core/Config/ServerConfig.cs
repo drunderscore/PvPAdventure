@@ -1,3 +1,4 @@
+using DragonLens.Core.Systems;
 using PvPAdventure.Common.Arenas;
 using PvPAdventure.Core.Config.ConfigElements;
 using PvPAdventure.Core.Debug;
@@ -115,10 +116,6 @@ public class ServerConfig : ModConfig
     [BackgroundColor(50, 60, 80)]
     [Expand(false, false)]
     public List<string> CrashoutMessages { get; set; } = [];
-
-    [BackgroundColor(50, 60, 80)]
-    [Expand(false, false)]
-    public List<string> AllowConfigModification { get; set; } = [];
 
     [Header("WorldGen")]
     [BackgroundColor(90, 70, 40)]
@@ -508,32 +505,22 @@ public class ServerConfig : ModConfig
 #if DEBUG
         return true;
 #endif
+        // Singleplayer always allowed
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            return true;
 
-        //if (pendingConfig is not ServerConfig pendingAdventureConfig)
-        //    return true;
+        Player player = Main.player[whoAmI];
 
-        //var adventureConfig = ModContent.GetInstance<ServerConfig>();
-        //var discordId = Main.player[whoAmI].GetModPlayer<DiscordAuthPlayer>().DiscordUser?.Id;
-
-        //if (discordId == null)
-        //    return false;
-
-        //if (!adventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        //{
-        //    message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-        //    return false;
-        //}
-
-        //// You must have access by this point, but then you removed yourself!
-        //// Don't do that.
-        //if (!pendingAdventureConfig.AllowConfigModification.Contains(discordId.ToString()))
-        //{
-        //    message = NetworkText.FromKey("Mods.PvPAdventure.Configs.CannotModify");
-        //    return false;
-        //}
+        // DragonLens admin check
+        if (!DragonLens.Core.Systems.PermissionHandler.CanUseTools(player))
+        {
+            message = NetworkText.FromLiteral("You must be a DragonLens admin to modify this config.");
+            return false;
+        }
 
         return true;
     }
+
     public override void HandleAcceptClientChangesReply(bool success, int player, NetworkText message)
     {
         Log.Chat("Server accepted changes!");

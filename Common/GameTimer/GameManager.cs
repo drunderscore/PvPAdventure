@@ -600,44 +600,4 @@ public class GameManager : ModSystem
         public override string Command => "startgame";
         public override CommandType Type => CommandType.Chat | CommandType.Console;
     }
-
-    public class TimeLeftCommand : ModCommand
-    {
-        public override void Action(CommandCaller caller, string input, string[] args)
-        {
-            var gameManager = ModContent.GetInstance<GameManager>();
-
-            if (gameManager == null)
-                return;
-
-            if (gameManager.CurrentPhase != Phase.Playing)
-                return;
-
-            caller.Reply(
-                $"{TimeSpan.FromSeconds(gameManager.TimeRemaining / 60.0).Humanize(2, minUnit: TimeUnit.Second)} remain",
-                Color.Green);
-        }
-
-        public override string Command => "timeleft";
-        public override CommandType Type => CommandType.World;
-    }
-
-    public class CrashoutCommand : ModCommand
-    {
-        public override void Action(CommandCaller caller, string input, string[] args)
-        {
-            if (Main.netMode == NetmodeID.SinglePlayer)
-                return;
-
-            var crashoutMessages = ModContent.GetInstance<ServerConfig>().CrashoutMessages;
-            var message = crashoutMessages[Main.rand.Next(0, crashoutMessages.Count)];
-
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral($"{caller.Player.name} crashed out: {message}"),
-                Color.Red, caller.Player.whoAmI);
-            NetMessage.SendData(MessageID.Kick, caller.Player.whoAmI, text: NetworkText.FromLiteral(message));
-        }
-
-        public override string Command => "crashout";
-        public override CommandType Type => CommandType.World;
-    }
 }

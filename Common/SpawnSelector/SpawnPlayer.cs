@@ -327,18 +327,6 @@ public class SpawnPlayer : ModPlayer
         packet.Send();
     }
 
-    public override void OnHurt(Player.HurtInfo info)
-    {
-        base.OnHurt(info);
-
-        if (Player.whoAmI != Main.LocalPlayer.whoAmI)
-            return;
-
-        var cfg = ModContent.GetInstance<ClientConfig>();
-        if (cfg.CloseMapOnHurt && Main.mapFullscreen)
-            Main.mapFullscreen = false;
-    }
-
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         base.Kill(damage, hitDirection, pvp, damageSource);
@@ -346,10 +334,12 @@ public class SpawnPlayer : ModPlayer
         if (Player.whoAmI != Main.myPlayer)
             return;
 
+        // Check auto-select config
         var cfg = ModContent.GetInstance<ClientConfig>();
         if (!cfg.AutoSelectWorldSpawnWhenRespawning)
             return;
 
+        // Auto-select world spawn if none selected
         if (SelectedType == SpawnType.None)
             ToggleSelection(SpawnType.World);
     }

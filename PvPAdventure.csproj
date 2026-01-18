@@ -1,4 +1,4 @@
-
+﻿
 <Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="..\tModLoader.targets" />
 	<PropertyGroup>
@@ -8,13 +8,12 @@
 
 	<ItemGroup>
 
-
-		<!-- Add DragonLens for adding tools -->
+		<!-- Add DragonLens for adding admin tools -->
 		<Reference Include="DragonLens">
 			<HintPath>lib\DragonLens.dll</HintPath>
 		</Reference>
 		
-		<!-- Add StructureHelper for generating a spawn box -->
+		<!-- Add StructureHelper for generating arenas subworlds-->
 		<Reference Include="StructureHelper">
 			<HintPath>lib\StructureHelper.dll</HintPath>
 		</Reference>

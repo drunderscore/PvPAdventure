@@ -20,7 +20,6 @@ public class ArenasJoinUI : UIState
     }
 
     // UI
-    private const float TitleHeight = 52f;
     private DraggableElement Root;
     private UIPanel Container;
 

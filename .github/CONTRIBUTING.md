@@ -5,7 +5,7 @@ Want to hack on PvPAdventure? Awesome! Here's what you need to get started.
 **Also read:**
 - [`CODE_OF_CONDUCT.md`](.github/CODE_OF_CONDUCT.md)
 - [`description.txt`](description.txt)
-- [Discord rules/guides](https://discord.gg/Kj97VV8bsx)
+- [Join the Discord and read the rules & guides](https://discord.gg/Kj97VV8bsx)
 
 ---
 
@@ -16,25 +16,23 @@ Want to hack on PvPAdventure? Awesome! Here's what you need to get started.
 - **No godclasses**: Prefer many small `ModSystem`, `ModPlayer`, etc. over one type doing everything.
 - **Reduce complexity**: Keep code readable, avoid deep inheritance and oversized classes, prefer simple composition.
 
-### 2.2 Style resources
-- [tML style guide](https://github.com/tModLoader/tModLoader/wiki/tModLoader-Style-Guide)
-- [tML organizing advice (Discord)](https://discord.com/channels/103110554649894912/711551818194485259/1406328063205310506)
+### 2.2 Resources
+- [tML official style guide](https://github.com/tModLoader/tModLoader/wiki/tModLoader-Style-Guide)
+- [tML team advice (Discord)](https://discord.com/channels/103110554649894912/711551818194485259/1406328063205310506)
 - [grugbrain.dev advice](https://grugbrain.dev/)
 
 ---
 
-## 3. Repo structure
+## 3. Structure
 
-### 3.1 Root namespaces
-- `PvPAdventure.Assets` — images and textures
-- `PvPAdventure.Content` — content declarations (items, NPCs, projectiles, UI content, etc.)
-- `PvPAdventure.Common` — gameplay features (how the mod behaves in-game)
-- `PvPAdventure.Core` — foundational infrastructure used by features
+If you're modifying/expanding existing functionality, here's a quick overview of where to look:
 
-### 3.2 Namespace reference
+#### `Assets` (textures used by the mod)
+- `Assets.Custom` — our own textures, mainly used for UI such as spawn selector, config, etc.
 
 #### `Common` (gameplay features)
-- `Common.AdminTools` — game timer, points setter, admin manager, team assigner, etc.
+- `Common.AdminTools` — game timer, points/team assigner, integration with DragonLens.
+- `Common.Bounties` — bounty shop.
 - `Common.Combat` — PvP/PvE changes, i-frames, hit/kill markers, ghost heal/LoS adjustments, etc.
 - `Common.DropRates` — boss loot pool rewrites.
 - `Common.GameTimer` — match state, countdown, time remaining.
@@ -44,15 +42,20 @@ Want to hack on PvPAdventure? Awesome! Here's what you need to get started.
 - `Common.Spawnbox` — random teleport, movement rules, recall behavior.
 - `Common.SpawnSelector` — adventure mirror, bed/teammate teleports, select spawn when dead, etc.
 - `Common.SSC` — server sided character implementation.
-- `Common.Statistics` — K/D, boss score, bounties, team points, pickups.
+- `Common.Statistics` — K/D, boss score, team points, item pickups.
 - `Common.Teams` — team chat, team beds.
 - `Common.UI` — player outlines, modify accessory slots, draw PvP icons, etc.
 
+#### `Content` (items, NPC, buffs, tiles, etc)
+- `Content.Items` — adventure mirror
+- `Content.NPCs` — bound NPCs
+
 #### `Core` (infrastructure)
+- `Core.Assets` — loading our custom textures from `Assets`
 - `Core.Config` — client & server config.
-- `Core.Discord` — Discord integration.
-- `Core.Input` — keybinds.
+- `Core.Input` — keybinds, dash keybind.
 - `Core.Net` — ping, section sync, spawn sync, packet helpers, etc.
+- `Core.Utilities` — math helpers
 
 ---
 

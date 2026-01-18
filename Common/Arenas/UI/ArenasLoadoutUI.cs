@@ -42,6 +42,7 @@ public class ArenasLoadoutUI : UIState
         RemoveAllChildren();
 
         // Calculate height based on number of loadouts
+        // FIXME: Not very accurate
         var config = ModContent.GetInstance<ServerConfig>();
         int loadoutsCount = config.ArenaLoadouts.Count;
         int loadoutItemHeight = 72;
@@ -50,7 +51,7 @@ public class ArenasLoadoutUI : UIState
 
         Root = new DraggableElement
         {
-            Width = new StyleDimension(402, 0f),
+            Width = new StyleDimension(440, 0f),
             Top = new StyleDimension(50f, 0f),
             Height = new StyleDimension(rootHeight, 0f),
             HAlign = 0.5f
@@ -58,7 +59,7 @@ public class ArenasLoadoutUI : UIState
         Append(Root);
 
         // Title
-        var title = new UITextPanel<string>("Choose Your Loadout", 0.7f, large: true)
+        var title = new UITextPanel<string>("Choose Your Loadout", 0.75f, large: true)
         {
             HAlign = 0.5f,
             BackgroundColor = new Color(73, 94, 171)
@@ -313,7 +314,7 @@ public class ArenasLoadoutUI : UIState
 
             // center under preview, and place just below it
             playButton.Left.Set(pr.X + (pr.Width - pb.Width) * 0.5f - GetInnerDimensions().X, 0f);
-            playButton.Top.Set(pr.Y + pr.Height - GetInnerDimensions().Y, 0f);
+            playButton.Top.Set(pr.Y + pr.Height - GetInnerDimensions().Y+8, 0f);
 
             Recalculate();
         }
