@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Items;
 using PvPAdventure.Core.Utilities;
+using System;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -19,6 +20,78 @@ internal class SpawnboxPlayer : ModPlayer
         On_Player.ItemCheck_UseTeleportRod += OnPlayerItemCheck_UseTeleportRod;
         On_Player.ItemCheck_UseWiringTools += OnPlayerItemCheck_UseWiringTools;
         On_Player.ItemCheck_CutTiles += OnPlayerItemCheck_CutTiles;
+    }
+
+    public override void PreUpdate()
+    {
+        if (ItemBalance.RecallItems[Player.inventory[Player.selectedItem].type] && !CanRecall())
+        {
+            Player.SetItemAnimation(0);
+            Player.SetItemTime(0);
+        }
+    }
+    private bool CanRecall()
+    {
+        var region = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
+
+        return Player.lifeRegen >= 0.0 && !Player.controlLeft && !Player.controlRight && !Player.controlUp &&
+               !Player.controlDown && Player.velocity == Vector2.Zero && (region == null || region.CanRecall);
+    }
+
+    public override void PostUpdateMiscEffects()
+    {
+        int playerTileX = (int)(Player.position.X / 16f);
+        int playerTileY = (int)(Player.position.Y / 16f);
+
+        int spawnTileX = Main.spawnTileX;
+        int spawnTileY = Main.spawnTileY;
+
+        int distanceX = Math.Abs(playerTileX - spawnTileX);
+        int distanceY = Math.Abs(playerTileY - spawnTileY);
+
+        if (distanceX <= 25 && distanceY <= 25)
+        {
+            Player.AddBuff(ModContent.BuffType<Content.Buffs.PlayerInSpawn>(), 2);
+        }
+    }
+
+    public override bool CanUseItem(Item item)
+    {
+        // Prevent a recall from being started at all for these conditions.
+        if (ItemBalance.RecallItems[item.type])
+        {
+            if (CanRecall())
+                return true;
+
+            if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
+                PopupText.NewText(new AdvancedPopupRequest
+                {
+                    Color = Color.Crimson,
+                    Text = Language.GetTextValue("Mods.PvPAdventure.Player.CannotRecall"),
+                    Velocity = new(0.0f, -4.0f),
+                    DurationInFrames = 60 * 2
+                }, Player.Top);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public override bool CanHitPvp(Item item, Player target)
+    {
+        var myRegion = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
+
+        if (myRegion != null && !myRegion.AllowCombat)
+            return false;
+
+        var targetRegion = ModContent.GetInstance<RegionManager>()
+            .GetRegionIntersecting(target.Hitbox.ToTileRectangle());
+
+        if (targetRegion != null && !targetRegion.AllowCombat)
+            return false;
+
+        return true;
     }
 
     public override void PostHurt(Player.HurtInfo info)

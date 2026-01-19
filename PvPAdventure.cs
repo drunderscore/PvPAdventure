@@ -2,6 +2,10 @@ using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Common.SpawnSelector.UI;
 using PvPAdventure.Common.SSC;
+using System.IO;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Input.Dash;
@@ -82,6 +86,10 @@ public class PvPAdventure : Mod
 
             case AdventurePacketIdentifier.SSC:
                 SSC.HandlePacket(reader, whoAmI);
+                break;
+            }
+            case AdventurePacketIdentifier.NpcStrikeTeam:
+                TeamBossNetHandler.HandlePacket(reader, whoAmI);
                 break;
         }
     }

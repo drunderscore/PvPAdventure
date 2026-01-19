@@ -1,5 +1,4 @@
 ﻿using MonoMod.Cil;
-using PvPAdventure.Common.Npcs;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
@@ -16,9 +15,13 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Combat;
 
+// Everything combat related, player-side.
 internal class CombatPlayer : ModPlayer
 {
     private readonly int[] _playerMeleeInvincibleTime = new int[Main.maxPlayers];
+    private int _currentMeleeUseId = 0;
+    private int _lastItemAnimation = 0;
+    private readonly Dictionary<(int attackerWho, int useId), int> _meleeImmuneBySwing = new();
     private static readonly HashSet<short> BossNpcsForImmunityCooldown =
     [
         NPCID.QueenSlimeMinionBlue,
@@ -209,11 +212,23 @@ internal class CombatPlayer : ModPlayer
         if (targetRegion != null && !targetRegion.AllowCombat)
             return false;
 
-        if (_playerMeleeInvincibleTime[target.whoAmI] > 0)
+        // Detect new swing RIGHT HERE before collision check
+        if (Player.itemAnimation > 0 && _lastItemAnimation == 0)
+        {
+            _currentMeleeUseId++;
+            _lastItemAnimation = Player.itemAnimation;
+        }
+
+        var targetAdventurePlayer = target.GetModPlayer<CombatPlayer>();
+
+        // Check if target is immune to THIS specific swing
+        if (targetAdventurePlayer._meleeImmuneBySwing.TryGetValue((Player.whoAmI, _currentMeleeUseId), out var remainingTime) && remainingTime > 0)
             return false;
 
         _playerMeleeInvincibleTime[target.whoAmI] =
             ModContent.GetInstance<ServerConfig>().WeaponBalance.ImmunityFrames.PerPlayerGlobal;
+        var immunityFrames = Player.itemAnimation + 2;
+        targetAdventurePlayer._meleeImmuneBySwing[(Player.whoAmI, _currentMeleeUseId)] = immunityFrames;
 
         return true;
     }
