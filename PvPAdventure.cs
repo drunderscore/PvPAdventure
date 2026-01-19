@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Discord;
 using PvPAdventure.Core.Net;
@@ -140,6 +141,9 @@ public class PvPAdventure : Mod
                 player.team = (int)team.Value;
                 break;
             }
+            case AdventurePacketIdentifier.NpcStrikeTeam:
+                TeamBossNetHandler.HandlePacket(reader, whoAmI);
+                break;
         }
     }
 }
