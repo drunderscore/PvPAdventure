@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Items;
 using PvPAdventure.Core.Utilities;
+using System;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -37,6 +38,23 @@ internal class SpawnboxPlayer : ModPlayer
                !Player.controlDown && Player.velocity == Vector2.Zero && (region == null || region.CanRecall);
     }
 
+    public override void PostUpdateMiscEffects()
+    {
+        int playerTileX = (int)(Player.position.X / 16f);
+        int playerTileY = (int)(Player.position.Y / 16f);
+
+        int spawnTileX = Main.spawnTileX;
+        int spawnTileY = Main.spawnTileY;
+
+        int distanceX = Math.Abs(playerTileX - spawnTileX);
+        int distanceY = Math.Abs(playerTileY - spawnTileY);
+
+        if (distanceX <= 25 && distanceY <= 25)
+        {
+            Player.AddBuff(ModContent.BuffType<Content.Buffs.PlayerInSpawn>(), 2);
+        }
+    }
+
     public override bool CanUseItem(Item item)
     {
         // Prevent a recall from being started at all for these conditions.
@@ -59,6 +77,23 @@ internal class SpawnboxPlayer : ModPlayer
 
         return true;
     }
+
+    public override bool CanHitPvp(Item item, Player target)
+    {
+        var myRegion = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
+
+        if (myRegion != null && !myRegion.AllowCombat)
+            return false;
+
+        var targetRegion = ModContent.GetInstance<RegionManager>()
+            .GetRegionIntersecting(target.Hitbox.ToTileRectangle());
+
+        if (targetRegion != null && !targetRegion.AllowCombat)
+            return false;
+
+        return true;
+    }
+
     public override void PostHurt(Player.HurtInfo info)
     {
         if (ItemBalance.RecallItems[Player.inventory[Player.selectedItem].type])

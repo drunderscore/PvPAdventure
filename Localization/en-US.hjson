@@ -907,6 +907,73 @@ Mods: {
 			True: "[c/FF0000:The game has been paused.]"
 			False: "[c/00FF00:The game has been resumed.]"
 		}
+
+		Buffs: {
+			Anathema: {
+				DisplayName: Anathema
+				Description: Mods.PvPAdventure.Buffs.Anathema.Description
+			}
+
+			Attuning: {
+				DisplayName: Attuning
+				Description: Mods.PvPAdventure.Buffs.Attuning.Description
+			}
+
+			BitingEmbrace: {
+				DisplayName: Biting Embrace
+				Description: Mods.PvPAdventure.Buffs.BitingEmbrace.Description
+			}
+
+			BrittleBones: {
+				DisplayName: Brittle Bones
+				Description: Mods.PvPAdventure.Buffs.BrittleBones.Description
+			}
+
+			BROISACHOJ: {
+				DisplayName: B R O I S A C H O J
+				Description: Mods.PvPAdventure.Buffs.BROISACHOJ.Description
+			}
+
+			Hellhex: {
+				DisplayName: Hellhex
+				Description: Mods.PvPAdventure.Buffs.Hellhex.Description
+			}
+
+			Marked: {
+				DisplayName: Marked
+				Description: Mods.PvPAdventure.Buffs.Marked.Description
+			}
+
+			NewIchorPlayerDebuff: {
+				DisplayName: New Ichor Player Debuff
+				Description: Mods.PvPAdventure.Buffs.NewIchorPlayerDebuff.Description
+			}
+
+			PlayerInSpawn: {
+				DisplayName: Player In Spawn
+				Description: Mods.PvPAdventure.Buffs.PlayerInSpawn.Description
+			}
+
+			PressurePoints: {
+				DisplayName: Pressure Points
+				Description: Mods.PvPAdventure.Buffs.PressurePoints.Description
+			}
+
+			ShatteredArmor: {
+				DisplayName: Shattered Armor
+				Description: Mods.PvPAdventure.Buffs.ShatteredArmor.Description
+			}
+
+			ShinyStoneHotswap: {
+				DisplayName: Shiny Stone Hotswap
+				Description: Mods.PvPAdventure.Buffs.ShinyStoneHotswap.Description
+			}
+
+			UncoutHandboring: {
+				DisplayName: Uncout Handboring
+				Description: Mods.PvPAdventure.Buffs.UncoutHandboring.Description
+			}
+		}
 	}
 }
 
