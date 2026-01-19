@@ -38,9 +38,6 @@ public sealed class ArenasUISystem : ModSystem
 
     public override void OnWorldLoad()
     {
-        if (Main.dedServ)
-            return;
-
         Interface = new();
         LoadoutUIState = new();
         JoinUIState = new();

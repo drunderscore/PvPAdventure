@@ -22,14 +22,6 @@ internal class SpawnboxPlayer : ModPlayer
         On_Player.ItemCheck_CutTiles += OnPlayerItemCheck_CutTiles;
     }
 
-    public override void PreUpdate()
-    {
-        if (ItemBalance.RecallItems[Player.inventory[Player.selectedItem].type] && !CanRecall())
-        {
-            Player.SetItemAnimation(0);
-            Player.SetItemTime(0);
-        }
-    }
     private bool CanRecall()
     {
         var region = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
@@ -55,28 +47,28 @@ internal class SpawnboxPlayer : ModPlayer
         }
     }
 
-    public override bool CanUseItem(Item item)
-    {
-        // Prevent a recall from being started at all for these conditions.
-        if (ItemBalance.RecallItems[item.type])
-        {
-            if (CanRecall())
-                return true;
+    //public override bool CanUseItem(Item item)
+    //{
+    //    // Prevent a recall from being started at all for these conditions.
+    //    if (ItemBalance.RecallItems[item.type])
+    //    {
+    //        if (CanRecall())
+    //            return true;
 
-            if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
-                PopupText.NewText(new AdvancedPopupRequest
-                {
-                    Color = Color.Crimson,
-                    Text = Language.GetTextValue("Mods.PvPAdventure.Player.CannotRecall"),
-                    Velocity = new(0.0f, -4.0f),
-                    DurationInFrames = 60 * 2
-                }, Player.Top);
+    //        if (!Main.dedServ && Player.whoAmI == Main.myPlayer)
+    //            PopupText.NewText(new AdvancedPopupRequest
+    //            {
+    //                Color = Color.Crimson,
+    //                Text = Language.GetTextValue("Mods.PvPAdventure.Player.CannotRecall"),
+    //                Velocity = new(0.0f, -4.0f),
+    //                DurationInFrames = 60 * 2
+    //            }, Player.Top);
 
-            return false;
-        }
+    //        return false;
+    //    }
 
-        return true;
-    }
+    //    return true;
+    //}
 
     public override bool CanHitPvp(Item item, Player target)
     {

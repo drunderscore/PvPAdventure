@@ -10,9 +10,6 @@ public static class TeamBossNetHandler
 {
     public static void HandlePacket(BinaryReader reader, int whoAmI)
     {
-        if (Main.netMode != NetmodeID.MultiplayerClient)
-            return;
-
         var npcIndex = reader.ReadInt16();
         var team = reader.ReadByte();
 

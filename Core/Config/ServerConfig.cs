@@ -112,16 +112,10 @@ public class ServerConfig : ModConfig
     [Range(0, 600)]
     public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
 
-    [Header("General")]
-    [BackgroundColor(50, 60, 80)]
-    [Expand(false, false)]
-    public List<string> CrashoutMessages { get; set; } = [];
-
     [Header("WorldGen")]
     [BackgroundColor(90, 70, 40)]
     [Expand(false, false)]
     public WorldGenerationConfig WorldGeneration { get; set; } = new();
-
 
     #region SSC
     [Header("SSC")]
@@ -235,8 +229,6 @@ public class ServerConfig : ModConfig
         public bool SkeletronDefeated { get; set; }
         public bool CollectedAllMechanicalBossSouls { get; set; }
     }
-
-    
 
     public class WeaponBalanceConfig
     {
@@ -500,11 +492,9 @@ public class ServerConfig : ModConfig
     }
     #endregion
 
+    #region Hooks / methods
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
-#if DEBUG
-        return true;
-#endif
         // Singleplayer always allowed
         if (Main.netMode == NetmodeID.SinglePlayer)
             return true;
@@ -534,5 +524,6 @@ public class ServerConfig : ModConfig
     {
         base.OnChanged();
     }
+    #endregion
 
 }

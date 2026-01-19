@@ -1,4 +1,5 @@
-﻿using Terraria;
+﻿using PvPAdventure.Content.NPCs;
+using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -24,7 +25,7 @@ public class QueenBeeBoundWitchDoctor : GlobalNPC
                     npc.GetSource_Death(),
                     (int)npc.Center.X,
                     (int)npc.Center.Y,
-                    ModContent.NPCType<BoundNpc.WitchDoctor>()
+                    ModContent.NPCType<WitchDoctor>()
                 );
 
                 if (npcIndex >= 0 && npcIndex < Main.maxNPCs)

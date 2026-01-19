@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.DropRates;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.NPCs;
 using PvPAdventure.Core.Config;
+using System.Collections.Generic;
+using System.Linq;
 using Terraria;
 using Terraria.Chat;
 using Terraria.DataStructures;
@@ -52,7 +53,7 @@ public class NPCRules : GlobalNPC
                 return;
 
             // If this is a boss, we want it to scale based on the number of players on a specific team...
-            if (self.boss || StatisticsNPC.IsPartOfEaterOfWorlds((short)self.type) || StatisticsNPC.IsPartOfTheDestroyer((short)self.type))
+            if (self.boss || TeamBossNPC.IsPartOfEaterOfWorlds((short)self.type) || TeamBossNPC.IsPartOfTheDestroyer((short)self.type))
             {
                 // FIXME: Ignore None team
                 var closestPlayerIndex = self.FindClosestPlayer();
@@ -87,21 +88,21 @@ public class NPCRules : GlobalNPC
 
     public override void SetDefaults(NPC entity)
     {
-        if (entity.isLikeATownNPC && entity.type != NPCID.Guide)
-            // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
-            entity.immortal = true;
+        //if (entity.isLikeATownNPC && entity.type != NPCID.Guide)
+        //    // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
+        //    entity.immortal = true;
 
-        var adventureConfig = ModContent.GetInstance<ServerConfig>();
+        //var adventureConfig = ModContent.GetInstance<ServerConfig>();
 
-        // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
-        if (NPCID.Search.TryGetName(entity.type, out var name))
-        {
-            if (adventureConfig.BossBalance.TryGetValue(new(name), out var bossBalance))
-            {
-                entity.lifeMax = (int)(entity.lifeMax * bossBalance.LifeMaxMultiplier);
-                entity.damage = (int)(entity.damage * bossBalance.DamageMultiplier);
-            }
-        }
+        //// Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
+        //if (NPCID.Search.TryGetName(entity.type, out var name))
+        //{
+        //    if (adventureConfig.BossBalance.TryGetValue(new(name), out var bossBalance))
+        //    {
+        //        entity.lifeMax = (int)(entity.lifeMax * bossBalance.LifeMaxMultiplier);
+        //        entity.damage = (int)(entity.damage * bossBalance.DamageMultiplier);
+        //    }
+        //}
     }
 
     public override void OnSpawn(NPC npc, IEntitySource source)
@@ -297,7 +298,7 @@ public class NPCRules : GlobalNPC
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), id));
         }
 
-        if (StatisticsNPC.IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
+        if (TeamBossNPC.IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
             AddNonExpertBossLoot(ItemID.WormScarf);
         else
         {

@@ -22,8 +22,7 @@ public static class StartingItems
             if (slot >= player.inventory.Length)
                 break;
 
-            Item item = new();
-            item.SetDefaults(itemDef.Type);
+            Item item = new(itemDef.Type);
             item.stack = stack;
 
             player.inventory[slot++] = item;

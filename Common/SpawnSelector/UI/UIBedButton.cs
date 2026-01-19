@@ -27,8 +27,7 @@ public sealed class UIBedButton : UIElement
         this.hasBed = hasBed;
         this.playerIndex = playerIndex;
 
-        bedIcon = new Item();
-        bedIcon.SetDefaults(ItemID.Bed);
+        bedIcon = new Item(ItemID.Bed);
 
         Width.Set(ButtonSize, 0f);
         Height.Set(ButtonSize, 0f);

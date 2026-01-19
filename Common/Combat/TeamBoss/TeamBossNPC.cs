@@ -1,182 +1,368 @@
-﻿using System.Collections.Generic;
+﻿using PvPAdventure.Common.Statistics;
+using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Net;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Terraria;
-using Terraria.DataStructures;
 using Terraria.Enums;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Config;
+using Terraria.ModLoader.IO;
 
 namespace PvPAdventure.Common.Combat.TeamBoss;
 
 public sealed class TeamBossNPC : GlobalNPC
 {
+    #region Fields
     public override bool InstancePerEntity => true;
 
     public DamageInfo LastDamageFromPlayer { get; set; }
 
-    private readonly Dictionary<Team, int> teamLife = new Dictionary<Team, int>();
-    public IReadOnlyDictionary<Team, int> TeamLife => teamLife;
+    private readonly Dictionary<Team, int> _teamLife = new();
+    public IReadOnlyDictionary<Team, int> TeamLife => _teamLife;
 
-    private readonly HashSet<Team> hasBeenHurtByTeam = new HashSet<Team>();
-    public IReadOnlySet<Team> HasBeenHurtByTeam => hasBeenHurtByTeam;
+    private readonly HashSet<Team> _hasBeenHurtByTeam = new();
+    public IReadOnlySet<Team> HasBeenHurtByTeam => _hasBeenHurtByTeam;
 
-    private readonly List<TeamLifeEntry> sortedTeamLifeCache = new List<TeamLifeEntry>();
-    public IReadOnlyList<TeamLifeEntry> SortedTeamLifeCache => sortedTeamLifeCache;
+    private Team _lastStrikeTeam;
+    #endregion
 
-    private bool isTeamLifeCacheDirty;
-    private Team pendingStrikeTeam;
-
-    public sealed class DamageInfo
+    public class DamageInfo(byte who)
     {
-        public DamageInfo(byte who)
+        public byte Who { get; } = who;
+    }
+
+    public override void Load()
+    {
+        On_NPC.PlayerInteraction += OnNPCPlayerInteraction;
+        On_NPC.StrikeNPC_HitInfo_bool_bool += OnNPCStrikeNPC;
+        On_NetMessage.SendStrikeNPC += OnNetMessageSendStrikeNPC;
+    }
+
+    public override void SetDefaults(NPC entity)
+    {
+        if (entity.isLikeATownNPC && entity.type != NPCID.Guide)
+            // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
+            entity.immortal = true;
+
+        // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
+        if (NPCID.Search.TryGetName(entity.type, out var name))
         {
-            Who = who;
+            var adventureConfig = ModContent.GetInstance<ServerConfig>();
+            var definition = new NPCDefinition(entity.type);
+
+            if (adventureConfig.BossBalance.TryGetValue(definition, out var entry))
+            {
+                float lifeMult = entry.LifeMaxMultiplier;
+                entity.lifeMax = (int)(entity.lifeMax * lifeMult);
+                entity.life = entity.lifeMax;
+
+                float dmgMult = entry.DamageMultiplier;
+                entity.damage = (int)(entity.damage * dmgMult);
+
+                // FIXME: What if config changes mid game? might desync form the config which might break some contracts?
+                //foreach (var team in Enum.GetValues<Team>())
+                //{
+                //    if (team == Team.None)
+                //        continue;
+
+                //    _teamLife[team] = entity.lifeMax;
+                //}
+            }
+        }
+    }
+
+    private static void OnNPCPlayerInteraction(On_NPC.orig_PlayerInteraction orig, NPC self, int player)
+    {
+        orig(self, player);
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        // If this is part of the Eater of Worlds, then mark ALL segments as last damaged by this player.
+        if (IsPartOfEaterOfWorlds((short)self.type))
+        {
+            foreach (var npc in Main.ActiveNPCs)
+            {
+                if (!IsPartOfEaterOfWorlds((short)npc.type))
+                    continue;
+
+                npc.GetGlobalNPC<TeamBossNPC>().LastDamageFromPlayer = new DamageInfo((byte)player);
+            }
+        }
+        else if (IsPartOfTheDestroyer((short)self.type))
+        {
+            foreach (var npc in Main.ActiveNPCs)
+            {
+                if (!IsPartOfTheDestroyer((short)npc.type))
+                    continue;
+
+                npc.GetGlobalNPC<TeamBossNPC>().LastDamageFromPlayer = new DamageInfo((byte)player);
+            }
+        }
+        else
+        {
+            self.GetGlobalNPC<TeamBossNPC>().LastDamageFromPlayer = new DamageInfo((byte)player);
+        }
+    }
+
+    public override void OnKill(NPC npc)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        var lastDamageInfo = npc.GetGlobalNPC<TeamBossNPC>().LastDamageFromPlayer;
+        if (lastDamageInfo == null)
+            return;
+
+        var lastDamager = Main.player[lastDamageInfo.Who];
+        if (lastDamager == null || !lastDamager.active)
+            return;
+
+        ModContent.GetInstance<PointsManager>().AwardNpcKillToTeam((Team)lastDamager.team, npc);
+    }
+
+
+
+    // FIXME: This only covers strikes, would be good to support DOTs/debuffs
+    private int OnNPCStrikeNPC(
+    On_NPC.orig_StrikeNPC_HitInfo_bool_bool orig,
+    NPC self,
+    NPC.HitInfo hit,
+    bool fromNet,
+    bool noPlayerInteraction)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return orig(self, hit, fromNet, noPlayerInteraction);
+
+        var adventureNpc = self.GetGlobalNPC<TeamBossNPC>();
+        NPC owner = self.realLife != -1 ? Main.npc[self.realLife] : self;
+        var boss = owner.GetGlobalNPC<TeamBossNPC>();
+
+        var teamLife = boss._teamLife;
+        int currentLife = owner.life;
+
+        // Resolve strike team
+        Team strikeTeam = Team.None;
+
+        var attackerInfo = boss.LastDamageFromPlayer ?? adventureNpc.LastDamageFromPlayer;
+        int who = attackerInfo != null ? attackerInfo.Who : self.lastInteraction;
+
+        if (who >= 0 && who < Main.maxPlayers)
+        {
+            Player p = Main.player[who];
+            if (p != null && p.active)
+                strikeTeam = (Team)p.team;
         }
 
-        public byte Who { get; }
-    }
+        // If we can't attribute, do NOT mutate pools and do vanilla damage.
+        if (strikeTeam == Team.None || !IsTeamActive(strikeTeam))
+            return orig(self, hit, fromNet, noPlayerInteraction);
 
-    public readonly struct TeamLifeEntry
-    {
-        public TeamLifeEntry(Team team, int life)
+        // If pool not initialized (edge case), initialize just this team.
+        if (!teamLife.ContainsKey(strikeTeam))
+            teamLife[strikeTeam] = owner.lifeMax;
+
+        // Determine leading team = team with lowest remaining life among active teams
+        Team leadingTeam = Team.None;
+        int leadingLife = int.MaxValue;
+
+        foreach (var kv in teamLife)
         {
-            Team = team;
-            Life = life;
+            Team t = kv.Key;
+            if (t == Team.None)
+                continue;
+
+            if (!IsTeamActive(t))
+                continue;
+
+            int life = kv.Value;
+            if (life < leadingLife)
+            {
+                leadingLife = life;
+                leadingTeam = t;
+            }
         }
 
-        public Team Team { get; }
-        public int Life { get; }
+        // Track that this team has participated (for UI)
+        boss._hasBeenHurtByTeam.Add(strikeTeam);
+
+        // Always subtract from the striker's pool (so their bar progresses)
+        int strikerOld = teamLife[strikeTeam];
+        int strikerNew = Math.Max(0, strikerOld - hit.Damage);
+        teamLife[strikeTeam] = strikerNew;
+
+        // Gate real boss damage: only leading team can reduce boss HP
+        bool allowRealDamage = strikeTeam == leadingTeam;
+
+        // Hide vanilla combat text; you can keep your custom CombatText if you want.
+        hit.HideCombatText = true;
+
+        var previousImmortal = self.immortal;
+
+        try
+        {
+            if (!allowRealDamage)
+            {
+                // Block real damage but keep pool damage (immortal revert behavior)
+                hit.Damage = 0;
+                self.immortal = true;
+
+                owner.netUpdate = true;
+                return orig(self, hit, fromNet, noPlayerInteraction);
+            }
+
+            // Leading team: allow real damage, but clamp to not exceed the gap between current HP and that team's pool.
+            int allowed = Math.Max(0, currentLife - strikerNew);
+
+            if (allowed <= 0)
+            {
+                hit.Damage = 0;
+                self.immortal = true;
+            }
+            else
+            {
+                hit.Damage = allowed;
+            }
+
+            boss._lastStrikeTeam = strikeTeam;
+
+            owner.netUpdate = true;
+            return orig(self, hit, fromNet, noPlayerInteraction);
+        }
+        finally
+        {
+            self.immortal = previousImmortal;
+        }
     }
 
-    public override void OnSpawn(NPC npc, IEntitySource source)
+    public override void ApplyDifficultyAndPlayerScaling( NPC npc,int numPlayers,float balance, float bossAdjustment)
     {
-        teamLife.Clear();
-        hasBeenHurtByTeam.Clear();
-        sortedTeamLifeCache.Clear();
+        // Resolve owner (important for segmented bosses)
+        NPC owner = npc.realLife != -1 ? Main.npc[npc.realLife] : npc;
+        var boss = owner.GetGlobalNPC<TeamBossNPC>();
 
-        pendingStrikeTeam = Team.None;
-        isTeamLifeCacheDirty = false;
+        // Only initialize once
+        if (boss._teamLife.Count > 0)
+            return;
+
+        // Now npc.lifeMax is FINAL and correct
+        foreach (var team in Enum.GetValues<Team>())
+        {
+            if (team == Team.None)
+                continue;
+
+            boss._teamLife[team] = owner.lifeMax;
+        }
+
+        owner.netUpdate = true;
     }
 
-    public override void OnHitByItem(NPC npc, Player player, Item item, NPC.HitInfo hit, int damageDone)
-    {
-        ApplyTeamDamage(npc, damageDone);
-    }
 
-    public override void OnHitByProjectile(NPC npc, Projectile projectile, NPC.HitInfo hit, int damageDone)
+    private void OnNetMessageSendStrikeNPC(On_NetMessage.orig_SendStrikeNPC orig, NPC npc, ref NPC.HitInfo hit,
+        int ignoreClient)
     {
-        ApplyTeamDamage(npc, damageDone);
+        var adventureNpc = npc.GetGlobalNPC<TeamBossNPC>();
+
+        if (Main.netMode == NetmodeID.Server)
+        {
+            // FIXME: Proper packet
+            var packet = Mod.GetPacket();
+            packet.Write((byte)AdventurePacketIdentifier.NpcStrikeTeam);
+            packet.Write((short)npc.whoAmI);
+            packet.Write((byte)adventureNpc._lastStrikeTeam);
+
+            packet.Send(ignoreClient: ignoreClient);
+        }
+
+        orig(npc, ref hit, ignoreClient);
     }
 
     public void MarkNextStrikeForTeam(NPC npc, Team team)
     {
-        NPC bossNpc = ResolveBossEntity(npc);
-        TeamBossNPC bossData = bossNpc.GetGlobalNPC<TeamBossNPC>();
+        _lastStrikeTeam = team;
+        _hasBeenHurtByTeam.Add(team);
 
-        bossData.pendingStrikeTeam = team;
-        bossData.hasBeenHurtByTeam.Add(team);
+        //Log.Chat("hit: " + npc + ", team: " + team);
 
-        if (!bossData.teamLife.ContainsKey(team))
+        // If our life pool is someone else's, count it as hurting them too.
+        if (npc.realLife != -1 && npc.realLife != npc.whoAmI)
         {
-            bossData.teamLife[team] = bossNpc.lifeMax;
+            var realLife = Main.npc[npc.realLife];
+            realLife.GetGlobalNPC<TeamBossNPC>().MarkNextStrikeForTeam(realLife, team);
         }
-
-        bossData.isTeamLifeCacheDirty = true;
     }
 
-    public void RebuildTeamLifeCacheIfNeeded(NPC npc)
+    // FIXME: might be costly!
+    public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
     {
-        NPC bossNpc = ResolveBossEntity(npc);
-        TeamBossNPC bossData = bossNpc.GetGlobalNPC<TeamBossNPC>();
+        var adventureNpc = npc.GetGlobalNPC<TeamBossNPC>();
 
-        if (!bossData.isTeamLifeCacheDirty)
+        binaryWriter.Write((byte)adventureNpc.TeamLife.Count);
+        foreach (var (team, life) in adventureNpc.TeamLife)
         {
-            return;
+            binaryWriter.Write((byte)team);
+            binaryWriter.Write7BitEncodedInt(life);
         }
-
-        bossData.sortedTeamLifeCache.Clear();
-
-        foreach (KeyValuePair<Team, int> kv in bossData.teamLife)
-        {
-            Team team = kv.Key;
-
-            if (!bossData.hasBeenHurtByTeam.Contains(team))
-            {
-                continue;
-            }
-
-            bossData.sortedTeamLifeCache.Add(new TeamLifeEntry(team, kv.Value));
-        }
-
-        bossData.sortedTeamLifeCache.Sort(CompareTeamLifeDescending);
-        bossData.isTeamLifeCacheDirty = false;
     }
 
-    public static NPC ResolveBossEntity(NPC npc)
+    // FIXME: might be costly!
+    public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
     {
-        if (npc.realLife == -1)
+        _teamLife.Clear();
+        _hasBeenHurtByTeam.Clear();
+
+        int count = binaryReader.ReadByte();
+
+        for (int i = 0; i < count; i++)
         {
-            return npc;
+            Team team = (Team)binaryReader.ReadByte();
+            int life = binaryReader.Read7BitEncodedInt();
+            _teamLife[team] = life;
         }
 
-        if (npc.realLife == npc.whoAmI)
+        int full = npc.lifeMax;
+
+        foreach (int v in _teamLife.Values)
         {
-            return npc;
+            if (v > full)
+                full = v;
         }
 
-        int index = npc.realLife;
-        if (index < 0 || index >= Main.maxNPCs)
+        foreach (var kv in _teamLife)
         {
-            return npc;
+            if (kv.Key != Team.None && kv.Value < full)
+                _hasBeenHurtByTeam.Add(kv.Key);
         }
-
-        NPC realLife = Main.npc[index];
-        if (realLife == null)
-        {
-            return npc;
-        }
-
-        return realLife;
     }
 
-    private void ApplyTeamDamage(NPC npc, int damageDone)
+    private static bool IsTeamActive(Team team)
     {
-        NPC bossNpc = ResolveBossEntity(npc);
-        TeamBossNPC bossData = bossNpc.GetGlobalNPC<TeamBossNPC>();
-
-        Team team = bossData.pendingStrikeTeam;
-        bossData.pendingStrikeTeam = Team.None;
-
         if (team == Team.None)
+            return false;
+
+        for (int i = 0; i < Main.maxPlayers; i++)
         {
-            return;
+            Player p = Main.player[i];
+
+            if (p == null || !p.active)
+                continue;
+
+            if ((Team)p.team == team)
+                return true;
         }
 
-        if (damageDone <= 0)
-        {
-            return;
-        }
-
-        bossData.hasBeenHurtByTeam.Add(team);
-
-        int remainingLife;
-        if (!bossData.teamLife.TryGetValue(team, out remainingLife))
-        {
-            remainingLife = bossNpc.lifeMax;
-        }
-
-        remainingLife -= damageDone;
-
-        if (remainingLife < 0)
-        {
-            remainingLife = 0;
-        }
-
-        bossData.teamLife[team] = remainingLife;
-        bossData.isTeamLifeCacheDirty = true;
+        return false;
     }
 
-    private static int CompareTeamLifeDescending(TeamLifeEntry a, TeamLifeEntry b)
-    {
-        return b.Life.CompareTo(a.Life);
-    }
+    #region Public helpers
+    public static bool IsPartOfEaterOfWorlds(short type) =>
+        type is NPCID.EaterofWorldsHead or NPCID.EaterofWorldsBody or NPCID.EaterofWorldsTail;
+
+    public static bool IsPartOfTheDestroyer(short type) =>
+        type is NPCID.TheDestroyer or NPCID.TheDestroyerBody or NPCID.TheDestroyerTail;
+    #endregion
 }

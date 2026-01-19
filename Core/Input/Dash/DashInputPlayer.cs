@@ -25,11 +25,11 @@ public class DashInputPlayer : ModPlayer
             return;
 
         int inputDirection = NormalizeDirection(GetInputDirection());
-        Log.Chat($"{Player.whoAmI} requesting dash dir={inputDirection} dashType={Player.dashType} delay={Player.dashDelay}");
+        //Log.Chat($"{Player.whoAmI} requesting dash dir={inputDirection} dashType={Player.dashType} delay={Player.dashDelay}");
 
         if (PerformDash(inputDirection, force: false, out byte dashTypeUsed))
         {
-            Log.Chat($"Dash executed locally on {Player.whoAmI} type {dashTypeUsed} netMode {Main.netMode}");
+            //Log.Chat($"Dash executed locally on {Player.whoAmI} type {dashTypeUsed} netMode {Main.netMode}");
             if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 SendDashRequest(inputDirection, dashTypeUsed);
@@ -92,7 +92,7 @@ public class DashInputPlayer : ModPlayer
 
         if (selectedDashType <= 0)
         {
-            Log.Chat($"PerformDash aborted: player {Player.whoAmI} has no dash-granting item (override={overrideDashType}).");
+            //Log.Chat($"PerformDash aborted: player {Player.whoAmI} has no dash-granting item (override={overrideDashType}).");
 
             //string key = "you have no dash item!";
             string key = "Mods.PvPAdventure.DashKeybind.NoDashItem";
@@ -266,7 +266,7 @@ public class DashInputPlayer : ModPlayer
 
     private void SendDashRequest(int direction, byte dashTypeUsed)
     {
-        Log.Chat($"SendDashRequest: player {Player.whoAmI} dir={direction} type={dashTypeUsed}");
+        //Log.Chat($"SendDashRequest: player {Player.whoAmI} dir={direction} type={dashTypeUsed}");
         ModPacket packet = Mod.GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.Dash);
         packet.Write((byte)DashPacketType.Request);
@@ -277,7 +277,7 @@ public class DashInputPlayer : ModPlayer
 
     internal void BroadcastDash(int direction, byte dashTypeUsed)
     {
-        Log.Chat($"BroadcastDash: player {Player.whoAmI} dir={direction} type={dashTypeUsed}");
+        //Log.Chat($"BroadcastDash: player {Player.whoAmI} dir={direction} type={dashTypeUsed}");
         if (Main.netMode != NetmodeID.Server)
             return;
 

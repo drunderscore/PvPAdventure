@@ -65,24 +65,15 @@ public static class Ass
         }
 
         // Load all assets from Assets/Custom
-        foreach (FieldInfo f in typeof(Ass).GetFields(BindingFlags.Public | BindingFlags.Static))
+        foreach (FieldInfo f in typeof(Ass).GetFields())
         {
-            if (f.FieldType != typeof(Asset<Texture2D>))
+            if (f.FieldType == typeof(Asset<Texture2D>))
             {
-                continue;
-            }
-
-            string name = f.Name;
-
-            string rootPath = $"PvPAdventure/Assets/Custom/{name}";
-
-            if (ModContent.RequestIfExists(rootPath, out Asset<Texture2D> asset, AssetRequestMode.AsyncLoad))
-            {
+                var asset = ModContent.Request<Texture2D>(
+                    $"PvPAdventure/Assets/Custom/{f.Name}",
+                    AssetRequestMode.AsyncLoad);
                 f.SetValue(null, asset);
-                continue;
             }
-
-            throw new Exception($"Missing texture for Ass.{name}. Expected texture at {rootPath}.");
         }
     }
 }

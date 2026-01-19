@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using Terraria;
@@ -16,10 +17,10 @@ public class CombatNPC : GlobalNPC
         var config = ModContent.GetInstance<ServerConfig>();
 
         var isBoss = npc.boss
-                     || StatisticsNPC.IsPartOfEaterOfWorlds((short)npc.type)
-                     || StatisticsNPC.IsPartOfTheDestroyer((short)npc.type);
+                     || TeamBossNPC.IsPartOfEaterOfWorlds((short)npc.type)
+                     || TeamBossNPC.IsPartOfTheDestroyer((short)npc.type);
 
-        // Prevent projectiles from hitting bosses if configured e.g dynamite.
+        // Prevent projectiles from hitting bosses if configured, e.g dynamite (configurable from config)
         if (isBoss && config.BossInvulnerableProjectiles.Any(projectileDefinition =>
                 projectileDefinition.Type == projectile.type))
             return false;

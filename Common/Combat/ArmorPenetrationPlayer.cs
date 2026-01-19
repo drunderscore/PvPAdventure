@@ -13,8 +13,8 @@ internal class ArmorPenetrationPlayer : ModPlayer
         if (!modifiers.PvP)
             return;
 
-        var adventureConfig = ModContent.GetInstance<AdventureServerConfig>();
-        var combatConfig = adventureConfig.Combat;
+        var adventureConfig = ModContent.GetInstance<ServerConfig>();
+        var combatConfig = adventureConfig.WeaponBalance;
 
         // Track base armor penetration
         float baseArmorPen = 0f;
@@ -59,7 +59,7 @@ internal class ArmorPenetrationPlayer : ModPlayer
         if (isMagicDamage && sourcePlayer.ghostHeal)
         {
             // Use GhostHealMultiplierWearers as a scaling penetration factor
-            float bonus = combatConfig.GhostHealMultiplierWearers;
+            float bonus = adventureConfig.Other.SpectreHealing.PvPHealRange;
             finalArmorPen = baseArmorPen + (1f - baseArmorPen) * bonus;
         }
 
