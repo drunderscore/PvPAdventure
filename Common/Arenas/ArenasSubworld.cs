@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Input;
 using SubworldLibrary;
 using System;
@@ -8,7 +7,6 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent.Generation;
 using Terraria.ID;
-using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.Utilities;
 using Terraria.WorldBuilding;
@@ -17,8 +15,8 @@ namespace PvPAdventure.Common.Arenas;
 
 public class ArenasSubworld : Subworld
 {
-    public override int Width => 1000; // our structure is 680
-    public override int Height => 600; // our structure is 169
+    public override int Width => 900; // our structure is 680
+    public override int Height => 300; // our structure is 169
 
     public override bool ShouldSave => false;
     public override bool NoPlayerSaving => true;
@@ -38,7 +36,7 @@ public class ArenasSubworld : Subworld
     private static void AdjustWorldHeight()
     {
         Main.worldSurface = Main.maxTilesY - 42; // Hides the underground layer just out of bounds
-        Main.rockLayer = Main.maxTilesY; // Hides the cavern layer just out of bounds
+        Main.rockLayer = Main.maxTilesY - 42; // Hides the cavern layer just out of bounds
 
         // adjust spawn pos
         Main.spawnTileX += 38;

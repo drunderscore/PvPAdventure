@@ -1,4 +1,5 @@
-﻿using SubworldLibrary;
+﻿using PvPAdventure.Common.Arenas.UI;
+using SubworldLibrary;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -32,6 +33,14 @@ internal class ArenasPlayer : ModPlayer
         damageLockTicks = DamageLockDuration;
     }
 
+    public override void OnRespawn()
+    {
+        if (SubworldSystem.AnyActive())
+            ArenasUISystem.Toggle();
+
+        base.OnRespawn();
+    }
+
     public override void PostUpdate()
     {
         if (!SubworldSystem.AnyActive())
@@ -59,7 +68,7 @@ internal class ArenasPlayer : ModPlayer
 
         if (DamageLocked)
         {
-            reason = "recently damaged. damage lock duration: " + DamageLockDuration;
+            reason = "recently damaged. damage lock duration: " + damageLockTicks;
             return false;
         }
 

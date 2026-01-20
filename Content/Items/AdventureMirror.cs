@@ -22,7 +22,7 @@ internal class AdventureMirror : ModItem
         //Item.CloneDefaults(ItemID.MagicMirror);
 
         var config = ModContent.GetInstance<ServerConfig>();
-        int recallFrames = config.MapRecallFrames; // 5 seconds = 60 * 5
+        int recallFrames = config.AdventureMirrorRecallFrames; // 5 seconds = 60 * 5
 
         Item.useTime = recallFrames + 3; // + a few frames to ensure countdown shows
         Item.useAnimation = recallFrames + 3; // + a few frames to ensure countdown 

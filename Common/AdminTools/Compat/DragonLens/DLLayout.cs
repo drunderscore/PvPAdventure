@@ -5,6 +5,7 @@ using DragonLens.Content.GUI;
 using DragonLens.Content.Themes.BoxProviders;
 using DragonLens.Content.Themes.IconProviders;
 using DragonLens.Content.Tools;
+using DragonLens.Content.Tools.Despawners;
 using DragonLens.Content.Tools.Developer;
 using DragonLens.Content.Tools.Editors;
 using DragonLens.Content.Tools.Gameplay;
@@ -118,7 +119,6 @@ public class DLLayout : ModSystem
                 .AddTool<Weather>()
                 .AddTool<SpawnTool>() // enemy spawn rate
                 .AddTool<PlayerManager>()
-                .AddTool<PlayerEditorTool>()
                 .AddTool<CustomizeTool>()
             );
 
@@ -131,6 +131,7 @@ public class DLLayout : ModSystem
                .AddTool<DLTeamAssignerTool>()
                .AddTool<DLPointsSetterTool>()
                .AddTool<DLAdminManagerTool>()
+               .AddTool<DLOpenConfigTool>()
            );
 
             // right toolbar
@@ -141,8 +142,8 @@ public class DLLayout : ModSystem
                 .AddTool<Godmode>()
                 .AddTool<InfiniteReach>()
                 .AddTool<NoClip>()
-                .AddTool<SystemEditorTool>()
                 .AddTool<AssetManager>()
+                .AddTool<NPCDespawner>()
             );
 
             // left map toolbar

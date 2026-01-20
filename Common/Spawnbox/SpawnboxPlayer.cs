@@ -20,6 +20,35 @@ internal class SpawnboxPlayer : ModPlayer
         On_Player.ItemCheck_UseTeleportRod += OnPlayerItemCheck_UseTeleportRod;
         On_Player.ItemCheck_UseWiringTools += OnPlayerItemCheck_UseWiringTools;
         On_Player.ItemCheck_CutTiles += OnPlayerItemCheck_CutTiles;
+
+        // Force ghosts to use same collisions restrictions.
+        On_Collision.EmptyTile += OnEmptyTile;
+    }
+
+    private static bool OnEmptyTile(On_Collision.orig_EmptyTile orig, int i, int j, bool ignoreTiles)
+    {
+        return orig(i, j, ignoreTiles);
+
+        Rectangle rectangle = new Rectangle(i * 16, j * 16, 16, 16);
+        if (Main.tile[i, j].active() && !ignoreTiles)
+        {
+            return false;
+        }
+        for (int k = 0; k < 255; k++)
+        {
+            if (Main.player[k].active && !Main.player[k].dead && rectangle.Intersects(new Rectangle((int)Main.player[k].position.X, (int)Main.player[k].position.Y, Main.player[k].width, Main.player[k].height)))
+            {
+                return false;
+            }
+        }
+        for (int l = 0; l < 200; l++)
+        {
+            if (Main.npc[l].active && rectangle.Intersects(new Rectangle((int)Main.npc[l].position.X, (int)Main.npc[l].position.Y, Main.npc[l].width, Main.npc[l].height)))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private bool CanRecall()
@@ -44,6 +73,9 @@ internal class SpawnboxPlayer : ModPlayer
         if (distanceX <= 25 && distanceY <= 25)
         {
             Player.AddBuff(ModContent.BuffType<Content.Buffs.PlayerInSpawn>(), 2);
+        }
+        else
+        {
         }
     }
 

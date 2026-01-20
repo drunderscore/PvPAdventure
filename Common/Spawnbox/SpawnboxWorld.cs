@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
-using PvPAdventure.Core.Assets;
+using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using SubworldLibrary;
 using System;

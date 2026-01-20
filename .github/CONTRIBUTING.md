@@ -15,6 +15,10 @@ Want to hack on PvPAdventure? Awesome! Here's what you need to get started.
 - **Organize by feature, not by type**: Group related functionality by feature (e.g., `Common.Combat`, `Common.Statistics`).  
 - **No godclasses**: Prefer many small `ModSystem`, `ModPlayer`, etc. over one type doing everything.
 - **Reduce complexity**: Keep code readable, avoid deep inheritance and oversized classes, prefer simple composition.
+- **Logging:** Prefer the custom server logger: `Log.Chat(...)` for debug messages, which includes timestamp and calling class.
+- **XML docs:** All classes should have a `/// <summary>` comment describing what it does (in bullet points or clear words)
+- **Naming:** Class names should describe exactly what they do in plain English, optionally with a suffix describing their type (e.g. `SoulDropRateSystem`). Names like `DrawPvPIcons` are also acceptable (especially when a file contains multiple classes spanning a whole feature implementation).
+- **Scope note:** The above serve as guidelines, not hard rules. This is not a comprehensive list—just general advice to keep the project clean, maintainable, scalable, and readable so it’s easier to ship more features.
 
 ### 2.2 Resources
 - [tML official style guide](https://github.com/tModLoader/tModLoader/wiki/tModLoader-Style-Guide)
@@ -34,6 +38,7 @@ If you're modifying/expanding existing functionality, here's a quick overview of
 - `Common.AdminTools` — game timer, points/team assigner, integration with DragonLens.
 - `Common.Bounties` — bounty shop.
 - `Common.Combat` — PvP/PvE changes, i-frames, hit/kill markers, ghost heal/LoS adjustments, etc.
+- `Common.Combat.TeamBoss` — bosses only take damage from the team with the most damage (from BossBalanceConfig)
 - `Common.DropRates` — boss loot pool rewrites.
 - `Common.GameTimer` — match state, countdown, time remaining.
 - `Common.Items` — item stats, bans, shimmer transforms, prefixes.
@@ -45,17 +50,18 @@ If you're modifying/expanding existing functionality, here's a quick overview of
 - `Common.Statistics` — K/D, boss score, team points, item pickups.
 - `Common.Teams` — team chat, team beds.
 - `Common.UI` — player outlines, modify accessory slots, draw PvP icons, etc.
+- `Common.World` — world-state changes and ongoing world rules (weather, invasions, global timers/state, etc.).
+- `Common.WorldGenChanges` — world generation and worldgen-related IL edits/tiles (e.g. chest/worldgen patches).
 
 #### `Content` (items, NPC, buffs, tiles, etc)
 - `Content.Items` — adventure mirror
 - `Content.NPCs` — bound NPCs
 
 #### `Core` (infrastructure)
-- `Core.Assets` — loading our custom textures from `Assets`
 - `Core.Config` — client & server config.
 - `Core.Input` — keybinds, dash keybind.
 - `Core.Net` — ping, section sync, spawn sync, packet helpers, etc.
-- `Core.Utilities` — math helpers
+- `Core.Utilities` — math helpers, asset loaders, etc.
 
 ---
 

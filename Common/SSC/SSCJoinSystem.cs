@@ -1,6 +1,7 @@
 ﻿using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using Steamworks;
+using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -35,6 +36,31 @@ public class SSCJoinSystem : ModSystem
 
     public override void PostUpdateEverything()
     {
+        // Force ghost to be stuck inside spawnbox
+        if (Main.LocalPlayer.ghost)
+        {
+            var player = Main.LocalPlayer;
+
+            player.position = new Vector2(Main.spawnTileX * 16f, Main.spawnTileY * 16f-48);
+            player.velocity = Vector2.Zero;
+            player.direction = 1;
+
+            //int playerTileX = (int)(player.position.X / 16f);
+            //int playerTileY = (int)(player.position.Y / 16f);
+
+            //int spawnTileX = Main.spawnTileX;
+            //int spawnTileY = Main.spawnTileY;
+
+            //int distanceX = Math.Abs(playerTileX - spawnTileX);
+            //int distanceY = Math.Abs(playerTileY - spawnTileY);
+
+            //if (distanceX >= 25 || distanceY >= 25)
+            //{
+            //    player.position = new Vector2(Main.spawnTileX * 16f, Main.spawnTileY * 16f);
+            //    player.velocity = Vector2.Zero;
+            //}
+        }
+
         if (_sent)
             return;
 
@@ -48,7 +74,7 @@ public class SSCJoinSystem : ModSystem
         }
 
         _sent = true;
-        SendJoinRequest();
+        //SendJoinRequest();
     }
 
     public override void OnWorldUnload()

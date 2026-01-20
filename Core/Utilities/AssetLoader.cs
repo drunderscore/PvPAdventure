@@ -5,7 +5,7 @@ using System.Reflection;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Assets;
+namespace PvPAdventure.Core.Utilities;
 
 /// <summary>
 /// Provides static access to miscallaneous texture assets within the PvPAdventure mod.
@@ -36,6 +36,8 @@ public static class Ass
     public static Asset<Texture2D> Icon_TeamAssigner;
     public static Asset<Texture2D> Icon_PointsSetter;
     public static Asset<Texture2D> Icon_AdminManager;
+    public static Asset<Texture2D> Icon_ConfigOpen;
+    public static Asset<Texture2D> Icon_ConfigClose;
 
     // On/off icons for admin manager
     public static Asset<Texture2D> Icon_On;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.Config;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
@@ -31,7 +32,11 @@ internal class DisablePvPIcons : ModSystem
 
     private void ModifyDrawPvPIcons(On_Main.orig_DrawPVPIcons orig)
     {
-        //return;
+        var config = ModContent.GetInstance<ServerConfig>();
+        if (!config.ShowPlayerTeamAndPvP)
+        {
+            return;
+        }
 
         if (Main.EquipPage == 1)
         {

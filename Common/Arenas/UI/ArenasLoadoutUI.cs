@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
 using ReLogic.Content;
@@ -46,12 +47,13 @@ public class ArenasLoadoutUI : UIState
         var config = ModContent.GetInstance<ServerConfig>();
         int loadoutsCount = config.ArenaLoadouts.Count;
         int loadoutItemHeight = 72;
-        int baseHeight = 150;
+        int baseHeight = 400;
         int rootHeight = baseHeight + loadoutItemHeight * loadoutsCount;
+        int width = 440;
 
         Root = new DraggableElement
         {
-            Width = new StyleDimension(440, 0f),
+            Width = new StyleDimension(width, 0f),
             Top = new StyleDimension(50f, 0f),
             Height = new StyleDimension(rootHeight, 0f),
             HAlign = 0.5f
@@ -95,18 +97,19 @@ public class ArenasLoadoutUI : UIState
         list.Width.Set(0, 1f);
         list.Height.Set(0f, 1f);
         list.SetPadding(16);
-        list.PaddingTop = 6;
+        list.PaddingTop = -4;
         list.PaddingLeft = -4; // make room for scrollbar
 
         var scrollbar = new UIScrollbar();
-        scrollbar.SetView(100f, 1000f); // will be corrected by list.UpdateScrollbar()
-        scrollbar.Height.Set(-12f, 1f);
-        scrollbar.Top.Set(12f, 0f);
-        //scrollbar.HAlign = 1f;
-        scrollbar.Left.Set(-12, 1);
+        scrollbar.SetView(100f, 1000f);
+        scrollbar.Width.Set(20f, 0f);
+        scrollbar.Height.Set(0f, 1f);
+        scrollbar.Top.Set(0f, 0f);
+        scrollbar.Left.Set(-12f, 1f);
 
         list.SetScrollbar(scrollbar);
 
+        Container.Append(list);
         Container.Append(scrollbar);
 
         // Add loadouts
@@ -176,7 +179,9 @@ public class ArenasLoadoutUI : UIState
 
         var arenaPlayer = p.GetModPlayer<ArenasPlayer>();
 
-        if (!arenaPlayer.CanSelectLoadout(out string reason))
+        bool inSpawnRegion = p.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
+
+        if (!inSpawnRegion && !arenaPlayer.CanSelectLoadout(out string reason))
         {
             Main.NewText($"Cannot select loadout: {reason}", Color.OrangeRed);
             return;
@@ -279,7 +284,7 @@ public class ArenasLoadoutUI : UIState
         {
             this.loadout = loadout;
 
-            Height.Set(108f, 0f);
+            //Height.Set(108f, 0f); // overriden later
             Width.Set(0f, 1f);
             SetPadding(6f);
 
@@ -303,7 +308,25 @@ public class ArenasLoadoutUI : UIState
 
             AddSlots(loadout);
 
-            playButton = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad));
+            var asset = Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad);
+
+            var playScale = 1.25f;
+            playButton = new UIImageButton(asset);
+            playButton.Width.Set(asset.Width() * playScale, 0f);
+            playButton.Height.Set(asset.Height() * playScale, 0f);
+            playButton.SetVisibility(0f, 0f);
+
+            playButton.OnDraw += _ =>
+            {
+                var dim = playButton.GetDimensions();
+                float alpha = playButton.IsMouseHovering ? 1f : 0.4f;
+
+                Main.spriteBatch.Draw(asset.Value, dim.Position(), null, Color.White * alpha, 0f, Vector2.Zero, playScale, SpriteEffects.None, 0f);
+
+                if (playButton._borderTexture != null && playButton.IsMouseHovering)
+                    Main.spriteBatch.Draw(playButton._borderTexture.Value, dim.Position(), null, Color.White, 0f, Vector2.Zero, playScale, SpriteEffects.None, 0f);
+            };
+
             playButton.OnLeftClick += (_, _) => equip?.Invoke(loadout.Name);
             Append(playButton);
 
@@ -314,7 +337,7 @@ public class ArenasLoadoutUI : UIState
 
             // center under preview, and place just below it
             playButton.Left.Set(pr.X + (pr.Width - pb.Width) * 0.5f - GetInnerDimensions().X, 0f);
-            playButton.Top.Set(pr.Y + pr.Height - GetInnerDimensions().Y+8, 0f);
+            playButton.Top.Set(pr.Y + pr.Height - GetInnerDimensions().Y+20, 0f);
 
             Recalculate();
         }
@@ -323,17 +346,18 @@ public class ArenasLoadoutUI : UIState
         {
             const float Step = 40f;
             const float Slot = 36f;
-            const int Cols = 8; // 3 armor items, 5 accessory items
+            const int Cols = 8;
 
             float x = 0f;
             float y = 16f;
             int col = 0;
 
             int count = 0;
+            int hotbarSlot = 1;
 
-            void Add(Item it)
+            void Add(Item it, int? hotbarNumber = null)
             {
-                var slot = new UILoadoutItemSlot(it);
+                var slot = new UILoadoutItemSlot(it, hotbarNumber);
                 slot.Left.Set(x, 0f);
                 slot.Top.Set(y, 0f);
                 slotsRow.Append(slot);
@@ -353,7 +377,6 @@ public class ArenasLoadoutUI : UIState
 
             int t;
 
-            // Armor
             t = ItemOrAir(def.Head);
             if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
 
@@ -363,7 +386,6 @@ public class ArenasLoadoutUI : UIState
             t = ItemOrAir(def.Legs);
             if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
 
-            // Accessories
             for (int i = 0; i < def.Accessories.Count; i++)
             {
                 t = ItemOrAir(def.Accessories[i]);
@@ -374,7 +396,6 @@ public class ArenasLoadoutUI : UIState
                 Add(it);
             }
 
-            // Hotbar
             for (int i = 0; i < def.Hotbar.Count; i++)
             {
                 var li = def.Hotbar[i];
@@ -384,10 +405,11 @@ public class ArenasLoadoutUI : UIState
                 var it = new Item();
                 it.SetDefaults(t);
                 it.stack = li.Stack;
-                Add(it);
+
+                Add(it, hotbarSlot);
+                hotbarSlot = hotbarSlot == 10 ? 1 : hotbarSlot + 1;
             }
 
-            // Grapple
             t = ItemOrAir(def.GrapplingHook);
             if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
 
@@ -396,12 +418,11 @@ public class ArenasLoadoutUI : UIState
 
             int rows = (count + Cols - 1) / Cols;
 
-            float slotsHeight = y + (rows - 1) * Step + Slot; 
+            float slotsHeight = y + (rows - 1) * Step + Slot;
             slotsRow.Top.Set(0f, 0f);
             slotsRow.Height.Set(slotsHeight, 0f);
 
-            float extra = (rows - 1) * Step;
-            Height.Set(108f, 0f);
+            Height.Set(144f, 0f);
         }
 
         public override void Update(GameTime gameTime)
@@ -420,6 +441,16 @@ public class ArenasLoadoutUI : UIState
                 Main.LocalPlayer.mouseInterface = true;
                 //Main.instance.MouseText(BuildTooltip(loadout));
             }
+        }
+
+        protected override void DrawSelf(SpriteBatch spriteBatch)
+        {
+            if (SubworldSystem.AnyActive())
+            {
+                DrawPlayerFullBright.ForceFullBrightOnce = true;
+            }
+            base.DrawSelf(spriteBatch);
+            //DrawPlayerFullBright.ForceFullBrightOnce = false;
         }
 
         public override void MouseOver(UIMouseEvent evt)
@@ -444,12 +475,15 @@ public class ArenasLoadoutUI : UIState
         public sealed class UILoadoutItemSlot : UIElement
         {
             private readonly Item item;
+            private readonly int? hotbarNumber;
             private const float Size = 36f;
 
-            public UILoadoutItemSlot(Item source)
+            public UILoadoutItemSlot(Item source, int? hotbarNumber = null)
             {
                 item = source.Clone();
-                Width.Set(Size, 0f); Height.Set(Size, 0f);
+                this.hotbarNumber = hotbarNumber;
+                Width.Set(Size, 0f);
+                Height.Set(Size, 0f);
             }
 
             protected override void DrawSelf(SpriteBatch sb)
@@ -461,11 +495,36 @@ public class ArenasLoadoutUI : UIState
                 sb.Draw(
                     TextureAssets.InventoryBack.Value,
                     center - TextureAssets.InventoryBack.Size() * bgScale * 0.5f,
-                    null, Color.White, 0f, Vector2.Zero, bgScale, SpriteEffects.None, 0f
+                    null,
+                    Color.White,
+                    0f,
+                    Vector2.Zero,
+                    bgScale,
+                    SpriteEffects.None,
+                    0f
                 );
 
                 if (!item.IsAir)
                     ItemSlot.DrawItemIcon(item, 31, sb, center, 0.8f, Size, Color.White);
+
+                if (hotbarNumber.HasValue)
+                {
+                    string text = hotbarNumber.Value == 10 ? "0" : hotbarNumber.Value.ToString();
+                    Vector2 pos = dim.Position() + new Vector2(4f, 2f);
+                    float scale = 0.7f;
+
+                    Utils.DrawBorderStringFourWay(
+                        sb,
+                        FontAssets.ItemStack.Value,
+                        text,
+                        pos.X,
+                        pos.Y,
+                        Color.White,
+                        new Color(20,20,20),
+                        Vector2.Zero,
+                        scale
+                    );
+                }
 
                 if (IsMouseHovering && !item.IsAir)
                 {
@@ -478,11 +537,12 @@ public class ArenasLoadoutUI : UIState
                 {
                     var text = item.stack.ToString();
                     var size = FontAssets.ItemStack.Value.MeasureString(text);
-                    var pos = dim.Position() + new Vector2(dim.Width - size.X / 4f - 24f, dim.Height - size.Y + 12f);
-                    Utils.DrawBorderString(sb, text, pos, Color.White, 0.65f);
+                    var pos = dim.Position() + new Vector2(dim.Width - size.X / 4f - 20f, dim.Height - size.Y + 10f);
+                    Utils.DrawBorderString(sb, text, pos, Color.White, 0.55f);
                 }
             }
         }
+
     }
 }
 

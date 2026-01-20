@@ -98,7 +98,7 @@ public class ServerConfig : ModConfig
     [BackgroundColor(40, 90, 40)]
     [Range(0, 60 * 60)]
     [DefaultValue(4 * 60)]
-    public int MapRecallFrames { get; set; }
+    public int AdventureMirrorRecallFrames { get; set; }
     [BackgroundColor(40, 90, 40)]
     [Range(0, 30 * 60)]
     [DefaultValue(1.5 * 60)]
@@ -111,6 +111,10 @@ public class ServerConfig : ModConfig
     [BackgroundColor(40, 90, 40)]
     [Range(0, 600)]
     public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
+
+    [BackgroundColor(40, 90, 40)]
+    [DefaultValue(true)]
+    public bool ShowPlayerTeamAndPvP { get; set; } = true;
 
     [Header("WorldGen")]
     [BackgroundColor(90, 70, 40)]

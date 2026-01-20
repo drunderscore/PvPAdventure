@@ -41,7 +41,7 @@ public class UISpawnState : UIState
 
     public override void OnActivate()
     {
-        Log.Chat("OnActivate() called");
+        //Log.Chat("OnActivate() called");
 
         // UI state settings
 

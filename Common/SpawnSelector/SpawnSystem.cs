@@ -47,7 +47,7 @@ public class SpawnSystem : ModSystem
 
     public static void ResetMapTimer()
     {
-        int frames = ModContent.GetInstance<ServerConfig>().MapRecallFrames;
+        int frames = ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallFrames;
         mapTimer = frames > 0 ? frames : 5 * 60;
     }
 

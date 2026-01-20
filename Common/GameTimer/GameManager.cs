@@ -417,6 +417,8 @@ public class GameManager : ModSystem
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
     private void OnPhaseChange(Phase newPhase)
     {
+        Log.Chat("New GamePhase: " + newPhase);
+
         switch (newPhase)
         {
             case Phase.Waiting:
@@ -428,8 +430,7 @@ public class GameManager : ModSystem
                         var spawnRegion = regions[0];
                         spawnRegion.CanRandomTeleport = false;
                         spawnRegion.CanUseWormhole = false;
-                        //spawnRegion.CanExit = false;
-                        Log.Chat("new phase waiting");
+                        spawnRegion.CanExit = false;
                     }
 
                     // Remove everything that is hostile
@@ -460,6 +461,9 @@ public class GameManager : ModSystem
                     UpdateFreezeTime(true);
 
                     // Broadcast end game summary
+#if DEBUG
+                    break;
+#endif
                     BroadcastEndGameSummary();
 
                     break;

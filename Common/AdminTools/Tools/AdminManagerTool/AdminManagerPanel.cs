@@ -1,8 +1,8 @@
 ﻿using DragonLens.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Assets;
 using PvPAdventure.Core.Debug;
+using PvPAdventure.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using Terraria;

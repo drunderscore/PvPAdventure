@@ -89,20 +89,26 @@ public class RegionManager : ModSystem
             // Allow leaving spawn when any subworld is active, even if phase is Waiting.
             if (IsSpawnRegion(r) && SubworldSystem.AnyActive())
                 return true;
-
             return r.CanExit;
         }
 
         bool ShouldPrevent(HashSet<Region> source, HashSet<Region> destination)
         {
+
             var differingIntersections = new HashSet<Region>(source);
             differingIntersections.SymmetricExceptWith(destination);
 
             foreach (var region in differingIntersections)
             {
+                if (Main.GameUpdateCount % 30 == 0)
+                {
+                    Log.Chat("CanExit: " + region.CanExit);
+                }
+
                 // Exiting a region
                 if (source.Contains(region))
                 {
+
                     if (!EffectiveCanExit(region))
                         return true;
                 }

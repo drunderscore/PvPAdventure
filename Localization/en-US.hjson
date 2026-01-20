@@ -26,6 +26,7 @@ Mods: {
 			DashKeybind.DisplayName: Dash Keybind
 			OpenArenasMenu.DisplayName: Open Arenas Menu
 			ArenasMenu.DisplayName: Arenas Menu
+			DLOpenConfigTool.DisplayName: DL Open Config Tool
 		}
 
 		Tools: {
@@ -83,6 +84,11 @@ Mods: {
 				DisplayName: Admin Manager
 				Description: Allows you to manage admin status of all players in the lobby.
 				CannotRemoveYourOwnAdminPermissions: Cannot remove your own admin permissions!
+			}
+
+			DLOpenConfigTool: {
+				DisplayName: Open config
+				Description: Opens the PvPAdventure server config.
 			}
 		}
 
@@ -192,26 +198,6 @@ Mods: {
 			JungleKeyMold: {
 				DisplayName: Jungle Key Mold
 				Tooltip: Used for crafting a Jungle Key
-			}
-
-			MatteConfig: {
-				DisplayName: Matte Config
-				Tooltip: ""
-			}
-
-			PlanterasBulbConfig: {
-				DisplayName: Planteras Bulb Config
-				Tooltip: ""
-			}
-
-			MapSpawnConfig: {
-				DisplayName: Map Spawn Config
-				Tooltip: ""
-			}
-
-			BoundArmsDealerConfig: {
-				DisplayName: Bound Arms Dealer Config
-				Tooltip: ""
 			}
 
 			ServerConfigItem: {
@@ -628,7 +614,7 @@ Mods: {
 				}
 
 				BoundSpawnChance: {
-					Label: "[i:PvPAdventure/BoundArmsDealerConfig] Bound Spawn Chance"
+					Label: "[i:PvPAdventure/BoundArmsDealerConfigItem] Bound Spawn Chance"
 					Tooltip: Percent chance that our bound NPCs spawn
 				}
 
@@ -716,6 +702,16 @@ Mods: {
 				BossSpawnAnnouncements: {
 					Label: Boss Spawn Announcements
 					Tooltip: ""
+				}
+
+				AdventureMirrorRecallFrames: {
+					Label: "[i:PvPAdventure/AdventureMirror] Adventure Mirror Recall Frames"
+					Tooltip: ""
+				}
+
+				ShowPlayerTeamAndPvP: {
+					Label: "[i:PvPAdventure/TeamConfigItem] Allow Players To Select Teams"
+					Tooltip: Whether to show the UI next to the accessories that allows players to select their own teams
 				}
 			}
 

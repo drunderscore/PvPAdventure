@@ -1,5 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Arenas;
+using PvPAdventure.Common.SSC;
+using PvPAdventure.Core.Utilities;
 using SubworldLibrary;
 using System;
 using Terraria.GameContent.UI.Elements;
@@ -29,15 +32,15 @@ public class ArenasJoinUI : UIState
 
         Root = new DraggableElement
         {
-            Width = new StyleDimension(240f, 0f),
+            Width = new StyleDimension(290f, 0f),
             Top = new StyleDimension(100f, 0f),
-            Height = new StyleDimension(150f, 0f),
+            Height = new StyleDimension(162f, 0f),
             HAlign = 0.5f
         };
         Append(Root);
 
-        // Title
-        var title = new UITextPanel<string>("Arenas", 0.6f, large: true)
+            // Title
+        var title = new UITextPanel<string>("Choose Your World", 0.6f, large: true)
         {
             HAlign = 0.5f,
             BackgroundColor = new Color(73, 94, 171)
@@ -74,20 +77,70 @@ public class ArenasJoinUI : UIState
         list.Top.Set(0f, 0f);
         Container.Append(list);
 
-        enterButton = CreateButton("Enter Arenas", () => SubworldSystem.Enter<ArenasSubworld>());
-        enterButton.SetPadding(8f);
-        enterButton.MinHeight.Set(panelHeight, 0f); // same height as title (derived from scale)
-        list.Add(enterButton);
+        // Enter Arenas (with icon)
+        var arenasRow = CreateButtonWithIcon(
+            Ass.Icon_Arenas.Value,
+            "Enter Arenas",
+            () => SubworldSystem.Enter<ArenasSubworld>(),
+            panelHeight
+        );
+        list.Add(arenasRow);
 
-        var closeButton = CreateButton("Close Menu", ArenasUISystem.Close);
-        closeButton.SetPadding(8f);
-        closeButton.MinHeight.Set(panelHeight, 0f);
-        list.Add(closeButton);
+        // Enter Main World (with globe icon)
+        var mainWorldRow = CreateButtonWithIcon(
+            Ass.Icon_StartGame.Value, // replace with your actual globe asset field
+            "Enter Main World",
+            EnterMainWorld,
+            panelHeight
+        );
+        list.Add(mainWorldRow);
 
         // Recalc after modifications
         Root.Recalculate();
     }
 
+    private void EnterMainWorld()
+    {
+        ArenasUISystem.Close();
+        SSCJoinSystem.SendJoinRequest();
+    }
+
+    private static UIElement CreateButtonWithIcon(Texture2D icon, string text, Action onClick, float minHeight)
+    {
+        var row = new UIElement();
+        row.Width.Set(0f, 1f);
+        row.MinHeight.Set(minHeight, 0f);
+
+        var panel = new UIPanel();
+        panel.Width.Set(0f, 1f);
+        panel.MinHeight.Set(minHeight, 0f);
+        panel.SetPadding(0f);
+
+        // Match UITextPanel look/behavior you already use
+        panel.OnLeftClick += (_, _) => onClick();
+        panel.OnMouseOver += (_, _) => panel.BorderColor = Color.Yellow;
+        panel.OnMouseOut += (_, _) => panel.BorderColor = Color.Black;
+
+        row.Append(panel);
+
+        var iconImage = new UIImage(icon);
+        iconImage.Left.Set(8, 0f);
+
+        if (icon == Ass.Icon_StartGame.Value)
+            iconImage.Top.Set(3, 0);
+
+        panel.Append(iconImage);
+
+        // Text that starts AFTER the icon
+        var label = new UIText(text, 0.5f, large: true);
+        label.TextOriginX = 0;
+        label.TextOriginY = 0;
+        label.Left.Set(50, 0f);
+        label.VAlign = 0.5f;
+        panel.Append(label);
+
+        return row;
+    }
 
     public static UITextPanel<string> CreateButton(string text, Action onClick)
     {

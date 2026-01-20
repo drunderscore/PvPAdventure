@@ -274,7 +274,7 @@ public class SSC : ModSystem
         }
         catch (Exception e)
         {
-            Log.Chat("Server failed saving SSC player");
+            Log.Chat("Server failed saving SSC player with error: " + e);
             ModContent.GetInstance<PvPAdventure>().Logger.Error(e);
         }
     }

@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common;
-using PvPAdventure.Core.Assets;
+using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using Terraria;
 using Terraria.Audio;

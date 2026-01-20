@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Assets;
+using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
