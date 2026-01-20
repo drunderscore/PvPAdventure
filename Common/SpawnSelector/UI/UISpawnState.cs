@@ -1,11 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.Localization;
+using Terraria.ModLoader;
+using Terraria.ModLoader.Config;
 using Terraria.UI;
 
 namespace PvPAdventure.Common.SpawnSelector.UI;
@@ -22,6 +25,7 @@ public class UISpawnState : UIState
     // UI components
     public UIPanel backgroundPanel;
     private UITextPanel<string> chooseYourSpawnPanel;
+    public UITextPanel<string> TitlePanel => chooseYourSpawnPanel;
 
     // UI components which are a part of backgroundPanel
     private UIRandomTeleportPanel randomPanel;
@@ -45,20 +49,15 @@ public class UISpawnState : UIState
 
         // UI state settings
 
-        // Title
-        chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.Spawn.ChooseYourSpawn"), 0.75f, true)
-        {
-            HAlign = 0.5f,
-            BackgroundColor = new Color(73, 94, 171),
-            Top = new StyleDimension(42, 0)
-        };
+        
 
         // Background panel
         backgroundPanel = new()
         {
             HAlign = 0.5f,
-            Top = new StyleDimension(82, 0),
-            BackgroundColor = new Color(33, 43, 79) * 1f
+            Top = new StyleDimension(-22, 0),
+            BackgroundColor = new Color(33, 43, 79) * 1f,
+            VAlign = 1.0f,
         };
         backgroundPanel.SetPadding(0f);
         Append(backgroundPanel);
@@ -66,8 +65,20 @@ public class UISpawnState : UIState
         // Rebuild
         Rebuild();
 
-        // Add title last, on top of everything else
-        Append(chooseYourSpawnPanel);
+        // Title
+        var config = ModContent.GetInstance<ClientConfig>();
+        if (config.ShowChooseYourSpawnText)
+        {
+            chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.Spawn.ChooseYourSpawn"), 0.75f, true)
+            {
+                HAlign = 0.5f,
+                BackgroundColor = new Color(73, 94, 171),
+                Top = new StyleDimension(-110, 0),
+                VAlign = 1.0f,
+            };
+            // Add title last, on top of everything else
+            Append(chooseYourSpawnPanel);
+        }
     }
 
     public override void Update(GameTime gameTime)
@@ -106,6 +117,10 @@ public class UISpawnState : UIState
         }
 
         base.Update(gameTime);
+    }
+    public void RebuildPublic()
+    {
+        Rebuild();
     }
 
     private void Rebuild()

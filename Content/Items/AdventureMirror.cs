@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.GameTimer;
+﻿using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
@@ -33,7 +32,35 @@ internal class AdventureMirror : ModItem
         Item.noUseGraphic = false;
     }
     public override bool ConsumeItem(Player player) => false;
-    public override bool? UseItem(Player player) => true;
+    public override bool? UseItem(Player player)
+    {
+        //if (Main.netMode == NetmodeID.MultiplayerClient)
+        //{
+        //    ModPacket p = Mod.GetPacket();
+        //    p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
+        //    p.Write((byte)player.whoAmI);
+        //    p.Write((byte)player.selectedItem);
+        //    p.Send();
+        //}
+
+        return true;
+    }
+    public override void UseItemFrame(Player player)
+    {
+        if (player.itemAnimation == Item.useAnimation)
+        {
+            ResetUseTimer(player);
+        }
+    }
+
+    private void ResetUseTimer(Player player)
+    {
+        int recallFrames = ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallFrames;
+
+        player.itemTime = recallFrames + 1;
+        player.itemAnimation = recallFrames + 1;
+        player.reuseDelay = 0;
+    }
 
     #region Right click use
     public override bool CanRightClick() => true;
@@ -41,20 +68,30 @@ internal class AdventureMirror : ModItem
 
     public override void RightClick(Player player)
     {
-        if (player.whoAmI != Main.myPlayer || !CanUseItem(player))
+        TryUse(player);
+    }
+
+    public static void TryUse(Player player)
+    {
+        if (player == null || player.whoAmI != Main.myPlayer)
             return;
 
-        int index = -1;
         for (int i = 0; i < player.inventory.Length; i++)
         {
-            if (player.inventory[i] == Item)
+            if (player.inventory[i].ModItem is AdventureMirror mirror)
             {
-                index = i;
-                break;
+                mirror.TryUseInternal(player, i);
+                return;
             }
         }
+    }
 
-        if (index == -1 || player.CCed || player.itemAnimation > 0 || player.reuseDelay > 0)
+    private void TryUseInternal(Player player, int index)
+    {
+        if (!CanUseItem(player))
+            return;
+
+        if (player.CCed || player.itemAnimation > 0 || player.reuseDelay > 0)
             return;
 
         if (Main.netMode == NetmodeID.SinglePlayer)
@@ -77,6 +114,7 @@ internal class AdventureMirror : ModItem
             p.Send();
         }
     }
+
     #endregion
 
     public override bool CanUseItem(Player player)
@@ -106,6 +144,7 @@ internal class AdventureMirror : ModItem
     {
         player.controlUseItem = false;
         player.channel = false;
+
         player.itemAnimation = 0;
         player.itemTime = 0;
         player.reuseDelay = 0;
@@ -115,7 +154,10 @@ internal class AdventureMirror : ModItem
     {
         base.UseStyle(player, heldItemFrame);
 
-        // If this player moves, cancel their use
+        player.controlUseItem = false;
+        player.channel = false;
+
+        // If this player moves, cancel their use and reset
         if (player.velocity.LengthSquared() > 0)
         {
             Warning(player, "Mods.PvPAdventure.AdventureMirror.Cancelled");
@@ -123,20 +165,33 @@ internal class AdventureMirror : ModItem
             return;
         }
 
-        // Spawn dust for all to see
-        if (Main.rand.NextBool())
-            Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror, player.velocity.X * 0.5f, player.velocity.Y * 0.5f, 150, default, 1.5f);
+        int framesLeft = player.itemTime - 2;
+        if (framesLeft < 0)
+            framesLeft = 0;
 
-        // Show countdown for all to see
-        int secondsLeft = (player.itemTime + 59) / 60;
-        if (player.itemTime % 60 == 0 && secondsLeft > 0)
+        int secondsLeft = (framesLeft + 59) / 60;
+
+        // Stop dust once we are at 0
+        //if (framesLeft > 0)
         {
-            // Check if the config allows popup text
-            var config = ModContent.GetInstance<ClientConfig>();
-            //if (!config.ShowPopupText)
-            //return;
+            if (Main.rand.NextBool())
+                Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror,
+                player.velocity.X * 0.5f, player.velocity.Y * 0.5f, 150, default, 1.5f);
+        }
 
-            // Create and display the popup text
+        // Countdown popup
+        if (framesLeft == 2 && player.reuseDelay == 0)
+        {
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.MediumPurple,
+                Text = "0",
+                Velocity = new(0f, -4),
+                DurationInFrames = 120
+            }, player.Top + new Vector2(0, -4));
+        }
+        else if (framesLeft >= 2 && player.itemTime % 60 == 0 && secondsLeft > 0)
+        {
             PopupText.NewText(new AdvancedPopupRequest
             {
                 Color = Color.MediumPurple,
@@ -147,10 +202,16 @@ internal class AdventureMirror : ModItem
             return;
         }
 
-        // Teleport the player who used the item to their spawn
-        if (player.whoAmI == Main.myPlayer && player.itemTime == 1)
+        // Make held item hold on indefinitely.
+        if (player.itemTime <= 2)
         {
-            player.Spawn(PlayerSpawnContext.RecallFromItem);
+            player.itemTime = 2;
+
+            if (player.itemAnimation < 2)
+                player.itemAnimation = 2;
+
+            if (player.reuseDelay < 2)
+                player.reuseDelay = 2;
         }
     }
 

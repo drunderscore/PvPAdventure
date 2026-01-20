@@ -212,6 +212,11 @@ public class UISpawnCharacter : UIPanel
 
         if (player == null || !player.active)
         {
+            // Force rebuild?
+            // NO DON'T, ENUMERATION WAS MODIFIED WHILE DRAWING, THIS WILL CRASH!
+            //var sys = ModContent.GetInstance<SpawnSystem>();
+            //sys.spawnState.RebuildPublic();
+
             var rect2 = d.ToRectangle();
 
             Utils.DrawBorderString(sb, "Unable to find player :(", rect2.Location.ToVector2() + new Vector2(50, 0), Color.White);

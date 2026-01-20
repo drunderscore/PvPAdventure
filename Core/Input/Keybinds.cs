@@ -5,6 +5,7 @@ using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.GameInput;
@@ -20,6 +21,7 @@ public class Keybinds : ModSystem
     public ModKeybind AllChat { get; private set; }
     public ModKeybind Dash { get; private set; }
     public ModKeybind ArenasMenu { get; private set; }
+    public ModKeybind UseAdventureMirror { get; private set; }
 
     public override void Load()
     {
@@ -28,6 +30,7 @@ public class Keybinds : ModSystem
         AllChat = KeybindLoader.RegisterKeybind(Mod, "AllChat", Keys.U);
         Dash = KeybindLoader.RegisterKeybind(Mod, "Dash", Keys.F);
         ArenasMenu = KeybindLoader.RegisterKeybind(Mod, "ArenasMenu", Keys.F1);
+        UseAdventureMirror = KeybindLoader.RegisterKeybind(Mod, "UseAdventureMirror", Keys.G);
     }
 }
 
@@ -70,6 +73,11 @@ internal class KeybindsPlayer : ModPlayer
         if (config.IsArenasEnabled && keybinds.ArenasMenu.JustPressed)
         {
             ArenasUISystem.Toggle();
+        }
+
+        if (keybinds.UseAdventureMirror.JustPressed)
+        {
+            AdventureMirror.TryUse(Player);
         }
     }
 }

@@ -136,8 +136,8 @@ public class SpawnHooks : ModSystem
         if (p.respawnTimer <= 2 && SpawnSystem.CanTeleport)
             seconds = 0;
 
-        if (SpectateSystem.HoveringType != SpawnType.None || seconds == 0)
-            y += 260f;
+        //if (SpectateSystem.HoveringType != SpawnType.None || seconds == 0)
+            //y += 260f;
 
         string title = Lang.inter[38].Value;
 

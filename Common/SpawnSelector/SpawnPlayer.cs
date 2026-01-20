@@ -30,6 +30,10 @@ public class SpawnPlayer : ModPlayer
 
     public bool HasSelection => SelectedType != SpawnType.None;
 
+    // Save last selected
+    private SpawnType lastSelectedType = SpawnType.None;
+    private int lastSelectedPlayerIndex = -1;
+
     public bool IsPlayerInSpawnRegion()
     {
         Point tilePos = Player.Center.ToTileCoordinates();
@@ -110,6 +114,13 @@ public class SpawnPlayer : ModPlayer
                 ? playerIndex
                 : -1;
 
+        // Remember last valid selection
+        if (SelectedType != SpawnType.None)
+        {
+            lastSelectedType = SelectedType;
+            lastSelectedPlayerIndex = SelectedPlayerIndex;
+        }
+
         if (Player.whoAmI == Main.myPlayer)
         {
             if (SelectedType == SpawnType.None)
@@ -127,6 +138,14 @@ public class SpawnPlayer : ModPlayer
             Player.respawnTimer = 1;
 
         SendSelectionIfNeeded();
+    }
+
+    public void RestoreLastSelection()
+    {
+        if (lastSelectedType == SpawnType.None)
+            return;
+
+        ToggleSelection(lastSelectedType, lastSelectedPlayerIndex);
     }
 
     private static string FormatSpawn(SpawnType type, int idx)

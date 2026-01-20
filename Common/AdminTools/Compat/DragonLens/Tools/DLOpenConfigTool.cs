@@ -51,15 +51,18 @@ public class DLOpenConfigTool : Tool
         Interface.modConfig.SetMod(
             Mod,
             serverConfig,
-            openedFromModder: true,          
-            onClose: OnConfigClosed,      
+            openedFromModder: true,
+            onClose: OnConfigClosed,
             scrollToOption: null,
             centerScrolledOption: true
         );
 
-        Main.InGameUI.SetState(Interface.modConfig);
-        Main.menuMode = 10024;
-        Main.playerInventory = false;
+        IngameFancyUI.OpenUIState(Interface.modConfig as UIState);
+
+
+        //Main.InGameUI.SetState(Interface.modConfig);
+        //Main.menuMode = 10024;
+        //Main.playerInventory = false;
     }
 
     private static void OnConfigClosed()

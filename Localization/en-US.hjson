@@ -27,6 +27,7 @@ Mods: {
 			OpenArenasMenu.DisplayName: Open Arenas Menu
 			ArenasMenu.DisplayName: Arenas Menu
 			DLOpenConfigTool.DisplayName: DL Open Config Tool
+			UseAdventureMirror.DisplayName: Use Adventure Mirror
 		}
 
 		Tools: {
@@ -207,7 +208,11 @@ Mods: {
 
 			AdventureMirror: {
 				DisplayName: Adventure Mirror
-				Tooltip: ""
+				Tooltip:
+					'''
+					Gaze in the mirror to go on adventures
+					Right click to use
+					'''
 			}
 
 			AdminManagerConfigItem: {
@@ -282,6 +287,26 @@ Mods: {
 
 			ChatConfigItem: {
 				DisplayName: Chat Config Item
+				Tooltip: ""
+			}
+
+			DeadConfigItem: {
+				DisplayName: Dead Config Item
+				Tooltip: ""
+			}
+
+			OffConfigItem: {
+				DisplayName: Off Config Item
+				Tooltip: ""
+			}
+
+			OnConfigItem: {
+				DisplayName: On Config Item
+				Tooltip: ""
+			}
+
+			QuestionConfigItem: {
+				DisplayName: Question Config Item
 				Tooltip: ""
 			}
 		}
@@ -379,8 +404,18 @@ Mods: {
 				}
 
 				AutoSelectWorldSpawnWhenRespawning: {
-					Label: "[i:PvPAdventure/MapSpawnConfigItem] Auto Select World Spawn"
+					Label: "[i:PvPAdventure/MapSpawnConfigItem] Auto Select World On Death"
 					Tooltip: When you die, the world spawn is automatically selected as your spawn point
+				}
+
+				AutoSelectLatestSpawnOption: {
+					Label: "[i:PvPAdventure/QuestionConfigItem] Auto Select Latest"
+					Tooltip: Automatically selects the latest spawn option when using Adventure Mirror
+				}
+
+				ShowChooseYourSpawnText: {
+					Label: Show Choose Your Spawn Text
+					Tooltip: ""
 				}
 			}
 

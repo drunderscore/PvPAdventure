@@ -34,7 +34,13 @@ public class ClientConfig : ModConfig
 
     [Header("SpawnSelector")]
     [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)] public bool ShowChooseYourSpawnText;
+
+    [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool AutoSelectWorldSpawnWhenRespawning;
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)] public bool AutoSelectLatestSpawnOption;
 
     [Header("Debug")]
     [DefaultValue(false)] public bool ShowDebugMessages;

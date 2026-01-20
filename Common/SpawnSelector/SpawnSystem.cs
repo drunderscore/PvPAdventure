@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector.UI;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
@@ -41,22 +42,110 @@ public class SpawnSystem : ModSystem
 
     // Map timer
     private bool wasShowingUI;
+    private bool wasInSpawnRegion;
     private bool sessionWasOpen;
-    private static int mapTimer;
     private static bool SessionOpen => Main.mapFullscreen || SpectateSystem.MapRestore;
 
-    public static void ResetMapTimer()
+    public override void UpdateUI(GameTime gameTime)
     {
-        int frames = ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallFrames;
-        mapTimer = frames > 0 ? frames : 5 * 60;
+        Player local = Main.LocalPlayer;
+        if (local == null || local.ghost)
+        {
+            ui.SetState(null);
+            return;
+        }
+
+        var sp = local.GetModPlayer<SpawnPlayer>();
+
+        // Conditions whether we should open the spawn UI or not
+        bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+        bool inSubworld = SubworldSystem.AnyActive();
+        bool inSpawnRegion = sp.IsPlayerInSpawnRegion();
+        bool usingMirror = IsUsingAdventureMirror(local, out bool mirrorReady, out _);
+
+        Enabled = (playing || inSubworld) && (inSpawnRegion || usingMirror);
+
+        bool enteredSpawnRegion = inSpawnRegion && !wasInSpawnRegion;
+        wasInSpawnRegion = inSpawnRegion;
+
+        bool blockExecuteThisTick = enteredSpawnRegion && !usingMirror && !local.dead;
+
+        if (blockExecuteThisTick)
+        {
+            sp.ClearSelection();
+            SetCanTeleport(false);
+        }
+
+        if (local.dead)
+        {
+            SetCanTeleport(local.respawnTimer <= 2);
+        }
+        else
+        {
+            if (InstantTeleport(local))
+            {
+                SetCanTeleport(true);
+            }
+            else if (usingMirror)
+            {
+                SetCanTeleport(mirrorReady);
+            }
+            else
+            {
+                SetCanTeleport(false);
+            }
+        }
+
+        if (CanTeleport && !blockExecuteThisTick)
+            TryExecuteSelection(local);
+
+        bool show = (playing || inSubworld) && (local.dead || Enabled);
+        if (!show)
+        {
+            wasShowingUI = false;
+            ui.SetState(null);
+            return;
+        }
+
+        if (!wasShowingUI || ui.CurrentState != spawnState)
+        {
+            spawnState = new UISpawnState();
+            ui.SetState(spawnState);
+
+            var config = ModContent.GetInstance<ClientConfig>();
+            if (config.AutoSelectLatestSpawnOption && usingMirror)
+                Main.LocalPlayer?.GetModPlayer<SpawnPlayer>().RestoreLastSelection();
+
+            wasShowingUI = true;
+        }
+
+        ui.Update(gameTime);
     }
 
-    private static bool InstantTeleport(Player p)
+
+    private static bool IsUsingAdventureMirror(Player player, out bool ready, out int secondsLeft)
     {
-        if (p == null || !p.active || p.dead || !Enabled)
+        ready = false;
+        secondsLeft = 0;
+
+        if (player == null || !player.active)
             return false;
 
-        return p.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
+        if (player.itemAnimation <= 0)
+            return false;
+
+        int mirrorType = ModContent.ItemType<AdventureMirror>();
+        if (player.HeldItem == null || player.HeldItem.type != mirrorType)
+            return false;
+
+        ready = player.itemTime <= 2;
+
+        int framesLeft = player.itemTime - 2;
+        if (framesLeft <= 2)
+            framesLeft = 0;
+
+        secondsLeft = (framesLeft + 59) / 60;
+        return true;
     }
 
     public static bool IsValidTeammateIndex(Player requester, int idx)
@@ -79,18 +168,26 @@ public class SpawnSystem : ModSystem
 
     public static bool IsValidTeammateIndex(int idx) => IsValidTeammateIndex(Main.LocalPlayer, idx);
 
-    private void ClearSelection()
+    #region Teleport methods
+    private static bool InstantTeleport(Player p)
     {
-        Player p = Main.LocalPlayer;
-        if (p == null)
-            return;
+        if (p == null || !p.active || p.dead || !Enabled)
+            return false;
 
-        p.GetModPlayer<SpawnPlayer>().ClearSelection();
+        return p.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
     }
 
     private void OnTeleportExecuted()
     {
-        ResetMapTimer();
+        var p = Main.LocalPlayer;
+        if (p != null && p.active)
+        {
+            // HARD reset mirror use state
+            p.itemTime = 0;
+            p.itemAnimation = 0;
+            p.reuseDelay = 0;
+        }
+
         SetCanTeleport(false);
 
         SpectateSystem.MapRestore = false;
@@ -202,6 +299,16 @@ public class SpawnSystem : ModSystem
 
         p.Teleport(pos, TeleportationStyleID.RecallPotion);
     }
+    #endregion
+
+    private void ClearSelection()
+    {
+        Player p = Main.LocalPlayer;
+        if (p == null)
+            return;
+
+        p.GetModPlayer<SpawnPlayer>().ClearSelection();
+    }
 
     private void TryExecuteSelection(Player p)
     {
@@ -279,99 +386,62 @@ public class SpawnSystem : ModSystem
         Main.OnPostFullscreenMapDraw -= DrawOnFullscreenMap;
     }
 
-    public override void UpdateUI(GameTime gameTime)
+    //private void DrawMapCountdown(SpriteBatch sb)
+    //{
+    //    if (Main.LocalPlayer?.GetModPlayer<SpawnPlayer>()?.IsPlayerInSpawnRegion() == true)
+    //        return;
+
+    //    string text = "";
+
+    //    if (Main.LocalPlayer != null && Main.LocalPlayer.dead && Main.mapFullscreen)
+    //    {
+    //        int secondsLeft = (Main.LocalPlayer.respawnTimer + 59) / 60;
+    //        if (Main.LocalPlayer.respawnTimer <= 2)
+    //            secondsLeft = 0;
+
+    //        text = "Dead: " + secondsLeft.ToString();
+    //    }
+    //    else if (SessionOpen)
+    //    {
+    //        int secondsLeft = (mapTimer + 59) / 60;
+    //        if (secondsLeft < 0)
+    //            secondsLeft = 0;
+
+    //        text = secondsLeft.ToString();
+    //    }
+
+    //    if (text.Length == 0)
+    //        return;
+
+    //    Vector2 size = FontAssets.DeathText.Value.MeasureString(text);
+    //    Vector2 pos = new Vector2(Main.screenWidth * 0.5f - size.X * 0.5f, -4f);
+    //    Utils.DrawBorderStringBig(sb, text, pos, Color.White);
+    //}
+
+    private void DrawAdventureMirrorTimer(SpriteBatch sb)
     {
-        Player local = Main.LocalPlayer;
-        if (local == null || Main.LocalPlayer.ghost)
-        {
-            ui.SetState(null);
-            return;
-        }
-
-        bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
-        bool inSpawnRegion = local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
-        bool sessionOpen = SessionOpen;
-        bool inSubworld = SubworldSystem.AnyActive();
-
-        Enabled = playing && !Main.playerInventory && (inSpawnRegion || sessionOpen)
-            || inSubworld && !Main.playerInventory && (inSpawnRegion || sessionOpen);
-
-        if (sessionOpen && !sessionWasOpen)
-        {
-            ResetMapTimer();
-            ClearSelection();
-        }
-        else if (!sessionOpen && sessionWasOpen)
-        {
-            ClearSelection();
-        }
-
-        if (sessionOpen && mapTimer > 0)
-            mapTimer--;
-
-        sessionWasOpen = sessionOpen;
-
-        if (local.dead)
-        {
-            SetCanTeleport(local.respawnTimer <= 2);
-        }
-        else
-        {
-            SetCanTeleport(InstantTeleport(local) || (sessionOpen && mapTimer <= 0));
-        }
-
-        // Execute selection whenever we actually can (restores instant teleport from spawn region)
-        if (CanTeleport)
-            TryExecuteSelection(local);
-
-        bool show = playing && (local.dead || Enabled)
-            || inSubworld && (local.dead || Enabled);
-        if (!show)
-        {
-            wasShowingUI = false;
-            ui.SetState(null);
-            return;
-        }
-
-        if (!wasShowingUI || ui.CurrentState != spawnState)
-        {
-            spawnState = new UISpawnState();
-            ui.SetState(spawnState);
-            wasShowingUI = true;
-        }
-
-        ui.Update(gameTime);
-    }
-
-    private void DrawMapCountdown(SpriteBatch sb)
-    {
-        if (Main.LocalPlayer?.GetModPlayer<SpawnPlayer>()?.IsPlayerInSpawnRegion() == true)
+        var local = Main.LocalPlayer;
+        if (local == null)
             return;
 
-        string text = "";
-
-        if (Main.LocalPlayer != null && Main.LocalPlayer.dead && Main.mapFullscreen)
-        {
-            int secondsLeft = (Main.LocalPlayer.respawnTimer + 59) / 60;
-            if (Main.LocalPlayer.respawnTimer <= 2)
-                secondsLeft = 0;
-
-            text = "Dead: " + secondsLeft.ToString();
-        }
-        else if (SessionOpen)
-        {
-            int secondsLeft = (mapTimer + 59) / 60;
-            if (secondsLeft < 0)
-                secondsLeft = 0;
-
-            text = secondsLeft.ToString();
-        }
-
-        if (text.Length == 0)
+        if (!IsUsingAdventureMirror(local, out _, out int secondsLeft))
             return;
+
+        if (spawnState?.TitlePanel == null)
+            return;
+
+        var dims = spawnState.TitlePanel.GetDimensions();
+
+        string text = secondsLeft.ToString();
 
         Vector2 size = FontAssets.DeathText.Value.MeasureString(text);
-        Vector2 pos = new Vector2(Main.screenWidth * 0.5f - size.X * 0.5f, -4f);
+
+        // Right of title panel, vertically centered
+        Vector2 pos = new(
+            dims.X + dims.Width + 12f,
+            dims.Y + (dims.Height - size.Y) * 0.5f + 8f
+        );
+
         Utils.DrawBorderStringBig(sb, text, pos, Color.White);
     }
 
@@ -385,15 +455,16 @@ public class SpawnSystem : ModSystem
             RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
 
         ui.Draw(sb, Main._drawInterfaceGameTime);
-        DrawMapCountdown(sb);
+        DrawAdventureMirrorTimer(sb);
+        //DrawMapCountdown(sb);
 
         sb.End();
     }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
-        int idx = layers.FindIndex(l => l.Name == "Vanilla: Mouse Text");
-
+        int idx = layers.FindIndex(l => l.Name == "Vanilla: Death Text");
+        
         if (IsAnyConfigUIOpen())
             idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
 
@@ -407,8 +478,11 @@ public class SpawnSystem : ModSystem
                 if (Main.mapFullscreen || ui?.CurrentState == null)
                     return true;
 
-                ui.Draw(Main.spriteBatch, Main._drawInterfaceGameTime);
-                DrawMapCountdown(Main.spriteBatch);
+                var sb = Main.spriteBatch;
+
+                ui.Draw(sb, Main._drawInterfaceGameTime);
+                //DrawMapCountdown(sb);
+                DrawAdventureMirrorTimer(sb);
                 return true;
             },
             InterfaceScaleType.UI));
