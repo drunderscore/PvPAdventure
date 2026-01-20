@@ -1,6 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
-using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using Steamworks;
 using System;
@@ -10,7 +9,6 @@ using Terraria.ID;
 using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using Terraria.Net;
 using static PvPAdventure.Common.SSC.Appearance;
 
 namespace PvPAdventure.Common.SSC;
@@ -110,6 +108,7 @@ public class SSC : ModSystem
 
             data = File.ReadAllBytes(plrPath);
             root = TagIO.FromFile(tplrPath);
+            ApplySscStatsToServerPlayer(from, root);
         }
 
         var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
@@ -122,6 +121,30 @@ public class SSC : ModSystem
         p.Send(toClient: from);
 
         Log.Chat("Server sent SSC load for " + nameFromClient + " bytes=" + data.Length);
+    }
+
+    private static void ApplySscStatsToServerPlayer(int whoAmI, TagCompound root)
+    {
+        if (whoAmI < 0 || whoAmI >= Main.maxPlayers)
+            return;
+
+        Player p = Main.player[whoAmI];
+        if (p == null || !p.active)
+            return;
+
+        if (!root.ContainsKey("PvPAdventureSSC"))
+            return;
+
+        TagCompound ssc = root.GetCompound("PvPAdventureSSC");
+
+        var stats = p.GetModPlayer<StatisticsPlayer>();
+        stats.ApplySscOverride(ssc);
+
+        // Push the corrected values to everyone (including the joining client)
+        // so the server does not overwrite SSC-loaded client state with 0/0.
+        typeof(StatisticsPlayer)
+            .GetMethod("SyncStatistics", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?.Invoke(stats, [-1, -1]);
     }
 
     private static void LoadPlayer(BinaryReader reader)

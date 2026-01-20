@@ -105,9 +105,9 @@ public class UISpawnCharacter : UIPanel
         if (bedButton != null && bedButton.IsMouseHovering)
             return;
 
-        bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
-        if (!playing)
-            return;
+        //bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+        //if (!playing)
+            //return;
 
         Player local = Main.LocalPlayer;
         if (local == null || !local.active)

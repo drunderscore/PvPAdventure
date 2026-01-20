@@ -36,7 +36,7 @@ public class ArenasSubworld : Subworld
     {
         return
         [
-            //Pass("AdjustWorldHeight", AdjustWorldHeight),
+            Pass("AdjustWorldHeight", AdjustWorldHeight),
             Pass("GeneratePvPArena", GeneratePvPArena)
             //Pass("Arenas", GenerateArenas),
         ];
@@ -48,7 +48,7 @@ public class ArenasSubworld : Subworld
         {
             var mod = ModContent.GetInstance<PvPAdventure>();
             //var path = Path.Combine(Main.WorldPath, "");
-            var path = "Common/Arenas/WorldFiles/Arenas_v5.wld";
+            var path = "Common/Arenas/WorldFiles/Arenas_v9.wld";
             var worldFileBytes = mod.GetFileBytes(path);
             var memoryStream = new MemoryStream(worldFileBytes);
             BinaryReader reader = new(memoryStream);
@@ -67,7 +67,7 @@ public class ArenasSubworld : Subworld
 
         // move spawn pos up
         Main.spawnTileX += 3;
-        Main.spawnTileY -= 100;
+        Main.spawnTileY -= 110;
     }
 
     private static void GenerateArenas()

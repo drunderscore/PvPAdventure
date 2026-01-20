@@ -214,11 +214,11 @@ internal class CombatPlayer : ModPlayer
             return false;
 
         // Detect new swing RIGHT HERE before collision check
-        if (Player.itemAnimation > 0 && _lastItemAnimation == 0)
-        {
-            _currentMeleeUseId++;
-            _lastItemAnimation = Player.itemAnimation;
-        }
+        //if (Player.itemAnimation > 0 && _lastItemAnimation == 0)
+        //{
+        //    _currentMeleeUseId++;
+        //    _lastItemAnimation = Player.itemAnimation;
+        //}
 
         var targetAdventurePlayer = target.GetModPlayer<CombatPlayer>();
 
@@ -265,6 +265,11 @@ internal class CombatPlayer : ModPlayer
     }
     public override void PreUpdate()
     {
+        if (Player.itemAnimation > 0 && _lastItemAnimation == 0)
+            _currentMeleeUseId++;
+
+        _lastItemAnimation = Player.itemAnimation;
+
         for (var i = 0; i < _playerMeleeInvincibleTime.Length; i++)
         {
             if (_playerMeleeInvincibleTime[i] > 0)

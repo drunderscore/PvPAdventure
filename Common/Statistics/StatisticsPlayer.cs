@@ -54,6 +54,17 @@ internal class StatisticsPlayer : ModPlayer
         }
     }
 
+    internal void ApplySscOverride(TagCompound tag)
+    {
+        Kills = tag.GetInt("kills");
+        Deaths = tag.GetInt("deaths");
+
+        int[] pickups = tag.Get<int[]>("itemPickups");
+        ItemPickups = pickups != null ? pickups.ToHashSet() : new HashSet<int>();
+
+        Player.team = tag.GetInt("team");
+    }
+
     public sealed class ItemPickup(int[] items) : IPacket<ItemPickup>
     {
         public int[] Items { get; } = items;

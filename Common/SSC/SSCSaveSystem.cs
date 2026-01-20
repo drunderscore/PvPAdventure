@@ -1,7 +1,9 @@
-﻿using PvPAdventure.Core.Debug;
+﻿using PvPAdventure.Common.Statistics;
+using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using Steamworks;
 using System;
+using System.Linq;
 using Terraria;
 using Terraria.ID;
 using Terraria.IO;
@@ -66,8 +68,33 @@ internal class SSCSaveSystem : ModSystem
             var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
             var fileData = Main.ActivePlayerFileData;
             var name = fileData.Player.name;
+
+            // Save map data! Does this work?
+            try
+            {
+                Player.InternalSaveMap(false);
+            }
+            catch (Exception e)
+            {
+                Mod.Logger.Warn("SSC: InternalSaveMap failed; map data may not persist. " + e);
+            }
+
+            // Save plr and tplr files
             var plr = Player.SavePlayerFile_Vanilla(fileData);
             var tplr = PlayerIO.SaveData(fileData.Player);
+
+            // Save custom stats
+            var stats = fileData.Player.GetModPlayer<StatisticsPlayer>();
+
+            tplr["PvPAdventureSSC"] = new TagCompound
+            {
+                ["kills"] = stats.Kills,
+                ["deaths"] = stats.Deaths,
+                ["itemPickups"] = stats.ItemPickups.ToArray(),
+                ["team"] = fileData.Player.team
+            };
+
+            // Save client backup plr and tplr files
             ClientBackup.WriteBackup(name, plr, tplr);
 
             var packet = Mod.GetPacket();

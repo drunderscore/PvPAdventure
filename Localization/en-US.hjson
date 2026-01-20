@@ -1402,7 +1402,7 @@ Mods: {
 
 				RevealMap: {
 					Label: Reveal Map
-					Tooltip: "Fully reveals the entire arenas map for all players upon joining the subworld"
+					Tooltip: Fully reveals the entire arenas map for all players upon joining the subworld
 				}
 			}
 
