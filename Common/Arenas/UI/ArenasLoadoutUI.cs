@@ -2,11 +2,9 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Core.Config;
-using PvPAdventure.Core.Debug;
 using ReLogic.Content;
 using SubworldLibrary;
 using System;
-using System.Text;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
@@ -44,7 +42,7 @@ public class ArenasLoadoutUI : UIState
 
         // Calculate height based on number of loadouts
         // FIXME: Not very accurate
-        var config = ModContent.GetInstance<ServerConfig>();
+        var config = ModContent.GetInstance<ArenasConfig>();
         int loadoutsCount = config.ArenaLoadouts.Count;
         int loadoutItemHeight = 72;
         int baseHeight = 400;
@@ -113,7 +111,7 @@ public class ArenasLoadoutUI : UIState
         Container.Append(scrollbar);
 
         // Add loadouts
-        var cfg = ModContent.GetInstance<ServerConfig>();
+        var cfg = ModContent.GetInstance<ArenasConfig>();
         foreach (var loadout in cfg.ArenaLoadouts)
         {
             if (loadout.Name == string.Empty && loadout.Head.Type <= 0)
@@ -155,10 +153,10 @@ public class ArenasLoadoutUI : UIState
             p.armor[3 + i].SetDefaults(ItemOrAir(def.Accessories[i]));
         }
 
-        // Hotbar
-        for (int i = 0; i < def.Hotbar.Count && i < 10; i++)
+        // Inventory (hotbar 0-9 + inventory 10-49)
+        for (int i = 0; i < def.Inventory.Count && i < 50; i++)
         {
-            var li = def.Hotbar[i];
+            var li = def.Inventory[i];
 
             p.inventory[i].SetDefaults(ItemOrAir(li.Item));
             p.inventory[i].stack = li.Stack;
@@ -204,14 +202,14 @@ public class ArenasLoadoutUI : UIState
             p.armor[3 + i].SetDefaults(ItemOrAir(loadout.Accessories[i]));
         }
 
-        // clear inventory
-        for (int i = 0; i < 10; i++)
+        // clear inventory (hotbar 0-9 + inventory 10-49). Leave coins/ammo alone for now.
+        for (int i = 0; i < 50; i++)
             p.inventory[i].TurnToAir();
 
-        // apply inventory
-        for (int i = 0; i < loadout.Hotbar.Count && i < 10; i++)
+        // apply inventory (hotbar 0-9 + inventory 10-49)
+        for (int i = 0; i < loadout.Inventory.Count && i < 50; i++)
         {
-            var loadoutItem = loadout.Hotbar[i];
+            var loadoutItem = loadout.Inventory[i];
             p.inventory[i].SetDefaults(ItemOrAir(loadoutItem.Item));
             p.inventory[i].stack = loadoutItem.Stack;
         }
@@ -353,7 +351,6 @@ public class ArenasLoadoutUI : UIState
             int col = 0;
 
             int count = 0;
-            int hotbarSlot = 1;
 
             void Add(Item it, int? hotbarNumber = null)
             {
@@ -396,9 +393,9 @@ public class ArenasLoadoutUI : UIState
                 Add(it);
             }
 
-            for (int i = 0; i < def.Hotbar.Count; i++)
+            for (int i = 0; i < def.Inventory.Count && i < 50; i++)
             {
-                var li = def.Hotbar[i];
+                var li = def.Inventory[i];
                 t = ItemOrAir(li.Item);
                 if (t == ItemID.None) continue;
 
@@ -406,8 +403,9 @@ public class ArenasLoadoutUI : UIState
                 it.SetDefaults(t);
                 it.stack = li.Stack;
 
-                Add(it, hotbarSlot);
-                hotbarSlot = hotbarSlot == 10 ? 1 : hotbarSlot + 1;
+                // Only label hotbar slots (0-9)
+                int? hotbarNumber = i < 10 ? (i == 9 ? 10 : i + 1) : null;
+                Add(it, hotbarNumber);
             }
 
             t = ItemOrAir(def.GrapplingHook);

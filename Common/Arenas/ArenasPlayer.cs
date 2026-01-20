@@ -62,20 +62,23 @@ internal class ArenasPlayer : ModPlayer
         if (Player.dead)
         {
             int respawnTime = Player.respawnTimer;
-            reason = "dead. respawn timer: " + respawnTime;
+            reason = "dead";
+            //. respawn timer: " + respawnTime;
             return false;
         }
 
         if (DamageLocked)
         {
-            reason = "recently damaged. damage lock duration: " + damageLockTicks;
+            reason = "recently damaged";
+            //. damage lock duration: " + damageLockTicks;
             return false;
         }
 
         if (IsMoving)
         {
-            float speed = Player.velocity.LengthSquared();
-            reason = "must stand still. speed: " + speed;
+            int speed = (int)Player.velocity.LengthSquared();
+            reason = "must stand still";
+            //. your speed is: " + speed;
             return false;
         }
 

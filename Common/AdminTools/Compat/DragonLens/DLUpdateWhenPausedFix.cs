@@ -18,7 +18,6 @@ public sealed class DLUnpausedUICompat : ModSystem
 
     private static FieldInfo drawDelay;
 
-    // Ensure we only run the hover-only pass once per frame.
     private static uint lastHoverPassFrame;
 
     public override void PostSetupContent()
@@ -38,7 +37,7 @@ public sealed class DLUnpausedUICompat : ModSystem
         if (UILoader.SortedUserInterfaces is null)
             return;
 
-        // Your existing behavior: full interaction update.
+        // Vanilla.
         foreach (UserInterface eachState in UILoader.SortedUserInterfaces)
         {
             if (eachState?.CurrentState is SmartUIState s && s.Visible)

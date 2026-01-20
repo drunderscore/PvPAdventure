@@ -29,7 +29,7 @@ public class SSC : ModSystem
     {
         get
         {
-            var config = ModContent.GetInstance<ServerConfig>();
+            var config = ModContent.GetInstance<SSCConfig>();
             if (config == null)
             {
                 Log.Warn("ServerConfig not loaded – SSC disabled by default");

@@ -25,7 +25,7 @@ public sealed class ArenasUISystem : ModSystem
     {
         get
         {
-            var config = ModContent.GetInstance<ServerConfig>();
+            var config = ModContent.GetInstance<ArenasConfig>();
             if (config == null)
             {
                 Log.Warn("ServerConfig not loaded – Arenas disabled by default");
@@ -62,9 +62,13 @@ public sealed class ArenasUISystem : ModSystem
         if (SubworldSystem.AnyActive())
         {
             if (Interface?.CurrentState == null)
+            {
                 Interface?.SetState(LoadoutUIState);
+            }
             else
+            {
                 Interface?.SetState(null);
+            }
         }
 
         else
@@ -79,20 +83,21 @@ public sealed class ArenasUISystem : ModSystem
 
     public static void Close()
     {
+
         if (Interface?.CurrentState != null)
             Interface?.SetState(null);
     }
 
     public override void UpdateUI(GameTime gameTime)
     {
-        var ss = ModContent.GetInstance<SpawnSelector.SpawnSystem>();
-        if (ss.ui.CurrentState != null)
-        {
-            if (Interface.CurrentState != null)
-            {
-                Interface.SetState(null);
-            }
-        }
+        //var ss = ModContent.GetInstance<SpawnSelector.SpawnSystem>();
+        //if (ss.ui.CurrentState != null)
+        //{
+        //    if (Interface.CurrentState != null)
+        //    {
+        //        Interface.SetState(null);
+        //    }
+        //}
 
         Interface?.Update(gameTime);
     }

@@ -100,9 +100,9 @@ public class RegionManager : ModSystem
 
             foreach (var region in differingIntersections)
             {
-                if (Main.GameUpdateCount % 30 == 0)
+                if (Main.GameUpdateCount % (60*20) == 0)
                 {
-                    Log.Chat("CanExit: " + region.CanExit);
+                    //Log.Chat("CanExit: " + region.CanExit);
                 }
 
                 // Exiting a region

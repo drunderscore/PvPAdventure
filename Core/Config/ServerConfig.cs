@@ -15,8 +15,9 @@ namespace PvPAdventure.Core.Config;
 
 public class ServerConfig : ModConfig
 {
-    #region Members
     public override ConfigScope Mode => ConfigScope.ServerSide;
+
+    #region Members
 
     [Header("Points")]
     [BackgroundColor(140, 100, 20)]
@@ -120,43 +121,6 @@ public class ServerConfig : ModConfig
     [BackgroundColor(90, 70, 40)]
     [Expand(false, false)]
     public WorldGenerationConfig WorldGeneration { get; set; } = new();
-
-    #region SSC
-    [Header("SSC")]
-    [BackgroundColor(90, 40, 110)]
-    [DefaultValue(true)]
-    public bool IsSSCEnabled { get; set; } = true;
-
-    [BackgroundColor(90, 40, 110)]
-    [Expand(false)]
-    public Dictionary<ItemDefinition, int> StartItems { get; set; } = [];
-
-    [BackgroundColor(90, 40, 110)]
-    [Slider]
-    [Increment(20)]
-    [Range(100, 500)]
-    [DefaultValue(100)]
-    public int StartLife { get; set; } = 200;
-
-    [BackgroundColor(90, 40, 110)]
-    [Slider]
-    [Increment(20)]
-    [Range(20, 200)]
-    [DefaultValue(40)]
-    public int StartMana { get; set; } = 40;
-    #endregion
-
-    #region Arenas
-    [Header("Arenas")]
-    [BackgroundColor(90, 70, 160)]
-    [DefaultValue(true)]
-    public bool IsArenasEnabled { get; set; } = true;
-
-    [Expand(false, false)]
-    [BackgroundColor(90, 70, 160)]
-    public List<Loadout> ArenaLoadouts { get; set; } = [];
-    #endregion
-
     #endregion
 
     #region NestedConfigTypes
@@ -503,14 +467,28 @@ public class ServerConfig : ModConfig
         if (Main.netMode == NetmodeID.SinglePlayer)
             return true;
 
-        Player player = Main.player[whoAmI];
+        // If dragonlens isn't loaded, disallow modifying the config.
+        if (!ModLoader.HasMod("DragonLens"))
+        {
+            message = NetworkText.FromLiteral("Server config changes require DragonLens admin (DragonLens not loaded).");
+            return false;
+        }
 
         // DragonLens admin check
-        if (!DragonLens.Core.Systems.PermissionHandler.CanUseTools(player))
+        return AcceptClientChanges_DragonLens(whoAmI, ref message);
+    }
+
+    [JITWhenModsEnabled("DragonLens")]
+    private static bool AcceptClientChanges_DragonLens(int whoAmI, ref NetworkText message)
+    {
+        Player player = Main.player[whoAmI];
+
+        if (!PermissionHandler.CanUseTools(player))
         {
             message = NetworkText.FromLiteral("You must be a DragonLens admin to modify this config.");
             return false;
         }
+        message = NetworkText.FromLiteral("Saved!");
 
         return true;
     }

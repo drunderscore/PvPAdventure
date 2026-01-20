@@ -1,0 +1,7 @@
+{
+  "StartItems": {
+    "PvPAdventure/AdventureMirror": 1
+  },
+  "StartLife": 200,
+  "StartMana": 80
+}

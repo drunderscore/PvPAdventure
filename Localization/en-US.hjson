@@ -279,6 +279,11 @@ Mods: {
 				DisplayName: SSC Config Item
 				Tooltip: ""
 			}
+
+			ChatConfigItem: {
+				DisplayName: Chat Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -331,7 +336,7 @@ Mods: {
 				Headers: {
 					General: "[i:Cog] General"
 					SoundEffects: Sound Effects
-					Debug: "[i:AnnouncementBox] Notifications / Chat Messages"
+					Debug: "[i:PvPAdventure/ChatConfigItem] Chat"
 					SpawnSelector: Spawn Selector
 				}
 
@@ -355,12 +360,12 @@ Mods: {
 				}
 
 				SoundEffect: {
-					Label: "[i:507] Sound Effect"
+					Label: "[i:FairyBell] Sound Effect"
 					Tooltip: ""
 				}
 
 				ShowDebugMessages: {
-					Label: Show Debug Messages
+					Label: "[i:Goggles] Debug Messages"
 					Tooltip:
 						'''
 						Sends chat messages with many different things useful for development flow and debugging.
@@ -369,12 +374,12 @@ Mods: {
 				}
 
 				ShowSavePlayerMessages: {
-					Label: Show Save Player Messages
+					Label: Save Messages
 					Tooltip: Sends a local chat message whenever the player file is saved.
 				}
 
 				AutoSelectWorldSpawnWhenRespawning: {
-					Label: "[i:PvPAdventure/MapSpawnConfigItem] Auto Select World Spawn When Respawning"
+					Label: "[i:PvPAdventure/MapSpawnConfigItem] Auto Select World Spawn"
 					Tooltip: When you die, the world spawn is automatically selected as your spawn point
 				}
 			}
@@ -664,7 +669,7 @@ Mods: {
 				}
 
 				StartItems: {
-					Label: Starting Items
+					Label: "[i:Chest] Starting Items"
 					Tooltip: The items a player starts with when joining with a new character.
 				}
 
@@ -687,16 +692,6 @@ Mods: {
 						Player files are located on the server: 
 						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
 						'''
-				}
-
-				ArenaLoadouts: {
-					Label: Arena Loadouts
-					Tooltip: ""
-				}
-
-				IsArenasEnabled: {
-					Label: Is Arenas Enabled
-					Tooltip: ""
 				}
 
 				BossSpawnAnnouncements: {
@@ -1365,6 +1360,11 @@ Mods: {
 					Label: Grappling Hook
 					Tooltip: ""
 				}
+
+				Inventory: {
+					Label: Inventory
+					Tooltip: ""
+				}
 			}
 
 			LoadoutItem: {
@@ -1383,6 +1383,57 @@ Mods: {
 				Item: {
 					Tooltip: ""
 					Label: Item
+				}
+			}
+
+			ArenasConfig: {
+				DisplayName: Arenas Config
+				Headers.Arenas: "[i:PvPAdventure/ArenasConfigItem] Arenas"
+
+				IsArenasEnabled: {
+					Label: Enabled
+					Tooltip: Whether to allow players to open the join arenas UI.
+				}
+
+				ArenaLoadouts: {
+					Label: Loadouts
+					Tooltip: The loadouts in arenas.
+				}
+
+				RevealMap: {
+					Label: Reveal Map
+					Tooltip: "Fully reveals the entire arenas map for all players upon joining the subworld"
+				}
+			}
+
+			SSCConfig: {
+				DisplayName: SSC Config
+				Headers.SSC: "[i:PvPAdventure/ServerConfigItem] Server Sided Characters"
+
+				StartItems: {
+					Label: "[i:1] Starting Items"
+					Tooltip: The items a player starts with when joining with a new character.
+				}
+
+				StartLife: {
+					Label: "[i:LifeCrystal] Starting Health"
+					Tooltip: The starting max health of a new character. Default to 100
+				}
+
+				StartMana: {
+					Label: "[i:ManaCrystal] Starting Mana"
+					Tooltip: The starting max mana of a new character. Default to 20
+				}
+
+				IsSSCEnabled: {
+					Label: Enabled
+					Tooltip:
+						'''
+						Whether to use server sided characters. 
+						Creates new characters on the server to prevent players from joining with local characters.
+						Player files are located on the server: 
+						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
+						'''
 				}
 			}
 		}

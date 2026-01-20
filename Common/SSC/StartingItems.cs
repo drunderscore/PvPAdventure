@@ -10,7 +10,7 @@ public static class StartingItems
 {
     public static void ApplyStartItems(Player player)
     {
-        var config = ModContent.GetInstance<ServerConfig>();
+        var config = ModContent.GetInstance<SSCConfig>();
 
         int slot = 0;
 
@@ -32,7 +32,7 @@ public static class StartingItems
     }
     public static void ApplyStartLife(Player player)
     {
-        var config = ModContent.GetInstance<ServerConfig>();
+        var config = ModContent.GetInstance<SSCConfig>();
 
         int targetLife = Utils.Clamp(config.StartLife, 100, 500);
 
@@ -51,7 +51,7 @@ public static class StartingItems
 
     public static void ApplyStartMana(Player player)
     {
-        var config = ModContent.GetInstance<ServerConfig>();
+        var config = ModContent.GetInstance<SSCConfig>();
 
         int targetMana = Utils.Clamp(config.StartMana, 20, 200);
 

@@ -5,6 +5,7 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Arenas;
 
+// Class used to define a player's loadout for arenas, a new gamemode..
 public class Loadout
 {
     public string Name { get; set; }
@@ -14,7 +15,7 @@ public class Loadout
     public ItemDefinition Legs { get; set; }
 
     public List<ItemDefinition> Accessories { get; set; } = [];
-    public List<LoadoutItem> Hotbar { get; set; } = [];
+    public List<LoadoutItem> Inventory { get; set; } = [];
 
     public ItemDefinition GrapplingHook { get; set; }
 }

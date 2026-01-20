@@ -1,12 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Input;
 using SubworldLibrary;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent.Generation;
 using Terraria.ID;
+using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.Utilities;
 using Terraria.WorldBuilding;
@@ -15,7 +18,12 @@ namespace PvPAdventure.Common.Arenas;
 
 public class ArenasSubworld : Subworld
 {
-    public override int Width => 900; // our structure is 680
+    public override int ReadFile(BinaryReader reader)
+    {
+        return base.ReadFile(reader);
+    }
+    public override bool NormalUpdates => false;
+    public override int Width => 850; // our structure is 680
     public override int Height => 300; // our structure is 169
 
     public override bool ShouldSave => false;
@@ -28,19 +36,38 @@ public class ArenasSubworld : Subworld
     {
         return
         [
-            Pass("AdjustWorldHeight", AdjustWorldHeight),
-            Pass("Arenas", GenerateArenas),
+            //Pass("AdjustWorldHeight", AdjustWorldHeight),
+            Pass("GeneratePvPArena", GeneratePvPArena)
+            //Pass("Arenas", GenerateArenas),
         ];
+    }
+
+    private static void GeneratePvPArena()
+    {
+        try
+        {
+            var mod = ModContent.GetInstance<PvPAdventure>();
+            //var path = Path.Combine(Main.WorldPath, "");
+            var path = "Common/Arenas/WorldFiles/Arenas_v5.wld";
+            var worldFileBytes = mod.GetFileBytes(path);
+            var memoryStream = new MemoryStream(worldFileBytes);
+            BinaryReader reader = new(memoryStream);
+            WorldFile.LoadWorld_Version2(reader);
+        }
+        catch (Exception e)
+        {
+            Log.Error("Failed to generate PvPArena: " + e);
+        }
     }
 
     private static void AdjustWorldHeight()
     {
-        Main.worldSurface = Main.maxTilesY - 42; // Hides the underground layer just out of bounds
-        Main.rockLayer = Main.maxTilesY - 42; // Hides the cavern layer just out of bounds
+        Main.worldSurface = Main.maxTilesY - 32; // Hides the underground layer just out of bounds
+        Main.rockLayer = Main.maxTilesY - 32; // Hides the cavern layer just out of bounds
 
-        // adjust spawn pos
-        Main.spawnTileX += 38;
-        Main.spawnTileY += 45;
+        // move spawn pos up
+        Main.spawnTileX += 3;
+        Main.spawnTileY -= 100;
     }
 
     private static void GenerateArenas()
@@ -97,7 +124,7 @@ public class ArenasSubworld : Subworld
     {
         message ??= "Generating " + name;
         Log.Info("Arenas subworld is " + message);
-        Log.Chat("Arenas subworld is " + message);
+        //Log.Chat("Arenas subworld is " + message);
         return new PassLegacy(name, (p, _) => { p.Message = message; action(); }, weight);
     }
     #endregion
@@ -107,7 +134,11 @@ public class ArenasSubworld : Subworld
     {
         SendWelcomeMessage();
 
-        RevealMap();
+        var config = ModContent.GetInstance<ArenasConfig>();
+        if (config.RevealMap)
+        {
+            RevealMap();
+        }
 
         // become a ghost
         //Main.LocalPlayer.ghost = true;

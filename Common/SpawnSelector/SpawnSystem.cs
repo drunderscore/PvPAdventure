@@ -293,7 +293,8 @@ public class SpawnSystem : ModSystem
         bool sessionOpen = SessionOpen;
         bool inSubworld = SubworldSystem.AnyActive();
 
-        Enabled = playing && !Main.playerInventory && (inSpawnRegion || sessionOpen) && !inSubworld;
+        Enabled = playing && !Main.playerInventory && (inSpawnRegion || sessionOpen)
+            || inSubworld && !Main.playerInventory && (inSpawnRegion || sessionOpen);
 
         if (sessionOpen && !sessionWasOpen)
         {
@@ -312,7 +313,6 @@ public class SpawnSystem : ModSystem
 
         if (local.dead)
         {
-            // If you freeze at 2 elsewhere, this will be stable.
             SetCanTeleport(local.respawnTimer <= 2);
         }
         else
@@ -324,7 +324,8 @@ public class SpawnSystem : ModSystem
         if (CanTeleport)
             TryExecuteSelection(local);
 
-        bool show = playing && (local.dead || Enabled);
+        bool show = playing && (local.dead || Enabled)
+            || inSubworld && (local.dead || Enabled);
         if (!show)
         {
             wasShowingUI = false;

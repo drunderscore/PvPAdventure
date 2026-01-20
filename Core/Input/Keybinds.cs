@@ -5,6 +5,7 @@ using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.GameInput;
 using Terraria.ModLoader;
@@ -65,7 +66,8 @@ internal class KeybindsPlayer : ModPlayer
             ModContent.GetInstance<TeamChatManager>().OpenAllChat();
 
         // Toggle UI
-        if (keybinds.ArenasMenu.JustPressed)
+        var config = ModContent.GetInstance<ArenasConfig>();
+        if (config.IsArenasEnabled && keybinds.ArenasMenu.JustPressed)
         {
             ArenasUISystem.Toggle();
         }
