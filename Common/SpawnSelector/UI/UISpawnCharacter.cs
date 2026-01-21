@@ -1,7 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.GameTimer;
-using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
@@ -9,7 +7,6 @@ using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
-using Terraria.ModLoader;
 using Terraria.UI;
 using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
@@ -70,7 +67,8 @@ public class UISpawnCharacter : UIPanel
     {
         playerIndex = _playerIndex;
         rowDensity = density;
-        itemWidth = GetItemWidth(density);
+        //itemWidth = GetItemWidth(density);
+        itemWidth = 72f;
 
         dividerTexture = Main.Assets.Request<Texture2D>("Images/UI/Divider");
         innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
@@ -81,7 +79,7 @@ public class UISpawnCharacter : UIPanel
         bool hasBed = player.SpawnX != -1 && player.SpawnY != -1;
         bedButton = new UIBedButton(playerIndex, hasBed);
         bedButton.Top.Set(-3f, 0f);
-        bedButton.Left.Set(itemWidth - 38, 0f);
+        bedButton.Left.Set(itemWidth - 35, 0f);
         Append(bedButton);
     }
 
@@ -198,12 +196,11 @@ public class UISpawnCharacter : UIPanel
             return;
         }
 
-        Main.instance.MouseText("Cannot respawn (player dead)");
+        Main.instance.MouseText($"Cannot select ({player.name} is dead)");
     }
 
     protected override void DrawSelf(SpriteBatch sb)
     {
-        base.DrawSelf(sb);
 
         CalculatedStyle inner = GetInnerDimensions();
 
@@ -236,132 +233,141 @@ public class UISpawnCharacter : UIPanel
         Rectangle rect = new(
             x: (int)pos.X - 6,
             y: (int)pos.Y - 6,
-            width: leftRectWidth,
+            width: 72,
             height: 72);
 
         //DrawMask(sb, Ass.CornerMask4px.Value, rect, 9);
-        DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, playerBGTexture.Value, Color.White, 5);
+        //DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, playerBGTexture.Value, Color.White, 5);
         DrawMapFullscreenBackground(sb, rect, player);
+
+        BackgroundColor = new Color(63, 82, 151) * 0.1f;
+        base.DrawSelf(sb);
+        // Draw nine slice panel
+        //Utils.DrawPanel()
+
+        // Draw vanilla panel
+        //DrawVanillaPanel()
+        //DrawVanillaPanel()
 
         try
         {
             Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
-            Vector2 headDrawPos = pos + new Vector2(38, 30);
+            Vector2 headDrawPos = pos + new Vector2(26, 30);
 
             Color myTeamColor = Main.teamColor[Main.LocalPlayer.team];
 
             //Main.PlayerRenderer.DrawPlayer(Main.Camera,player,playerDrawPos,player.fullRotation,player.fullRotationOrigin,0f,0.9f);
-            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, headDrawPos, scale: 1.2f, borderColor: myTeamColor);
+            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, headDrawPos, scale: 1.1f, borderColor: myTeamColor);
         }
         catch (Exception e)
         {
             Log.Error("Failed to draw p: " + e);
         }
 
-        if (rowDensity == RowDensity.UltraCompact)
-        {
-            // Draw teleport to if it exists
-            if (IsMouseHovering)
-            {
-                DrawHoverText(player);
-            }
+        //if (rowDensity == RowDensity.UltraCompact)
+        //{
+        //    // Draw teleport to if it exists
+        //    if (IsMouseHovering)
+        //    {
+        //        DrawHoverText(player);
+        //    }
 
-            return;
-        }
+        //    return;
+        //}
 
         // Use the actual layout widths, not the texture width
-        const float leftColumnWidth = 106f;              // player background column
-        float rightAreaWidth = itemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
+        //const float leftColumnWidth = 106f;              // player background column
+        //float rightAreaWidth = itemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
 
-        float rightAreaLeft = inner.X + leftColumnWidth;
-        float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
+        //float rightAreaLeft = inner.X + leftColumnWidth;
+        //float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
 
-        // Name centered in the right-area
-        string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
+        //// Name centered in the right-area
+        //string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
 
-        float nameScale = 1f;
-        if (rowDensity == RowDensity.Compact && name.Length > 12)
-        {
-            nameScale = 0.8f;
-        }
-        else if (name.Length > 16)
-        {
-            nameScale = 0.85f;
-        }
+        //float nameScale = 1f;
+        //if (rowDensity == RowDensity.Compact && name.Length > 12)
+        //{
+        //    nameScale = 0.8f;
+        //}
+        //else if (name.Length > 16)
+        //{
+        //    nameScale = 0.85f;
+        //}
 
-        Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
+        //Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
 
-        Vector2 namePos = new(
-            rightAreaCenterX - nameSize.X * 0.5f,
-            inner.Y
-        );
+        //Vector2 namePos = new(
+        //    rightAreaCenterX - nameSize.X * 0.5f,
+        //    inner.Y
+        //);
 
         // Draw name
-        Utils.DrawBorderString(sb, name, namePos, Color.White, nameScale);
+        //Utils.DrawBorderString(sb, name, namePos, Color.White, nameScale);
 
         // Draw divider
-        sb.Draw(dividerTexture.Value, new Vector2(rightAreaLeft - 12, inner.Y + 21f), null, Color.White, 0f, Vector2.Zero, new Vector2(rightAreaWidth / 8 + 2.2f, 1f), SpriteEffects.None, 0f);
+        //sb.Draw(dividerTexture.Value, new Vector2(rightAreaLeft - 12, inner.Y + 21f), null, Color.White, 0f, Vector2.Zero, new Vector2(rightAreaWidth / 8 + 2.2f, 1f), SpriteEffects.None, 0f);
 
-        // Stat panel settings
-        float statScale = 0.88f;
-        float statGap = 5f * statScale;
+        //// Stat panel settings
+        //float statScale = 0.88f;
+        //float statGap = 5f * statScale;
 
-        // Draw stat panel
-        float panelWidth = rightAreaWidth + 24;
-        Vector2 panelPos = new(rightAreaLeft - 14, inner.Y + 29f);
-        DrawPanel(sb, panelPos, panelWidth);
+        //// Draw stat panel
+        //float panelWidth = rightAreaWidth + 24;
+        //Vector2 panelPos = new(rightAreaLeft - 14, inner.Y + 29f);
+        //DrawPanel(sb, panelPos, panelWidth);
 
-        bool drawMana = rowDensity == RowDensity.Normal;
+        //bool drawMana = rowDensity == RowDensity.Normal;
 
-        string hpText;
-        string mpText;
+        //string hpText;
+        //string mpText;
 
-        if (rowDensity == RowDensity.Compact)
-        {
-            hpText = player.statLife.ToString();
-            mpText = string.Empty;
-        }
-        else
-        {
-            hpText = $"{player.statLife} HP";
-            mpText = $"{player.statMana} MP";
-        }
+        //if (rowDensity == RowDensity.Compact)
+        //{
+        //    hpText = player.statLife.ToString();
+        //    mpText = string.Empty;
+        //}
+        //else
+        //{
+        //    hpText = $"{player.statLife} HP";
+        //    mpText = $"{player.statMana} MP";
+        //}
 
-        Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hpText) * statScale;
-        Vector2 mpSize = FontAssets.MouseText.Value.MeasureString(mpText) * statScale;
+        //Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hpText) * statScale;
+        //Vector2 mpSize = FontAssets.MouseText.Value.MeasureString(mpText) * statScale;
 
-        var heart = TextureAssets.Heart;
-        var mana = TextureAssets.Mana;
+        //var heart = TextureAssets.Heart;
+        //var mana = TextureAssets.Mana;
 
-        float heartW = heart.Width() * statScale;
-        float manaW = mana.Width() * statScale;
+        //float heartW = heart.Width() * statScale;
+        //float manaW = mana.Width() * statScale;
 
-        float hpBlockW = heartW + hpSize.X;
+        //float hpBlockW = heartW + hpSize.X;
 
-        float totalWidth = hpBlockW;
-        if (drawMana)
-        {
-            float mpBlockW = manaW + mpSize.X;
-            totalWidth = hpBlockW + statGap + mpBlockW;
-        }
+        //float totalWidth = hpBlockW;
+        //if (drawMana)
+        //{
+        //    float mpBlockW = manaW + mpSize.X;
+        //    totalWidth = hpBlockW + statGap + mpBlockW;
+        //}
 
-        float startX = panelPos.X + (panelWidth - totalWidth) * 0.5f;
-        float y = panelPos.Y + 4f;
+        //float startX = panelPos.X + (panelWidth - totalWidth) * 0.5f;
+        //float y = panelPos.Y + 4f;
 
         // Draw health
-        sb.Draw(heart.Value, new Vector2(startX, y), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
-        startX += heartW;
-        Utils.DrawBorderString(sb, hpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
-        startX += hpSize.X;
+        //sb.Draw(heart.Value, new Vector2(startX, y), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
+        //startX += heartW;
+        //Utils.DrawBorderString(sb, hpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
+        //startX += hpSize.X;
 
         // Draw mana
-        if (drawMana)
-        {
-            startX += statGap;
-            sb.Draw(mana.Value, new Vector2(startX, y - 2), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
-            startX += manaW;
-            Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
-        }
+        //if (drawMana)
+        //{
+        //    startX += statGap;
+        //    sb.Draw(mana.Value, new Vector2(startX, y - 2), null, Color.White, 0f, Vector2.Zero, statScale, SpriteEffects.None, 0f);
+        //    startX += manaW;
+        //    Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
+        //}
 
         // Draw player respawn timer if it exists
         if (player.respawnTimer != 0)
@@ -370,17 +376,7 @@ public class UISpawnCharacter : UIPanel
             var tex = Ass.Icon_Dead.Value;
             Vector2 skullCenter = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
 
-            sb.Draw(
-                tex,
-                position: skullCenter,
-                sourceRectangle: null,
-                color: Color.White * 0.5f,
-                rotation: 0f,
-                origin: tex.Size() * 0.5f,
-                scale: 0.09f,
-                effects: SpriteEffects.None,
-                layerDepth: 0f
-            );
+            sb.Draw(tex,skullCenter,null, Color.White * 0.5f, 0f,tex.Size() * 0.5f,0.09f,SpriteEffects.None,0f);
 
             string respawnTimeInSeconds = (player.respawnTimer / 60 + 1).ToString();
 
@@ -415,6 +411,24 @@ public class UISpawnCharacter : UIPanel
     }
 
     #region Draw Helpers
+
+    private void DrawVanillaPanel(SpriteBatch spriteBatch, Texture2D texture, Color color)
+    {
+        CalculatedStyle dimensions = base.GetDimensions();
+        Point point = new Point((int)dimensions.X, (int)dimensions.Y);
+        Point point2 = new Point(point.X + (int)dimensions.Width - this._cornerSize, point.Y + (int)dimensions.Height - this._cornerSize);
+        int width = point2.X - point.X - this._cornerSize;
+        int height = point2.Y - point.Y - this._cornerSize;
+        spriteBatch.Draw(texture, new Rectangle(point.X, point.Y, this._cornerSize, this._cornerSize), new Rectangle(0, 0, this._cornerSize, this._cornerSize), color);
+        spriteBatch.Draw(texture, new Rectangle(point2.X, point.Y, this._cornerSize, this._cornerSize), new Rectangle(this._cornerSize + this._barSize, 0, this._cornerSize, this._cornerSize), color);
+        spriteBatch.Draw(texture, new Rectangle(point.X, point2.Y, this._cornerSize, this._cornerSize), new Rectangle(0, this._cornerSize + this._barSize, this._cornerSize, this._cornerSize), color);
+        spriteBatch.Draw(texture, new Rectangle(point2.X, point2.Y, this._cornerSize, this._cornerSize), new Rectangle(this._cornerSize + this._barSize, this._cornerSize + this._barSize, this._cornerSize, this._cornerSize), color);
+        spriteBatch.Draw(texture, new Rectangle(point.X + this._cornerSize, point.Y, width, this._cornerSize), new Rectangle(this._cornerSize, 0, this._barSize, this._cornerSize), color);
+        spriteBatch.Draw(texture, new Rectangle(point.X + this._cornerSize, point2.Y, width, this._cornerSize), new Rectangle(this._cornerSize, this._cornerSize + this._barSize, this._barSize, this._cornerSize), color);
+        spriteBatch.Draw(texture, new Rectangle(point.X, point.Y + this._cornerSize, this._cornerSize, height), new Rectangle(0, this._cornerSize, this._cornerSize, this._barSize), color);
+        spriteBatch.Draw(texture, new Rectangle(point2.X, point.Y + this._cornerSize, this._cornerSize, height), new Rectangle(this._cornerSize + this._barSize, this._cornerSize, this._cornerSize, this._barSize), color);
+        spriteBatch.Draw(texture, new Rectangle(point.X + this._cornerSize, point.Y + this._cornerSize, width, height), new Rectangle(this._cornerSize, this._cornerSize, this._barSize, this._barSize), color);
+    }
 
     // Draws the inner panel background with a given width.
     private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
@@ -571,10 +585,12 @@ public class UISpawnCharacter : UIPanel
         int safeIndex = bgIndex >= 0 && bgIndex < Ass.MapBG.Length ? bgIndex : 0;
         var asset = Ass.MapBG[safeIndex];
 
-        rect.X += 10;
-        rect.Y += 10;
-        rect.Width -= 20;
-        rect.Height -= 20;
+        // Force inset (draw it smaller, inwards.)
+        int inset = 2;
+        rect.X += inset;
+        rect.Y += inset;
+        rect.Width -= inset*2;
+        rect.Height -= inset*2;
 
         if (asset == null || asset.Value == null)
             return;
