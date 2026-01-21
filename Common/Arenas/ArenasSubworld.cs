@@ -62,8 +62,8 @@ public class ArenasSubworld : Subworld
 
     private static void AdjustWorldHeight()
     {
-        Main.worldSurface = Main.maxTilesY - 32; // Hides the underground layer just out of bounds
-        Main.rockLayer = Main.maxTilesY - 32; // Hides the cavern layer just out of bounds
+        Main.worldSurface = Main.maxTilesY - 12; // Hides the underground layer just out of bounds
+        Main.rockLayer = Main.maxTilesY - 12; // Hides the cavern layer just out of bounds
 
         // move spawn pos up
         Main.spawnTileX += 3;
