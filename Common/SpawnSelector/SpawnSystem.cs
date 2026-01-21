@@ -483,7 +483,6 @@ public class SpawnSystem : ModSystem
                 ui.Draw(sb, Main._drawInterfaceGameTime);
                 //DrawMapCountdown(sb);
                 DrawAdventureMirrorTimer(sb);
-
                 return true;
             },
             InterfaceScaleType.UI));

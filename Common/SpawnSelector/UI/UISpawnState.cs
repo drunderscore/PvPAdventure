@@ -156,8 +156,7 @@ public class UISpawnState : UIState
         int playerCount = players.Count;
 
         var density = UISpawnCharacter.GetDensityForTeammateCount(playerCount);
-        //float itemWidth = UISpawnCharacter.GetItemWidth(density);
-        float itemWidth = 72;
+        float itemWidth = UISpawnCharacter.GetItemWidth(density);
         float itemHeight = UISpawnCharacter.ItemHeight;
 
         float worldWidth = itemHeight;
