@@ -1,4 +1,5 @@
 ﻿using PvPAdventure.Common.Arenas.UI;
+using PvPAdventure.Core.Config;
 using SubworldLibrary;
 using Terraria;
 using Terraria.ModLoader;
@@ -18,10 +19,13 @@ internal class ArenasPlayer : ModPlayer
     {
         if (SubworldSystem.AnyActive())
         {
-            // Ensure Clamp life to 400 while in arenas
-            Player.statLifeMax2 = 400;
-            if (Player.statLife > 400)
-                Player.statLife = 400;
+            var config = ModContent.GetInstance<ArenasConfig>();
+            if (config == null) return;
+
+            // Ensure Clamp life to max while in arenas
+            Player.statLifeMax2 = config.MaxHealth;
+            if (Player.statLife > config.MaxHealth)
+                Player.statLife = config.MaxHealth;
         }
     }
 

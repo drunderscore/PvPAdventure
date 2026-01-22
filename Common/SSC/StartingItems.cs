@@ -14,16 +14,17 @@ public static class StartingItems
 
         int slot = 0;
 
-        foreach (var (itemDef, stack) in config.StartItems)
+        foreach (var loadoutItem in config.StartItems)
         {
+            var (itemDef, stack) = (loadoutItem.Item, loadoutItem.Stack);
+
             if (itemDef.IsUnloaded)
                 continue;
 
             if (slot >= player.inventory.Length)
                 break;
 
-            Item item = new(itemDef.Type);
-            item.stack = stack;
+            Item item = new(itemDef.Type, stack: stack);
 
             player.inventory[slot++] = item;
 

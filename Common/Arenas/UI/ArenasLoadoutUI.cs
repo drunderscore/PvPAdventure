@@ -16,6 +16,11 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.Arenas.UI;
 
+/// <summary>
+/// The UI and state for selecting loadouts in arenas.
+/// Provides a list of loadouts from <see cref="ArenasConfig"/>
+/// Shows a list of loadouts, containing previews of the loadout and a play button to equip it.
+/// </summary>
 public class ArenasLoadoutUI : UIState
 {
     // Title bar height
@@ -114,7 +119,7 @@ public class ArenasLoadoutUI : UIState
         var cfg = ModContent.GetInstance<ArenasConfig>();
         foreach (var loadout in cfg.ArenaLoadouts)
         {
-            if (loadout.Name == string.Empty && loadout.Head.Type <= 0)
+            if (loadout.Name == string.Empty && loadout.Armor.Head.Type <= 0)
                 continue;
 
             list.Add(NewLoadout(loadout));
@@ -138,33 +143,45 @@ public class ArenasLoadoutUI : UIState
         );
     }
 
-    private static Player BuildPreviewPlayer(Player source, Loadout def)
+    private static void ApplyLoadoutToPlayer(Player p, Loadout loadout)
     {
-        Player p = (Player)source.clientClone();
-
         // Armor
-        p.armor[0].SetDefaults(ItemOrAir(def.Head));
-        p.armor[1].SetDefaults(ItemOrAir(def.Body));
-        p.armor[2].SetDefaults(ItemOrAir(def.Legs));
+        p.armor[0].SetDefaults(ItemOrAir(loadout.Armor.Head));
+        p.armor[1].SetDefaults(ItemOrAir(loadout.Armor.Body));
+        p.armor[2].SetDefaults(ItemOrAir(loadout.Armor.Legs));
 
         // Accessories
-        for (int i = 0; i < def.Accessories.Count && i < 5; i++)
-        {
-            p.armor[3 + i].SetDefaults(ItemOrAir(def.Accessories[i]));
-        }
+        p.armor[3].SetDefaults(ItemOrAir(loadout.Accessories.Accessory1));
+        p.armor[4].SetDefaults(ItemOrAir(loadout.Accessories.Accessory2));
+        p.armor[5].SetDefaults(ItemOrAir(loadout.Accessories.Accessory3));
+        p.armor[6].SetDefaults(ItemOrAir(loadout.Accessories.Accessory4));
+        p.armor[7].SetDefaults(ItemOrAir(loadout.Accessories.Accessory5));
 
-        // Inventory (hotbar 0-9 + inventory 10-49)
-        for (int i = 0; i < def.Inventory.Count && i < 50; i++)
-        {
-            var li = def.Inventory[i];
+        // Clear inventory
+        for (int i = 0; i < 50; i++)
+            p.inventory[i].TurnToAir();
 
-            p.inventory[i].SetDefaults(ItemOrAir(li.Item));
-            p.inventory[i].stack = li.Stack;
+        // Inventory
+        for (int i = 0; i < loadout.Inventory.Count && i < 50; i++)
+        {
+            var item = loadout.Inventory[i];
+            p.inventory[i].SetDefaults(ItemOrAir(item.Item));
+            p.inventory[i].stack = item.Stack;
         }
 
         // Grappling hook
-        p.miscEquips[4].SetDefaults(ItemOrAir(def.GrapplingHook));
+        p.miscEquips[4].SetDefaults(ItemOrAir(loadout.GrapplingHook));
 
+        // Mount
+        p.mount.Dismount(p);
+        if (loadout.Mount?.Type > 0)
+            p.mount.SetMount(loadout.Mount.Type, p);
+    }
+
+    private static Player BuildPreviewPlayer(Player source, Loadout loadout)
+    {
+        Player p = (Player)source.clientClone();
+        ApplyLoadoutToPlayer(p, loadout);
         return p;
     }
 
@@ -175,49 +192,22 @@ public class ArenasLoadoutUI : UIState
     {
         Player p = Main.LocalPlayer;
 
+        // Check if player can select loadout
         var arenaPlayer = p.GetModPlayer<ArenasPlayer>();
-
         bool inSpawnRegion = p.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
-
         if (!inSpawnRegion && !arenaPlayer.CanSelectLoadout(out string reason))
         {
             Main.NewText($"Cannot select loadout: {reason}", Color.OrangeRed);
             return;
         }
 
+        // Disable ghost mode
         p.ghost = false;
 
-        // apply armor
-        p.armor[0].SetDefaults(ItemOrAir(loadout.Head));
-        p.armor[1].SetDefaults(ItemOrAir(loadout.Body));
-        p.armor[2].SetDefaults(ItemOrAir(loadout.Legs));
+        // Apply loadout
+        ApplyLoadoutToPlayer(p, loadout);
 
-        // clear accessories
-        for (int i = 0; i < 5; i++)
-            p.armor[3 + i].TurnToAir();
-
-        // apply accessories
-        for (int i = 0; i < loadout.Accessories.Count && i < 5; i++)
-        {
-            p.armor[3 + i].SetDefaults(ItemOrAir(loadout.Accessories[i]));
-        }
-
-        // clear inventory (hotbar 0-9 + inventory 10-49). Leave coins/ammo alone for now.
-        for (int i = 0; i < 50; i++)
-            p.inventory[i].TurnToAir();
-
-        // apply inventory (hotbar 0-9 + inventory 10-49)
-        for (int i = 0; i < loadout.Inventory.Count && i < 50; i++)
-        {
-            var loadoutItem = loadout.Inventory[i];
-            p.inventory[i].SetDefaults(ItemOrAir(loadoutItem.Item));
-            p.inventory[i].stack = loadoutItem.Stack;
-        }
-
-        // apply grappling hook
-        p.miscEquips[4].SetDefaults(ItemOrAir(loadout.GrapplingHook));
-
-        // hide UI
+        // Hide UI
         ArenasUISystem.Toggle();
 
         // warning:
@@ -232,10 +222,11 @@ public class ArenasLoadoutUI : UIState
         // spawn dust
         SpawnRespawnDust(Main.LocalPlayer, loadout.Name);
 
-        // set health to 400
-        p.statLife = 400;
-        p.statLifeMax = 400;
-        p.statLifeMax2 = 400;
+        // set health to max
+        var config = ModContent.GetInstance<ArenasConfig>();
+        p.statLife = config.MaxHealth;
+        p.statLifeMax = config.MaxHealth;
+        p.statLifeMax2 = config.MaxHealth;
     }
 
     private static void SpawnRespawnDust(Player p, string defName)
@@ -269,7 +260,7 @@ public class ArenasLoadoutUI : UIState
         }
     }
 
-    // A clickable loadout item.
+    // A clickable loadout item with preview player and play button
     public sealed class LoadoutListItem : UIPanel
     {
         private readonly UICharacter preview;
@@ -374,24 +365,37 @@ public class ArenasLoadoutUI : UIState
 
             int t;
 
-            t = ItemOrAir(def.Head);
-            if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
+            t = ItemOrAir(def.Armor.Head);
+            if (t != ItemID.None)
+                Add(new Item(t));
 
-            t = ItemOrAir(def.Body);
-            if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
+            t = ItemOrAir(def.Armor.Body);
+            if (t != ItemID.None)
+                Add(new Item(t));
 
-            t = ItemOrAir(def.Legs);
-            if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
+            t = ItemOrAir(def.Armor.Legs);
+            if (t != ItemID.None)
+                Add(new Item(t));
 
-            for (int i = 0; i < def.Accessories.Count; i++)
-            {
-                t = ItemOrAir(def.Accessories[i]);
-                if (t == ItemID.None) continue;
+            t = ItemOrAir(def.Accessories.Accessory1);
+            if (t != ItemID.None)
+                Add(new Item(t));
 
-                var it = new Item();
-                it.SetDefaults(t);
-                Add(it);
-            }
+            t = ItemOrAir(def.Accessories.Accessory2);
+            if (t != ItemID.None)
+                Add(new Item(t));
+
+            t = ItemOrAir(def.Accessories.Accessory3);
+            if (t != ItemID.None)
+                Add(new Item(t));
+
+            t = ItemOrAir(def.Accessories.Accessory4);
+            if (t != ItemID.None)
+                Add(new Item(t));
+
+            t = ItemOrAir(def.Accessories.Accessory5);
+            if (t != ItemID.None)
+                Add(new Item(t));
 
             for (int i = 0; i < def.Inventory.Count && i < 50; i++)
             {

@@ -73,7 +73,7 @@ internal class DisablePvPIcons : ModSystem
                 SoundEngine.PlaySound(12);
                 //Main.player[Main.myPlayer].hostile = !Main.player[Main.myPlayer].hostile;
                 //NetMessage.SendData(30, -1, -1, null, Main.myPlayer);
-                Main.NewText("PvP enabled!", Color.Yellow);
+                Main.NewText("PvP always enabled!", Color.Yellow);
             }
         }
         Rectangle rectangle = TextureAssets.Pvp[0].Frame(4, 6);

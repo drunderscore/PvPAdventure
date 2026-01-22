@@ -390,7 +390,7 @@ Mods: {
 				}
 
 				ShowDebugMessages: {
-					Label: "[i:Goggles] Debug Messages"
+					Label: Debug Messages
 					Tooltip:
 						'''
 						Sends chat messages with many different things useful for development flow and debugging.
@@ -1400,6 +1400,21 @@ Mods: {
 					Label: Inventory
 					Tooltip: ""
 				}
+
+				ArmorAndAccessories: {
+					Label: Armor And Accessories
+					Tooltip: ""
+				}
+
+				Armor: {
+					Label: Armor
+					Tooltip: ""
+				}
+
+				Mount: {
+					Label: Mount
+					Tooltip: ""
+				}
 			}
 
 			LoadoutItem: {
@@ -1423,7 +1438,11 @@ Mods: {
 
 			ArenasConfig: {
 				DisplayName: Arenas Config
-				Headers.Arenas: "[i:PvPAdventure/ArenasConfigItem] Arenas"
+
+				Headers: {
+					Arenas: "[i:Cog] Arena Settings"
+					Loadouts: "[i:PvPAdventure/ArenasConfigItem] Loadouts"
+				}
 
 				IsArenasEnabled: {
 					Label: Enabled
@@ -1432,12 +1451,17 @@ Mods: {
 
 				ArenaLoadouts: {
 					Label: Loadouts
-					Tooltip: The loadouts in arenas.
+					Tooltip: ""
 				}
 
 				RevealMap: {
-					Label: Reveal Map
+					Label: "[i:TrifoldMap] Reveal Map"
 					Tooltip: Fully reveals the entire arenas map for all players upon joining the subworld
+				}
+
+				MaxHealth: {
+					Label: "[i:LifeCrystal] Max Health"
+					Tooltip: ""
 				}
 			}
 
@@ -1469,6 +1493,117 @@ Mods: {
 						Player files are located on the server: 
 						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
 						'''
+				}
+
+				test: {
+					Label: test
+					Tooltip: ""
+				}
+			}
+
+			ArmorAndAccessories: {
+				Tooltip: ""
+
+				Head: {
+					Label: Head
+					Tooltip: ""
+				}
+
+				Body: {
+					Label: Body
+					Tooltip: ""
+				}
+
+				Legs: {
+					Label: Legs
+					Tooltip: ""
+				}
+
+				Accessory1: {
+					Label: Accessory1
+					Tooltip: ""
+				}
+
+				Accessory2: {
+					Label: Accessory2
+					Tooltip: ""
+				}
+
+				Accessory3: {
+					Label: Accessory3
+					Tooltip: ""
+				}
+
+				Accessory4: {
+					Label: Accessory4
+					Tooltip: ""
+				}
+
+				Accessory5: {
+					Label: Accessory5
+					Tooltip: ""
+				}
+
+				Accessory6: {
+					Label: Accessory6
+					Tooltip: ""
+				}
+			}
+
+			Armor: {
+				Tooltip: ""
+
+				Head: {
+					Label: Head
+					Tooltip: ""
+				}
+
+				Body: {
+					Label: Body
+					Tooltip: ""
+				}
+
+				Legs: {
+					Label: Legs
+					Tooltip: ""
+				}
+			}
+
+			ItemStackValue: {
+				Tooltip: ""
+
+				Stack: {
+					Label: Stack
+					Tooltip: ""
+				}
+			}
+
+			Accessories: {
+				Tooltip: ""
+
+				Accessory1: {
+					Label: Accessory1
+					Tooltip: ""
+				}
+
+				Accessory2: {
+					Label: Accessory2
+					Tooltip: ""
+				}
+
+				Accessory3: {
+					Label: Accessory3
+					Tooltip: ""
+				}
+
+				Accessory4: {
+					Label: Accessory4
+					Tooltip: ""
+				}
+
+				Accessory5: {
+					Label: Accessory5
+					Tooltip: ""
 				}
 			}
 		}
