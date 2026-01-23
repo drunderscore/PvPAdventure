@@ -374,7 +374,7 @@ public static class AdventureDropDatabase
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
                 // Always get two pieces of the Crystal Ninja set, separate from other drops.
-                npcLoot.Add(ItemDropRule.FewFromOptions(2, 1,
+                npcLoot.Add(ItemDropRule.FewFromOptions(3, 1,
                         ItemID.CrystalNinjaHelmet,
                         ItemID.CrystalNinjaChestplate,
                         ItemID.CrystalNinjaLeggings
