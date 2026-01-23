@@ -1616,6 +1616,13 @@ Mods: {
 					Tooltip: ""
 				}
 			}
+
+			ItemHeadDefinition.Tooltip: ""
+			ItemBodyDefinition.Tooltip: ""
+			ItemLegsDefinition.Tooltip: ""
+			ItemAccessoryDefinition.Tooltip: ""
+			ItemGrapplingHookDefinition.Tooltip: ""
+			ItemMountDefinition.Tooltip: ""
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry

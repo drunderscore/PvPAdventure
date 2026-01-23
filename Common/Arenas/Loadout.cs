@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PvPAdventure.Core.Config.ConfigElements.CustomItemDefinitions;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Terraria;
@@ -18,22 +19,40 @@ public class Loadout
 }
 public class Armor
 {
+    [CustomModConfigItem(typeof(ItemHeadDefinitionElement))]
     public ItemDefinition Head { get; set; } = new(ItemID.None);
+
+    [CustomModConfigItem(typeof(ItemBodyDefinitionElement))]
     public ItemDefinition Body { get; set; } = new(ItemID.None);
+
+    [CustomModConfigItem(typeof(ItemLegsDefinitionElement))]
     public ItemDefinition Legs { get; set; } = new(ItemID.None);
 }
 
 public class Accessories
 {
+    [CustomModConfigItem(typeof(ItemAccessoryDefinitionElement))]
     public ItemDefinition Accessory1 { get; set; } = new(ItemID.None);
+
+    [CustomModConfigItem(typeof(ItemAccessoryDefinitionElement))]
     public ItemDefinition Accessory2 { get; set; } = new(ItemID.None);
+
+    [CustomModConfigItem(typeof(ItemAccessoryDefinitionElement))]
     public ItemDefinition Accessory3 { get; set; } = new(ItemID.None);
+
+    [CustomModConfigItem(typeof(ItemAccessoryDefinitionElement))]
     public ItemDefinition Accessory4 { get; set; } = new(ItemID.None);
+
+    [CustomModConfigItem(typeof(ItemAccessoryDefinitionElement))]
     public ItemDefinition Accessory5 { get; set; } = new(ItemID.None);
 }
+
 public class Equipment
 {
+    [CustomModConfigItem(typeof(ItemGrapplingHookDefinitionElement))]
     public ItemDefinition GrapplingHook { get; set; } = new(ItemID.None);
+
+    [CustomModConfigItem(typeof(ItemMountDefinitionElement))]
     public ItemDefinition Mount { get; set; } = new(ItemID.None);
 }
 
@@ -89,3 +108,5 @@ public class LoadoutItem
         return Math.Max(1, temp.maxStack);
     }
 }
+
+
