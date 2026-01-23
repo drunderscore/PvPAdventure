@@ -2,40 +2,48 @@
   "ArenaLoadouts": [
     {
       "Name": "Early PHM",
-      "Head": {
-        "Name": "GoldHelmet",
-        "DisplayName": "Gold Helmet"
+      "Armor": {
+        "Head": {
+          "Name": "GoldHelmet",
+          "DisplayName": "Gold Helmet"
+        },
+        "Body": {
+          "Name": "GoldChainmail",
+          "DisplayName": "Gold Chainmail"
+        },
+        "Legs": {
+          "Name": "GoldGreaves",
+          "DisplayName": "Gold Greaves"
+        }
       },
-      "Body": {
-        "Name": "GoldChainmail",
-        "DisplayName": "Gold Chainmail"
-      },
-      "Legs": {
-        "Name": "GoldGreaves",
-        "DisplayName": "Gold Greaves"
-      },
-      "Accessories": [
-        {
+      "Accessories": {
+        "Accessory1": {
           "Name": "HermesBoots",
           "DisplayName": "Hermes Boots"
         },
-        {
+        "Accessory2": {
           "Name": "CloudinaBottle",
           "DisplayName": "Cloud in a Bottle"
         },
-        {
+        "Accessory3": {
           "Name": "BandofRegeneration",
           "DisplayName": "Band of Regeneration"
         },
-        {
+        "Accessory4": {
           "Name": "Aglet",
           "DisplayName": "Aglet"
         },
-        {
+        "Accessory5": {
           "Name": "Shackle",
           "DisplayName": "Shackle"
         }
-      ],
+      },
+      "Equipment": {
+        "GrapplingHook": {
+          "Name": "GrapplingHook",
+          "DisplayName": "Grappling Hook"
+        }
+      },
       "Inventory": [
         {
           "Item": {
@@ -108,48 +116,52 @@
             "DisplayName": "Flamarang"
           }
         }
-      ],
-      "GrapplingHook": {
-        "Name": "GrapplingHook",
-        "DisplayName": "Grappling Hook"
-      }
+      ]
     },
     {
       "Name": "Late PHM",
-      "Head": {
-        "Name": "MoltenHelmet",
-        "DisplayName": "Molten Helmet"
+      "Armor": {
+        "Head": {
+          "Name": "MoltenHelmet",
+          "DisplayName": "Molten Helmet"
+        },
+        "Body": {
+          "Name": "MoltenBreastplate",
+          "DisplayName": "Molten Breastplate"
+        },
+        "Legs": {
+          "Name": "MoltenGreaves",
+          "DisplayName": "Molten Greaves"
+        }
       },
-      "Body": {
-        "Name": "MoltenBreastplate",
-        "DisplayName": "Molten Breastplate"
-      },
-      "Legs": {
-        "Name": "MoltenGreaves",
-        "DisplayName": "Molten Greaves"
-      },
-      "Accessories": [
-        {
+      "Accessories": {
+        "Accessory1": {
           "Name": "ObsidianShield",
           "DisplayName": "Obsidian Shield"
         },
-        {
+        "Accessory2": {
           "Name": "SpectreBoots",
           "DisplayName": "Spectre Boots"
         },
-        {
+        "Accessory3": {
           "Name": "FeralClaws",
           "DisplayName": "Feral Claws"
         },
-        {
+        "Accessory4": {
           "Name": "BandofRegeneration",
           "DisplayName": "Band of Regeneration"
         },
-        {
+        "Accessory5": {
           "Name": "CloudinaBottle",
           "DisplayName": "Cloud in a Bottle"
         }
-      ],
+      },
+      "Equipment": {
+        "GrapplingHook": {
+          "Name": "IvyWhip",
+          "DisplayName": "Ivy Whip"
+        }
+      },
       "Inventory": [
         {
           "Item": {
@@ -216,48 +228,52 @@
             "DisplayName": "Binoculars"
           }
         }
-      ],
-      "GrapplingHook": {
-        "Name": "IvyWhip",
-        "DisplayName": "Ivy Whip"
-      }
+      ]
     },
     {
       "Name": "Early HM",
-      "Head": {
-        "Name": "MythrilHelmet",
-        "DisplayName": "Mythril Helmet"
+      "Armor": {
+        "Head": {
+          "Name": "MythrilHelmet",
+          "DisplayName": "Mythril Helmet"
+        },
+        "Body": {
+          "Name": "MythrilChainmail",
+          "DisplayName": "Mythril Chainmail"
+        },
+        "Legs": {
+          "Name": "MythrilGreaves",
+          "DisplayName": "Mythril Greaves"
+        }
       },
-      "Body": {
-        "Name": "MythrilChainmail",
-        "DisplayName": "Mythril Chainmail"
-      },
-      "Legs": {
-        "Name": "MythrilGreaves",
-        "DisplayName": "Mythril Greaves"
-      },
-      "Accessories": [
-        {
+      "Accessories": {
+        "Accessory1": {
           "Name": "WarriorEmblem",
           "DisplayName": "Warrior Emblem"
         },
-        {
+        "Accessory2": {
           "Name": "LightningBoots",
           "DisplayName": "Lightning Boots"
         },
-        {
+        "Accessory3": {
           "Name": "AngelWings",
           "DisplayName": "Angel Wings"
         },
-        {
+        "Accessory4": {
           "Name": "ObsidianShield",
           "DisplayName": "Obsidian Shield"
         },
-        {
+        "Accessory5": {
           "Name": "PowerGlove",
           "DisplayName": "Power Glove"
         }
-      ],
+      },
+      "Equipment": {
+        "GrapplingHook": {
+          "Name": "DualHook",
+          "DisplayName": "Dual Hook"
+        }
+      },
       "Inventory": [
         {
           "Item": {
@@ -324,48 +340,52 @@
             "DisplayName": "Binoculars"
           }
         }
-      ],
-      "GrapplingHook": {
-        "Name": "DualHook",
-        "DisplayName": "Dual Hook"
-      }
+      ]
     },
     {
       "Name": "Post-Mech",
-      "Head": {
-        "Name": "HallowedMask",
-        "DisplayName": "Hallowed Mask"
+      "Armor": {
+        "Head": {
+          "Name": "HallowedMask",
+          "DisplayName": "Hallowed Mask"
+        },
+        "Body": {
+          "Name": "HallowedPlateMail",
+          "DisplayName": "Hallowed Plate Mail"
+        },
+        "Legs": {
+          "Name": "HallowedGreaves",
+          "DisplayName": "Hallowed Greaves"
+        }
       },
-      "Body": {
-        "Name": "HallowedPlateMail",
-        "DisplayName": "Hallowed Plate Mail"
-      },
-      "Legs": {
-        "Name": "HallowedGreaves",
-        "DisplayName": "Hallowed Greaves"
-      },
-      "Accessories": [
-        {
+      "Accessories": {
+        "Accessory1": {
           "Name": "FireGauntlet",
           "DisplayName": "Fire Gauntlet"
         },
-        {
+        "Accessory2": {
           "Name": "AvengerEmblem",
           "DisplayName": "Avenger Emblem"
         },
-        {
+        "Accessory3": {
           "Name": "FrostsparkBoots",
           "DisplayName": "Frostspark Boots"
         },
-        {
+        "Accessory4": {
           "Name": "FrozenWings",
           "DisplayName": "Frozen Wings"
         },
-        {
+        "Accessory5": {
           "Name": "ObsidianShield",
           "DisplayName": "Obsidian Shield"
         }
-      ],
+      },
+      "Equipment": {
+        "GrapplingHook": {
+          "Name": "DualHook",
+          "DisplayName": "Dual Hook"
+        }
+      },
       "Inventory": [
         {
           "Item": {
@@ -432,11 +452,7 @@
             "DisplayName": "Binoculars"
           }
         }
-      ],
-      "GrapplingHook": {
-        "Name": "DualHook",
-        "DisplayName": "Dual Hook"
-      }
+      ]
     }
   ]
 }

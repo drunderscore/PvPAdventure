@@ -7,4 +7,4 @@ weakReferences = DragonLens
 buildIgnore = *.csproj, *.user, *.md, obj\*, bin\*, .vs\*
 sortAfter = SubworldLibrary
 loadAfter = SubworldLibrary
-modReferences = SubworldLibrary, StructureHelper
+modReferences = SubworldLibrary

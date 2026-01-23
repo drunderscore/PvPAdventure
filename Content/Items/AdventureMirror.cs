@@ -21,7 +21,7 @@ internal class AdventureMirror : ModItem
         //Item.CloneDefaults(ItemID.MagicMirror);
 
         var config = ModContent.GetInstance<ServerConfig>();
-        int recallFrames = config.AdventureMirrorRecallFrames; // 5 seconds = 60 * 5
+        int recallFrames = config.AdventureMirrorRecallSeconds * 60; // 5 seconds = 60 * 5
 
         Item.useTime = recallFrames + 3; // + a few frames to ensure countdown shows
         Item.useAnimation = recallFrames + 3; // + a few frames to ensure countdown 
@@ -55,7 +55,7 @@ internal class AdventureMirror : ModItem
 
     private void ResetUseTimer(Player player)
     {
-        int recallFrames = ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallFrames;
+        int recallFrames = ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallSeconds * 60;
 
         player.itemTime = recallFrames + 1;
         player.itemAnimation = recallFrames + 1;
@@ -172,19 +172,21 @@ internal class AdventureMirror : ModItem
         int secondsLeft = (framesLeft + 59) / 60;
 
         // Stop dust once we are at 0
-        //if (framesLeft > 0)
+        if (framesLeft > 0)
         {
             if (Main.rand.NextBool())
                 Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror,
                 player.velocity.X * 0.5f, player.velocity.Y * 0.5f, 150, default, 1.5f);
         }
 
-        // Countdown popup
+        // Countdown popup with team color
+        Color teamColor = Main.teamColor[(int)player.team];
+
         if (framesLeft == 2 && player.reuseDelay == 0)
         {
             PopupText.NewText(new AdvancedPopupRequest
             {
-                Color = Color.MediumPurple,
+                Color = teamColor,
                 Text = "0",
                 Velocity = new(0f, -4),
                 DurationInFrames = 120
@@ -194,7 +196,7 @@ internal class AdventureMirror : ModItem
         {
             PopupText.NewText(new AdvancedPopupRequest
             {
-                Color = Color.MediumPurple,
+                Color = teamColor,
                 Text = secondsLeft.ToString(),
                 Velocity = new(0f, -4),
                 DurationInFrames = 120
@@ -234,9 +236,11 @@ internal class AdventureMirror : ModItem
         if (color == default)
             color = Color.Crimson;
 
+        Color teamColor = Main.teamColor[(int)player.team];
+
         PopupText.NewText(new AdvancedPopupRequest
         {
-            Color = color,
+            Color = teamColor,
             Text = Language.GetTextValue(localizationKey),
             Velocity = new Vector2(0f, -4f),
             DurationInFrames = 120

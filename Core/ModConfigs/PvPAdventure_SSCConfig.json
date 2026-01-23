@@ -1,7 +1,38 @@
 {
-  "StartItems": {
-    "PvPAdventure/AdventureMirror": 1
-  },
   "StartLife": 200,
-  "StartMana": 80
+  "StartMana": 80,
+  "StartItems": [
+    {
+      "Item": {
+        "Name": "CopperPickaxe",
+        "DisplayName": "Copper Pickaxe"
+      }
+    },
+    {
+      "Item": {
+        "Name": "CopperAxe",
+        "DisplayName": "Copper Axe"
+      }
+    },
+    {
+      "Item": {
+        "Name": "Bed",
+        "DisplayName": "Bed"
+      }
+    },
+    {
+      "Item": {
+        "Name": "Torch",
+        "DisplayName": "Torch"
+      },
+      "Stack": 15
+    },
+    {
+      "Item": {
+        "Name": "Wood",
+        "DisplayName": "Wood"
+      },
+      "Stack": 20
+    }
+  ]
 }

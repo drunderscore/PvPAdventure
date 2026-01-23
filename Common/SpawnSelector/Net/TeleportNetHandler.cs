@@ -1,13 +1,8 @@
-﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Net;
-using System.IO;
+﻿using System.IO;
 using Terraria;
-using Terraria.Audio;
 using Terraria.ID;
-using Terraria.ModLoader;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
-namespace PvPAdventure.Common.SpawnSelector;
+namespace PvPAdventure.Common.SpawnSelector.Net;
 
 public static class TeleportNetHandler
 {

@@ -7,15 +7,14 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Arenas;
 
-// Class used to define a player's loadout for arenas, a new gamemode..
+// Class used to define a player's loadout for arenas, a new gamemode developed during 2026-01!
 public class Loadout
 {
     public string Name { get; set; } = "";
     public Armor Armor { get; set; } = new();
     public Accessories Accessories { get; set; } = new();
+    public Equipment Equipment { get; set; } = new();
     public List<LoadoutItem> Inventory { get; set; } = [];
-    public ItemDefinition GrapplingHook { get; set; } = new(ItemID.None);
-    public ItemDefinition Mount { get; set; } = new(ItemID.None);
 }
 public class Armor
 {
@@ -32,6 +31,11 @@ public class Accessories
     public ItemDefinition Accessory4 { get; set; } = new(ItemID.None);
     public ItemDefinition Accessory5 { get; set; } = new(ItemID.None);
 }
+public class Equipment
+{
+    public ItemDefinition GrapplingHook { get; set; } = new(ItemID.None);
+    public ItemDefinition Mount { get; set; } = new(ItemID.None);
+}
 
 /// <summary>
 /// Consists of a item and a stack.
@@ -39,49 +43,49 @@ public class Accessories
 /// </summary>
 public class LoadoutItem
 {
+    private ItemDefinition _item = new(ItemID.None);
+    private int _stack = 1;
+
     public ItemDefinition Item
     {
         get => _item;
         set
         {
             _item = value ?? new ItemDefinition(ItemID.None);
-            Stack = _stack; // re-clamp when item changes
+            Stack = _stack; // re-clamp
         }
     }
 
     [DefaultValue(1)]
+    [Range(1, 9999)]
     public int Stack
     {
         get => _stack;
         set
         {
-            int max = 1;
-
             int type = Item?.Type ?? 0;
-            if (type > 0)
-            {
-                Item temp = new Item();
-                temp.SetDefaults(type);
-                max = temp.maxStack;
-
-                if (max < 1)
-                    max = 1;
-            }
-
-            _stack = Math.Clamp(value, 1, max);
+            int max = GetMaxStack(type);
+            int clamped = Math.Clamp(value, 1, max);
+            // useless -_-
+            //if (value < 1 || value > max)
+            //    Main.NewText("Warning: Item stack out of bounds!", Color.OrangeRed);
+            _stack = clamped;
         }
     }
 
-    private ItemDefinition _item = new(ItemID.None);
-    private int _stack = 1;
-
-    public LoadoutItem()
+    public static int GetMaxStack(int type)
     {
-    }
+        if (type <= 0)
+            return 1;
 
-    public LoadoutItem(ItemDefinition item, int stack = 1)
-    {
-        Item = item;
-        Stack = stack;
+        if (ContentSamples.ItemsByType.TryGetValue(type, out Item sample))
+        {
+            return Math.Max(1, sample.maxStack);
+        }
+
+        // Fallback
+        Item temp = new();
+        temp.SetDefaults(type);
+        return Math.Max(1, temp.maxStack);
     }
 }

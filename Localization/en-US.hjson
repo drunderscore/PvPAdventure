@@ -309,6 +309,16 @@ Mods: {
 				DisplayName: Question Config Item
 				Tooltip: ""
 			}
+
+			DashConfigItem: {
+				DisplayName: Dash Config Item
+				Tooltip: ""
+			}
+
+			PvPConfigItem: {
+				DisplayName: Pv P Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -359,62 +369,49 @@ Mods: {
 				DisplayName: Adventure Client Config
 
 				Headers: {
-					General: "[i:Cog] General"
-					SoundEffects: Sound Effects
-					Debug: "[i:PvPAdventure/ChatConfigItem] Chat"
-					SpawnSelector: Spawn Selector
-				}
-
-				ShiftEnterOpensAllChat: {
-					Label: Shift Enter Opens All Chat
-					Tooltip: Pressing shift+enter opens the all chat
+					PlayerVisualization: Player Visualization
+					SpawnAndRespawn: "[i:PvPAdventure/MapSpawnConfigItem] Spawn And Respawn"
+					Sound: "[i:FairyBell] Sound"
+					Movement: "[i:HermesBoots] Movement"
+					Chat: "[i:PvPAdventure/ChatConfigItem] Chat"
 				}
 
 				IsVanillaDashEnabled: {
-					Label: Is Vanilla Dash Enabled
-					Tooltip:
-						'''
-						On: Dash as usual by double tapping a movement direction (vanilla)
-						Off: Disables vanilla dash in favor of dash keybind
-						'''
+					Label: "[i:PvPAdventure/DashConfigItem] Enable Vanilla Dash"
+					Tooltip: Whether double tapping a movement direction will cause a dash
 				}
 
 				PlayerOutline: {
-					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Player Outline"
-					Tooltip: Visual outline around players
-				}
-
-				SoundEffect: {
-					Label: "[i:FairyBell] Sound Effect"
-					Tooltip: ""
+					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Player Outlines"
+					Tooltip: Visual outlines around players on teams
 				}
 
 				ShowDebugMessages: {
 					Label: Debug Messages
 					Tooltip:
 						'''
-						Sends chat messages with many different things useful for development flow and debugging.
+						Sends lots of chat messages useful for development flow and debugging.
 						Recommended to keep Off for players, On for testers and developers.
 						'''
 				}
 
 				ShowSavePlayerMessages: {
 					Label: Save Messages
-					Tooltip: Sends a local chat message whenever the player file is saved.
-				}
-
-				AutoSelectWorldSpawnWhenRespawning: {
-					Label: "[i:PvPAdventure/MapSpawnConfigItem] Auto Select World On Death"
-					Tooltip: When you die, the world spawn is automatically selected as your spawn point
+					Tooltip: Sends a local chat message whenever the player file is saved
 				}
 
 				AutoSelectLatestSpawnOption: {
 					Label: "[i:PvPAdventure/QuestionConfigItem] Auto Select Latest"
-					Tooltip: Automatically selects the latest spawn option when using Adventure Mirror
+					Tooltip: Automatically selects the last spawn option used
 				}
 
 				ShowChooseYourSpawnText: {
-					Label: Show Choose Your Spawn Text
+					Label: Show Header
+					Tooltip: Shows a header above the spawn options
+				}
+
+				SoundEffect: {
+					Label: Sound Effect
 					Tooltip: ""
 				}
 			}
@@ -668,11 +665,6 @@ Mods: {
 					Tooltip: ""
 				}
 
-				MapRecallFrames: {
-					Label: "[i:PvPAdventure/AdventureMirror] Map Recall Frames"
-					Tooltip: The number of frames the map timer is reset to when opening the map. Default: 300 (5 seconds)
-				}
-
 				SpawnImmuneFrames: {
 					Label: Spawn Immune Frames
 					Tooltip: ""
@@ -705,7 +697,7 @@ Mods: {
 
 				StartItems: {
 					Label: "[i:Chest] Starting Items"
-					Tooltip: The items a player starts with when joining with a new character.
+					Tooltip: ""
 				}
 
 				StartLife: {
@@ -719,7 +711,7 @@ Mods: {
 				}
 
 				IsSSCEnabled: {
-					Label: Is SSC Enabled
+					Label: Enable SSC
 					Tooltip:
 						'''
 						Whether to use server sided characters. 
@@ -734,9 +726,9 @@ Mods: {
 					Tooltip: ""
 				}
 
-				AdventureMirrorRecallFrames: {
-					Label: "[i:PvPAdventure/AdventureMirror] Adventure Mirror Recall Frames"
-					Tooltip: ""
+				AdventureMirrorRecallSeconds: {
+					Label: "[i:PvPAdventure/AdventureMirror] Adventure Mirror Recall Seconds"
+					Tooltip: The number of seconds it takes for a recall to complete
 				}
 
 				ShowPlayerTeamAndPvP: {
@@ -1415,6 +1407,11 @@ Mods: {
 					Label: Mount
 					Tooltip: ""
 				}
+
+				Equipment: {
+					Label: Equipment
+					Tooltip: ""
+				}
 			}
 
 			LoadoutItem: {
@@ -1440,13 +1437,13 @@ Mods: {
 				DisplayName: Arenas Config
 
 				Headers: {
-					Arenas: "[i:Cog] Arena Settings"
+					Arenas: "[i:Cog] Arenas"
 					Loadouts: "[i:PvPAdventure/ArenasConfigItem] Loadouts"
 				}
 
 				IsArenasEnabled: {
-					Label: Enabled
-					Tooltip: Whether to allow players to open the join arenas UI.
+					Label: Enable Arenas
+					Tooltip: Whether to allow players to open the arenas join UI.
 				}
 
 				ArenaLoadouts: {
@@ -1467,11 +1464,15 @@ Mods: {
 
 			SSCConfig: {
 				DisplayName: SSC Config
-				Headers.SSC: "[i:PvPAdventure/ServerConfigItem] Server Sided Characters"
+
+				Headers: {
+					SSC: "[i:PvPAdventure/ServerConfigItem] Server Sided Characters"
+					StartingItems: Starting Items
+				}
 
 				StartItems: {
-					Label: "[i:1] Starting Items"
-					Tooltip: The items a player starts with when joining with a new character.
+					Label: Starting Items
+					Tooltip: ""
 				}
 
 				StartLife: {
@@ -1485,7 +1486,7 @@ Mods: {
 				}
 
 				IsSSCEnabled: {
-					Label: Enabled
+					Label: Enable SSC
 					Tooltip:
 						'''
 						Whether to use server sided characters. 
@@ -1520,33 +1521,28 @@ Mods: {
 				}
 
 				Accessory1: {
-					Label: Accessory1
 					Tooltip: ""
+					Label: "1"
 				}
 
 				Accessory2: {
-					Label: Accessory2
 					Tooltip: ""
+					Label: "2"
 				}
 
 				Accessory3: {
-					Label: Accessory3
 					Tooltip: ""
+					Label: "3"
 				}
 
 				Accessory4: {
-					Label: Accessory4
 					Tooltip: ""
+					Label: "4"
 				}
 
 				Accessory5: {
-					Label: Accessory5
 					Tooltip: ""
-				}
-
-				Accessory6: {
-					Label: Accessory6
-					Tooltip: ""
+					Label: "5"
 				}
 			}
 
@@ -1603,6 +1599,20 @@ Mods: {
 
 				Accessory5: {
 					Label: Accessory5
+					Tooltip: ""
+				}
+			}
+
+			Equipment: {
+				Tooltip: ""
+
+				GrapplingHook: {
+					Label: Grappling Hook
+					Tooltip: ""
+				}
+
+				Mount: {
+					Label: Mount
 					Tooltip: ""
 				}
 			}

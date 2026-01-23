@@ -49,8 +49,6 @@ public class UISpawnState : UIState
 
         // UI state settings
 
-        
-
         // Background panel
         backgroundPanel = new()
         {
@@ -117,10 +115,6 @@ public class UISpawnState : UIState
         }
 
         base.Update(gameTime);
-    }
-    public void RebuildPublic()
-    {
-        Rebuild();
     }
 
     private void Rebuild()

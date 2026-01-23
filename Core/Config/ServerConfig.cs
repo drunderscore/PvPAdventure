@@ -95,9 +95,10 @@ public class ServerConfig : ModConfig
 
     [Header("Gameplay")]
     [BackgroundColor(40, 90, 40)]
-    [Range(0, 60 * 60)]
-    [DefaultValue(4 * 60)]
-    public int AdventureMirrorRecallFrames { get; set; }
+    [Range(0, 60)]
+    [DefaultValue(4)]
+    public int AdventureMirrorRecallSeconds { get; set; }
+
     [BackgroundColor(40, 90, 40)]
     [Range(0, 30 * 60)]
     [DefaultValue(1.5 * 60)]

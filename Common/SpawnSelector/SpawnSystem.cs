@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector.UI;
 using PvPAdventure.Content.Items;
-using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using SubworldLibrary;
@@ -24,104 +23,93 @@ public class SpawnSystem : ModSystem
     public UserInterface ui;
     public UISpawnState spawnState;
 
-    // The visibility of the state
     public static bool Enabled { get; private set; }
-    // Whether or not we can instantly execute teleports
     public static bool CanTeleport { get; private set; }
+
     public static void SetCanTeleport(bool value) => CanTeleport = value;
 
-    public enum SpawnType : byte
+    public static bool IsUiOpen
     {
-        None,
-        World,
-        MyBed,
-        Random,
-        Teammate,
-        TeammateBed
+        get
+        {
+            var sys = ModContent.GetInstance<SpawnSystem>();
+            return sys != null && sys.ui?.CurrentState == sys.spawnState;
+        }
     }
-
-    // Map timer
-    private bool wasShowingUI;
     private bool wasInSpawnRegion;
-    private bool sessionWasOpen;
-    private static bool SessionOpen => Main.mapFullscreen || SpectateSystem.MapRestore;
 
     public override void UpdateUI(GameTime gameTime)
     {
         Player local = Main.LocalPlayer;
         if (local == null || local.ghost)
         {
-            ui.SetState(null);
+            ui?.SetState(null);
             return;
         }
 
-        var sp = local.GetModPlayer<SpawnPlayer>();
+        SpawnPlayer sp = local.GetModPlayer<SpawnPlayer>();
 
-        // Conditions whether we should open the spawn UI or not
         bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
         bool inSubworld = SubworldSystem.AnyActive();
         bool inSpawnRegion = sp.IsPlayerInSpawnRegion();
+        bool enteredSpawnRegion = inSpawnRegion && !wasInSpawnRegion;
+        wasInSpawnRegion = inSpawnRegion;
+
+        if (enteredSpawnRegion && !local.dead)
+            sp.ClearSelection();
+
         bool usingMirror = IsUsingAdventureMirror(local, out bool mirrorReady, out _);
 
         Enabled = (playing || inSubworld) && (inSpawnRegion || usingMirror);
 
-        bool enteredSpawnRegion = inSpawnRegion && !wasInSpawnRegion;
-        wasInSpawnRegion = inSpawnRegion;
-
-        bool blockExecuteThisTick = enteredSpawnRegion && !usingMirror && !local.dead;
-
-        if (blockExecuteThisTick)
-        {
-            sp.ClearSelection();
-            SetCanTeleport(false);
-        }
-
-        if (local.dead)
-        {
-            SetCanTeleport(local.respawnTimer <= 2);
-        }
-        else
-        {
-            if (InstantTeleport(local))
-            {
-                SetCanTeleport(true);
-            }
-            else if (usingMirror)
-            {
-                SetCanTeleport(mirrorReady);
-            }
-            else
-            {
-                SetCanTeleport(false);
-            }
-        }
-
-        if (CanTeleport && !blockExecuteThisTick)
-            TryExecuteSelection(local);
-
         bool show = (playing || inSubworld) && (local.dead || Enabled);
         if (!show)
         {
-            wasShowingUI = false;
             ui.SetState(null);
             return;
         }
 
-        if (!wasShowingUI || ui.CurrentState != spawnState)
+        SetCanTeleport(ComputeCanTeleport(local, inSpawnRegion, usingMirror, mirrorReady));
+
+        if (!CanTeleport)
+            sp.ClearExecuteRequest();
+
+        if (!local.dead && CanTeleport)
+        {
+            bool allowExecute = inSpawnRegion || usingMirror || sp.ExecuteRequested;
+
+            if (allowExecute)
+                TryExecuteSelection(local, sp);
+        }
+
+        if (ui.CurrentState != spawnState)
         {
             spawnState = new UISpawnState();
             ui.SetState(spawnState);
-
-            var config = ModContent.GetInstance<ClientConfig>();
-            if (config.AutoSelectLatestSpawnOption && usingMirror)
-                Main.LocalPlayer?.GetModPlayer<SpawnPlayer>().RestoreLastSelection();
-
-            wasShowingUI = true;
+            
+            if (!local.dead && !inSpawnRegion) // Do NOT auto-select latest while in a spawn region (prevents instant execution).
+                sp.TryAutoSelectLatestSelection();
         }
 
         ui.Update(gameTime);
     }
 
+    private static bool ComputeCanTeleport(Player local, bool inSpawnRegion, bool usingMirror, bool mirrorReady)
+    {
+        if (local.dead)
+            return local.respawnTimer <= 2;
+
+        if (!Enabled)
+            return false;
+
+        if (inSpawnRegion)
+            return true;
+
+        if (usingMirror)
+            return mirrorReady;
+
+        return false;
+    }
 
     private static bool IsUsingAdventureMirror(Player player, out bool ready, out int secondsLeft)
     {
@@ -168,207 +156,133 @@ public class SpawnSystem : ModSystem
 
     public static bool IsValidTeammateIndex(int idx) => IsValidTeammateIndex(Main.LocalPlayer, idx);
 
-    #region Teleport methods
-    private static bool InstantTeleport(Player p)
+    private void TryExecuteSelection(Player p, SpawnPlayer sp)
     {
-        if (p == null || !p.active || p.dead || !Enabled)
-            return false;
+        if (sp.SelectedType == SpawnType.None)
+            return;
 
-        return p.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
+        if (p.whoAmI == Main.myPlayer)
+            Log.Chat("Executing spawn: " + DescribeSelection(sp.SelectedType, sp.SelectedPlayerIndex));
+
+        bool executed = PerformTeleport(p, sp.SelectedType, sp.SelectedPlayerIndex);
+        if (!executed)
+            return;
+
+        sp.ClearExecuteRequest();
+        OnTeleportExecuted(p);
     }
 
-    private void OnTeleportExecuted()
+    private static bool PerformTeleport(Player p, SpawnType type, int idx)
     {
-        var p = Main.LocalPlayer;
-        if (p != null && p.active)
+        // MP client: always request (no local execution)
+        if (Main.netMode == NetmodeID.MultiplayerClient)
         {
-            // HARD reset mirror use state
-            p.itemTime = 0;
-            p.itemAnimation = 0;
-            p.reuseDelay = 0;
+            SendTeleportRequest(type, idx);
+            return true;
         }
+
+        switch (type)
+        {
+            case SpawnType.World:
+                p.Teleport(WorldSpawnWorldPos(), TeleportationStyleID.RecallPotion);
+                return true;
+
+            case SpawnType.MyBed:
+                return TryTeleportToBed(p, p);
+
+            case SpawnType.Random:
+                p.TeleportationPotion();
+                SoundEngine.PlaySound(SoundID.Item6, p.Center);
+                return true;
+
+            case SpawnType.Teammate:
+                if (!IsValidTeammateIndex(p, idx))
+                    return false;
+
+                Player t = Main.player[idx];
+                if (t == null || !t.active || t.dead)
+                    return false;
+
+                p.UnityTeleport(t.position);
+                return true;
+
+            case SpawnType.TeammateBed:
+                if (idx < 0 || idx >= Main.maxPlayers)
+                    return false;
+
+                Player bedOwner = Main.player[idx];
+                if (bedOwner == null || !bedOwner.active)
+                    return false;
+
+                return TryTeleportToBed(p, bedOwner);
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool TryTeleportToBed(Player requester, Player bedOwner)
+    {
+        if (bedOwner.SpawnX < 0 || bedOwner.SpawnY < 0)
+            return false;
+
+        if (!Player.CheckSpawn(bedOwner.SpawnX, bedOwner.SpawnY))
+            return false;
+
+        Vector2 pos = new Vector2(bedOwner.SpawnX, bedOwner.SpawnY - 6).ToWorldCoordinates();
+        requester.Teleport(pos, TeleportationStyleID.RecallPotion);
+        return true;
+    }
+
+    private static void SendTeleportRequest(SpawnType type, int idx)
+    {
+        var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
+        pkt.Write((byte)Main.myPlayer);
+        pkt.Write((byte)type);
+
+        if (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
+            pkt.Write((short)idx);
+
+        pkt.Send();
+    }
+
+    private static Vector2 WorldSpawnWorldPos() =>
+        new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
+
+    private static string DescribeSelection(SpawnType type, int idx)
+    {
+        if (type != SpawnType.Teammate && type != SpawnType.TeammateBed)
+            return type.ToString();
+
+        return type.ToString() + " (" + GetPlayerNameSafe(idx) + ")";
+    }
+
+    private static string GetPlayerNameSafe(int idx)
+    {
+        if (idx < 0 || idx >= Main.maxPlayers)
+            return "<unknown>";
+
+        Player p = Main.player[idx];
+        if (p == null)
+            return "<unknown>";
+
+        return p.name;
+    }
+
+    private static void OnTeleportExecuted(Player p)
+    {
+        // hard reset mirror use state
+        p.itemTime = 0;
+        p.itemAnimation = 0;
+        p.reuseDelay = 0;
 
         SetCanTeleport(false);
 
         SpectateSystem.MapRestore = false;
         Main.mapFullscreen = false;
 
-        ClearSelection();
-    }
-
-    private static void TeleportWorld(Player p)
-    {
-        Vector2 pos = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
-
-        if (Main.netMode == Terraria.ID.NetmodeID.MultiplayerClient)
-        {
-            var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
-            pkt.Write((byte)Main.myPlayer);
-            pkt.Write((byte)SpawnType.World);
-            pkt.Send();
-            return;
-        }
-
-        p.Teleport(pos, Terraria.ID.TeleportationStyleID.RecallPotion);
-    }
-
-    private static void TeleportRandom(Player p)
-    {
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
-            pkt.Write((byte)Main.myPlayer);
-            pkt.Write((byte)SpawnType.Random);
-            pkt.Send();
-            return;
-        }
-
-        p.TeleportationPotion();
-        SoundEngine.PlaySound(SoundID.Item6, p.Center);
-    }
-
-    private static void TeleportToPlayer(Player p, int idx)
-    {
-        if (!IsValidTeammateIndex(idx))
-            return;
-
-        Player t = Main.player[idx];
-        if (t == null || !t.active || t.dead)
-            return;
-
-        if (Main.netMode == Terraria.ID.NetmodeID.MultiplayerClient)
-        {
-            var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
-            pkt.Write((byte)Main.myPlayer);
-            pkt.Write((byte)SpawnType.Teammate);
-            pkt.Write((short)idx);
-            pkt.Send();
-            return;
-        }
-
-        p.UnityTeleport(t.position);
-    }
-
-    private static void TeleportToTeammatesBed(Player p, int idx)
-    {
-        //if (!IsValidTeammateIndex(idx))
-            //return;
-
-        Player t = Main.player[idx];
-        if (t == null || !t.active)
-            return;
-
-        // Server decides final position in MP
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
-            pkt.Write((byte)Main.myPlayer);
-            pkt.Write((byte)SpawnType.TeammateBed);
-            pkt.Write((short)idx);
-            pkt.Send();
-            return;
-        }
-
-        if (t.SpawnX < 0 || t.SpawnY < 0 || !Player.CheckSpawn(t.SpawnX, t.SpawnY))
-            return;
-
-        Vector2 pos = new Vector2(t.SpawnX, t.SpawnY - 6).ToWorldCoordinates();
-        p.Teleport(pos, TeleportationStyleID.RecallPotion);
-    }
-
-    private static void TeleportMyBed(Player p)
-    {
-        if (p.SpawnX < 0 || p.SpawnY < 0 || !Player.CheckSpawn(p.SpawnX, p.SpawnY))
-            return;
-
-        Vector2 pos = new Vector2(p.SpawnX, p.SpawnY - 6).ToWorldCoordinates();
-
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
-            pkt.Write((byte)Main.myPlayer);
-            pkt.Write((byte)SpawnType.MyBed);
-            pkt.Send();
-            return;
-        }
-
-        p.Teleport(pos, TeleportationStyleID.RecallPotion);
-    }
-    #endregion
-
-    private void ClearSelection()
-    {
-        Player p = Main.LocalPlayer;
-        if (p == null)
-            return;
-
         p.GetModPlayer<SpawnPlayer>().ClearSelection();
-    }
-
-    private void TryExecuteSelection(Player p)
-    {
-        if (p == null || !p.active)
-            return;
-
-        if (!CanTeleport)
-            return;
-
-        if (p.dead)
-            return;
-
-        SpawnPlayer sp = p.GetModPlayer<SpawnPlayer>();
-        if (sp.SelectedType == SpawnType.None)
-            return;
-
-        if (p.whoAmI == Main.myPlayer)
-        {
-            string extra =
-                (sp.SelectedType == SpawnType.Teammate || sp.SelectedType == SpawnType.TeammateBed)
-                    ? " (" + Main.player[sp.SelectedPlayerIndex].name + ")"
-                    : "";
-
-            Log.Chat("Executing spawn: " + sp.SelectedType + extra);
-        }
-
-        if (sp.SelectedType == SpawnType.Random)
-        {
-            TeleportRandom(p);
-            OnTeleportExecuted();
-            return;
-        }
-
-        if (sp.SelectedType == SpawnType.World)
-        {
-            TeleportWorld(p);
-            OnTeleportExecuted();
-            return;
-        }
-
-        if (sp.SelectedType == SpawnType.MyBed)
-        {
-            TeleportMyBed(p);
-            OnTeleportExecuted();
-            return;
-        }
-
-        if (sp.SelectedType == SpawnType.Teammate)
-        {
-            TeleportToPlayer(p, sp.SelectedPlayerIndex);
-            OnTeleportExecuted();
-            return;
-        }
-
-        if (sp.SelectedType == SpawnType.TeammateBed)
-        {
-            TeleportToTeammatesBed(p, sp.SelectedPlayerIndex);
-            OnTeleportExecuted();
-            return;
-        }
     }
 
     public override void OnWorldLoad()
@@ -386,41 +300,9 @@ public class SpawnSystem : ModSystem
         Main.OnPostFullscreenMapDraw -= DrawOnFullscreenMap;
     }
 
-    //private void DrawMapCountdown(SpriteBatch sb)
-    //{
-    //    if (Main.LocalPlayer?.GetModPlayer<SpawnPlayer>()?.IsPlayerInSpawnRegion() == true)
-    //        return;
-
-    //    string text = "";
-
-    //    if (Main.LocalPlayer != null && Main.LocalPlayer.dead && Main.mapFullscreen)
-    //    {
-    //        int secondsLeft = (Main.LocalPlayer.respawnTimer + 59) / 60;
-    //        if (Main.LocalPlayer.respawnTimer <= 2)
-    //            secondsLeft = 0;
-
-    //        text = "Dead: " + secondsLeft.ToString();
-    //    }
-    //    else if (SessionOpen)
-    //    {
-    //        int secondsLeft = (mapTimer + 59) / 60;
-    //        if (secondsLeft < 0)
-    //            secondsLeft = 0;
-
-    //        text = secondsLeft.ToString();
-    //    }
-
-    //    if (text.Length == 0)
-    //        return;
-
-    //    Vector2 size = FontAssets.DeathText.Value.MeasureString(text);
-    //    Vector2 pos = new Vector2(Main.screenWidth * 0.5f - size.X * 0.5f, -4f);
-    //    Utils.DrawBorderStringBig(sb, text, pos, Color.White);
-    //}
-
     private void DrawAdventureMirrorTimer(SpriteBatch sb)
     {
-        var local = Main.LocalPlayer;
+        Player local = Main.LocalPlayer;
         if (local == null)
             return;
 
@@ -431,12 +313,10 @@ public class SpawnSystem : ModSystem
             return;
 
         var dims = spawnState.TitlePanel.GetDimensions();
-
         string text = secondsLeft.ToString();
 
         Vector2 size = FontAssets.DeathText.Value.MeasureString(text);
 
-        // Right of title panel, vertically centered
         Vector2 pos = new(
             dims.X + dims.Width + 12f,
             dims.Y + (dims.Height - size.Y) * 0.5f + 8f
@@ -451,12 +331,18 @@ public class SpawnSystem : ModSystem
             return;
 
         SpriteBatch sb = Main.spriteBatch;
-        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None,
-            RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
+        sb.Begin(
+            SpriteSortMode.Deferred,
+            BlendState.AlphaBlend,
+            SamplerState.LinearClamp,
+            DepthStencilState.None,
+            RasterizerState.CullCounterClockwise,
+            null,
+            Main.UIScaleMatrix
+        );
 
         ui.Draw(sb, Main._drawInterfaceGameTime);
         DrawAdventureMirrorTimer(sb);
-        //DrawMapCountdown(sb);
 
         sb.End();
     }
@@ -464,7 +350,6 @@ public class SpawnSystem : ModSystem
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
         int idx = layers.FindIndex(l => l.Name == "Vanilla: Death Text");
-        
         if (IsAnyConfigUIOpen())
             idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
 
@@ -478,14 +363,13 @@ public class SpawnSystem : ModSystem
                 if (Main.mapFullscreen || ui?.CurrentState == null)
                     return true;
 
-                var sb = Main.spriteBatch;
-
+                SpriteBatch sb = Main.spriteBatch;
                 ui.Draw(sb, Main._drawInterfaceGameTime);
-                //DrawMapCountdown(sb);
                 DrawAdventureMirrorTimer(sb);
                 return true;
             },
-            InterfaceScaleType.UI));
+            InterfaceScaleType.UI
+        ));
     }
 
     private static bool IsAnyConfigUIOpen()

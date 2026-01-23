@@ -1,7 +1,5 @@
-﻿using Microsoft.Xna.Framework;
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
@@ -91,8 +89,6 @@ public class SpectateSystem : ModSystem
 
         ValidateHover();
 
-        bool inSpawnRegion =!local.dead && local.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
-
         bool hovering = HoveringType != SpawnType.None;
 
         HandleHoverTransitions(local, hovering);
@@ -100,7 +96,7 @@ public class SpectateSystem : ModSystem
         if (!hovering)
             return;
 
-        ApplyCamera(inSpawnRegion);
+        ApplyCamera();
     }
 
     private static void ValidateHover()
@@ -114,7 +110,7 @@ public class SpectateSystem : ModSystem
             ClearHover();
     }
 
-    private void HandleHoverTransitions(Player local, bool hovering)
+    private static void HandleHoverTransitions(Player local, bool hovering)
     {
         if (hovering && !wasHovering)
         {
@@ -155,7 +151,7 @@ public class SpectateSystem : ModSystem
         wasHovering = false;
     }
 
-    private static void ApplyCamera(bool inSpawnRegion)
+    private static void ApplyCamera()
     {
         // Always spectate world spawn when hovering world spawn.
         if (HoveringType == SpawnType.World)
@@ -165,6 +161,7 @@ public class SpectateSystem : ModSystem
             return;
         }
 
+        // Spectate my bed.
         if (HoveringType == SpawnType.MyBed)
         {
             Player me = Main.LocalPlayer;
@@ -173,6 +170,7 @@ public class SpectateSystem : ModSystem
             return;
         }
 
+        // Spectate teammate or teammate bed.
         if (HoveredPlayerIndex is int idx)
         {
             Player p = Main.player[idx];

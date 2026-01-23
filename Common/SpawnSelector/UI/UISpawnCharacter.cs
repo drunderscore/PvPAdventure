@@ -1,7 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.GameTimer;
-using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
@@ -9,9 +7,7 @@ using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
-using Terraria.ModLoader;
 using Terraria.UI;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
 namespace PvPAdventure.Common.SpawnSelector.UI;
 
@@ -118,7 +114,7 @@ public class UISpawnCharacter : UIPanel
             return;
 
         local.GetModPlayer<SpawnPlayer>()
-            .ToggleSelection(SpawnSystem.SpawnType.Teammate, playerIndex);
+            .ToggleSelection(SpawnType.Teammate, playerIndex);
     }
 
     public override void Update(GameTime gameTime)
@@ -150,7 +146,7 @@ public class UISpawnCharacter : UIPanel
         }
         else
         {
-            if (SpectateSystem.HoveringType == SpawnSystem.SpawnType.Teammate &&
+            if (SpectateSystem.HoveringType == SpawnType.Teammate &&
                 SpectateSystem.HoveredPlayerIndex == playerIndex)
             {
                 SpectateSystem.ClearHoverIfMatch(SpawnType.Teammate, playerIndex);
@@ -159,7 +155,7 @@ public class UISpawnCharacter : UIPanel
 
         var sp = local.GetModPlayer<SpawnPlayer>();
         bool selected =
-            sp.SelectedType == SpawnSystem.SpawnType.Teammate &&
+            sp.SelectedType == SpawnType.Teammate &&
             sp.SelectedPlayerIndex == playerIndex;
 
         BackgroundColor =
@@ -271,12 +267,27 @@ public class UISpawnCharacter : UIPanel
 
         // Use the actual layout widths, not the texture width
         const float leftColumnWidth = 106f;              // player background column
-        float rightAreaWidth = itemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
-
+        //float rightAreaWidth = itemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
+        //float rightAreaLeft = inner.X + leftColumnWidth;
+        //float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
         float rightAreaLeft = inner.X + leftColumnWidth;
-        float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
 
-        // Name centered in the right-area
+        // Exclude bed
+        float bedExclude = 0f;
+        const int bedGap = 0;
+
+        if (bedButton != null)
+        {
+            bedExclude = bedButton.GetDimensions().Width + bedGap;
+        }
+
+        float rightAreaRight = inner.X + inner.Width - bedExclude;
+        float rightAreaWidth = Math.Max(0f, rightAreaRight - rightAreaLeft);
+        float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
+        float nameAreaRight = inner.X + inner.Width;
+        float nameAreaWidth = Math.Max(0f, nameAreaRight - rightAreaLeft);
+        float nameAreaCenterX = rightAreaLeft + nameAreaWidth * 0.5f;
+
         string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
 
         float nameScale = 1f;
@@ -292,9 +303,14 @@ public class UISpawnCharacter : UIPanel
         Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
 
         Vector2 namePos = new(
-            rightAreaCenterX - nameSize.X * 0.5f,
+            nameAreaCenterX - nameSize.X * 0.5f - 2f,
             inner.Y
         );
+
+        // Debug draw (do not delete!)
+        //Rectangle debugRect = new Rectangle((int)namePos.X, (int)namePos.Y, (int)nameSize.X, (int)nameSize.Y);
+        //Rectangle debugRect = new Rectangle((int)namePos.X, (int)namePos.Y, (int)nameSize.X, (int)nameSize.Y);
+        //sb.Draw(TextureAssets.MagicPixel.Value, debugRect, Color.Red * 0.35f);
 
         // Draw name
         Utils.DrawBorderString(sb, name, namePos, Color.White, nameScale);
@@ -318,7 +334,7 @@ public class UISpawnCharacter : UIPanel
 
         if (rowDensity == RowDensity.Compact)
         {
-            hpText = player.statLife.ToString();
+            hpText = $"{player.statLife} HP";
             mpText = string.Empty;
         }
         else

@@ -1,7 +1,7 @@
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Content.Items.ConfigItems;
-public class QuestionConfigItem : ModItem
+public class PvPConfigItem : ModItem
 {
     public override void SetDefaults()
     {

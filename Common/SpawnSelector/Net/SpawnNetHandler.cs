@@ -1,9 +1,8 @@
 ﻿using System.IO;
 using Terraria;
 using Terraria.ID;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
-namespace PvPAdventure.Common.SpawnSelector.UI;
+namespace PvPAdventure.Common.SpawnSelector.Net;
 
 public static class SpawnNetHandler
 {

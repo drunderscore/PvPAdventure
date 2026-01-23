@@ -128,7 +128,7 @@ public sealed class UIBedButton : UIElement
 
         bool selected =
         sp != null &&
-        sp.SelectedType == SpawnSystem.SpawnType.TeammateBed &&
+        sp.SelectedType == SpawnType.TeammateBed &&
         sp.SelectedPlayerIndex == playerIndex;
 
         bool hasValidBed = HasValidBed(Main.player[playerIndex]);

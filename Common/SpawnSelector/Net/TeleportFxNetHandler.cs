@@ -5,7 +5,7 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.SpawnSelector;
+namespace PvPAdventure.Common.SpawnSelector.Net;
 
 public static class TeleportFxNetHandler
 {

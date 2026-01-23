@@ -24,11 +24,6 @@ internal class SSCConfig : ModConfig
     public bool IsSSCEnabled { get; set; } = true;
 
     [BackgroundColor(90, 70, 160)]
-    [Expand(false)]
-    [CustomModConfigItem(typeof(LoadoutItemListElement))]
-    public List<LoadoutItem> StartItems { get; set; } = [];
-
-    [BackgroundColor(90, 70, 160)]
     [Slider]
     [Increment(20)]
     [Range(100, 500)]
@@ -41,6 +36,11 @@ internal class SSCConfig : ModConfig
     [Range(20, 200)]
     [DefaultValue(40)]
     public int StartMana { get; set; } = 40;
+
+    [Header("StartingItems")]
+    [BackgroundColor(90, 70, 160)]
+    [CustomModConfigItem(typeof(LoadoutItemListElement))]
+    public List<LoadoutItem> StartItems { get; set; } = [];
     #endregion
 
     #region Hooks / methods

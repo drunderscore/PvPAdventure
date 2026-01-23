@@ -170,12 +170,12 @@ public class ArenasLoadoutUI : UIState
         }
 
         // Grappling hook
-        p.miscEquips[4].SetDefaults(ItemOrAir(loadout.GrapplingHook));
+        p.miscEquips[4].SetDefaults(ItemOrAir(loadout.Equipment.GrapplingHook));
 
         // Mount
         p.mount.Dismount(p);
-        if (loadout.Mount?.Type > 0)
-            p.mount.SetMount(loadout.Mount.Type, p);
+        if (loadout.Equipment.Mount?.Type > 0)
+            p.mount.SetMount(loadout.Equipment.Mount.Type, p);
     }
 
     private static Player BuildPreviewPlayer(Player source, Loadout loadout)
@@ -412,7 +412,7 @@ public class ArenasLoadoutUI : UIState
                 Add(it, hotbarNumber);
             }
 
-            t = ItemOrAir(def.GrapplingHook);
+            t = ItemOrAir(def.Equipment.GrapplingHook);
             if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
 
             if (count == 0)
@@ -493,18 +493,9 @@ public class ArenasLoadoutUI : UIState
                 var dim = GetDimensions();
                 var center = dim.Center();
                 float bgScale = Size / TextureAssets.InventoryBack.Width();
+                Vector2 bgPos = center - TextureAssets.InventoryBack.Size() * bgScale * 0.5f;
 
-                sb.Draw(
-                    TextureAssets.InventoryBack.Value,
-                    center - TextureAssets.InventoryBack.Size() * bgScale * 0.5f,
-                    null,
-                    Color.White,
-                    0f,
-                    Vector2.Zero,
-                    bgScale,
-                    SpriteEffects.None,
-                    0f
-                );
+                sb.Draw(TextureAssets.InventoryBack.Value, bgPos, null,Color.White,0f,Vector2.Zero,bgScale,SpriteEffects.None,0f);
 
                 if (!item.IsAir)
                     ItemSlot.DrawItemIcon(item, 31, sb, center, 0.8f, Size, Color.White);
@@ -515,17 +506,7 @@ public class ArenasLoadoutUI : UIState
                     Vector2 pos = dim.Position() + new Vector2(4f, 2f);
                     float scale = 0.7f;
 
-                    Utils.DrawBorderStringFourWay(
-                        sb,
-                        FontAssets.ItemStack.Value,
-                        text,
-                        pos.X,
-                        pos.Y,
-                        Color.White,
-                        new Color(20,20,20),
-                        Vector2.Zero,
-                        scale
-                    );
+                    Utils.DrawBorderStringFourWay(sb,FontAssets.ItemStack.Value,text, pos.X,pos.Y,Color.White,new Color(20,20,20),Vector2.Zero,scale);
                 }
 
                 if (IsMouseHovering && !item.IsAir)

@@ -1,26 +1,26 @@
-﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.GameTimer;
+﻿using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Core.Config;
-using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
 public class SpawnPlayer : ModPlayer
 {
     private Point lastSpawn = new(-1, -1);
+
     private bool cachedInSpawnRegion;
     private int spawnRegionCooldown;
     private Point lastRegionTile = new(int.MinValue, int.MinValue);
+
     private Point ownBedTileCached = new(-1, -1);
     private bool ownBedValidCached;
     private int ownBedValidCooldown;
+
     private Point rawSpawnCached = new(-1, -1);
     private bool rawSpawnValidCached;
     private int rawSpawnValidCooldown;
@@ -28,11 +28,20 @@ public class SpawnPlayer : ModPlayer
     public SpawnType SelectedType { get; private set; } = SpawnType.None;
     public int SelectedPlayerIndex { get; private set; } = -1;
 
-    public bool HasSelection => SelectedType != SpawnType.None;
-
-    // Save last selected
     private SpawnType lastSelectedType = SpawnType.None;
     private int lastSelectedPlayerIndex = -1;
+
+    public bool ExecuteRequested { get; private set; }
+
+    public void RequestExecute()
+    {
+        ExecuteRequested = true;
+    }
+
+    public void ClearExecuteRequest()
+    {
+        ExecuteRequested = false;
+    }
 
     public bool IsPlayerInSpawnRegion()
     {
@@ -52,6 +61,8 @@ public class SpawnPlayer : ModPlayer
         SelectedType = SpawnType.None;
         SelectedPlayerIndex = -1;
 
+        ClearExecuteRequest();
+
         if (Player.whoAmI == Main.myPlayer)
             SpawnSystem.SetCanTeleport(false);
     }
@@ -61,10 +72,14 @@ public class SpawnPlayer : ModPlayer
         SpawnType prevType = SelectedType;
         int prevIdx = SelectedPlayerIndex;
 
-        bool same =
-            SelectedType == type &&
-            ((type != SpawnType.TeammateBed && type != SpawnType.TeammateBed) ||
-             SelectedPlayerIndex == playerIndex);
+        NormalizeSelection(type, playerIndex, out SpawnType newType, out int newIdx);
+
+        bool same = prevType == newType;
+        if (same)
+        {
+            if (newType == SpawnType.Teammate || newType == SpawnType.TeammateBed)
+                same = prevIdx == newIdx;
+        }
 
         if (same)
         {
@@ -72,54 +87,23 @@ public class SpawnPlayer : ModPlayer
                 Log.Chat("Cancel spawn: " + FormatSpawn(prevType, prevIdx));
 
             ClearSelection();
+            ClearLastSelection();
             SendSelectionIfNeeded();
             return;
         }
 
-        if (type == SpawnType.Teammate &&
-            !SpawnSystem.IsValidTeammateIndex(playerIndex))
+        if (newType == SpawnType.None && prevType != SpawnType.None)
         {
-            type = SpawnType.None;
-            playerIndex = -1;
+            if (Player.whoAmI == Main.myPlayer)
+                Log.Chat("Cancel spawn: " + FormatSpawn(prevType, prevIdx));
+
+            ClearSelection();
+            ClearLastSelection();
+            SendSelectionIfNeeded();
+            return;
         }
 
-        if (type == SpawnType.TeammateBed)
-        {
-            bool ok = playerIndex == Player.whoAmI;
-
-            if (!ok)
-            {
-                if (Player.team == 0 || playerIndex < 0 || playerIndex >= Main.maxPlayers)
-                {
-                    ok = false;
-                }
-                else
-                {
-                    Player bedOwner = Main.player[playerIndex];
-                    ok = bedOwner != null && bedOwner.active && bedOwner.team == Player.team;
-                }
-            }
-
-            if (!ok)
-            {
-                type = SpawnType.None;
-                playerIndex = -1;
-            }
-        }
-
-        SelectedType = type;
-
-        SelectedPlayerIndex =
-            (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
-                ? playerIndex
-                : -1;
-
-        // Remember last valid selection
-        if (SelectedType != SpawnType.None)
-        {
-            lastSelectedType = SelectedType;
-            lastSelectedPlayerIndex = SelectedPlayerIndex;
-        }
+        SetSelection(newType, newIdx);
 
         if (Player.whoAmI == Main.myPlayer)
         {
@@ -139,7 +123,6 @@ public class SpawnPlayer : ModPlayer
 
         SendSelectionIfNeeded();
     }
-
     public void RestoreLastSelection()
     {
         if (lastSelectedType == SpawnType.None)
@@ -148,19 +131,211 @@ public class SpawnPlayer : ModPlayer
         ToggleSelection(lastSelectedType, lastSelectedPlayerIndex);
     }
 
+    internal void ApplySelectionFromNet(SpawnType type, int idx)
+    {
+        NormalizeSelection(type, idx, out SpawnType newType, out int newIdx);
+        SetSelection(newType, newIdx);
+
+        if (Player.dead && Player.respawnTimer == 2)
+            Player.respawnTimer = 1;
+    }
+
+    public override void PostUpdate()
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            UpdatePlayerSpawnpoint();
+    }
+
+    public override void UpdateDead()
+    {
+        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Waiting)
+        {
+            base.UpdateDead();
+            return;
+        }
+
+        if (Player.respawnTimer > 2)
+        {
+            base.UpdateDead();
+            return;
+        }
+
+        if (SelectedType == SpawnType.None)
+        {
+            Player.respawnTimer = 2;
+
+            if (Player.whoAmI == Main.myPlayer)
+                SpawnSystem.SetCanTeleport(true);
+
+            return;
+        }
+
+        if (Player.respawnTimer == 2)
+            Player.respawnTimer = 1;
+
+        if (Player.whoAmI == Main.myPlayer)
+            SpawnSystem.SetCanTeleport(false);
+
+        base.UpdateDead();
+    }
+
+    public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
+    {
+        base.Kill(damage, hitDirection, pvp, damageSource);
+
+        if (Player.whoAmI == Main.myPlayer)
+            TryAutoSelectLatestSelection();
+    }
+
+    public bool TryAutoSelectLatestSelection()
+    {
+        if (Player.whoAmI != Main.myPlayer)
+            return false;
+
+        if (!Player.dead && IsPlayerInSpawnRegion()) // Do NOT auto-select latest while in a spawn region (prevents instant execution).
+            return false;
+
+        if (SelectedType != SpawnType.None)
+            return false;
+
+        var config = ModContent.GetInstance<ClientConfig>();
+        if (!config.AutoSelectLatestSpawnOption)
+            return false;
+
+        NormalizeSelection(lastSelectedType, lastSelectedPlayerIndex, out SpawnType type, out int idx);
+        if (type == SpawnType.None)
+            return false;
+
+        SetSelection(type, idx);
+
+        Log.Chat($"Auto-selected latest option: {FormatSpawn(SelectedType, SelectedPlayerIndex)} for player: {Player.name}");
+
+        SendSelectionIfNeeded();
+        return true;
+    }
+
+    private void SetSelection(SpawnType type, int idx)
+    {
+        SelectedType = type;
+
+        if (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
+            SelectedPlayerIndex = idx;
+        else
+            SelectedPlayerIndex = -1;
+
+        if (SelectedType != SpawnType.None)
+        {
+            lastSelectedType = SelectedType;
+            lastSelectedPlayerIndex = SelectedPlayerIndex;
+        }
+    }
+
+    private void NormalizeSelection(SpawnType requestedType, int requestedIdx, out SpawnType normalizedType, out int normalizedIdx)
+    {
+        normalizedType = requestedType;
+        normalizedIdx = requestedIdx;
+
+        if (normalizedType == SpawnType.None)
+        {
+            normalizedIdx = -1;
+            return;
+        }
+
+        if (normalizedType == SpawnType.World || normalizedType == SpawnType.Random)
+        {
+            normalizedIdx = -1;
+            return;
+        }
+
+        if (normalizedType == SpawnType.MyBed)
+        {
+            bool ok = Player.SpawnX >= 0 && Player.SpawnY >= 0;
+            if (ok)
+                ok = Player.CheckSpawn(Player.SpawnX, Player.SpawnY);
+
+            if (!ok)
+                normalizedType = SpawnType.None;
+
+            normalizedIdx = -1;
+            return;
+        }
+
+        if (normalizedType == SpawnType.Teammate)
+        {
+            if (!SpawnSystem.IsValidTeammateIndex(Player, normalizedIdx))
+            {
+                normalizedType = SpawnType.None;
+                normalizedIdx = -1;
+            }
+
+            return;
+        }
+
+        if (normalizedType == SpawnType.TeammateBed)
+        {
+            if (!IsValidTeammateBedIndex(Player, normalizedIdx))
+            {
+                normalizedType = SpawnType.None;
+                normalizedIdx = -1;
+            }
+
+            return;
+        }
+
+        normalizedType = SpawnType.None;
+        normalizedIdx = -1;
+    }
+
+    private static bool IsValidTeammateBedIndex(Player requester, int idx)
+    {
+        if (requester == null || !requester.active)
+            return false;
+
+        if (idx < 0 || idx >= Main.maxPlayers)
+            return false;
+
+        Player bedOwner = Main.player[idx];
+        if (bedOwner == null || !bedOwner.active)
+            return false;
+
+        if (bedOwner.SpawnX < 0 || bedOwner.SpawnY < 0)
+            return false;
+
+        if (!Player.CheckSpawn(bedOwner.SpawnX, bedOwner.SpawnY))
+            return false;
+
+        if (idx == requester.whoAmI)
+            return true;
+
+        if (requester.team == 0 || bedOwner.team != requester.team)
+            return false;
+
+        return true;
+    }
+
     private static string FormatSpawn(SpawnType type, int idx)
     {
-        return type switch
-        {
-            SpawnType.Teammate => $"Player ({Main.player[idx].name})",
-            SpawnType.TeammateBed => $"Bed ({Main.player[idx].name})",
-            _ => type.ToString()
-        };
+        if (type == SpawnType.Teammate)
+            return $"Player ({GetPlayerNameSafe(idx)})";
+
+        if (type == SpawnType.TeammateBed)
+            return $"Bed ({GetPlayerNameSafe(idx)})";
+
+        return type.ToString();
+    }
+
+    private static string GetPlayerNameSafe(int idx)
+    {
+        if (idx < 0 || idx >= Main.maxPlayers)
+            return "<unknown>";
+
+        Player p = Main.player[idx];
+        return p?.name ?? "<unknown>";
     }
 
     private void SendSelectionIfNeeded()
     {
-        if (Main.netMode != Terraria.ID.NetmodeID.MultiplayerClient)
+        if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
         if (Player.whoAmI != Main.myPlayer)
@@ -169,52 +344,38 @@ public class SpawnPlayer : ModPlayer
         var packet = Mod.GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.SpawnSelection);
         packet.Write((byte)SelectedType);
-        packet.Write((short)SelectedPlayerIndex); // -1 for none
+        packet.Write((short)SelectedPlayerIndex);
         packet.Send();
     }
 
-    internal void ApplySelectionFromNet(SpawnType type, int idx)
+    private void UpdatePlayerSpawnpoint()
     {
-        if (type == SpawnType.Teammate && !SpawnSystem.IsValidTeammateIndex(idx))
-            type = SpawnType.None;
+        Point raw = new(Player.SpawnX, Player.SpawnY);
 
-        if (type == SpawnType.TeammateBed)
+        if (raw != rawSpawnCached)
         {
-            bool ok = idx == Player.whoAmI;
-
-            if (!ok)
-            {
-                if (Player.team == 0 || idx < 0 || idx >= Main.maxPlayers)
-                {
-                    ok = false;
-                }
-                else
-                {
-                    Player bedOwner = Main.player[idx];
-                    ok = bedOwner != null && bedOwner.active && bedOwner.team == Player.team;
-                }
-            }
-
-            if (!ok)
-                type = SpawnType.None;
+            rawSpawnCached = raw;
+            rawSpawnValidCooldown = 0;
         }
 
-        SelectedType = type;
-        SelectedPlayerIndex =
-            (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
-                ? idx
-                : -1;
+        if (rawSpawnValidCooldown-- <= 0)
+        {
+            rawSpawnValidCached = raw.X >= 0 && raw.Y >= 0 && Player.CheckSpawn(raw.X, raw.Y);
+            rawSpawnValidCooldown = 60;
+        }
 
-        if (Player.dead && Player.respawnTimer == 2)
-            Player.respawnTimer = 1;
-    }
+        Point current = rawSpawnValidCached ? raw : new Point(-1, -1);
+        if (current == lastSpawn)
+            return;
 
-    public bool IsPlayerInWorldSpawnRegion(Point tilePos)
-    {
-        var regionManager = ModContent.GetInstance<RegionManager>();
-        if (regionManager.GetRegionContaining(tilePos) != null)
-            return true;
-        return false;
+        lastSpawn = current;
+
+        var packet = Mod.GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
+        packet.Write((byte)Player.whoAmI);
+        packet.Write(current.X);
+        packet.Write(current.Y);
+        packet.Send();
     }
 
     private bool ComputeIsPlayerInSpawnRegion(Point tilePos)
@@ -273,93 +434,9 @@ public class SpawnPlayer : ModPlayer
         return false;
     }
 
-    public override void PostUpdate()
+    private void ClearLastSelection()
     {
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-            UpdatePlayerSpawnpoint();
-    }
-
-    // Keeps the respawn timer at 1 to allow for selection
-    public override void UpdateDead()
-    {
-        // Normal update when in waiting phase
-        if (Player.respawnTimer > 2 || ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Waiting)
-        {
-            base.UpdateDead();
-            return;
-        }
-
-        if (Player.respawnTimer > 2)
-        {
-            base.UpdateDead();
-            return;
-        }
-
-        bool hasSelection = SelectedType != SpawnType.None;
-
-        if (!hasSelection)
-        {
-            Player.respawnTimer = 2;
-
-            if (Player.whoAmI == Main.myPlayer)
-                SpawnSystem.SetCanTeleport(true);
-
-            return;
-        }
-
-        if (Player.respawnTimer == 2)
-            Player.respawnTimer = 1;
-
-        if (Player.whoAmI == Main.myPlayer)
-            SpawnSystem.SetCanTeleport(false);
-
-        base.UpdateDead();
-    }
-
-    private void UpdatePlayerSpawnpoint()
-    {
-        Point raw = new(Player.SpawnX, Player.SpawnY);
-
-        if (raw != rawSpawnCached)
-        {
-            rawSpawnCached = raw;
-            rawSpawnValidCooldown = 0;
-        }
-
-        if (rawSpawnValidCooldown-- <= 0)
-        {
-            rawSpawnValidCached = raw.X >= 0 && raw.Y >= 0 && Player.CheckSpawn(raw.X, raw.Y);
-            rawSpawnValidCooldown = 60;
-        }
-
-        Point current = rawSpawnValidCached ? raw : new Point(-1, -1);
-        if (current == lastSpawn)
-            return;
-
-        lastSpawn = current;
-
-        var packet = Mod.GetPacket();
-        packet.Write((byte)AdventurePacketIdentifier.PlayerBed);
-        packet.Write((byte)Player.whoAmI);
-        packet.Write(current.X);
-        packet.Write(current.Y);
-        packet.Send();
-    }
-
-    public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
-    {
-        base.Kill(damage, hitDirection, pvp, damageSource);
-
-        if (Player.whoAmI != Main.myPlayer)
-            return;
-
-        // Check auto-select config
-        var cfg = ModContent.GetInstance<ClientConfig>();
-        if (!cfg.AutoSelectWorldSpawnWhenRespawning)
-            return;
-
-        // Auto-select world spawn if none selected
-        if (SelectedType == SpawnType.None)
-            ToggleSelection(SpawnType.World);
+        lastSelectedType = SpawnType.None;
+        lastSelectedPlayerIndex = -1;
     }
 }

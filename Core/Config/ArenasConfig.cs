@@ -33,7 +33,6 @@ internal class ArenasConfig : ModConfig
 
     [Header("Loadouts")]
     [BackgroundColor(90, 40, 110)]
-    [Expand(false)]
     [CustomModConfigItem(typeof(LoadoutListElement))]
     public List<Loadout> ArenaLoadouts { get; set; } = [];
 

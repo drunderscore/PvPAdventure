@@ -1,28 +1,17 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
-using System.IO;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
-using Terraria.ID;
 using Terraria.Localization;
 using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.UI;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
-/// <summary>
-/// Draws player bed spawn points on the fullscreen map and allows teleportation to them.
-/// Also draws world spawn point on the fullscreen map and allows teleportation to it.
-/// </summary>
-[Autoload(Side =ModSide.Both)]
+[Autoload(Side = ModSide.Client)]
 public class TeleportOnMap : ModSystem
 {
-    private Asset<Texture2D> spawnBedTexture;
-
     public override void Load()
     {
         On_SpawnMapLayer.Draw += OnSpawnMapLayer;
@@ -33,223 +22,179 @@ public class TeleportOnMap : ModSystem
         On_SpawnMapLayer.Draw -= OnSpawnMapLayer;
     }
 
-    public override void PostSetupContent()
+    private void OnSpawnMapLayer(On_SpawnMapLayer.orig_Draw orig, SpawnMapLayer self, ref MapOverlayDrawContext context, ref string text)
     {
-        if (!Main.dedServ)
-        {
-            spawnBedTexture = TextureAssets.SpawnBed;
-        }
+        Player local = Main.LocalPlayer;
+        if (local == null)
+            return;
+
+        SpawnPlayer sp = local.GetModPlayer<SpawnPlayer>();
+
+        bool selectorOpen = SpawnSystem.IsUiOpen;
+        bool instantTeleport = SpawnSystem.CanTeleport && !local.dead;
+
+        if (DrawWorld(local, sp, selectorOpen, instantTeleport, ref context, ref text))
+            return;
+
+        if (DrawMyBed(local, sp, selectorOpen, instantTeleport, ref context, ref text))
+            return;
+
+        DrawTeamBeds(local, sp, selectorOpen, instantTeleport, ref context, ref text);
     }
 
-    private void OnSpawnMapLayer(On_SpawnMapLayer.orig_Draw orig,SpawnMapLayer self,ref MapOverlayDrawContext context, ref string text)
+    private bool DrawWorld(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, ref MapOverlayDrawContext context, ref string text)
     {
-        // Don't call original to prevent default spawn point drawing.
-        // orig(self, ref context, ref text);
+        Vector2 pos = new Vector2(Main.spawnTileX, Main.spawnTileY);
+        bool selected = sp.SelectedType == SpawnType.World;
 
-        Player localPlayer = Main.LocalPlayer;
-        if (localPlayer == null)
-            return;
-
-        // Get system and flags
-        var sys = ModContent.GetInstance<SpawnSystem>();
-        bool selectorEnabled = sys.ui?.CurrentState == sys.spawnState;
-        bool canTeleport = SpawnSystem.CanTeleport;
-
-        SpawnPlayer sp = localPlayer.GetModPlayer<SpawnPlayer>();
-
-        if (DrawWorldSpawn(localPlayer, sp, selectorEnabled, canTeleport, ref context, ref text))
-            return;
-
-        if (DrawLocalBed(localPlayer, sp, selectorEnabled, canTeleport, ref context, ref text))
-            return;
-
-        if (DrawTeamBeds(localPlayer, sp, selectorEnabled, canTeleport, ref context, ref text))
-            return;
-    }
-
-    private bool DrawWorldSpawn(Player localPlayer,SpawnPlayer sp,bool selectorEnabled,bool canTeleport,ref MapOverlayDrawContext context, ref string text)
-    {
-        bool isSelected = sp.SelectedType == SpawnType.World;
-
-        var hover = context.Draw(
-            texture: TextureAssets.SpawnPoint.Value,
-            position: new Vector2(Main.spawnTileX, Main.spawnTileY),
-            color: Color.White,
-            frame: new SpriteFrame(1, 1),
-            scaleIfNotSelected: isSelected ? 1.8f : 1.0f,
-            //scaleIfNotSelected: 1.0f,
-            scaleIfSelected: 1.8f,
-            alignment: Alignment.Bottom,
-            spriteEffects: SpriteEffects.None
-        );
-
-        if (!hover.IsMouseOver)
+        if (!DrawIcon(TextureAssets.SpawnPoint.Value, pos, selected, ref context, out bool hover))
             return false;
 
-        if (!selectorEnabled)
+        if (!hover)
+            return false;
+
+        if (!selectorOpen)
         {
             text = Language.GetTextValue("UI.SpawnPoint");
             return false;
         }
 
-        if (!canTeleport)
+        if (instantTeleport)
         {
-            text = isSelected
-                ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelWorldSpawn")
-                : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectWorldSpawn");
-
+            text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToWorldSpawn");
             if (IsClick())
             {
                 sp.ToggleSelection(SpawnType.World);
-                return true;
+                sp.RequestExecute();
             }
 
-            return false;
-        }
-
-        // Teleport mode
-        text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToWorldSpawn");
-
-        if (IsClick())
-        {
-            sp.ToggleSelection(SpawnType.World);
             return true;
         }
 
-        return false;
+        text = selected
+            ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelWorldSpawn")
+            : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectWorldSpawn");
+
+        if (IsClick())
+            sp.ToggleSelection(SpawnType.World);
+
+        return true;
     }
 
-    private bool DrawLocalBed(Player localPlayer,SpawnPlayer sp,bool selectorEnabled, bool canTeleport, ref MapOverlayDrawContext context, ref string text)
+    private bool DrawMyBed(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, ref MapOverlayDrawContext context, ref string text)
     {
-        if (!HasValidBedSpawn(localPlayer))
+        if (!HasValidBedSpawn(local))
             return false;
 
-        int me = localPlayer.whoAmI;
-        bool isSelected = sp.SelectedType == SpawnType.MyBed;
+        Vector2 pos = new Vector2(local.SpawnX, local.SpawnY);
+        bool selected = sp.SelectedType == SpawnType.MyBed;
 
-        Vector2 bedPos = new(localPlayer.SpawnX, localPlayer.SpawnY);
-
-        var hover = context.Draw(
-            texture: TextureAssets.SpawnBed.Value,
-            position: bedPos,
-            color: Color.White,
-            frame: new SpriteFrame(1, 1),
-            //scaleIfNotSelected: 1.0f,
-            scaleIfNotSelected: isSelected ? 1.8f : 1.0f,
-            scaleIfSelected: selectorEnabled ? 1.8f : 1.0f,
-            alignment: Alignment.Bottom,
-            spriteEffects: SpriteEffects.None
-        );
-
-        // Debug
-        //Main.NewText(sp.SelectedType);
-
-        if (!hover.IsMouseOver)
+        if (!DrawIcon(TextureAssets.SpawnBed.Value, pos, selected, ref context, out bool hover))
             return false;
 
-        if (!selectorEnabled)
+        if (!hover)
+            return false;
+
+        if (!selectorOpen)
         {
             text = Language.GetTextValue("UI.SpawnBed");
             return false;
         }
 
-        if (!canTeleport)
+        if (instantTeleport)
         {
-            text = isSelected
-                ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelMyBed", localPlayer.name)
-                : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectMyBed", localPlayer.name);
-
+            text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToMyBed", local.name);
             if (IsClick())
             {
-                sp.ToggleSelection(SpawnType.MyBed, me);
-                return true;
+                sp.ToggleSelection(SpawnType.MyBed, local.whoAmI);
+                sp.RequestExecute();
             }
 
-            return false;
-        }
-
-        text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToMyBed", localPlayer.name);
-
-        if (IsClick())
-        {
-            sp.ToggleSelection(SpawnType.MyBed, me);
             return true;
         }
 
-        return false;
+        text = selected
+            ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelMyBed", local.name)
+            : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectMyBed", local.name);
+
+        if (IsClick())
+            sp.ToggleSelection(SpawnType.MyBed, local.whoAmI);
+
+        return true;
     }
 
-    private bool DrawTeamBeds(Player localPlayer,SpawnPlayer sp,bool selectorEnabled, bool canTeleport, ref MapOverlayDrawContext context,ref string text)
+    private void DrawTeamBeds(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, ref MapOverlayDrawContext context, ref string text)
     {
-        if (localPlayer.team == 0)
-            return false;
-
-        spawnBedTexture ??= TextureAssets.SpawnBed;
+        if (local.team == 0)
+            return;
 
         for (int i = 0; i < Main.maxPlayers; i++)
         {
-            if (i == localPlayer.whoAmI)
+            if (i == local.whoAmI)
                 continue;
 
-            Player player = Main.player[i];
-            if (player == null || !player.active || player.team != localPlayer.team)
+            Player other = Main.player[i];
+            if (other == null || !other.active || other.team != local.team)
                 continue;
 
-            if (!HasValidBedSpawn(player))
+            if (!HasValidBedSpawn(other))
                 continue;
 
-            bool isSelected = sp.SelectedType == SpawnType.TeammateBed && sp.SelectedPlayerIndex == i;
+            Vector2 pos = new Vector2(other.SpawnX, other.SpawnY);
+            bool selected = sp.SelectedType == SpawnType.TeammateBed && sp.SelectedPlayerIndex == i;
 
-            Vector2 bedTilePos = new(player.SpawnX, player.SpawnY);
-
-            var hover = context.Draw(
-                texture: spawnBedTexture.Value,
-                position: bedTilePos,
-                color: Color.White,
-                frame: new SpriteFrame(1, 1),
-                //scaleIfNotSelected: 1.0f,
-                scaleIfNotSelected: isSelected ? 1.8f : 1.0f,
-                scaleIfSelected: selectorEnabled ? 1.8f : 1.0f,
-                alignment: Alignment.Bottom,
-                spriteEffects: SpriteEffects.None
-            );
-
-            if (!hover.IsMouseOver)
+            if (!DrawIcon(TextureAssets.SpawnBed.Value, pos, selected, ref context, out bool hover))
                 continue;
 
-            if (!selectorEnabled)
+            if (!hover)
+                continue;
+
+            if (!selectorOpen)
             {
-                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeammatesBed", player.name);
-                return false;
+                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeammatesBed", other.name);
+                return;
             }
 
-            if (!canTeleport)
+            if (instantTeleport)
             {
-                text = isSelected
-                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammatesBed", player.name)
-                    : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammatesBed", player.name);
-
+                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammatesBed", other.name);
                 if (IsClick())
                 {
                     sp.ToggleSelection(SpawnType.TeammateBed, i);
-                    return true;
+                    sp.RequestExecute();
                 }
 
-                return false;
+                return;
             }
 
-            text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammatesBed", player.name);
+            text = selected
+                ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammatesBed", other.name)
+                : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammatesBed", other.name);
 
             if (IsClick())
-            {
                 sp.ToggleSelection(SpawnType.TeammateBed, i);
-                return true;
-            }
 
-            return false;
+            return;
         }
+    }
 
-        return false;
+    private static bool DrawIcon(Texture2D tex, Vector2 tilePos, bool selected, ref MapOverlayDrawContext context, out bool hover)
+    {
+        float scale = selected ? 1.8f : 1.0f;
+
+        var result = context.Draw(
+            texture: tex,
+            position: tilePos,
+            color: Color.White,
+            frame: new SpriteFrame(1, 1),
+            scaleIfNotSelected: scale,
+            scaleIfSelected: 1.8f,
+            alignment: Alignment.Bottom,
+            spriteEffects: SpriteEffects.None
+        );
+
+        hover = result.IsMouseOver;
+        return true;
     }
 
     private static bool IsClick() => Main.mouseLeft && Main.mouseLeftRelease;
@@ -261,5 +206,4 @@ public class TeleportOnMap : ModSystem
 
         return Player.CheckSpawn(player.SpawnX, player.SpawnY);
     }
-
 }

@@ -9,42 +9,32 @@ namespace PvPAdventure.Core.Config;
 
 public class ClientConfig : ModConfig
 {
-    // The side of the client
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
-    // The config is divided by headers and regions based on the scope of the features.
-    #region General
-    [Header("General")]
-
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] public bool ShiftEnterOpensAllChat;
-
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] public bool IsVanillaDashEnabled;
-
+    [Header("PlayerVisualization")]
     [BackgroundColor(50, 70, 120)]
     [Expand(false, false)]
     public PlayerOutlineConfig PlayerOutline = new();
-    #endregion
 
-    [Header("SoundEffects")]
-    [Expand(false, false)]
-    [BackgroundColor(200, 80, 150)]
-    public SoundEffectConfig SoundEffect = new();
+    [Header("Movement")]
+    [BackgroundColor(50, 70, 120)]
+    [DefaultValue(true)] public bool IsVanillaDashEnabled;
 
-    [Header("SpawnSelector")]
+    [Header("SpawnAndRespawn")]
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool ShowChooseYourSpawnText;
 
     [BackgroundColor(30, 150, 150)]
-    [DefaultValue(true)] public bool AutoSelectWorldSpawnWhenRespawning;
-
-    [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool AutoSelectLatestSpawnOption;
 
-    [Header("Debug")]
-    [DefaultValue(false)] public bool ShowDebugMessages;
+    [Header("Sound")]
+    [Expand(false, false)]
+    [BackgroundColor(200, 80, 150)]
+    public SoundEffectConfig SoundEffect = new();
+
+    [Header("Chat")]
     [DefaultValue(true)] public bool ShowSavePlayerMessages;
+    [DefaultValue(false)] public bool ShowDebugMessages;
 
     #region Configs
     public class PlayerOutlineConfig

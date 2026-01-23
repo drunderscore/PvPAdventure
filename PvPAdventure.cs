@@ -1,6 +1,4 @@
 using PvPAdventure.Common.GameTimer;
-using PvPAdventure.Common.SpawnSelector;
-using PvPAdventure.Common.SpawnSelector.UI;
 using PvPAdventure.Common.SSC;
 using System.IO;
 using PvPAdventure.Common.Combat.TeamBoss;
@@ -9,6 +7,7 @@ using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Input.Dash;
 using PvPAdventure.Core.Net;
 using Terraria.ModLoader;
+using PvPAdventure.Common.SpawnSelector.Net;
 
 namespace PvPAdventure;
 

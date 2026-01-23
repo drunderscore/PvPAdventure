@@ -1,15 +1,16 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Graphics;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
+/// <summary>
+/// Various hooks for player spawn behaviour, ping and death text.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
 public class SpawnHooks : ModSystem
 {
@@ -31,8 +32,7 @@ public class SpawnHooks : ModSystem
 
     private static bool ForceUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)
     {
-        var sys = ModContent.GetInstance<SpawnSystem>();
-        if (sys?.ui?.CurrentState == sys?.spawnState && SpawnSystem.CanTeleport)
+        if (SpawnSystem.IsUiOpen && SpawnSystem.CanTeleport)
             return true;
 
         return orig(self);
@@ -42,18 +42,18 @@ public class SpawnHooks : ModSystem
     {
         p.Teleport(pos, TeleportationStyleID.RecallPotion);
 
-        if (Main.netMode == NetmodeID.Server)
-        {
-            NetMessage.SendData(
-                MessageID.TeleportEntity,
-                -1, -1, null,
-                number: 0,
-                number2: p.whoAmI,
-                number3: pos.X,
-                number4: pos.Y,
-                number5: TeleportationStyleID.RecallPotion
-            );
-        }
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        NetMessage.SendData(
+            MessageID.TeleportEntity,
+            -1, -1, null,
+            number: 0,
+            number2: p.whoAmI,
+            number3: pos.X,
+            number4: pos.Y,
+            number5: TeleportationStyleID.RecallPotion
+        );
     }
 
     private void ApplySelectedSpawn(On_Player.orig_Spawn_SetPosition orig, Player self, int floorX, int floorY)
@@ -97,7 +97,6 @@ public class SpawnHooks : ModSystem
         if (type == SpawnType.Teammate)
         {
             int idx = sp.SelectedPlayerIndex;
-
             if (SpawnSystem.IsValidTeammateIndex(idx))
             {
                 Player t = Main.player[idx];
@@ -113,12 +112,13 @@ public class SpawnHooks : ModSystem
     {
         var sys = ModContent.GetInstance<SpawnSystem>();
         if (sys == null || sys.spawnState == null || sys.spawnState.backgroundPanel == null)
-            orig(position);
-
-        if (sys?.ui?.CurrentState != null && sys.spawnState.backgroundPanel.IsMouseHovering)
         {
+            orig(position);
             return;
         }
+
+        if (SpawnSystem.IsUiOpen && sys.spawnState.backgroundPanel.IsMouseHovering)
+            return;
 
         orig(position);
     }
@@ -126,73 +126,57 @@ public class SpawnHooks : ModSystem
     private void DrawDeathText(On_Main.orig_DrawInterface_35_YouDied orig)
     {
         if (!Main.LocalPlayer.dead)
+        {
+            orig();
             return;
+        }
 
         Player p = Main.LocalPlayer;
 
-        float y = -60f;
         int seconds = (int)(1f + p.respawnTimer / 60f);
-
         if (p.respawnTimer <= 2 && SpawnSystem.CanTeleport)
             seconds = 0;
 
-        //if (SpectateSystem.HoveringType != SpawnType.None || seconds == 0)
-            //y += 260f;
+        float y = -60f;
 
-        string title = Lang.inter[38].Value;
-
-        DynamicSpriteFontExtensionMethods.DrawString(
-            Main.spriteBatch,
-            FontAssets.DeathText.Value,
-            title,
-            new Vector2(
-                Main.screenWidth / 2f - FontAssets.DeathText.Value.MeasureString(title).X / 2f,
-                Main.screenHeight / 2f + y),
-            p.GetDeathAlpha(Color.Transparent),
-            0f,
-            Vector2.Zero,
-            1f,
-            SpriteEffects.None,
-            0f);
-
+        DrawCentered(FontAssets.DeathText.Value, Lang.inter[38].Value, y, 1f, p);
         if (p.lostCoins > 0)
         {
             y += 50f;
-            string dropped = Language.GetTextValue("Game.DroppedCoins", p.lostCoinString);
-
-            DynamicSpriteFontExtensionMethods.DrawString(
-                Main.spriteBatch,
-                FontAssets.MouseText.Value,
-                dropped,
-                new Vector2(
-                    Main.screenWidth / 2f - FontAssets.MouseText.Value.MeasureString(dropped).X / 2f,
-                    Main.screenHeight / 2f + y),
-                p.GetDeathAlpha(Color.Transparent),
-                0f,
-                Vector2.Zero,
-                1f,
-                SpriteEffects.None,
-                0f);
+            DrawCentered(FontAssets.MouseText.Value, Language.GetTextValue("Game.DroppedCoins", p.lostCoinString), y, 1f, p);
+            y += 24f;
+        }
+        else
+        {
+            y += 50f;
         }
 
-        y += (p.lostCoins > 0 ? 24f : 50f) + 20f;
-        float scale = 0.7f;
+        y += 20f;
 
+        float scale = 0.7f;
         string respawnText = Language.GetTextValue("Game.RespawnInSuffix", seconds.ToString());
-        Vector2 respawnTextPos = new Vector2(
-                Main.screenWidth / 2f - FontAssets.MouseText.Value.MeasureString(respawnText).X * scale / 2f,
-                Main.screenHeight / 2f + y);
+        DrawCentered(FontAssets.DeathText.Value, respawnText, y, scale, p);
+    }
+
+    private static void DrawCentered(DynamicSpriteFont font, string text, float yOffset, float scale, Player p)
+    {
+        Vector2 size = font.MeasureString(text) * scale;
+        Vector2 pos = new(
+            Main.screenWidth * 0.5f - size.X * 0.5f,
+            Main.screenHeight * 0.5f + yOffset
+        );
 
         DynamicSpriteFontExtensionMethods.DrawString(
             Main.spriteBatch,
-            FontAssets.DeathText.Value,
-            respawnText,
-            respawnTextPos,
+            font,
+            text,
+            pos,
             p.GetDeathAlpha(Color.Transparent),
             0f,
             Vector2.Zero,
             scale,
             SpriteEffects.None,
-            0f);
+            0f
+        );
     }
 }
