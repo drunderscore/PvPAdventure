@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.Audio;
@@ -40,12 +41,39 @@ public class TeamChatManager : ModSystem
         On_ChatCommandProcessor.CreateOutgoingMessage += OnChatCommandProcessorCreateOutgoingMessage;
     }
 
+    public void ToggleChatChannel()
+    {
+        if (_channel == Channel.All)
+        {
+            if (Main.LocalPlayer.team == 0)
+            {
+                _channel = Channel.All;
+                Main.NewText("You must join a team to use TEAM chat.", Color.OrangeRed);
+                return;
+            }
+
+            _channel = Channel.Team;
+        }
+        else
+        {
+            _channel = Channel.All;
+        }
+
+        TryPlayMenuTick();
+    }
+
+    private void TryPlayMenuTick()
+    {
+        if (_soundEnginePlaySoundLegacy != null)
+            _soundEnginePlaySoundLegacy.Invoke(null, [10, -1, -1, 1, 1.0f, 0.0f]);
+    }
+
     private void OnMainOpenPlayerChat(On_Main.orig_OpenPlayerChat orig)
     {
-        //if (ModContent.GetInstance<ClientConfig>().ShiftEnterOpensAllChat && Main.keyState.PressingShift())
-            //_channel = Channel.All;
-        //else
-            _channel = Channel.Team;
+        _channel = Channel.Team;
+
+        if (_channel == Channel.Team && Main.LocalPlayer.team == 0)
+            _channel = Channel.All;
 
         orig();
     }
@@ -57,31 +85,55 @@ public class TeamChatManager : ModSystem
         if (Main.netMode == NetmodeID.SinglePlayer || !Main.drawingPlayerChat)
             return;
 
-        var channelString = $"({_channel.ToString().ToUpper()})";
-        var color = _channel == Channel.Team ? Main.teamColor[Main.LocalPlayer.team] : Color.White;
+        string channelString = $"({_channel.ToString().ToUpper()})";
+        Color channelColor = _channel == Channel.Team ? Main.teamColor[Main.LocalPlayer.team] : Color.White;
 
-        var size = ChatManager.GetStringSize(FontAssets.MouseText.Value, channelString, Vector2.One);
+        Vector2 channelSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, channelString, Vector2.One);
 
-        ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch, FontAssets.MouseText.Value,
-            $"({_channel.ToString().ToUpper()})",
-            new((int)((78.0f / 2.0f) - (size.X / 2.0f)), (int)(Main.screenHeight - 36.0f + 5.0f)),
-            color,
+        Vector2 channelPos = new(
+            (int)((78.0f / 2.0f) - (channelSize.X / 2.0f)),
+            (int)(Main.screenHeight - 36.0f + 5.0f)
+        );
+
+        ChatManager.DrawColorCodedStringWithShadow(
+            Main.spriteBatch,
+            FontAssets.MouseText.Value,
+            channelString,
+            channelPos,
+            channelColor,
             0.0f,
             Vector2.Zero,
-            Vector2.One);
+            Vector2.One
+        );
+
+        string next = _channel == Channel.Team ? "ALL" : "TEAM";
+        string prompt = $"TAB: {next}";
+
+        Color promptColor = Color.Gray;
+        Vector2 promptSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, prompt, Vector2.One);
+
+        Vector2 promptPos = new(
+            (int)((78.0f / 2.0f) - (promptSize.X / 2.0f)),
+            (int)(channelPos.Y + channelSize.Y + 2.0f)
+        );
+
+        ChatManager.DrawColorCodedStringWithShadow(
+            Main.spriteBatch,
+            FontAssets.MouseText.Value,
+            prompt,
+            promptPos,
+            promptColor,
+            0.0f,
+            Vector2.Zero,
+            Vector2.One
+        );
     }
 
     private ChatMessage OnChatCommandProcessorCreateOutgoingMessage(
         On_ChatCommandProcessor.orig_CreateOutgoingMessage orig, ChatCommandProcessor self, string text)
     {
-        var chatMessage = orig(self, text);
+        ChatMessage chatMessage = orig(self, text);
 
-        // FIXME: The parent function here will invoke ProcessOutgoingMessage for it's original ChatCommandId, which
-        //        probably isn't good. Worse, we don't invoke ProcessOutgoingMessage for the new ChatCommandId.
-        //        For our purposes (the say command and the party command), this is probably fine.
-        // NOTE: Need to check starting with '/' because TML shoves it's commands into the SayChatCommand and handles
-        //       it in some obtuse manner. Even this is not correct, because we don't assert that a leading slash
-        //       leads to any command being handled -- but it's the best we have.
         if (!text.StartsWith('/') &&
             _channel == Channel.Team &&
             (string)_chatCommandIdName.GetValue(chatMessage.CommandId) ==
@@ -96,8 +148,8 @@ public class TeamChatManager : ModSystem
     public void OpenAllChat()
     {
         // Copied from Main.DoUpdate_Enter_ToggleChat
-        if (!Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) &&
-            !Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightAlt) &&
+        if (!Main.keyState.IsKeyDown(Keys.LeftAlt) &&
+            !Main.keyState.IsKeyDown(Keys.RightAlt) &&
             Main.hasFocus)
         {
             if (!Main.InGameUI.IsVisible &&
@@ -107,10 +159,9 @@ public class TeamChatManager : ModSystem
                 !Main.editSign &&
                 !Main.editChest &&
                 !Main.gameMenu &&
-                !Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
+                !Main.keyState.IsKeyDown(Keys.Escape))
             {
-                // SoundEngine.PlaySound(10);
-                _soundEnginePlaySoundLegacy.Invoke(null, [10, -1, -1, 1, 1.0f, 0.0f]);
+                TryPlayMenuTick();
                 Main.OpenPlayerChat();
                 _channel = Channel.All;
                 Main.chatText = "";

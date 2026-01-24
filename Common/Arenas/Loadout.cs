@@ -1,4 +1,4 @@
-﻿using PvPAdventure.Core.Config.ConfigElements.CustomItemDefinitions;
+﻿using PvPAdventure.Core.Config.ConfigElements.LoadoutItems;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,9 +12,17 @@ namespace PvPAdventure.Common.Arenas;
 public class Loadout
 {
     public string Name { get; set; } = "";
+
+    [CustomModConfigItem(typeof(LoadoutArmorElement))]
     public Armor Armor { get; set; } = new();
+
+    [CustomModConfigItem(typeof(LoadoutAccessoriesElement))]
     public Accessories Accessories { get; set; } = new();
+
+    [CustomModConfigItem(typeof(LoadoutEquipmentElement))]
     public Equipment Equipment { get; set; } = new();
+
+    [CustomModConfigItem(typeof(LoadoutInventoryListElement))]
     public List<LoadoutItem> Inventory { get; set; } = [];
 }
 public class Armor

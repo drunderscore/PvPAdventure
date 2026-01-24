@@ -8,6 +8,7 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent.UI.Chat;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
@@ -65,9 +66,15 @@ internal class StatisticsPlayer : ModPlayer
         Player.team = tag.GetInt("team");
     }
 
-    public sealed class ItemPickup(int[] items) : IPacket<ItemPickup>
+    public sealed class ItemPickup : IPacket<ItemPickup>
     {
-        public int[] Items { get; } = items;
+        public int[] Items { get; }
+
+        public ItemPickup(int[] items)
+        {
+            // Defensive copy to avoid CS9124: do not capture parameter directly
+            Items = items is not null ? (int[])items.Clone() : [];
+        }
 
         public static ItemPickup Deserialize(BinaryReader reader)
         {
@@ -89,7 +96,7 @@ internal class StatisticsPlayer : ModPlayer
 
         public void Apply(StatisticsPlayer statisticsPlayer)
         {
-            statisticsPlayer.ItemPickups.UnionWith(items);
+            statisticsPlayer.ItemPickups.UnionWith(Items);
         }
     }
     
@@ -167,8 +174,10 @@ internal class StatisticsPlayer : ModPlayer
             Deaths += 1;
             SyncStatistics();
 
-            damageSource.SourceCustomReason =
-                $"[c/{Main.teamColor[killer.team].Hex3()}:{killer.name}] {ItemTagHandler.GenerateTag(damageSource.SourceItem ?? new Item(ItemID.Skull))} [c/{Main.teamColor[Player.team].Hex3()}:{Player.name}]";
+            NetworkText customReasonText = NetworkText.FromLiteral
+                ($"[c/{Main.teamColor[killer.team].Hex3()}:{killer.name}] {ItemTagHandler.GenerateTag(damageSource.SourceItem ?? new Item(ItemID.Skull))} [c/{Main.teamColor[Player.team].Hex3()}:{Player.name}]");
+
+            damageSource.CustomReason = customReasonText;
         }
         finally
         {

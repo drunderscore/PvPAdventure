@@ -13,14 +13,15 @@ namespace PvPAdventure.Common.Arenas.UI;
 public class ArenasJoinUI : UIState
 {
     // Player count
-    private static int arenaPlayerCount;
+    //private static int arenaPlayerCount;
 
-    private UITextPanel<string> enterButton;
+    //private UITextPanel<string> enterButton;
 
-    public static void SetPlayerCount(int count)
-    {
-        arenaPlayerCount = count;
-    }
+    //public static void SetPlayerCount(int count)
+    //{
+    //    arenaPlayerCount = count;
+    //}
+
 
     // UI
     private DraggableElement Root;

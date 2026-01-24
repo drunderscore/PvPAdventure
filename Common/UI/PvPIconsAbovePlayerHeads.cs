@@ -23,7 +23,7 @@ public class PvPIconDrawerLayer : ModSystem
         for (int i = 0; i < Main.maxPlayers; i++)
         {
             Player p = Main.player[i];
-            if (!p.active || p.dead)
+            if (!p.active || p.dead || p.ghost)
                 continue;
 
             bool inRegion = rm.GetRegionContaining(p.Center.ToTileCoordinates()) != null;

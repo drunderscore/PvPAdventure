@@ -46,17 +46,15 @@ public class ArenasLoadoutUI : UIState
         RemoveAllChildren();
 
         // Calculate height based on number of loadouts
-        // FIXME: Not very accurate
         var config = ModContent.GetInstance<ArenasConfig>();
-        int loadoutsCount = config.ArenaLoadouts.Count;
-        int loadoutItemHeight = 72;
-        int baseHeight = 400;
+        int loadoutsCount = Math.Clamp(config.ArenaLoadouts.Count, 1, 5);
+        int loadoutItemHeight = 106;
+        int baseHeight = 32; // enough to fit an "exit arena"
         int rootHeight = baseHeight + loadoutItemHeight * loadoutsCount;
-        int width = 440;
 
         Root = new DraggableElement
         {
-            Width = new StyleDimension(width, 0f),
+            Width = new StyleDimension(516, 0f), // Fixed width to fit 10 loadout slots
             Top = new StyleDimension(50f, 0f),
             Height = new StyleDimension(rootHeight, 0f),
             HAlign = 0.5f
@@ -64,7 +62,7 @@ public class ArenasLoadoutUI : UIState
         Append(Root);
 
         // Title
-        var title = new UITextPanel<string>("Choose Your Loadout", 0.75f, large: true)
+        var title = new UITextPanel<string>("Choose Your Loadout", 0.85f, large: true)
         {
             HAlign = 0.5f,
             BackgroundColor = new Color(73, 94, 171)
@@ -78,6 +76,7 @@ public class ArenasLoadoutUI : UIState
         Root.Append(title);
         Root.Recalculate();
 
+        const float TitleHeight = 40f;
         float panelHeight = title.GetOuterDimensions().Height;
         if (panelHeight <= 1f)
             panelHeight = TitleHeight;
@@ -123,6 +122,19 @@ public class ArenasLoadoutUI : UIState
                 continue;
 
             list.Add(NewLoadout(loadout));
+        }
+
+        // If no loadouts, show a text that displays this
+        if (loadoutsCount == 0)
+        {
+            Root.Height.Set(170, 0);
+
+            var emptyText = new UIText("No loadouts configured. Open Config and add one.", 0.95f)
+            {
+                HAlign = 0.5f,
+                MarginTop = 12f
+            };
+            list.Add(emptyText);
         }
 
         // Add exit button
@@ -266,6 +278,8 @@ public class ArenasLoadoutUI : UIState
         private readonly UICharacter preview;
         private readonly UIElement slotsRow;
         private UIImageButton playButton;
+        private const float PlayScale = 1.25f;
+        private readonly Asset<Texture2D> _playAsset;
 
         private readonly Loadout loadout;
 
@@ -290,6 +304,27 @@ public class ArenasLoadoutUI : UIState
             nameText.Top.Set(-2, 0);
             Append(nameText);
 
+            // Play button
+            var _playAsset = Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad);
+            playButton = new UIImageButton(_playAsset);
+            const float PlayScale = 1.25f;
+            playButton.Width.Set(_playAsset.Width() * PlayScale, 0f);
+            playButton.Height.Set(_playAsset.Height() * PlayScale, 0f);
+            playButton.SetVisibility(0f, 0f);
+            playButton.OnDraw += _ =>
+            {
+                var dim = playButton.GetDimensions();
+                float alpha = playButton.IsMouseHovering ? 1f : 0.4f;
+
+                Main.spriteBatch.Draw(_playAsset.Value, dim.Position(), null, Color.White * alpha, 0f, Vector2.Zero, PlayScale, SpriteEffects.None, 0f);
+
+                if (playButton._borderTexture != null && playButton.IsMouseHovering)
+                    Main.spriteBatch.Draw(playButton._borderTexture.Value, dim.Position(), null, Color.White, 0f, Vector2.Zero, PlayScale, SpriteEffects.None, 0f);
+            };
+            playButton.OnLeftClick += (_, _) => equip?.Invoke(loadout.Name);
+            Append(playButton);
+
+            // Slots
             slotsRow = new UIElement();
             slotsRow.Left.Set(72f, 0f);
             slotsRow.Width.Set(-96f, 1f);
@@ -297,134 +332,104 @@ public class ArenasLoadoutUI : UIState
 
             AddSlots(loadout);
 
-            var asset = Main.Assets.Request<Texture2D>("Images/UI/ButtonPlay", AssetRequestMode.ImmediateLoad);
+            // Set list item height
+            int invCount = loadout.Inventory?.Count ?? 0;
+            int extraRows = invCount <= 10 ? 0 : (invCount - 1) / 10;
+            Height.Set(104f + extraRows * 40, 0f);
 
-            var playScale = 1.25f;
-            playButton = new UIImageButton(asset);
-            playButton.Width.Set(asset.Width() * playScale, 0f);
-            playButton.Height.Set(asset.Height() * playScale, 0f);
-            playButton.SetVisibility(0f, 0f);
+            // Set play button centered in the preview X
+            var inner = GetInnerDimensions();
+            float playW = _playAsset.Width() * PlayScale;
+            float playCenterX = preview.Left.Pixels + (preview.Width.Pixels - playW) * 0.5f;
+            playButton.Left.Set(playCenterX, 0f);
 
-            playButton.OnDraw += _ =>
-            {
-                var dim = playButton.GetDimensions();
-                float alpha = playButton.IsMouseHovering ? 1f : 0.4f;
-
-                Main.spriteBatch.Draw(asset.Value, dim.Position(), null, Color.White * alpha, 0f, Vector2.Zero, playScale, SpriteEffects.None, 0f);
-
-                if (playButton._borderTexture != null && playButton.IsMouseHovering)
-                    Main.spriteBatch.Draw(playButton._borderTexture.Value, dim.Position(), null, Color.White, 0f, Vector2.Zero, playScale, SpriteEffects.None, 0f);
-            };
-
-            playButton.OnLeftClick += (_, _) => equip?.Invoke(loadout.Name);
-            Append(playButton);
-
-            Recalculate(); // ensure preview/button have dimensions
-
-            var pb = playButton.GetOuterDimensions();
-            var pr = preview.GetOuterDimensions();
-
-            // center under preview, and place just below it
-            playButton.Left.Set(pr.X + (pr.Width - pb.Width) * 0.5f - GetInnerDimensions().X, 0f);
-            playButton.Top.Set(pr.Y + pr.Height - GetInnerDimensions().Y+20, 0f);
+            // Set play button centered in the remaining space depending on inventory count
+            float playBaseY = 62f;
+            float playCenterY = playBaseY + playW * 0.5f * extraRows;
+            playButton.Top.Set(playCenterY, 0f);
 
             Recalculate();
         }
 
-        private void AddSlots(Loadout def)
+        private void AddSlots(Loadout loadout)
         {
-            const float Step = 40f;
-            const float Slot = 36f;
-            const int Cols = 8;
+            const float Step = 40f, Slot = 36f;
+            const int Cols = 10;
 
-            float x = 0f;
-            float y = 16f;
-            int col = 0;
+            slotsRow.RemoveAllChildren();
 
-            int count = 0;
+            float x = 0f, y = 16f;
+            int col = 0, count = 0;
 
-            void Add(Item it, int? hotbarNumber = null)
+            Item MakeItem(int type, int stack = 1)
             {
-                var slot = new UILoadoutItemSlot(it, hotbarNumber);
+                Item it = new Item();
+                if (type != ItemID.None)
+                {
+                    it.SetDefaults(type);
+                    it.stack = stack;
+                }
+                return it;
+            }
+
+            void Add(Item it, int context, int slotIndex, int? hotbarNumber = null)
+            {
+                var slot = new UILoadoutItemSlot(it, context, slotIndex, hotbarNumber);
                 slot.Left.Set(x, 0f);
                 slot.Top.Set(y, 0f);
                 slotsRow.Append(slot);
 
                 count++;
-
-                col++;
-                x += Step;
-
-                if (col >= Cols)
-                {
-                    col = 0;
-                    x = 0f;
-                    y += Step;
-                }
+                if (++col >= Cols) { col = 0; x = 0f; y += Step; }
+                else x += Step;
             }
 
-            int t;
+            // Top row  (Armor)
+            Add(MakeItem(ItemOrAir(loadout.Armor.Head)), ItemSlot.Context.EquipArmor, 0);
+            Add(MakeItem(ItemOrAir(loadout.Armor.Body)), ItemSlot.Context.EquipArmor, 1);
+            Add(MakeItem(ItemOrAir(loadout.Armor.Legs)), ItemSlot.Context.EquipArmor, 2);
 
-            t = ItemOrAir(def.Armor.Head);
-            if (t != ItemID.None)
-                Add(new Item(t));
+            // Top row (accessories)
+            Add(MakeItem(ItemOrAir(loadout.Accessories.Accessory1)), ItemSlot.Context.EquipAccessory, 3);
+            Add(MakeItem(ItemOrAir(loadout.Accessories.Accessory2)), ItemSlot.Context.EquipAccessory, 4);
+            Add(MakeItem(ItemOrAir(loadout.Accessories.Accessory3)), ItemSlot.Context.EquipAccessory, 5);
+            Add(MakeItem(ItemOrAir(loadout.Accessories.Accessory4)), ItemSlot.Context.EquipAccessory, 6);
+            Add(MakeItem(ItemOrAir(loadout.Accessories.Accessory5)), ItemSlot.Context.EquipAccessory, 7);
 
-            t = ItemOrAir(def.Armor.Body);
-            if (t != ItemID.None)
-                Add(new Item(t));
+            // Top row (equipment)
+            Add(MakeItem(ItemOrAir(loadout.Equipment.GrapplingHook)), ItemSlot.Context.EquipGrapple, 0);
+            Add(MakeItem(ItemOrAir(loadout.Equipment.Mount)), ItemSlot.Context.EquipMount, 0);
 
-            t = ItemOrAir(def.Armor.Legs);
-            if (t != ItemID.None)
-                Add(new Item(t));
+            int invCount = loadout.Inventory?.Count ?? 0;
 
-            t = ItemOrAir(def.Accessories.Accessory1);
-            if (t != ItemID.None)
-                Add(new Item(t));
-
-            t = ItemOrAir(def.Accessories.Accessory2);
-            if (t != ItemID.None)
-                Add(new Item(t));
-
-            t = ItemOrAir(def.Accessories.Accessory3);
-            if (t != ItemID.None)
-                Add(new Item(t));
-
-            t = ItemOrAir(def.Accessories.Accessory4);
-            if (t != ItemID.None)
-                Add(new Item(t));
-
-            t = ItemOrAir(def.Accessories.Accessory5);
-            if (t != ItemID.None)
-                Add(new Item(t));
-
-            for (int i = 0; i < def.Inventory.Count && i < 50; i++)
+            // Inventory (hotbar)
+            for (int i = 0; i < 10; i++)
             {
-                var li = def.Inventory[i];
-                t = ItemOrAir(li.Item);
-                if (t == ItemID.None) continue;
+                Item it = new Item();
+                if (i < invCount)
+                {
+                    var li = loadout.Inventory[i];
+                    it = MakeItem(ItemOrAir(li.Item), li.Stack);
+                }
 
-                var it = new Item();
-                it.SetDefaults(t);
-                it.stack = li.Stack;
-
-                // Only label hotbar slots (0-9)
-                int? hotbarNumber = i < 10 ? (i == 9 ? 10 : i + 1) : null;
-                Add(it, hotbarNumber);
+                Add(it, ItemSlot.Context.HotbarItem, i, i == 9 ? 10 : i + 1);
             }
 
-            t = ItemOrAir(def.Equipment.GrapplingHook);
-            if (t != ItemID.None) { var it = new Item(); it.SetDefaults(t); Add(it); }
+            // Inventory (rest of inventory)
+            for (int i = 10; i < invCount && i < 50; i++)
+            {
+                var li = loadout.Inventory[i];
+                int type = ItemOrAir(li.Item);
+                if (type == ItemID.None)
+                    continue;
 
-            if (count == 0)
-                return;
+                Add(MakeItem(type, li.Stack), ItemSlot.Context.InventoryItem, i);
+            }
 
+            // Adjust slots row height
             int rows = (count + Cols - 1) / Cols;
-
-            float slotsHeight = y + (rows - 1) * Step + Slot;
             slotsRow.Top.Set(0f, 0f);
-            slotsRow.Height.Set(slotsHeight, 0f);
-
-            Height.Set(144f, 0f);
+            slotsRow.Height.Set(16f + (rows - 1) * Step + Slot, 0f);
         }
 
         public override void Update(GameTime gameTime)
@@ -478,24 +483,50 @@ public class ArenasLoadoutUI : UIState
         {
             private readonly Item item;
             private readonly int? hotbarNumber;
+            private readonly int context;
+            private readonly int slotIndex;
+
             private const float Size = 36f;
 
-            public UILoadoutItemSlot(Item source, int? hotbarNumber = null)
+            public UILoadoutItemSlot(Item source, int context, int slotIndex, int? hotbarNumber = null)
             {
                 item = source.Clone();
+                this.context = context;
+                this.slotIndex = slotIndex;
                 this.hotbarNumber = hotbarNumber;
+
                 Width.Set(Size, 0f);
                 Height.Set(Size, 0f);
             }
 
             protected override void DrawSelf(SpriteBatch sb)
             {
+                // Dimensions
                 var dim = GetDimensions();
                 var center = dim.Center();
-                float bgScale = Size / TextureAssets.InventoryBack.Width();
-                Vector2 bgPos = center - TextureAssets.InventoryBack.Size() * bgScale * 0.5f;
 
-                sb.Draw(TextureAssets.InventoryBack.Value, bgPos, null,Color.White,0f,Vector2.Zero,bgScale,SpriteEffects.None,0f);
+                bool equip =
+                    context == ItemSlot.Context.EquipArmor ||
+                    context == ItemSlot.Context.EquipAccessory ||
+                    context == ItemSlot.Context.EquipGrapple ||
+                    context == ItemSlot.Context.EquipMount;
+
+                //Color bgColor = Color.White;
+                //if (context == ItemSlot.Context.EquipArmor ||
+                //    context == ItemSlot.Context.EquipAccessory ||
+                //    context == ItemSlot.Context.EquipGrapple ||
+                //    context == ItemSlot.Context.EquipMount)
+                //{
+                //    bgColor = ItemSlot.GetColorByLoadout(slotIndex, context);
+                //}
+
+
+                Texture2D bgTex = equip ? TextureAssets.InventoryBack3.Value : TextureAssets.InventoryBack.Value;
+
+                float bgScale = Size / bgTex.Width;
+                Vector2 bgPos = center - bgTex.Size() * bgScale * 0.5f;
+
+                sb.Draw(bgTex, bgPos, null, Color.White, 0f, Vector2.Zero, bgScale, SpriteEffects.None, 0f);
 
                 if (!item.IsAir)
                     ItemSlot.DrawItemIcon(item, 31, sb, center, 0.8f, Size, Color.White);
@@ -506,7 +537,7 @@ public class ArenasLoadoutUI : UIState
                     Vector2 pos = dim.Position() + new Vector2(4f, 2f);
                     float scale = 0.7f;
 
-                    Utils.DrawBorderStringFourWay(sb,FontAssets.ItemStack.Value,text, pos.X,pos.Y,Color.White,new Color(20,20,20),Vector2.Zero,scale);
+                    Utils.DrawBorderStringFourWay(sb, FontAssets.ItemStack.Value,text, pos.X,pos.Y, Color.White,new Color(20, 20, 20),Vector2.Zero, scale);
                 }
 
                 if (IsMouseHovering && !item.IsAir)
@@ -518,9 +549,9 @@ public class ArenasLoadoutUI : UIState
 
                 if (item.stack > 1)
                 {
-                    var text = item.stack.ToString();
-                    var size = FontAssets.ItemStack.Value.MeasureString(text);
-                    var pos = dim.Position() + new Vector2(dim.Width - size.X / 4f - 20f, dim.Height - size.Y + 10f);
+                    string text = item.stack.ToString();
+                    Vector2 size = FontAssets.ItemStack.Value.MeasureString(text);
+                    Vector2 pos = dim.Position() + new Vector2(dim.Width - size.X / 4f - 20f, dim.Height - size.Y + 10f);
                     Utils.DrawBorderString(sb, text, pos, Color.White, 0.55f);
                 }
             }

@@ -1,7 +1,7 @@
 ﻿using Terraria;
 using Terraria.ID;
 
-namespace PvPAdventure.Core.Config.ConfigElements.CustomItemDefinitions;
+namespace PvPAdventure.Core.Config.ConfigElements.LoadoutItems;
 
 /// <summary>
 /// Filtered ItemDefinition picker elements for Arena Loadouts.

@@ -24,7 +24,7 @@ public class ArenasSubworld : Subworld
     }
     public override bool NormalUpdates => false;
     public override int Width => 850; // our structure is 680
-    public override int Height => 300; // our structure is 169
+    public override int Height => 600; // our structure is 169
 
     public override bool ShouldSave => false;
     public override bool NoPlayerSaving => true;
@@ -36,8 +36,8 @@ public class ArenasSubworld : Subworld
     {
         return
         [
-            Pass("AdjustWorldHeight", AdjustWorldHeight),
-            Pass("GeneratePvPArena", GeneratePvPArena)
+            Pass("GeneratePvPArena", GeneratePvPArena),
+            Pass("AdjustWorldHeight", AdjustWorldHeight), // perform this pass LAST ALWAYS!
             //Pass("Arenas", GenerateArenas),
         ];
     }
@@ -47,12 +47,19 @@ public class ArenasSubworld : Subworld
         try
         {
             var mod = ModContent.GetInstance<PvPAdventure>();
-            //var path = Path.Combine(Main.WorldPath, "");
-            var path = "Common/Arenas/WorldFiles/Arenas_v9.wld";
-            var worldFileBytes = mod.GetFileBytes(path);
-            var memoryStream = new MemoryStream(worldFileBytes);
-            BinaryReader reader = new(memoryStream);
+            const string path = "Common/Arenas/WorldFiles/Arenas_v10.wld";
+
+            byte[] bytes = mod.GetFileBytes(path);
+            if (bytes == null || bytes.Length == 0)
+            {
+                Log.Error($"Failed to load arena world bytes. Missing mod file: '{path}'. Ensure it's included in the .tmod build output.");
+                return;
+            }
+
+            using var ms = new MemoryStream(bytes);
+            using var reader = new BinaryReader(ms);
             WorldFile.LoadWorld_Version2(reader);
+            Log.Debug($"[Arenas] maxTilesY={Main.maxTilesY} worldSurface={Main.worldSurface} rockLayer={Main.rockLayer}");
         }
         catch (Exception e)
         {
@@ -62,12 +69,13 @@ public class ArenasSubworld : Subworld
 
     private static void AdjustWorldHeight()
     {
-        Main.worldSurface = Main.maxTilesY - 12; // Hides the underground layer just out of bounds
-        Main.rockLayer = Main.maxTilesY - 12; // Hides the cavern layer just out of bounds
+        Main.worldSurface = 599; // Hides the underground layer just out of bounds
+        Main.rockLayer = 599; // Hides the cavern layer just out of bounds
+        Log.Debug($"[Arenas] maxTilesY={Main.maxTilesY} worldSurface={Main.worldSurface} rockLayer={Main.rockLayer}");
 
         // move spawn pos up
-        Main.spawnTileX += 3;
-        Main.spawnTileY -= 110;
+        //Main.spawnTileX += 3;
+        //Main.spawnTileY -= 110;
     }
 
     private static void GenerateArenas()
@@ -166,6 +174,7 @@ public class ArenasSubworld : Subworld
 
     public override void OnEnter()
     {
+        Log.Chat("Entered world with height: " + Main.ActiveWorldFileData.WorldSizeY);
         //ArenaPlayerCountNet.Broadcast();
     }
     public override void OnExit()
@@ -176,7 +185,14 @@ public class ArenasSubworld : Subworld
     // Modify light here
     public override bool GetLight(Tile tile, int x, int y, ref FastRandom rand, ref Vector3 color)
     {
-        return base.GetLight(tile, x, y, ref rand, ref color);
+        // Hotfix...
+        // Fixes the black not drawing properly
+        // From sublib discord
+        // https://discord.com/channels/668545664724238363/681476367090450446/1463111528927596695
+        color.X = 0.004f;
+        color.Y = 0.004f;
+        color.Z = 0.004f;
+        return false;
     }
 
     public static void RevealMap()

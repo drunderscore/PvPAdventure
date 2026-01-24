@@ -3,18 +3,23 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Terraria.Localization;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.Config.UI;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-namespace PvPAdventure.Core.Config.ConfigElements;
+namespace PvPAdventure.Core.Config.ConfigElements.LoadoutItems;
 
-internal sealed class LoadoutListElement : ListElement
+internal sealed class LoadoutInventoryListElement : ListElement
 {
     private PropertyFieldWrapper _valueMember;
     private Type _wrapperType;
+    private int _lastCount = -1;
+
+    private static readonly FieldInfo ObjectElementExpandedField =
+        typeof(ObjectElement).GetField("expanded", BindingFlags.Instance | BindingFlags.NonPublic);
 
     private sealed class EntryWrapper<T>
     {
@@ -38,10 +43,21 @@ internal sealed class LoadoutListElement : ListElement
             }
         }
     }
-
     public override void OnBind()
     {
         base.OnBind();
+
+        _lastCount = (Data as IList)?.Count ?? -1;
+
+        TextDisplayFunction = () =>
+        {
+            const int maxItemsShown = 12;
+            string summary = BuildInventorySummary(Data as IList, maxItemsShown);
+
+            string baseLabel = Label ?? MemberInfo?.Name ?? "Inventory";
+            return string.IsNullOrWhiteSpace(summary) ? baseLabel : $"{baseLabel} {summary}";
+        };
+
         EnsureValueMember();
     }
 
@@ -53,7 +69,10 @@ internal sealed class LoadoutListElement : ListElement
         if (Data is not IList list)
             return;
 
-        EnsureNonNullLoadouts(list);
+        bool expandLast = _lastCount >= 0 && list.Count > _lastCount;
+        _lastCount = list.Count;
+
+        EnsureNonNullEntries(list);
         EnsureValueMember();
 
         for (int i = 0; i < list.Count; i++)
@@ -66,30 +85,24 @@ internal sealed class LoadoutListElement : ListElement
             tuple.Item2.Left.Pixels += 24f;
             tuple.Item2.Width.Pixels -= 30f;
 
-            // Keep row minimal
+            if (expandLast && index == list.Count - 1)
+                ForceExpandObjectElement(tuple.Item2);
+
             if (tuple.Item2 is ConfigElement rowCe)
             {
                 rowCe.TextDisplayFunction = () =>
                 {
-                    if (index < 0 || index >= list.Count || list[index] is not Loadout l || l == null)
+                    if (index < 0 || index >= list.Count || list[index] is not LoadoutItem li || li == null)
                         return $"{index + 1}: Missing";
 
-                    string name = string.IsNullOrWhiteSpace(l.Name) ? "" : l.Name;
+                    int type = li.Item?.Type ?? 0;
+                    int stack = li.Stack < 1 ? 1 : li.Stack;
 
-                    // Order: armor -> accessories -> hook -> mount -> inventory
-                    string armor = Join(Tag(l.Armor?.Head), Tag(l.Armor?.Body), Tag(l.Armor?.Legs));
-                    string acc = Join(
-                        Tag(l.Accessories?.Accessory1),
-                        Tag(l.Accessories?.Accessory2),
-                        Tag(l.Accessories?.Accessory3),
-                        Tag(l.Accessories?.Accessory4),
-                        Tag(l.Accessories?.Accessory5));
+                    if (type <= 0)
+                        return $"{index + 1}: None";
 
-                    string hook = Tag(l.Equipment?.GrapplingHook);
-                    string mount = Tag(l.Equipment?.Mount);
-                    string inv = InventoryTags(l); // already returns "[i:..]" or "[i/s10:29]" etc
-
-                    return Join($"{index + 1}:", name, armor, acc, hook, mount, inv);
+                    string tag = stack == 1 ? $"[i:{type}]" : $"[i/s{stack}:{type}]";
+                    return $"{index + 1}: {tag}";
                 };
             }
 
@@ -109,6 +122,35 @@ internal sealed class LoadoutListElement : ListElement
         }
     }
 
+    private static void ForceExpandObjectElement(UIElement rowElement)
+    {
+        ObjectElement oe = rowElement as ObjectElement;
+        if (oe == null)
+            oe = FindFirstObjectElement(rowElement);
+
+        if (oe == null || ObjectElementExpandedField == null)
+            return;
+
+        ObjectElementExpandedField.SetValue(oe, true);
+        oe.Recalculate();
+    }
+
+    private static ObjectElement FindFirstObjectElement(UIElement element)
+    {
+        for (int i = 0; i < element.Elements.Count; i++)
+        {
+            UIElement child = element.Elements[i];
+            if (child is ObjectElement oe)
+                return oe;
+
+            ObjectElement nested = FindFirstObjectElement(child);
+            if (nested != null)
+                return nested;
+        }
+
+        return null;
+    }
+
     private void EnsureValueMember()
     {
         if (_valueMember != null)
@@ -123,71 +165,47 @@ internal sealed class LoadoutListElement : ListElement
         _valueMember = ConfigManager.GetFieldsAndProperties(dummyWrapper).First(p => p.Name == "Value");
     }
 
-    private static void EnsureNonNullLoadouts(IList list)
+    private static void EnsureNonNullEntries(IList list)
     {
         for (int i = 0; i < list.Count; i++)
         {
-            Loadout l = list[i] as Loadout;
-            if (l == null)
-            {
-                l = new Loadout();
-                list[i] = l;
-            }
+            if (list[i] is LoadoutItem)
+                continue;
 
-            l.Armor ??= new Armor();
-            l.Accessories ??= new Accessories();
-            l.Equipment ??= new Equipment();
-            l.Inventory ??= new List<LoadoutItem>();
+            list[i] = new LoadoutItem();
         }
     }
 
-    private static IEnumerable<ConfigElement> EnumerateConfigElements(UIElement element)
+    private static string BuildInventorySummary(IList list, int maxShown)
     {
-        if (element is ConfigElement ce)
-            yield return ce;
-
-        for (int i = 0; i < element.Elements.Count; i++)
-        {
-            foreach (ConfigElement child in EnumerateConfigElements(element.Elements[i]))
-                yield return child;
-        }
-    }
-
-    private static string Tag(ItemDefinition d)
-    {
-        int type = d?.Type ?? 0;
-        return type > 0 ? $"[i:{type}]" : "";
-    }
-
-    private static string InventoryTags(Loadout l)
-    {
-        List<LoadoutItem> inv = l.Inventory;
-        if (inv == null || inv.Count == 0)
+        if (list == null || list.Count == 0)
             return "";
 
-        const int maxShown = 12;
+        List<string> shown = [];
+        int validCount = 0;
 
-        List<string> shown = new();
-        for (int i = 0; i < inv.Count && shown.Count < maxShown; i++)
+        for (int i = 0; i < list.Count; i++)
         {
-            LoadoutItem li = inv[i];
-            int type = li?.Item?.Type ?? 0;
+            if (list[i] is not LoadoutItem li || li == null)
+                continue;
+
+            int type = li.Item?.Type ?? 0;
             if (type <= 0)
                 continue;
 
-            int stack = li.Stack < 1 ? 1 : li.Stack;
+            validCount++;
 
-            // Example: [i/s10:29]
+            if (shown.Count >= maxShown)
+                continue;
+
+            int stack = li.Stack < 1 ? 1 : li.Stack;
             shown.Add(stack == 1 ? $"[i:{type}]" : $"[i/s{stack}:{type}]");
         }
 
         if (shown.Count == 0)
             return "";
 
-        int hidden = Math.Max(0, inv.Count - maxShown);
+        int hidden = Math.Max(0, validCount - shown.Count);
         return hidden > 0 ? string.Join(" ", shown) + $" +{hidden}" : string.Join(" ", shown);
     }
-
-    private static string Join(params string[] parts) =>
-        string.Join(" ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
 }

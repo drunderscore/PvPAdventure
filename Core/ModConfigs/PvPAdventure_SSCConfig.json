@@ -33,6 +33,12 @@
         "DisplayName": "Wood"
       },
       "Stack": 20
+    },
+    {
+      "Item": {
+        "Name": "AdventureMirror",
+        "DisplayName": "Adventure Mirror"
+      }
     }
   ]
 }

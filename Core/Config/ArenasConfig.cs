@@ -1,6 +1,6 @@
 ﻿using DragonLens.Core.Systems;
 using PvPAdventure.Common.Arenas;
-using PvPAdventure.Core.Config.ConfigElements;
+using PvPAdventure.Core.Config.ConfigElements.LoadoutItems;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Terraria;
@@ -28,8 +28,8 @@ internal class ArenasConfig : ModConfig
     public int MaxHealth { get; set; } = 400;
 
     [BackgroundColor(90, 40, 110)]
-    [DefaultValue(true)]
-    public bool RevealMap { get; set; } = true;
+    [DefaultValue(false)]
+    public bool RevealMap { get; set; } = false;
 
     [Header("Loadouts")]
     [BackgroundColor(90, 40, 110)]

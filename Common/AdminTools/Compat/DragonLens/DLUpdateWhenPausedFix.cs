@@ -5,7 +5,6 @@ using System.Reflection;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
 
 namespace PvPAdventure.Common.AdminTools.Compat.DragonLens;
@@ -17,8 +16,6 @@ public sealed class DLUnpausedUICompat : ModSystem
     private delegate void orig_UpdateUI(UILoader self, GameTime gameTime);
 
     private static FieldInfo drawDelay;
-
-    private static uint lastHoverPassFrame;
 
     public override void PostSetupContent()
     {

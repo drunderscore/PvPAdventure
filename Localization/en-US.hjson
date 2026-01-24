@@ -571,13 +571,10 @@ Mods: {
 					Points: "[i:PvPAdventure/PointsConfigItem] Points"
 					Combat: "[i:273] Combat"
 					Items: "[i:Chest] Items"
+					Bosses: "[i:2112] Bosses"
 					NPCs: "[i:267] NPCs"
 					Gameplay: "[i:GPS] Gameplay"
-					General: "[i:Cog] General"
 					WorldGen: "[i:WorldGlobe] World Generation"
-					SSC: "[i:PvPAdventure/ServerConfigItem] SSC"
-					Arenas: "[i:PvPAdventure/ArenasConfigItem] Arenas"
-					Bosses: "[i:2112] Bosses"
 				}
 
 				Points: {
@@ -695,19 +692,14 @@ Mods: {
 					Tooltip: ""
 				}
 
-				StartItems: {
-					Label: "[i:Chest] Starting Items"
-					Tooltip: ""
-				}
-
 				StartLife: {
 					Label: "[i:LifeCrystal] Starting Health"
-					Tooltip: The starting max health of a new character. Default to 100
+					Tooltip: The starting max health of a new character
 				}
 
 				StartMana: {
 					Label: "[i:ManaCrystal] Starting Mana"
-					Tooltip: The starting max mana of a new character. Default to 20
+					Tooltip: The starting max mana of a new character
 				}
 
 				IsSSCEnabled: {
@@ -727,13 +719,13 @@ Mods: {
 				}
 
 				AdventureMirrorRecallSeconds: {
-					Label: "[i:PvPAdventure/AdventureMirror] Adventure Mirror Recall Seconds"
-					Tooltip: The number of seconds it takes for a recall to complete
+					Label: "[i:PvPAdventure/AdventureMirror] Adventure Mirror Use Time"
+					Tooltip: Number of seconds taken to complete a recall
 				}
 
 				ShowPlayerTeamAndPvP: {
 					Label: "[i:PvPAdventure/TeamConfigItem] Allow Players To Select Teams"
-					Tooltip: Whether to show the UI next to the accessories that allows players to select their own teams
+					Tooltip: Shows the UI that lets players pick a team
 				}
 			}
 
@@ -1437,13 +1429,13 @@ Mods: {
 				DisplayName: Arenas Config
 
 				Headers: {
-					Arenas: "[i:Cog] Arenas"
-					Loadouts: "[i:PvPAdventure/ArenasConfigItem] Loadouts"
+					Arenas: "[i:PvPAdventure/ArenasConfigItem] Arenas"
+					Loadouts: Loadouts
 				}
 
 				IsArenasEnabled: {
 					Label: Enable Arenas
-					Tooltip: Whether to allow players to open the arenas join UI.
+					Tooltip: Allows players to open the arenas join UI with their keybind.
 				}
 
 				ArenaLoadouts: {
@@ -1489,16 +1481,10 @@ Mods: {
 					Label: Enable SSC
 					Tooltip:
 						'''
-						Whether to use server sided characters. 
-						Creates new characters on the server to prevent players from joining with local characters.
+						Enables server sided characters to prevent local players from joining.
 						Player files are located on the server: 
 						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
 						'''
-				}
-
-				test: {
-					Label: test
-					Tooltip: ""
 				}
 			}
 

@@ -16,9 +16,6 @@ namespace PvPAdventure.Core.Input.Dash;
 
 public class DashInputPlayer : ModPlayer
 {
-    private bool restoreDashType;
-    private int dashTypeToRestore;
-
     public override void ProcessTriggers(TriggersSet triggers)
     {
         if (ModContent.GetInstance<Keybinds>().Dash == null || !ModContent.GetInstance<Keybinds>().Dash.JustPressed)
@@ -118,16 +115,6 @@ public class DashInputPlayer : ModPlayer
             selectedDashType = Math.Clamp(selectedDashType, 1, 5);
 
         dashTypeUsed = (byte)selectedDashType;
-
-        if (selectedDashType != originalDashType)
-        {
-            restoreDashType = true;
-            dashTypeToRestore = originalDashType;
-        }
-        else
-        {
-            restoreDashType = false;
-        }
 
         Player.dashType = selectedDashType;
         Player.dash = selectedDashType;

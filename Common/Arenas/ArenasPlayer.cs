@@ -39,7 +39,7 @@ internal class ArenasPlayer : ModPlayer
 
     public override void OnRespawn()
     {
-        if (SubworldSystem.AnyActive())
+        if (SubworldSystem.AnyActive() && ArenasUISystem.Interface?.CurrentState == null)
             ArenasUISystem.Toggle();
 
         base.OnRespawn();

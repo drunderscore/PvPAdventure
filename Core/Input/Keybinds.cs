@@ -9,6 +9,7 @@ using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.GameInput;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Input;
@@ -68,6 +69,16 @@ internal class KeybindsPlayer : ModPlayer
         if (keybinds.AllChat.JustPressed)
             ModContent.GetInstance<TeamChatManager>().OpenAllChat();
 
+        // Toggle chat channels
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            if (!Main.drawingPlayerChat)
+                return;
+
+            if (Main.keyState.IsKeyDown(Keys.Tab) && !Main.oldKeyState.IsKeyDown(Keys.Tab))
+                ModContent.GetInstance<TeamChatManager>().ToggleChatChannel();
+        }
+
         // Toggle UI
         var config = ModContent.GetInstance<ArenasConfig>();
         if (config.IsArenasEnabled && keybinds.ArenasMenu.JustPressed)
@@ -75,6 +86,7 @@ internal class KeybindsPlayer : ModPlayer
             ArenasUISystem.Toggle();
         }
 
+        // Adventure mirror keybind
         if (keybinds.UseAdventureMirror.JustPressed)
         {
             AdventureMirror.TryUse(Player);

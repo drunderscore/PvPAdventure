@@ -6,10 +6,6 @@ namespace PvPAdventure.Common.Combat;
 
 internal class PreventHotswapPlayer : ModPlayer
 {
-    private int lastSpectreHead = 0;
-    private bool hadSpectreSetLastFrame;
-
-    
     private bool hadPhilostoneLastFrame;
     private bool hadShinyStoneLastFrame;
 

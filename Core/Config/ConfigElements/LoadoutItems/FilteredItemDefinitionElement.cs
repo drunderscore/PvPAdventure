@@ -7,7 +7,7 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.Config.UI;
 
-namespace PvPAdventure.Core.Config.ConfigElements.CustomItemDefinitions;
+namespace PvPAdventure.Core.Config.ConfigElements.LoadoutItems;
 
 internal abstract class FilteredItemDefinitionElement : DefinitionElement<ItemDefinition>
 {

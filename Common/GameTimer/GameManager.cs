@@ -463,10 +463,10 @@ public class GameManager : ModSystem
                     // Broadcast end game summary
 #if DEBUG
                     break;
-#endif
+#else
                     BroadcastEndGameSummary();
-
                     break;
+#endif
                 }
             case Phase.Playing:
                 {
