@@ -31,6 +31,11 @@ internal class ArenasPlayer : ModPlayer
 
     public override void OnHurt(Player.HurtInfo info)
     {
+        if (Player.whoAmI != Main.LocalPlayer.whoAmI)
+        {
+            return;
+        }
+
         if (!SubworldSystem.AnyActive())
             return;
 
@@ -39,6 +44,11 @@ internal class ArenasPlayer : ModPlayer
 
     public override void OnRespawn()
     {
+        if (Player.whoAmI != Main.LocalPlayer.whoAmI)
+        {
+            return;
+        }
+
         if (SubworldSystem.AnyActive() && ArenasUISystem.Interface?.CurrentState == null)
             ArenasUISystem.Toggle();
 
@@ -47,6 +57,11 @@ internal class ArenasPlayer : ModPlayer
 
     public override void PostUpdate()
     {
+        if (Player.whoAmI != Main.LocalPlayer.whoAmI)
+        {
+            return;
+        }
+
         if (!SubworldSystem.AnyActive())
             return;
 
@@ -63,6 +78,12 @@ internal class ArenasPlayer : ModPlayer
 
     public bool CanSelectLoadout(out string reason)
     {
+        //if (Player.whoAmI != Main.LocalPlayer.whoAmI)
+        //{
+        //    reason = "null";
+        //    return false;
+        //}
+
         if (Player.dead)
         {
             int respawnTime = Player.respawnTimer;
