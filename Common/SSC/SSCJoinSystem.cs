@@ -1,4 +1,5 @@
-﻿using PvPAdventure.Core.Debug;
+﻿using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using Steamworks;
 using System;
@@ -74,7 +75,12 @@ public class SSCJoinSystem : ModSystem
         }
 
         _sent = true;
-        //SendJoinRequest();
+
+        var config = ModContent.GetInstance<ArenasConfig>();
+        if (!config.IsArenasEnabled)
+        {
+            SendJoinRequest();
+        }
     }
 
     public override void OnWorldUnload()
