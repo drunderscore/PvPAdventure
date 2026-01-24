@@ -920,6 +920,11 @@ Mods: {
 					Label: Immunity Frames
 					Tooltip: ""
 				}
+
+				ProjectileDamageImmunityGroup: {
+					Label: Projectile Damage Immunity Group
+					Tooltip: ""
+				}
 			}
 
 			DamageConfig: {
@@ -1609,6 +1614,20 @@ Mods: {
 			ItemAccessoryDefinition.Tooltip: ""
 			ItemGrapplingHookDefinition.Tooltip: ""
 			ItemMountDefinition.Tooltip: ""
+
+			ProjectileImmunityGroup: {
+				Tooltip: ""
+
+				Id: {
+					Label: Id
+					Tooltip: ""
+				}
+
+				Frames: {
+					Label: Frames
+					Tooltip: ""
+				}
+			}
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry

@@ -454,7 +454,7 @@ public class ArenasLoadoutUI : UIState
         {
             if (SubworldSystem.AnyActive())
             {
-                DrawPlayerFullBright.ForceFullBrightOnce = true;
+                //DrawPlayerFullBright.ForceFullBrightOnce = true;
             }
             base.DrawSelf(spriteBatch);
             //DrawPlayerFullBright.ForceFullBrightOnce = false;
