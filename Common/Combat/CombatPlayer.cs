@@ -300,11 +300,28 @@ internal class CombatPlayer : ModPlayer
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        // Apply minimum damage received by players. This is done here to ensure it applies to all damage sources.
+        // Per-projectile immunity groups (configured in ServerConfig.WeaponBalance.ProjectileDamageImmunityGroup)
+        if (info.DamageSource.SourceProjectileType != ProjectileID.None &&
+            adventureConfig.WeaponBalance.ProjectileDamageImmunityGroup.TryGetValue(
+                new ProjectileDefinition(info.DamageSource.SourceProjectileType), out var immunityGroup))
+        {
+            int id = immunityGroup.Id;
+            if ((uint)id < (uint)GroupImmuneTime.Length)
+                GroupImmuneTime[id] = immunityGroup.Frames;
+
+            return;
+        }
+
+        // Apply per-attacker PvP immunity frames when using our PvP cooldown counter.
         if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
             adventureConfig.WeaponBalance.ImmunityFrames.TrueMelee == 0)
-            PvPImmuneTime[info.DamageSource.SourcePlayerIndex] = adventureConfig.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
+        {
+            int attacker = info.DamageSource.SourcePlayerIndex;
+            if ((uint)attacker < (uint)PvPImmuneTime.Length)
+                PvPImmuneTime[attacker] = adventureConfig.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
+        }
     }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>

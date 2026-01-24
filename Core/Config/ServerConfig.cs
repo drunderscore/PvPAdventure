@@ -1,4 +1,5 @@
 using DragonLens.Core.Systems;
+using PvPAdventure.Common.Combat;
 using PvPAdventure.Core.Config.ConfigElements;
 using System;
 using System.Collections.Generic;
@@ -218,6 +219,19 @@ public class ServerConfig : ModConfig
         [Expand(false, false)]
         public ImmunityFramesConfig ImmunityFrames { get; set; } = new();
 
+        [Expand(false, false)]
+        [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
+        public Dictionary<ProjectileDefinition, ProjectileImmunityGroup> ProjectileDamageImmunityGroup { get; set; } = [];
+
+        public class ProjectileImmunityGroup
+        {
+            [Range(0, CombatManager.MaximumNumberOfGroupCooldownId - 1)]
+            public int Id { get; set; }
+
+            [DefaultValue(8)]
+            public int Frames { get; set; } = 8;
+        }
+
         public class DamageConfig
         {
             [Expand(false, false)]
@@ -431,7 +445,7 @@ public class ServerConfig : ModConfig
 
         [Range(0f, 1f)]
         [DefaultValue(0.5f)]
-        public float TeamLifeShare { get; set; } = 0f;
+        public float TeamLifeShare { get; set; } = 0.5f;
     }
 
     public class WorldGenerationConfig
