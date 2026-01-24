@@ -13,59 +13,58 @@ internal class ArmorPenetrationPlayer : ModPlayer
         if (!modifiers.PvP)
             return;
 
-        var adventureConfig = ModContent.GetInstance<ServerConfig>();
-        var combatConfig = adventureConfig.WeaponBalance;
+        int attackerIndex = modifiers.DamageSource.SourcePlayerIndex;
+        if ((uint)attackerIndex >= (uint)Main.maxPlayers)
+            return;
 
-        // Track base armor penetration
-        float baseArmorPen = 0f;
-        bool isMagicDamage = false;
+        Player attacker = Main.player[attackerIndex];
+        if (attacker == null || !attacker.active)
+            return;
 
-        var sourceItem = modifiers.DamageSource.SourceItem;
+        var config = ModContent.GetInstance<ServerConfig>();
+
+        // Flat armor penetration adjustments for specific weapons (unchanged behavior).
+        Item sourceItem = modifiers.DamageSource.SourceItem;
         if (sourceItem != null && !sourceItem.IsAir)
         {
             if (sourceItem.type == ItemID.Flamethrower)
-            {
                 modifiers.ArmorPenetration += 15;
-            }
-            if (sourceItem.type == ItemID.CrystalVileShard)
-            {
-                modifiers.ArmorPenetration += 10;
-            }
-            if (sourceItem.type == ItemID.NettleBurst)
-            {
-                modifiers.ArmorPenetration += 10;
-            }
 
-            // Check if this is a magic weapon
-            if (sourceItem.CountsAsClass(DamageClass.Magic))
-                isMagicDamage = true;
+            if (sourceItem.type == ItemID.CrystalVileShard)
+                modifiers.ArmorPenetration += 10;
+
+            if (sourceItem.type == ItemID.NettleBurst)
+                modifiers.ArmorPenetration += 10;
         }
 
-        if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
+        // Determine whether this hit is magic damage.
+        bool isMagicDamage = false;
+
+        if (sourceItem != null && !sourceItem.IsAir && sourceItem.CountsAsClass(DamageClass.Magic))
         {
-            // Check if the projectile is magic damage
-            if (modifiers.DamageSource.SourceProjectileLocalIndex >= 0)
+            isMagicDamage = true;
+        }
+        else if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
+        {
+            int projIndex = modifiers.DamageSource.SourceProjectileLocalIndex;
+            if ((uint)projIndex < (uint)Main.maxProjectiles)
             {
-                Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
+                Projectile proj = Main.projectile[projIndex];
                 if (proj != null && proj.active && proj.CountsAsClass(DamageClass.Magic))
                     isMagicDamage = true;
             }
         }
 
-        // Apply Spectre Hood armor penetration bonus for magic damage
-        var sourcePlayer = Main.player[modifiers.DamageSource.SourcePlayerIndex];
-        float finalArmorPen = baseArmorPen;
-
-        if (isMagicDamage && sourcePlayer.ghostHeal)
+        // Apply Spectre Hood armor penetration bonus for magic damage.
+        // config.Other.SpectreHealing.HealerArmorPenetration in [0..1].
+        if (isMagicDamage && attacker.ghostHeal)
         {
-            // Use GhostHealMultiplierWearers as a scaling penetration factor
-            float bonus = adventureConfig.Other.SpectreHealing.PvPHealRange;
-            finalArmorPen = baseArmorPen + (1f - baseArmorPen) * bonus;
-        }
+            float ap = config.Other.SpectreHealing.HealerArmorPenetration;
 
-        if (finalArmorPen > 0f)
-        {
-            modifiers.ScalingArmorPenetration += finalArmorPen;
+            if (ap > 0f)
+            {
+                modifiers.ScalingArmorPenetration += ap;
+            }
         }
     }
 }
