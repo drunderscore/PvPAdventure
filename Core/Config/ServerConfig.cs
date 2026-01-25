@@ -146,6 +146,9 @@ public class ServerConfig : ModConfig
             public int Additional { get; set; }
             public bool Repeatable { get; set; }
         }
+
+        [DefaultValue(5)]
+        public int TeamStartingPoints { get; set; } = 5;
     }
     public class BountiesConfig
     {

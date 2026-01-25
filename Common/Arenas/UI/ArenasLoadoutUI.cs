@@ -239,6 +239,11 @@ public class ArenasLoadoutUI : UIState
         p.statLife = config.MaxHealth;
         p.statLifeMax = config.MaxHealth;
         p.statLifeMax2 = config.MaxHealth;
+
+        // set mana to config
+        p.statMana = config.MaxMana;
+        p.statManaMax = config.MaxMana;
+        p.statManaMax2 = config.MaxMana;
     }
 
     private static void SpawnRespawnDust(Player p, string defName)

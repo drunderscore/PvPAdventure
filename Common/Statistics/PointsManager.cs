@@ -47,24 +47,33 @@ public class PointsManager : ModSystem
 
     public override void ClearWorld()
     {
-        foreach (var team in Enum.GetValues<Team>())
+        _points.Clear();
+        _downedNpcs.Clear();
+
+        int startingPoints = ModContent.GetInstance<ServerConfig>().Points.TeamStartingPoints;
+
+        foreach (Team team in Enum.GetValues<Team>())
         {
-            _points[team] = 0;
+            if (team == Team.None)
+                _points[team] = 0;
+            else
+                _points[team] = startingPoints;
+
             _downedNpcs[team] = new HashSet<short>();
         }
     }
 
     public override void SaveWorldData(TagCompound tag)
     {
-        var points = new int[_points.Count];
+        int teamCount = Enum.GetValues<Team>().Length;
 
-        foreach (var (team, teamPoints) in _points)
-            points[(int)team] = teamPoints;
+        var points = new int[teamCount];
+        foreach (Team team in Enum.GetValues<Team>())
+            points[(int)team] = _points[team];
 
-        var downedNpcs = new int[_downedNpcs.Count][];
-
-        foreach (var (team, downedNpc) in _downedNpcs)
-            downedNpcs[(int)team] = downedNpc.Select(id => (int)id).ToArray();
+        var downedNpcs = new int[teamCount][];
+        foreach (Team team in Enum.GetValues<Team>())
+            downedNpcs[(int)team] = _downedNpcs[team].Select(id => (int)id).ToArray();
 
         tag["points"] = points;
         tag["downedNpcs"] = downedNpcs.ToList();
@@ -72,13 +81,36 @@ public class PointsManager : ModSystem
 
     public override void LoadWorldData(TagCompound tag)
     {
+        // Backwards compat: if this world predates the system, fall back to config defaults.
+        if (!tag.ContainsKey("points") || !tag.ContainsKey("downedNpcs"))
+        {
+            ClearWorld();
+            return;
+        }
+
         var points = (int[])tag["points"];
-        for (var i = 0; i < points.Length; i++)
+        for (int i = 0; i < points.Length; i++)
             _points[(Team)i] = points[i];
 
         var downedNpcs = (List<int[]>)tag["downedNpcs"];
-        for (var i = 0; i < downedNpcs.Count; i++)
+        for (int i = 0; i < downedNpcs.Count; i++)
             _downedNpcs[(Team)i] = downedNpcs[i].Select(id => (short)id).ToHashSet();
+
+        // Ensure all enum values exist even if save data is from an older version (added teams, etc.)
+        int startingPoints = ModContent.GetInstance<ServerConfig>().Points.TeamStartingPoints;
+        foreach (Team team in Enum.GetValues<Team>())
+        {
+            if (!_points.ContainsKey(team))
+            {
+                if (team == Team.None)
+                    _points[team] = 0;
+                else
+                    _points[team] = startingPoints;
+            }
+
+            if (!_downedNpcs.ContainsKey(team))
+                _downedNpcs[team] = new HashSet<short>();
+        }
     }
 
     public override void NetSend(BinaryWriter writer)

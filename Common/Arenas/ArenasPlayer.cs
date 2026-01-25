@@ -26,6 +26,11 @@ internal class ArenasPlayer : ModPlayer
             Player.statLifeMax2 = config.MaxHealth;
             if (Player.statLife > config.MaxHealth)
                 Player.statLife = config.MaxHealth;
+
+            // Ensure Clamp mana to max while in arenas
+            Player.statManaMax2 = config.MaxMana;
+            if (Player.statMana > config.MaxMana)
+                Player.statMana = config.MaxMana;
         }
     }
 
@@ -40,19 +45,6 @@ internal class ArenasPlayer : ModPlayer
             return;
 
         damageLockTicks = DamageLockDuration;
-    }
-
-    public override void OnRespawn()
-    {
-        if (Player.whoAmI != Main.LocalPlayer.whoAmI)
-        {
-            return;
-        }
-
-        if (SubworldSystem.AnyActive() && ArenasUISystem.Interface?.CurrentState == null)
-            ArenasUISystem.Toggle();
-
-        base.OnRespawn();
     }
 
     public override void PostUpdate()

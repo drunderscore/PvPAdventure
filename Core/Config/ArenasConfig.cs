@@ -24,8 +24,15 @@ internal class ArenasConfig : ModConfig
     [Slider]
     [Increment(20)]
     [Range(100, 500)]
-    [DefaultValue(100)]
-    public int MaxHealth { get; set; } = 400;
+    [DefaultValue(500)]
+    public int MaxHealth { get; set; } = 500;
+
+    [BackgroundColor(90, 40, 110)]
+    [Slider]
+    [Increment(20)]
+    [Range(20, 200)]
+    [DefaultValue(200)]
+    public int MaxMana { get; set; } = 200;
 
     [BackgroundColor(90, 40, 110)]
     [DefaultValue(false)]

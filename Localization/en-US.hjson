@@ -746,6 +746,11 @@ Mods: {
 					Label: Player Kill
 					Tooltip: ""
 				}
+
+				TeamStartingPoints: {
+					Label: Team Starting Points
+					Tooltip: ""
+				}
 			}
 
 			NpcPoints: {

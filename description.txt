@@ -3,10 +3,10 @@ A competitive PvP community game mode that brings the full Terraria experience i
 
 Started in 2020, TPVPA is built around 3-hour long, bi-weekly games with 12–18 players. 
 Earn points by taking down bosses, or hunt other players and steal their points. 
-We keep things as vanilla as we can—but that simple idea has grown into 5+ years of active development.
+We keep things as vanilla as we can, but that simple idea has grown into 5+ years of active development.
 
 [c/00FF88:Highlights]
-- A working scoreboard built for competitive play
+- A scoreboard built for competitive play
 - Anti-snowball mechanics to keep games close
 - Per-weapon PvP damage falloff + balancing
 - PvP and PvE hitsounds + killsounds
@@ -17,4 +17,4 @@ And more
 
 At the highest level, TPVPA plays like an e-sport: 
 live-casted invitational matches featuring some of the best Terraria 
-players in the world—speedrun record holders and veterans with years of PvP experience.
+players in the world, speedrun record holders and veterans with years of PvP experience.

@@ -7,16 +7,14 @@ using DragonLens.Content.Themes.IconProviders;
 using DragonLens.Content.Tools;
 using DragonLens.Content.Tools.Despawners;
 using DragonLens.Content.Tools.Developer;
-using DragonLens.Content.Tools.Editors;
 using DragonLens.Content.Tools.Gameplay;
 using DragonLens.Content.Tools.Map;
 using DragonLens.Content.Tools.Multiplayer;
 using DragonLens.Content.Tools.Spawners;
+using DragonLens.Content.Tools.Visualization;
 using DragonLens.Core.Systems.ThemeSystem;
 using DragonLens.Core.Systems.ToolbarSystem;
-using Microsoft.Xna.Framework;
 using PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
-using PvPAdventure.Core.Debug;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.UI.Elements;
@@ -119,6 +117,7 @@ public class DLLayout : ModSystem
                 .AddTool<Weather>()
                 .AddTool<SpawnTool>() // enemy spawn rate
                 .AddTool<PlayerManager>()
+                .AddTool<Floodlight>() // mass illumination (light)
                 .AddTool<CustomizeTool>()
             );
 
