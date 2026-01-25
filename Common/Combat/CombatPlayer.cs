@@ -288,6 +288,31 @@ internal class CombatPlayer : ModPlayer
             if (GroupImmuneTime[i] > 0)
                 GroupImmuneTime[i]--;
         }
+
+        // Decay melee-per-swing immunity timers and remove expired entries.
+        // Prevents unbounded dictionary growth and ensures swing immunity ends when expected.
+        if (_meleeImmuneBySwing.Count > 0)
+        {
+            List<(int attackerWho, int useId)> expired = null;
+
+            foreach (var key in _meleeImmuneBySwing.Keys)
+            {
+                int t = _meleeImmuneBySwing[key] - 1;
+                _meleeImmuneBySwing[key] = t;
+
+                if (t <= 0)
+                {
+                    expired ??= new();
+                    expired.Add(key);
+                }
+            }
+
+            if (expired != null)
+            {
+                foreach (var key in expired)
+                    _meleeImmuneBySwing.Remove(key);
+            }
+        }
     }
 
     public override void OnHurt(Player.HurtInfo info)
@@ -295,16 +320,17 @@ internal class CombatPlayer : ModPlayer
         if (!info.PvP)
             return;
 
-        var adventureConfig = ModContent.GetInstance<ServerConfig>();
+        var config = ModContent.GetInstance<ServerConfig>();
 
         // Only play hit markers on clients that we hurt that aren't ourselves
         if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
             PlayHitMarker(info.Damage);
 
-        // Per-projectile immunity groups (configured in ServerConfig.WeaponBalance.ProjectileDamageImmunityGroup)
+        // 1) Per-projectile immunity groups
         if (info.DamageSource.SourceProjectileType != ProjectileID.None &&
-            adventureConfig.WeaponBalance.ProjectileDamageImmunityGroup.TryGetValue(
-                new ProjectileDefinition(info.DamageSource.SourceProjectileType), out var immunityGroup))
+            config.WeaponBalance.ProjectileDamageImmunityGroup.TryGetValue(
+                new ProjectileDefinition(info.DamageSource.SourceProjectileType),
+                out var immunityGroup))
         {
             int id = immunityGroup.Id;
             if ((uint)id < (uint)GroupImmuneTime.Length)
@@ -313,13 +339,18 @@ internal class CombatPlayer : ModPlayer
             return;
         }
 
-        // Apply per-attacker PvP immunity frames when using our PvP cooldown counter.
-        if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId &&
-            adventureConfig.WeaponBalance.ImmunityFrames.TrueMelee == 0)
+        // 2) Per-attacker global PvP immunity (applies to both melee and projectile unless group overrides)
+        if (info.CooldownCounter == CombatManager.PvPImmunityCooldownId)
         {
             int attacker = info.DamageSource.SourcePlayerIndex;
             if ((uint)attacker < (uint)PvPImmuneTime.Length)
-                PvPImmuneTime[attacker] = adventureConfig.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
+            {
+                int frames = config.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
+
+                if (frames > 0)
+                    PvPImmuneTime[attacker] = frames;
+                // If frames == 0, do nothing: immunity remains 0, meaning "no global immunity"
+            }
         }
     }
 
