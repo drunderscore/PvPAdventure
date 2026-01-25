@@ -53,7 +53,7 @@ public class NPCRules : GlobalNPC
                 return;
 
             // If this is a boss, we want it to scale based on the number of players on a specific team...
-            if (self.boss || TeamBossNPC.IsPartOfEaterOfWorlds((short)self.type) || TeamBossNPC.IsPartOfTheDestroyer((short)self.type))
+            if (self.boss || NpcHelpers.IsPartOfEaterOfWorlds((short)self.type) || NpcHelpers.IsPartOfTheDestroyer((short)self.type))
             {
                 // FIXME: Ignore None team
                 var closestPlayerIndex = self.FindClosestPlayer();
@@ -298,7 +298,7 @@ public class NPCRules : GlobalNPC
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), id));
         }
 
-        if (TeamBossNPC.IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
+        if (NpcHelpers.IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
             AddNonExpertBossLoot(ItemID.WormScarf);
         else
         {

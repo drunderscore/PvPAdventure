@@ -1,17 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using MonoMod.Cil;
+using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Combat;
 
 [Autoload(Side = ModSide.Both)]
 public class CombatManager : ModSystem
 {
+    private const bool PreventPersonalCombatModifications = false;
+
     private static readonly HashSet<short> BossProjectiles =
     [
         ProjectileID.DeerclopsIceSpike,
@@ -52,6 +58,12 @@ public class CombatManager : ModSystem
 
     public override void Load()
     {
+        // Do not draw the PvP or team icons -- the server has full control over your PvP and team.
+        // TODO: In the future, the server should send a packet relaying if the player can toggle hostile and which teams they may join.
+        //       For now, let's just totally disable it.
+        if (PreventPersonalCombatModifications && !Main.dedServ)
+            On_Main.DrawPVPIcons += _ => { };
+
         // Re-network player hurt packets when dealing with PvP (part of our ModPlayer.ModifyHurt PvP fixes).
         // Remove player i-frames to allow ours to function.
         On_Player.Hurt_HurtInfo_bool += OnPlayerHurt;
@@ -79,6 +91,30 @@ public class CombatManager : ModSystem
         IL_Player.TeammateHasPalidinShieldAndCanTakeDamage += EditPlayerTeammateHasPalidinShieldAndCanTakeDamage;
         // Don't network player stealth.
         IL_Player.OnHurt_Part1 += EditPlayerOnHurt_Part1;
+    }
+
+    public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
+    {
+        if (PreventPersonalCombatModifications && Main.dedServ &&
+            (messageType is MessageID.TogglePVP or MessageID.PlayerTeam))
+            return true;
+
+        if (Main.dedServ && messageType == MessageID.DamageNPC)
+        {
+            var previousPosition = reader.BaseStream.Position;
+
+            try
+            {
+                var npc = Main.npc[reader.ReadInt16()];
+                npc.GetGlobalNPC<TeamBossNPC>().MarkNextStrikeForTeam(npc, (Team)Main.player[playerNumber].team);
+            }
+            finally
+            {
+                reader.BaseStream.Position = previousPosition;
+            }
+        }
+
+        return false;
     }
 
     private void OnPlayerHurt(On_Player.orig_Hurt_HurtInfo_bool orig, Player self, Player.HurtInfo info, bool quiet)
@@ -133,21 +169,29 @@ public class CombatManager : ModSystem
             .EmitDelegate((Player self, PlayerDeathReason damageSource, bool pvp, ref int cooldownCounter,
                 ref bool flag) =>
             {
-                var combatPlayer = self.GetModPlayer<CombatPlayer>();
+                var adventurePlayer = self.GetModPlayer<CombatPlayer>();
 
-                if (pvp && flag)
+                if (pvp)
                 {
-                    // Overwrite the cooldown counter, so that if the hurt succeeds,
-                    // no other counter gets modified.
-                    cooldownCounter = PvPImmunityCooldownId;
+                    if (damageSource.SourceProjectileType != 0)
+                    {
+                        var adventureConfig = ModContent.GetInstance<ServerConfig>();
+                        if (adventureConfig.WeaponBalance.ProjectileDamageImmunityGroup.TryGetValue(new ProjectileDefinition(
+                                damageSource.SourceProjectileType), out var immunityGroup) &&
+                            adventurePlayer.GroupImmuneTime[immunityGroup.Id] > 0)
+                        {
+                            cooldownCounter = GroupCooldownId - immunityGroup.Id;
+                            flag = false;
+                        }
+                    }
 
-                    // Set the flag deciding if this hurt should proceed,
-                    // using the updated config value.
-                    flag = combatPlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] <
-                           ModContent.GetInstance<ServerConfig>()
-                               .WeaponBalance
-                               .ImmunityFrames
-                               .PerPlayerGlobal;
+                    if (flag)
+                    {
+                        // Overwrite the cooldown counter, so that if the hurt succeeds, no other counter gets modified.
+                        cooldownCounter = PvPImmunityCooldownId;
+                        // Set the flag deciding if this hurt should proceed.
+                        flag = adventurePlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] == 0;
+                    }
                 }
             });
     }
