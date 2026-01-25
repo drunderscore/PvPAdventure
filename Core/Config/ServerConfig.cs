@@ -1,4 +1,3 @@
-using DragonLens.Core.Systems;
 using PvPAdventure.Common.Combat;
 using PvPAdventure.Core.Config.ConfigElements;
 using System;
@@ -36,6 +35,10 @@ public class ServerConfig : ModConfig
     [BackgroundColor(40, 90, 40)]
     [Expand(false, false)]
     public WeaponBalanceConfig WeaponBalance { get; set; } = new();
+
+    [BackgroundColor(40, 90, 40)]
+    [Expand(false, false)]
+    public ImmunityConfig Immunity { get; set; } = new();
 
     [BackgroundColor(40, 90, 40)]
     [Expand(false, false)]
@@ -163,43 +166,6 @@ public class ServerConfig : ModConfig
             public Condition Conditions { get; set; } = new();
         }
     }
-    public class InvasionSizeValue
-    {
-        [Range(0, 1000)] public int Value { get; set; }
-    }
-
-    public class ConfigItem
-    {
-        public ItemDefinition Item { get; set; } = new();
-        public PrefixDefinition Prefix { get; set; } = new();
-        private int _stack = 1;
-
-        // NOTE: Just for QOL. Can be screwed with by changing the above item after setting this.
-        public int Stack
-        {
-            get => _stack;
-            set => _stack = Math.Clamp(value, 1, new Item(Item.Type, 1, Prefix.Type).maxStack);
-        }
-    }
-
-    public class Condition
-    {
-        public enum WorldProgressionState
-        {
-            Any,
-            PreHardmode,
-            Hardmode
-        }
-
-        public WorldProgressionState WorldProgression { get; set; }
-        public bool SkeletronPrimeDefeated { get; set; }
-        public bool TwinsDefeated { get; set; }
-        public bool DestroyerDefeated { get; set; }
-        public bool PlanteraDefeated { get; set; }
-        public bool GolemDefeated { get; set; }
-        public bool SkeletronDefeated { get; set; }
-        public bool CollectedAllMechanicalBossSouls { get; set; }
-    }
 
     public class WeaponBalanceConfig
     {
@@ -218,22 +184,6 @@ public class ServerConfig : ModConfig
 
         [Expand(false, false)]
         public Dictionary<ProjectileDefinition, float> ProjectileLineOfSightDamageReduction { get; set; } = [];
-
-        [Expand(false, false)]
-        public ImmunityFramesConfig ImmunityFrames { get; set; } = new();
-
-        [Expand(false, false)]
-        [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-        public Dictionary<ProjectileDefinition, ProjectileImmunityGroup> ProjectileDamageImmunityGroup { get; set; } = [];
-
-        public class ProjectileImmunityGroup
-        {
-            [Range(0, CombatManager.MaximumNumberOfGroupCooldownId - 1)]
-            public int Id { get; set; }
-
-            [DefaultValue(8)]
-            public int Frames { get; set; } = 8;
-        }
 
         public class DamageConfig
         {
@@ -289,21 +239,6 @@ public class ServerConfig : ModConfig
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             public Dictionary<ProjectileDefinition, Falloff> PerProjectile { get; set; } = [];
         }
-
-        public class ImmunityFramesConfig
-        {
-            [Range(0, 5 * 60)]
-            [DefaultValue(8)]
-            public int TrueMelee { get; set; } = 8;
-
-            [Range(0, 5 * 60)]
-            [DefaultValue(8)]
-            public int PerPlayerGlobal { get; set; } = 8;
-
-            [Range(0, 60 * 2 * 60)]
-            [DefaultValue(15 * 60)]
-            public int RecentDamagePreservationFrames { get; set; } = 15 * 60;
-        }
     }
 
     public class OtherConfig
@@ -323,6 +258,8 @@ public class ServerConfig : ModConfig
             [DefaultValue(3000.0f)]
             public float PvPHealRange { get; set; }
 
+            [Range(0.0f, 3000.0f)]
+            [DefaultValue(3000.0f)]
             public float PvEHealRange { get; set; }
 
             [Increment(0.01f)]
@@ -330,6 +267,115 @@ public class ServerConfig : ModConfig
             [DefaultValue(0.5f)]
             public float HealerArmorPenetration { get; set; }
         }
+    }
+
+    public class ImmunityConfig
+    {
+        [Range(0, 5 * 60)]
+        [DefaultValue(8)]
+        public int TrueMelee { get; set; } = 8;
+
+        [Range(0, 5 * 60)]
+        [DefaultValue(8)]
+        public int PerPlayerGlobal { get; set; } = 8;
+
+        [Range(0, 60 * 2 * 60)]
+        [DefaultValue(15 * 60)]
+        public int RecentDamagePreservationFrames { get; set; } = 15 * 60;
+
+        [Expand(false, false)]
+        [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
+        public Dictionary<ProjectileDefinition, ProjectileImmunityGroup> ProjectileDamageImmunityGroup { get; set; } = [];
+    }
+
+    public class ProjectileImmunityGroup
+    {
+        [Range(0, CombatManager.MaximumNumberOfGroupCooldownId - 1)]
+        public int Id { get; set; }
+
+        [DefaultValue(8)]
+        public int Frames { get; set; } = 8;
+    }
+
+    public class BossBalanceEntry
+    {
+        [Range(0f, 5f)]
+        [DefaultValue(1f)]
+        public float LifeMaxMultiplier { get; set; } = 1f;
+
+        [Range(0f, 5f)]
+        [DefaultValue(1f)]
+        public float DamageMultiplier { get; set; } = 1f;
+
+        [Range(0f, 1f)]
+        [DefaultValue(0.5f)]
+        public float TeamLifeShare { get; set; } = 0.5f;
+    }
+
+    public class WorldGenerationConfig
+    {
+        [DefaultValue(2)] public int LifeFruitChanceDenominator { get; set; } = 2;
+
+        [DefaultValue(2)] public int LifeFruitExpertChanceDenominator { get; set; } = 2;
+
+        [DefaultValue(2)] public int LifeFruitMinimumDistanceBetween { get; set; } = 2;
+
+        [DefaultValue(30)] public int PlanteraBulbChanceDenominator { get; set; } = 30;
+
+        [DefaultValue(8)] public int ChlorophyteSpreadChanceModifier { get; set; } = 8;
+
+        [Range(1, 1000)]
+        [DefaultValue(300)] public int ChlorophyteGrowChanceModifier { get; set; } = 300;
+
+        [Range(1, 999999)]
+        [DefaultValue(300)] public int ChlorophyteGrowLimitModifier { get; set; } = 300;
+    }
+
+    #endregion
+
+    #region Small helpers
+    public class ChestItemReplacement
+    {
+        public List<ConfigItem> Items { get; set; } = [];
+    }
+    public class InvasionSizeValue
+    {
+        [Range(0, 1000)] public int Value { get; set; }
+    }
+    #endregion
+
+    #region Helpers
+    public class ConfigItem
+    {
+        public ItemDefinition Item { get; set; } = new();
+        public PrefixDefinition Prefix { get; set; } = new();
+        private int _stack = 1;
+
+        // NOTE: Just for QOL. Can be screwed with by changing the above item after setting this.
+        public int Stack
+        {
+            get => _stack;
+            set => _stack = Math.Clamp(value, 1, new Item(Item.Type, 1, Prefix.Type).maxStack);
+        }
+    }
+
+    public class Condition
+    {
+        public enum WorldProgressionState
+        {
+            Any,
+            PreHardmode,
+            Hardmode
+        }
+
+        public WorldProgressionState WorldProgression { get; set; }
+        public bool SkeletronPrimeDefeated { get; set; }
+        public bool TwinsDefeated { get; set; }
+        public bool DestroyerDefeated { get; set; }
+        public bool PlanteraDefeated { get; set; }
+        public bool GolemDefeated { get; set; }
+        public bool SkeletronDefeated { get; set; }
+        public bool CollectedAllMechanicalBossSouls { get; set; }
     }
 
     public class Statistics : IEquatable<Statistics>
@@ -436,44 +482,6 @@ public class ServerConfig : ModConfig
             return hashCode.ToHashCode();
         }
     }
-    public class BossBalanceEntry
-    {
-        [Range(0f, 5f)]
-        [DefaultValue(1f)]
-        public float LifeMaxMultiplier { get; set; } = 1f;
-
-        [Range(0f, 5f)]
-        [DefaultValue(1f)]
-        public float DamageMultiplier { get; set; } = 1f;
-
-        [Range(0f, 1f)]
-        [DefaultValue(0.5f)]
-        public float TeamLifeShare { get; set; } = 0.5f;
-    }
-
-    public class WorldGenerationConfig
-    {
-        [DefaultValue(2)] public int LifeFruitChanceDenominator { get; set; } = 2;
-
-        [DefaultValue(2)] public int LifeFruitExpertChanceDenominator { get; set; } = 2;
-
-        [DefaultValue(2)] public int LifeFruitMinimumDistanceBetween { get; set; } = 2;
-
-        [DefaultValue(30)] public int PlanteraBulbChanceDenominator { get; set; } = 30;
-
-        [DefaultValue(8)] public int ChlorophyteSpreadChanceModifier { get; set; } = 8;
-
-        [Range(1, 1000)]
-        [DefaultValue(300)] public int ChlorophyteGrowChanceModifier { get; set; } = 300;
-
-        [Range(1, 999999)]
-        [DefaultValue(300)] public int ChlorophyteGrowLimitModifier { get; set; } = 300;
-    }
-
-    public class ChestItemReplacement
-    {
-        public List<ConfigItem> Items { get; set; } = [];
-    }
     #endregion
 
     #region Hooks / methods
@@ -499,7 +507,7 @@ public class ServerConfig : ModConfig
     {
         Player player = Main.player[whoAmI];
 
-        if (!PermissionHandler.CanUseTools(player))
+        if (!DragonLens.Core.Systems.PermissionHandler.CanUseTools(player))
         {
             message = NetworkText.FromLiteral("You must be a DragonLens admin to modify this config.");
             return false;

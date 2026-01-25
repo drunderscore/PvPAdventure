@@ -228,7 +228,7 @@ internal class CombatPlayer : ModPlayer
             return false;
 
         _playerMeleeInvincibleTime[target.whoAmI] =
-            ModContent.GetInstance<ServerConfig>().WeaponBalance.ImmunityFrames.PerPlayerGlobal;
+            ModContent.GetInstance<ServerConfig>().Immunity.PerPlayerGlobal;
         var immunityFrames = Player.itemAnimation + 2;
         targetAdventurePlayer._meleeImmuneBySwing[(Player.whoAmI, _currentMeleeUseId)] = immunityFrames;
 
@@ -328,7 +328,7 @@ internal class CombatPlayer : ModPlayer
 
         // 1) Per-projectile immunity groups
         if (info.DamageSource.SourceProjectileType != ProjectileID.None &&
-            config.WeaponBalance.ProjectileDamageImmunityGroup.TryGetValue(
+            config.Immunity.ProjectileDamageImmunityGroup.TryGetValue(
                 new ProjectileDefinition(info.DamageSource.SourceProjectileType),
                 out var immunityGroup))
         {
@@ -345,7 +345,7 @@ internal class CombatPlayer : ModPlayer
             int attacker = info.DamageSource.SourcePlayerIndex;
             if ((uint)attacker < (uint)PvPImmuneTime.Length)
             {
-                int frames = config.WeaponBalance.ImmunityFrames.PerPlayerGlobal;
+                int frames = config.Immunity.PerPlayerGlobal;
 
                 if (frames > 0)
                     PvPImmuneTime[attacker] = frames;

@@ -636,17 +636,12 @@ Mods: {
 
 				BossBalance: {
 					Label: Boss Balance
-					Tooltip: ""
-				}
-
-				NpcSpawnAnnouncements: {
-					Label: Npc Spawn Announcements
-					Tooltip: Shows the npc has Awoken! text
+					Tooltip: "Max life, damage and team life"
 				}
 
 				BossOrder: {
 					Label: Boss Order
-					Tooltip: ""
+					Tooltip: "The order bosses appear in the scoreboard"
 				}
 
 				BossInvulnerableProjectiles: {
@@ -689,40 +684,9 @@ Mods: {
 					Tooltip: ""
 				}
 
-				Combat: {
-					Label: Combat
-					Tooltip: ""
-				}
-
-				NpcBalance: {
-					Label: Npc Balance
-					Tooltip: ""
-				}
-
-				StartLife: {
-					Label: "[i:LifeCrystal] Starting Health"
-					Tooltip: The starting max health of a new character
-				}
-
-				StartMana: {
-					Label: "[i:ManaCrystal] Starting Mana"
-					Tooltip: The starting max mana of a new character
-				}
-
-				IsSSCEnabled: {
-					Label: Enable SSC
-					Tooltip:
-						'''
-						Whether to use server sided characters. 
-						Creates new characters on the server to prevent players from joining with local characters.
-						Player files are located on the server: 
-						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
-						'''
-				}
-
 				BossSpawnAnnouncements: {
 					Label: Boss Spawn Announcements
-					Tooltip: ""
+					Tooltip: Shows the npc has Awoken! text
 				}
 
 				AdventureMirrorRecallSeconds: {
@@ -734,66 +698,15 @@ Mods: {
 					Label: "[i:PvPAdventure/TeamConfigItem] Allow Players To Select Teams"
 					Tooltip: Shows the UI that lets players pick a team
 				}
-			}
 
-			PointsConfig: {
-				Tooltip: ""
-
-				Npc: {
-					Label: Npc
-					Tooltip: ""
-				}
-
-				Boss: {
-					Label: Boss
-					Tooltip: ""
-				}
-
-				PlayerKill: {
-					Label: Player Kill
-					Tooltip: ""
-				}
-
-				TeamStartingPoints: {
-					Label: Team Starting Points
-					Tooltip: ""
-				}
-			}
-
-			NpcPoints: {
-				Tooltip: ""
-
-				First: {
-					Label: First
-					Tooltip: ""
-				}
-
-				Additional: {
-					Label: Additional
-					Tooltip: ""
-				}
-
-				Repeatable: {
-					Label: Repeatable
-					Tooltip: ""
-				}
-			}
-
-			BountiesConfig: {
-				Tooltip: ""
-
-				ClaimableItems: {
-					Label: Claimable Items
-					Tooltip: ""
-				}
-
-				AwardBountyEveryKill: {
-					Label: Award Bounty Every Kill
+				Immunity: {
+					Label: Immunity
 					Tooltip: ""
 				}
 			}
 
 			Bounty: {
+				CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
 				Tooltip: ""
 
 				Items: {
@@ -803,27 +716,6 @@ Mods: {
 
 				Conditions: {
 					Label: Conditions
-					Tooltip: ""
-				}
-
-				CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
-			}
-
-			ConfigItem: {
-				Tooltip: ""
-
-				Item: {
-					Label: Item
-					Tooltip: ""
-				}
-
-				Prefix: {
-					Label: Prefix
-					Tooltip: ""
-				}
-
-				Stack: {
-					Label: Stack
 					Tooltip: ""
 				}
 			}
@@ -927,16 +819,6 @@ Mods: {
 					Label: Projectile Line Of Sight Damage Reduction
 					Tooltip: ""
 				}
-
-				ImmunityFrames: {
-					Label: Immunity Frames
-					Tooltip: ""
-				}
-
-				ProjectileDamageImmunityGroup: {
-					Label: Projectile Damage Immunity Group
-					Tooltip: ""
-				}
 			}
 
 			DamageConfig: {
@@ -957,12 +839,12 @@ Mods: {
 				Tooltip: ""
 
 				ItemAP: {
-					Label: Item A P
+					Label: Item Armor Penetration
 					Tooltip: ""
 				}
 
 				ProjectileAP: {
-					Label: Projectile A P
+					Label: Projectile Armor Penetration
 					Tooltip: ""
 				}
 			}
@@ -1156,116 +1038,42 @@ Mods: {
 				Tooltip: ""
 
 				LifeFruitChanceDenominator: {
-					Label: Life Fruit Chance Denominator
+					Label: "[i:LifeFruit] Life Fruit Chance Denominator"
 					Tooltip: Lower means more
 				}
 
 				LifeFruitExpertChanceDenominator: {
-					Label: Life Fruit Expert Chance Denominator
+					Label: "[i:LifeFruit] Life Fruit Expert Chance Denominator"
 					Tooltip: Lower means more
 				}
 
 				LifeFruitMinimumDistanceBetween: {
-					Label: Life Fruit Minimum Distance Between
+					Label: "[i:LifeFruit] Life Fruit Minimum Distance Between"
 					Tooltip: Lower means closer together
 				}
 
 				PlanteraBulbChanceDenominator: {
-					Label: "[i:PlanterasBulbConfig] Plantera Bulb Chance Denominator"
+					Label: "[i:PvPAdventure/PlanterasBulbConfigItem] Plantera Bulb Chance Denominator"
 					Tooltip: Lower means more
 				}
 
 				ChlorophyteSpreadChanceModifier: {
-					Label: Chlorophyte Spread Chance Modifier
+					Label: "[i:ChlorophyteOre] Chlorophyte Spread Chance Modifier"
 					Tooltip: % chance of spreading each check (higher means more)
 				}
 
 				ChlorophyteGrowChanceModifier: {
-					Label: Chlorophyte Grow Chance Modifier
+					Label: "[i:ChlorophyteOre] Chlorophyte Grow Chance Modifier"
 					Tooltip: Chance of new Chlorophyte veins spreading each check (lower means more)
 				}
 
 				ChlorophyteGrowLimitModifier: {
-					Label: Chlorophyte Grow Limit Modifier
+					Label: "[i:ChlorophyteOre] Chlorophyte Grow Limit Modifier"
 					Tooltip: Maximum Chlorophyte per 1000 block area
 				}
 			}
 
 			CannotModify: You are not permitted to modify this config.
-
-			CombatConfig: {
-				Tooltip: ""
-
-				MeleeInvincibilityFrames: {
-					Label: Melee Invincibility Frames
-					Tooltip: ""
-				}
-
-				RecentDamagePreservationFrames: {
-					Label: Recent Damage Preservation Frames
-					Tooltip: ""
-				}
-
-				PlayerDamageBalance: {
-					Label: Player Damage Balance
-					Tooltip: ""
-				}
-
-				StandardInvincibilityFrames: {
-					Label: Standard Invincibility Frames
-					Tooltip: ""
-				}
-
-				GhostHealMultiplier: {
-					Label: Ghost Heal Multiplier
-					Tooltip: ""
-				}
-
-				GhostHealMultiplierWearers: {
-					Label: Ghost Heal Multiplier Wearers
-					Tooltip: ""
-				}
-
-				GhostHealMaxDistance: {
-					Label: Ghost Heal Max Distance
-					Tooltip: ""
-				}
-
-				GhostHealMaxDistanceNpc: {
-					Label: Ghost Heal Max Distance Npc
-					Tooltip: ""
-				}
-
-				GhostHealArmorPenetration: {
-					Label: Ghost Heal Armor Penetration
-					Tooltip: ""
-				}
-
-				TeamLifeNpcs: {
-					Label: Team Life Npcs
-					Tooltip: ""
-				}
-
-				ProjectileCollisionDamageReduction: {
-					Label: Projectile Collision Damage Reduction
-					Tooltip: ""
-				}
-
-				NoLineOfSightDamageReduction: {
-					Label: No Line Of Sight Damage Reduction
-					Tooltip: ""
-				}
-
-				AwardBountyEveryKill: {
-					Label: Award Bounty Every Kill
-					Tooltip: ""
-				}
-
-				ProjectileDamageImmunityGroup: {
-					Label: Projectile Damage Immunity Group
-					Tooltip: ""
-				}
-			}
 
 			PlayerDamageBalanceConfig: {
 				Tooltip: ""
@@ -1325,25 +1133,6 @@ Mods: {
 
 				Frames: {
 					Label: Frames
-					Tooltip: ""
-				}
-			}
-
-			NpcBalanceConfig: {
-				Tooltip: ""
-
-				LifeMaxMultipliers: {
-					Label: Life Max Multipliers
-					Tooltip: ""
-				}
-
-				DamageMultipliers: {
-					Label: Damage Multipliers
-					Tooltip: ""
-				}
-
-				NoMechanicalBossSummonDrops: {
-					Label: No Mechanical Boss Summon Drops
 					Tooltip: ""
 				}
 			}
@@ -1471,7 +1260,7 @@ Mods: {
 				}
 
 				MaxMana: {
-					Label: Max Mana
+					Label: "[i:ManaCrystal] Max Mana"
 					Tooltip: ""
 				}
 			}
@@ -1491,12 +1280,12 @@ Mods: {
 
 				StartLife: {
 					Label: "[i:LifeCrystal] Starting Health"
-					Tooltip: The starting max health of a new character. Default to 100
+					Tooltip: The starting max health of a new character
 				}
 
 				StartMana: {
 					Label: "[i:ManaCrystal] Starting Mana"
-					Tooltip: The starting max mana of a new character. Default to 20
+					Tooltip: The starting max mana of a new character
 				}
 
 				IsSSCEnabled: {
@@ -1642,6 +1431,106 @@ Mods: {
 
 				Frames: {
 					Label: Frames
+					Tooltip: ""
+				}
+			}
+
+			ImmunityConfig: {
+				Tooltip: ""
+
+				TrueMelee: {
+					Label: True Melee
+					Tooltip: ""
+				}
+
+				PerPlayerGlobal: {
+					Label: Per Player Global
+					Tooltip: ""
+				}
+
+				RecentDamagePreservationFrames: {
+					Label: Recent Damage Preservation Frames
+					Tooltip: ""
+				}
+
+				ProjectileDamageImmunityGroup: {
+					Label: Projectile Damage Immunity Group
+					Tooltip: ""
+				}
+			}
+
+			PointsConfig: {
+				Tooltip: ""
+
+				Npc: {
+					Label: Npc
+					Tooltip: ""
+				}
+
+				Boss: {
+					Label: Boss
+					Tooltip: ""
+				}
+
+				PlayerKill: {
+					Label: Player Kill
+					Tooltip: ""
+				}
+
+				TeamStartingPoints: {
+					Label: Team Starting Points
+					Tooltip: Starting points per team in a new world
+				}
+			}
+
+			NpcPoints: {
+				Tooltip: ""
+
+				First: {
+					Label: First
+					Tooltip: ""
+				}
+
+				Additional: {
+					Label: Additional
+					Tooltip: ""
+				}
+
+				Repeatable: {
+					Label: Repeatable
+					Tooltip: ""
+				}
+			}
+
+			BountiesConfig: {
+				Tooltip: ""
+
+				ClaimableItems: {
+					Label: Claimable Items
+					Tooltip: ""
+				}
+
+				AwardBountyEveryKill: {
+					Label: Award Bounty Every Kill
+					Tooltip: ""
+				}
+			}
+
+			ConfigItem: {
+				Tooltip: ""
+
+				Item: {
+					Label: Item
+					Tooltip: ""
+				}
+
+				Prefix: {
+					Label: Prefix
+					Tooltip: ""
+				}
+
+				Stack: {
+					Label: Stack
 					Tooltip: ""
 				}
 			}
