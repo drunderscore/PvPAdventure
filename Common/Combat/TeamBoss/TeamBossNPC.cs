@@ -1,10 +1,10 @@
-﻿using PvPAdventure.Common.Statistics;
+﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
@@ -16,7 +16,6 @@ namespace PvPAdventure.Common.Combat.TeamBoss;
 
 public sealed class TeamBossNPC : GlobalNPC
 {
-    #region Fields
     public override bool InstancePerEntity => true;
 
     public DamageInfo LastDamageFromPlayer { get; set; }
@@ -28,7 +27,6 @@ public sealed class TeamBossNPC : GlobalNPC
     public IReadOnlySet<Team> HasBeenHurtByTeam => _hasBeenHurtByTeam;
 
     private Team _lastStrikeTeam;
-    #endregion
 
     public class DamageInfo(byte who)
     {
@@ -42,37 +40,58 @@ public sealed class TeamBossNPC : GlobalNPC
         On_NetMessage.SendStrikeNPC += OnNetMessageSendStrikeNPC;
     }
 
+    public override void ModifyHitByItem(NPC npc, Player player, Item item, ref NPC.HitModifiers modifiers)
+    {
+        if (player == null || !player.active)
+            return;
+
+        Team team = (Team)player.team;
+        if (team == Team.None)
+            return;
+
+        // Record attacker team for StrikeNPC (works for items in all modes).
+        RecordHit(npc, player.whoAmI, team);
+    }
+
+    public override void ModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
+    {
+        if (projectile == null)
+            return;
+
+        int ownerIndex = projectile.owner;
+        if (ownerIndex < 0 || ownerIndex >= Main.maxPlayers)
+            return;
+
+        Player player = Main.player[ownerIndex];
+        if (player == null || !player.active)
+            return;
+
+        Team team = (Team)player.team;
+        if (team == Team.None)
+            return;
+
+        // Record attacker team for StrikeNPC (works for projectiles in all modes).
+        RecordHit(npc, ownerIndex, team);
+    }
+
     public override void SetDefaults(NPC entity)
     {
         if (entity.isLikeATownNPC && entity.type != NPCID.Guide)
-            // FIXME: Should be marked as dontTakeDamage instead, doesn't function for some reason.
             entity.immortal = true;
 
-        // Can't construct an NPCDefinition too early -- it'll call GetName and won't be graceful on failure.
-        if (NPCID.Search.TryGetName(entity.type, out var name))
-        {
-            var adventureConfig = ModContent.GetInstance<ServerConfig>();
-            var definition = new NPCDefinition(entity.type);
+        // Can't construct an NPCDefinition too early from int -- it may call GetName before lookups exist.
+        if (!NPCID.Search.TryGetName(entity.type, out string name))
+            return;
 
-            if (adventureConfig.BossBalance.TryGetValue(definition, out var entry))
-            {
-                float lifeMult = entry.LifeMaxMultiplier;
-                entity.lifeMax = (int)(entity.lifeMax * lifeMult);
-                entity.life = entity.lifeMax;
+        var config = ModContent.GetInstance<ServerConfig>();
+        var definition = new NPCDefinition(name);
 
-                float dmgMult = entry.DamageMultiplier;
-                entity.damage = (int)(entity.damage * dmgMult);
+        if (!config.BossBalance.TryGetValue(definition, out var entry))
+            return;
 
-                // FIXME: What if config changes mid game? might desync form the config which might break some contracts?
-                //foreach (var team in Enum.GetValues<Team>())
-                //{
-                //    if (team == Team.None)
-                //        continue;
-
-                //    _teamLife[team] = entity.lifeMax;
-                //}
-            }
-        }
+        entity.lifeMax = (int)(entity.lifeMax * entry.LifeMaxMultiplier);
+        entity.life = entity.lifeMax;
+        entity.damage = (int)(entity.damage * entry.DamageMultiplier);
     }
 
     private static void OnNPCPlayerInteraction(On_NPC.orig_PlayerInteraction orig, NPC self, int player)
@@ -82,30 +101,37 @@ public sealed class TeamBossNPC : GlobalNPC
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
 
-        // If this is part of the Eater of Worlds, then mark ALL segments as last damaged by this player.
-        if (IsPartOfEaterOfWorlds((short)self.type))
-        {
-            foreach (var npc in Main.ActiveNPCs)
-            {
-                if (!IsPartOfEaterOfWorlds((short)npc.type))
-                    continue;
+        if (player < 0 || player >= Main.maxPlayers)
+            return;
 
-                npc.GetGlobalNPC<TeamBossNPC>().LastDamageFromPlayer = new DamageInfo((byte)player);
-            }
-        }
-        else if (IsPartOfTheDestroyer((short)self.type))
-        {
-            foreach (var npc in Main.ActiveNPCs)
-            {
-                if (!IsPartOfTheDestroyer((short)npc.type))
-                    continue;
+        Player p = Main.player[player];
+        if (p == null || !p.active)
+            return;
 
-                npc.GetGlobalNPC<TeamBossNPC>().LastDamageFromPlayer = new DamageInfo((byte)player);
-            }
-        }
-        else
+        Team team = (Team)p.team;
+        if (team == Team.None)
+            return;
+
+        // Ensures NPC.kill credit and team attribution for cases where interaction is the only "touch".
+        RecordHit(self, player, team);
+    }
+
+    private static void RecordHit(NPC npc, int playerIndex, Team team)
+    {
+        // For segmented bosses, consolidate state on the owning NPC (realLife).
+        NPC owner = GetOwner(npc);
+
+        var ownerG = owner.GetGlobalNPC<TeamBossNPC>();
+        ownerG.LastDamageFromPlayer = new DamageInfo((byte)playerIndex);
+        ownerG._lastStrikeTeam = team;
+        ownerG._hasBeenHurtByTeam.Add(team);
+
+        if (npc.whoAmI != owner.whoAmI)
         {
-            self.GetGlobalNPC<TeamBossNPC>().LastDamageFromPlayer = new DamageInfo((byte)player);
+            var segG = npc.GetGlobalNPC<TeamBossNPC>();
+            segG.LastDamageFromPlayer = new DamageInfo((byte)playerIndex);
+            segG._lastStrikeTeam = team;
+            segG._hasBeenHurtByTeam.Add(team);
         }
     }
 
@@ -114,142 +140,168 @@ public sealed class TeamBossNPC : GlobalNPC
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
 
-        var lastDamageInfo = npc.GetGlobalNPC<TeamBossNPC>().LastDamageFromPlayer;
-        if (lastDamageInfo == null)
+        // If this was a segment, attribute kill credit to the owner state.
+        NPC owner = GetOwner(npc);
+        var g = owner.GetGlobalNPC<TeamBossNPC>();
+
+        if (g.LastDamageFromPlayer == null)
             return;
 
-        var lastDamager = Main.player[lastDamageInfo.Who];
+        Player lastDamager = Main.player[g.LastDamageFromPlayer.Who];
         if (lastDamager == null || !lastDamager.active)
             return;
 
         ModContent.GetInstance<PointsManager>().AwardNpcKillToTeam((Team)lastDamager.team, npc);
     }
 
-
-
-    // FIXME: This only covers strikes, would be good to support DOTs/debuffs
+    // FIXME: This only covers strikes (direct hits). DOTs/debuffs are not attributed.
     private int OnNPCStrikeNPC(
-    On_NPC.orig_StrikeNPC_HitInfo_bool_bool orig,
-    NPC self,
-    NPC.HitInfo hit,
-    bool fromNet,
-    bool noPlayerInteraction)
+        On_NPC.orig_StrikeNPC_HitInfo_bool_bool orig,
+        NPC self,
+        NPC.HitInfo hit,
+        bool fromNet,
+        bool noPlayerInteraction)
     {
+        NPC owner = GetOwner(self);
+        var boss = owner.GetGlobalNPC<TeamBossNPC>();
+
+        Team strikeTeam = boss._lastStrikeTeam;
+
+        // Always suppress vanilla PvE combat text; we draw our own.
+        hit.HideCombatText = true;
+
+        if (!Main.dedServ && strikeTeam != Team.None)
+        {
+            CombatText.NewText(
+                new Rectangle((int)self.position.X, (int)self.position.Y, self.width, self.height),
+                Main.teamColor[(int)strikeTeam],
+                hit.Damage,
+                hit.Crit);
+        }
+
+        var config = ModContent.GetInstance<ServerConfig>();
+
+        // Runtime is generally safe, but name-based keeps this consistent with SetDefaults safety constraints.
+        if (!NPCID.Search.TryGetName(owner.type, out string ownerName))
+            return orig(self, hit, fromNet, noPlayerInteraction);
+
+        var definition = new NPCDefinition(ownerName);
+
+        // Not configured: do vanilla damage/behavior, but still keep our custom combat text above.
+        if (!config.BossBalance.TryGetValue(definition, out var balanceEntry))
+            return orig(self, hit, fromNet, noPlayerInteraction);
+
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return orig(self, hit, fromNet, noPlayerInteraction);
 
-        var adventureNpc = self.GetGlobalNPC<TeamBossNPC>();
-        NPC owner = self.realLife != -1 ? Main.npc[self.realLife] : self;
-        var boss = owner.GetGlobalNPC<TeamBossNPC>();
-
+        // Only configured bosses participate in TeamLife.
         var teamLife = boss._teamLife;
-        int currentLife = owner.life;
 
-        // Resolve strike team
-        Team strikeTeam = Team.None;
-
-        var attackerInfo = boss.LastDamageFromPlayer ?? adventureNpc.LastDamageFromPlayer;
-        int who = attackerInfo != null ? attackerInfo.Who : self.lastInteraction;
-
-        if (who >= 0 && who < Main.maxPlayers)
+        if (teamLife.Count == 0)
         {
-            Player p = Main.player[who];
-            if (p != null && p.active)
-                strikeTeam = (Team)p.team;
+            foreach (var team in Enum.GetValues<Team>())
+            {
+                if (team == Team.None)
+                    continue;
+
+                teamLife[team] = owner.lifeMax;
+            }
         }
 
-        // If we can't attribute, do NOT mutate pools and do vanilla damage.
         if (strikeTeam == Team.None || !IsTeamActive(strikeTeam))
             return orig(self, hit, fromNet, noPlayerInteraction);
 
-        // If pool not initialized (edge case), initialize just this team.
-        if (!teamLife.ContainsKey(strikeTeam))
-            teamLife[strikeTeam] = owner.lifeMax;
+        int currentLife = owner.life;
 
-        // Determine leading team = team with lowest remaining life among active teams
         Team leadingTeam = Team.None;
         int leadingLife = int.MaxValue;
 
         foreach (var kv in teamLife)
         {
             Team t = kv.Key;
-            if (t == Team.None)
+            if (t == Team.None || !IsTeamActive(t))
                 continue;
 
-            if (!IsTeamActive(t))
-                continue;
-
-            int life = kv.Value;
-            if (life < leadingLife)
+            if (kv.Value < leadingLife)
             {
-                leadingLife = life;
+                leadingLife = kv.Value;
                 leadingTeam = t;
             }
         }
 
-        // Track that this team has participated (for UI)
-        boss._hasBeenHurtByTeam.Add(strikeTeam);
-
-        // Always subtract from the striker's pool (so their bar progresses)
         int strikerOld = teamLife[strikeTeam];
         int strikerNew = Math.Max(0, strikerOld - hit.Damage);
         teamLife[strikeTeam] = strikerNew;
 
-        // Gate real boss damage: only leading team can reduce boss HP
-        bool allowRealDamage = strikeTeam == leadingTeam;
-
-        // Hide vanilla combat text; you can keep your custom CombatText if you want.
-        hit.HideCombatText = true;
-
-        var previousImmortal = self.immortal;
+        // Save/restore immortality, we temporarily flip it to block "real" HP changes.
+        bool prevSelfImmortal = self.immortal;
+        bool prevOwnerImmortal = owner.immortal;
 
         try
         {
-            if (!allowRealDamage)
+            if (strikeTeam != leadingTeam)
             {
-                // Block real damage but keep pool damage (immortal revert behavior)
                 hit.Damage = 0;
                 self.immortal = true;
+                owner.immortal = true;
 
                 owner.netUpdate = true;
                 return orig(self, hit, fromNet, noPlayerInteraction);
             }
 
-            // Leading team: allow real damage, but clamp to not exceed the gap between current HP and that team's pool.
             int allowed = Math.Max(0, currentLife - strikerNew);
 
             if (allowed <= 0)
             {
                 hit.Damage = 0;
                 self.immortal = true;
+                owner.immortal = true;
             }
             else
             {
                 hit.Damage = allowed;
-            }
 
-            boss._lastStrikeTeam = strikeTeam;
+                float share = balanceEntry.TeamLifeShare;
+
+                foreach (var team in Enum.GetValues<Team>())
+                {
+                    if (team == Team.None || team == strikeTeam)
+                        continue;
+
+                    int reduced = teamLife[team] - (int)(allowed * share);
+                    teamLife[team] = Math.Max(currentLife, reduced);
+                }
+            }
 
             owner.netUpdate = true;
             return orig(self, hit, fromNet, noPlayerInteraction);
         }
         finally
         {
-            self.immortal = previousImmortal;
+            self.immortal = prevSelfImmortal;
+            owner.immortal = prevOwnerImmortal;
         }
     }
 
-    public override void ApplyDifficultyAndPlayerScaling( NPC npc,int numPlayers,float balance, float bossAdjustment)
+    public override void ApplyDifficultyAndPlayerScaling(NPC npc, int numPlayers, float balance, float bossAdjustment)
     {
-        // Resolve owner (important for segmented bosses)
-        NPC owner = npc.realLife != -1 ? Main.npc[npc.realLife] : npc;
+        NPC owner = GetOwner(npc);
         var boss = owner.GetGlobalNPC<TeamBossNPC>();
 
-        // Only initialize once
         if (boss._teamLife.Count > 0)
             return;
 
-        // Now npc.lifeMax is FINAL and correct
+        var config = ModContent.GetInstance<ServerConfig>();
+
+        if (!NPCID.Search.TryGetName(owner.type, out string ownerName))
+            return;
+
+        var definition = new NPCDefinition(ownerName);
+
+        // Only configured bosses receive per-team pools.
+        if (!config.BossBalance.ContainsKey(definition))
+            return;
+
         foreach (var team in Enum.GetValues<Team>())
         {
             if (team == Team.None)
@@ -261,57 +313,43 @@ public sealed class TeamBossNPC : GlobalNPC
         owner.netUpdate = true;
     }
 
-
-    private void OnNetMessageSendStrikeNPC(On_NetMessage.orig_SendStrikeNPC orig, NPC npc, ref NPC.HitInfo hit,
+    private void OnNetMessageSendStrikeNPC(
+        On_NetMessage.orig_SendStrikeNPC orig,
+        NPC npc,
+        ref NPC.HitInfo hit,
         int ignoreClient)
     {
-        var adventureNpc = npc.GetGlobalNPC<TeamBossNPC>();
-
         if (Main.netMode == NetmodeID.Server)
         {
-            // FIXME: Proper packet
+            NPC owner = GetOwner(npc);
+            var boss = owner.GetGlobalNPC<TeamBossNPC>();
+
+            // FIXME: Proper packet format/versioning.
             var packet = Mod.GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.NpcStrikeTeam);
             packet.Write((short)npc.whoAmI);
-            packet.Write((byte)adventureNpc._lastStrikeTeam);
-
+            packet.Write((byte)boss._lastStrikeTeam);
             packet.Send(ignoreClient: ignoreClient);
         }
 
         orig(npc, ref hit, ignoreClient);
     }
 
-    public void MarkNextStrikeForTeam(NPC npc, Team team)
-    {
-        _lastStrikeTeam = team;
-        _hasBeenHurtByTeam.Add(team);
-
-        //Log.Chat("hit: " + npc + ", team: " + team);
-
-        // If our life pool is someone else's, count it as hurting them too.
-        if (npc.realLife != -1 && npc.realLife != npc.whoAmI)
-        {
-            var realLife = Main.npc[npc.realLife];
-            realLife.GetGlobalNPC<TeamBossNPC>().MarkNextStrikeForTeam(realLife, team);
-        }
-    }
-
-    // FIXME: might be costly!
     public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
     {
-        var adventureNpc = npc.GetGlobalNPC<TeamBossNPC>();
+        // FIXME: Might be costly if used on many NPCs.
+        binaryWriter.Write((byte)_teamLife.Count);
 
-        binaryWriter.Write((byte)adventureNpc.TeamLife.Count);
-        foreach (var (team, life) in adventureNpc.TeamLife)
+        foreach (var (team, life) in _teamLife)
         {
             binaryWriter.Write((byte)team);
             binaryWriter.Write7BitEncodedInt(life);
         }
     }
 
-    // FIXME: might be costly!
     public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
     {
+        // FIXME: Might be costly if used on many NPCs.
         _teamLife.Clear();
         _hasBeenHurtByTeam.Clear();
 
@@ -339,6 +377,14 @@ public sealed class TeamBossNPC : GlobalNPC
         }
     }
 
+    private static NPC GetOwner(NPC npc)
+    {
+        if (npc.realLife != -1 && npc.realLife >= 0 && npc.realLife < Main.maxNPCs)
+            return Main.npc[npc.realLife];
+
+        return npc;
+    }
+
     private static bool IsTeamActive(Team team)
     {
         if (team == Team.None)
@@ -358,7 +404,23 @@ public sealed class TeamBossNPC : GlobalNPC
         return false;
     }
 
-    #region Public helpers
+    public void MarkNextStrikeForTeam(NPC npc, Team team)
+    {
+        // Called from client packet handling to tag the next local strike color/team.
+        _lastStrikeTeam = team;
+        _hasBeenHurtByTeam.Add(team);
+
+        NPC owner = GetOwner(npc);
+
+        if (owner.whoAmI != npc.whoAmI)
+        {
+            var boss = owner.GetGlobalNPC<TeamBossNPC>();
+            boss._lastStrikeTeam = team;
+            boss._hasBeenHurtByTeam.Add(team);
+        }
+    }
+
+    #region Global helpers
     public static bool IsPartOfEaterOfWorlds(short type) =>
         type is NPCID.EaterofWorldsHead or NPCID.EaterofWorldsBody or NPCID.EaterofWorldsTail;
 

@@ -34,7 +34,7 @@ public sealed class TeamBossBar : GlobalBossBar
         foreach (var (team, life) in teamLife)
         {
             // Debug print once every 20 seconds
-            if (Main.GameUpdateCount % (60*2) == 0)
+            if (Main.GameUpdateCount % (60*20) == 0)
             {
                 Log.Chat($"Boss ({npc.TypeName}) {team} damage: {npc.lifeMax - life}");
                 Log.Debug($"Boss ({npc.TypeName}) {team} damage: {npc.lifeMax - life}");

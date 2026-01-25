@@ -1,4 +1,5 @@
-﻿using PvPAdventure.Common.Statistics;
+﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Steamworks;

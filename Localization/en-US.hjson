@@ -319,6 +319,11 @@ Mods: {
 				DisplayName: Pv P Config Item
 				Tooltip: ""
 			}
+
+			DebugBossSpawnerItem: {
+				DisplayName: Debug Boss Spawner Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -362,6 +367,8 @@ Mods: {
 					Princess_LovesNPC: I like {NPCName}.
 				}
 			}
+
+			DebugBoss.DisplayName: Debug Boss
 		}
 
 		Configs: {
@@ -1460,6 +1467,11 @@ Mods: {
 
 				MaxHealth: {
 					Label: "[i:LifeCrystal] Max Health"
+					Tooltip: ""
+				}
+
+				MaxMana: {
+					Label: Max Mana
 					Tooltip: ""
 				}
 			}
