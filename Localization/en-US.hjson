@@ -636,12 +636,12 @@ Mods: {
 
 				BossBalance: {
 					Label: Boss Balance
-					Tooltip: "Max life, damage and team life"
+					Tooltip: Max life, damage and team life
 				}
 
 				BossOrder: {
 					Label: Boss Order
-					Tooltip: "The order bosses appear in the scoreboard"
+					Tooltip: The order bosses appear in the scoreboard
 				}
 
 				BossInvulnerableProjectiles: {
