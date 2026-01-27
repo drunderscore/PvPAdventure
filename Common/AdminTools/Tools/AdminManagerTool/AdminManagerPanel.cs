@@ -40,6 +40,11 @@ internal class AdminManagerPanel : UI.DraggablePanel
     {
         base.Update(gameTime);
 
+        if (!ModLoader.TryGetMod("DragonLens", out Mod _))
+        {
+            return;
+        }
+
         RecomputePlayerIndices();
 
         int playerHash = ComputePlayerSetHash(playerIndices);

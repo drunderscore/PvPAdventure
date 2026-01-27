@@ -78,6 +78,7 @@ public class ArenasSubworld : Subworld
         //Main.spawnTileY -= 110;
     }
 
+    [JITWhenModsEnabled("StructureHelper")]
     private static void GenerateArenas()
     {
         // size: ~680x169
