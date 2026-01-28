@@ -41,6 +41,7 @@ public class ClientConfig : ModConfig
     {
         public bool Self = true;
         public bool Team = true;
+        public bool BossItems = true;
     }
     public class SoundEffectConfig
     {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.UI;
+using PvPAdventure.Common.UI.WorldItems;
+using PvPAdventure.Core.Config;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -155,6 +156,11 @@ public sealed class BossDropPerTeamGlobalItem : GlobalItem
 
     public override bool PreDrawInWorld(Item item, SpriteBatch sb, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
     {
+        // Disable: world item outline drawing
+        var config = ModContent.GetInstance<ClientConfig>();
+        if (!config.PlayerOutline.BossItems)
+            return base.PreDrawInWorld(item, sb, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
+
         Team? team = _team;
 
         // debug: draw ONLY team items, HIDE all other items. do not delete.

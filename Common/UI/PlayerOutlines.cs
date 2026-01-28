@@ -16,12 +16,25 @@ public class PlayerOutlines : ModSystem
 
     private CreateOutlinesDelegate _createOutlines;
 
+    private int _outlineCallsThisSecond;
+    private int _secCounter;
+
     public override void Load()
     {
         _createOutlines =
             typeof(LegacyPlayerRenderer).GetMethod("CreateOutlines", BindingFlags.NonPublic | BindingFlags.Instance)
                 .CreateDelegate<CreateOutlinesDelegate>(Main.PlayerRenderer);
         On_PlayerDrawLayers.DrawPlayer_RenderAllLayers += OnPlayerDrawLayersDrawPlayer_RenderAllLayers;
+    }
+
+    public override void PostUpdateEverything()
+    {
+        if (++_secCounter < 60)
+            return;
+
+        _secCounter = 0;
+        Log.Chat($"[Perf] PlayerOutlines calls/s={_outlineCallsThisSecond}");
+        _outlineCallsThisSecond = 0;
     }
 
     private void OnPlayerDrawLayersDrawPlayer_RenderAllLayers(On_PlayerDrawLayers.orig_DrawPlayer_RenderAllLayers orig,
@@ -54,10 +67,11 @@ public class PlayerOutlines : ModSystem
             if (!adventureClientConfig.PlayerOutline.Self && drawinfo.drawPlayer.whoAmI == Main.myPlayer)
                 return;
 
-            // Don't show outlines for teammates, but if you want self outlines, still show it.
             if (!adventureClientConfig.PlayerOutline.Team && team == (Team)Main.LocalPlayer.team &&
                 (!adventureClientConfig.PlayerOutline.Self || drawinfo.drawPlayer.whoAmI != Main.myPlayer))
                 return;
+
+            _outlineCallsThisSecond++; // perf counter
 
             _createOutlines(drawinfo.drawPlayer.stealth, 1.0f,
                 Main.teamColor[(int)team].MultiplyRGBA(Lighting.GetColor(drawinfo.Center.ToTileCoordinates())));

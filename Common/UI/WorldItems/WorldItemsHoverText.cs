@@ -5,10 +5,10 @@ using Terraria.Enums;
 using Terraria.GameInput;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.UI;
+namespace PvPAdventure.Common.UI.WorldItems;
 
 [Autoload(Side = ModSide.Client)]
-internal sealed class WorldItemHover : ModSystem
+internal sealed class WorldItemsHoverText : ModSystem
 {
     private static int _lastIdx = -1;
 
