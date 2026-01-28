@@ -1,4 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.UI;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -6,7 +8,6 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.GameContent.ItemDropRules;
-using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -152,92 +153,57 @@ public sealed class BossDropPerTeamGlobalItem : GlobalItem
         return true;
     }
 
+    public override bool PreDrawInWorld(Item item, SpriteBatch sb, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
+    {
+        Team? team = _team;
+
+        // debug: draw ONLY team items, HIDE all other items. do not delete.
+        //if (!team.HasValue)
+        //return false;
+
+        if (!team.HasValue || team.Value == Team.None)
+            return base.PreDrawInWorld(item, sb, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
+
+        // debug: draw ALL items with outlines. performance/stress-test.
+        Color border = team.HasValue && team.Value != Team.None
+        ? Main.teamColor[(int)team.Value]
+        : Color.White;
+
+        //Color border = Main.teamColor[(int)team.Value].MultiplyRGBA(lightColor);
+        border.A = 255;
+
+        DrawWorldItemOutline(item, sb, lightColor, alphaColor, rotation, scale, border);
+
+        return base.PreDrawInWorld(item, sb, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
+    }
+
+    private void DrawWorldItemOutline(Item item, SpriteBatch sb, Color lightColor, Color alphaColor, float rotation, float scale, Color borderColor)
+    {
+        Rectangle hitbox = Item.GetDrawHitbox(item.type, null);
+        Vector2 worldCenter = new(item.Bottom.X, item.Bottom.Y - hitbox.Height * 0.5f);
+        Vector2 screenCenter = worldCenter - Main.screenPosition;
+
+        // debug: draw item hitbox. do not delete.
+        //int sx = (int)(item.Bottom.X - hitbox.Width * 0.5f - Main.screenPosition.X);
+        //int sy = (int)(item.Bottom.Y - hitbox.Height - Main.screenPosition.Y);
+        //sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(sx, sy, hitbox.Width, hitbox.Height), Color.Black);
+
+        var outlineSys = ModContent.GetInstance<WorldItemOutlineRenderTargetSystem>();
+
+        if (outlineSys.TryGet(item.type, hitbox.Width, hitbox.Height, borderColor, out RenderTarget2D rt, out Vector2 origin))
+        {
+            sb.Draw(rt, screenCenter, null, Color.White, rotation, origin, scale, SpriteEffects.None, 0f);
+        }
+    }
+
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
     {
         base.ModifyTooltips(item, tooltips);
-        Team? team = _team;
-
-        bool isTeamItem = team.HasValue;
-        if (isTeamItem)
-        {
-            Log.Chat(item.Name);
-        }
     }
-}
 
-[Autoload(Side =ModSide.Client)]
-internal sealed class WorldItemHoverTeamTagSystem : ModSystem
-{
-    private static int _lastIdx = -1;
-
-    public override void Load()
+    public override void PostDrawInWorld(Item item, SpriteBatch sb, Color lightColor, Color alphaColor, float rotation, float scale, int whoAmI)
     {
-        On_Main.MouseTextHackZoom_string_int_byte_string += MouseTextHackZoom_TagWorldItem;
+        base.PostDrawInWorld(item, sb, lightColor, alphaColor, rotation, scale, whoAmI);
     }
 
-    public override void Unload()
-    {
-        On_Main.MouseTextHackZoom_string_int_byte_string -= MouseTextHackZoom_TagWorldItem;
-    }
-
-    private void MouseTextHackZoom_TagWorldItem(On_Main.orig_MouseTextHackZoom_string_int_byte_string orig, Main self, string text, int itemRarity, byte diff, string buffTooltip)
-    {
-        // If we are the server, check if the drops should be instanced instead.
-        if (Main.dedServ || !TryGetHoveredWorldItemIndex(out int idx))
-        {
-            orig(self, text, itemRarity, diff, buffTooltip);
-            return;
-        }
-
-        Item item = Main.item[idx];
-        Team? team = item.GetGlobalItem<BossDropPerTeamGlobalItem>()._team;
-        if (team.HasValue && team.Value != Team.None)
-        {
-            string teamHex = Main.teamColor[(int)team.Value].Hex3();
-            text = $"{text} [c/{teamHex}:({team.Value} Team)]";
-
-            if (_lastIdx != idx)
-            {
-                _lastIdx = idx;
-                Log.Chat($"{item.Name}->{team.Value}");
-            }
-        }
-
-        orig(self, text, itemRarity, diff, buffTooltip);
-    }
-
-    private static bool TryGetHoveredWorldItemIndex(out int idx)
-    {
-        idx = -1;
-
-        PlayerInput.SetZoom_Unscaled();
-        PlayerInput.SetZoom_MouseInWorld();
-
-        Rectangle mouseRect = new((int)(Main.mouseX + Main.screenPosition.X), (int)(Main.mouseY + Main.screenPosition.Y), 1, 1);
-        if (Main.player[Main.myPlayer].gravDir == -1f)
-            mouseRect.Y = (int)Main.screenPosition.Y + Main.screenHeight - Main.mouseY;
-
-        PlayerInput.SetZoom_UI();
-
-        if (Main.mouseText)
-            return false;
-
-        for (int i = 0; i < 400; i++)
-        {
-            if (!Main.item[i].active)
-                continue;
-
-            Rectangle hitbox = Item.GetDrawHitbox(Main.item[i].type, null);
-            Vector2 bottom = Main.item[i].Bottom;
-            Rectangle itemRect = new((int)(bottom.X - hitbox.Width * 0.5f), (int)(bottom.Y - hitbox.Height), hitbox.Width, hitbox.Height);
-
-            if (mouseRect.Intersects(itemRect))
-            {
-                idx = i;
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

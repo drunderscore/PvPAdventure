@@ -198,6 +198,9 @@ public class SSC : ModSystem
                 if (fileData.Player.statMana != fileData.Player.statManaMax)
                     fileData.Player.statMana = fileData.Player.statManaMax;
 
+                // Scan map
+                MapScanSystem.RequestScan();
+
                 Log.Chat((isNew ? "Loaded new SSC player " : "Loaded existing SSC player ") + fileData.Player.name);
                 Main.NewText($"Welcome, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}", Color.MediumPurple);
             }

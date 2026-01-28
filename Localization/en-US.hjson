@@ -88,8 +88,12 @@ Mods: {
 			}
 
 			DLOpenConfigTool: {
-				DisplayName: Open config
-				Description: Opens the PvPAdventure server config.
+				DisplayName: {
+					Open: Open config
+					Close: Close config
+				}
+
+				Description: Open PvPAdventure server config
 			}
 		}
 
