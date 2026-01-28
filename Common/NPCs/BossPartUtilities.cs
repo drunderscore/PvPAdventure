@@ -1,8 +1,8 @@
 ﻿using Terraria.ID;
 
-namespace PvPAdventure.Common.Npcs;
+namespace PvPAdventure.Common.NPCs;
 
-public static class NpcHelpers
+public static class BossPartUtilities
 {
     #region Global helpers
     public static bool IsPartOfEaterOfWorlds(short type) =>

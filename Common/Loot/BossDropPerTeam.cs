@@ -12,7 +12,7 @@ using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.DropRates;
+namespace PvPAdventure.Common.Loot;
 
 internal sealed class BossDropPerTeamSystem : ModSystem
 {
@@ -171,11 +171,11 @@ public sealed class BossDropPerTeamGlobalItem : GlobalItem
             return base.PreDrawInWorld(item, sb, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
 
         // debug: draw ALL items with outlines. performance/stress-test.
-        Color border = team.HasValue && team.Value != Team.None
-        ? Main.teamColor[(int)team.Value]
-        : Color.White;
+        //Color border = team.HasValue && team.Value != Team.None
+        //? Main.teamColor[(int)team.Value]
+        //: Color.White;
 
-        //Color border = Main.teamColor[(int)team.Value].MultiplyRGBA(lightColor);
+        Color border = Main.teamColor[(int)team.Value].MultiplyRGBA(lightColor);
         border.A = 255;
 
         DrawWorldItemOutline(item, sb, lightColor, alphaColor, rotation, scale, border);

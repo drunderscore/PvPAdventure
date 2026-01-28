@@ -4,7 +4,7 @@ using MonoMod.RuntimeDetour;
 using System.Reflection;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.DropRates;
+namespace PvPAdventure.Common.Loot.DropRates;
 
 public class SoulDropRateSystem : ModSystem
 {

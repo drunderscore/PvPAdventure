@@ -6,7 +6,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Npcs;
+namespace PvPAdventure.Common.NPCs;
 
 /// <summary>
 /// - Automatically spawns an undefeated mechanical boss at night <br/>

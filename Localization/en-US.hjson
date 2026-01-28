@@ -439,6 +439,11 @@ Mods: {
 					Label: Team
 					Tooltip: ""
 				}
+
+				BossItems: {
+					Label: Boss Items
+					Tooltip: ""
+				}
 			}
 
 			SoundEffectConfig: {

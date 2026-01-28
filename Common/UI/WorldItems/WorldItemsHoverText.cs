@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.DropRates;
+using PvPAdventure.Common.Loot;
 using Terraria;
 using Terraria.Enums;
 using Terraria.GameInput;

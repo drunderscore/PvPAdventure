@@ -1,7 +1,7 @@
 ﻿using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-namespace PvPAdventure.Common.Npcs;
+namespace PvPAdventure.Common.NPCs;
 
 /// <summary>
 /// - Tracks whether the bound Witch Doctor has spawned <br/>

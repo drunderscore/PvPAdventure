@@ -17,6 +17,14 @@ internal sealed class WorldItemsOutlineRenderTarget : ARenderTargetContentByRequ
 
     public void UseItem(int itemType, int width, int height, Color borderColor)
     {
+        if (_itemType == itemType && _width == width && _height == height && _borderColor.PackedValue == borderColor.PackedValue)
+        {
+            if (!IsReady)
+                Request();
+
+            return;
+        }
+
         _itemType = itemType;
         _width = width;
         _height = height;
@@ -33,7 +41,8 @@ internal sealed class WorldItemsOutlineRenderTarget : ARenderTargetContentByRequ
         _colorOnlyPass ??= pixelShader.CurrentTechnique.Passes["ColorOnly"];
 
         // Prepare render target
-        PrepareARenderTarget_AndListenToEvents(ref _target, device, _width, _height, RenderTargetUsage.PreserveContents);
+        //PrepareARenderTarget_AndListenToEvents(ref _target, device, _width, _height, RenderTargetUsage.PreserveContents);
+        PrepareARenderTarget_AndListenToEvents(ref _target, device, _width, _height, RenderTargetUsage.DiscardContents);
         PrepareARenderTarget_WithoutListeningToEvents(ref _helperTarget, device, _width, _height, RenderTargetUsage.DiscardContents);
 
         // Draw item mask

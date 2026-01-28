@@ -7,7 +7,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Npcs;
+namespace PvPAdventure.Common.NPCs;
 /// <summary>
 /// - Makes Spazmatism and Retinazer only able to go below 1 hp and die if the other twin is at 1hp <br/>
 /// - This effectively means that both twins need to be killed all of the way in order for them to die <br/>

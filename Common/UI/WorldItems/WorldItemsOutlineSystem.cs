@@ -22,7 +22,7 @@ internal sealed class WorldItemOutlineRenderTargetSystem : ModSystem
             return;
 
         _secCounter = 0;
-        Log.Chat($"[Perf] WorldItemOutlines draws/s={_drawsThisSecond} keys={_cache.Count}");
+        //Log.Chat($"[Perf] WorldItemOutlines draws/s={_drawsThisSecond} keys={_cache.Count}");
         _drawsThisSecond = 0;
     }
 
@@ -41,9 +41,15 @@ internal sealed class WorldItemOutlineRenderTargetSystem : ModSystem
             c = new WorldItemsOutlineRenderTarget();
             _cache[key] = c;
             Main.ContentThatNeedsRenderTargets.Add(c);
-        }
 
-        c.UseItem(type, w, h, border);
+            // Only request when created
+            c.UseItem(type, w, h, border);
+        }
+        else if (!c.IsReady)
+        {
+            // Only request while still not ready (e.g. first frame after creation)
+            c.UseItem(type, w, h, border);
+        }
 
         if (!c.IsReady)
             return false;
@@ -54,7 +60,7 @@ internal sealed class WorldItemOutlineRenderTargetSystem : ModSystem
 
         origin = new Vector2(target.Width * 0.5f, target.Height * 0.5f);
 
-        _drawsThisSecond++; // perf counter 
+        _drawsThisSecond++; // perf counter
         return true;
     }
 

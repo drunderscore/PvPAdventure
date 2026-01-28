@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.AdminTools.Tools.PointsSetter;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Combat.TeamBoss;
-using PvPAdventure.Common.Npcs;
+using PvPAdventure.Common.NPCs;
 using PvPAdventure.Core.Config;
 using System;
 using System.Collections.Generic;
@@ -248,7 +248,7 @@ public class PointsManager : ModSystem
 
         // If this is part of the Eater of Worlds, mark ALL parts as defeated.
         // This specialization is not needed for The Destroyer -- only it's head is ever marked as a boss.
-        if (NpcHelpers.IsPartOfEaterOfWorlds((short)npc.type))
+        if (BossPartUtilities.IsPartOfEaterOfWorlds((short)npc.type))
         {
             _downedNpcs[team].Add(NPCID.EaterofWorldsHead);
             _downedNpcs[team].Add(NPCID.EaterofWorldsBody);

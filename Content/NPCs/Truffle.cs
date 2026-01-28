@@ -1,5 +1,4 @@
-﻿using PvPAdventure.Common.Npcs;
-using Terraria;
+﻿using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 

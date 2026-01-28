@@ -3,6 +3,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Debug;
 
+// Only in debug builds, hot reloadable player class to modify respawn timer.
 #if DEBUG
 internal class DebugPlayer : ModPlayer
 {

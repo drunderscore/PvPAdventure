@@ -1,8 +1,8 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using PvPAdventure.Common.Combat.TeamBoss;
-using PvPAdventure.Common.DropRates;
 using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Loot.DropRates;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.NPCs;
 using PvPAdventure.Core.Config;
@@ -17,7 +17,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 
-namespace PvPAdventure.Common.Npcs;
+namespace PvPAdventure.Common.NPCs;
 
 public class NPCRules : GlobalNPC
 {
@@ -53,7 +53,7 @@ public class NPCRules : GlobalNPC
                 return;
 
             // If this is a boss, we want it to scale based on the number of players on a specific team...
-            if (self.boss || NpcHelpers.IsPartOfEaterOfWorlds((short)self.type) || NpcHelpers.IsPartOfTheDestroyer((short)self.type))
+            if (self.boss || BossPartUtilities.IsPartOfEaterOfWorlds((short)self.type) || BossPartUtilities.IsPartOfTheDestroyer((short)self.type))
             {
                 // FIXME: Ignore None team
                 var closestPlayerIndex = self.FindClosestPlayer();
@@ -298,7 +298,7 @@ public class NPCRules : GlobalNPC
             npcLoot.Add(ItemDropRule.ByCondition(new Conditions.LegacyHack_IsBossAndNotExpert(), id));
         }
 
-        if (NpcHelpers.IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
+        if (BossPartUtilities.IsPartOfEaterOfWorlds((short)npc.type) || npc.type == NPCID.BrainofCthulhu)
             AddNonExpertBossLoot(ItemID.WormScarf);
         else
         {

@@ -2,7 +2,7 @@
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Npcs;
+namespace PvPAdventure.Common.NPCs;
 
 /// <summary>
 /// Modifies the Empress of Light's damage taken and dealt during daytime.

@@ -5,7 +5,7 @@ using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.DropRates;
+namespace PvPAdventure.Common.Loot.DropRates;
 
 public static class AdventureDropDatabase
 {

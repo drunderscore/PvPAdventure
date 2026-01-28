@@ -8,7 +8,7 @@ using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Npcs;
+namespace PvPAdventure.Common.NPCs;
 
 /// <summary>
 /// - Prevents Town NPCs from spawning during invasions

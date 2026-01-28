@@ -33,7 +33,7 @@ public class PlayerOutlines : ModSystem
             return;
 
         _secCounter = 0;
-        Log.Chat($"[Perf] PlayerOutlines calls/s={_outlineCallsThisSecond}");
+        //Log.Chat($"[Perf] PlayerOutlines calls/s={_outlineCallsThisSecond}");
         _outlineCallsThisSecond = 0;
     }
 
