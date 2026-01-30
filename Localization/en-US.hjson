@@ -88,12 +88,8 @@ Mods: {
 			}
 
 			DLOpenConfigTool: {
-				DisplayName: {
-					Open: Open config
-					Close: Close config
-				}
-
-				Description: Open PvPAdventure server config
+				DisplayName: Open config
+				Description: Opens Adventure Server Config
 			}
 		}
 
@@ -380,7 +376,7 @@ Mods: {
 				DisplayName: Adventure Client Config
 
 				Headers: {
-					PlayerVisualization: Player Visualization
+					PlayerVisualization: Visualization
 					SpawnAndRespawn: "[i:PvPAdventure/MapSpawnConfigItem] Spawn And Respawn"
 					Sound: "[i:FairyBell] Sound"
 					Movement: "[i:HermesBoots] Movement"
@@ -393,7 +389,7 @@ Mods: {
 				}
 
 				PlayerOutline: {
-					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Player Outlines"
+					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Outlines"
 					Tooltip: Visual outlines around players on teams
 				}
 
@@ -418,7 +414,7 @@ Mods: {
 
 				ShowChooseYourSpawnText: {
 					Label: Show Header
-					Tooltip: Shows a header above the spawn options
+					Tooltip: "Shows 'Choose Your Spawn' text"
 				}
 
 				SoundEffect: {

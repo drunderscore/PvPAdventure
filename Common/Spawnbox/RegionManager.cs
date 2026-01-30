@@ -20,7 +20,6 @@ public class RegionManager : ModSystem
     {
         public Rectangle Area { get; set; }
         public int Order { get; set; }
-
         public bool CanModifyTiles { get; set; }
         public bool AllowCombat { get; set; }
         public bool CanUseWormhole { get; set; }

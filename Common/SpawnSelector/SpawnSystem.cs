@@ -350,8 +350,9 @@ public class SpawnSystem : ModSystem
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
         int idx = layers.FindIndex(l => l.Name == "Vanilla: Death Text");
-        if (IsAnyConfigUIOpen())
-            idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
+
+        //if (IsAnyConfigUIOpen())
+            //idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
 
         if (idx == -1)
             return;

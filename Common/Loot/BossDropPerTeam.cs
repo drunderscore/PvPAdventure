@@ -165,8 +165,9 @@ public sealed class BossDropPerTeamGlobalItem : GlobalItem
 
         // debug: draw ONLY team items, HIDE all other items. do not delete.
         //if (!team.HasValue)
-        //return false;
+            //return false;
 
+        // draw regular items normally
         if (!team.HasValue || team.Value == Team.None)
             return base.PreDrawInWorld(item, sb, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
 
@@ -176,9 +177,10 @@ public sealed class BossDropPerTeamGlobalItem : GlobalItem
         //: Color.White;
 
         Color border = Main.teamColor[(int)team.Value].MultiplyRGBA(lightColor);
+        //Color border = Main.teamColor[(int)team.Value];
         border.A = 255;
 
-        DrawWorldItemOutline(item, sb, lightColor, alphaColor, rotation, scale, border);
+        //DrawWorldItemOutline(item, sb, lightColor, alphaColor, rotation, scale, border);
 
         return base.PreDrawInWorld(item, sb, lightColor, alphaColor, ref rotation, ref scale, whoAmI);
     }

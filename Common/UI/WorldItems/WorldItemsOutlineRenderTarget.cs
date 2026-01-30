@@ -41,8 +41,8 @@ internal sealed class WorldItemsOutlineRenderTarget : ARenderTargetContentByRequ
         _colorOnlyPass ??= pixelShader.CurrentTechnique.Passes["ColorOnly"];
 
         // Prepare render target
-        //PrepareARenderTarget_AndListenToEvents(ref _target, device, _width, _height, RenderTargetUsage.PreserveContents);
-        PrepareARenderTarget_AndListenToEvents(ref _target, device, _width, _height, RenderTargetUsage.DiscardContents);
+        PrepareARenderTarget_AndListenToEvents(ref _target, device, _width, _height, RenderTargetUsage.PreserveContents);
+        //PrepareARenderTarget_AndListenToEvents(ref _target, device, _width, _height, RenderTargetUsage.DiscardContents);
         PrepareARenderTarget_WithoutListeningToEvents(ref _helperTarget, device, _width, _height, RenderTargetUsage.DiscardContents);
 
         // Draw item mask
@@ -86,7 +86,7 @@ internal sealed class WorldItemsOutlineRenderTarget : ARenderTargetContentByRequ
             return;
 
         // Adjust thickness of outline
-        int step = 2; 
+        int step = 3; 
         int dist = step * 2;
 
         // Draw black

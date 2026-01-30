@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Config.UI;
+using Terraria.UI;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
@@ -78,6 +80,12 @@ public class SpectateSystem : ModSystem
 
     public override void ModifyScreenPosition()
     {
+        if (IsAnyConfigUIOpen())
+        {
+            Restore();
+            return;
+        }
+
         Player local = Main.LocalPlayer;
         if (local == null || !local.active)
             return;
@@ -98,6 +106,12 @@ public class SpectateSystem : ModSystem
             return;
 
         ApplyCamera();
+    }
+
+    private static bool IsAnyConfigUIOpen()
+    {
+        UIState s = Main.InGameUI?._currentState;
+        return s is UIModConfig || s is UIModConfigList || Main.ingameOptionsWindow;
     }
 
     private static void ValidateHover()

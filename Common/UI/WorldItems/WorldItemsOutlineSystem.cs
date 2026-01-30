@@ -45,14 +45,8 @@ internal sealed class WorldItemOutlineRenderTargetSystem : ModSystem
             // Only request when created
             c.UseItem(type, w, h, border);
         }
-        else if (!c.IsReady)
-        {
-            // Only request while still not ready (e.g. first frame after creation)
-            c.UseItem(type, w, h, border);
-        }
 
-        if (!c.IsReady)
-            return false;
+        c.UseItem(type, w, h, border);
 
         target = c.GetOutlineTarget();
         if (target == null)
