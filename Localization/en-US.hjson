@@ -414,7 +414,7 @@ Mods: {
 
 				ShowChooseYourSpawnText: {
 					Label: Show Header
-					Tooltip: "Shows 'Choose Your Spawn' text"
+					Tooltip: Shows 'Choose Your Spawn' text
 				}
 
 				SoundEffect: {
