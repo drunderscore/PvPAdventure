@@ -7,7 +7,7 @@ using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Combat.PvP;
+namespace PvPAdventure.Common.Combat;
 
 /// <summary>
 /// PvP combat effects applied when players are hurt or killed.

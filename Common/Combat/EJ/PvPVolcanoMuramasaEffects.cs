@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Combat.PvP;
+namespace PvPAdventure.Common.Combat.EJ;
 
 internal class PvPVolcanoMuramasaEffects : ModPlayer
 {

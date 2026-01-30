@@ -10,7 +10,7 @@ using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Combat.PvP;
+namespace PvPAdventure.Common.Combat.EJ;
 /// <summary>
 /// - When a player gets hit by another player's whip in PvP, they get a debuff that emulates the "summon tag" debuffs in PvE
 /// - Instead of whips that add critical strike chance to summons adding critical strike chance against players, those whips will grant a % damage increase instead.
