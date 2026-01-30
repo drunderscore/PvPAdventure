@@ -5,7 +5,7 @@ using System;
 using System.Reflection;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.WorldGenChanges;
+namespace PvPAdventure.Common.WorldGenChanges.EJ;
 
 /// <summary>
 /// - Increases Hardmode ore generation from Demon Altars
