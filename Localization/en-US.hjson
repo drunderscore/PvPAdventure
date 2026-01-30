@@ -230,11 +230,6 @@ Mods: {
 				Tooltip: ""
 			}
 
-			PlayerOutlinesConfig: {
-				DisplayName: Player Outlines Config
-				Tooltip: ""
-			}
-
 			PointsConfigItem: {
 				DisplayName: Points Config Item
 				Tooltip: ""
@@ -324,6 +319,16 @@ Mods: {
 				DisplayName: Debug Boss Spawner Item
 				Tooltip: ""
 			}
+
+			BedOutlinesConfigItem: {
+				DisplayName: Bed Outlines Config Item
+				Tooltip: ""
+			}
+
+			TreasureBagOutlinesConfigItem: {
+				DisplayName: Treasure Bag Outlines Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -376,21 +381,17 @@ Mods: {
 				DisplayName: Adventure Client Config
 
 				Headers: {
-					PlayerVisualization: Visualization
 					SpawnAndRespawn: "[i:PvPAdventure/MapSpawnConfigItem] Spawn And Respawn"
 					Sound: "[i:FairyBell] Sound"
 					Movement: "[i:HermesBoots] Movement"
 					Chat: "[i:PvPAdventure/ChatConfigItem] Chat"
+					Visualization: "[i:PvPAdventure/PlayerOutlinesConfigItem] Visualization"
+					Outlines: Outlines
 				}
 
 				IsVanillaDashEnabled: {
 					Label: "[i:PvPAdventure/DashConfigItem] Enable Vanilla Dash"
 					Tooltip: Whether double tapping a movement direction will cause a dash
-				}
-
-				PlayerOutline: {
-					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Outlines"
-					Tooltip: Visual outlines around players on teams
 				}
 
 				ShowDebugMessages: {
@@ -421,34 +422,39 @@ Mods: {
 					Label: Sound Effect
 					Tooltip: ""
 				}
+
+				PlayerOutlines: {
+					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Player Outlines"
+					Tooltip: Show outlines around team players
+				}
+
+				BedOutlines: {
+					Label: "[i:PvPAdventure/BedOutlinesConfigItem] Bed Outlines"
+					Tooltip: Show outlines around team beds
+				}
+
+				LootOutlines: {
+					Label: "[i:PvPAdventure/TreasureBagOutlinesConfigItem] Loot Outlines"
+					Tooltip: Show outlines around team boss loot
+				}
 			}
 
-			PlayerOutlineConfig: {
+			OutlinesConfig: {
 				Tooltip: ""
 
-				Self: {
-					Label: Self
-					Tooltip: ""
-				}
-
-				Team: {
-					Label: Team
-					Tooltip: ""
-				}
-
-				BossItems: {
-					Label: Boss Items
-					Tooltip: ""
+				Players: {
+					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Players"
+					Tooltip: Show outlines around team players
 				}
 
 				Beds: {
-					Label: Beds
-					Tooltip: ""
+					Label: "[i:PvPAdventure/BedOutlinesConfigItem] Beds"
+					Tooltip: Show outlines around team beds
 				}
 
-				BossLoot: {
-					Label: Boss Loot
-					Tooltip: ""
+				Loot: {
+					Label: "[i:PvPAdventure/TreasureBagOutlinesConfigItem] Loot"
+					Tooltip: Show outlines around team boss loot
 				}
 			}
 

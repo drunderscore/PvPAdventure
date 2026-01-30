@@ -62,13 +62,9 @@ public class PlayerOutlines : ModSystem
             if (!playerBounds.Intersects(screenBounds))
                 return;
 
+            // Skip drawing if config says so.
             var adventureClientConfig = ModContent.GetInstance<ClientConfig>();
-
-            if (!adventureClientConfig.PlayerOutline.Self && drawinfo.drawPlayer.whoAmI == Main.myPlayer)
-                return;
-
-            if (!adventureClientConfig.PlayerOutline.Team && team == (Team)Main.LocalPlayer.team &&
-                (!adventureClientConfig.PlayerOutline.Self || drawinfo.drawPlayer.whoAmI != Main.myPlayer))
+            if (!adventureClientConfig.PlayerOutlines)
                 return;
 
             _outlineCallsThisSecond++; // perf counter

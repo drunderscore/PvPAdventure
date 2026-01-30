@@ -29,6 +29,9 @@ public static class PlayerTeamNetHandler
 
             target.team = (int)team.Value;
 
+            // Sync player
+            ModContent.GetInstance<TeamBedSystem>().UpdateFromPlayer(target);
+
             ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
             team.Serialize(packet);

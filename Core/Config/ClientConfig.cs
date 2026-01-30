@@ -11,10 +11,13 @@ public class ClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
-    [Header("PlayerVisualization")]
+    [Header("Outlines")]
     [BackgroundColor(50, 70, 120)]
-    [Expand(false, false)]
-    public PlayerOutlineConfig PlayerOutline = new();
+    [DefaultValue(true)] public bool PlayerOutlines = true;
+    [BackgroundColor(50, 70, 120)]
+    [DefaultValue(true)] public bool BedOutlines = true;
+    [BackgroundColor(50, 70, 120)]
+    [DefaultValue(true)] public bool LootOutlines = true;
 
     [Header("Movement")]
     [BackgroundColor(50, 70, 120)]
@@ -37,12 +40,11 @@ public class ClientConfig : ModConfig
     [DefaultValue(false)] public bool ShowDebugMessages;
 
     #region Configs
-    public class PlayerOutlineConfig
+    public class OutlinesConfig
     {
-        [DefaultValue(true)] public bool Self = true;
-        [DefaultValue(true)] public bool Team = true;
+        [DefaultValue(true)] public bool Players = true;
         [DefaultValue(true)] public bool Beds = true;
-        [DefaultValue(true)] public bool BossLoot = true;
+        [DefaultValue(true)] public bool Loot = true;
     }
     public class SoundEffectConfig
     {
