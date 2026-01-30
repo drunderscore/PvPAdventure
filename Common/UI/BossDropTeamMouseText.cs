@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Loot;
 using PvPAdventure.Common.World.Outlines.ItemOutlines;
+using System;
 using Terraria;
 using Terraria.Enums;
 using Terraria.GameInput;
@@ -36,11 +37,10 @@ internal sealed class BossDropTeamMouseText : ModSystem
 
         Item item = Main.item[idx];
         Team? team = item.GetGlobalItem<BossDropItem>()._team;
+
         if (team.HasValue && team.Value != Team.None)
         {
-            string teamHex = Main.teamColor[(int)team.Value].Hex3();
-            //text = $"{text} [c/{teamHex}:({team.Value} Team)]";
-            text = $"[c/{teamHex}:{text}]";
+            text = WrapPulsingTeamColor(text, team.Value);
 
             if (_lastIdx != idx)
             {
@@ -86,5 +86,29 @@ internal sealed class BossDropTeamMouseText : ModSystem
 
         return false;
     }
+
+    private static string WrapPulsingTeamColor(string text, Team team)
+    {
+        Color baseColor = Main.teamColor[(int)team];
+
+        // Adjust amplitude here.
+        // Smaller amplitude = less pulsing.
+        Color light = Color.Lerp(baseColor, Color.White, 0.20f);
+        Color dark = Color.Lerp(baseColor, Color.Black, 0.12f);
+
+        // adjust speed here.
+        float t = GetPulse01(0.55f); 
+        Color c = Color.Lerp(light, dark, t);
+
+        return $"[c/{c.Hex3()}:{text}]";
+    }
+
+    private static float GetPulse01(float speed)
+    {
+        float time = (float)Main.GlobalTimeWrappedHourly;
+        float s = (float)Math.Sin(time * speed * MathHelper.TwoPi);
+        return (s + 1f) * 0.5f;
+    }
+
 }
 

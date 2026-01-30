@@ -86,7 +86,7 @@ internal sealed class ItemOutlineRenderTarget : ARenderTargetContentByRequest
             return;
 
         // Adjust thickness of outline
-        int step = 3; 
+        int step = 2; 
         int dist = step * 2;
 
         // Draw black

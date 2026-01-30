@@ -46,7 +46,14 @@ internal sealed class BedOutlineTile : GlobalTile
             return true;
 
         Vector2 bedScreenPos = GetBedScreenPos(bedX, bedY, w, h);
-        sb.Draw(renderTarget, bedScreenPos, null, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
+
+        // Fade the outline drawing based on light in the world
+        float fade = GetBedLightFade(bedX, bedY, w, h);
+        if (fade <= 0f)
+            return true;
+        Color drawColor = Color.White * fade;
+
+        sb.Draw(renderTarget, bedScreenPos, null, drawColor, 0f, origin, 1f, SpriteEffects.None, 0f);
 
         return true;
     }
@@ -75,6 +82,42 @@ internal sealed class BedOutlineTile : GlobalTile
         Vector2 pos = worldCenter - Main.screenPosition + off;
 
         return pos;
+    }
+
+    private static float GetBedLightFade(int bedX, int bedY, int w, int h)
+    {
+        int x0 = bedX;
+        int x1 = bedX + w - 1;
+        int y0 = bedY - 1;
+        int y1 = bedY + h - 1;
+
+        float sum = 0f;
+        int n = 0;
+
+        for (int x = x0; x <= x1; x++)
+        {
+            for (int y = y0; y <= y1; y++)
+            {
+                if ((uint)x >= (uint)Main.maxTilesX || (uint)y >= (uint)Main.maxTilesY)
+                    continue;
+
+                Color c = Lighting.GetColor(x, y);
+                sum += (c.R + c.G + c.B) / (255f * 3f);
+                n++;
+            }
+        }
+
+        float avg = n > 0 ? sum / n : 0f;
+
+        const float fadeInAt = 0.01f;  // below this -> 0 alpha
+        const float fullAt = 0.35f;  // above this -> full alpha
+
+        float t = (avg - fadeInAt) / (fullAt - fadeInAt);
+        if (t < 0f) t = 0f;
+        if (t > 1f) t = 1f;
+
+        // Smoothstep for nicer ramp
+        return t * t * (3f - 2f * t);
     }
 
 }
