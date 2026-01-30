@@ -4,9 +4,9 @@ using System;
 using Terraria;
 using Terraria.GameContent;
 
-namespace PvPAdventure.Common.UI.WorldItems;
+namespace PvPAdventure.Common.World.Outlines.ItemOutlines;
 
-internal sealed class WorldItemsOutlineRenderTarget : ARenderTargetContentByRequest
+internal sealed class ItemOutlineRenderTarget : ARenderTargetContentByRequest
 {
     private int _itemType;
     private int _width;

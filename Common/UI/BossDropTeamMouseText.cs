@@ -1,14 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Loot;
+using PvPAdventure.Common.World.Outlines.ItemOutlines;
 using Terraria;
 using Terraria.Enums;
 using Terraria.GameInput;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.UI.WorldItems;
+namespace PvPAdventure.Common.UI;
 
+// Modifies the color of the mouse text for world items dropped for specific teams based on their assigned team.
+// E.g if a boss is killed by Red team, the dropped items will show red text when hovered over.
 [Autoload(Side = ModSide.Client)]
-internal sealed class WorldItemsHoverText : ModSystem
+internal sealed class BossDropTeamMouseText : ModSystem
 {
     private static int _lastIdx = -1;
 
@@ -32,7 +35,7 @@ internal sealed class WorldItemsHoverText : ModSystem
         }
 
         Item item = Main.item[idx];
-        Team? team = item.GetGlobalItem<BossDropPerTeamGlobalItem>()._team;
+        Team? team = item.GetGlobalItem<BossDropItem>()._team;
         if (team.HasValue && team.Value != Team.None)
         {
             string teamHex = Main.teamColor[(int)team.Value].Hex3();

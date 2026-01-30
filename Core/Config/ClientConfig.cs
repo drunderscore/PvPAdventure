@@ -39,10 +39,10 @@ public class ClientConfig : ModConfig
     #region Configs
     public class PlayerOutlineConfig
     {
-        public bool Self = true;
-        public bool Team = true;
-        [DefaultValue(true)]
-        public bool BossItems = true;
+        [DefaultValue(true)] public bool Self = true;
+        [DefaultValue(true)] public bool Team = true;
+        [DefaultValue(true)] public bool Beds = true;
+        [DefaultValue(true)] public bool BossLoot = true;
     }
     public class SoundEffectConfig
     {

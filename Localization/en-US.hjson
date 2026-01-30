@@ -440,6 +440,16 @@ Mods: {
 					Label: Boss Items
 					Tooltip: ""
 				}
+
+				Beds: {
+					Label: Beds
+					Tooltip: ""
+				}
+
+				BossLoot: {
+					Label: Boss Loot
+					Tooltip: ""
+				}
 			}
 
 			SoundEffectConfig: {

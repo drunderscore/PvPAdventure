@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.UI.WorldItems;
+namespace PvPAdventure.Common.World.Outlines.ItemOutlines;
 
+// System that manages lifecycle for render target for GlobalItems.
 [Autoload(Side = ModSide.Client)]
-internal sealed class WorldItemOutlineRenderTargetSystem : ModSystem
+internal sealed class ItemOutlineSystem : ModSystem
 {
     // Store item outlines by key
-    private readonly Dictionary<OutlineKey, WorldItemsOutlineRenderTarget> _cache = [];
+    private readonly Dictionary<OutlineKey, ItemOutlineRenderTarget> _cache = [];
 
     private int _drawsThisSecond;
     private int _secCounter;
@@ -36,9 +37,9 @@ internal sealed class WorldItemOutlineRenderTargetSystem : ModSystem
 
         OutlineKey key = new(type, border.PackedValue, w, h);
 
-        if (!_cache.TryGetValue(key, out WorldItemsOutlineRenderTarget c))
+        if (!_cache.TryGetValue(key, out ItemOutlineRenderTarget c))
         {
-            c = new WorldItemsOutlineRenderTarget();
+            c = new ItemOutlineRenderTarget();
             _cache[key] = c;
             Main.ContentThatNeedsRenderTargets.Add(c);
 
@@ -46,6 +47,8 @@ internal sealed class WorldItemOutlineRenderTargetSystem : ModSystem
             c.UseItem(type, w, h, border);
         }
 
+        // Always request for now (we could cache last used per key if needed but may lead to flickering issues).
+        // This may affect performance negatively.
         c.UseItem(type, w, h, border);
 
         target = c.GetOutlineTarget();

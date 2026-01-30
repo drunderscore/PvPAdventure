@@ -369,6 +369,7 @@ public class SpawnPlayer : ModPlayer
         if (current == lastSpawn)
             return;
 
+        Point prev = lastSpawn; // for logging
         lastSpawn = current;
 
         var packet = Mod.GetPacket();
@@ -377,6 +378,9 @@ public class SpawnPlayer : ModPlayer
         packet.Write(current.X);
         packet.Write(current.Y);
         packet.Send();
+
+        if (Player.whoAmI == Main.myPlayer)
+            Log.Chat($"Bed changed: ({prev.X},{prev.Y}) -> ({current.X},{current.Y})");
     }
 
     private bool ComputeIsPlayerInSpawnRegion(Point tilePos)
