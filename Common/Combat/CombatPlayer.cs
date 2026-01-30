@@ -1,14 +1,11 @@
 ﻿using MonoMod.Cil;
-using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.NPCs;
 using PvPAdventure.Common.Spawnbox;
-using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.Localization;
@@ -20,10 +17,6 @@ namespace PvPAdventure.Common.Combat;
 // Everything combat related, player-side.
 internal class CombatPlayer : ModPlayer
 {
-    private readonly int[] _playerMeleeInvincibleTime = new int[Main.maxPlayers];
-    private int _currentMeleeUseId = 0;
-    private int _lastItemAnimation = 0;
-    private readonly Dictionary<(int attackerWho, int useId), int> _meleeImmuneBySwing = new();
     private static readonly HashSet<short> BossNpcsForImmunityCooldown =
     [
         NPCID.QueenSlimeMinionBlue,
@@ -201,54 +194,6 @@ internal class CombatPlayer : ModPlayer
         Main.persistentBuff[BuffID.WeaponImbueConfetti] = true;
         Main.persistentBuff[BuffID.WeaponImbuePoison] = true;
     }
-    public override bool CanHitPvp(Item item, Player target)
-    {
-        var myRegion = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
-
-        if (myRegion != null && !myRegion.AllowCombat)
-            return false;
-
-        var targetRegion = ModContent.GetInstance<RegionManager>()
-            .GetRegionIntersecting(target.Hitbox.ToTileRectangle());
-
-        if (targetRegion != null && !targetRegion.AllowCombat)
-            return false;
-
-        // Detect new swing RIGHT HERE before collision check
-        //if (Player.itemAnimation > 0 && _lastItemAnimation == 0)
-        //{
-        //    _currentMeleeUseId++;
-        //    _lastItemAnimation = Player.itemAnimation;
-        //}
-
-        var targetAdventurePlayer = target.GetModPlayer<CombatPlayer>();
-
-        // Check if target is immune to THIS specific swing
-        if (targetAdventurePlayer._meleeImmuneBySwing.TryGetValue((Player.whoAmI, _currentMeleeUseId), out var remainingTime) && remainingTime > 0)
-            return false;
-
-        _playerMeleeInvincibleTime[target.whoAmI] =
-            ModContent.GetInstance<ServerConfig>().Immunity.PerPlayerGlobal;
-        var immunityFrames = Player.itemAnimation + 2;
-        targetAdventurePlayer._meleeImmuneBySwing[(Player.whoAmI, _currentMeleeUseId)] = immunityFrames;
-
-        return true;
-    }
-    public override bool CanHitPvpWithProj(Projectile proj, Player target)
-    {
-        var myRegion = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
-
-        if (myRegion != null && !myRegion.AllowCombat)
-            return false;
-
-        var targetRegion = ModContent.GetInstance<RegionManager>()
-            .GetRegionIntersecting(target.Hitbox.ToTileRectangle());
-
-        if (targetRegion != null && !targetRegion.AllowCombat)
-            return false;
-
-        return true;
-    }
 
     public override bool CanBeHitByNPC(NPC npc, ref int cooldownSlot)
     {
@@ -266,17 +211,6 @@ internal class CombatPlayer : ModPlayer
     }
     public override void PreUpdate()
     {
-        if (Player.itemAnimation > 0 && _lastItemAnimation == 0)
-            _currentMeleeUseId++;
-
-        _lastItemAnimation = Player.itemAnimation;
-
-        for (var i = 0; i < _playerMeleeInvincibleTime.Length; i++)
-        {
-            if (_playerMeleeInvincibleTime[i] > 0)
-                _playerMeleeInvincibleTime[i]--;
-        }
-
         for (var i = 0; i < PvPImmuneTime.Length; i++)
         {
             if (PvPImmuneTime[i] > 0)
@@ -288,31 +222,6 @@ internal class CombatPlayer : ModPlayer
             if (GroupImmuneTime[i] > 0)
                 GroupImmuneTime[i]--;
         }
-
-        // Decay melee-per-swing immunity timers and remove expired entries.
-        // Prevents unbounded dictionary growth and ensures swing immunity ends when expected.
-        if (_meleeImmuneBySwing.Count > 0)
-        {
-            List<(int attackerWho, int useId)> expired = null;
-
-            foreach (var key in _meleeImmuneBySwing.Keys)
-            {
-                int t = _meleeImmuneBySwing[key] - 1;
-                _meleeImmuneBySwing[key] = t;
-
-                if (t <= 0)
-                {
-                    expired ??= new();
-                    expired.Add(key);
-                }
-            }
-
-            if (expired != null)
-            {
-                foreach (var key in expired)
-                    _meleeImmuneBySwing.Remove(key);
-            }
-        }
     }
 
     public override void OnHurt(Player.HurtInfo info)
@@ -321,10 +230,6 @@ internal class CombatPlayer : ModPlayer
             return;
 
         var config = ModContent.GetInstance<ServerConfig>();
-
-        // Only play hit markers on clients that we hurt that aren't ourselves
-        if (!Main.dedServ && Player.whoAmI != Main.myPlayer && info.DamageSource.SourcePlayerIndex == Main.myPlayer)
-            PlayHitMarker(info.Damage);
 
         // 1) Per-projectile immunity groups
         if (info.DamageSource.SourceProjectileType != ProjectileID.None &&
@@ -433,10 +338,6 @@ internal class CombatPlayer : ModPlayer
     }
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
-        // Only play kill markers on clients that we hurt that aren't ourselves
-        if (!Main.dedServ && pvp && damageSource.SourcePlayerIndex == Main.myPlayer && Player.whoAmI != Main.myPlayer)
-            PlayKillMarker((int)damage);
-
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
 
@@ -494,19 +395,7 @@ internal class CombatPlayer : ModPlayer
             Player.ClearBuff(BuffID.BeetleMight3);
         }
     }
-
-    private static void PlayHitMarker(int damage)
-    {
-        var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerHitMarker;
-        if (marker != null)
-            SoundEngine.PlaySound(marker.Create(damage));
-    }
-    private static void PlayKillMarker(int damage)
-    {
-        var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerKillMarker;
-        if (marker != null)
-            SoundEngine.PlaySound(marker.Create(damage));
-    }
+    
     private void EditPlayerHurt(ILContext il)
     {
         var cursor = new ILCursor(il);

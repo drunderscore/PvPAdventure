@@ -1,21 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Config;
 using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Combat;
+namespace PvPAdventure.Common.Combat.PvP;
 
-/// <summary>
-/// PvP combat effects applied when the player is hurt.
-/// Includes:
-/// - Volcano projectile spawn when hit by Fiery Greatsword
-/// - Muramasa projectile spawn when hit by Muramasa
-/// - Hit marker sound when hurt by another player
-/// - PvP-specific immunity frames handling
-/// </summary>
-internal class PvPCombatEffectsPlayer : ModPlayer
+internal class PvPVolcanoMuramasaEffects : ModPlayer
 {
     public override void OnHurt(Player.HurtInfo info)
     {
@@ -48,6 +39,8 @@ internal class PvPCombatEffectsPlayer : ModPlayer
                 NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
             }
         }
+
+        // Spawn Muramasa projectile when hit by Muramasa
         if (info.DamageSource.SourceItem != null &&
     info.DamageSource.SourceItem.type == ItemID.Muramasa &&
     Main.netMode != NetmodeID.MultiplayerClient)

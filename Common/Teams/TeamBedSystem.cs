@@ -11,6 +11,8 @@ namespace PvPAdventure.Common.Teams;
 internal sealed class TeamBedSystem : ModSystem
 {
     private readonly Dictionary<Point, TerrariaTeam> bedTeams = [];
+    private readonly Dictionary<Point, int> _bedLastSetter = [];
+    private readonly Dictionary<int, Point> _lastOriginByPlayer = [];
 
     public bool TryGetTeam(Point origin, out TerrariaTeam team) =>
         bedTeams.TryGetValue(origin, out team);
@@ -20,10 +22,14 @@ internal sealed class TeamBedSystem : ModSystem
     {
         if (team == TerrariaTeam.None)
         {
-            bedTeams.Remove(origin);
-            Log.Chat($"Bed at ({origin.X},{origin.Y}) owned by: None");
+            bool changed = bedTeams.Remove(origin) | _bedLastSetter.Remove(origin);
+            if (changed)
+                Log.Chat($"Bed at ({origin.X},{origin.Y}) owned by: None");
             return;
         }
+
+        if (bedTeams.TryGetValue(origin, out TerrariaTeam prev) && prev == team)
+            return;
 
         bedTeams[origin] = team;
         Log.Chat($"Bed at ({origin.X},{origin.Y}) owned by: {team}");
@@ -35,33 +41,67 @@ internal sealed class TeamBedSystem : ModSystem
         if (Main.netMode == NetmodeID.MultiplayerClient || p == null || !p.active)
             return;
 
+        int pid = p.whoAmI;
+        _lastOriginByPlayer.TryGetValue(pid, out Point prevOrigin);
+
         int sx = p.SpawnX;
         int sy = p.SpawnY;
 
-        if (sx < 0 || sy < 0 || !Player.CheckSpawn(sx, sy))
-            return;
+        Point origin = default;
 
-        if (!TryFindBedOrigin(sx, sy, out Point origin))
+        bool hasSpawn = sx >= 0 && sy >= 0 && Player.CheckSpawn(sx, sy);
+        bool hasOrigin = hasSpawn && TryFindBedOrigin(sx, sy, out origin);
+
+        if (!hasOrigin)
+        {
+            _lastOriginByPlayer[pid] = new Point(-1, -1);
+
+            if (prevOrigin.X >= 0)
+                TryClearIfOwnedByPlayer(prevOrigin, pid);
+
             return;
+        }
+
+        _lastOriginByPlayer[pid] = origin;
+
+        if (prevOrigin.X >= 0 && prevOrigin != origin)
+            TryClearIfOwnedByPlayer(prevOrigin, pid);
 
         TerrariaTeam team = (TerrariaTeam)p.team;
 
-        bool changed;
         if (team == TerrariaTeam.None)
         {
-            changed = bedTeams.Remove(origin);
-        }
-        else
-        {
-            changed = !bedTeams.TryGetValue(origin, out TerrariaTeam prev) || prev != team;
-            if (changed)
-                bedTeams[origin] = team;
+            TryClearIfOwnedByPlayer(origin, pid);
+            return;
         }
 
-        if (!changed)
+        if (bedTeams.TryGetValue(origin, out TerrariaTeam prevTeam) && prevTeam == team)
+        {
+            _bedLastSetter[origin] = pid;
+            return;
+        }
+
+        bedTeams[origin] = team;
+        _bedLastSetter[origin] = pid;
+        SendUpdate(origin, team);
+    }
+
+
+    private void TryClearIfOwnedByPlayer(Point origin, int pid)
+    {
+        if (!_bedLastSetter.TryGetValue(origin, out int owner) || owner != pid)
             return;
 
-        Log.Chat($"Bed at ({origin.X},{origin.Y}) owned by: {(team == TerrariaTeam.None ? "None" : team.ToString())}");
+        if (!bedTeams.Remove(origin))
+            return;
+
+        _bedLastSetter.Remove(origin);
+        SendUpdate(origin, TerrariaTeam.None);
+    }
+
+    private void SendUpdate(Point origin, TerrariaTeam team)
+    {
+        //Log.Chat($"Bed at ({origin.X},{origin.Y}) owned by: {(team == TerrariaTeam.None ? "None" : team.ToString())}");
 
         if (Main.netMode == NetmodeID.Server)
         {
@@ -72,13 +112,14 @@ internal sealed class TeamBedSystem : ModSystem
             packet.Write(origin.Y);
             packet.Write((byte)team);
             packet.Send();
+            return;
         }
-        else
-        {
-            // Singleplayer: apply locally
-            SetFromNet(origin, team);
-        }
+
+        SetFromNet(origin, team);
     }
+
+
+
 
     public override void OnWorldUnload() => bedTeams.Clear();
 

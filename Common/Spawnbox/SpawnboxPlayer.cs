@@ -118,6 +118,22 @@ internal class SpawnboxPlayer : ModPlayer
         return true;
     }
 
+    public override bool CanHitPvpWithProj(Projectile proj, Player target)
+    {
+        var myRegion = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
+
+        if (myRegion != null && !myRegion.AllowCombat)
+            return false;
+
+        var targetRegion = ModContent.GetInstance<RegionManager>()
+            .GetRegionIntersecting(target.Hitbox.ToTileRectangle());
+
+        if (targetRegion != null && !targetRegion.AllowCombat)
+            return false;
+
+        return true;
+    }
+
     public override void PostHurt(Player.HurtInfo info)
     {
         //if (ItemBalance.RecallItems[Player.inventory[Player.selectedItem].type])

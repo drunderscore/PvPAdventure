@@ -29,9 +29,11 @@ internal sealed class BedOutlineTile : GlobalTile
         if (i != bedX || j != bedY)
             return true;
 
-        Team team = GetBedTeam(bedX, bedY);
-        if (team == Team.None)
+        // get the team that owns the bed at the given position.
+        if (!ModContent.GetInstance<TeamBedSystem>().TryGetTeam(new Point(bedX, bedY), out Team team) || team == Team.None)
+        {
             return true;
+        }
 
         Color border = Main.teamColor[(int)team];
         border.A = 255;
@@ -49,7 +51,7 @@ internal sealed class BedOutlineTile : GlobalTile
         return true;
     }
 
-    // Retrieves the top left tile position of the bed in the world.
+    // Retrieves the top left tile position (origin) of the bed in the world.
     private Point GetBedTileWorldPos(int i, int j)
     {
         Tile t = Main.tile[i, j];
@@ -73,20 +75,6 @@ internal sealed class BedOutlineTile : GlobalTile
         Vector2 pos = worldCenter - Main.screenPosition + off;
 
         return pos;
-    }
-
-    // Retrieves the team that owns the bed at the given position.
-    private static Team GetBedTeam(int bedX, int bedY)
-    {
-        // debug: always draw local player team.
-        //return (Team)Main.LocalPlayer.team;
-
-        var teamBeds = ModContent.GetInstance<TeamBedSystem>();
-        if (!teamBeds.TryGetTeam(new Point(bedX, bedY), out Team team) || team == Team.None)
-        {
-            return Team.None;
-        }
-        return team;
     }
 
 }

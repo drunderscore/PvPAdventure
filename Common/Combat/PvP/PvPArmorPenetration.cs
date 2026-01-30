@@ -4,9 +4,9 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Combat;
+namespace PvPAdventure.Common.Combat.PvP;
 
-internal class ArmorPenetrationPlayer : ModPlayer
+internal class PvPArmorPenetration : ModPlayer
 {
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {

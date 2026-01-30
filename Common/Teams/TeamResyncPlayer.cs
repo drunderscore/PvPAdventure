@@ -29,6 +29,7 @@ public class TeamResyncPlayer : ModPlayer
 
     public override void PostUpdate()
     {
+
         if (!_pendingResync || Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
@@ -43,6 +44,7 @@ public class TeamResyncPlayer : ModPlayer
 
         // Send current team to server
         new Team((byte)Player.whoAmI, (Terraria.Enums.Team)Player.team).Serialize(packet);
+        Log.Chat("Team sync: " + Player.name + ": " + Player.team);
 
         packet.Send();
     }
