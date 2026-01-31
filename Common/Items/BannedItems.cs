@@ -24,7 +24,22 @@ public class BannedItems : GlobalItem
         }
         else if (item.type == ItemID.QueenSlimeCrystal)
         {
-            if (isUnderground && isHallow)
+            if (isUnderground)
+                return false;
+        }
+        else if (item.type == ItemID.MechanicalEye)
+        {
+            if (isUnderground)
+                return false;
+        }
+        else if (item.type == ItemID.MechanicalSkull)
+        {
+            if (isUnderground)
+                return false;
+        }
+        else if (item.type == ItemID.MechanicalWorm)
+        {
+            if (isUnderground)
                 return false;
         }
 
