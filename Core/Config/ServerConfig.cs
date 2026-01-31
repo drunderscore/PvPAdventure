@@ -1,8 +1,10 @@
+using Newtonsoft.Json.Converters;
 using PvPAdventure.Common.Combat;
 using PvPAdventure.Core.Config.ConfigElements;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -117,8 +119,9 @@ public class ServerConfig : ModConfig
     public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
 
     [BackgroundColor(40, 90, 40)]
-    [DefaultValue(true)]
-    public bool ShowPlayerTeamAndPvP { get; set; } = true;
+    [DefaultValue(AllowMode.BeforeGameStart)]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public AllowMode AllowPlayersToChangeTeam { get; set; } = AllowMode.BeforeGameStart;
 
     [Header("WorldGen")]
     [BackgroundColor(90, 70, 40)]
@@ -153,6 +156,7 @@ public class ServerConfig : ModConfig
         [DefaultValue(5)]
         public int TeamStartingPoints { get; set; } = 5;
     }
+    
     public class BountiesConfig
     {
         [Expand(false, false)]
@@ -341,6 +345,12 @@ public class ServerConfig : ModConfig
     public class InvasionSizeValue
     {
         [Range(0, 1000)] public int Value { get; set; }
+    }
+    public enum AllowMode
+    {
+        Always,
+        BeforeGameStart,
+        Never
     }
     #endregion
 

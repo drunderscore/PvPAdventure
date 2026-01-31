@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Core.Config;
 using System.IO;
 using Terraria;
@@ -30,14 +31,33 @@ internal class DisablePvPIcons : ModSystem
         On_Main.DrawPVPIcons += ModifyDrawPvPIcons;
     }
 
-    private void ModifyDrawPvPIcons(On_Main.orig_DrawPVPIcons orig)
+    private bool Enabled()
     {
         var config = ModContent.GetInstance<ServerConfig>();
-        if (!config.ShowPlayerTeamAndPvP)
-        {
-            return;
-        }
 
+        bool allow = true;
+
+        if (config.AllowPlayersToChangeTeam == ServerConfig.AllowMode.Never)
+            allow = false;
+
+        bool hasGameStarted = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+
+        if (config.AllowPlayersToChangeTeam == ServerConfig.AllowMode.BeforeGameStart && hasGameStarted)
+            allow = false;
+
+        if (!allow)
+            return false;
+
+        return true;
+    }
+
+    private void ModifyDrawPvPIcons(On_Main.orig_DrawPVPIcons orig)
+    {
+        if (!Enabled())
+            return;
+
+        // Full vanilla implementation below,
+        // except the PvP toggle is disabled.
         if (Main.EquipPage == 1)
         {
             if (Main.hidePVPIcons)
@@ -73,7 +93,16 @@ internal class DisablePvPIcons : ModSystem
                 SoundEngine.PlaySound(12);
                 //Main.player[Main.myPlayer].hostile = !Main.player[Main.myPlayer].hostile;
                 //NetMessage.SendData(30, -1, -1, null, Main.myPlayer);
-                Main.NewText("PvP always enabled!", Color.Yellow);
+                bool hasGameStarted = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+                if (!hasGameStarted)
+                {
+                    Main.NewText("PvP disabled until the game starts.", Color.Yellow);
+                }
+                else
+                {
+                    Main.NewText("PvP enabled!", Color.Yellow);
+                }
+
             }
         }
         Rectangle rectangle = TextureAssets.Pvp[0].Frame(4, 6);
@@ -125,9 +154,8 @@ internal class DisablePvPIcons : ModSystem
         }
     }
 
-    //public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
-    //{
-    //    return PreventPersonalCombatModifications && Main.dedServ &&
-    //           (messageType is MessageID.TogglePVP or MessageID.PlayerTeam);
-    //}
+    public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
+    {
+        return Main.dedServ && (messageType is MessageID.TogglePVP or MessageID.PlayerTeam);
+    }
 }

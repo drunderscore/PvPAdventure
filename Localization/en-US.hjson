@@ -715,8 +715,8 @@ Mods: {
 					Tooltip: Number of seconds taken to complete a recall
 				}
 
-				ShowPlayerTeamAndPvP: {
-					Label: "[i:PvPAdventure/TeamConfigItem] Allow Players To Select Teams"
+				AllowPlayersToChangeTeam: {
+					Label: "[i:PvPAdventure/TeamConfigItem] Allow Players To Change Teams"
 					Tooltip: Shows the UI that lets players pick a team
 				}
 
@@ -1552,6 +1552,25 @@ Mods: {
 
 				Stack: {
 					Label: Stack
+					Tooltip: ""
+				}
+			}
+
+			AllowMode: {
+				Tooltip: ""
+
+				Always: {
+					Label: Always
+					Tooltip: ""
+				}
+
+				BeforeGameStart: {
+					Label: Before Game Start
+					Tooltip: ""
+				}
+
+				Never: {
+					Label: Never
 					Tooltip: ""
 				}
 			}
