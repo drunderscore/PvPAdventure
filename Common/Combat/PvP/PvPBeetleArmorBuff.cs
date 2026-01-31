@@ -1,10 +1,11 @@
+﻿using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Combat;
+namespace PvPAdventure.Common.Combat.PvP;
 
-public class CombatBuff : GlobalBuff
+public class PvPBeetleArmorBuff : GlobalBuff
 {
     public override void Update(int type, Player player, ref int buffIndex)
     {
@@ -43,29 +44,13 @@ public class CombatBuff : GlobalBuff
     public override bool RightClick(int type, int buffIndex)
     {
         // Prevent dismissing buffs that are automated.
-        if (type is BuffID.BeetleMight1 or BuffID.BeetleMight2 or BuffID.BeetleMight3)
-            return false;
+        //if (type is BuffID.BeetleMight1 or BuffID.BeetleMight2 or BuffID.BeetleMight3)
+        //{
+        //    Main.NewText("Cannot cancel Beetle Might.", Color.Yellow);
+        //    return false;
+        //}
 
         return true;
     }
-    public class BuffTextChange : GlobalBuff
-    {
-        public override void ModifyBuffText(int type, ref string buffName, ref string tip, ref int rare)
-        {
-            if (type == BuffID.Archery)
-            {
-                tip = "20% increased arrow speed\nNo longer grants bow damage";
-            }
-        }
-    }
-    public class ArcheryNerf : GlobalItem
-    {
-        public override void ModifyWeaponDamage(Item item, Player player, ref StatModifier damage)
-        {
-            if (player.HasBuff(BuffID.Archery) && item.useAmmo == AmmoID.Arrow)
-            {
-                damage /= 1.1f;
-            }
-        }
-    }
 }
+

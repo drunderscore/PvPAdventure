@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using MonoMod.Cil;
 using PvPAdventure.Core.Config;
 using System;
 using Terraria;
@@ -10,15 +11,16 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.Combat;
 
 /// <summary>
-/// PvP combat effects applied when players are hurt or killed.
-/// Includes:
-/// - Volcano projectile spawn when hit by Fiery Greatsword
-/// - Muramasa projectile spawn when hit by Muramasa
 /// - Hit marker sound when hurt by another player
-/// - PvP-specific immunity frames handling
 /// </summary>
 internal class HitMarkerSounds : ModPlayer
 {
+    public override void Load()
+    {
+        // Allow player hurt sound to be silenced or not, without regards to the networked value or mutating it.
+        IL_Player.Hurt_HurtInfo_bool += EditPlayerHurt;
+    }
+
     public override void OnHurt(Player.HurtInfo info)
     {
         if (!info.PvP)
@@ -47,5 +49,33 @@ internal class HitMarkerSounds : ModPlayer
         var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerKillMarker;
         if (marker != null)
             SoundEngine.PlaySound(marker.Create(damage));
+    }
+
+    private void EditPlayerHurt(ILContext il)
+    {
+        var cursor = new ILCursor(il);
+
+        // Find the load of Player.HurtInfo.SoundDisabled...
+        cursor.GotoNext(i => i.MatchLdfld<Player.HurtInfo>("SoundDisabled"))
+            // ...and remove it...
+            .Remove()
+            // ...emitting a load of argument 0 (this)...
+            .EmitLdarg0()
+            // ...and a delegate, whose return value will take the place of the above-removed load.
+            .EmitDelegate((Player.HurtInfo hurtInfo, Player target) =>
+                ShouldSilenceHurtSound(target, hurtInfo) ?? hurtInfo.SoundDisabled);
+    }
+    private static bool? ShouldSilenceHurtSound(Player target, Player.HurtInfo info)
+    {
+        // Only silence hurt sound on clients that we hurt that aren't ourselves
+        if (!Main.dedServ && info.PvP && target.whoAmI != Main.myPlayer &&
+            info.DamageSource.SourcePlayerIndex == Main.myPlayer)
+        {
+            var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerHitMarker;
+            if (marker != null && marker.SilenceVanilla)
+                return true;
+        }
+
+        return null;
     }
 }

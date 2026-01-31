@@ -35,26 +35,6 @@ internal class PreventHotswapPlayer : ModPlayer
 
         hadPhilostoneLastFrame = hasPhilostone;
 
-
-        if (Player.beetleOffense)
-        {
-            Player.GetDamage<MeleeDamageClass>() += 0;
-            Player.GetAttackSpeed<MeleeDamageClass>() += 0;
-        }
-        else
-        {
-            // If we don't have the beetle offense set bonus, remove all possible buffs.
-            Player.ClearBuff(BuffID.BeetleMight1);
-            Player.ClearBuff(BuffID.BeetleMight2);
-            Player.ClearBuff(BuffID.BeetleMight3);
-        }
-
-        if (Player.HasBuff(BuffID.BeetleMight3))
-        {
-            // we apply the glowing eye effect from Yoraiz0rsSpell item
-            Player.yoraiz0rEye = 33;
-        }
-
         if (Player.hasPaladinShield)
         {
             Player.buffImmune[BuffID.PaladinsShield] = true;

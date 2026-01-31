@@ -65,13 +65,9 @@ public class ItemTooltips : GlobalItem
                 }
             }
         }
-    }
-}
-public class ItemTextChanges : GlobalItem
-{
-    public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
-    {
-        if (item.type == ItemID.BeetleScaleMail || item.type == ItemID.BeetleShell)
+
+        // Possible EJ changes below
+        if (item.type == ItemID.BeetleScaleMail)
         {
             TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
             if (setBonusLine != null)

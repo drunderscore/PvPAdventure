@@ -1,9 +1,10 @@
-﻿using PvPAdventure.Core.Config;
+﻿using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.WorldGenChanges;
+namespace PvPAdventure.Common.WorldGenChanges.Erky;
 
 [Autoload(Side = ModSide.Client)]
 internal sealed class ChlorophyteDebug : ModSystem
@@ -52,7 +53,6 @@ internal sealed class ChlorophyteDebug : ModSystem
         if (Main.gameMenu)
             return;
 
-        // Incremental full-world scan (avoid hitching).
         const int tilesPerTick = 6000;
         int scanned = 0;
         double deepGate = (Main.worldSurface + Main.rockLayer) / 2.0;
@@ -111,15 +111,34 @@ internal sealed class ChlorophyteDebug : ModSystem
             _scanDeepJungleGrass = 0;
         }
 
-        // Exactly once per minute.
-        if (Main.GameUpdateCount % 60*60 != 0)
+        // Exactly once per minute by default.
+        if (Main.GameUpdateCount % (60 * 60) != 0)
             return;
+
+        bool isPlaying = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+        bool isHardmode = Main.hardMode;
+        bool oneMechDefeated = NPC.downedMechBoss1 || NPC.downedMechBoss2 || NPC.downedMechBoss3;
+        bool canChloroSpawn = isPlaying && isHardmode && oneMechDefeated;
+
+        if (!canChloroSpawn)
+        {
+            string reason = false switch
+            {
+                _ when !isPlaying => "game phase is not Playing",
+                _ when !isHardmode => "world is not Hardmode",
+                _ when !oneMechDefeated => "no mechanical boss defeated",
+                _ => "unknown"
+            };
+
+            Log.Chat($"Chloro cannot spawn. Reason: {reason}");
+            return;
+        }
 
         var cfg = ModContent.GetInstance<ServerConfig>().WorldGeneration;
 
-        int seedDen = cfg.ChlorophyteGrowChanceModifier < 1 ? 1 : cfg.ChlorophyteGrowChanceModifier;
-        int spreadN = cfg.ChlorophyteSpreadChanceModifier < 1 ? 1 : cfg.ChlorophyteSpreadChanceModifier;
-        int limit = cfg.ChlorophyteGrowLimitModifier < 1 ? 1 : cfg.ChlorophyteGrowLimitModifier;
+        int seedDen = cfg.ChlorophyteGrowChanceModifier;
+        int spreadN = cfg.ChlorophyteSpreadChanceModifier;
+        int limit = cfg.ChlorophyteGrowLimitModifier;
 
         float seedChance = 1f / seedDen;
         float spreadAttemptChance = spreadN == 1 ? 0f : (spreadN - 1f) / spreadN;

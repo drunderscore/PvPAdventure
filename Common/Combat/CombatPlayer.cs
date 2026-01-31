@@ -14,7 +14,9 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Combat;
 
-// Everything combat related, player-side.
+/// <summary>
+/// 
+/// </summary>
 internal class CombatPlayer : ModPlayer
 {
     private static readonly HashSet<short> BossNpcsForImmunityCooldown =
@@ -51,38 +53,17 @@ internal class CombatPlayer : ModPlayer
 
     public override void Load()
     {
-        On_Player.HasUnityPotion += OnPlayerHasUnityPotion;
-
+        // Forcibly treat deaths as non-PvP for coin drop logic.
         IL_Player.KillMe += EditPlayerKillMe;
+
         // Always consider the respawn time for non-pvp deaths.
         On_Player.GetRespawnTime += OnPlayerGetRespawnTime;
         On_Player.Spawn += OnPlayerSpawn;
 
-        // Allow player hurt sound to be silenced or not, without regards to the networked value or mutating it.
-        IL_Player.Hurt_HurtInfo_bool += EditPlayerHurt;
-
         // Modify the damage dealt by the entire wall from the Wall of Flesh to use ImmunityCooldownID.Bosses
         IL_Player.WOFTongue += EditPlayerWOFTongue;
-
-        // Remove logic for handling Beetle Might buffs.
-        IL_Player.UpdateBuffs += EditPlayerUpdateBuffs;
-        // Simplify logic for handling Beetle Scale Mail set bonus to do the bare minimum required.
-        IL_Player.UpdateArmorSets += EditPlayerUpdateArmorSets;
     }
-    private bool OnPlayerHasUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)
-    {
-        var region = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(self.Hitbox.ToTileRectangle());
 
-        // By default, you cannot wormhole.
-        if (region == null || !region.CanUseWormhole)
-            return false;
-
-        // This is now a possibility from our multiplayer pause.
-        if (Main.gamePaused)
-            return false;
-
-        return orig(self);
-    }
     private int OnPlayerGetRespawnTime(On_Player.orig_GetRespawnTime orig, Player self, bool pvp) => orig(self, false);
 
     private void OnPlayerSpawn(On_Player.orig_Spawn orig, Player self, PlayerSpawnContext context)
@@ -90,6 +71,7 @@ internal class CombatPlayer : ModPlayer
         // Don't count this as a PvP death.
         self.pvpDeath = false;
         orig(self, context);
+
         // Remove immune and immune time applied during spawn.
         var adventureConfig = ModContent.GetInstance<ServerConfig>();
         self.immuneTime = adventureConfig.SpawnImmuneFrames;
@@ -123,56 +105,8 @@ internal class CombatPlayer : ModPlayer
             .EmitLdcI4(ImmunityCooldownID.Bosses);
     }
 
-    private void EditPlayerUpdateBuffs(ILContext il)
-    {
-        var cursor = new ILCursor(il);
-
-        ILLabel label = null;
-        // First, find a load of Player.buffType that is somewhere followed by a load of BuffID.BeetleMight1 and a blt
-        // instruction...
-        cursor.GotoNext(i =>
-            i.MatchLdfld<Player>("buffType") && i.Next.Next.Next.MatchLdcI4(98) &&
-            i.Next.Next.Next.Next.MatchBlt(out label));
-
-        // ...and go back to the "this" load...
-        cursor.Index -= 1;
-        // ...while ensuring that instructions removed and emitted are labeled correctly...
-        cursor.MoveAfterLabels();
-        // ...to emit a branch to the fail case.
-        cursor.EmitBr(label);
-    }
-
-    private void EditPlayerUpdateArmorSets(ILContext il)
-    {
-        var cursor = new ILCursor(il);
-
-        // Find a load to a string...
-        cursor.GotoNext(i => i.MatchLdstr("ArmorSetBonus.BeetleDamage"));
-        // ...and go back to the branch instruction...
-        cursor.Index -= 4;
-
-        // ...to grab it's label...
-        var label = (ILLabel)cursor.Next!.Operand;
-        cursor.Index += 1;
-
-        // ...and prepare a delegate call, doing the bare minimum for set bonus functionality...
-        cursor.EmitLdarg0();
-        cursor.EmitDelegate((Player self) =>
-        {
-            self.setBonus = Language.GetTextValue("ArmorSetBonus.BeetleDamage");
-            self.beetleOffense = true;
-        });
-        // ...then branch away so we skip the original code.
-        cursor.EmitBr(label);
-    }
-
     public override void SetStaticDefaults()
     {
-        // Beetle Might buffs last forever until death.
-        BuffID.Sets.TimeLeftDoesNotDecrease[BuffID.BeetleMight1] = true;
-        BuffID.Sets.TimeLeftDoesNotDecrease[BuffID.BeetleMight2] = true;
-        BuffID.Sets.TimeLeftDoesNotDecrease[BuffID.BeetleMight3] = true;
-
         Main.persistentBuff[BuffID.WeaponImbueVenom] = false;
         Main.persistentBuff[BuffID.WeaponImbueCursedFlames] = false;
         Main.persistentBuff[BuffID.WeaponImbueFire] = false;
@@ -207,6 +141,7 @@ internal class CombatPlayer : ModPlayer
     public override void ResetEffects()
     {
         // FIXME: This does not truly belong here.
+        // This sets PvP enabled for the player every tick.
         Player.hostile = true;
     }
     public override void PreUpdate()
@@ -254,7 +189,6 @@ internal class CombatPlayer : ModPlayer
 
                 if (frames > 0)
                     PvPImmuneTime[attacker] = frames;
-                // If frames == 0, do nothing: immunity remains 0, meaning "no global immunity"
             }
         }
     }
@@ -322,7 +256,6 @@ internal class CombatPlayer : ModPlayer
                 falloffConfig.Default.CalculateMultiplier(tileDistance);
         }
     }
-
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genDust,
         ref PlayerDeathReason damageSource)
     {
@@ -340,21 +273,6 @@ internal class CombatPlayer : ModPlayer
     {
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
-
-        // Only for non-suicide PvP deaths, apply Beetle Might as needed to the attacker.
-        if (pvp && damageSource.SourcePlayerIndex != Player.whoAmI)
-        {
-            var attacker = Main.player[damageSource.SourcePlayerIndex];
-
-            if (attacker.beetleOffense && attacker.beetleOrbs < 3)
-            {
-                // First, make sure to clear any previous buff if applicable.
-                if (attacker.beetleOrbs > 0)
-                    attacker.ClearBuff(BuffID.BeetleMight1 + attacker.beetleOrbs - 1);
-
-                attacker.AddBuff(BuffID.BeetleMight1 + attacker.beetleOrbs, 5);
-            }
-        }
 
         // Remove the Dungeon Guardian when it kills a player.
         if (damageSource.SourceNPCIndex != -1)
@@ -385,42 +303,6 @@ internal class CombatPlayer : ModPlayer
             Player.lifeRegen += 18;
         }
     }
-    public override void PostUpdateEquips()
-    {
-        if (!Player.beetleOffense)
-        {
-            // If we don't have the beetle offense set bonus, remove all possible buffs.
-            Player.ClearBuff(BuffID.BeetleMight1);
-            Player.ClearBuff(BuffID.BeetleMight2);
-            Player.ClearBuff(BuffID.BeetleMight3);
-        }
-    }
     
-    private void EditPlayerHurt(ILContext il)
-    {
-        var cursor = new ILCursor(il);
-
-        // Find the load of Player.HurtInfo.SoundDisabled...
-        cursor.GotoNext(i => i.MatchLdfld<Player.HurtInfo>("SoundDisabled"))
-            // ...and remove it...
-            .Remove()
-            // ...emitting a load of argument 0 (this)...
-            .EmitLdarg0()
-            // ...and a delegate, whose return value will take the place of the above-removed load.
-            .EmitDelegate((Player.HurtInfo hurtInfo, Player target) =>
-                ShouldSilenceHurtSound(target, hurtInfo) ?? hurtInfo.SoundDisabled);
-    }
-    private static bool? ShouldSilenceHurtSound(Player target, Player.HurtInfo info)
-    {
-        // Only silence hurt sound on clients that we hurt that aren't ourselves
-        if (!Main.dedServ && info.PvP && target.whoAmI != Main.myPlayer &&
-            info.DamageSource.SourcePlayerIndex == Main.myPlayer)
-        {
-            var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerHitMarker;
-            if (marker != null && marker.SilenceVanilla)
-                return true;
-        }
-
-        return null;
-    }
+    
 }
