@@ -1,6 +1,6 @@
 {
   "StartLife": 200,
-  "StartMana": 80,
+  "StartMana": 100,
   "StartItems": [
     {
       "Item": {
@@ -16,16 +16,9 @@
     },
     {
       "Item": {
-        "Name": "Bed",
-        "DisplayName": "Bed"
+        "Name": "CopperShortsword",
+        "DisplayName": "Copper Shortsword"
       }
-    },
-    {
-      "Item": {
-        "Name": "Torch",
-        "DisplayName": "Torch"
-      },
-      "Stack": 15
     },
     {
       "Item": {
@@ -36,8 +29,22 @@
     },
     {
       "Item": {
+        "Name": "Torch",
+        "DisplayName": "Torch"
+      },
+      "Stack": 20
+    },
+    {
+      "Item": {
+        "Mod": "PvPAdventure",
         "Name": "AdventureMirror",
         "DisplayName": "Adventure Mirror"
+      }
+    },
+    {
+      "Item": {
+        "Name": "Bed",
+        "DisplayName": "Bed"
       }
     }
   ]

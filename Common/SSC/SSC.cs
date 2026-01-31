@@ -213,8 +213,6 @@ public class SSC : ModSystem
         }
     }
 
-    
-
     private static void CreateNewPlayer(string plrPath, string name, PlayerAppearance appearance)
     {
         // Create a brand new empty player on the server

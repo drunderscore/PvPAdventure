@@ -1,0 +1,1170 @@
+{
+  "Points": {
+    "Npc": {
+      "Terraria/Golem": {
+        "First": 4,
+        "Additional": 4,
+        "Repeatable": true
+      },
+      "Terraria/CultistBoss": {
+        "First": 25,
+        "Additional": 25,
+        "Repeatable": true
+      },
+      "Terraria/DukeFishron": {
+        "First": 10,
+        "Additional": 10,
+        "Repeatable": true
+      },
+      "Terraria/HallowBoss": {
+        "First": 10,
+        "Additional": 10,
+        "Repeatable": true
+      },
+      "Terraria/Plantera": {
+        "First": 4,
+        "Additional": 4,
+        "Repeatable": true
+      },
+      "Terraria/MartianSaucerCore": {
+        "First": 4,
+        "Additional": 4,
+        "Repeatable": true
+      }
+    },
+    "Boss": {
+      "First": 2,
+      "Additional": 2
+    },
+    "PlayerKill": 2
+  },
+  "Bounties": {
+    "ClaimableItems": [
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "HermesBoots",
+              "DisplayName": "Hermes Boots"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {}
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "LifeCrystal",
+              "DisplayName": "Life Crystal"
+            },
+            "Stack": 2
+          }
+        ],
+        "Conditions": {}
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "WormholePotion",
+              "DisplayName": "Wormhole Potion"
+            },
+            "Stack": 3
+          }
+        ],
+        "Conditions": {}
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "GuideVoodooDoll",
+              "DisplayName": "Guide Voodoo Doll"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2,
+          "SkeletronPrimeDefeated": true,
+          "TwinsDefeated": true,
+          "DestroyerDefeated": true,
+          "PlanteraDefeated": true
+        }
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "Hellforge",
+              "DisplayName": "Hellforge"
+            },
+            "Prefix": {
+              "Name": "Precise",
+              "DisplayName": "Precise"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2
+        }
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "SoulofSight",
+              "DisplayName": "Soul of Sight"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2,
+          "CollectedAllMechanicalBossSouls": true
+        }
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "SoulofMight",
+              "DisplayName": "Soul of Might"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2,
+          "CollectedAllMechanicalBossSouls": true
+        }
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "SoulofFright",
+              "DisplayName": "Soul of Fright"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2,
+          "CollectedAllMechanicalBossSouls": true
+        }
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "LifeFruit",
+              "DisplayName": "Life Fruit"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2,
+          "PlanteraDefeated": true
+        }
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "RottenChunk",
+              "DisplayName": "Rotten Chunk"
+            },
+            "Stack": 3
+          },
+          {
+            "Item": {
+              "Name": "VileMushroom",
+              "DisplayName": "Vile Mushroom"
+            },
+            "Stack": 1
+          },
+          {
+            "Item": {
+              "Name": "Lens",
+              "DisplayName": "Lens"
+            },
+            "Stack": 2
+          },
+          {
+            "Item": {
+              "Name": "Bone",
+              "DisplayName": "Bone"
+            },
+            "Stack": 10
+          },
+          {
+            "Item": {
+              "Name": "IronBar",
+              "DisplayName": "Iron Bar"
+            },
+            "Stack": 5
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2,
+          "SkeletronPrimeDefeated": true,
+          "TwinsDefeated": true,
+          "DestroyerDefeated": true
+        }
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "Teacup",
+              "DisplayName": "Teacup"
+            },
+            "Stack": 3
+          }
+        ],
+        "Conditions": {}
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "CloudinaBottle",
+              "DisplayName": "Cloud in a Bottle"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {}
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "GrapplingHook",
+              "DisplayName": "Grappling Hook"
+            },
+            "Stack": 1
+          }
+        ],
+        "Conditions": {}
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "SoulofLight",
+              "DisplayName": "Soul of Light"
+            },
+            "Stack": 2
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2
+        }
+      },
+      {
+        "Items": [
+          {
+            "Item": {
+              "Name": "SoulofNight",
+              "DisplayName": "Soul of Night"
+            },
+            "Stack": 2
+          }
+        ],
+        "Conditions": {
+          "WorldProgression": 2
+        }
+      }
+    ]
+  },
+  "InvasionSizes": {
+    "1": {
+      "Value": 250
+    },
+    "3": {
+      "Value": 150
+    },
+    "4": {
+      "Value": 500
+    }
+  },
+  "WeaponBalance": {
+    "Damage": {
+      "ItemDamage": {
+        "Terraria/Tsunami": 0.38,
+        "Terraria/StaffofEarth": 0.78,
+        "Terraria/ChlorophyteShotbow": 1.0,
+        "Terraria/FairyQueenRangedItem": 0.48999998,
+        "Terraria/MaceWhip": 0.45,
+        "Terraria/HeatRay": 0.39999998,
+        "Terraria/SniperRifle": 0.39999998,
+        "Terraria/ShadowbeamStaff": 0.68,
+        "Terraria/ToxicFlask": 0.5,
+        "Terraria/LaserMachinegun": 0.37,
+        "Terraria/Xenopopper": 0.0,
+        "Terraria/ProximityMineLauncher": 0.11,
+        "Terraria/ChargedBlasterCannon": 0.5,
+        "Terraria/TheEyeOfCthulhu": 0.57,
+        "Terraria/Kraken": 0.62,
+        "Terraria/VenusMagnum": 0.66999996,
+        "Terraria/PirateStaff": 0.79999995,
+        "Terraria/DaedalusStormbow": 0.59999996,
+        "Terraria/SoulDrain": 0.0,
+        "Terraria/MeteorStaff": 1.0,
+        "Terraria/DD2SquireBetsySword": 1.0,
+        "Terraria/StaffoftheFrostHydra": 0.0,
+        "Terraria/DD2BallistraTowerT3Popper": 0.0,
+        "Terraria/DD2BallistraTowerT2Popper": 0.0,
+        "Terraria/DD2BallistraTowerT1Popper": 0.0,
+        "Terraria/DD2FlameburstTowerT3Popper": 0.0,
+        "Terraria/DD2FlameburstTowerT2Popper": 0.0,
+        "Terraria/DD2FlameburstTowerT1Popper": 0.0,
+        "Terraria/RainbowRod": 0.75,
+        "Terraria/TempestStaff": 0.61,
+        "Terraria/CursedFlames": 1.0,
+        "Terraria/RainbowWhip": 0.42,
+        "Terraria/TacticalShotgun": 1.0,
+        "Terraria/VenomStaff": 1.0,
+        "Terraria/PearlwoodSword": 1.1,
+        "Terraria/MagicMissile": 1.0,
+        "Terraria/Gungnir": 1.0,
+        "Terraria/TrueNightsEdge": 1.0,
+        "Terraria/RocketLauncher": 0.59999996,
+        "Terraria/OnyxBlaster": 1.0,
+        "Terraria/ScourgeoftheCorruptor": 1.0,
+        "Terraria/BreakerBlade": 1.0,
+        "Terraria/PoisonStaff": 1.0,
+        "Terraria/SwordWhip": 0.9,
+        "Terraria/Stynger": 0.9,
+        "Terraria/Flamethrower": 1.0,
+        "Terraria/BubbleGun": 0.65,
+        "Terraria/ElectrosphereLauncher": 0.0,
+        "Terraria/FairyQueenMagicItem": 0.41,
+        "Terraria/PiercingStarlight": 0.6,
+        "Terraria/HelFire": 0.75,
+        "Terraria/Amarok": 0.75,
+        "Terraria/Gradient": 0.75,
+        "Terraria/HiveFive": 0.75,
+        "Terraria/Yelets": 0.75,
+        "Terraria/SparkleGuitar": 0.5
+      },
+      "ProjectileDamage": {
+        "Terraria/TinyEater": 1.0,
+        "Terraria/ClusterFragmentsI": 1.0,
+        "Terraria/ClusterFragmentsII": 0.91999996,
+        "Terraria/ClusterSnowmanFragmentsI": 1.0,
+        "Terraria/ClusterSnowmanFragmentsII": 1.0,
+        "Terraria/StyngerShrapnel": 1.0,
+        "Terraria/CrystalShard": 1.0,
+        "Terraria/TerraBlade2Shot": 0.5,
+        "Terraria/Starfury": 0.0,
+        "Terraria/SporeCloud": 1.0,
+        "Terraria/CursedDartFlame": 1.0,
+        "Terraria/ChlorophyteArrow": 0.0,
+        "Terraria/DD2SquireSonicBoom": 0.0,
+        "Terraria/ChargedBlasterLaser": 0.0,
+        "Terraria/TrueNightsEdge": 2.0,
+        "Terraria/CrystalLeafShot": 0.3,
+        "Terraria/NightsEdge": 0.65
+      }
+    },
+    "ArmorPenetration": {},
+    "Falloff": {
+      "Default": {
+        "Coefficient": 1.0,
+        "Forward": 58.350002
+      },
+      "PerItem": {
+        "Terraria/SniperRifle": {
+          "Coefficient": 0.5,
+          "Forward": 100.0
+        },
+        "Terraria/ClingerStaff": {},
+        "Terraria/RainbowGun": {}
+      }
+    },
+    "ProjectileBounceDamageReduction": 0.8,
+    "ProjectileLineOfSightDamageReduction": {
+      "Terraria/Kraken": 0.75,
+      "Terraria/TheEyeOfCthulhu": 0.75,
+      "Terraria/Meteor1": 0.39999998,
+      "Terraria/Meteor2": 0.39999998,
+      "Terraria/Meteor3": 0.39999998,
+      "Terraria/FlyingKnife": 0.75,
+      "Terraria/HelFire": 0.75,
+      "Terraria/Amarok": 0.75,
+      "Terraria/Yelets": 0.75,
+      "Terraria/Gradient": 0.75,
+      "Terraria/Chik": 0.75,
+      "Terraria/CorruptYoyo": 0.75,
+      "Terraria/WoodYoyo": 0.75,
+      "Terraria/Cascade": 0.75,
+      "Terraria/Valor": 0.75,
+      "Terraria/SparkleGuitar": 0.32999998
+    }
+  },
+  "Immunity": {
+    "PerPlayerGlobal": 10,
+    "ProjectileDamageImmunityGroup": {
+      "Terraria/Stynger": {
+        "Id": 3
+      },
+      "Terraria/StyngerShrapnel": {
+        "Id": 3
+      },
+      "Terraria/SporeCloud": {
+        "Id": 4,
+        "Frames": 10
+      },
+      "Terraria/ToxicCloud": {
+        "Id": 5,
+        "Frames": 10
+      },
+      "Terraria/ToxicCloud2": {
+        "Id": 5,
+        "Frames": 10
+      },
+      "Terraria/ToxicCloud3": {
+        "Id": 5,
+        "Frames": 10
+      },
+      "Terraria/EatersBite": {
+        "Id": 6
+      },
+      "Terraria/TinyEater": {
+        "Id": 6
+      },
+      "Terraria/CursedDart": {
+        "Id": 7
+      },
+      "Terraria/CursedDartFlame": {
+        "Id": 7
+      },
+      "Terraria/Bee": {
+        "Id": 8
+      },
+      "Terraria/GiantBee": {
+        "Id": 8
+      },
+      "Terraria/ShadowBeamHostile": {
+        "Id": 9
+      },
+      "Terraria/ShadowBeamFriendly": {
+        "Id": 9
+      },
+      "Terraria/NettleBurstRight": {
+        "Id": 10,
+        "Frames": 15
+      },
+      "Terraria/NettleBurstEnd": {
+        "Id": 10,
+        "Frames": 15
+      },
+      "Terraria/NettleBurstLeft": {
+        "Id": 10,
+        "Frames": 15
+      },
+      "Terraria/VilethornTip": {
+        "Id": 11,
+        "Frames": 15
+      },
+      "Terraria/VilethornBase": {
+        "Id": 11,
+        "Frames": 15
+      },
+      "Terraria/CrystalVileShardHead": {
+        "Id": 12,
+        "Frames": 15
+      },
+      "Terraria/CrystalVileShardShaft": {
+        "Id": 12,
+        "Frames": 15
+      },
+      "Terraria/InfernoHostileBolt": {
+        "Id": 13,
+        "Frames": 10
+      },
+      "Terraria/Electrosphere": {
+        "Id": 14
+      },
+      "Terraria/QuarterNote": {
+        "Id": 15,
+        "Frames": 10
+      },
+      "Terraria/EighthNote": {
+        "Id": 15,
+        "Frames": 10
+      },
+      "Terraria/TiedEighthNote": {
+        "Id": 15,
+        "Frames": 10
+      },
+      "Terraria/DeathSickle": {
+        "Id": 16,
+        "Frames": 10
+      },
+      "Terraria/RainbowFront": {
+        "Id": 17,
+        "Frames": 10
+      },
+      "Terraria/RainbowBack": {
+        "Id": 17,
+        "Frames": 10
+      },
+      "Terraria/InfernoHostileBlast": {
+        "Id": 13,
+        "Frames": 10
+      },
+      "Terraria/InfernoFriendlyBolt": {
+        "Id": 13,
+        "Frames": 10
+      },
+      "Terraria/InfernoFriendlyBlast": {
+        "Id": 13,
+        "Frames": 10
+      }
+    }
+  },
+  "Other": {
+    "SpectreHealing": {
+      "PvPHealMultiplier": 1.0,
+      "PvPSelfHealMultiplier": 0.4,
+      "PvPHealRange": 1500.0,
+      "HealerArmorPenetration": 0.34
+    }
+  },
+  "PreventUse": [
+    {
+      "Name": "RecallPotion",
+      "DisplayName": "Recall Potion"
+    },
+    {
+      "Name": "InvisibilityPotion",
+      "DisplayName": "Invisibility Potion"
+    },
+    {
+      "Name": "PumpkinMoonMedallion",
+      "DisplayName": "Pumpkin Moon Medallion"
+    },
+    {
+      "Name": "NaughtyPresent",
+      "DisplayName": "Naughty Present"
+    },
+    {
+      "Name": "FlaskofNanites",
+      "DisplayName": "Flask of Nanites"
+    },
+    {
+      "Name": "BeetleShell",
+      "DisplayName": "Beetle Shell"
+    },
+    {
+      "Name": "PotionOfReturn",
+      "DisplayName": "Potion of Return"
+    },
+    {
+      "Name": "TeleportationPotion",
+      "DisplayName": "Teleportation Potion"
+    },
+    {
+      "Name": "FrozenShield",
+      "DisplayName": "Frozen Shield"
+    },
+    {
+      "Name": "EndurancePotion",
+      "DisplayName": "Endurance Potion"
+    },
+    {
+      "Name": "MagicPowerPotion",
+      "DisplayName": "Magic Power Potion"
+    },
+    {
+      "Name": "DD2ElderCrystal",
+      "DisplayName": "Eternia Crystal"
+    },
+    {
+      "Name": "GravitationPotion",
+      "DisplayName": "Gravitation Potion"
+    },
+    {
+      "Name": "TNTBarrel",
+      "DisplayName": "TNT Barrel"
+    },
+    {
+      "Name": "RodofDiscord",
+      "DisplayName": "Rod of Discord"
+    },
+    {
+      "Name": "SnowGlobe",
+      "DisplayName": "Snow Globe"
+    }
+  ],
+  "ItemStatistics": {
+    "Terraria/TrueNightsEdge": {
+      "Damage": {
+        "Value": 110
+      },
+      "UseTime": {
+        "Value": 65
+      },
+      "UseAnimation": {
+        "Value": 65
+      },
+      "ShootSpeed": {
+        "Value": 14.0
+      },
+      "Scale": {
+        "Value": 0.7
+      }
+    },
+    "Terraria/MoneyTrough": {
+      "Value": {
+        "Value": 10000
+      }
+    },
+    "Terraria/ShadowbeamStaff": {
+      "Value": {}
+    },
+    "Terraria/InfernoFork": {
+      "Value": {}
+    },
+    "Terraria/SpectreStaff": {
+      "Value": {}
+    },
+    "Terraria/SniperRifle": {
+      "Value": {}
+    },
+    "Terraria/RifleScope": {},
+    "Terraria/RocketLauncher": {
+      "Value": {}
+    },
+    "Terraria/TacticalShotgun": {
+      "Value": {}
+    },
+    "Terraria/MaceWhip": {
+      "Value": {}
+    },
+    "Terraria/Tabi": {
+      "Value": {}
+    },
+    "Terraria/Kraken": {
+      "Value": {}
+    },
+    "Terraria/Grenade": {
+      "Value": {
+        "Value": 2500
+      }
+    },
+    "Terraria/TerraBlade": {
+      "ShootSpeed": {
+        "Value": 3.0
+      },
+      "Scale": {
+        "Value": 1.8000001
+      }
+    },
+    "Terraria/ShadowJoustingLance": {
+      "Value": {}
+    }
+  },
+  "PreventAutoReuse": [
+    {
+      "Name": "Flamelash",
+      "DisplayName": "Flamelash"
+    },
+    {
+      "Name": "RainbowRod",
+      "DisplayName": "Rainbow Rod"
+    }
+  ],
+  "ChestItemReplacements": {
+    "Terraria/MagicMirror": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "HermesBoots",
+            "DisplayName": "Hermes Boots"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "CloudinaBottle",
+            "DisplayName": "Cloud in a Bottle"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "Mace",
+            "DisplayName": "Mace"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "BandofRegeneration",
+            "DisplayName": "Band of Regeneration"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "ShoeSpikes",
+            "DisplayName": "Shoe Spikes"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/PiranhaGun": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "VenusMagnum",
+            "DisplayName": "Venus Magnum"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/StaffoftheFrostHydra": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "FrozenTurtleShell",
+            "DisplayName": "Frozen Turtle Shell"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/LihzahrdPowerCell": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "LihzahrdPowerCell",
+            "DisplayName": "Lihzahrd Power Cell"
+          },
+          "Stack": 2
+        }
+      ]
+    },
+    "Terraria/MagicConch": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "AncientChisel",
+            "DisplayName": "Ancient Chisel"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "SandBoots",
+            "DisplayName": "Dunerider Boots"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/Seaweed": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "FeralClaws",
+            "DisplayName": "Feral Claws"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/Fish": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "BlizzardinaBottle",
+            "DisplayName": "Blizzard in a Bottle"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/CatBast": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "SandstorminaBottle",
+            "DisplayName": "Sandstorm in a Bottle"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/Extractinator": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "HermesBoots",
+            "DisplayName": "Hermes Boots"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "CloudinaBottle",
+            "DisplayName": "Cloud in a Bottle"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "Mace",
+            "DisplayName": "Mace"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "BandofRegeneration",
+            "DisplayName": "Band of Regeneration"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/TeleportationPotion": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "ThornsPotion",
+            "DisplayName": "Thorns Potion"
+          },
+          "Stack": 2
+        },
+        {
+          "Item": {
+            "Name": "WaterWalkingPotion",
+            "DisplayName": "Water Walking Potion"
+          },
+          "Stack": 2
+        },
+        {
+          "Item": {
+            "Name": "HunterPotion",
+            "DisplayName": "Hunter Potion"
+          },
+          "Stack": 2
+        },
+        {
+          "Item": {
+            "Name": "TrapsightPotion",
+            "DisplayName": "Dangersense Potion"
+          },
+          "Stack": 2
+        }
+      ]
+    },
+    "Terraria/PotionOfReturn": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "RecallPotion",
+            "DisplayName": "Recall Potion"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/CordageGuide": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "Blowpipe",
+            "DisplayName": "Blowpipe"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "ClimbingClaws",
+            "DisplayName": "Climbing Claws"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "Aglet",
+            "DisplayName": "Aglet"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "Umbrella",
+            "DisplayName": "Umbrella"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "MoonLordLegs",
+            "DisplayName": "Moon Lord Legs"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/ArcheryPotion": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "NightOwlPotion",
+            "DisplayName": "Night Owl Potion"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/GravitationPotion": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "FeatherfallPotion",
+            "DisplayName": "Featherfall Potion"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/InvisibilityPotion": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "WaterWalkingPotion",
+            "DisplayName": "Water Walking Potion"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "HunterPotion",
+            "DisplayName": "Hunter Potion"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/MysticCoilSnake": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "AncientChisel",
+            "DisplayName": "Ancient Chisel"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "SandBoots",
+            "DisplayName": "Dunerider Boots"
+          },
+          "Stack": 1
+        }
+      ]
+    },
+    "Terraria/FlowerBoots": {
+      "Items": [
+        {
+          "Item": {
+            "Name": "FeralClaws",
+            "DisplayName": "Feral Claws"
+          },
+          "Stack": 1
+        },
+        {
+          "Item": {
+            "Name": "StaffofRegrowth",
+            "DisplayName": "Staff of Regrowth"
+          },
+          "Stack": 1
+        }
+      ]
+    }
+  },
+  "RemovePrefixes": true,
+  "BossBalance": {
+    "Terraria/SkeletronHead": {
+      "LifeMaxMultiplier": 1.49,
+      "TeamLifeShare": 0.96
+    },
+    "Terraria/SkeletronHand": {
+      "LifeMaxMultiplier": 1.52,
+      "TeamLifeShare": 0.3
+    },
+    "Terraria/WallofFlesh": {
+      "LifeMaxMultiplier": 1.49,
+      "TeamLifeShare": 0.3
+    },
+    "Terraria/Plantera": {
+      "LifeMaxMultiplier": 4.02,
+      "TeamLifeShare": 0.3
+    },
+    "Terraria/HallowBoss": {
+      "LifeMaxMultiplier": 2.5,
+      "TeamLifeShare": 0.3
+    },
+    "Terraria/Golem": {
+      "LifeMaxMultiplier": 2.5,
+      "TeamLifeShare": 0.3
+    },
+    "Terraria/GolemFistLeft": {
+      "LifeMaxMultiplier": 2.5,
+      "TeamLifeShare": 0.0
+    },
+    "Terraria/GolemFistRight": {
+      "LifeMaxMultiplier": 2.5,
+      "TeamLifeShare": 0.0
+    },
+    "Terraria/CultistBoss": {
+      "LifeMaxMultiplier": 2.5,
+      "TeamLifeShare": 0.3
+    },
+    "Terraria/MartianSaucerCore": {
+      "LifeMaxMultiplier": 4.0,
+      "TeamLifeShare": 0.3
+    },
+    "Terraria/DukeFishron": {
+      "LifeMaxMultiplier": 2.5,
+      "TeamLifeShare": 0.3
+    },
+    "Terraria/SkeletronPrime": {
+      "LifeMaxMultiplier": 1.49,
+      "TeamLifeShare": 0.29999998
+    },
+    "Terraria/TheDestroyer": {
+      "LifeMaxMultiplier": 1.49,
+      "TeamLifeShare": 0.29999998
+    },
+    "Terraria/Retinazer": {
+      "LifeMaxMultiplier": 1.49,
+      "TeamLifeShare": 0.29999998
+    },
+    "Terraria/Spazmatism": {
+      "LifeMaxMultiplier": 1.49,
+      "TeamLifeShare": 0.29999998
+    }
+  },
+  "BossOrder": [
+    {
+      "Name": "KingSlime",
+      "DisplayName": "King Slime"
+    },
+    {
+      "Name": "EyeofCthulhu",
+      "DisplayName": "Eye of Cthulhu"
+    },
+    {
+      "Name": "EaterofWorldsHead",
+      "DisplayName": "Eater of Worlds"
+    },
+    {
+      "Name": "BrainofCthulhu",
+      "DisplayName": "Brain of Cthulhu"
+    },
+    {
+      "Name": "QueenBee",
+      "DisplayName": "Queen Bee"
+    },
+    {
+      "Name": "SkeletronHead",
+      "DisplayName": "Skeletron"
+    },
+    {
+      "Name": "Deerclops",
+      "DisplayName": "Deerclops"
+    },
+    {
+      "Name": "WallofFlesh",
+      "DisplayName": "Wall of Flesh"
+    },
+    {
+      "Name": "QueenSlimeBoss",
+      "DisplayName": "Queen Slime"
+    },
+    {
+      "Name": "Retinazer",
+      "DisplayName": "Retinazer"
+    },
+    {
+      "Name": "TheDestroyer",
+      "DisplayName": "The Destroyer"
+    },
+    {
+      "Name": "SkeletronPrime",
+      "DisplayName": "Skeletron Prime"
+    },
+    {
+      "Name": "Plantera",
+      "DisplayName": "Plantera"
+    },
+    {
+      "Name": "Golem",
+      "DisplayName": "Golem"
+    },
+    {
+      "Name": "DukeFishron",
+      "DisplayName": "Duke Fishron"
+    },
+    {
+      "Name": "HallowBoss",
+      "DisplayName": "Empress of Light"
+    },
+    {
+      "Name": "CultistBoss",
+      "DisplayName": "Lunatic Cultist"
+    }
+  ],
+  "BossInvulnerableProjectiles": [
+    {
+      "Name": "Dynamite",
+      "DisplayName": "Dynamite"
+    },
+    {
+      "Name": "StickyDynamite",
+      "DisplayName": "Sticky Dynamite"
+    },
+    {
+      "Name": "BouncyDynamite",
+      "DisplayName": "Bouncy Dynamite"
+    },
+    {
+      "Name": "Bomb",
+      "DisplayName": "Bomb"
+    },
+    {
+      "Name": "StickyBomb",
+      "DisplayName": "Sticky Bomb"
+    },
+    {
+      "Name": "BouncyBomb",
+      "DisplayName": "Bouncy Bomb"
+    }
+  ],
+  "BoundSpawnChance": 0.5,
+  "SpawnImmuneFrames": 90,
+  "WorldGeneration": {
+    "LifeFruitChanceDenominator": 1,
+    "LifeFruitExpertChanceDenominator": 1,
+    "LifeFruitMinimumDistanceBetween": 1,
+    "PlanteraBulbChanceDenominator": 12,
+    "ChlorophyteSpreadChanceModifier": 100,
+    "ChlorophyteGrowChanceModifier": 50
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "IsArenasEnabled": false,
+  "MaxHealth": 500,
+  "ArenaLoadouts": [
+    {
+      "Name": "Magician",
+      "Armor": {
+        "Head": {
+          "Name": "ChlorophyteHeadgear",
+          "DisplayName": "Chlorophyte Headgear"
+        },
+        "Body": {
+          "Name": "AdamantiteBreastplate",
+          "DisplayName": "Adamantite Breastplate"
+        },
+        "Legs": {
+          "Name": "AncientBattleArmorPants",
+          "DisplayName": "Forbidden Treads"
+        }
+      },
+      "Accessories": {
+        "Accessory1": {
+          "Name": "GhostWings",
+          "DisplayName": "Spectre Wings"
+        },
+        "Accessory2": {
+          "Name": "Tabi",
+          "DisplayName": "Tabi"
+        },
+        "Accessory3": {
+          "Name": "SorcererEmblem",
+          "DisplayName": "Sorcerer Emblem"
+        },
+        "Accessory4": {
+          "Name": "CelestialEmblem",
+          "DisplayName": "Celestial Emblem"
+        },
+        "Accessory5": {
+          "Name": "WormScarf",
+          "DisplayName": "Worm Scarf"
+        }
+      },
+      "Equipment": {
+        "GrapplingHook": {
+          "Name": "DualHook",
+          "DisplayName": "Dual Hook"
+        },
+        "Mount": {
+          "Name": "QueenSlimeMountSaddle",
+          "DisplayName": "Gelatinous Pillion"
+        }
+      },
+      "Inventory": [
+        {
+          "Item": {
+            "Name": "StoneBlock",
+            "DisplayName": "Stone Block"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "SpectrePickaxe",
+            "DisplayName": "Spectre Pickaxe"
+          }
+        },
+        {
+          "Item": {
+            "Name": "Binoculars",
+            "DisplayName": "Binoculars"
+          }
+        },
+        {
+          "Item": {
+            "Name": "IceRod",
+            "DisplayName": "Ice Rod"
+          }
+        },
+        {
+          "Item": {
+            "Name": "HoneyBucket",
+            "DisplayName": "Honey Bucket"
+          }
+        },
+        {
+          "Item": {
+            "Name": "StaffofEarth",
+            "DisplayName": "Staff of Earth"
+          }
+        },
+        {
+          "Item": {
+            "Name": "RainbowRod",
+            "DisplayName": "Rainbow Rod"
+          }
+        },
+        {
+          "Item": {
+            "Name": "MeteorStaff",
+            "DisplayName": "Meteor Staff"
+          }
+        },
+        {
+          "Item": {
+            "Name": "Torch",
+            "DisplayName": "Torch"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Glowstick",
+            "DisplayName": "Glowstick"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "LunarCraftingStation",
+            "DisplayName": "Ancient Manipulator"
+          }
+        },
+        {
+          "Item": {
+            "Name": "GreaterHealingPotion",
+            "DisplayName": "Greater Healing Potion"
+          },
+          "Stack": 1999
+        },
+        {
+          "Item": {
+            "Name": "LaserMachinegun",
+            "DisplayName": "Laser Machinegun"
+          }
+        },
+        {
+          "Item": {
+            "Name": "NettleBurst",
+            "DisplayName": "Nettle Burst"
+          }
+        },
+        {
+          "Item": {
+            "Name": "FairyQueenMagicItem",
+            "DisplayName": "Nightglow"
+          }
+        },
+        {
+          "Item": {
+            "Name": "BubbleGun",
+            "DisplayName": "Bubble Gun"
+          }
+        },
+        {
+          "Item": {
+            "Name": "ChargedBlasterCannon",
+            "DisplayName": "Charged Blaster Cannon"
+          }
+        },
+        {
+          "Item": {
+            "Name": "GreaterManaPotion",
+            "DisplayName": "Greater Mana Potion"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Mod": "PvPAdventure",
+            "Name": "AdventureMirror",
+            "DisplayName": "Adventure Mirror"
+          }
+        },
+        {
+          "Item": {
+            "Name": "WoodPlatform",
+            "DisplayName": "Wood Platform"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "Wood",
+            "DisplayName": "Wood"
+          },
+          "Stack": 9999
+        },
+        {
+          "Item": {
+            "Name": "SpectreHood",
+            "DisplayName": "Spectre Hood"
+          }
+        },
+        {
+          "Item": {
+            "Name": "SpectreRobe",
+            "DisplayName": "Spectre Robe"
+          }
+        },
+        {
+          "Item": {
+            "Name": "SpectrePants",
+            "DisplayName": "Spectre Pants"
+          }
+        },
+        {
+          "Item": {
+            "Name": "SpectreMask",
+            "DisplayName": "Spectre Mask"
+          }
+        }
+      ]
+    },
+    {
+      "Armor": {},
+      "Accessories": {},
+      "Equipment": {}
+    }
+  ]
+}
