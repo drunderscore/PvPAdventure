@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using MonoMod.RuntimeDetour;
 using PvPAdventure.Content.Items;
+using PvPAdventure.Content.NPCs;
 using PvPAdventure.Core.Debug;
 using System;
 using System.Linq;
@@ -268,13 +269,16 @@ public class AdventureMirrorHooks : ModSystem
             return;
         }
 
-        // Block dragging mirror onto shop
-        if (context == ItemSlot.Context.ShopItem && IsAdventureMirror(Main.mouseItem))
+        // Block selling mirror in shops EXCEPT Adventure Santa's shop
+        if (IsShopOpen() && !IsAdventureSantaShopOpen() && IsAdventureMirror(Main.mouseItem))
         {
             if (Main.mouseLeft && Main.mouseLeftRelease)
                 Popup("Mods.PvPAdventure.AdventureMirror.CannotSell");
+
             return;
         }
+
+
 
         // Block dragging mirror onto chest or bank
         if (context == ItemSlot.Context.ChestItem && IsAdventureMirror(Main.mouseItem)
@@ -313,7 +317,26 @@ public class AdventureMirrorHooks : ModSystem
         }
     }
 
+    private static bool IsShopOpen()
+    {
+        return Main.playerInventory && Main.npcShop > 0 && Main.LocalPlayer.talkNPC >= 0;
+    }
+
+    private static bool IsAdventureSantaShopOpen()
+    {
+        if (!IsShopOpen())
+            return false;
+
+        int talk = Main.LocalPlayer.talkNPC;
+        if (talk < 0 || talk >= Main.maxNPCs)
+            return false;
+
+        NPC npc = Main.npc[talk];
+        return npc.active && npc.type == ModContent.NPCType<AdventureSantaNPC>();
+    }
+
 }
+
 
 internal sealed class DisablePickupWhileHoldingMirror : GlobalItem
 {
