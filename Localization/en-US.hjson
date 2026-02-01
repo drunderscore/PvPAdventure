@@ -385,8 +385,7 @@ Mods: {
 					Sound: "[i:FairyBell] Sound"
 					Movement: "[i:HermesBoots] Movement"
 					Chat: "[i:PvPAdventure/ChatConfigItem] Chat"
-					Visualization: "[i:PvPAdventure/PlayerOutlinesConfigItem] Visualization"
-					Outlines: Outlines
+					Visualization: Visualization
 				}
 
 				IsVanillaDashEnabled: {
@@ -436,6 +435,16 @@ Mods: {
 				LootOutlines: {
 					Label: "[i:PvPAdventure/TreasureBagOutlinesConfigItem] Loot Outlines"
 					Tooltip: Show outlines around team boss loot
+				}
+
+				HideVanityVisuals: {
+					Label: "[i:245] Hide Vanity"
+					Tooltip:
+						'''
+						Hides all your vanity.
+						Turn this off to see your vanity.
+						For other players, your armor and accessories is always visible.
+						'''
 				}
 			}
 

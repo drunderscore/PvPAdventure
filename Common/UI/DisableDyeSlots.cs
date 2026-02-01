@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
@@ -23,10 +24,7 @@ public class DisableDyeSlots : ModSystem
     {
         // TML handles the accessory slots specially, because it's expected mods will want to add their own.
         // This here will both draw and handle the slot.
-        _accessorySlotLoaderDrawHook =
-            new Hook(
-                typeof(AccessorySlotLoader).GetMethod("DrawSlot", BindingFlags.NonPublic | BindingFlags.Instance),
-                OnAccessorySlotLoaderDrawSlot);
+        _accessorySlotLoaderDrawHook = new Hook( typeof(AccessorySlotLoader).GetMethod("DrawSlot", BindingFlags.NonPublic | BindingFlags.Instance), OnAccessorySlotLoaderDrawSlot);
 
         // Otherwise, slot drawing and handling will end up in these two functions.
         On_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += OnItemSlotDraw;
@@ -42,10 +40,17 @@ public class DisableDyeSlots : ModSystem
         IL_ItemSlot.Draw_SpriteBatch_ItemArray_int_int_Vector2_Color += EditItemSlotDraw;
     }
 
-    private static bool IsPlayerDyeContext(int context) => context is ItemSlot.Context.EquipDye
-        or ItemSlot.Context.EquipMiscDye or ItemSlot.Context.ModdedDyeSlot;
+    private static bool IsUnusableContext(int context)
+    {
+        //var cfg = ModContent.GetInstance<ClientConfig>();
+        //if (!cfg.HideVanityVisuals)
+        //{
+        //    return false;
+        //}
 
-    private static bool IsUnusableContext(int context) => IsPlayerDyeContext(context);
+        return context is ItemSlot.Context.EquipDye
+        or ItemSlot.Context.EquipMiscDye or ItemSlot.Context.ModdedDyeSlot;
+    }
 
     private void OnAccessorySlotLoaderDrawSlot(AccessorySlotLoaderDrawSlotDelegate orig, AccessorySlotLoader self,
         Item[] items, int context, int slot, bool flag3, int xLoc, int yLoc, bool skipCheck)

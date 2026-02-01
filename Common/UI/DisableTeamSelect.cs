@@ -17,7 +17,7 @@ namespace PvPAdventure.Common.UI;
 /// Disables drawing and handling of PvP and team icons (these are drawn next to accessories when inventory is open).
 /// </summary>
 [Autoload(Side =ModSide.Client)]
-internal class DisablePvPIcons : ModSystem
+internal class DisableTeamSelect : ModSystem
 {
     public override void Load()
     {

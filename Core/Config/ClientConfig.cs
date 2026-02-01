@@ -11,13 +11,16 @@ public class ClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
-    [Header("Outlines")]
+    [Header("Visualization")]
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] public bool PlayerOutlines = true;
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] public bool BedOutlines = true;
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] public bool LootOutlines = true;
+
+    [BackgroundColor(50, 70, 120)]
+    [DefaultValue(true)] public bool HideVanityVisuals = true;
 
     [Header("Movement")]
     [BackgroundColor(50, 70, 120)]
