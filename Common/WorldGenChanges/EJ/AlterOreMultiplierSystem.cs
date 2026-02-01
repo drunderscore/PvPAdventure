@@ -42,7 +42,7 @@ public class AltarOreMultiplierSystem : ModSystem
                 i => i.MatchStloc(2)       // Store back to num3
             ))
             {
-                ModContent.GetInstance<PvPAdventure>().Logger.Info("Found num3 /= num2 calculation");
+                //ModContent.GetInstance<PvPAdventure>().Logger.Info("Found num3 /= num2 calculation");
 
                 double multiplier = 2.0; // THIS NUMBER MULTIPLIES IT
 
@@ -51,7 +51,7 @@ public class AltarOreMultiplierSystem : ModSystem
                 cursor.Emit(OpCodes.Mul);                     // Multiply
                 cursor.Emit(OpCodes.Stloc_2);                 // Store back to num3
 
-                ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully patched SmashAltar to increase ore generation by {multiplier}x");
+                //ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully patched SmashAltar to increase ore generation by {multiplier}x");
                 return;
             }
 

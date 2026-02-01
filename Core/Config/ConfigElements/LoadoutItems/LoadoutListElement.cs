@@ -176,7 +176,7 @@ internal sealed class LoadoutListElement : ListElement
         if (inv == null || inv.Count == 0)
             return "";
 
-        const int maxShown = 5;
+        const int maxShown = 4;
 
         List<string> shown = new();
         for (int i = 0; i < inv.Count && shown.Count < maxShown; i++)
@@ -188,7 +188,9 @@ internal sealed class LoadoutListElement : ListElement
 
             int stack = li.Stack < 1 ? 1 : li.Stack;
 
-            // Example: [i/s10:29]
+            // Example: [i/s10:29] 
+            // This is a custom Terraria tag, read the wiki for more info.
+            // /s is for stack!
             shown.Add(stack == 1 ? $"[i:{type}]" : $"[i/s{stack}:{type}]");
         }
 

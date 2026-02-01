@@ -25,21 +25,21 @@ public class ShadowKeyWorldGen : ModSystem
             while (cursor.TryGotoNext(MoveType.Before,
                 i => i.MatchLdsfld(typeof(GenVars), "generatedShadowKey")))
             {
-                Mod.Logger.Info($"Found generatedShadowKey field at index {cursor.Index}");
+                //Mod.Logger.Info($"Found generatedShadowKey field at index {cursor.Index}");
 
                 if (cursor.TryGotoNext(MoveType.Before,
                     i => i.MatchLdcI4(3) &&
                     i.Next != null &&
                     i.Next.MatchCallvirt<UnifiedRandom>("Next")))
                 {
-                    Mod.Logger.Info($"Found Shadow Key Next(3) call at index {cursor.Index}");
+                    //Mod.Logger.Info($"Found Shadow Key Next(3) call at index {cursor.Index}");
 
                     cursor.Remove();
 
                     cursor.Emit(OpCodes.Ldc_I4_1);
 
                     patchCount++;
-                    Mod.Logger.Info($"Patched occurrence #{patchCount}");
+                    //Mod.Logger.Info($"Patched occurrence #{patchCount}");
 
                     cursor.Index++;
                 }
@@ -51,7 +51,7 @@ public class ShadowKeyWorldGen : ModSystem
 
             if (patchCount > 0)
             {
-                Mod.Logger.Info($"Successfully patched {patchCount} Shadow Key generation location(s)");
+                //Mod.Logger.Info($"Successfully patched {patchCount} Shadow Key generation location(s)");
             }
             else
             {

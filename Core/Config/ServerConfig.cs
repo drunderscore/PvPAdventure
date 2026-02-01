@@ -333,10 +333,6 @@ public class ServerConfig : ModConfig
 
         [Range(1, 999999)]
         [DefaultValue(300)] public int ChlorophyteGrowLimitModifier { get; set; } = 300;
-
-        [DefaultValue(1f)]
-        [Range(0.01f, 50f)]
-        public float ChlorophyteGrowthRate = 1f;
     }
 
     #endregion

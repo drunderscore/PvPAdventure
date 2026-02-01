@@ -48,13 +48,13 @@ public class ForTheWorthyMiningSpeedSystem : ModSystem
                 i => i.MatchRet()
             ))
             {
-                ModContent.GetInstance<ForTheWorthyMiningSpeedSystem>().Mod.Logger.Info("Found return in GetPickaxeDamage");
+                //ModContent.GetInstance<ForTheWorthyMiningSpeedSystem>().Mod.Logger.Info("Found return in GetPickaxeDamage");
 
                 cursor.Emit(OpCodes.Ldc_R4, 1.5f); //for the worthy mining speed
                 cursor.Emit(OpCodes.Mul);
                 cursor.Emit(OpCodes.Conv_I4);
 
-                ModContent.GetInstance<ForTheWorthyMiningSpeedSystem>().Mod.Logger.Info("Successfully modified GetPickaxeDamage to multiply damage by 1.5");
+                //ModContent.GetInstance<ForTheWorthyMiningSpeedSystem>().Mod.Logger.Info("Successfully modified GetPickaxeDamage to multiply damage by 1.5");
             }
             else
             {

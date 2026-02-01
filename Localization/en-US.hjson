@@ -1092,11 +1092,6 @@ Mods: {
 					Label: "[i:ChlorophyteOre] Chlorophyte Grow Limit Modifier"
 					Tooltip: Maximum Chlorophyte per 1000 block area
 				}
-
-				ChlorophyteGrowthRate: {
-					Label: Chlorophyte Growth Rate
-					Tooltip: ""
-				}
 			}
 
 			CannotModify: You are not permitted to modify this config.

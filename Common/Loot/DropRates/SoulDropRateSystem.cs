@@ -53,7 +53,7 @@ public class SoulDropRateSystem : ModSystem
                 cursor.Remove();
                 cursor.Emit(OpCodes.Ldc_I4, NewSoulDropRate);
                 replacedCount++;
-                ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced soul drop rate 5 with {NewSoulDropRate} (instance {replacedCount})");
+                //ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced soul drop rate 5 with {NewSoulDropRate} (instance {replacedCount})");
             }
             else
             {
@@ -63,7 +63,7 @@ public class SoulDropRateSystem : ModSystem
 
         if (replacedCount > 0)
         {
-            ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully changed {replacedCount} soul drop rates from 5 to {NewSoulDropRate}");
+            //ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully changed {replacedCount} soul drop rates from 5 to {NewSoulDropRate}");
         }
         else
         {

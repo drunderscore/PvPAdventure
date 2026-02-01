@@ -45,11 +45,11 @@ public class NoTownNPCInvasionsSystem : ModSystem
                 i => i.MatchLdfld(typeof(Terraria.NPC).GetField("townNPC"))
             ))
             {
-                ModContent.GetInstance<PvPAdventure>().Logger.Info("Found townNPC field load in invasion code");
+                //ModContent.GetInstance<PvPAdventure>().Logger.Info("Found townNPC field load in invasion code");
                 cursor.Emit(OpCodes.Pop);
                 cursor.Emit(OpCodes.Ldc_I4_0);
 
-                ModContent.GetInstance<PvPAdventure>().Logger.Info("Successfully made townNPC always false for invasions");
+                //ModContent.GetInstance<PvPAdventure>().Logger.Info("Successfully made townNPC always false for invasions");
             }
             else
             {

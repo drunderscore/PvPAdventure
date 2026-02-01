@@ -64,7 +64,7 @@ public class BiomeKeyDropRateSystem : ModSystem
                 cursor.Emit(OpCodes.Ldc_I4, 250); // Emit ldc.i4 250 instead
                 replacedCount++;
 
-                ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced biome key drop rate 2500 with 250 (instance {replacedCount})");
+                //ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced biome key drop rate 2500 with 250 (instance {replacedCount})");
             }
             else
             {
@@ -75,7 +75,7 @@ public class BiomeKeyDropRateSystem : ModSystem
 
         if (replacedCount > 0)
         {
-            ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully changed {replacedCount} biome key drop rates from 2500 to 250");
+            //ModContent.GetInstance<PvPAdventure>().Logger.Info($"Successfully changed {replacedCount} biome key drop rates from 2500 to 250");
         }
         else
         {

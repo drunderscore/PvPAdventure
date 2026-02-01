@@ -102,7 +102,7 @@ internal sealed class LoadoutInventoryListElement : ListElement
                         return $"{index + 1}: None";
 
                     string tag = stack == 1 ? $"[i:{type}]" : $"[i/s{stack}:{type}]";
-                    return $"{index + 1}: {tag}";
+                    return $"{index + 1}: {tag} {li.Item.DisplayName}";
                 };
             }
 
