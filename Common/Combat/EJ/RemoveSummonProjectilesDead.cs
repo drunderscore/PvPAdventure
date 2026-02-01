@@ -3,7 +3,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Projectiles;
+namespace PvPAdventure.Common.Combat.EJ;
 
 /// <summary>
 /// Remove certain projectiles when their owner dies.

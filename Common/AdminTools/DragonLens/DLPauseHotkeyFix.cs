@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using DragonLens.Core.Systems.ToolSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
+using PvPAdventure.Common.AdminTools.DragonLens.Tools;
 using PvPAdventure.Common.GameTimer;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Compat.DragonLens;
+namespace PvPAdventure.Common.AdminTools.DragonLens;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]

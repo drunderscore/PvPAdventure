@@ -3,6 +3,7 @@ using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.AdminTools.DragonLens;
 using PvPAdventure.Common.AdminTools.Tools.StartGameTool;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Core.Net;
@@ -11,7 +12,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Compat.DragonLens.Tools;
+namespace PvPAdventure.Common.AdminTools.DragonLens.Tools;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]

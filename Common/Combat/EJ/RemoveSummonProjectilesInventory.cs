@@ -3,7 +3,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Projectiles;
+namespace PvPAdventure.Common.Combat.EJ;
 
 /// <summary>
 /// Removes minions if the player does not have the corresponding summoning staff in their inventory.

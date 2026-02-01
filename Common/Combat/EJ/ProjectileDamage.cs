@@ -2,7 +2,7 @@
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Projectiles;
+namespace PvPAdventure.Common.Combat.EJ;
 
 /// <summary>
 /// Modifies the damage of certain projectiles against specific bosses.

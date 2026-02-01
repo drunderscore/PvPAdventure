@@ -5,7 +5,7 @@ using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Compat.DragonLens;
+namespace PvPAdventure.Common.AdminTools.DragonLens;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]

@@ -256,19 +256,7 @@ internal class CombatPlayer : ModPlayer
                 falloffConfig.Default.CalculateMultiplier(tileDistance);
         }
     }
-    public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genDust,
-        ref PlayerDeathReason damageSource)
-    {
-        // Only silence death sound on clients that we hurt that aren't ourselves
-        if (!Main.dedServ && pvp && Player.whoAmI != Main.myPlayer && damageSource.SourcePlayerIndex == Main.myPlayer)
-        {
-            var marker = ModContent.GetInstance<ClientConfig>().SoundEffect.PlayerKillMarker;
-            if (marker != null && marker.SilenceVanilla)
-                playSound = false;
-        }
-
-        return true;
-    }
+    
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         if (Main.netMode == NetmodeID.MultiplayerClient)

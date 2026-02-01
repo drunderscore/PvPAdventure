@@ -2,10 +2,11 @@
 using Terraria.Map;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.SSC;
+namespace PvPAdventure.Core.Debug;
 
+#if DEBUG
 [Autoload(Side = ModSide.Client)]
-internal sealed class MapScanSystem : ModSystem
+internal sealed class DebugMapScan : ModSystem
 {
     public override void PostUpdateEverything()
     {
@@ -71,3 +72,4 @@ internal sealed class MapScanSystem : ModSystem
         Log.Chat($"Map Explored: {pct:0.0000}%");
     }
 }
+#endif

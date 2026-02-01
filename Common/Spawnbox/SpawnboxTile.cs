@@ -3,7 +3,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Spawnbox;
 
-public class AdventureTile : GlobalTile
+public class SpawnboxTile : GlobalTile
 {
     public override bool CanKillTile(int i, int j, int type, ref bool blockDamaged)
     {

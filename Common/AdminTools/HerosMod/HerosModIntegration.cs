@@ -11,7 +11,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Compat.HerosMod;
+namespace PvPAdventure.Common.AdminTools.HerosMod;
 
 [JITWhenModsEnabled("HEROsMod")]
 public sealed class HerosModIntegration : ModSystem

@@ -4,10 +4,12 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.WorldGenChanges.Erky;
+namespace PvPAdventure.Core.Debug;
+
+#if DEBUG
 
 [Autoload(Side = ModSide.Client)]
-internal sealed class ChlorophyteDebug : ModSystem
+internal sealed class DebugChlorophyteScan : ModSystem
 {
     private static int _scanX;
     private static int _scanY;
@@ -156,3 +158,5 @@ internal sealed class ChlorophyteDebug : ModSystem
         Log.Chat(msg);
     }
 }
+
+#endif
