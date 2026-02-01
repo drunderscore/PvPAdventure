@@ -16,7 +16,7 @@ internal static class ClientBackup
     private static string BackupRoot => Path.Combine(Main.SavePath, "PvPAdventureSSCClient");
     private static string MapID => Main.ActiveWorldFileData?.Name ?? "UnknownWorld";
 
-    public static void WriteBackup(string playerName, byte[] plr, TagCompound tplr)
+    public static void WritePlayerBackup(string playerName, byte[] plr, TagCompound tplr)
     {
         try
         {

@@ -1,5 +1,4 @@
 ﻿using Terraria;
-using Terraria.ID;
 using Terraria.Map;
 using Terraria.ModLoader;
 
@@ -8,101 +7,67 @@ namespace PvPAdventure.Common.SSC;
 [Autoload(Side = ModSide.Client)]
 internal sealed class MapScanSystem : ModSystem
 {
-    private const int CellsPerTick = 50_000;
-
-    private static bool _requested;
-    private static bool _scanning;
-
-    private static int _minX;
-    private static int _maxX;
-    private static int _minY;
-    private static int _maxY;
-
-    private static int _x;
-    private static int _y;
-
-    private static long _total;
-    private static long _revealed;
-
-    public static void RequestScan()
-    {
-        _requested = true;
-    }
-
     public override void PostUpdateEverything()
     {
-        if (!_requested && !_scanning)
+        // Only run once per x seconds.
+        const int delayInSeconds = 55;
+        if (Main.GameUpdateCount % (60*delayInSeconds) != 0)
             return;
 
-        if (Main.netMode == NetmodeID.Server)
+        WorldMap map = Main.Map;
+
+        if (map == null)
             return;
 
-        if (Main.Map == null)
-            return;
-
-        if (_requested)
-        {
-            StartScan();
-            _requested = false;
-        }
-
-        StepScan();
-    }
-
-    private static void StartScan()
-    {
+        // Compute scan bounds: prefer skipping the black border, but clamp to valid indices.
         int edge = WorldMap.BlackEdgeWidth;
+        int w = map.MaxWidth;
+        int h = map.MaxHeight;
+        int minX = Utils.Clamp(edge, 0, w);
+        int minY = Utils.Clamp(edge, 0, h);
+        int maxX = Utils.Clamp(w - edge, 0, w);
+        int maxY = Utils.Clamp(h - edge, 0, h);
 
-        _minX = edge;
-        _minY = edge;
-        _maxX = Main.Map.MaxWidth - edge;
-        _maxY = Main.Map.MaxHeight - edge;
+        // If the edge crop collapses the range, fall back to scanning the full map.
+        if (maxX <= minX)
+            minX = 0;
 
-        if (_maxX <= _minX || _maxY <= _minY)
-        {
-            _minX = 0;
-            _minY = 0;
-            _maxX = Main.Map.MaxWidth;
-            _maxY = Main.Map.MaxHeight;
-        }
+        if (maxY <= minY)
+            minY = 0;
 
-        _x = _minX;
-        _y = _minY;
+        if (maxX <= minX)
+            maxX = w;
 
-        _revealed = 0;
-        _total = (long)(_maxX - _minX) * (_maxY - _minY);
+        if (maxY <= minY)
+            maxY = h;
 
-        _scanning = _total > 0;
-    }
+        // Total cells in the scan rectangle.
+        long total = (long)(maxX - minX) * (maxY - minY);
 
-    private static void StepScan()
-    {
-        if (!_scanning)
+        if (total <= 0)
             return;
 
-        for (int i = 0; i < CellsPerTick && _scanning; i++)
+        // Walk the rectangle and count revealed tiles.
+        long revealed = 0;
+        int x = minX;
+        int y = minY;
+
+        while (y < maxY)
         {
-            if (Main.Map.IsRevealed(_x, _y))
-                _revealed++;
+            if (map.IsRevealed(x, y))
+                revealed++;
 
-            _x++;
+            x++;
 
-            if (_x >= _maxX)
-            {
-                _x = _minX;
-                _y++;
+            if (x < maxX)
+                continue;
 
-                if (_y >= _maxY)
-                    FinishScan();
-            }
+            x = minX;
+            y++;
         }
-    }
 
-    private static void FinishScan()
-    {
-        _scanning = false;
-
-        double pct = _total <= 0 ? 0.0 : (_revealed / (double)_total) * 100.0;
-        Log.Chat($"Map Explored: {pct:0.00}%");
+        // Report explored percentage.
+        double pct = revealed * 100.0 / total;
+        Log.Chat($"Map Explored: {pct:0.0000}%");
     }
 }

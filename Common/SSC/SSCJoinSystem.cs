@@ -1,13 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Bounties;
 using PvPAdventure.Core.Config;
-using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using Steamworks;
-using System;
-using System.Linq;
 using Terraria;
-using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static PvPAdventure.Common.SSC.SSC;
@@ -33,39 +28,24 @@ public class SSCJoinSystem : ModSystem
             return;
 
         _sent = false;
-        _delayTicks = 60; // 1 second
+        _delayTicks = 30*1; // wait a second to ensure vanilla hooks run properly.
+        // in the future, the delay may be 0 or we may use a hook that runs earlier for a smoother join experience.
 
         // Enter as a ghost initially
         Main.LocalPlayer.ghost = true;
+
+#if DEBUG
+        // DEBUG:
+        // Be the local char for 5 seconds.
+        // Some extra time to properly debug the SSC flow of joining with a local char.
+        // Also disable ghost to see the real player.
+        //_delayTicks = 60 * 3;
+        //Main.LocalPlayer.ghost = false;
+#endif
     }
 
     public override void PostUpdateEverything()
     {
-        // Force ghost to be stuck inside spawnbox
-        if (Main.LocalPlayer.ghost)
-        {
-            var player = Main.LocalPlayer;
-
-            player.position = new Vector2(Main.spawnTileX * 16f, Main.spawnTileY * 16f-48);
-            player.velocity = Vector2.Zero;
-            player.direction = 1;
-
-            //int playerTileX = (int)(player.position.X / 16f);
-            //int playerTileY = (int)(player.position.Y / 16f);
-
-            //int spawnTileX = Main.spawnTileX;
-            //int spawnTileY = Main.spawnTileY;
-
-            //int distanceX = Math.Abs(playerTileX - spawnTileX);
-            //int distanceY = Math.Abs(playerTileY - spawnTileY);
-
-            //if (distanceX >= 25 || distanceY >= 25)
-            //{
-            //    player.position = new Vector2(Main.spawnTileX * 16f, Main.spawnTileY * 16f);
-            //    player.velocity = Vector2.Zero;
-            //}
-        }
-
         if (_sent)
             return;
 
@@ -74,12 +54,17 @@ public class SSCJoinSystem : ModSystem
 
         if (_delayTicks > 0)
         {
+            if (_delayTicks % 60 == 0)
+            {
+                Log.Chat("Joining in ticks: " + _delayTicks);
+            }
             _delayTicks--;
             return;
         }
 
         _sent = true;
 
+        // Join immediately if arenas is off.
         var config = ModContent.GetInstance<ArenasConfig>();
         if (!config.IsArenasEnabled)
         {

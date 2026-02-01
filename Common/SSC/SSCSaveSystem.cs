@@ -95,7 +95,7 @@ internal class SSCSaveSystem : ModSystem
             };
 
             // Save client backup plr and tplr files
-            ClientBackup.WriteBackup(name, plr, tplr);
+            ClientBackup.WritePlayerBackup(name, plr, tplr);
 
             var packet = Mod.GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.SSC);

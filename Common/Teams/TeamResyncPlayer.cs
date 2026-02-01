@@ -43,7 +43,7 @@ public class TeamResyncPlayer : ModPlayer
         packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);
 
         // Send current team to server
-        Log.Chat("Team sync player: " + Player.name + ": " + (Terraria.Enums.Team)Player.team);
+        Log.Chat("Team sync player: " + Player.name + ": Team." + (Terraria.Enums.Team)Player.team);
 
         new Team((byte)Player.whoAmI, (Terraria.Enums.Team)Player.team).Serialize(packet);
         packet.Send();

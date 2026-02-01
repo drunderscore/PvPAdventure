@@ -8,7 +8,7 @@ using static PvPAdventure.Common.SSC.SSC;
 
 namespace PvPAdventure.Common.SSC;
 
-[Autoload(Side = ModSide.Server)]
+[Autoload(Side = ModSide.Both)]
 public sealed class GhostClampSystem : ModSystem
 {
     public override void PostUpdatePlayers()
@@ -29,7 +29,7 @@ public sealed class GhostClampSystem : ModSystem
 
             p.position = spawnPos;
             p.velocity = Vector2.Zero;
-            p.direction = 1;
+            //p.direction = 1;
 
             // Push authoritative state to clients
             NetMessage.SendData(MessageID.PlayerControls, -1, -1, null, p.whoAmI);

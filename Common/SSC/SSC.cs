@@ -150,67 +150,72 @@ public class SSC : ModSystem
 
     private static void LoadPlayer(BinaryReader reader)
     {
-        // Receive data from server, load the player and spawn into the world
-        if (Main.netMode == NetmodeID.MultiplayerClient)
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            return;
+
+        bool isNew = reader.ReadBoolean();
+
+        int len = reader.ReadInt32();
+        if (len < 0 || len > MaxPlayerFileBytes)
+        {
+            Log.Chat("Client received invalid SSC player length: " + len);
+            return;
+        }
+
+        byte[] plrBytes = reader.ReadBytes(len);
+        if (plrBytes.Length != len)
+        {
+            Log.Chat("Client received truncated SSC player data: " + plrBytes.Length + "/" + len);
+            return;
+        }
+
+        TagCompound root = TagIO.Read(reader);
+
+        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
+
+        byte[] tplrBytes;
+        using (var ms = new MemoryStream())
+        {
+            TagIO.ToStream(root, ms);
+            tplrBytes = ms.ToArray();
+        }
+
+        string tempPlayerPath = Path.Combine(Main.PlayerPath, $"{steamId}.SSC");
+
+        Main.QueueMainThreadAction(() =>
         {
             try
             {
-                bool isNew = reader.ReadBoolean();
-
-                int len = reader.ReadInt32();
-                if (len < 0 || len > MaxPlayerFileBytes)
-                {
-                    Log.Chat("Client received invalid SSC player length: " + len);
-                    return;
-                }
-
-                byte[] data = reader.ReadBytes(len);
-                if (data.Length != len)
-                {
-                    Log.Chat("Client received truncated SSC player data: " + data.Length + "/" + len);
-                    return;
-                }
-
-                TagCompound root = TagIO.Read(reader);
-
-                string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
-
-                var ms = new MemoryStream();
-                TagIO.ToStream(root, ms);
-
-                var fileData = new PlayerFileData(Path.Combine(Main.PlayerPath, $"{steamId}.SSC"), cloudSave: false)
+                var fileData = new PlayerFileData(tempPlayerPath, cloudSave: false)
                 {
                     Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
                 };
 
-                // Load player
-                Player.LoadPlayerFromStream(fileData, data, ms.ToArray());
+                Player.LoadPlayerFromStream(fileData, plrBytes, tplrBytes);
                 fileData.MarkAsServerSide();
 
-                // Enter world
                 fileData.SetAsActive();
+
                 fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
                 Player.Hooks.EnterWorld(Main.myPlayer);
 
-                // Set current life and mana to max life and mana again to ensure it gets applied
                 if (fileData.Player.statLife != fileData.Player.statLifeMax)
                     fileData.Player.statLife = fileData.Player.statLifeMax;
                 if (fileData.Player.statMana != fileData.Player.statManaMax)
                     fileData.Player.statMana = fileData.Player.statManaMax;
 
-                // Scan map
-                MapScanSystem.RequestScan();
+                MapLoadSystem.Request(delayTicks: 30);
 
                 Log.Chat((isNew ? "Loaded new SSC player " : "Loaded existing SSC player ") + fileData.Player.name);
-                Main.NewText($"Welcome, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}", Color.MediumPurple);
+                Main.NewText($"Welcome, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}",
+                    Color.MediumPurple);
             }
             catch (Exception e)
             {
                 Log.Chat("Client failed loading SSC player: " + e);
                 Log.Error("Client failed loading SSC player: " + e);
-                return;
             }
-        }
+        });
     }
 
     private static void CreateNewPlayer(string plrPath, string name, PlayerAppearance appearance)
@@ -305,10 +310,10 @@ public class SSC : ModSystem
     }
 
     #region Helpers
-    public static string FormatPlayTime(TimeSpan t) 
-    { 
-        int hours = (int)t.TotalHours; 
-        return $"{hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}"; 
+    public static string FormatPlayTime(TimeSpan t)
+    {
+        int hours = (int)t.TotalHours;
+        return $"{hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
     }
     #endregion
 }
