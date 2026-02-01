@@ -329,6 +329,11 @@ Mods: {
 				DisplayName: Treasure Bag Outlines Config Item
 				Tooltip: ""
 			}
+
+			TabKeyConfigItem: {
+				DisplayName: Tab Key Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -445,6 +450,11 @@ Mods: {
 						Turn this off to see your vanity.
 						For other players, your armor and accessories is always visible.
 						'''
+				}
+
+				TabToSwitchChannel: {
+					Label: "[i:PvPAdventure/TabKeyConfigItem] Tab To Switch Channel"
+					Tooltip: Shows the toolltip that allows you to press [Tab] to switch between (ALL) and (TEAM)
 				}
 			}
 
