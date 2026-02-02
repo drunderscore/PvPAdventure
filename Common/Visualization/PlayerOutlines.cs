@@ -7,7 +7,7 @@ using Terraria.Enums;
 using Terraria.Graphics.Renderers;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.UI;
+namespace PvPAdventure.Common.Visualization;
 
 [Autoload(Side = ModSide.Client)]
 public class PlayerOutlines : ModSystem

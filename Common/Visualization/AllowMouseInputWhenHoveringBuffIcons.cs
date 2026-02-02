@@ -2,7 +2,7 @@
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.UI;
+namespace PvPAdventure.Common.Visualization;
 
 internal class AllowMouseInputWhenHoveringBuffIcons : ModSystem
 {

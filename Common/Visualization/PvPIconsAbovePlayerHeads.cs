@@ -7,7 +7,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.UI;
+namespace PvPAdventure.Common.Visualization;
 
 /// <summary>
 /// Draws PvP icons above player heads based on their PvP status.

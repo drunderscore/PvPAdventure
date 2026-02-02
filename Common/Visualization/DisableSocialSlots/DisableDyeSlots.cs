@@ -9,7 +9,7 @@ using Terraria.GameContent;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.UI;
+namespace PvPAdventure.Common.Visualization.DisableSocialSlots;
 
 [Autoload(Side = ModSide.Client)]
 public class DisableDyeSlots : ModSystem

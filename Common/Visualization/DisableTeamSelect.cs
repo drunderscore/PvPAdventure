@@ -11,7 +11,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI.Gamepad;
 
-namespace PvPAdventure.Common.UI;
+namespace PvPAdventure.Common.Visualization;
 
 /// <summary>
 /// Disables drawing and handling of PvP and team icons (these are drawn next to accessories when inventory is open).

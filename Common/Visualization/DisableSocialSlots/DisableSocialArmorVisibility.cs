@@ -5,7 +5,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.UI;
+namespace PvPAdventure.Common.Visualization.DisableSocialSlots;
 
 [Autoload(Side = ModSide.Client)]
 internal sealed class DisableSocialArmorVisibility : ModSystem

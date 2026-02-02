@@ -20,12 +20,12 @@ public static class TeleportFxNetHandler
         p.Send(); // to all clients
     }
 
-    public static void Receive(BinaryReader r)
+    public static void HandlePacket(BinaryReader reader, int whoAmI)
     {
         if (Main.dedServ)
             return;
 
-        int who = r.ReadByte();
+        int who = reader.ReadByte();
         if (who < 0 || who >= Main.maxPlayers)
             return;
 
