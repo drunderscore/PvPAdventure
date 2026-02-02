@@ -5,6 +5,7 @@ using System;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using static PvPAdventure.Common.Spawnbox.RegionManager;
 
 namespace PvPAdventure.Common.Spawnbox;
 
@@ -20,47 +21,11 @@ internal class SpawnboxPlayer : ModPlayer
         On_Player.ItemCheck_UseTeleportRod += OnPlayerItemCheck_UseTeleportRod;
         On_Player.ItemCheck_UseWiringTools += OnPlayerItemCheck_UseWiringTools;
         On_Player.ItemCheck_CutTiles += OnPlayerItemCheck_CutTiles;
-
-        // Force ghosts to use same collisions restrictions.
-        On_Collision.EmptyTile += OnEmptyTile;
-    }
-
-    private static bool OnEmptyTile(On_Collision.orig_EmptyTile orig, int i, int j, bool ignoreTiles)
-    {
-        return orig(i, j, ignoreTiles);
-
-        Rectangle rectangle = new Rectangle(i * 16, j * 16, 16, 16);
-        if (Main.tile[i, j].active() && !ignoreTiles)
-        {
-            return false;
-        }
-        for (int k = 0; k < 255; k++)
-        {
-            if (Main.player[k].active && !Main.player[k].dead && rectangle.Intersects(new Rectangle((int)Main.player[k].position.X, (int)Main.player[k].position.Y, Main.player[k].width, Main.player[k].height)))
-            {
-                return false;
-            }
-        }
-        for (int l = 0; l < 200; l++)
-        {
-            if (Main.npc[l].active && rectangle.Intersects(new Rectangle((int)Main.npc[l].position.X, (int)Main.npc[l].position.Y, Main.npc[l].width, Main.npc[l].height)))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private bool CanRecall()
-    {
-        var region = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());
-
-        return Player.lifeRegen >= 0.0 && !Player.controlLeft && !Player.controlRight && !Player.controlUp &&
-               !Player.controlDown && Player.velocity == Vector2.Zero && (region == null || region.CanRecall);
     }
 
     public override void PostUpdateMiscEffects()
     {
+        // Apply player in spawn buff.
         int playerTileX = (int)(Player.position.X / 16f);
         int playerTileY = (int)(Player.position.Y / 16f);
 
@@ -143,43 +108,50 @@ internal class SpawnboxPlayer : ModPlayer
         //}
     }
 
-    private void OnPlayerPlaceThing_Tiles(On_Player.orig_PlaceThing_Tiles orig, Player self)
+    private static bool CanModifyAtTileTarget()
     {
-        var region = ModContent.GetInstance<RegionManager>().GetRegionContaining(new(Player.tileTargetX, Player.tileTargetY));
-
-        if (region == null || region.CanModifyTiles)
-            orig(self);
+        RegionManager Regions = ModContent.GetInstance<RegionManager>();
+        var region = Regions.GetRegionContaining(new(Player.tileTargetX, Player.tileTargetY));
+        return region == null || region.CanModifyTiles;
     }
 
-    private void OnPlayerPlaceThing_Walls(On_Player.orig_PlaceThing_Walls orig, Player self)
+    private void OnPlayerPlaceThing_Tiles(On_Player.orig_PlaceThing_Tiles orig, Player self)
     {
-        var region = ModContent.GetInstance<RegionManager>().GetRegionContaining(new(Player.tileTargetX, Player.tileTargetY));
+        // debug: always allow
+#if DEBUG
+        //orig(self);
+#endif
 
-        if (region == null || region.CanModifyTiles)
+        if (CanModifyAtTileTarget())
             orig(self);
     }
 
     private void OnPlayerItemCheck_UseMiningTools(On_Player.orig_ItemCheck_UseMiningTools orig, Player self, Item sitem)
     {
-        var region = ModContent.GetInstance<RegionManager>().GetRegionContaining(new(Player.tileTargetX, Player.tileTargetY));
+        // debug: always allow
+#if DEBUG
+        //orig(self, sitem);
+#endif
 
-        if (region == null || region.CanModifyTiles)
+        if (CanModifyAtTileTarget())
             orig(self, sitem);
+    }
+
+    private void OnPlayerPlaceThing_Walls(On_Player.orig_PlaceThing_Walls orig, Player self)
+    {
+        if (CanModifyAtTileTarget())
+            orig(self);
     }
 
     private void OnPlayerItemCheck_UseTeleportRod(On_Player.orig_ItemCheck_UseTeleportRod orig, Player self, Item sitem)
     {
-        var region = ModContent.GetInstance<RegionManager>().GetRegionContaining(new(Player.tileTargetX, Player.tileTargetY));
-
-        if (region == null || region.CanModifyTiles)
+        if (CanModifyAtTileTarget())
             orig(self, sitem);
     }
 
     private void OnPlayerItemCheck_UseWiringTools(On_Player.orig_ItemCheck_UseWiringTools orig, Player self, Item sitem)
     {
-        var region = ModContent.GetInstance<RegionManager>().GetRegionContaining(new(Player.tileTargetX, Player.tileTargetY));
-
-        if (region == null || region.CanModifyTiles)
+        if (CanModifyAtTileTarget())
             orig(self, sitem);
     }
 

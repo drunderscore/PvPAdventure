@@ -178,16 +178,19 @@ public class TeamChatManager : ModSystem
         color = new Color(220,220,220);
         color = Color.LightGray;
 
-        
+        if (Main.LocalPlayer.team == 0)
+        {
+            return;
+        }
 
         ChatManager.DrawColorCodedStringWithShadow(
             Main.spriteBatch, FontAssets.MouseText.Value,
-            "[Tab] \nSwitch",
-            new((int)((78.0f / 2.0f) - (size.X / 2.0f) + 11f), (int)(Main.screenHeight - 82)),
+            "Press [Tab] \n to Switch",
+            new((int)((78.0f / 2.0f) - (size.X / 2.0f) -1f), (int)(Main.screenHeight - 78)),
             color * alpha,
             0.0f,
             Vector2.Zero,
-            new Vector2(0.9f)
+            new Vector2(0.82f)
         );
     }
 

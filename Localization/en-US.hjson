@@ -419,7 +419,7 @@ Mods: {
 
 				ShowChooseYourSpawnText: {
 					Label: Show Header
-					Tooltip: Shows 'Choose Your Spawn' text
+					Tooltip: Shows the 'Choose Your Spawn' header
 				}
 
 				SoundEffect: {
@@ -453,8 +453,8 @@ Mods: {
 				}
 
 				TabToSwitchChannel: {
-					Label: "[i:PvPAdventure/TabKeyConfigItem] Tab To Switch Channel"
-					Tooltip: Shows the toolltip that allows you to press [Tab] to switch between (ALL) and (TEAM)
+					Label: "[i:PvPAdventure/TabKeyConfigItem] Show Press Tab to Switch"
+					Tooltip: Shows the toolltip that allows you to press [Tab] to switch between (ALL) and (TEAM) chat
 				}
 			}
 
@@ -731,7 +731,7 @@ Mods: {
 
 				AdventureMirrorRecallSeconds: {
 					Label: "[i:PvPAdventure/AdventureMirror] Adventure Mirror Use Time"
-					Tooltip: Number of seconds taken to complete a recall
+					Tooltip: The number of seconds the Adventure Mirror takes before teleporting
 				}
 
 				AllowPlayersToChangeTeam: {
@@ -1580,17 +1580,17 @@ Mods: {
 
 				Always: {
 					Label: Always
-					Tooltip: ""
+					Tooltip: "Always allow players to change teams"
 				}
 
 				BeforeGameStart: {
 					Label: Before Game Start
-					Tooltip: ""
+					Tooltip: "Only allow players to change teams before the game has started"
 				}
 
 				Never: {
 					Label: Never
-					Tooltip: ""
+					Tooltip: "Players are not allowed to change teams"
 				}
 			}
 		}

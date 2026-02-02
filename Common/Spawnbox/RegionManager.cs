@@ -208,6 +208,14 @@ public class RegionManager : ModSystem
     {
         if (Main.netMode != NetmodeID.MultiplayerClient)
         {
+            // Set the spawnbox size. (duplicate from SpawnboxWorld)
+            const int size = 50;
+
+            int leftTile = Main.spawnTileX - size / 2;
+            int topTile = Main.spawnTileY - size / 2;
+            int rightTile = leftTile + size;
+            int bottomTile = topTile + size;
+
             _regions.Add(new Region
             {
                 Area = new(Main.spawnTileX - 25, Main.spawnTileY - 25, 50, 50),

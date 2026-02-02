@@ -55,11 +55,13 @@ public class SpawnBoxWorld : ModSystem
             if (Main.dedServ)
                 return;
 
-            // Set the spawnbox size.
-            int leftTile = Main.spawnTileX - 25;
-            int topTile = Main.spawnTileY - 25;
-            int rightTile = leftTile + 50;
-            int bottomTile = topTile + 50;
+            // Set the spawnbox size. (duplicate from RegionManager)
+            const int size = 50;
+
+            int leftTile = Main.spawnTileX - size/2;
+            int topTile = Main.spawnTileY - size/2;
+            int rightTile = leftTile + size;
+            int bottomTile = topTile + size;
 
             // Get world coordinates.
             Vector2 worldTopLeft = new(leftTile * 16f, topTile * 16f);
@@ -97,6 +99,9 @@ public class SpawnBoxWorld : ModSystem
             int srcEdgeWidth = tex.Width - srcCorner * 2;
             int srcEdgeHeight = tex.Height - srcCorner * 2;
             int dstCorner = srcCorner;
+
+            // debug: add extra inner thickness
+            //dstCorner += 16;
 
             sb.Draw(tex, new Rectangle(x, y, dstCorner, dstCorner), new Rectangle(0, 0, srcCorner, srcCorner), color);
             sb.Draw(tex, new Rectangle(x + dstCorner, y, w - dstCorner * 2, dstCorner), new Rectangle(srcCorner, 0, srcEdgeWidth, srcCorner), color);
