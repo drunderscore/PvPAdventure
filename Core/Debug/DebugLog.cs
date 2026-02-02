@@ -42,8 +42,8 @@ public static class Log
         string fileName = Path.GetFileNameWithoutExtension(file);
 
         // Truncate
-        if (fileName.Length > 19)
-            fileName = fileName[..19] + "..";
+        if (fileName.Length > 17)
+            fileName = fileName[..17] + "..";
 
         // Broadcast to Terraria chat to all clients
         ChatHelper.BroadcastChatMessage(

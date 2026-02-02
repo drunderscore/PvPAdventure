@@ -185,8 +185,8 @@ public class TeamChatManager : ModSystem
 
         ChatManager.DrawColorCodedStringWithShadow(
             Main.spriteBatch, FontAssets.MouseText.Value,
-            "Press [Tab] \n to Switch",
-            new((int)((78.0f / 2.0f) - (size.X / 2.0f) -1f), (int)(Main.screenHeight - 78)),
+            "   [Tab] \n to Switch",
+            new((int)((78.0f / 2.0f) - (size.X / 2.0f) -3f), (int)(Main.screenHeight - 78)),
             color * alpha,
             0.0f,
             Vector2.Zero,

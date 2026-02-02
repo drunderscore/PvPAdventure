@@ -1580,17 +1580,17 @@ Mods: {
 
 				Always: {
 					Label: Always
-					Tooltip: "Always allow players to change teams"
+					Tooltip: Always allow players to change teams
 				}
 
 				BeforeGameStart: {
 					Label: Before Game Start
-					Tooltip: "Only allow players to change teams before the game has started"
+					Tooltip: Only allow players to change teams before the game has started
 				}
 
 				Never: {
 					Label: Never
-					Tooltip: "Players are not allowed to change teams"
+					Tooltip: Players are not allowed to change teams
 				}
 			}
 		}

@@ -39,7 +39,7 @@ public class ClientConfig : ModConfig
     public SoundEffectConfig SoundEffect = new();
 
     [Header("Chat")]
-    [DefaultValue(true)] public bool TabToSwitchChannel;
+    [DefaultValue(false)] public bool TabToSwitchChannel;
     [DefaultValue(true)] public bool ShowSavePlayerMessages;
     [DefaultValue(false)] public bool ShowDebugMessages;
 

@@ -5,6 +5,7 @@ using PvPAdventure.Common.SpawnSelector.Net;
 using PvPAdventure.Common.SSC;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;
+using PvPAdventure.Common.Visualization.HoldingMap;
 using PvPAdventure.Core.Input.Dash;
 using PvPAdventure.Core.Net;
 using System;
@@ -45,7 +46,7 @@ public class PvPAdventure : Mod
             AdventurePacketIdentifier.TeleportFx => Bind(r, whoAmI, TeleportFxNetHandler.HandlePacket),
             AdventurePacketIdentifier.SSC => Bind(r, whoAmI, SSC.HandlePacket),
             AdventurePacketIdentifier.NpcStrikeTeam => Bind(r, whoAmI, TeamBossNetHandler.HandlePacket),
-            AdventurePacketIdentifier.HoldingMap => throw new NotImplementedException(),
+            AdventurePacketIdentifier.HoldingMap => Bind(r, whoAmI, MapHoldingNetHandler.HandlePacket),
             _ => null
         };
 
