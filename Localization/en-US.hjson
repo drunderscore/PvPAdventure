@@ -453,8 +453,13 @@ Mods: {
 				}
 
 				TabToSwitchChannel: {
-					Label: "[i:PvPAdventure/TabKeyConfigItem] Show Press Tab to Switch"
+					Label: Show Press Tab to Switch
 					Tooltip: Shows the toolltip that allows you to press [Tab] to switch between (ALL) and (TEAM) chat
+				}
+
+				spawnSelectorPosition: {
+					Label: Position
+					Tooltip: ""
 				}
 			}
 
@@ -1593,6 +1598,20 @@ Mods: {
 					Tooltip: Players are not allowed to change teams
 				}
 			}
+
+			SpawnSelectorPosition: {
+				Tooltip: ""
+
+				Top: {
+					Label: Top
+					Tooltip: ""
+				}
+
+				Bottom: {
+					Label: Bottom
+					Tooltip: ""
+				}
+			}
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
@@ -1612,8 +1631,8 @@ Mods: {
 			CancelWorldSpawn: Cancel world spawn
 			SelectTeammateSpawn: Select {0}'s spawn
 			CancelTeammateSpawn: Cancel {0}'s spawn
-			SelectBedSpawn: Select {0}'s bed
-			CancelBedSpawn: Cancel {0}'s bed
+			SelectTeammatesBed: Select {0}'s bed
+			CancelTeammatesBed: Cancel {0}'s bed
 			SelectMyBed: Select my bed
 			CancelMyBed: Cancel my bed
 			TeleportToMyBed: Teleport to my bed

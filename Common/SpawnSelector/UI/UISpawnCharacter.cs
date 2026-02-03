@@ -76,8 +76,8 @@ public class UISpawnCharacter : UIPanel
         var player = Main.player[playerIndex];
         bool hasBed = player.SpawnX != -1 && player.SpawnY != -1;
         bedButton = new UIBedButton(playerIndex, hasBed);
-        bedButton.Top.Set(-3f, 0f);
-        bedButton.Left.Set(itemWidth - 38, 0f);
+        bedButton.Top.Set(-2f, 0f);
+        bedButton.Left.Set(itemWidth - 52, 0f);
         Append(bedButton);
     }
 
@@ -87,6 +87,8 @@ public class UISpawnCharacter : UIPanel
     {
         BorderColor = Color.Black;
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
+
+        const float ItemHeight = 64;
 
         Height.Set(ItemHeight, 0f);
         Width.Set(itemWidth, 0f);
@@ -163,6 +165,7 @@ public class UISpawnCharacter : UIPanel
             hovering ? new Color(73, 92, 161, 150) :
             new Color(63, 82, 151) * 0.8f;
     }
+
     private void DrawHoverText(Player player)
     {
         if (player == null || !player.active)
@@ -200,49 +203,69 @@ public class UISpawnCharacter : UIPanel
     protected override void DrawSelf(SpriteBatch sb)
     {
         base.DrawSelf(sb);
+        SetPadding(6);
 
-        CalculatedStyle inner = GetInnerDimensions();
-
+        // Get player
         Player player = Main.player[playerIndex];
-        var d = GetDimensions();
 
         if (player == null || !player.active)
         {
-            // Force rebuild?
-            // NO DON'T, ENUMERATION WAS MODIFIED WHILE DRAWING, THIS WILL CRASH!
-            //var sys = ModContent.GetInstance<SpawnSystem>();
-            //sys.spawnState.RebuildPublic();
-
+            var d = GetDimensions();
             var rect2 = d.ToRectangle();
-
             Utils.DrawBorderString(sb, "Unable to find player :(", rect2.Location.ToVector2() + new Vector2(50, 0), Color.White);
             return;
         }
 
-        // Left player background
+        // Set Dimensions.
+        // Dimensions of MapBGs is 115x65.
+        CalculatedStyle inner = GetInnerDimensions();
         Vector2 pos = new(inner.X, inner.Y);
-        //sb.Draw(_playerBGTexture.Value, pos, Color.White*0.5f);
 
-        int leftRectWidth = 100;
+        // Set Ultra compact width
+        int leftRectWidth = (int)(115 / 1.1f);
         if (rowDensity == RowDensity.UltraCompact)
-        {
             leftRectWidth = (int)itemWidth;
-        }
 
+        // Main rectangle for player drawing
         Rectangle rect = new(
             x: (int)pos.X - 6,
             y: (int)pos.Y - 6,
             width: leftRectWidth,
-            height: 72);
+            height: 65);
 
-        //DrawMask(sb, Ass.CornerMask4px.Value, rect, 9);
         DrawNineSlice(sb, rect.X, rect.Y, rect.Width, rect.Height, playerBGTexture.Value, Color.White, 5);
         DrawMapFullscreenBackground(sb, rect, player);
+        DrawPlayerHead(player, pos);
 
+        // Draw hover text for ultra compact mode
+        if (rowDensity == RowDensity.UltraCompact)
+        {
+            if (IsMouseHovering)
+                DrawHoverText(player);
+            return;
+        }
+
+        // Draw statpanel
+        DrawNameAndStatPanel(sb, inner, player.name, player.statLife, player.statMana);
+
+        // Draw skull and respawn timer
+        int respawnTimer = player.respawnTimer;
+        if (respawnTimer != 0)
+            DrawRespawnTimerAndDeadIcon(sb, respawnTimer, rect);
+
+        // Draw hover text
+        if (IsMouseHovering)
+            DrawHoverText(player);
+    }
+
+    #region Draw Helpers
+
+    private void DrawPlayerHead(Player player, Vector2 pos)
+    {
         try
         {
             Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
-            Vector2 headDrawPos = pos + new Vector2(38, 30);
+            Vector2 headDrawPos = pos + new Vector2(42, 24);
 
             Color myTeamColor = Main.teamColor[Main.LocalPlayer.team];
 
@@ -253,23 +276,11 @@ public class UISpawnCharacter : UIPanel
         {
             Log.Error("Failed to draw p: " + e);
         }
+    }
 
-        if (rowDensity == RowDensity.UltraCompact)
-        {
-            // Draw teleport to if it exists
-            if (IsMouseHovering)
-            {
-                DrawHoverText(player);
-            }
-
-            return;
-        }
-
-        // Use the actual layout widths, not the texture width
-        const float leftColumnWidth = 106f;              // player background column
-        //float rightAreaWidth = itemWidth - 22f - leftColumnWidth; // 260 - 12 - 106 = 142
-        //float rightAreaLeft = inner.X + leftColumnWidth;
-        //float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
+    private void DrawNameAndStatPanel(SpriteBatch sb, CalculatedStyle inner, string playerName, int playerLife, int playerMana)
+    {
+        const float leftColumnWidth = 115 - 3; // player background column
         float rightAreaLeft = inner.X + leftColumnWidth;
 
         // Exclude bed
@@ -283,48 +294,61 @@ public class UISpawnCharacter : UIPanel
 
         float rightAreaRight = inner.X + inner.Width - bedExclude;
         float rightAreaWidth = Math.Max(0f, rightAreaRight - rightAreaLeft);
-        float rightAreaCenterX = rightAreaLeft + rightAreaWidth * 0.5f;
-        float nameAreaRight = inner.X + inner.Width;
-        float nameAreaWidth = Math.Max(0f, nameAreaRight - rightAreaLeft);
-        float nameAreaCenterX = rightAreaLeft + nameAreaWidth * 0.5f;
 
-        string name = string.IsNullOrEmpty(player.name) ? "Unknown player" : player.name;
+        string name = string.IsNullOrWhiteSpace(playerName) ? "Unknown player" : playerName;
 
-        float nameScale = 1f;
-        if (rowDensity == RowDensity.Compact && name.Length > 12)
+        // Debug long name: do not delete!
+        //name = "123456";
+        //name = "123456789";
+        //name = "1234567890";
+        //name = "1234567890123";
+        //name = "1234567890123456";
+
+        // WORKING logic for right-aligning name to the edge of the bed properly!
+        int rightInset = rowDensity == RowDensity.Compact ? 41 : 48;
+        float nameRight = inner.X + inner.Width - rightInset;
+        float nameScale = rowDensity == RowDensity.Compact ? 0.8f : 1f;
+        float nameY = inner.Y + (rowDensity == RowDensity.Compact ? 2f : 0f);
+        Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name);
+        float borderPad = 2f * nameScale;
+        float scaledW = nameSize.X * nameScale;
+        float nameX = nameRight - (scaledW + borderPad);
+        if (nameX < inner.X)
+            nameX = inner.X;
+
+        // Custom extra logic to handle long names with smaller smale
+        if (rowDensity == RowDensity.Normal)
         {
-            nameScale = 0.8f;
+            if (name.Length > 4 && name.Length <=6)
+            {
+                nameX -= 9f;
+            }
+            if (name.Length == 12) nameX += 5f;
+
+            if (name.Length > 12)
+            {
+                nameScale = 0.8f;
+                nameY += 3f;
+                nameX += 17f;
+            }
+            if (name.Length > 13) nameX += 9f;
+            if (name.Length > 14) nameX += 9f;
+            if (name.Length > 15) nameX += 5f;
         }
-        else if (name.Length > 16)
-        {
-            nameScale = 0.85f;
-        }
 
-        Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
+        Utils.DrawBorderString(sb, name, new Vector2(nameX, nameY), Color.White, nameScale);
 
-        Vector2 namePos = new(
-            nameAreaCenterX - nameSize.X * 0.5f - 2f,
-            inner.Y
-        );
-
-        // Debug draw (do not delete!)
-        //Rectangle debugRect = new Rectangle((int)namePos.X, (int)namePos.Y, (int)nameSize.X, (int)nameSize.Y);
-        //Rectangle debugRect = new Rectangle((int)namePos.X, (int)namePos.Y, (int)nameSize.X, (int)nameSize.Y);
-        //sb.Draw(TextureAssets.MagicPixel.Value, debugRect, Color.Red * 0.35f);
-
-        // Draw name
-        Utils.DrawBorderString(sb, name, namePos, Color.White, nameScale);
 
         // Draw divider
-        sb.Draw(dividerTexture.Value, new Vector2(rightAreaLeft - 12, inner.Y + 21f), null, Color.White, 0f, Vector2.Zero, new Vector2(rightAreaWidth / 8 + 2.2f, 1f), SpriteEffects.None, 0f);
+        sb.Draw(dividerTexture.Value, new Vector2(rightAreaLeft - 15f, inner.Y + 21f), null, Color.White, 0f, Vector2.Zero, new Vector2(rightAreaWidth / 8 + 6.6f, 1f), SpriteEffects.None, 0f);
 
         // Stat panel settings
         float statScale = 0.88f;
         float statGap = 5f * statScale;
 
         // Draw stat panel
-        float panelWidth = rightAreaWidth + 24;
-        Vector2 panelPos = new(rightAreaLeft - 14, inner.Y + 29f);
+        float panelWidth = rightAreaWidth + 55;
+        Vector2 panelPos = new(rightAreaLeft - 16, inner.Y + 26f);
         DrawPanel(sb, panelPos, panelWidth);
 
         bool drawMana = rowDensity == RowDensity.Normal;
@@ -334,13 +358,13 @@ public class UISpawnCharacter : UIPanel
 
         if (rowDensity == RowDensity.Compact)
         {
-            hpText = $"{player.statLife} HP";
+            hpText = $"{playerLife} HP";
             mpText = string.Empty;
         }
         else
         {
-            hpText = $"{player.statLife} HP";
-            mpText = $"{player.statMana} MP";
+            hpText = $"{playerLife} HP";
+            mpText = $"{playerMana} MP";
         }
 
         Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hpText) * statScale;
@@ -378,59 +402,38 @@ public class UISpawnCharacter : UIPanel
             startX += manaW;
             Utils.DrawBorderString(sb, mpText, new Vector2(startX + 1, y + 1f), Color.White, statScale);
         }
-
-        // Draw player respawn timer if it exists
-        if (player.respawnTimer != 0)
-        {
-            // Draw dead icon
-            var tex = Ass.Icon_Dead.Value;
-            Vector2 skullCenter = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
-
-            sb.Draw(
-                tex,
-                position: skullCenter,
-                sourceRectangle: null,
-                color: Color.White * 0.5f,
-                rotation: 0f,
-                origin: tex.Size() * 0.5f,
-                scale: 0.09f,
-                effects: SpriteEffects.None,
-                layerDepth: 0f
-            );
-
-            string respawnTimeInSeconds = (player.respawnTimer / 60 + 1).ToString();
-
-            // Override text for spawn selector mode
-            if (player.respawnTimer <= 2)
-                respawnTimeInSeconds = "0";
-
-            // Testing
-            //respawnTimeInSeconds = "abcde";
-
-            float timerScale = 1f;
-
-            Vector2 timerSize = FontAssets.DeathText.Value.MeasureString(respawnTimeInSeconds) * timerScale;
-
-            Vector2 timerPos = new(
-                rect.X + (rect.Width - timerSize.X) * 0.5f,
-                rect.Y + (rect.Height - timerSize.Y) * 0.5f
-            );
-
-            // manual adjustment
-            timerPos.Y += 10;
-
-
-            Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, timerPos, Color.LightGray, scale: timerScale);
-        }
-
-        // Draw teleport to if it exists
-        if (IsMouseHovering)
-        {
-            DrawHoverText(player);
-        }
     }
 
-    #region Draw Helpers
+    private void DrawRespawnTimerAndDeadIcon(SpriteBatch sb, int respawnTimer, Rectangle rect)
+    {
+        // Draw dead icon
+        var tex = Ass.Icon_Dead.Value;
+        Vector2 skullCenter = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
+        sb.Draw(tex, skullCenter, null, Color.White * 0.5f, 0f, tex.Size() * 0.5f, 0.09f, SpriteEffects.None, 0f);
+        string respawnTimeInSeconds = (respawnTimer / 60 + 1).ToString();
+
+        // Override text for spawn selector mode
+        if (respawnTimer <= 2)
+            respawnTimeInSeconds = "0";
+
+        // Testing; do not delete!
+        //respawnTimeInSeconds = "abcde";
+
+        float timerScale = 1f;
+
+        Vector2 timerSize = FontAssets.DeathText.Value.MeasureString(respawnTimeInSeconds) * timerScale;
+
+        Vector2 timerPos = new(
+            rect.X + (rect.Width - timerSize.X) * 0.5f,
+            rect.Y + (rect.Height - timerSize.Y) * 0.5f
+        );
+
+        // manual adjustment
+        timerPos.Y += 10;
+
+
+        Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, timerPos, Color.LightGray, scale: timerScale);
+    }
 
     // Draws the inner panel background with a given width.
     private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)

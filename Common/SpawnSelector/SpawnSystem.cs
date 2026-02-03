@@ -28,6 +28,9 @@ public class SpawnSystem : ModSystem
 
     public static void SetCanTeleport(bool value) => CanTeleport = value;
 
+    private ulong _nextUiRebuildTick;
+    private const ulong UiRebuildIntervalTicks = 60 * 5;
+
     public static bool IsUiOpen
     {
         get
@@ -86,9 +89,17 @@ public class SpawnSystem : ModSystem
         {
             spawnState = new UISpawnState();
             ui.SetState(spawnState);
-            
+
+            _nextUiRebuildTick = Main.GameUpdateCount + UiRebuildIntervalTicks; // initialize / reset rebuild
+
             if (!local.dead && !inSpawnRegion) // Do NOT auto-select latest while in a spawn region (prevents instant execution).
                 sp.TryAutoSelectLatestSelection();
+        }
+
+        if (ui.CurrentState == spawnState && Main.GameUpdateCount >= _nextUiRebuildTick)
+        {
+            _nextUiRebuildTick = Main.GameUpdateCount + UiRebuildIntervalTicks;
+            spawnState.RequestRebuild();
         }
 
         ui.Update(gameTime);
@@ -331,16 +342,7 @@ public class SpawnSystem : ModSystem
             return;
 
         SpriteBatch sb = Main.spriteBatch;
-        sb.Begin(
-            SpriteSortMode.Deferred,
-            BlendState.AlphaBlend,
-            SamplerState.LinearClamp,
-            DepthStencilState.None,
-            RasterizerState.CullCounterClockwise,
-            null,
-            Main.UIScaleMatrix
-        );
-
+        sb.Begin(SpriteSortMode.Deferred,BlendState.AlphaBlend,SamplerState.LinearClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise, null,Main.UIScaleMatrix);
         ui.Draw(sb, Main._drawInterfaceGameTime);
         DrawAdventureMirrorTimer(sb);
 
@@ -351,8 +353,8 @@ public class SpawnSystem : ModSystem
     {
         int idx = layers.FindIndex(l => l.Name == "Vanilla: Death Text");
 
-        //if (IsAnyConfigUIOpen())
-            //idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
+        if (IsAnyConfigUIOpen())
+            idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
 
         if (idx == -1)
             return;

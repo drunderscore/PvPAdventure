@@ -34,21 +34,21 @@ public class TeleportOnMap : ModSystem
         bool selectorOpen = SpawnSystem.IsUiOpen;
         bool instantTeleport = SpawnSystem.CanTeleport && !local.dead;
 
-        if (DrawWorld(local, sp, selectorOpen, instantTeleport, ref context, ref text))
-            return;
+        bool recallActive = selectorOpen && !instantTeleport;
 
-        if (DrawMyBed(local, sp, selectorOpen, instantTeleport, ref context, ref text))
-            return;
+        bool handledHover = false;
 
-        DrawTeamBeds(local, sp, selectorOpen, instantTeleport, ref context, ref text);
+        handledHover |= DrawWorldIcon(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
+        handledHover |= DrawMyBedIcon(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
+        handledHover |= DrawTeamBedIcons(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
     }
 
-    private bool DrawWorld(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, ref MapOverlayDrawContext context, ref string text)
+    private bool DrawWorldIcon(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, bool recallActive, ref MapOverlayDrawContext context, ref string text)
     {
-        Vector2 pos = new Vector2(Main.spawnTileX, Main.spawnTileY);
+        Vector2 pos = new(Main.spawnTileX, Main.spawnTileY);
         bool selected = sp.SelectedType == SpawnType.World;
 
-        if (!DrawIcon(TextureAssets.SpawnPoint.Value, pos, selected, ref context, out bool hover))
+        if (!DrawIcon(TextureAssets.SpawnPoint.Value, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
             return false;
 
         if (!hover)
@@ -82,7 +82,7 @@ public class TeleportOnMap : ModSystem
         return true;
     }
 
-    private bool DrawMyBed(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, ref MapOverlayDrawContext context, ref string text)
+    private bool DrawMyBedIcon(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, bool recallActive, ref MapOverlayDrawContext context, ref string text)
     {
         if (!HasValidBedSpawn(local))
             return false;
@@ -90,7 +90,8 @@ public class TeleportOnMap : ModSystem
         Vector2 pos = new Vector2(local.SpawnX, local.SpawnY);
         bool selected = sp.SelectedType == SpawnType.MyBed;
 
-        if (!DrawIcon(TextureAssets.SpawnBed.Value, pos, selected, ref context, out bool hover))
+
+        if (!DrawIcon(TextureAssets.SpawnBed.Value, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
             return false;
 
         if (!hover)
@@ -124,10 +125,10 @@ public class TeleportOnMap : ModSystem
         return true;
     }
 
-    private void DrawTeamBeds(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, ref MapOverlayDrawContext context, ref string text)
+    private bool DrawTeamBedIcons(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, bool recallActive, ref MapOverlayDrawContext context, ref string text)
     {
         if (local.team == 0)
-            return;
+            return false;
 
         for (int i = 0; i < Main.maxPlayers; i++)
         {
@@ -144,7 +145,7 @@ public class TeleportOnMap : ModSystem
             Vector2 pos = new Vector2(other.SpawnX, other.SpawnY);
             bool selected = sp.SelectedType == SpawnType.TeammateBed && sp.SelectedPlayerIndex == i;
 
-            if (!DrawIcon(TextureAssets.SpawnBed.Value, pos, selected, ref context, out bool hover))
+            if (!DrawIcon(TextureAssets.SpawnBed.Value, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
                 continue;
 
             if (!hover)
@@ -153,7 +154,7 @@ public class TeleportOnMap : ModSystem
             if (!selectorOpen)
             {
                 text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeammatesBed", other.name);
-                return;
+                return true;
             }
 
             if (instantTeleport)
@@ -165,7 +166,7 @@ public class TeleportOnMap : ModSystem
                     sp.RequestExecute();
                 }
 
-                return;
+                return true;
             }
 
             text = selected
@@ -175,21 +176,29 @@ public class TeleportOnMap : ModSystem
             if (IsClick())
                 sp.ToggleSelection(SpawnType.TeammateBed, i);
 
-            return;
+            return true;
         }
+        return false;
     }
 
-    private static bool DrawIcon(Texture2D tex, Vector2 tilePos, bool selected, ref MapOverlayDrawContext context, out bool hover)
+    private static bool DrawIcon(Texture2D tex, Vector2 tilePos, bool selected, bool instantTeleport, bool recallActive,
+    ref MapOverlayDrawContext context, out bool hover)
     {
-        float scale = selected ? 1.8f : 1.0f;
+        bool canHoverZoom = instantTeleport || recallActive;
+
+        // Stick: if selected, always 1.8
+        float baseScale = selected ? 1.8f : 1.0f;
+
+        // Hover/highlight zoom only when allowed; otherwise keep same as base
+        float hoverScale = canHoverZoom ? 1.8f : baseScale;
 
         var result = context.Draw(
             texture: tex,
             position: tilePos,
             color: Color.White,
             frame: new SpriteFrame(1, 1),
-            scaleIfNotSelected: scale,
-            scaleIfSelected: 1.8f,
+            scaleIfNotSelected: baseScale,
+            scaleIfSelected: hoverScale,
             alignment: Alignment.Bottom,
             spriteEffects: SpriteEffects.None
         );

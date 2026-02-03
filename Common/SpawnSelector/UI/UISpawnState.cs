@@ -38,6 +38,10 @@ public class UISpawnState : UIState
     private const float HorizontalPadding = 16f; // panel padding
     private const float VerticalPadding = 12f; // panel padding
 
+    // Rebuild frequently
+    private bool _forceRebuild;
+    public void RequestRebuild() => _forceRebuild = true;
+
     // Debug
 #if DEBUG
     private static int s_debugExtraLocalCopies;
@@ -47,15 +51,24 @@ public class UISpawnState : UIState
     {
         //Log.Chat("OnActivate() called");
 
-        // UI state settings
+        // Top or bottom. Default to top.
+        int vAlign = 0;
+        int top = 85;
+
+        var config = ModContent.GetInstance<ClientConfig>();
+        if (config.spawnSelectorPosition == ClientConfig.SpawnSelectorPosition.Bottom)
+        {
+            vAlign = 1;
+            top = -22;
+        }
 
         // Background panel
         backgroundPanel = new()
         {
+            Top = new StyleDimension(top, 0),
+            VAlign = vAlign,
             HAlign = 0.5f,
-            Top = new StyleDimension(-22, 0),
             BackgroundColor = new Color(33, 43, 79) * 1f,
-            VAlign = 1.0f,
         };
         backgroundPanel.SetPadding(0f);
         Append(backgroundPanel);
@@ -64,15 +77,19 @@ public class UISpawnState : UIState
         Rebuild();
 
         // Title
-        var config = ModContent.GetInstance<ClientConfig>();
         if (config.ShowChooseYourSpawnText)
         {
-            chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.Spawn.ChooseYourSpawn"), 0.75f, true)
+            if (config.spawnSelectorPosition == ClientConfig.SpawnSelectorPosition.Bottom)
+            {
+                top -= 38;
+            }
+
+            chooseYourSpawnPanel = new(Language.GetTextValue("Mods.PvPAdventure.Spawn.ChooseYourSpawn"), 0.7f, true)
             {
                 HAlign = 0.5f,
                 BackgroundColor = new Color(73, 94, 171),
-                Top = new StyleDimension(-110, 0),
-                VAlign = 1.0f,
+                Top = new StyleDimension(top-38, 0),
+                VAlign = vAlign,
             };
             // Add title last, on top of everything else
             Append(chooseYourSpawnPanel);
@@ -81,11 +98,6 @@ public class UISpawnState : UIState
 
     public override void Update(GameTime gameTime)
     {
-        if (IsMouseHovering)
-        {
-            //Main.LocalPlayer.mouseInterface = true; // disable item use when hovering
-        }
-
 #if DEBUG
         if (!Main.drawingPlayerChat)
         {
@@ -111,7 +123,7 @@ public class UISpawnState : UIState
         if (NeedsRebuild())
         {
             Rebuild();
-            Log.Chat("Called Rebuild() in SpawnAndSpectateBasePanel");
+            //Log.Chat("Called Rebuild() in SpawnAndSpectateBasePanel");
         }
 
         base.Update(gameTime);
@@ -119,10 +131,11 @@ public class UISpawnState : UIState
 
     private void Rebuild()
     {
-        //backgroundPanel.RemoveAllChildren();
-        //RemoveChild(chooseYourSpawnPanel);
+        // Clear
+        backgroundPanel.RemoveAllChildren();
         playerItems.Clear();
 
+        // Add players
         var players = new List<Player>();
         Player local = Main.LocalPlayer;
 
@@ -151,10 +164,12 @@ public class UISpawnState : UIState
 
         var density = UISpawnCharacter.GetDensityForTeammateCount(playerCount);
         float itemWidth = UISpawnCharacter.GetItemWidth(density);
-        float itemHeight = UISpawnCharacter.ItemHeight;
 
-        float worldWidth = itemHeight;
-        float randomWidth = itemHeight;
+        // Dimensions
+        float itemHeight = 64;
+        const float Spacing = 6f;
+        const float HorizontalPadding = 8f; // panel padding
+        const float VerticalPadding = 10f; // panel padding
 
         int gaps = 1;
         if (playerCount > 0)
@@ -164,27 +179,28 @@ public class UISpawnState : UIState
         }
 
         float contentWidth =
-            worldWidth + worldWidth +
+            itemHeight + itemHeight +
             (playerCount * itemWidth) +
-            randomWidth +
+            itemHeight +
             (gaps * Spacing);
 
-        float panelWidth = contentWidth + HorizontalPadding * 2f;
+        float panelWidth = contentWidth + HorizontalPadding * 2f + HorizontalPadding;
         float panelHeight = itemHeight + VerticalPadding * 2f;
 
         backgroundPanel.Width.Set(panelWidth, 0f);
         backgroundPanel.Height.Set(panelHeight, 0f);
 
         float x = HorizontalPadding;
-        float y = VerticalPadding;
+        float y = VerticalPadding + 2 ; // [EXTRA]!
 
         // World spawn
         worldSpawnPanel = new UIWorldSpawnPanel(itemHeight);
         worldSpawnPanel.Left.Set(x, 0f);
         worldSpawnPanel.Top.Set(y, 0f);
+        worldSpawnPanel.SetPadding(0f);
         backgroundPanel.Append(worldSpawnPanel);
 
-        x += worldWidth + Spacing;
+        x += itemHeight + Spacing;
 
         // My bed button
         bool hasSelfBed = Main.LocalPlayer.SpawnX != -1 && Main.LocalPlayer.SpawnY != -1;
@@ -192,7 +208,7 @@ public class UISpawnState : UIState
         myBedPanel.Left.Set(x, 0f);
         myBedPanel.Top.Set(y, 0f);
         backgroundPanel.Append(myBedPanel);
-        x += worldWidth + Spacing;
+        x += itemHeight + Spacing;
 
         // Players
         for (int i = 0; i < playerCount; i++)
@@ -225,6 +241,12 @@ public class UISpawnState : UIState
 
     private bool NeedsRebuild()
     {
+        if (_forceRebuild)
+        {
+            _forceRebuild = false;
+            return true;
+        }
+
         if (backgroundPanel == null)
             return true;
 

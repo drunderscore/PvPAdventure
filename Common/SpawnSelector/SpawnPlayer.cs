@@ -389,12 +389,12 @@ public class SpawnPlayer : ModPlayer
         if (regionManager.GetRegionContaining(tilePos) != null)
             return true;
 
-        const float radiusWorld = 10f * 16f;
+        const float radiusWorld = 8f * 16f;
         const float radiusSq = radiusWorld * radiusWorld;
 
         if (Player.SpawnX >= 0 && Player.SpawnY >= 0)
         {
-            Vector2 bedWorld = new Vector2(Player.SpawnX * 16f, Player.SpawnY * 16f);
+            Vector2 bedWorld = new Vector2(Player.SpawnX * 16f+1, Player.SpawnY * 16f);
             if (Vector2.DistanceSquared(bedWorld, Player.Center) <= radiusSq)
             {
                 Point bedTile = new Point(Player.SpawnX, Player.SpawnY);

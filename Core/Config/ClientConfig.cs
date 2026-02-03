@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using PvPAdventure.Core.Utilities;
 using System;
 using System.ComponentModel;
@@ -10,6 +11,12 @@ namespace PvPAdventure.Core.Config;
 public class ClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
+
+    public enum SpawnSelectorPosition
+    {
+        Top,
+        Bottom,
+    }
 
     [Header("Visualization")]
     [BackgroundColor(50, 70, 120)]
@@ -32,6 +39,11 @@ public class ClientConfig : ModConfig
 
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool AutoSelectLatestSpawnOption;
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(SpawnSelectorPosition.Top)]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public SpawnSelectorPosition spawnSelectorPosition;
 
     [Header("Sound")]
     [Expand(false, false)]
@@ -159,4 +171,10 @@ public class ClientConfig : ModConfig
     }
     #endregion
 
+    #region Methods
+    public override void OnChanged()
+    {
+        base.OnChanged();
+    }
+    #endregion
 }

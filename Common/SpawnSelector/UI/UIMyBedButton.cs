@@ -1,12 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.World.Outlines.ItemOutlines;
 using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.Localization;
+using Terraria.ModLoader;
 using Terraria.UI;
-using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
 namespace PvPAdventure.Common.SpawnSelector.UI;
 
@@ -43,6 +44,10 @@ public class UIMyBedButton : UIPanel
     {
         base.Update(gameTime);
 
+        bool nowHasBed = HasBed();
+        if (hasBed != nowHasBed)
+            hasBed = nowHasBed;
+
         var sp = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
         bool selected = sp?.SelectedType == SpawnType.MyBed;
 
@@ -67,28 +72,44 @@ public class UIMyBedButton : UIPanel
         base.Draw(sb);
 
         if (IsMouseHovering)
-        {
             DrawHoverText();
-        }
 
-        // Draw bed icon
         var d = GetDimensions();
-        Vector2 pos = new(
-            d.X + d.Width * 0.5f,
-            d.Y + d.Height * 0.5f
-        );
-        float scale = 1.25f;
-        var bedIcon = new Item(ItemID.Bed);
+        Vector2 pos = new(d.X + d.Width * 0.5f, d.Y + d.Height * 0.5f);
 
-        // Draw the item icon centered in the panel
-        ItemSlot.DrawItemIcon(bedIcon, ItemSlot.Context.InventoryItem, sb, pos, scale, 31, Color.White);
+        float iconScale = 1.25f;
+        const int iconSize = 31;
 
-        if (!hasBed)
+        var bedItem = new Item(ItemID.Bed);
+
+        // Draw bed outline
+        if (hasBed)
         {
-            Vector2 origin = Ass.Icon_Forbidden.Value.Size() * 0.5f;
-            sb.Draw(Ass.Icon_Forbidden.Value,pos,null, Color.White,0f,origin,2f,SpriteEffects.None, 0f);
+            Player local = Main.LocalPlayer;
+            if (local != null && local.active && local.team != 0)
+            {
+                Color borderColor = Main.teamColor[local.team];
+                int drawW = (int)(iconSize * iconScale);
+                int drawH = (int)(iconSize * iconScale);
+                var outlineSys = ModContent.GetInstance<ItemOutlineSystem>();
+                if (outlineSys != null && outlineSys.TryGet(bedItem.type, drawW, drawH, borderColor, out RenderTarget2D rt, out Vector2 rtOrigin))
+                {
+                    sb.Draw(rt, pos, null, Color.White, 0f, rtOrigin, 1.17f, SpriteEffects.None, 0f);
+                }
+            }
+        }
+        
+
+        // Draw icon on top
+        ItemSlot.DrawItemIcon(bedItem, ItemSlot.Context.InventoryItem, sb, pos, iconScale, iconSize, Color.White);
+
+        if (!hasBed) 
+        { 
+            Vector2 origin = Ass.Icon_Forbidden.Value.Size() * 0.5f; 
+            sb.Draw(Ass.Icon_Forbidden.Value, pos, null, Color.White, 0f, origin, 2f, SpriteEffects.None, 0f); 
         }
     }
+
 
     private void DrawHoverText()
     {

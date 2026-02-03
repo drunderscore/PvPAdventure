@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.World.Outlines.ItemOutlines;
 using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.Localization;
+using Terraria.ModLoader;
 using Terraria.UI;
 using static PvPAdventure.Common.SpawnSelector.SpawnSystem;
 
@@ -29,16 +31,9 @@ public sealed class UIBedButton : UIElement
 
         bedIcon = new Item(ItemID.Bed);
 
-        Width.Set(ButtonSize, 0f);
-        Height.Set(ButtonSize, 0f);
+        Width.Set(40, 0f);
+        Height.Set(26, 0f);
         SetPadding(0f);
-    }
-
-    private static bool HasValidBed(Player p)
-    {
-        return p.SpawnX >= 0 &&
-               p.SpawnY >= 0 &&
-               Player.CheckSpawn(p.SpawnX, p.SpawnY);
     }
 
     public override void LeftClick(UIMouseEvent evt)
@@ -91,26 +86,29 @@ public sealed class UIBedButton : UIElement
         sp.ToggleSelection(SpawnType.TeammateBed, playerIndex);
     }
 
+    private static bool HasValidBed(Player p)
+    {
+        if (p == null || !p.active)
+            return false;
+
+        if (p.SpawnX < 0 || p.SpawnY < 0)
+            return false;
+
+        return Player.CheckSpawn(p.SpawnX, p.SpawnY);
+    }
+
     protected override void DrawSelf(SpriteBatch sb)
     {
-        // update start
         Player local = Main.LocalPlayer;
         if (local == null || !local.active)
             return;
 
-        bool valid =
-            playerIndex >= 0 &&
-            playerIndex < Main.maxPlayers &&
-            Main.player[playerIndex] != null &&
-            Main.player[playerIndex].active &&
-            Main.player[playerIndex].SpawnX >= 0 &&
-            Main.player[playerIndex].SpawnY >= 0 &&
-            Player.CheckSpawn(
-                Main.player[playerIndex].SpawnX,
-                Main.player[playerIndex].SpawnY
-            );
+        Player owner = (playerIndex >= 0 && playerIndex < Main.maxPlayers) ? Main.player[playerIndex] : null;
 
-        if (IsMouseHovering && valid)
+        // Refresh every draw
+        hasBed = HasValidBed(owner);
+
+        if (IsMouseHovering && hasBed)
         {
             SpectateSystem.TrySetHover(SpawnType.TeammateBed, playerIndex);
             local.mouseInterface = true;
@@ -119,58 +117,75 @@ public sealed class UIBedButton : UIElement
         {
             SpectateSystem.ClearHoverIfMatch(SpawnType.TeammateBed, playerIndex);
         }
-        // update end
 
-        var dims = GetDimensions();
-        Rectangle rect = dims.ToRectangle();
+        Rectangle rect = GetDimensions().ToRectangle();
 
         var sp = local.GetModPlayer<SpawnPlayer>();
-
-        bool selected =
-        sp != null &&
-        sp.SelectedType == SpawnType.TeammateBed &&
-        sp.SelectedPlayerIndex == playerIndex;
-
-        bool hasValidBed = HasValidBed(Main.player[playerIndex]);
+        bool selected = sp != null && sp.SelectedType == SpawnType.TeammateBed && sp.SelectedPlayerIndex == playerIndex;
 
         Texture2D bg =
             selected ? TextureAssets.InventoryBack14.Value :
             IsMouseHovering ? TextureAssets.InventoryBack15.Value :
             TextureAssets.InventoryBack7.Value;
 
-        if (!hasValidBed) bg = TextureAssets.InventoryBack5.Value;
-        //if (!hasValidBed) bg = TextureAssets.InventoryBack11.Value;
-        //if (!hasValidBed) bg = TextureAssets.InventoryBack2.Value;
+        if (!hasBed)
+            bg = TextureAssets.InventoryBack5.Value;
 
         sb.Draw(bg, rect, Color.White);
 
         Vector2 iconCenter = rect.Center.ToVector2();
-        float scale = ButtonSize / 32f;
+        iconCenter.Y -= 0.5f;
+        float iconScale = (ButtonSize + 4) / 32f;
 
-        ItemSlot.DrawItemIcon(bedIcon,ItemSlot.Context.InventoryItem,sb,iconCenter,scale,ButtonSize,Color.White);
+        // Proper outline behind icon
+        if (hasBed && local.team != 0)
+        {
+            Color borderColor = Main.teamColor[local.team];
 
-        if (!hasValidBed) 
+            int drawW = (int)40;
+            int drawH = (int)26;
+
+            ItemOutlineSystem outlineSys = ModContent.GetInstance<ItemOutlineSystem>();
+            if (outlineSys != null && outlineSys.TryGet(bedIcon.type, drawW, drawH, borderColor, out RenderTarget2D rt, out Vector2 rtOrigin))
+            {
+
+                rtOrigin.Y += 0.4f;
+                float outlineScale = iconScale - 0.18f;
+                sb.Draw(rt, iconCenter, null, Color.White, 0f, rtOrigin, outlineScale, SpriteEffects.None, 0f);
+            }
+        }
+
+        // Icon on top
+        if (!hasBed)
+        {
+            iconScale = (ButtonSize+8) / 32f;
+        }
+        else
+        {
+            //iconScale = (ButtonSize + 6) / 32f;
+        }
+        ItemSlot.DrawItemIcon(bedIcon, ItemSlot.Context.InventoryItem, sb, iconCenter, iconScale, ButtonSize, Color.White);
+
+        if (!hasBed)
         {
             Vector2 origin = Ass.Icon_Forbidden.Value.Size() * 0.5f;
-            sb.Draw(Ass.Icon_Forbidden.Value, iconCenter, null, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
+            sb.Draw(Ass.Icon_Forbidden.Value, iconCenter, null, Color.White*1.0f, 0f, origin, 1.25f, SpriteEffects.None, 0f);
         }
 
         if (IsMouseHovering)
         {
             local.mouseInterface = true;
 
-            Player target = Main.player[playerIndex];
-            string name = target?.name ?? "player";
-
+            string name = owner?.name ?? "player";
             bool canRespawn = SpawnSystem.CanTeleport;
 
             string text =
-                !hasValidBed ? "No bed set" :
+                !hasBed ? "No bed set" :
                 selected
-                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelBedSpawn", name)
+                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammatesBed", name)
                     : canRespawn
                         ? Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammatesBed", name)
-                        : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectBedSpawn", name);
+                        : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammatesBed", name);
 
             Main.instance.MouseText(text);
         }
