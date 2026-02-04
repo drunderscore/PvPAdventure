@@ -1,22 +1,16 @@
-using Humanizer;
-using Humanizer.Localisation;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
-using PvPAdventure.Core.Config;
-using PvPAdventure.Core.Debug;
+using PvPAdventure.Core.Net;
 using SubworldLibrary;
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Terraria;
 using Terraria.Chat;
 using Terraria.Enums;
 using Terraria.GameContent.Creative;
-using Terraria.GameContent.Events;
 using Terraria.GameContent.NetModules;
-using Terraria.GameContent.UI.BigProgressBar;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -30,9 +24,7 @@ public class GameManager : ModSystem
     public int TimeRemaining { get; set; }
     public int? _startGameCountdown = null;
     private Phase _currentPhase;
-
-    private static readonly FieldInfo _bigProgressBarSystemCurrentBarField =
-        typeof(BigProgressBarSystem).GetField("_currentBar", BindingFlags.NonPublic | BindingFlags.Instance);
+    public DateTime? MatchStartTime { get; private set; }
 
     public Phase CurrentPhase
     {
@@ -42,10 +34,11 @@ public class GameManager : ModSystem
             if (_currentPhase == value)
                 return;
 
-            if (Main.netMode != NetmodeID.MultiplayerClient)
-                OnPhaseChange(value);
-
+            Phase oldPhase = _currentPhase;
             _currentPhase = value;
+
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+                OnPhaseChange(oldPhase, value);
 
             if (Main.dedServ)
                 NetMessage.SendData(MessageID.WorldData);
@@ -58,83 +51,8 @@ public class GameManager : ModSystem
         Playing,
     }
 
-    public override void Load()
-    {
-        // Prevent the world from entering the lunar apocalypse (killing cultist and spawning pillars)
-        On_WorldGen.TriggerLunarApocalypse += _ => { };
-        // Prevent tombstones.
-        On_Player.DropTombstone += (_, _, _, _, _) => { };
-
-        On_Main.StartInvasion += OnMainStartInvasion;
-
-        if (Main.dedServ)
-            // Only send world map pings to teammates.
-            On_NetPingModule.Deserialize += OnNetPingModuleDeserialize;
-
-        // Broadcast a message when rain starts.
-        On_Main.StartRain += OnMainStartRain;
-
-        // Broadcast a message when a sandstorm starts.
-        On_Sandstorm.StartSandstorm += OnSandstormStartSandstorm;
-    }
-
-    private void OnMainStartInvasion(On_Main.orig_StartInvasion orig, int type)
-    {
-        orig(type);
-
-        if (Main.invasionType == InvasionID.None)
-            return;
-
-        var adventureConfig = ModContent.GetInstance<ServerConfig>();
-        if (!adventureConfig.InvasionSizes.TryGetValue(type, out var invasionSize))
-            return;
-
-        // We shouldn't increase the invasion size, only ever decrease it.
-        if (Main.invasionSize > invasionSize.Value)
-        {
-            Mod.Logger.Info($"Reducing invasion {type} size from {Main.invasionSize} to {invasionSize}");
-            Main.invasionSize = Main.invasionSizeStart = Main.invasionProgressMax = invasionSize.Value;
-        }
-    }
-
-    // NOTE: This should only ever be applied to the server.
-    private bool OnNetPingModuleDeserialize(On_NetPingModule.orig_Deserialize orig, NetPingModule self,
-        BinaryReader reader, int userid)
-    {
-        var position = reader.ReadVector2();
-        var packet = NetPingModule.Serialize(position);
-
-        var senderTeam = (Team)Main.player[userid].team;
-
-        foreach (var client in Netplay.Clients)
-        {
-            if (!client.IsActive)
-                continue;
-
-            var player = Main.player[client.Id];
-            if (!player.active || player.team == (int)Team.None || player.team == (int)senderTeam)
-                NetManager.Instance.SendToClient(packet, client.Id);
-        }
-
-        return true;
-    }
-
-    private void OnSandstormStartSandstorm(On_Sandstorm.orig_StartSandstorm orig)
-    {
-        orig();
-        ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Sandstorm"), Color.White);
-    }
-
-    private void OnMainStartRain(On_Main.orig_StartRain orig)
-    {
-        orig();
-        ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Rain"), Color.White);
-    }
     public override void PostUpdateTime()
     {
-        // The Nurse is never allowed to spawn.
-        Main.townNPCCanSpawn[NPCID.Nurse] = false;
-
         switch (CurrentPhase)
         {
             case Phase.Waiting:
@@ -149,6 +67,7 @@ public class GameManager : ModSystem
                         if (_startGameCountdown <= 0)
                         {
                             _startGameCountdown = null;
+                            MatchStartTime = DateTime.UtcNow;
                             CurrentPhase = Phase.Playing;
 
                             if (Main.dedServ)
@@ -185,6 +104,11 @@ public class GameManager : ModSystem
                     break;
                 }
         }
+    }
+
+    private void ResetMatchState()
+    {
+        MatchStartTime = null;
     }
 
     public void StartGame(int time, int countdownTimeInSeconds = 10)
@@ -255,8 +179,6 @@ public class GameManager : ModSystem
         }
     }
 
-    private const int FramesPerSecond = 60;
-
     private static string FormatHHMMSSFromFrames(int frames)
     {
         if (frames < 0)
@@ -264,6 +186,7 @@ public class GameManager : ModSystem
             frames = 0;
         }
 
+        const int FramesPerSecond = 60;
         int totalSeconds = frames / FramesPerSecond;
 
         int hours = totalSeconds / 3600;
@@ -283,6 +206,7 @@ public class GameManager : ModSystem
         string sign = deltaFrames > 0 ? "+" : "-";
 
         int absFrames = deltaFrames > 0 ? deltaFrames : -deltaFrames;
+        const int FramesPerSecond = 60;
         int totalSeconds = absFrames / FramesPerSecond;
 
         int minutes = totalSeconds / 60;
@@ -291,7 +215,7 @@ public class GameManager : ModSystem
         return $"{sign}{minutes}:{seconds:00}";
     }
 
-    private void BroadcastEndGameSummary()
+    private static void BroadcastEndGameSummary()
     {
         // If in subworld, dont broadcast.
         if (SubworldSystem.AnyActive())
@@ -414,10 +338,43 @@ public class GameManager : ModSystem
         }
     }
 
-    // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
-    private void OnPhaseChange(Phase newPhase)
+    private static void BroadcastSaveMatchToClients()
     {
-        Log.Chat("New GamePhase: " + newPhase);
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        var gameManager = ModContent.GetInstance<GameManager>();
+
+        if (!gameManager.MatchStartTime.HasValue)
+            return; // No valid match to save
+
+        long startUtcBinary = gameManager.MatchStartTime.Value.ToBinary();
+        long endUtcBinary = DateTime.UtcNow.ToBinary();
+
+        NetMessage.SendData(MessageID.WorldData);
+
+        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.SaveMatch);
+        packet.Write(startUtcBinary);
+        packet.Write(endUtcBinary);
+        packet.Send();
+
+        Log.Chat("Broadcasted save match from server to clients");
+        Log.Debug("Broadcasted save match from server to clients");
+    }
+
+    // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
+    private void OnPhaseChange(Phase oldPhase, Phase newPhase)
+    {
+        Log.Chat("New GamePhase: " + newPhase + ", (old: " + oldPhase + ")");
+
+        // Only save when a real match ends (Playing → Waiting transition)
+        if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)
+        {
+            BroadcastEndGameSummary();
+            BroadcastSaveMatchToClients();
+            ResetMatchState(); // Clear the match start time after broadcasting
+        }
 
         switch (newPhase)
         {
@@ -450,9 +407,6 @@ public class GameManager : ModSystem
                     var spawnPosition = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
                     foreach (var player in Main.ActivePlayers)
                     {
-                        //player.Teleport(spawnPosition, TeleportationStyleID.RecallPotion);
-                        // FIXME: I think this is right-ish?
-
                         if (Main.dedServ)
                             NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, player.whoAmI, spawnPosition.X,
                                 spawnPosition.Y, 2);
@@ -460,13 +414,7 @@ public class GameManager : ModSystem
 
                     UpdateFreezeTime(true);
 
-                    // Broadcast end game summary
-#if DEBUG
                     break;
-#else
-                    BroadcastEndGameSummary();
-                    break;
-#endif
                 }
             case Phase.Playing:
                 {
@@ -476,16 +424,12 @@ public class GameManager : ModSystem
                     spawnRegion.CanUseWormhole = true;
                     spawnRegion.CanExit = true;
 
-                    // force open map (and spawn selector)
-                    //Main.mapFullscreen = true;
-
                     UpdateFreezeTime(false);
 
                     break;
                 }
         }
     }
-
     private void UpdateFreezeTime(bool value)
     {
         var freezeTimeModule = CreativePowerManager.Instance.GetPower<CreativePowers.FreezeTime>();
@@ -501,7 +445,7 @@ public class GameManager : ModSystem
 
     public override void OnWorldLoad()
     {
-        OnPhaseChange(Phase.Waiting);
+        OnPhaseChange(Phase.Waiting, Phase.Waiting);
     }
 
     public override void ClearWorld()
@@ -511,12 +455,8 @@ public class GameManager : ModSystem
 
         // Always run the on-change regardless of if it actually changes.
         if (Main.netMode != NetmodeID.MultiplayerClient && CurrentPhase != Phase.Waiting)
-            OnPhaseChange(Phase.Waiting);
+            OnPhaseChange(Phase.Waiting, Phase.Waiting);
         CurrentPhase = Phase.Waiting;
-
-        // Terraria/TML bug: Remove boss bar when clearing the world
-        // FIXME: Don't put this here!
-        _bigProgressBarSystemCurrentBarField.SetValue(Main.BigBossProgressBar, null);
 
         CurrentPhase = Phase.Waiting;
     }
@@ -538,70 +478,5 @@ public class GameManager : ModSystem
             _startGameCountdown = reader.ReadInt32();
         else
             _startGameCountdown = null;
-    }
-
-    public class TeamCommand : ModCommand
-    {
-        public override void Action(CommandCaller caller, string input, string[] args)
-        {
-            // You can only use this command from chat in singleplayer.
-            if (caller.CommandType == CommandType.Chat && Main.netMode != NetmodeID.SinglePlayer)
-                return;
-
-            if (args.Length < 2)
-                return;
-
-            var player = Main.player
-                .Where(player => player.active)
-                .Where(player => player.name.Contains(args[0], StringComparison.CurrentCultureIgnoreCase))
-                .FirstOrDefault();
-
-            if (player == null)
-                return;
-
-            if (!Enum.TryParse(args[1], true, out Team team) || (int)team >= Enum.GetValues<Team>().Length)
-                return;
-
-            player.team = (int)team;
-            NetMessage.SendData(MessageID.PlayerTeam, number: player.whoAmI);
-        }
-
-        public override string Command => "team";
-        public override CommandType Type => CommandType.Chat | CommandType.Console;
-    }
-
-    public class StartGameCommand : ModCommand
-    {
-        public override void Action(CommandCaller caller, string input, string[] args)
-        {
-            // You can only use this command from chat in singleplayer.
-            if (caller.CommandType == CommandType.Chat && Main.netMode != NetmodeID.SinglePlayer)
-                return;
-
-            if (args.Length == 0 || !int.TryParse(args[0], out var time))
-            {
-                caller.Reply("Invalid time.", Color.Red);
-                return;
-            }
-
-            var gm = ModContent.GetInstance<GameManager>();
-            if (gm.CurrentPhase == Phase.Playing)
-            {
-                //caller.Reply("The game is already being played.", Color.Red);
-                gm.EndGame();
-                return;
-            }
-
-            if (gm._startGameCountdown.HasValue)
-            {
-                caller.Reply("The game is already being started.", Color.Red);
-                return;
-            }
-
-            gm.StartGame(time);
-        }
-
-        public override string Command => "startgame";
-        public override CommandType Type => CommandType.Chat | CommandType.Console;
     }
 }

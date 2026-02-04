@@ -2,7 +2,7 @@
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Items;
+namespace PvPAdventure.Common.Misc;
 
 public class MiscArcheryChanges : GlobalBuff
 {

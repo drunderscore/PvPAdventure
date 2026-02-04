@@ -4,6 +4,9 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Debug;
 
+// Debug system to ensure the MapLoadSystem for SSC works as intended.
+// Prints the map explored % when the player joins a world.
+
 #if DEBUG
 [Autoload(Side = ModSide.Client)]
 internal sealed class DebugMapScan : ModSystem

@@ -10,6 +10,10 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
+/// <summary>
+/// Draws world icons: world spawn, own bed, teammates' beds.
+/// Allows hovering and clicking to select spawn points and teleport when allowed.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
 public class TeleportOnMap : ModSystem
 {

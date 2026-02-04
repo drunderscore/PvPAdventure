@@ -7,7 +7,7 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.NPCs;
 
 // Replaces Demons with Voodoo Demons after any mechanical boss has been defeated
-public class DemonReplacement : GlobalNPC
+public class VoodooDemonReplacement : GlobalNPC
 {
     public override void OnSpawn(NPC npc, IEntitySource source)
     {

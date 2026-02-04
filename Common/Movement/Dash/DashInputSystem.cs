@@ -1,10 +1,11 @@
 ﻿using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Input;
 using System.IO;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Core.Input.Dash;
+namespace PvPAdventure.Common.Movement.Dash;
 
 /// <summary>
 /// Enables custom dash keybind handling with support for multiplayer synchronization.

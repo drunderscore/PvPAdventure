@@ -14,7 +14,8 @@ public enum AdventurePacketIdentifier : byte
     PlayerBed, // update player spawn point
     TeleportRequest, // teleport to beds or world spawn
     SpawnSelection, // set random or player spawn while respawn timer or map timer is running
-    AdventureMirrorRightClickUse,
-    HoldingMap,
-    TeleportFx // teleport effects
+    AdventureMirrorRightClickUse, // player right click use of adventure mirror item
+    HoldingMap, // player is holding the map item
+    TeleportFx, // teleport effects
+    SaveMatch, // save match data to disk after game ends
 }

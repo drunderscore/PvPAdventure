@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
+using PvPAdventure.Core.Input;
 using PvPAdventure.Core.Net;
 using System;
 using Terraria;
@@ -10,9 +11,9 @@ using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using static PvPAdventure.Core.Input.Dash.DashInputSystem;
+using static PvPAdventure.Common.Movement.Dash.DashInputSystem;
 
-namespace PvPAdventure.Core.Input.Dash;
+namespace PvPAdventure.Common.Movement.Dash;
 
 public class DashInputPlayer : ModPlayer
 {

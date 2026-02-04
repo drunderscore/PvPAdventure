@@ -6,6 +6,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Debug;
 
+// Debug system to ensure chlorophyte growth works as intended from the world gen IL hook.
 #if DEBUG
 
 [Autoload(Side = ModSide.Client)]

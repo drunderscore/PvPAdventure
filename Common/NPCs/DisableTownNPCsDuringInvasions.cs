@@ -15,7 +15,7 @@ namespace PvPAdventure.Common.NPCs;
 /// - Hooks NPC.SpawnNPC via IL
 /// - Forces townNPC flag to false in invasion logic
 /// </summary>
-public class NoTownNPCInvasionsSystem : ModSystem
+public class DisableTownNPCsDuringInvasions : ModSystem
 {
     private static ILHook spawnNPCHook;
 

@@ -1,12 +1,13 @@
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.MatchHistory.Net;
+using PvPAdventure.Common.Movement.Dash;
 using PvPAdventure.Common.SpawnSelector.Net;
 using PvPAdventure.Common.SSC;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;
 using PvPAdventure.Common.Visualization.HoldingMap;
-using PvPAdventure.Core.Input.Dash;
 using PvPAdventure.Core.Net;
 using System;
 using System.IO;
@@ -47,6 +48,7 @@ public class PvPAdventure : Mod
             AdventurePacketIdentifier.SSC => Bind(r, whoAmI, SSC.HandlePacket),
             AdventurePacketIdentifier.NpcStrikeTeam => Bind(r, whoAmI, TeamBossNetHandler.HandlePacket),
             AdventurePacketIdentifier.HoldingMap => Bind(r, whoAmI, MapHoldingNetHandler.HandlePacket),
+            AdventurePacketIdentifier.SaveMatch => Bind(r, whoAmI, SaveMatchNetHandler.HandlePacket),
             _ => null
         };
 

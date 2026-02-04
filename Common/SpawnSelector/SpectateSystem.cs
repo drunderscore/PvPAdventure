@@ -6,6 +6,7 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
+// Allows spectating teammates and their beds, as well as world spawn and own bed, when dead or spawn selector is open.
 [Autoload(Side = ModSide.Client)]
 public class SpectateSystem : ModSystem
 {

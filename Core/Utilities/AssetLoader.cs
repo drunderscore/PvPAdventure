@@ -48,6 +48,16 @@ public static class Ass
     // Arenas
     public static Asset<Texture2D> Icon_Arenas;
 
+    // Matchmaking
+    public static Asset<Texture2D> Button;
+    public static Asset<Texture2D> Button_Small;
+    public static Asset<Texture2D> Button_Border;
+    public static Asset<Texture2D> Button_Small_Border;
+
+    // Match history
+    public static Asset<Texture2D> Icon_Trophy; // 48x48
+    public static Asset<Texture2D> Icon_TeamBoss; // 54x54
+
     // Initialization flag
     public static bool Initialized { get; set; }
 
