@@ -196,19 +196,59 @@ public class SSC : ModSystem
 
                 fileData.SetAsActive();
 
+                // Re-Enter the world with SSC character.
                 fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
                 Player.Hooks.EnterWorld(Main.myPlayer);
 
+                TagCompound sscData = null;
+                if (root.ContainsKey("PvPAdventureSSC"))
+                {
+                    sscData = root.GetCompound("PvPAdventureSSC");
+                }
+
+                bool positionRestored = PlayerPositionSystem.TryLoadPlayerPosition(fileData.Player, sscData);
+
+                // Set max life and mana again just to make sure it gets applied.
                 if (fileData.Player.statLife != fileData.Player.statLifeMax)
                     fileData.Player.statLife = fileData.Player.statLifeMax;
                 if (fileData.Player.statMana != fileData.Player.statManaMax)
                     fileData.Player.statMana = fileData.Player.statManaMax;
 
+                // Request map load to update position on map
                 MapLoadSystem.Request(delayTicks: 30);
 
-                Log.Chat((isNew ? "Loaded new SSC player " : "Loaded existing SSC player ") + fileData.Player.name);
-                Main.NewText($"Welcome, {Main.LocalPlayer.name}! — Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}",
-                    Color.MediumPurple);
+                // Prepare position text
+                Vector2 appliedPos = fileData.Player.position;
+                string positionText;
+                if (positionRestored && sscData != null && sscData.ContainsKey("posX") && sscData.ContainsKey("posY"))
+                {
+                    float savedX = sscData.GetFloat("posX");
+                    float savedY = sscData.GetFloat("posY");
+
+                    Vector2 savedTile = new(savedX / 16f, savedY / 16f);
+                    Vector2 appliedTile = new(appliedPos.X / 16f, appliedPos.Y / 16f);
+
+                    bool clamped =
+                        Math.Abs(appliedTile.X - savedTile.X) > 0.01f ||
+                        Math.Abs(appliedTile.Y - savedTile.Y) > 0.01f;
+
+                    positionText = clamped
+                        ? $"applied {appliedTile.X:0}, {appliedTile.Y:0} (saved {savedTile.X:0}, {savedTile.Y:0}, clamped)"
+                        : $"{appliedTile.X:0}, {appliedTile.Y:0} (restored)";
+                }
+                else
+                {
+                    Vector2 appliedTile = new(appliedPos.X / 16f, appliedPos.Y / 16f);
+                    positionText = $"{appliedTile.X:0}, {appliedTile.Y:0} (default)";
+                }
+
+                // Print welcome message
+                Main.NewText(
+                    $"Welcome, {Main.LocalPlayer.name}! — " +
+                    $"Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())} — " +
+                    $"Position: {positionText}",
+                    Color.MediumPurple
+                );
             }
             catch (Exception e)
             {
