@@ -50,9 +50,17 @@ internal class StatisticsPlayer : ModPlayer
 
         public void Apply(StatisticsPlayer statisticsPlayer)
         {
+            if (Kills < 0 || Kills > 1_000_000 || Deaths < 0 || Deaths > 1_000_000)
+            {
+                Log.Warn($"Discarding bogus stats: kills={Kills}, deaths={Deaths}");
+                Log.Chat($"Discarding bogus stats: kills={Kills}, deaths={Deaths}");
+                return;
+            }
+
             statisticsPlayer.Kills = Kills;
             statisticsPlayer.Deaths = Deaths;
         }
+
     }
 
     internal void ApplySscOverride(TagCompound tag)
