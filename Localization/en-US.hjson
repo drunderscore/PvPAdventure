@@ -334,6 +334,11 @@ Mods: {
 				DisplayName: Tab Key Config Item
 				Tooltip: ""
 			}
+
+			SecurityConfigItem: {
+				DisplayName: Security Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -627,6 +632,7 @@ Mods: {
 					NPCs: "[i:267] NPCs"
 					Gameplay: "[i:GPS] Gameplay"
 					WorldGen: "[i:WorldGlobe] World Generation"
+					Security: "[i:PvPAdventure/SecurityConfigItem] Security"
 				}
 
 				Points: {
@@ -746,6 +752,16 @@ Mods: {
 
 				Immunity: {
 					Label: Immunity
+					Tooltip: ""
+				}
+
+				ClientMods: {
+					Label: Client Mods
+					Tooltip: ""
+				}
+
+				WhitelistPlayers: {
+					Label: Whitelist Players
 					Tooltip: ""
 				}
 			}
@@ -1609,6 +1625,34 @@ Mods: {
 
 				Bottom: {
 					Label: Bottom
+					Tooltip: ""
+				}
+			}
+
+			ClientModsConfig: {
+				Tooltip: ""
+
+				AllowAnyClientMods: {
+					Label: Allow Any Client Mods
+					Tooltip: ""
+				}
+
+				AllowedClientMods: {
+					Label: Allowed Client Mods
+					Tooltip: Enter the mods internal name
+				}
+			}
+
+			WhitelistPlayersConfig: {
+				Tooltip: ""
+
+				AllowAnyPlayerToJoin: {
+					Label: Allow Any Player To Join
+					Tooltip: ""
+				}
+
+				AllowedPlayerSteamIds: {
+					Label: Allowed Player Steam Ids
 					Tooltip: ""
 				}
 			}

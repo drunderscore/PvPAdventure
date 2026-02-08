@@ -18,4 +18,6 @@ public enum AdventurePacketIdentifier : byte
     HoldingMap, // player is holding the map item
     TeleportFx, // teleport effects
     SaveMatch, // save match data to disk after game ends
+    ClientModCheck, // check for client mods when joining
+    WhitelistPlayerCheck,
 }

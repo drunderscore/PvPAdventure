@@ -192,8 +192,10 @@ public class SSC : ModSystem
                 };
 
                 Player.LoadPlayerFromStream(fileData, plrBytes, tplrBytes);
-                fileData.MarkAsServerSide();
 
+                fileData.Player.hbLocked = true; // force hb locked (user preference)
+
+                fileData.MarkAsServerSide();
                 fileData.SetAsActive();
 
                 // Re-Enter the world with SSC character.
@@ -272,6 +274,8 @@ public class SSC : ModSystem
         };
         // Apply appearance
         Appearance.ApplyAppearance(fileData.Player, appearance);
+
+        fileData.Player.hbLocked = true; // force hb locked (user preference)
 
         // Apply config options
         StartingItems.ApplyStartItems(fileData.Player);

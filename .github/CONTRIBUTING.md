@@ -38,28 +38,30 @@ If you're modifying/expanding existing functionality, here's a quick overview of
 - `Common.AdminTools` — game timer, points/team assigner, integration with DragonLens.
 - `Common.Bounties` — bounty shop.
 - `Common.Combat` — PvP/PvE changes, i-frames, hit/kill markers, ghost heal/LoS adjustments, etc.
-- `Common.Combat.TeamBoss` — bosses only take damage from the team with the most damage (from BossBalanceConfig)
-- `Common.DropRates` — boss loot pool rewrites.
+- `Common.Combat.TeamBoss` — bosses only take damage from the team with the most damage (set in BossBalanceConfig)
 - `Common.GameTimer` — match state, countdown, time remaining.
 - `Common.Items` — item stats, bans, shimmer transforms, prefixes.
-- `Common.Npcs` — spawn rules, boss changes, hitmarker sound.
+- `Common.Loot` — boss loot and drop rates.
+- `Common.Movement` — dash keybind.
+- `Common.NPCs` — spawn rules, boss changes, hitmarker sound.
 - `Common.Recipes` — crafting recipes.
 - `Common.Spawnbox` — random teleport, movement rules, recall behavior.
 - `Common.SpawnSelector` — adventure mirror, bed/teammate teleports, select spawn when dead, etc.
 - `Common.SSC` — server sided character implementation.
 - `Common.Statistics` — K/D, boss score, team points, item pickups.
 - `Common.Teams` — team chat, team beds.
-- `Common.UI` — player outlines, modify accessory slots, draw PvP icons, etc.
+- `Common.Visualization` — player outlines, modify accessory slots, draw PvP icons, etc.
 - `Common.World` — world-state changes and ongoing world rules (weather, invasions, global timers/state, etc.).
 - `Common.WorldGenChanges` — world generation and worldgen-related IL edits/tiles (e.g. chest/worldgen patches).
 
 #### `Content` (items, NPC, buffs, tiles, etc)
+- `Content.Buffs` — our buffs, mostly combat or spawn related
 - `Content.Items` — adventure mirror
 - `Content.NPCs` — bound NPCs
 
 #### `Core` (infrastructure)
 - `Core.Config` — client & server config.
-- `Core.Input` — keybinds, dash keybind.
+- `Core.Input` — keybinds.
 - `Core.Net` — ping, section sync, spawn sync, packet helpers, etc.
 - `Core.Utilities` — math helpers, asset loaders, etc.
 

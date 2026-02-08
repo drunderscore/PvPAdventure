@@ -3,6 +3,7 @@ using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.MatchHistory.Net;
 using PvPAdventure.Common.Movement.Dash;
+using PvPAdventure.Common.Security;
 using PvPAdventure.Common.SpawnSelector.Net;
 using PvPAdventure.Common.SSC;
 using PvPAdventure.Common.Statistics;
@@ -49,6 +50,8 @@ public class PvPAdventure : Mod
             AdventurePacketIdentifier.NpcStrikeTeam => Bind(r, whoAmI, TeamBossNetHandler.HandlePacket),
             AdventurePacketIdentifier.HoldingMap => Bind(r, whoAmI, MapHoldingNetHandler.HandlePacket),
             AdventurePacketIdentifier.SaveMatch => Bind(r, whoAmI, SaveMatchNetHandler.HandlePacket),
+            AdventurePacketIdentifier.ClientModCheck => Bind(r, whoAmI, ClientModHandler.HandlePacket),
+            AdventurePacketIdentifier.WhitelistPlayerCheck => Bind(r, whoAmI, WhitelistPlayerHandler.HandlePacket),
             _ => null
         };
 

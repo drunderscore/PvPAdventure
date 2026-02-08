@@ -123,6 +123,15 @@ public class ServerConfig : ModConfig
     [JsonConverter(typeof(StringEnumConverter))]
     public AllowMode AllowPlayersToChangeTeam { get; set; } = AllowMode.BeforeGameStart;
 
+    [Header("Security")]
+    [BackgroundColor(150, 70, 20)]
+    [Expand(false, false)]
+    public ClientModsConfig ClientMods { get; set; } = new();
+
+    [BackgroundColor(150, 70, 20)]
+    [Expand(false, false)]
+    public WhitelistPlayersConfig WhitelistPlayers { get; set; } = new();
+
     [Header("WorldGen")]
     [BackgroundColor(90, 70, 40)]
     [Expand(false, false)]
@@ -314,6 +323,24 @@ public class ServerConfig : ModConfig
         [Range(0f, 1f)]
         [DefaultValue(0.5f)]
         public float TeamLifeShare { get; set; } = 0.5f;
+    }
+
+    public class ClientModsConfig
+    {
+        [DefaultValue(false)]
+        public bool AllowAnyClientMods { get; set; }
+
+        [Expand(false, false)]
+        public List<string> AllowedClientMods { get; set; } = [];
+    }
+
+    public class WhitelistPlayersConfig
+    {
+        [DefaultValue(true)]
+        public bool AllowAnyPlayerToJoin { get; set; }
+
+        [Expand(false, false)]
+        public List<string> AllowedPlayerSteamIds { get; set; } = [];
     }
 
     public class WorldGenerationConfig
