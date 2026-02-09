@@ -7,6 +7,10 @@ using Terraria;
 
 namespace PvPAdventure.Common.MatchHistory;
 
+/// <summary>
+/// Provides static methods and storage for recording, saving, and loading PvP match results as JSON files. Maintains an
+/// in-memory list of match history and handles persistence to disk.
+/// </summary>
 public static class MatchJsonStorage
 {
     public static readonly List<MatchResult> Matches = [];

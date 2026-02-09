@@ -7,7 +7,7 @@ public class DeadConfigItem : ModItem
     {
         base.SetDefaults();
 
-        Item.width = 22;
-        Item.height = 24;
+        Item.width = 32;
+        Item.height = 32;
     }
 }

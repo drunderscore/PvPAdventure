@@ -5,6 +5,10 @@ using Terraria.Enums;
 
 namespace PvPAdventure.Common.MatchHistory;
 
+/// <summary>
+/// Represents the outcome and details of a completed match, including timing, player statistics, team points, and boss
+/// completion information.
+/// </summary>
 public readonly struct MatchResult
 {
     public DateTime Start { get; init; }

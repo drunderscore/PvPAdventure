@@ -12,17 +12,21 @@ using Terraria.UI.Chat;
 
 namespace PvPAdventure.Common.MatchHistory.UI;
 
-public sealed class UITeamPointsPanel : UIElement
+public sealed class UITeamPoints : UIElement
 {
     private readonly TeamPoints[] _scores;
 
-    public UITeamPointsPanel(TeamPoints[] scores)
+    public UITeamPoints(TeamPoints[] scores)
     {
         _scores = scores ?? [];
-        Array.Sort(_scores, static (a, b) => ((int)a.Team).CompareTo((int)b.Team));
+        Array.Sort(_scores, static (a, b) =>
+        {
+            int c = b.Points.CompareTo(a.Points); // higher points first
+            return c != 0 ? c : ((int)a.Team).CompareTo((int)b.Team); // stable tie order
+        });
 
         Width.Set(0f, 1f);
-        Height.Set(40f, 0f); // room for trophy above
+        Height.Set(45f, 0f); // room for trophy above
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -62,12 +66,13 @@ public sealed class UITeamPointsPanel : UIElement
             Rectangle rect = new((int)(x + i * w), (int)y, (int)w, (int)h);
             Utils.DrawInvBG(sb, rect, Main.teamColor[(int)team] * 0.7f);
 
-            if (points == maxPoints)
-            {
-                Vector2 trophyPos = new(rect.Center.X, rect.Top - trophyTex.Height * trophyScale * 0.5f + 3f);
-                sb.Draw(trophyTex, trophyPos, null, Color.White, 0f, trophyOrigin, trophyScale, SpriteEffects.None, 0f);
-            }
+            //if (points == maxPoints)
+            //{
+            //    Vector2 trophyPos = new(rect.Center.X, rect.Top - trophyTex.Height * trophyScale * 0.5f + 3f);
+            //    sb.Draw(trophyTex, trophyPos, null, Color.White, 0f, trophyOrigin, trophyScale, SpriteEffects.None, 0f);
+            //}
 
+            // Draw team points
             string text = points.ToString();
             Vector2 metrics = ChatManager.GetStringSize(FontAssets.MouseText.Value, text, textScale);
             Vector2 pos = new(rect.X + (rect.Width - metrics.X) * 0.5f, rect.Y + (rect.Height - metrics.Y) * 0.5f + 6.5f);

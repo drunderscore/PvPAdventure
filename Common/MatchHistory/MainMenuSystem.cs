@@ -96,7 +96,7 @@ public class MainMenuSystem : ModSystem
                 if (labels == null)
                     return;
 
-                labels[num11] = "TPVPA History";
+                labels[num11] = "TPVPA";
                 num11++;
                 num5++;
             });

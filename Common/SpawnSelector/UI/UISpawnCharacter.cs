@@ -409,7 +409,8 @@ public class UISpawnCharacter : UIPanel
         // Draw dead icon
         var tex = Ass.Icon_Dead.Value;
         Vector2 skullCenter = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
-        sb.Draw(tex, skullCenter, null, Color.White * 0.5f, 0f, tex.Size() * 0.5f, 0.09f, SpriteEffects.None, 0f);
+        float skullScale = 0.09f * 16f;
+        sb.Draw(tex, skullCenter, null, Color.White * 0.5f, 0f, tex.Size() * 0.5f, skullScale, SpriteEffects.None, 0f);
         string respawnTimeInSeconds = (respawnTimer / 60 + 1).ToString();
 
         // Override text for spawn selector mode

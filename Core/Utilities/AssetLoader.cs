@@ -17,7 +17,7 @@ public static class Ass
     // Spawn selector assets
     public static Asset<Texture2D> CustomPlayerBackground;
     public static Asset<Texture2D>[] MapBG;
-    public static Asset<Texture2D> Icon_Dead;
+    public static Asset<Texture2D> Icon_Dead; // 32x32
     public static Asset<Texture2D> Icon_Forbidden;
     public static Asset<Texture2D> Icon_Question_Mark;
     public static Asset<Texture2D> Spawnbox;
@@ -57,6 +57,7 @@ public static class Ass
     // Match history
     public static Asset<Texture2D> Icon_Trophy; // 48x48
     public static Asset<Texture2D> Icon_TeamBoss; // 54x54
+    public static Asset<Texture2D> Icon_Attack; // 26x27
 
     // Initialization flag
     public static bool Initialized { get; set; }

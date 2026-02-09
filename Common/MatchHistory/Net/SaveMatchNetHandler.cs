@@ -1,4 +1,5 @@
-﻿using PvPAdventure.Common.Statistics;
+﻿using PvPAdventure.Common.MatchHistory.Achievements;
+using PvPAdventure.Common.Statistics;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -42,6 +43,7 @@ public static class SaveMatchNetHandler
 
         // SAVE TO DISK
         MatchJsonStorage.RecordAndSave(matchResult);
+        AchievementStorage.ApplyMatch(matchResult);
     }
 
     private static ulong GetLocalSteamId()
