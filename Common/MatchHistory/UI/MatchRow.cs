@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Enums;
+using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
@@ -36,7 +37,7 @@ public class MatchRow : UIPanel
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
         BorderColor = new Color(89, 116, 213) * 0.7f;
 
-        (string winnerText, Color winnerColor) = BuildWinnerLabel(result);
+        (string winnerText, Color winnerColor, int rank) = BuildWinnerLabel(result);
         Append(new UIText(winnerText, 1.05f)
         {
             Top = new StyleDimension(-5f, 0f),
@@ -61,13 +62,35 @@ public class MatchRow : UIPanel
         });
 
         // Add trophy if won
-        if (result.Win)
+        //if (result.Win)
+        //{
+        //    Append(new UIImage(Ass.Icon_Trophy)
+        //    {
+        //        ImageScale = 1.10f,
+        //        Left = new StyleDimension(-4, 0),
+        //        Top = new StyleDimension(-10, 0)
+        //    });
+        //}
+        var medal = rank switch
         {
-            Append(new UIImage(Ass.Icon_Trophy)
+            1 => Ass.Icon_Gold,
+            2 => Ass.Icon_Silver,
+            3 => Ass.Icon_Bronze,
+            _ => TextureAssets.MagicPixel
+        };
+
+        if (medal != null && rank <= 3)
+        {
+            Append(new UIImage(medal)
             {
-                ImageScale = 1.10f,
-                Left = new StyleDimension(-4, 0),
-                Top = new StyleDimension(-10, 0)
+                ImageScale = 0.8f,
+                Left = new StyleDimension(-12, 0),
+                Top = new StyleDimension(-18, 0)
+            });
+            Append(new UIText(rank.ToString(), 0.4f, true)
+            {
+                Left = new StyleDimension(16, 0),
+                Top = new StyleDimension(14, 0)
             });
         }
 
@@ -105,23 +128,21 @@ public class MatchRow : UIPanel
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
         BorderColor = new Color(89, 116, 213) * 0.7f;
     }
-    private static (string Text, Color Color) BuildWinnerLabel(MatchResult result)
+    private static (string Text, Color Color, int Rank) BuildWinnerLabel(MatchResult result)
     {
         Team localTeam = Team.None;
         ulong localSteamId = result.LocalSteamId;
 
         PlayerKD[] players = result.Players ?? [];
         for (int i = 0; i < players.Length; i++)
-        {
             if (players[i].SteamId == localSteamId)
             {
                 localTeam = players[i].Team;
                 break;
             }
-        }
 
         if (localTeam == Team.None)
-            return ("Placed ? (No Team)", Color.White);
+            return ("Placed ? (No Team)", Color.White, 0);
 
         TeamPoints[] pts = result.TeamPoints ?? [];
         int localPoints = int.MinValue;
@@ -141,7 +162,7 @@ public class MatchRow : UIPanel
         }
 
         if (localPoints == int.MinValue || points.Count == 0)
-            return ("Placed ? (No Result)", Color.White);
+            return ("Placed ? (No Result)", Color.White, 0);
 
         points.Sort((a, b) => b.CompareTo(a));
 
@@ -161,9 +182,7 @@ public class MatchRow : UIPanel
         static string Ordinal(int n)
         {
             int mod100 = n % 100;
-            if (mod100 == 11 || mod100 == 12 || mod100 == 13)
-                return n + "th";
-
+            if (mod100 == 11 || mod100 == 12 || mod100 == 13) return n + "th";
             int mod10 = n % 10;
             if (mod10 == 1) return n + "st";
             if (mod10 == 2) return n + "nd";
@@ -171,11 +190,9 @@ public class MatchRow : UIPanel
             return n + "th";
         }
 
-        string teamName = localTeam.ToString();
         string text = $"Placed {Ordinal(rank)}";
-
         Color c = Main.teamColor[(int)localTeam];
         c.A = 255;
-        return (text, c);
+        return (text, c, rank);
     }
 }

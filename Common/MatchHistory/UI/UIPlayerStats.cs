@@ -182,7 +182,20 @@ internal class UIPlayerStats : UIPanel
     {
         static string Ratio(int a, int b) => b <= 0 ? (a <= 0 ? "0" : "INF") : ((float)a / b).ToString("0.00");
 
-        pages[0].SetText($"Total K/D: {Ratio(kills, deaths)}\nTotal Kills: {kills}\nTotal Deaths: {deaths}");
-        pages[1].SetText($"Total W/L: {Ratio(wins, losses)}\nTotal Wins: {wins}\nTotal Losses: {losses}\nTotal Points: {teamPointsTotal}");
+        // Update combat tab
+        pages[0].SetText(
+            $"Total Kills: {kills}\n" +
+            $"Total Deaths: {deaths}\n" +
+            $"Total K/D: {Ratio(kills, deaths)}"
+        );
+
+        // Update wins tab
+        pages[1].SetText(
+            $"Total Wins: {wins}\n" +
+            $"Total Losses: {losses}\n" +
+            $"Total W/L: {Ratio(wins, losses)}\n" +
+            $"Total Points: {teamPointsTotal}"
+        );
+
     }
 }
