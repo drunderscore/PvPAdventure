@@ -172,6 +172,7 @@ public class SSC : ModSystem
         TagCompound root = TagIO.Read(reader);
 
         string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
+        string steamName = SteamFriends.GetPersonaName();
 
         byte[] tplrBytes;
         using (var ms = new MemoryStream())
@@ -234,21 +235,21 @@ public class SSC : ModSystem
                         Math.Abs(appliedTile.X - savedTile.X) > 0.01f ||
                         Math.Abs(appliedTile.Y - savedTile.Y) > 0.01f;
 
-                    positionText = clamped
-                        ? $"applied {appliedTile.X:0}, {appliedTile.Y:0} (saved {savedTile.X:0}, {savedTile.Y:0}, clamped)"
-                        : $"{appliedTile.X:0}, {appliedTile.Y:0} (restored)";
+                    positionText = $" - Position: {appliedTile.X:0}, {appliedTile.Y:0} (saved from previous session)";
                 }
                 else
                 {
                     Vector2 appliedTile = new(appliedPos.X / 16f, appliedPos.Y / 16f);
-                    positionText = $"{appliedTile.X:0}, {appliedTile.Y:0} (default)";
+                    //positionText = $"{appliedTile.X:0}, {appliedTile.Y:0} (world spawn)";
+                    positionText = "";
                 }
 
                 // Print welcome message
                 Main.NewText(
-                    $"Welcome, {Main.LocalPlayer.name}! — " +
-                    $"Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())} — " +
-                    $"Position: {positionText}",
+                    //$"Welcome, {Main.LocalPlayer.name}! — " +
+                    $"Welcome, {steamName}! — " +
+                    $"Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}" +
+                    $"{positionText}",
                     Color.MediumPurple
                 );
             }
@@ -343,7 +344,7 @@ public class SSC : ModSystem
             if (config.ShowSavePlayerMessages)
             {
                 string time = DateTime.Now.ToString("HH:mm:ss");
-                Main.NewText($"{Main.LocalPlayer.name} saved at {time}", Color.MediumPurple);
+                Main.NewText($"{nameFromClient} saved at {time}", Color.MediumPurple);
             }
         }
         catch (Exception e)

@@ -1,5 +1,4 @@
 ﻿using PvPAdventure.Common.Statistics;
-using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using Steamworks;
 using System;
@@ -67,18 +66,8 @@ internal class SSCSaveSystem : ModSystem
         {
             var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
             var fileData = Main.ActivePlayerFileData;
-            var name = fileData.Player.name;
-
-            // Save map data! Does this work?
-            /// Update: Probably not! We save map data in custom <see cref="MapIOHooks"/> now.
-            //try
-            //{
-            //    Player.InternalSaveMap(false);
-            //}
-            //catch (Exception e)
-            //{
-            //    Mod.Logger.Warn("SSC: InternalSaveMap failed; map data may not persist. " + e);
-            //}
+            //var name = fileData.Player.name;
+            var name = SteamFriends.GetPersonaName();
 
             // Save plr and tplr files
             var plr = Player.SavePlayerFile_Vanilla(fileData);

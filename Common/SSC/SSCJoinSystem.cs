@@ -87,13 +87,15 @@ public class SSCJoinSystem : ModSystem
             return;
 
         Player player = Main.LocalPlayer;
+        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
+        string steamName = SteamFriends.GetPersonaName();
 
         var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.SSC);
         packet.Write((byte)SSCPacketType.ClientJoin);
-
-        packet.Write(SteamUser.GetSteamID().m_SteamID.ToString());
-        packet.Write(player.name);
+        packet.Write(steamId);
+        packet.Write(steamName);
+        //packet.Write(player.name);
 
         // Appearance
         Appearance.WriteAppearence(packet, player);
