@@ -9,9 +9,9 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.MatchHistory.UI;
 
-public sealed class BackButton<TText> : UITextPanel<TText>
+public sealed class UIBackButton<TText> : UITextPanel<TText>
 {
-    public BackButton(TText text, Action onClick, float textScale = 0.7f, bool large = true) : base(text, textScale, large)
+    public UIBackButton(TText text, Action onClick, float textScale = 0.7f, bool large = true) : base(text, textScale, large)
     {
         Width = new StyleDimension(-10f, 0.5f);
         Height = new StyleDimension(50f, 0f);

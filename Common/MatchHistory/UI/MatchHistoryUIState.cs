@@ -26,14 +26,14 @@ public sealed class MatchHistoryUIState : ResizableUIState
     private UIElement baseElement = null!;
     private UIList matchList = null!; // left side list
     private UIPanel detailsPanel = null!; // right side panel
-    private OpenButton downloadButton = null!;
+    private UIOpenButton downloadButton = null!;
     private UITeamStatsDetails teamStatsPanel = null!;
     private UIPlayerStats playerStats = null!;
     private UIAchievementsPanel achievementsPanel = null!;
 
     // Lists
     private readonly List<MatchResult> matches = [];
-    private readonly List<MatchRow> rows = [];
+    private readonly List<UIMatchRow> rows = [];
 
     private int selectedIndex = -1; // Currently selected match
 
@@ -126,7 +126,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
         right.Append(detailsPanel);
 
         // Back button
-        baseElement.Append(new BackButton<LocalizedText>(Language.GetText("UI.Back"), () =>
+        baseElement.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), () =>
         {
             SoundEngine.PlaySound(SoundID.MenuClose);
             Main.MenuUI.SetState(null);
@@ -138,12 +138,12 @@ public sealed class MatchHistoryUIState : ResizableUIState
         });
 
         // Download button
-        downloadButton = new OpenButton(
+        downloadButton = new UIOpenButton(
         onClick: () =>
         {
             DateTime start = matches[selectedIndex].Start;
             string folder = Path.Combine(Main.SavePath, "PvPAdventure", "MatchHistory");
-            OpenButton.OpenMatchFile(folder, start, MatchJsonStorage.GetMatchFilePath);
+            UIOpenButton.OpenMatchFile(folder, start, MatchJsonStorage.GetMatchFilePath);
         },
         getDownloadedLabel: () => "" )
         {
@@ -156,10 +156,10 @@ public sealed class MatchHistoryUIState : ResizableUIState
         // Player stats panel
         UIElement statsBaseElement = new()
         {
-            Width = new StyleDimension(160,0),
-            Height = new StyleDimension(0f, 0.7f),
+            Width = new StyleDimension(250,0),
+            Height = new StyleDimension(0f, 1.0f),
             Top = new StyleDimension(160f, 0f),
-            HAlign = 0.145f,
+            HAlign = 0.09f,
         };
         Append(statsBaseElement);
 
@@ -181,10 +181,10 @@ public sealed class MatchHistoryUIState : ResizableUIState
         // Achievements panel
         UIElement achievementsBaseElement = new()
         {
-            Width = new StyleDimension(300, 0f),
-            Height = new StyleDimension(0f, 0.7f),
+            Width = new StyleDimension(350, 0f),
+            Height = new StyleDimension(0f, 1.0f),
             Top = new StyleDimension(160f, 0f),
-            HAlign = 0.94f
+            HAlign = 0.975f
         };
         Append(achievementsBaseElement);
 
@@ -215,7 +215,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
         rows.Clear();
         for (int i = 0; i < matches.Count; i++)
         {
-            var row = new MatchRow(i, matches[i]);
+            var row = new UIMatchRow(i, matches[i]);
             row.Width.Set(0f, 1f);
             row.Height.Set(78.29f, 0f);
             row.OnClick += SelectMatchAndRebuild;

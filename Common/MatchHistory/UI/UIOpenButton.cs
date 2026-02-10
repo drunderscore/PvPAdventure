@@ -14,7 +14,7 @@ using Terraria.UI;
 // Button that lets you download a TPVPA game as a .pvpdem
 // Shows a green success text for 1.5 seconds and then reverts
 // TODO: Opens the user's file OS saving system? Or just saves to tModLoader/PvPAdventure/Replays
-public sealed class OpenButton : UITextPanel<string>
+public sealed class UIOpenButton : UITextPanel<string>
 {
     private bool _clickedOffsetActive;
 
@@ -22,7 +22,7 @@ public sealed class OpenButton : UITextPanel<string>
     private readonly float baseTextScale;
     private readonly Action _onClick;
 
-    public OpenButton(Action onClick, Func<string> getDownloadedLabel, float textScale = 0.7f, bool large = true)
+    public UIOpenButton(Action onClick, Func<string> getDownloadedLabel, float textScale = 0.7f, bool large = true)
     : base("Open", textScale, large)
     {
         this._onClick = onClick;

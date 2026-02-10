@@ -11,7 +11,7 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.MatchHistory.UI;
 
-public class MatchRow : UIPanel
+public class UIMatchRow : UIPanel
 {
     public event Action<int>? OnClick;
 
@@ -30,7 +30,7 @@ public class MatchRow : UIPanel
     private bool selected;
     private bool hovering;
 
-    public MatchRow(int index, MatchResult result)
+    public UIMatchRow(int index, MatchResult result)
     {
         Index = index;
 
@@ -83,15 +83,15 @@ public class MatchRow : UIPanel
         {
             Append(new UIImage(medal)
             {
-                ImageScale = 0.8f,
-                Left = new StyleDimension(-12, 0),
-                Top = new StyleDimension(-18, 0)
+                ImageScale = 0.45f,
+                Left = new StyleDimension(-16, 0),
+                Top = new StyleDimension(-36, 0)
             });
-            Append(new UIText(rank.ToString(), 0.4f, true)
-            {
-                Left = new StyleDimension(16, 0),
-                Top = new StyleDimension(14, 0)
-            });
+            //Append(new UIText(rank.ToString(), 0.4f, true)
+            //{
+            //    Left = new StyleDimension(16, 0),
+            //    Top = new StyleDimension(14, 0)
+            //});
         }
 
         OnMouseOver += (_, _) =>

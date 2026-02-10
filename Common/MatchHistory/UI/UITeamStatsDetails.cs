@@ -146,42 +146,6 @@ public sealed class UITeamStatsDetails : UIElement
         LayoutColumns();
     }
 
-    private void LayoutColumns()
-    {
-        CalculatedStyle dim = GetDimensions();
-
-        float w = dim.Width;
-        float h = dim.Height;
-
-        if (Math.Abs(w - _lastW) < 0.5f && Math.Abs(h - _lastH) < 0.5f)
-            return;
-
-        _lastW = w;
-        _lastH = h;
-
-        int n = _teamPanels.Count;
-        if (n <= 0)
-            return;
-
-        float colW = (w - Gap * (n - 1)) / n;
-        if (colW < 1f)
-            colW = 1f;
-
-        float x = 0f;
-
-        for (int i = 0; i < n; i++)
-        {
-            UIPanel p = _teamPanels[i];
-
-            p.Left.Set(x, 0f);
-            p.Top.Set(0f, 0f);
-            p.Width.Set(colW, 0f);
-            p.Height.Set(0f, 1f);
-
-            x += colW + Gap;
-        }
-    }
-
     private static float ComputeRequiredHeight(int maxTeamPlayers)
     {
         if (maxTeamPlayers < 0)
@@ -211,19 +175,9 @@ public sealed class UITeamStatsDetails : UIElement
             PaddingRight = PanelPad
         };
 
-        string placeText = placeRank > 0 ? (tied ? $"{Ordinal(placeRank)} (tie)" : Ordinal(placeRank)) : "";
-        var placeLabel = new UIText(placeText, 0.55f, true)
-        {
-            Width = StyleDimension.Fill,
-            Height = new StyleDimension(HeaderH, 0f),
-            TextOriginX = 0.5f,
-            TextOriginY = 0.5f
-        };
-        panel.Append(placeLabel);
-
         var pointsText = new UIText(FormatPoints(points), 0.45f, true)
         {
-            Top = new StyleDimension(HeaderH+4, 0f),
+            Top = new StyleDimension(0, 0f),
             Width = StyleDimension.Fill,
             Height = new StyleDimension(PointsH, 0f),
             TextOriginX = 0.5f,
@@ -231,11 +185,11 @@ public sealed class UITeamStatsDetails : UIElement
         };
         panel.Append(pointsText);
 
-        float listTop = HeaderH + PointsH + BetweenHeaderAndList;
+        float listTop = PointsH + BetweenHeaderAndList;
 
         UIList list = new()
         {
-            Top = new StyleDimension(listTop+4, 0f),
+            Top = new StyleDimension(listTop + 4, 0f),
             Width = StyleDimension.Fill,
             Height = new StyleDimension(-listTop, 1f),
             ListPadding = ListPad,
@@ -297,6 +251,65 @@ public sealed class UITeamStatsDetails : UIElement
         row.Append(kd);
 
         return row;
+    }
+
+    private void LayoutColumns()
+    {
+        CalculatedStyle dim = GetDimensions();
+
+        float w = dim.Width;
+        float h = dim.Height;
+
+        if (Math.Abs(w - _lastW) < 0.5f && Math.Abs(h - _lastH) < 0.5f)
+            return;
+
+        _lastW = w;
+        _lastH = h;
+
+        int n = _teamPanels.Count;
+        if (n <= 0)
+            return;
+
+        // Sort panels by points (descending, left to right)
+        var sortedPanels = _teamPanels.AsEnumerable().ToList();
+        sortedPanels.Sort((a, b) =>
+        {
+            // Get the first direct child UIText (the points text)
+            var aText = a.Children.OfType<UIText>().FirstOrDefault(t => t.Text != null && t.Text.Contains("pt"));
+            var bText = b.Children.OfType<UIText>().FirstOrDefault(t => t.Text != null && t.Text.Contains("pt"));
+
+            if (aText?.Text == null || bText?.Text == null)
+                return 0;
+
+            int aPoints = ExtractPoints(aText.Text);
+            int bPoints = ExtractPoints(bText.Text);
+
+            return bPoints.CompareTo(aPoints); // Descending
+        });
+
+        float colW = (w - Gap * (n - 1)) / n;
+        if (colW < 1f)
+            colW = 1f;
+
+        float x = 0f;
+
+        for (int i = 0; i < n; i++)
+        {
+            UIPanel p = sortedPanels[i];
+
+            p.Left.Set(x, 0f);
+            p.Top.Set(0f, 0f);
+            p.Width.Set(colW, 0f);
+            p.Height.Set(0f, 1f);
+
+            x += colW + Gap;
+        }
+    }
+
+    private static int ExtractPoints(string text)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(text, @"(\d+)");
+        return match.Success ? int.Parse(match.Groups[1].Value) : 0;
     }
 
     private static string FormatPoints(int points) => points == 1 ? "1 pt" : $"{points} pts";

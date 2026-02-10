@@ -58,14 +58,17 @@ public static class Ass
     public static Asset<Texture2D> Icon_Trophy; // 48x48
     public static Asset<Texture2D> Icon_TeamBoss; // 54x54
     public static Asset<Texture2D> Icon_Attack; // 26x27
-    public static Asset<Texture2D> Icon_Gold; // 64x64
-    public static Asset<Texture2D> Icon_Silver; // 64x64
-    public static Asset<Texture2D> Icon_Bronze; // 64x64
+    public static Asset<Texture2D> Icon_Gold; // 74x102
+    public static Asset<Texture2D> Icon_Silver; //74x102
+    public static Asset<Texture2D> Icon_Bronze; // 74x102
     public static Asset<Texture2D> Icon_Medal1; // 64x64
     public static Asset<Texture2D> Icon_Medal2; // 64x64
     public static Asset<Texture2D> Icon_Medal3; // 64x64
 
-    // Initialization flag
+    // Achievements
+    public static Asset<Texture2D> Achievements; /// Spritesheet, that includes vanilla and TPVPA achievements.
+
+    /// --- Special Initialization flag ---
     public static bool Initialized { get; set; }
 
     /// <summary>

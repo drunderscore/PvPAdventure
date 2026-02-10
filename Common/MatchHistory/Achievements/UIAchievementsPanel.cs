@@ -7,12 +7,15 @@ namespace PvPAdventure.Common.MatchHistory.Achievements;
 
 internal sealed class UIAchievementsPanel : UIPanel
 {
+    private const float ScrollbarWidth = 20f;
+
+    private UIList _list;
+    private UIScrollbar _scrollbar;
+
     public UIAchievementsPanel()
     {
-        //SetPadding(0f);
         BorderColor = Color.Black;
         BackgroundColor = new Color(33, 43, 79) * 0.8f;
-
         Refresh();
     }
 
@@ -27,52 +30,35 @@ internal sealed class UIAchievementsPanel : UIPanel
             BackgroundColor = UICommon.DefaultUIBlue
         });
 
-        UIElement body = new()
+        _list = new UIList
         {
             Top = new StyleDimension(6f, 0f),
-            Width = StyleDimension.Fill,
-            Height = StyleDimension.Fill
+            Width = new StyleDimension(-ScrollbarWidth - 6f, 1f),
+            Height = new StyleDimension(0, 1f),
+            ListPadding = 8f,
+            ManualSortMethod = _ => { }
         };
-        body.SetPadding(10f);
-        Append(body);
+        _list.SetPadding(0f);
+        _list.PaddingTop = 8f;
+        Append(_list);
 
-        AchievementSaveData data = AchievementStorage.Data;
-        if (data == null || data.Achievements == null)
+        _scrollbar = new UIScrollbar
         {
-            body.Append(new UIText("No achievements data.", 0.9f)
-            {
-                HAlign = 0.5f,
-                VAlign = 0.5f,
-                TextColor = Color.Gray
-            });
-            return;
+            Top = _list.Top,
+            Height = _list.Height,
+            Width = new StyleDimension(ScrollbarWidth, 0f),
+            Left = new StyleDimension(-ScrollbarWidth, 1f)
+        };
+        _scrollbar.Height.Pixels -= 6f;
+        _scrollbar.SetView(100f, 1000f);
+        Append(_scrollbar);
+
+        _list.SetScrollbar(_scrollbar);
+
+        for (int i = 0; i < Achievements.All.Length; i++)
+        {
+            var (id, def) = Achievements.All[i];
+            _list.Add(new UIAchievementRow(id, def));
         }
-
-        AddRow(body, data, AchievementId.TotalKills100, 0f);
-        AddRow(body, data, AchievementId.TotalTeamPoints100, 20f);
-    }
-
-    private static void AddRow(UIElement parent, AchievementSaveData data, AchievementId id, float topPx)
-    {
-        if (!data.Achievements.TryGetValue(id, out AchievementProgress p) || p == null)
-            return;
-
-        bool completed = p.CompletedUtc != null;
-        Color c = completed ? new Color(120, 220, 120) : new Color(220, 220, 220);
-
-        string text = $"{p.Name}: {p.Current}/{p.Target}";
-        if (completed)
-            text += " (done)";
-
-        parent.Append(new UIText(text, 0.85f)
-        {
-            Top = new StyleDimension(topPx, 0f),
-            Width = StyleDimension.Fill,
-            Height = new StyleDimension(24f, 0f),
-            TextOriginX = 0f,
-            TextOriginY = 0.5f,
-            TextColor = c,
-            IsWrapped = false
-        });
     }
 }
