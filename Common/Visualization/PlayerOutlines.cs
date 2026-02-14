@@ -37,44 +37,40 @@ public class PlayerOutlines : ModSystem
         _outlineCallsThisSecond = 0;
     }
 
-    private void OnPlayerDrawLayersDrawPlayer_RenderAllLayers(On_PlayerDrawLayers.orig_DrawPlayer_RenderAllLayers orig,
-        ref PlayerDrawSet drawinfo)
+    private void OnPlayerDrawLayersDrawPlayer_RenderAllLayers(
+    On_PlayerDrawLayers.orig_DrawPlayer_RenderAllLayers orig,
+    ref PlayerDrawSet drawinfo)
     {
         try
         {
-            if (drawinfo.shadow != 0.0f)
+            if (drawinfo.shadow != 0.0f || drawinfo.headOnlyRender)
                 return;
 
-            if (drawinfo.headOnlyRender)
+            var config = ModContent.GetInstance<ClientConfig>();
+            if (!config.PlayerOutlines)
+                return; // <-- disables ALL outline drawing on THIS client
+
+            Player p = drawinfo.drawPlayer;
+
+            if (p.dead)
                 return;
 
-            var team = (Team)drawinfo.drawPlayer.team;
+            Team team = (Team)p.team;
             if (team == Team.None)
                 return;
 
-            if (drawinfo.drawPlayer.dead)
-                return;
-
-            var screenBounds = new Rectangle((int)Main.screenPosition.X, (int)Main.screenPosition.Y, Main.screenWidth,
+            var screenBounds = new Rectangle(
+                (int)Main.screenPosition.X,
+                (int)Main.screenPosition.Y,
+                Main.screenWidth,
                 Main.screenHeight);
-            var playerBounds = drawinfo.drawPlayer.getRect();
 
-            if (!playerBounds.Intersects(screenBounds))
+            if (!p.getRect().Intersects(screenBounds))
                 return;
 
-            // Skip drawing if config says so.
-            var adventureClientConfig = ModContent.GetInstance<ClientConfig>();
-
-            if (!adventureClientConfig.PlayerOutlines && drawinfo.drawPlayer.whoAmI == Main.myPlayer)
-                return;
-
-            // Don't show outlines for teammates, but if you want self outlines, still show it.
-            // 
-            if (!adventureClientConfig.PlayerOutlines && team == (Team)Main.LocalPlayer.team &&
-                (!adventureClientConfig.PlayerOutlines || drawinfo.drawPlayer.whoAmI != Main.myPlayer))
-                return;
-
-            _createOutlines(drawinfo.drawPlayer.stealth, 1.0f,
+            _createOutlines(
+                p.stealth,
+                1.0f,
                 Main.teamColor[(int)team].MultiplyRGBA(Lighting.GetColor(drawinfo.Center.ToTileCoordinates())));
         }
         finally
