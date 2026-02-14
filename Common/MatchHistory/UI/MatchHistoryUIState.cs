@@ -156,10 +156,11 @@ public sealed class MatchHistoryUIState : ResizableUIState
         // Player stats panel
         UIElement statsBaseElement = new()
         {
-            Width = new StyleDimension(250,0),
-            Height = new StyleDimension(0f, 1.0f),
+            Width = new StyleDimension(170,0),
+            Height = new StyleDimension(-430f, 1.0f),
             Top = new StyleDimension(160f, 0f),
-            HAlign = 0.09f,
+            //HAlign = 0.09f,
+            Left = new StyleDimension(12, 0f) // hug left edge
         };
         Append(statsBaseElement);
 
@@ -184,7 +185,8 @@ public sealed class MatchHistoryUIState : ResizableUIState
             Width = new StyleDimension(350, 0f),
             Height = new StyleDimension(0f, 1.0f),
             Top = new StyleDimension(160f, 0f),
-            HAlign = 0.975f
+            Left = new StyleDimension(-12, 0f), // hug right edge
+            HAlign = 1f
         };
         Append(achievementsBaseElement);
 

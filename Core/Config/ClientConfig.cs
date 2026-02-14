@@ -20,14 +20,17 @@ public class ClientConfig : ModConfig
 
     [Header("Visualization")]
     [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] public bool PlayerOutlines = true;
+    [DefaultValue(true)] 
+    public bool PlayerOutlines = true;
     [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] public bool BedOutlines = true;
+    [DefaultValue(true)] 
+    public bool BedOutlines = true;
     [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] public bool LootOutlines = true;
-
+    [DefaultValue(true)] 
+    public bool LootOutlines = true;
     [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] public bool HideVanityVisuals = true;
+    [DefaultValue(true)] 
+    public bool HideVanityVisuals = true;
 
     [Header("Movement")]
     [BackgroundColor(50, 70, 120)]
@@ -56,12 +59,6 @@ public class ClientConfig : ModConfig
     [DefaultValue(false)] public bool ShowDebugMessages;
 
     #region Configs
-    public class OutlinesConfig
-    {
-        [DefaultValue(true)] public bool Players = true;
-        [DefaultValue(true)] public bool Beds = true;
-        [DefaultValue(true)] public bool Loot = true;
-    }
     public class SoundEffectConfig
     {
         public abstract class MarkerConfig<TEnum>
