@@ -172,7 +172,7 @@ public class SSC : ModSystem
         TagCompound root = TagIO.Read(reader);
 
         string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
-        string steamName = SteamFriends.GetPersonaName();
+        //string steamName = SteamFriends.GetPersonaName();
 
         byte[] tplrBytes;
         using (var ms = new MemoryStream())
@@ -246,8 +246,8 @@ public class SSC : ModSystem
 
                 // Print welcome message
                 Main.NewText(
-                    //$"Welcome, {Main.LocalPlayer.name}! — " +
-                    $"Welcome, {steamName}! — " +
+                    $"Welcome, {Main.LocalPlayer.name}! — " +
+                    //$"Welcome, {steamName}! — " +
                     $"Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}" +
                     $"{positionText}",
                     Color.MediumPurple

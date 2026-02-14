@@ -66,8 +66,8 @@ internal class SSCSaveSystem : ModSystem
         {
             var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
             var fileData = Main.ActivePlayerFileData;
-            //var name = fileData.Player.name;
-            var name = SteamFriends.GetPersonaName();
+            var name = fileData.Player.name;
+            //var name = SteamFriends.GetPersonaName();
 
             // Save plr and tplr files
             var plr = Player.SavePlayerFile_Vanilla(fileData);

@@ -418,7 +418,7 @@ Mods: {
 				}
 
 				AutoSelectLatestSpawnOption: {
-					Label: "Auto Select Latest"
+					Label: Auto Select Latest
 					Tooltip: Automatically selects the last spawn option used
 				}
 

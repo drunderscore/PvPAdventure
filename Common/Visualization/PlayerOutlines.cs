@@ -64,10 +64,15 @@ public class PlayerOutlines : ModSystem
 
             // Skip drawing if config says so.
             var adventureClientConfig = ModContent.GetInstance<ClientConfig>();
-            if (!adventureClientConfig.PlayerOutlines)
+
+            if (!adventureClientConfig.PlayerOutlines && drawinfo.drawPlayer.whoAmI == Main.myPlayer)
                 return;
 
-            _outlineCallsThisSecond++; // perf counter
+            // Don't show outlines for teammates, but if you want self outlines, still show it.
+            // 
+            if (!adventureClientConfig.PlayerOutlines && team == (Team)Main.LocalPlayer.team &&
+                (!adventureClientConfig.PlayerOutlines || drawinfo.drawPlayer.whoAmI != Main.myPlayer))
+                return;
 
             _createOutlines(drawinfo.drawPlayer.stealth, 1.0f,
                 Main.teamColor[(int)team].MultiplyRGBA(Lighting.GetColor(drawinfo.Center.ToTileCoordinates())));
