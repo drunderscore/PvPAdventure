@@ -1,85 +1,68 @@
-﻿using MonoMod.RuntimeDetour;
-using PvPAdventure.Core.Config;
-using System;
-using System.Reflection;
+﻿using PvPAdventure.Core.Config;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Visualization.DisableSocialSlots;
 
-internal class DisableSocialAccessoriesVisibility : ModSystem
+internal sealed class DisableSocialAccessoriesVisibility : ModSystem
 {
-    private static Hook _updateVisibleAccessoriesHook;
-
     public override void Load()
     {
         if (Main.dedServ)
             return;
 
-        MethodInfo method = typeof(Player).GetMethod(
-            "UpdateVisibleAccessories",
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-            binder: null,
-            types: Type.EmptyTypes,
-            modifiers: null);
-
-        if (method == null)
-        {
-            Log.Warn("Player.UpdateVisibleAccessories not found. Vanity suppression not installed.");
-            return;
-        }
-
-        _updateVisibleAccessoriesHook = new Hook(method, Hook_UpdateVisibleAccessories);
-        //Log.Info("Hooked Player.UpdateVisibleAccessories: vanity accessory visuals disabled, functional forced visible.");
+        On_Player.UpdateVisibleAccessories += Hook_UpdateVisibleAccessories;
     }
 
     public override void Unload()
     {
-        _updateVisibleAccessoriesHook?.Dispose();
-        _updateVisibleAccessoriesHook = null;
+        On_Player.UpdateVisibleAccessories -= Hook_UpdateVisibleAccessories;
     }
 
-    private delegate void Orig_UpdateVisibleAccessories(Player self);
-
-    private static void Hook_UpdateVisibleAccessories(Orig_UpdateVisibleAccessories orig, Player self)
+    private static void Hook_UpdateVisibleAccessories(On_Player.orig_UpdateVisibleAccessories orig, Player self)
     {
-        if (Main.dedServ)
-        {
-            orig(self);
-            return;
-        }
+        ClientConfig cfg = ModContent.GetInstance<ClientConfig>();
 
-        // Client config
-        var cfg = ModContent.GetInstance<ClientConfig>();
-
-        // Always suppress vanity for OTHER players.
-        // Only let the local player opt out via config.
-        bool suppressForThisPlayer = self.whoAmI != Main.myPlayer
-            || cfg.HideVanityVisuals;
-
+        bool suppressForThisPlayer = self.whoAmI != Main.myPlayer || cfg.HideVanityVisuals;
         if (!suppressForThisPlayer)
         {
             orig(self);
             return;
         }
 
-        // 1) Force functional accessories to always be visible (disable the "eye" hiding).
-        // hideVisibleAccessory is indexed by accessory slot id (same indices used in AccessorySlotLoader DrawVisibility).
         if (self.hideVisibleAccessory != null)
         {
             for (int i = 0; i < self.hideVisibleAccessory.Length; i++)
                 self.hideVisibleAccessory[i] = false;
         }
 
-        // 2) Temporarily blank vanity accessory slots so they cannot override visuals.
-        // Vanilla accessory slots are 3..(dye.Length-1). Vanity counterparts are slot + dye.Length.
         Item[] armor = self.armor;
+        int dyeLen = self.dye?.Length ?? 0;
+
+        bool vanityMerman = false;
+        bool vanityWerewolf = false;
+        bool functionalMerman = false;
+        bool functionalWerewolf = false;
+
         Item[] saved = null;
 
-        int dyeLen = self.dye?.Length ?? 0;
         if (armor != null && dyeLen > 0)
         {
-            // We'll save only the vanity accessory range we touch.
+            for (int slot = 3; slot < dyeLen; slot++)
+            {
+                if (slot < 0 || slot >= armor.Length)
+                    continue;
+
+                int type = armor[slot].type;
+
+                if (type == ItemID.NeptunesShell || type == ItemID.CelestialShell)
+                    functionalMerman = true;
+
+                if (type == ItemID.MoonCharm || type == ItemID.CelestialShell)
+                    functionalWerewolf = true;
+            }
+
             saved = new Item[armor.Length];
 
             for (int slot = 3; slot < dyeLen; slot++)
@@ -88,19 +71,27 @@ internal class DisableSocialAccessoriesVisibility : ModSystem
                 if (vanityIndex < 0 || vanityIndex >= armor.Length)
                     continue;
 
-                // Save and clear (only if not air to reduce allocations).
-                if (!armor[vanityIndex].IsAir)
-                {
-                    saved[vanityIndex] = armor[vanityIndex];
-                    armor[vanityIndex] = new Item(); // Air
-                }
+                Item item = armor[vanityIndex];
+                if (item.IsAir)
+                    continue;
+
+                int type = item.type;
+
+                if (type == ItemID.NeptunesShell || type == ItemID.CelestialShell)
+                    vanityMerman = true;
+
+                if (type == ItemID.MoonCharm || type == ItemID.CelestialShell)
+                    vanityWerewolf = true;
+
+                saved[vanityIndex] = item;
+                armor[vanityIndex] = new Item();
             }
         }
 
-        // Run vanilla logic with vanity accessories effectively removed
         orig(self);
 
-        // Restore vanity items
+        SuppressVanityShapeshifts(self, vanityMerman, vanityWerewolf, functionalMerman, functionalWerewolf);
+
         if (saved != null && armor != null)
         {
             for (int i = 0; i < saved.Length; i++)
@@ -108,6 +99,41 @@ internal class DisableSocialAccessoriesVisibility : ModSystem
                 if (saved[i] != null)
                     armor[i] = saved[i];
             }
+        }
+    }
+
+    private static void SuppressVanityShapeshifts(Player self, bool vanityMerman, bool vanityWerewolf, bool functionalMerman, bool functionalWerewolf)
+    {
+        if (vanityMerman)
+        {
+            self.forceMerman = false;
+            self.hideMerman = false;
+
+            if (!functionalMerman)
+            {
+                self.accMerman = false;
+                self.merman = false;
+            }
+        }
+        else if (functionalMerman)
+        {
+            self.hideMerman = false;
+        }
+
+        if (vanityWerewolf)
+        {
+            self.forceWerewolf = false;
+            self.hideWolf = false;
+
+            if (!functionalWerewolf)
+            {
+                self.forceWerewolf = false;
+                self.wereWolf = false;
+            }
+        }
+        else if (functionalWerewolf)
+        {
+            self.hideWolf = false;
         }
     }
 }

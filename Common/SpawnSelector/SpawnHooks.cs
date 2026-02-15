@@ -36,7 +36,8 @@ public class SpawnHooks : ModSystem
         if (SpawnSystem.IsUiOpen && SpawnSystem.CanTeleport)
             return true;
 
-        return orig(self);
+        return false;
+        //return orig(self);
     }
 
     private static void TeleportAndSync(Player p, Vector2 pos)
