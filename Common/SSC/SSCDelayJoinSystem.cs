@@ -42,7 +42,7 @@ public class SSCDelayJoinSystem : ModSystem
         // Be the local char for 5 seconds.
         // Some extra time to properly debug the SSC flow of joining with a local char.
         // Also disable ghost to see the real player.
-        _delayTicks = 60 * 600;
+        _delayTicks = 60 * 5;
         //Main.LocalPlayer.ghost = false;
 #endif
     }

@@ -9,7 +9,7 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.DragonLens.Tools;
+namespace PvPAdventure.Common.AdminTools.DragonLens;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]

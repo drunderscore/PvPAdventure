@@ -142,7 +142,7 @@ public class UIMatchRow : UIPanel
             }
 
         if (localTeam == Team.None)
-            return ("Placed ? (No Team)", Color.White, 0);
+            return ("N/A (no team)", Color.White, 0);
 
         TeamPoints[] pts = result.TeamPoints ?? [];
         int localPoints = int.MinValue;

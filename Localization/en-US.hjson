@@ -28,6 +28,7 @@ Mods: {
 			ArenasMenu.DisplayName: Arenas Menu
 			DLOpenConfigTool.DisplayName: DL Open Config Tool
 			UseAdventureMirror.DisplayName: Use Adventure Mirror
+			DLArenasAdminTool.DisplayName: Arenas Admin Tool
 		}
 
 		Tools: {
@@ -90,6 +91,14 @@ Mods: {
 			DLOpenConfigTool: {
 				DisplayName: Open config
 				Description: Opens Adventure Server Config
+			}
+
+			DLArenasAdminTool: {
+				DisplayName: Arenas Control
+				Description: Full control over Arenas
+				Title: Arenas Control
+				SendAllToMainWorld: Send all players to main world
+				SendAllToArenas: Send all players to arenas
 			}
 		}
 
@@ -1361,7 +1370,7 @@ Mods: {
 
 				SSCPlayerNames: {
 					Label: SSC Player Names
-					Tooltip: Change SSC player names
+					Tooltip: Set the names of players who join
 				}
 			}
 
@@ -1369,23 +1378,23 @@ Mods: {
 				Tooltip: ""
 
 				Default: {
-					Label: Default
-					Tooltip: Keeps players vanilla character name
+					Label: Vanilla
+					Tooltip: Vanilla character name
 				}
 
 				Steam: {
 					Label: Steam
-					Tooltip: Uses player Steam name
+					Tooltip: Steam profile names
 				}
 
 				Discord: {
 					Label: Discord
-					Tooltip: Uses player Discord name (requires Discord authentication)
+					Tooltip: Discord display names with authentication
 				}
 
 				Numbered: {
 					Label: Numbered
-					Tooltip: Uses numbered player names (Player1, Player2...)
+					Tooltip: Numbered player names (Player1, Player2...) [unstable]
 				}
 			}
 

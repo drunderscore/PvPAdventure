@@ -23,9 +23,6 @@ namespace PvPAdventure.Common.Arenas.UI;
 /// </summary>
 public class ArenasLoadoutUI : UIState
 {
-    // Title bar height
-    private const float TitleHeight = 52f;
-
     // Root draggable element
     private DraggableElement Root;
 

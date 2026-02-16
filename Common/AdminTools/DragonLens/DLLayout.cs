@@ -58,11 +58,11 @@ public class DLLayout : ModSystem
     {
         orig(self, grid);
 
-        string layout1 = "PvP Adventure";
+        string layout1 = "PvP Adventure Admin";
         RegisterPvPAdventureLayout(layout1);
 
-        string layout2 = "PvP Adventure+";
-        RegisterPvPAdventurePlusLayout(layout2);
+        string layout2 = "PvP Adventure Erkys Layout";
+        RegisterPvPAdventureErkysLayout(layout2);
 
         // Add the layouts to the grid of layout browser
         grid.Add(new LayoutPresetButton(self, layout1, GetLayoutPath(layout1), "Basic general-purpose tools for a standard PvP Adventure admin."));
@@ -103,7 +103,7 @@ public class DLLayout : ModSystem
         return layoutName;
     }
 
-    private static string RegisterPvPAdventurePlusLayout(string layoutName)
+    private static string RegisterPvPAdventureErkysLayout(string layoutName)
     {
         ToolbarHandler.BuildPreset(layoutName, n =>
         {
@@ -132,6 +132,7 @@ public class DLLayout : ModSystem
                .AddTool<DLPointsSetterTool>()
                .AddTool<DLAdminManagerTool>()
                .AddTool<DLOpenConfigTool>()
+               .AddTool<DLArenasAdminTool>()
            );
 
             // right toolbar

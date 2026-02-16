@@ -20,4 +20,5 @@ public enum AdventurePacketIdentifier : byte
     SaveMatch, // save match data to disk after game ends
     ClientModCheck, // check for client mods when joining
     WhitelistPlayerCheck,
+    ArenasAdmin // admin for arenas (send players to arenas, etc)
 }

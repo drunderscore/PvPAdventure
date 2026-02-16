@@ -1,3 +1,4 @@
+using PvPAdventure.Common.AdminTools.Tools.ArenasTool;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.GameTimer;
@@ -52,6 +53,7 @@ public class PvPAdventure : Mod
             AdventurePacketIdentifier.SaveMatch => Bind(r, whoAmI, SaveMatchNetHandler.HandlePacket),
             AdventurePacketIdentifier.ClientModCheck => Bind(r, whoAmI, ClientModHandler.HandlePacket),
             AdventurePacketIdentifier.WhitelistPlayerCheck => Bind(r, whoAmI, WhitelistPlayerHandler.HandlePacket),
+            AdventurePacketIdentifier.ArenasAdmin => Bind(r, whoAmI, ArenasAdminNetHandler.HandlePacket),
             _ => null
         };
 

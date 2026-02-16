@@ -19,6 +19,7 @@ public class DLToolIcons : ModSystem
     public static string PointsSetterKey => "PointsSetter";
     public static string AdminManagerKey => "AdminManager";
     public static string OpenConfigKey => "OpenConfig";
+    public static string ArenasAdminKey => "ArenasAdmin";
 
     // Assets
     public static Asset<Texture2D> GlowAlpha = ModContent.Request<Texture2D>("DragonLens/Assets/Misc/GlowAlpha");
@@ -41,6 +42,7 @@ public class DLToolIcons : ModSystem
                 provider.icons[PointsSetterKey] = Ass.Icon_PointsSetter.Value;
                 provider.icons[AdminManagerKey] = Ass.Icon_AdminManager.Value;
                 provider.icons[OpenConfigKey] = Ass.Icon_ConfigOpen.Value;
+                provider.icons[ArenasAdminKey] = Ass.Icon_Arenas.Value;
             }
 
             // rebuild toolbars *after* icons (and tools) have been injected
