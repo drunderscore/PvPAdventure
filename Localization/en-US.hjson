@@ -447,12 +447,12 @@ Mods: {
 					Tooltip: Show outlines around team boss loot
 				}
 
-				HideVanityVisuals: {
-					Label: "[i:245] Hide Vanity"
+				ShowVanityVisuals: {
+					Label: "[i:245] Show Vanity"
 					Tooltip:
 						'''
-						Hides all your vanity.
-						Turn this off to see your vanity.
+						By default, all your vanity is invisible.
+						Turn this on to see your vanity.
 						For other players, your armor and accessories is always visible.
 						'''
 				}
@@ -1357,6 +1357,35 @@ Mods: {
 						Player files are located on the server: 
 						tModLoader/PvPAdventureSSC/<WorldName>/<SteamID>
 						'''
+				}
+
+				SSCPlayerNames: {
+					Label: SSC Player Names
+					Tooltip: Change SSC player names
+				}
+			}
+
+			SSCPlayerNameType: {
+				Tooltip: ""
+
+				Default: {
+					Label: Default
+					Tooltip: Keeps players vanilla character name
+				}
+
+				Steam: {
+					Label: Steam
+					Tooltip: Uses player Steam name
+				}
+
+				Discord: {
+					Label: Discord
+					Tooltip: Uses player Discord name (requires Discord authentication)
+				}
+
+				Numbered: {
+					Label: Numbered
+					Tooltip: Uses numbered player names (Player1, Player2...)
 				}
 			}
 

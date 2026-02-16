@@ -8,3 +8,4 @@ buildIgnore = *.csproj, *.user, *.md, obj\*, bin\*, .vs\*
 sortAfter = SubworldLibrary
 loadAfter = SubworldLibrary
 modReferences = SubworldLibrary
+dllReferences = Discord.Net.Rest, Discord.Net.Core, System.Linq.Async

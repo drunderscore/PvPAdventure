@@ -19,9 +19,12 @@ internal class SSCConfig : ModConfig
     #region Members
     [Header("SSC")]
     [BackgroundColor(90, 70, 160)]
-
     [DefaultValue(true)]
     public bool IsSSCEnabled { get; set; } = true;
+
+    [BackgroundColor(90, 70, 160)]
+    [DefaultValue(SSCPlayerNameType.Default)]
+    public SSCPlayerNameType SSCPlayerNames { get; set; } = SSCPlayerNameType.Default;
 
     [BackgroundColor(90, 70, 160)]
     [Slider]
@@ -41,6 +44,16 @@ internal class SSCConfig : ModConfig
     [BackgroundColor(90, 70, 160)]
     [CustomModConfigItem(typeof(LoadoutItemListElement))]
     public List<LoadoutItem> StartItems { get; set; } = [];
+    #endregion
+
+    #region Data types
+    public enum SSCPlayerNameType
+    {
+        Default,
+        Steam,
+        Discord,
+        Numbered
+    }
     #endregion
 
     #region Hooks / methods
