@@ -11,8 +11,28 @@ namespace PvPAdventure.Common.SSC;
 [Autoload(Side = ModSide.Both)]
 public sealed class GhostClampSystem : ModSystem
 {
+    public static int Count;
     public override void PostUpdatePlayers()
     {
+        if (Main.LocalPlayer.ghost)
+        {
+            Count++;
+            if (Count > 60)
+            {
+                Count = 0;
+
+                int floorX = Main.spawnTileX;
+                int floorY = Main.spawnTileY;
+                Main.LocalPlayer.Spawn_GetPositionAtWorldSpawn(ref floorX, ref floorY);
+
+                var spawnPosition = new Vector2(floorX * 16, floorY * 16);
+                if (Vector2.Distance(Main.LocalPlayer.position, spawnPosition) > 50)
+                {
+                    Main.LocalPlayer.position = spawnPosition;
+                }
+            }
+        }
+
         if (!SSC.IsEnabled || Main.netMode != NetmodeID.Server)
             return;
 

@@ -51,7 +51,7 @@ internal sealed class DisableSocialAccessoriesEyeToggle : ModSystem
     {
         // Client config
         var cfg = ModContent.GetInstance<ClientConfig>();
-        if (!cfg.HideVanityVisuals)
+        if (cfg.ShowVanityVisuals)
         {
             return orig(self, ref hideFlag, context, xLoc, yLoc, out xOut, out yOut, out texOut);
         }

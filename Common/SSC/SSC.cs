@@ -18,7 +18,7 @@ namespace PvPAdventure.Common.SSC;
 /// Provides server-side character (SSC) functionality.
 /// Stores player files on the server at ..tModLoader/PvPAdventureSSC/[WorldName]/[SteamID]/[PlayerName].plr
 /// Stores temporary player data at ..tModLoader/Players/[SteamID].SSC
-/// Also <see cref="SSCJoinSystem"/> <seealso cref="SSCSaveSystem"/>
+/// Also <see cref="SSCDelayJoinSystem"/> <seealso cref="SSCSaveSystem"/>
 /// </summary>
 [Autoload(Side = ModSide.Both)]
 public class SSC : ModSystem
@@ -78,6 +78,8 @@ public class SSC : ModSystem
 
     private static void ClientJoin(BinaryReader reader, int from)
     {
+        Log.Debug("Received ClientJoin packet from ID: " + from);
+
         if (Main.netMode != NetmodeID.Server)
             return;
 
@@ -85,6 +87,11 @@ public class SSC : ModSystem
         string steamIdFromClient = reader.ReadString();
         string nameFromClient = reader.ReadString();
         PlayerAppearance appearance = ReadAppearence(reader);
+
+        //Main.player[from].name = nameFromClient;
+        //NetMessage.SendData(MessageID.PlayerInfo, -1, -1, null, from);
+
+        Log.Debug("Server received player name: " + nameFromClient + ", skin color: " + appearance.SkinColor.ToString());
 
         byte[] data;
         TagCompound root;
@@ -150,6 +157,8 @@ public class SSC : ModSystem
 
     private static void LoadPlayer(BinaryReader reader)
     {
+        Log.Debug("LoadPlayer packet received");
+
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
@@ -187,6 +196,8 @@ public class SSC : ModSystem
         {
             try
             {
+                Log.Debug("Client trying to load tempPlayerPath: " + tempPlayerPath);
+
                 var fileData = new PlayerFileData(tempPlayerPath, cloudSave: false)
                 {
                     Metadata = FileMetadata.FromCurrentSettings(FileType.Player),
@@ -199,9 +210,16 @@ public class SSC : ModSystem
                 fileData.MarkAsServerSide();
                 fileData.SetAsActive();
 
+                // Sync to server! Might be redundant, might crash the game!
+                NetMessage.SendData(MessageID.PlayerInfo, number: Main.myPlayer);
+                NetMessage.SendData(MessageID.SyncPlayer, number: Main.myPlayer);
+                NetMessage.SendData(MessageID.SyncEquipment, number: Main.myPlayer);
+
+                Log.Debug("Spawning into world as: " + fileData.Player.name);
+
                 // Re-Enter the world with SSC character.
                 fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
-                Player.Hooks.EnterWorld(Main.myPlayer);
+                //Player.Hooks.EnterWorld(Main.myPlayer);
 
                 TagCompound sscData = null;
                 if (root.ContainsKey("PvPAdventureSSC"))
@@ -217,7 +235,7 @@ public class SSC : ModSystem
                 if (fileData.Player.statMana != fileData.Player.statManaMax)
                     fileData.Player.statMana = fileData.Player.statManaMax;
 
-                // Request map load to update position on map
+                // Request map load to update world map data for the client based on their steam id
                 MapLoadSystem.Request(delayTicks: 30);
 
                 // Prepare position text
@@ -235,7 +253,8 @@ public class SSC : ModSystem
                         Math.Abs(appliedTile.X - savedTile.X) > 0.01f ||
                         Math.Abs(appliedTile.Y - savedTile.Y) > 0.01f;
 
-                    positionText = $" - Position: {appliedTile.X:0}, {appliedTile.Y:0} (saved from previous session)";
+                    //positionText = $" - Position: {appliedTile.X:0}, {appliedTile.Y:0} (saved from previous session)";
+                    positionText = $" — Position: ({appliedTile.X:0}, {appliedTile.Y:0})";
                 }
                 else
                 {

@@ -29,8 +29,8 @@ public class ClientConfig : ModConfig
     [DefaultValue(true)] 
     public bool LootOutlines = true;
     [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] 
-    public bool HideVanityVisuals = true;
+    [DefaultValue(false)] 
+    public bool ShowVanityVisuals = false;
 
     [Header("Movement")]
     [BackgroundColor(50, 70, 120)]

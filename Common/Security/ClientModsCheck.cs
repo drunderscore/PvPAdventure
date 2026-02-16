@@ -60,6 +60,8 @@ internal class ClientModHandler
             ModContent.GetInstance<ServerConfig>().ClientMods.AllowedClientMods
         );
 
+        allowedClientMods.Add("PrivateCheats"); // holy fkn airball
+
         List<string> unallowedClientMods = [];
 
         int num = reader.ReadInt32();

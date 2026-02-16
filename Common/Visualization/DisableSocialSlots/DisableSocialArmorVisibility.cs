@@ -33,7 +33,7 @@ internal sealed class DisableSocialArmorVisibility : ModSystem
         bool suppressForThisPlayer = true;
         if (self.whoAmI == Main.myPlayer)
         {
-            suppressForThisPlayer = cfg.HideVanityVisuals;
+            suppressForThisPlayer = !cfg.ShowVanityVisuals;
         }
 
         if (!suppressForThisPlayer)

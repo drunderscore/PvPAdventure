@@ -56,7 +56,7 @@ public sealed class UITeamPoints : UIElement
 
         Texture2D trophyTex = Ass.Icon_Trophy.Value;
         Vector2 trophyOrigin = trophyTex.Size() * 0.5f;
-        float trophyScale = 0.5f;
+        //float trophyScale = 0.5f;
 
         for (int i = 0; i < _scores.Length; i++)
         {

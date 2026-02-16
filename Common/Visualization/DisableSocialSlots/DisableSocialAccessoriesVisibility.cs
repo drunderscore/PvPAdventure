@@ -24,7 +24,7 @@ internal sealed class DisableSocialAccessoriesVisibility : ModSystem
     {
         ClientConfig cfg = ModContent.GetInstance<ClientConfig>();
 
-        bool suppressForThisPlayer = self.whoAmI != Main.myPlayer || cfg.HideVanityVisuals;
+        bool suppressForThisPlayer = self.whoAmI != Main.myPlayer || !cfg.ShowVanityVisuals;
         if (!suppressForThisPlayer)
         {
             orig(self);

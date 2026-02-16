@@ -16,7 +16,7 @@ public class PlayerOutlines : ModSystem
 
     private CreateOutlinesDelegate _createOutlines;
 
-    private int _outlineCallsThisSecond;
+    //private int _outlineCallsThisSecond;
     private int _secCounter;
 
     public override void Load()
@@ -34,7 +34,7 @@ public class PlayerOutlines : ModSystem
 
         _secCounter = 0;
         //Log.Chat($"[Perf] PlayerOutlines calls/s={_outlineCallsThisSecond}");
-        _outlineCallsThisSecond = 0;
+        //_outlineCallsThisSecond = 0;
     }
 
     private void OnPlayerDrawLayersDrawPlayer_RenderAllLayers(

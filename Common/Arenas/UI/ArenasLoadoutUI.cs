@@ -283,8 +283,8 @@ public class ArenasLoadoutUI : UIState
         private readonly UICharacter preview;
         private readonly UIElement slotsRow;
         private UIImageButton playButton;
-        private const float PlayScale = 1.25f;
-        private readonly Asset<Texture2D> _playAsset;
+        //private const float PlayScale = 1.25f;
+        //private readonly Asset<Texture2D> _playAsset;
 
         private readonly Loadout loadout;
 

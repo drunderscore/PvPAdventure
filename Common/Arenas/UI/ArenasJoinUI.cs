@@ -103,7 +103,7 @@ public class ArenasJoinUI : UIState
     private void EnterMainWorld()
     {
         ArenasUISystem.Close();
-        SSCJoinSystem.SendJoinRequest();
+        SSCDelayJoinSystem.SendJoinRequest();
     }
 
     private static UIElement CreateButtonWithIcon(Texture2D icon, string text, Action onClick, float minHeight)

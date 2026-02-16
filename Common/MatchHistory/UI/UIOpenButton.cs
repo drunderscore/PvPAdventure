@@ -16,18 +16,18 @@ using Terraria.UI;
 // TODO: Opens the user's file OS saving system? Or just saves to tModLoader/PvPAdventure/Replays
 public sealed class UIOpenButton : UITextPanel<string>
 {
-    private bool _clickedOffsetActive;
+    //private bool _clickedOffsetActive;
 
-    private readonly Func<string> getDownloadedLabel;
-    private readonly float baseTextScale;
+    //private readonly Func<string> getDownloadedLabel;
+    //private readonly float baseTextScale;
     private readonly Action _onClick;
 
     public UIOpenButton(Action onClick, Func<string> getDownloadedLabel, float textScale = 0.7f, bool large = true)
     : base("Open", textScale, large)
     {
         this._onClick = onClick;
-        this.getDownloadedLabel = getDownloadedLabel;
-        baseTextScale = textScale;
+        //this.getDownloadedLabel = getDownloadedLabel;
+        //baseTextScale = textScale;
 
         Width = new StyleDimension(-10f, 0.5f);
         Height = new StyleDimension(50f, 0f);
@@ -84,7 +84,7 @@ public sealed class UIOpenButton : UITextPanel<string>
 
             int nonce = ++feedbackNonce;
             feedbackActive = true;
-            _clickedOffsetActive = true;
+            //_clickedOffsetActive = true;
 
             SetText(text);
             BackgroundColor = new Color(40, 130, 50) * 0.9f;
@@ -100,7 +100,7 @@ public sealed class UIOpenButton : UITextPanel<string>
                         return;
 
                     feedbackActive = false;
-                    _clickedOffsetActive = false;
+                    //_clickedOffsetActive = false;
 
                     SetText("Open");
                     BackgroundColor = UICommon.DefaultUIBlueMouseOver;
