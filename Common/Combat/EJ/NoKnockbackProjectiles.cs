@@ -36,8 +36,28 @@ public class NoKnockbackProjectiles : GlobalProjectile
                projType == ProjectileID.Volcano ||
                projType == ProjectileID.Muramasa ||
                projType == ProjectileID.BloodCloudRaining ||
-               projType == ProjectileID.Volcano ||
                projType == ProjectileID.CrystalLeafShot ||
+               projType == ProjectileID.WoodYoyo ||
+               projType == ProjectileID.CorruptYoyo ||
+               projType == ProjectileID.CrimsonYoyo ||
+               projType == ProjectileID.JungleYoyo ||
+               projType == ProjectileID.RedsYoyo ||
+               projType == ProjectileID.ValkyrieYoyo ||
+               projType == ProjectileID.HiveFive ||
+               projType == ProjectileID.Cascade ||
+               projType == ProjectileID.Yelets ||
+               projType == ProjectileID.Code1 ||
+               projType == ProjectileID.Code2 ||
+               projType == ProjectileID.Rally ||
+               projType == ProjectileID.Valor ||
+               projType == ProjectileID.Chik ||
+               projType == ProjectileID.FormatC ||
+               projType == ProjectileID.HelFire ||
+               projType == ProjectileID.Amarok ||
+               projType == ProjectileID.Gradient ||
+               projType == ProjectileID.Kraken || 
+               projType == ProjectileID.TheEyeOfCthulhu ||
+               projType == ProjectileID.ClingerStaff ||
                projType == ProjectileID.SporeGas3;
     }
     public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)

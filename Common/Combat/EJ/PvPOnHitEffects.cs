@@ -3,10 +3,11 @@ using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Combat.EJ;
 
-internal class PvPVolcanoMuramasaEffects : ModPlayer
+internal class PvPOnHitEffects : ModPlayer
 {
     public override void OnHurt(Player.HurtInfo info)
     {
@@ -99,6 +100,18 @@ internal class PvPVolcanoMuramasaEffects : ModPlayer
                 {
                     NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
                 }
+            }
+        }
+    }
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        var sourceItem = modifiers.DamageSource.SourceItem;
+        if (sourceItem != null && !sourceItem.IsAir)
+        {
+            // Breaker Blade bonus damage against high HP players
+            if (sourceItem.type == ItemID.BreakerBlade && Player.statLife >= Player.statLifeMax2 * 0.9f)
+            {
+                modifiers.IncomingDamageMultiplier *= 2.5f;
             }
         }
     }

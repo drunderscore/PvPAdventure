@@ -38,8 +38,8 @@ public class AdventureNightglow : GlobalProjectile
             var toCursor = cursorPosition - projectile.Center;
 
             var baseSpeed = 20.0f;
-            var accelerationFactor = 1.5f;
-            var turnStrength = 0.05f;
+            var accelerationFactor = 5.5f;
+            var turnStrength = 0.35f;
 
             var direction = toCursor.SafeNormalize(Vector2.Zero);
             var targetVelocity = direction * baseSpeed * accelerationFactor;
