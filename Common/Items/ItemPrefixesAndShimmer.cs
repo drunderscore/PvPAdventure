@@ -21,7 +21,6 @@ public class ItemPrefixesAndShimmer : GlobalItem
             ItemID.Sets.ShimmerTransformToItem[items[^1]] = items[0];
         }
 
-        AddCircularShimmerTransform(ItemID.CursedFlame, ItemID.Ichor);
         AddCircularShimmerTransform(
             ItemID.CrystalNinjaHelmet,
             ItemID.CrystalNinjaChestplate,
