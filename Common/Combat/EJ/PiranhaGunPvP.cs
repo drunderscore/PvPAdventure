@@ -1,13 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Content.Buffs;
 using System.IO;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-/// <summary>
-/// Makes the Piranha Gun function in PvP almost exactly how it functions in PvE
-/// </summary>
+
 namespace PvPAdventure.Common.Combat.EJ
 {
     public class PiranhaGunProjectile : GlobalProjectile
@@ -15,6 +14,7 @@ namespace PvPAdventure.Common.Combat.EJ
         public override bool InstancePerEntity => true;
         private const float StateFlying = 0f;
         private const float StateAttached = 1f;
+        private const float StateReturning = 2f;
 
         private Vector2 attachOffset = Vector2.Zero;
 
@@ -37,7 +37,7 @@ namespace PvPAdventure.Common.Combat.EJ
         }
         public void ClearPlayerTarget(Projectile proj)
         {
-            proj.ai[0] = StateFlying;
+            proj.ai[0] = StateReturning;
             proj.ai[1] = 0f;
             attachOffset = Vector2.Zero;
             proj.netUpdate = true;
@@ -55,6 +55,7 @@ namespace PvPAdventure.Common.Combat.EJ
                 {
                     bool shouldDetach =
                         !target.active || target.dead || !target.hostile || target.team == owner.team ||
+                        target.HasBuff(ModContent.BuffType<PlayerInSpawn>()) ||
                         !owner.channel || owner.HeldItem.type != ItemID.PiranhaGun ||
                         Vector2.Distance(projectile.Center, owner.Center) > 2000f;
 
@@ -70,10 +71,9 @@ namespace PvPAdventure.Common.Combat.EJ
                     projectile.timeLeft = 300;
                     projectile.netUpdate = true;
 
-                    // Damage timer
                     if (projectile.localAI[0] <= 0f)
                     {
-                        projectile.localAI[0] = 15f; // same as vanilla
+                        projectile.localAI[0] = 14f;
                         int hitDirection = (target.Center.X > owner.Center.X) ? 1 : -1;
                         target.Hurt(PlayerDeathReason.ByProjectile(owner.whoAmI, projectile.whoAmI),
                             projectile.damage, hitDirection, pvp: true);
@@ -90,7 +90,8 @@ namespace PvPAdventure.Common.Combat.EJ
 
                 return false;
             }
-            if (projectile.owner == Main.myPlayer)
+
+            if (!HasPlayerTarget(projectile) && projectile.owner == Main.myPlayer)
             {
                 Player owner = Main.player[projectile.owner];
                 if (owner.hostile)
@@ -102,8 +103,10 @@ namespace PvPAdventure.Common.Combat.EJ
 
                         Player target = Main.player[i];
 
-                        if (!target.active || target.dead || !target.hostile || target.team == owner.team)
+                        if (!target.active || target.dead || !target.hostile || target.team == owner.team ||
+                            target.HasBuff(ModContent.BuffType<PlayerInSpawn>()))
                             continue;
+
                         Rectangle projHitbox = new Rectangle((int)projectile.position.X, (int)projectile.position.Y,
                             projectile.width, projectile.height);
                         Rectangle playerHitbox = new Rectangle((int)target.position.X, (int)target.position.Y,
@@ -116,13 +119,13 @@ namespace PvPAdventure.Common.Combat.EJ
                             int hitDirection = (target.Center.X > owner.Center.X) ? 1 : -1;
                             target.Hurt(PlayerDeathReason.ByProjectile(owner.whoAmI, projectile.whoAmI),
                                 projectile.damage, hitDirection, pvp: true);
-                            break;
+                            return false;
                         }
                     }
                 }
             }
 
-            return true; // run vanilla AI
+            return true;
         }
 
         public override void OnHitPlayer(Projectile projectile, Player target, Player.HurtInfo info)
@@ -131,7 +134,9 @@ namespace PvPAdventure.Common.Combat.EJ
                 return;
 
             Player owner = Main.player[projectile.owner];
-            if (!owner.hostile || !target.hostile || owner.team == target.team)
+
+            if (!owner.hostile || !target.hostile || owner.team == target.team ||
+                target.HasBuff(ModContent.BuffType<PlayerInSpawn>()))
                 return;
 
             if (!HasPlayerTarget(projectile))
@@ -143,7 +148,9 @@ namespace PvPAdventure.Common.Combat.EJ
 
         public override bool CanHitPlayer(Projectile projectile, Player target)
         {
-            // Don't hit the player we're attached to
+            if (projectile.owner == target.whoAmI)
+                return false;
+
             if (HasPlayerTarget(projectile) && GetPlayerTarget(projectile) == target.whoAmI)
                 return false;
 
@@ -159,7 +166,6 @@ namespace PvPAdventure.Common.Combat.EJ
             modifiers.Knockback *= 0f;
         }
 
-        // Sync the extra attachOffset field
         public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
             binaryWriter.Write(attachOffset.X);
@@ -172,7 +178,6 @@ namespace PvPAdventure.Common.Combat.EJ
             attachOffset.Y = binaryReader.ReadSingle();
         }
     }
-
     public class PiranhaGunItem : GlobalItem
     {
         public override bool AppliesToEntity(Item entity, bool lateInstantiation)
@@ -180,29 +185,40 @@ namespace PvPAdventure.Common.Combat.EJ
 
         public override void HoldItem(Item item, Player player)
         {
+            bool hasActivePiranha = false;
+            bool hasAttachedPiranha = false;
+            Projectile attachedProj = null;
+
             for (int i = 0; i < Main.maxProjectiles; i++)
             {
                 Projectile proj = Main.projectile[i];
                 if (!proj.active || proj.owner != player.whoAmI || proj.type != ProjectileID.MechanicalPiranha)
                     continue;
 
+                hasActivePiranha = true;
+
                 var modProj = proj.GetGlobalProjectile<PiranhaGunProjectile>();
-                if (modProj.HasPlayerTarget(proj) && player.controlUseItem)
+                if (modProj.HasPlayerTarget(proj))
                 {
-                    player.channel = true;
-                    player.itemTime = 2;
-                    player.itemAnimation = 2;
-
-                    // Force player to face the latched target
-                    int targetIdx = modProj.GetPlayerTarget(proj);
-                    Player target = Main.player[targetIdx];
-                    if (target.active)
-                    {
-                        // Set direction based on target's horizontal position relative to player
-                        player.direction = (target.Center.X > player.Center.X) ? 1 : -1;
-                    }
-
+                    hasAttachedPiranha = true;
+                    attachedProj = proj;
                     break;
+                }
+            }
+
+            if (hasActivePiranha)
+            {
+                player.itemAnimation = player.itemAnimationMax;
+                player.itemTime = player.itemTimeMax;
+            }
+
+            if (hasAttachedPiranha && attachedProj != null)
+            {
+                int targetIdx = attachedProj.GetGlobalProjectile<PiranhaGunProjectile>().GetPlayerTarget(attachedProj);
+                Player target = Main.player[targetIdx];
+                if (target.active)
+                {
+                    player.direction = (target.Center.X > player.Center.X) ? 1 : -1;
                 }
             }
         }
@@ -212,12 +228,8 @@ namespace PvPAdventure.Common.Combat.EJ
             for (int i = 0; i < Main.maxProjectiles; i++)
             {
                 Projectile proj = Main.projectile[i];
-                if (!proj.active || proj.owner != player.whoAmI || proj.type != ProjectileID.MechanicalPiranha)
-                    continue;
-
-                var modProj = proj.GetGlobalProjectile<PiranhaGunProjectile>();
-                if (modProj.HasPlayerTarget(proj))
-                    return true;
+                if (proj.active && proj.owner == player.whoAmI && proj.type == ProjectileID.MechanicalPiranha)
+                    return false;
             }
             return base.CanUseItem(item, player);
         }
