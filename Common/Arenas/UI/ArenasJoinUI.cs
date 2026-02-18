@@ -80,7 +80,7 @@ public class ArenasJoinUI : UIState
 
         // Enter Arenas (with icon)
         var arenasRow = CreateButtonWithIcon(
-            Ass.Icon_Arenas.Value,
+            Ass.Icon_Arenas_v2.Value,
             "Enter Arenas",
             () => SubworldSystem.Enter<ArenasSubworld>(),
             panelHeight
@@ -117,20 +117,60 @@ public class ArenasJoinUI : UIState
         panel.MinHeight.Set(minHeight, 0f);
         panel.SetPadding(0f);
 
-        // Match UITextPanel look/behavior you already use
+        // Icon image
+        var iconImage = new UIImage(icon);
+
+        if (icon == Ass.Icon_StartGame.Value)
+        {
+            iconImage.Top.Set(3, 0);
+            iconImage.Left.Set(11, 0f);
+            iconImage.ImageScale = 0.85f;
+        }
+        else
+        {
+            iconImage.Top.Set(-4, 0);
+            iconImage.Left.Set(3, 0f);
+            iconImage.ImageScale = 0.76f;
+        }
+
+        // Panel handlers
         panel.OnLeftClick += (_, _) => onClick();
-        panel.OnMouseOver += (_, _) => panel.BorderColor = Color.Yellow;
-        panel.OnMouseOut += (_, _) => panel.BorderColor = Color.Black;
+        panel.OnMouseOver += (_, _) =>
+        {
+            panel.BorderColor = Color.Yellow;
+            //if (iconImage != null && icon == Ass.Icon_Arenas_v2.Value)
+            //{
+            //    iconImage.SetImage(Ass.Icon_Arenas_v2_Highlighted);
+            //}
+        };
+        panel.OnMouseOut += (_, _) =>
+        {
+            panel.BorderColor = Color.Black;
+            //if (iconImage != null && iconImage._texture == Ass.Icon_Arenas_v2_Highlighted)
+            //{
+            //    iconImage.SetImage(Ass.Icon_Arenas_v2);
+            //}
+        };
 
         row.Append(panel);
 
-        var iconImage = new UIImage(icon);
-        iconImage.Left.Set(8, 0f);
-
-        if (icon == Ass.Icon_StartGame.Value)
-            iconImage.Top.Set(3, 0);
-
         panel.Append(iconImage);
+
+        // Icon hover
+        iconImage.OnMouseOver += (_, _) =>
+        {
+            if (iconImage != null && icon == Ass.Icon_Arenas_v2.Value)
+            {
+                iconImage.SetImage(Ass.Icon_Arenas_v2_Highlighted);
+            }
+        };
+        iconImage.OnMouseOut += (_, _) =>
+        {
+            if (iconImage != null && iconImage._texture == Ass.Icon_Arenas_v2_Highlighted)
+            {
+                iconImage.SetImage(Ass.Icon_Arenas_v2);
+            }
+        };
 
         // Text that starts AFTER the icon
         var label = new UIText(text, 0.5f, large: true);

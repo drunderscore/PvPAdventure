@@ -29,6 +29,9 @@ Mods: {
 			DLOpenConfigTool.DisplayName: DL Open Config Tool
 			UseAdventureMirror.DisplayName: Use Adventure Mirror
 			DLArenasAdminTool.DisplayName: Arenas Admin Tool
+			DLLeaveTool.DisplayName: D L Leave Tool
+			DebugDLLeaveTool.DisplayName: Debug D L Leave Tool
+			DebugDLClearChatTool.DisplayName: Debug D L Clear Chat Tool
 		}
 
 		Tools: {
@@ -99,6 +102,21 @@ Mods: {
 				Title: Arenas Control
 				SendAllToMainWorld: Send all players to main world
 				SendAllToArenas: Send all players to arenas
+			}
+
+			DLLeaveTool: {
+				DisplayName: DLLeaveTool
+				Description: The tool has no description! Add one in .hjson files!
+			}
+
+			DebugDLLeaveTool: {
+				DisplayName: DebugDLLeaveTool
+				Description: The tool has no description! Add one in .hjson files!
+			}
+
+			DebugDLClearChatTool: {
+				DisplayName: DebugDLClearChatTool
+				Description: The tool has no description! Add one in .hjson files!
 			}
 		}
 

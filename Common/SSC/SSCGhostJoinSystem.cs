@@ -79,7 +79,7 @@ internal class SSCGhostJoinSystem : ModSystem
                 dead = true,
                 ghost = true,
                 // 避免因为进入世界的自动复活,导致客户端与服务端失去同步
-                respawnTimer = int.MaxValue,
+                respawnTimer = 0, // instantly respawn I guess
                 lastTimePlayerWasSaved = long.MaxValue,
                 savedPerPlayerFieldsThatArentInThePlayerClass = new Player.SavedPlayerDataWithAnnoyingRules()
             }

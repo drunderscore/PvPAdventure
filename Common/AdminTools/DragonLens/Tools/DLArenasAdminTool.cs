@@ -34,7 +34,7 @@ public sealed class DLArenasAdminTool : Tool
     public override void DrawIcon(SpriteBatch spriteBatch, Rectangle position)
     {
         //base.DrawIcon(spriteBatch, position);
-        spriteBatch.Draw(Ass.Icon_Arenas.Value, position, Color.White);
+        spriteBatch.Draw(Ass.Icon_Arenas_v2.Value, position, Color.White);
 
         var sys = ModContent.GetInstance<ArenasAdminSystem>();
         if (sys == null || !sys.IsActive())

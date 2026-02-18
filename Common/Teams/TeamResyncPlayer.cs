@@ -1,6 +1,5 @@
 ﻿namespace PvPAdventure.Common.Teams;
 
-using global::PvPAdventure.Common.GameTimer;
 using global::PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.ID;
@@ -22,9 +21,6 @@ public class TeamResyncPlayer : ModPlayer
             _pendingResync = true;
             _resyncTimer = 0;
         }
-
-        // Disallow pause toggle from this tick and 3 seconds forwards
-        ModContent.GetInstance<PauseManager>().BlockPausingForSeconds(3);
     }
 
     public override void PostUpdate()

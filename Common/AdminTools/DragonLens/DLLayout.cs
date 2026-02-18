@@ -16,6 +16,7 @@ using DragonLens.Core.Systems.ThemeSystem;
 using DragonLens.Core.Systems.ToolbarSystem;
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.AdminTools.DragonLens.Tools;
+using PvPAdventure.Common.AdminTools.DragonLens.Tools.Debug;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.UI.Elements;
@@ -73,27 +74,32 @@ public class DLLayout : ModSystem
     {
         ToolbarHandler.BuildPreset(layoutName, n =>
         {
-            // bottom heros toolbar
-            n.Add(
-                new Toolbar(new Vector2(0.5f, 1f), Orientation.Horizontal, AutomaticHideOption.Never)
-                .AddTool<ItemSpawner>()
-                .AddTool<NPCSpawner>()
-                .AddTool<Time>()
-                .AddTool<Weather>()
-                .AddTool<SpawnTool>() // enemy spawn rate
-                .AddTool<CustomizeTool>()
-            );
+        // bottom heros toolbar
+        n.Add(
+            new Toolbar(new Vector2(0.5f, 1f), Orientation.Horizontal, AutomaticHideOption.Never)
+            .AddTool<ItemSpawner>()
+            .AddTool<NPCSpawner>()
+            .AddTool<Time>()
+            .AddTool<Weather>()
+            .AddTool<SpawnTool>() // enemy spawn rate
+            .AddTool<CustomizeTool>()
+        );
 
-            // left PvPAdventure toolbar
-            n.Add(
-                new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
-                .AddTool<DLStartGameTool>()
-                .AddTool<DLEndGameTool>()
-                .AddTool<DLPauseTool>()
-                .AddTool<DLTeamAssignerTool>()
-                .AddTool<DLPointsSetterTool>()
-                .AddTool<DLAdminManagerTool>()
-            );
+        // left PvPAdventure toolbar
+        var leftToolbar = new Toolbar(new Vector2(0f, 0.6f), Orientation.Vertical, AutomaticHideOption.Never)
+            .AddTool<DLStartGameTool>()
+            .AddTool<DLEndGameTool>()
+            .AddTool<DLPauseTool>()
+            .AddTool<DLTeamAssignerTool>()
+            .AddTool<DLPointsSetterTool>()
+            .AddTool<DLAdminManagerTool>();
+
+#if DEBUG
+            leftToolbar.AddTool<DebugDLLeaveTool>();
+            leftToolbar.AddTool<DebugDLClearChatTool>();
+#endif
+            n.Add(leftToolbar);
+
         },
         ThemeHandler.GetBoxProvider<SimpleBoxes>(),
         ThemeHandler.GetIconProvider<DefaultIcons>());
