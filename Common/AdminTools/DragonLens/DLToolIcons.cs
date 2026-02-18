@@ -42,7 +42,7 @@ public class DLToolIcons : ModSystem
                 provider.icons[PointsSetterKey] = Ass.Icon_PointsSetter.Value;
                 provider.icons[AdminManagerKey] = Ass.Icon_AdminManager.Value;
                 provider.icons[OpenConfigKey] = Ass.Icon_ConfigOpen.Value;
-                provider.icons[ArenasAdminKey] = Ass.Icon_Arenas.Value;
+                provider.icons[ArenasAdminKey] = Ass.Icon_Arenas_v2.Value;
             }
 
             // rebuild toolbars *after* icons (and tools) have been injected

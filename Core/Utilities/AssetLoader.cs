@@ -47,6 +47,8 @@ public static class Ass
 
     // Arenas
     public static Asset<Texture2D> Icon_Arenas;
+    public static Asset<Texture2D> Icon_Arenas_v2; // 50x48
+    public static Asset<Texture2D> Icon_Arenas_v2_Highlighted; // 54 x 52
 
     // Matchmaking
     public static Asset<Texture2D> Button;

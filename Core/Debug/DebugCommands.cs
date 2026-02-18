@@ -28,8 +28,13 @@ public class ClearChatCommand : ModCommand
         // Try to clear in 3 different ways but only 30 empty messages works lol.
         if (clearMethod != null)
         {
+            // attempt 1
             (Main.chatMonitor as RemadeChatMonitor)?.Clear();
+
+            // attempt 2
             clearMethod?.Invoke(Main.chatMonitor, null);
+
+            // attempt 3
             for (int i = 0; i < 30; i++)
             {
                 ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(string.Empty), Color.White);

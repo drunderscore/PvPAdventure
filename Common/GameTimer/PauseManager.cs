@@ -30,6 +30,12 @@ public class PauseManager : ModSystem
             _interface = new Interface(this);
     }
 
+    //public override void OnWorldLoad()
+    //{
+    //    // Disallow pause toggle from this tick and 3 seconds forwards
+    //    ModContent.GetInstance<PauseManager>().BlockPausingForSeconds(3);
+    //}
+
     private void OnDropSelectedItem(On_Player.orig_DropSelectedItem_int_refItem orig, Player self, int slot,
         ref Item theitemwedrop)
     {

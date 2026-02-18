@@ -103,7 +103,8 @@ internal class SSCSaveSystem : ModSystem
             TagIO.Write(tplr, packet);
             packet.Send();
 
-            //Log.Chat("Client sent packet to save " + fileData.Player.name);
+            Log.Chat($"Client sent packet to server for player: {fileData.Player.name}");
+            Log.Debug($"Client sent packet to server: {fileData.Player.name}, k/d: {stats.Kills}/{stats.Deaths}, itemPickups: {stats.ItemPickups.ToArray()}, team: {(Terraria.Enums.Team)fileData.Player.team}");
         }
         catch (Exception e)
         {

@@ -180,7 +180,8 @@ internal sealed class ArenasAdminPanel : UI.DraggablePanel
             BackgroundColor = new Color(10, 10, 10) * 0.65f,
             BorderColor = Color.Black
         };
-        row.SetPadding(6f);
+        row.SetPadding(0f);
+        row.PaddingLeft = 6f;
 
         row.OnMouseOver += (_, _) => row.BorderColor = Color.Yellow;
         row.OnMouseOut += (_, _) => row.BorderColor = Color.Black;
@@ -196,12 +197,13 @@ internal sealed class ArenasAdminPanel : UI.DraggablePanel
         int playerIndex = player.whoAmI;
 
         const float iconSize = 40f;
-        const float iconSpacing = 8f;
-        const float rightPadding = 6f;
+        const float iconSpacing = 0f;
+        const float rightPadding = 12f;
 
 
-        var arenasIcon = new UIImage(Ass.Icon_Arenas.Value)
+        var arenasIcon = new UIImage(Ass.Icon_Arenas_v2.Value)
         {
+            ImageScale = 0.7f,
             Width = { Pixels = iconSize },
             Height = { Pixels = iconSize },
             Left = { Pixels = -rightPadding - iconSize, Percent = 1f },
@@ -236,12 +238,13 @@ internal sealed class ArenasAdminPanel : UI.DraggablePanel
 
         var playIcon = new UIImage(Ass.Icon_StartGame.Value)
         {
+            ImageScale = 0.9f,
             Width = { Pixels = iconSize },
             Height = { Pixels = iconSize },
             Left = { Pixels = -rightPadding - iconSize - iconSpacing - iconSize, Percent = 1f },
             VAlign = 0f,
             HAlign = 0f,
-            Top = StyleDimension.FromPixels(-4)
+            Top = StyleDimension.FromPixels(2)
         };
 
         playIcon.OnMouseOver += (_, _) =>

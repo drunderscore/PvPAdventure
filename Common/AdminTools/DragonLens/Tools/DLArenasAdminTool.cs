@@ -3,6 +3,7 @@ using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.AdminTools.Tools.AdminManagerTool;
 using PvPAdventure.Common.AdminTools.Tools.ArenasTool;
 using PvPAdventure.Core.Utilities;
 using Terraria;
@@ -34,15 +35,22 @@ public sealed class DLArenasAdminTool : Tool
     public override void DrawIcon(SpriteBatch spriteBatch, Rectangle position)
     {
         //base.DrawIcon(spriteBatch, position);
-        spriteBatch.Draw(Ass.Icon_Arenas.Value, position, Color.White);
+        spriteBatch.Draw(Ass.Icon_Arenas_v2.Value, position, Color.White);
 
-        var sys = ModContent.GetInstance<ArenasAdminSystem>();
-        if (sys == null || !sys.IsActive())
-            return;
+        var gms = ModContent.GetInstance<ArenasAdminSystem>();
 
-        GUIHelper.DrawOutline(
-            spriteBatch,
-            new Rectangle(position.X - 4, position.Y - 4, 46, 46),
-            ThemeHandler.ButtonColor.InvertColor());
+        if (gms.IsActive())
+        {
+            GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
+
+            Texture2D tex = DLToolIcons.GlowAlpha.Value;
+            if (tex == null) return;
+
+            Color color = new(255, 215, 150, 0);
+            color.A = 0;
+            var target = new Rectangle(position.X, position.Y, 38, 38);
+
+            spriteBatch.Draw(tex, target, color);
+        }
     }
 }

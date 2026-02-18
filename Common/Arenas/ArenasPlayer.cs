@@ -17,45 +17,43 @@ internal class ArenasPlayer : ModPlayer
 
     public override void ResetEffects()
     {
-        if (SubworldSystem.AnyActive())
-        {
-            var config = ModContent.GetInstance<ArenasConfig>();
-            if (config == null) return;
+        if (!SubworldSystem.AnyActive())
+            return;
 
-            // Ensure Clamp life to max while in arenas
+        var config = ModContent.GetInstance<ArenasConfig>();
+        if (config == null) return;
+
+        // Clamp hp to max
+        if (Player.statLifeMax2 != config.MaxHealth)
             Player.statLifeMax2 = config.MaxHealth;
-            if (Player.statLife > config.MaxHealth)
-                Player.statLife = config.MaxHealth;
 
-            // Ensure Clamp mana to max while in arenas
+        // Clamp mana to max
+        if (Player.statManaMax2 != config.MaxMana)
             Player.statManaMax2 = config.MaxMana;
-            if (Player.statMana > config.MaxMana)
-                Player.statMana = config.MaxMana;
-        }
     }
 
     public override void OnHurt(Player.HurtInfo info)
     {
+        if (!SubworldSystem.AnyActive())
+            return;
+
         if (Player.whoAmI != Main.LocalPlayer.whoAmI)
         {
             return;
         }
-
-        if (!SubworldSystem.AnyActive())
-            return;
 
         damageLockTicks = DamageLockDuration;
     }
 
     public override void PostUpdate()
     {
+        if (!SubworldSystem.AnyActive())
+            return;
+
         if (Player.whoAmI != Main.LocalPlayer.whoAmI)
         {
             return;
         }
-
-        if (!SubworldSystem.AnyActive())
-            return;
 
         if (damageLockTicks > 0)
             damageLockTicks--;

@@ -219,7 +219,7 @@ public class SSC : ModSystem
 
                 // Re-Enter the world with SSC character.
                 fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
-                //Player.Hooks.EnterWorld(Main.myPlayer);
+                Player.Hooks.EnterWorld(Main.myPlayer);
 
                 TagCompound sscData = null;
                 if (root.ContainsKey("PvPAdventureSSC"))
@@ -335,14 +335,15 @@ public class SSC : ModSystem
             }
 
             TagCompound root;
+            int playerTeam = -1;
             try
             {
                 root = TagIO.Read(reader);
             }
             catch (Exception e)
             {
-                Log.Chat("Server failed reading SSC tplr data for " + nameFromClient);
-                ModContent.GetInstance<PvPAdventure>().Logger.Error(e);
+                Log.Chat("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
+                Log.Error("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
                 return;
             }
 
@@ -355,9 +356,18 @@ public class SSC : ModSystem
 
                 File.WriteAllBytes(plrPath, data);
                 TagIO.ToFile(root, tplrPath);
+
+                // Get team
+                if (root.ContainsKey("PvPAdventureSSC"))
+                {
+                    TagCompound ssc = root.GetCompound("PvPAdventureSSC");
+                    if (ssc.ContainsKey("team"))
+                        playerTeam = ssc.GetInt("team");
+                }
             }
 
             Log.Chat("Server received SSC save for " + nameFromClient + " bytes=" + len);
+            Log.Debug($"Server received player: {nameFromClient}, team: {(Terraria.Enums.Team)playerTeam}");
 
             var config = ModContent.GetInstance<ClientConfig>();
             if (config.ShowSavePlayerMessages)
@@ -369,7 +379,6 @@ public class SSC : ModSystem
         catch (Exception e)
         {
             Log.Chat("Server failed saving SSC player with error: " + e);
-            ModContent.GetInstance<PvPAdventure>().Logger.Error(e);
         }
     }
 
