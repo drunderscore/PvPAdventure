@@ -264,6 +264,8 @@ public class CombatProjectile : GlobalProjectile
 
     public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
     {
+        Log.Chat("Projectile: " + projectile.Name + ", hit: " + target.name + ", SourceDamage: " + modifiers.SourceDamage);
+
         // Replicate what vanilla does against NPCs for the Staff of Earth
         if (projectile.type == ProjectileID.BoulderStaffOfEarth && projectile.velocity.Length() < 3.5f)
         {

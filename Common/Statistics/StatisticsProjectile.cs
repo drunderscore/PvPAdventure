@@ -7,7 +7,7 @@ namespace PvPAdventure.Common.Statistics;
 
 internal class StatisticsProjectile : GlobalProjectile
 {
-    private IEntitySource entitySource;
+    private Item sourceItem;
 
     public override bool InstancePerEntity => true;
 
@@ -23,89 +23,28 @@ internal class StatisticsProjectile : GlobalProjectile
 
     public override void OnSpawn(Projectile projectile, IEntitySource source)
     {
-        entitySource = source;
+        // keep track of the item that came with our entity source.
+        // if that source is our parent projectile, take its item.
+        var item = source switch
+        {
+            EntitySource_ItemUse sourceItemUse => sourceItemUse.Item,
+            EntitySource_Parent sourceParent when sourceParent.Entity is Projectile parentProjectile &&
+                                                  parentProjectile.whoAmI != projectile.whoAmI => parentProjectile
+                .GetGlobalProjectile<StatisticsProjectile>()
+                .sourceItem,
+            _ => null
+        };
+
+        projectile.GetGlobalProjectile<StatisticsProjectile>().sourceItem = item;
     }
 
-    private static EntitySource_ItemUse GetItemUseSource(Projectile projectile, Projectile lastProjectile)
+    private PlayerDeathReason OnPlayerDeathReasonByProjectile(On_PlayerDeathReason.orig_ByProjectile orig,
+        int playerindex, int projectileindex)
     {
-        return GetItemUseSource(projectile, lastProjectile, 0, null);
+        var self = orig(playerindex, projectileindex);
+
+        self.SourceItem = Main.projectile[projectileindex].GetGlobalProjectile<StatisticsProjectile>().sourceItem;
+
+        return self;
     }
-
-    private static EntitySource_ItemUse GetItemUseSource(
-        Projectile projectile,
-        Projectile lastProjectile,
-        int depth,
-        HashSet<int> seen)
-    {
-        if (projectile == null)
-            return null;
-
-        if (depth >= 64)
-        {
-            //Log.Chat($"[Killfeed] abort: depth cap hit at proj={projectile.whoAmI} type={projectile.type}");
-            return null;
-        }
-
-        seen ??= new HashSet<int>();
-        if (!seen.Add(projectile.whoAmI))
-        {
-            //Log.Chat($"[Killfeed] abort: cycle detected at proj={projectile.whoAmI} type={projectile.type}");
-            return null;
-        }
-
-        var global = projectile.GetGlobalProjectile<StatisticsProjectile>();
-
-        IEntitySource src = global.entitySource;
-        string srcName = src == null ? "null" : src.GetType().Name;
-        //Log.Chat($"[Killfeed] step depth={depth} proj={projectile.whoAmI} type={projectile.type} src={srcName}");
-
-        if (src is EntitySource_ItemUse itemUse)
-        {
-            int itemType = itemUse.Item.type;
-            string itemName = itemUse.Item.Name;
-            //Log.Chat($"[Killfeed] resolved: item={itemType} ({itemName})");
-            return itemUse;
-        }
-
-        if (src is EntitySource_Parent parent &&
-            parent.Entity is Projectile parentProjectile &&
-            parentProjectile != lastProjectile)
-        {
-            return GetItemUseSource(parentProjectile, projectile, depth + 1, seen);
-        }
-
-        //Log.Chat($"[Killfeed] stop: no parent / no itemuse at proj={projectile.whoAmI} type={projectile.type}");
-        return null;
-    }
-
-    private static PlayerDeathReason OnPlayerDeathReasonByProjectile(
-    On_PlayerDeathReason.orig_ByProjectile orig,
-    int playerIndex,
-    int projectileIndex)
-    {
-        var reason = orig(playerIndex, projectileIndex);
-
-        if (projectileIndex < 0 || projectileIndex >= Main.maxProjectiles)
-            return reason;
-
-        var projectile = Main.projectile[projectileIndex];
-        if (projectile == null || !projectile.active)
-            return reason;
-
-        //Log.Chat($"[Killfeed] death: victim={playerIndex} proj={projectile.whoAmI} type={projectile.type} owner={projectile.owner}");
-
-        var itemUse = GetItemUseSource(projectile, null);
-        if (itemUse != null)
-        {
-            reason.SourceItem = itemUse.Item;
-            //Log.Chat($"[Killfeed] applied SourceItem={itemUse.Item.type} ({itemUse.Item.Name})");
-        }
-        else
-        {
-            //Log.Chat("[Killfeed] no SourceItem resolved");
-        }
-
-        return reason;
-    }
-
 }
