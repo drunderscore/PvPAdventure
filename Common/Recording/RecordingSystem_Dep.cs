@@ -261,12 +261,12 @@
 
 //    private static string GetDemoDirectory()
 //    {
-//        return Path.Combine(Main.SavePath, "PvPAdventure", "Replays");
+//        return Path.Combine(Main.SavePath, "PvPAdventureReplays");
 //    }
 
 //    private static string MakeDemoFileName()
 //    {
-//        string world = Main.ActiveWorldFileData?.Name ?? "World";
+//        string world = Main.ActiveWorldFileData?.Name ?? "UnknownWorld";
 //        world = SanitizeFileName(world);
 
 //        string stamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");

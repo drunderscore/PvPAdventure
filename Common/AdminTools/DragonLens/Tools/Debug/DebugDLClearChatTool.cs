@@ -1,11 +1,6 @@
-using DragonLens.Core.Systems.ThemeSystem;
 using DragonLens.Core.Systems.ToolSystem;
-using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.AdminTools.DragonLens;
-using PvPAdventure.Common.GameTimer;
-using PvPAdventure.Core.Net;
 using System;
 using System.Reflection;
 using Terraria;
@@ -15,9 +10,8 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
-using static PvPAdventure.Common.GameTimer.GameTimerNetHandler;
 
-namespace PvPAdventure.Common.AdminTools.DragonLens.Tools;
+namespace PvPAdventure.Common.AdminTools.DragonLens.Tools.Debug;
 
 #if DEBUG
 [JITWhenModsEnabled("DragonLens")]
@@ -52,26 +46,6 @@ public class DebugDLClearChatTool : Tool
             Log.Chat("Chat cleared!!");
         }
     }
-
-    public override void DrawIcon(SpriteBatch spriteBatch, Rectangle position)
-    {
-        base.DrawIcon(spriteBatch, position);
-
-        var pm = ModContent.GetInstance<PauseManager>();
-
-        //if (pm.IsPaused)
-        //{
-        //    GUIHelper.DrawOutline(spriteBatch, new Rectangle(position.X - 4, position.Y - 4, 46, 46), ThemeHandler.ButtonColor.InvertColor());
-
-        //    Texture2D tex = DLToolIcons.GlowAlpha.Value;
-        //    if (tex == null) return;
-
-        //    Color color = new(255, 215, 150);
-        //    color.A = 0;
-        //    var target = new Rectangle(position.X, position.Y, 38, 38);
-
-        //    spriteBatch.Draw(tex, target, color);
-        //}
     public override void DrawIcon(SpriteBatch sb, Rectangle position)
     {
         //base.DrawIcon(sb, position);
