@@ -1,4 +1,4 @@
-﻿using DragonLens.Core.Systems.ThemeSystem;
+using DragonLens.Core.Systems.ThemeSystem;
 using DragonLens.Core.Systems.ToolSystem;
 using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.AdminTools.DragonLens;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Core.Net;
+using System;
 using System.Reflection;
 using Terraria;
 using Terraria.Chat;
@@ -13,6 +14,7 @@ using Terraria.GameContent.UI.Chat;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.UI;
 using static PvPAdventure.Common.GameTimer.GameTimerNetHandler;
 
 namespace PvPAdventure.Common.AdminTools.DragonLens.Tools;
@@ -70,6 +72,15 @@ public class DebugDLClearChatTool : Tool
 
         //    spriteBatch.Draw(tex, target, color);
         //}
+    public override void DrawIcon(SpriteBatch sb, Rectangle position)
+    {
+        //base.DrawIcon(sb, position);
+
+        // Draw wooden door icon
+        var item = ContentSamples.ItemsByType[ItemID.AnnouncementBox];
+        var pos = position.Center.ToVector2();
+
+        ItemSlot.DrawItemIcon(item, ItemSlot.Context.InventoryItem, sb, pos, 0.8f, Math.Min(position.Width, position.Height), Color.White);
     }
 }
 #endif

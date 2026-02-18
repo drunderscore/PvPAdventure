@@ -3,6 +3,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ModLoader;
+using System;
+using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
+using Terraria.UI;
 
 namespace PvPAdventure.Common.AdminTools.DragonLens.Tools.Debug;
 
@@ -41,6 +46,15 @@ public class DebugDLLeaveTool : Tool
 
         //    spriteBatch.Draw(tex, target, color);
         //}
+    public override void DrawIcon(SpriteBatch sb, Rectangle position)
+    {
+        //base.DrawIcon(sb, position);
+
+        // Draw wooden door icon
+        var item = ContentSamples.ItemsByType[ItemID.WoodenDoor];
+        var pos = position.Center.ToVector2();
+
+        ItemSlot.DrawItemIcon(item, ItemSlot.Context.InventoryItem, sb, pos, 1f, Math.Min(position.Width, position.Height), Color.White);
     }
 }
 #endif
