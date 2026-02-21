@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.ReeseRecorder.Recording;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Net;
@@ -368,9 +369,12 @@ public class GameManager : ModSystem
     {
         Log.Chat("New GamePhase: " + newPhase + ", (old: " + oldPhase + ")");
 
-        // Only save when a real match ends (Playing → Waiting transition)
+        // Only save when a real match ends (Playing -> Waiting transition)
         if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)
         {
+            if (Main.dedServ)
+                ModContent.GetInstance<RecordingSystem>().StopRecording();
+
             BroadcastEndGameSummary();
             BroadcastSaveMatchToClients();
             ResetMatchState(); // Clear the match start time after broadcasting
@@ -418,6 +422,9 @@ public class GameManager : ModSystem
                 }
             case Phase.Playing:
                 {
+                    if (Main.dedServ)
+                        ModContent.GetInstance<RecordingSystem>().StartRecording();
+
                     // NOTE: We currently have one region, which is the spawn region. We'll use this assumption for now.
                     var spawnRegion = ModContent.GetInstance<RegionManager>().Regions[0];
                     spawnRegion.CanRandomTeleport = true;
