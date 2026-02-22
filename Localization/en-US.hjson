@@ -907,6 +907,16 @@ Mods: {
 					Label: Projectile Line Of Sight Damage Reduction
 					Tooltip: ""
 				}
+
+				Knockback: {
+					Label: Knockback
+					Tooltip: ""
+				}
+
+				PvPKnockbackMultiplier: {
+					Label: Pv P Knockback Multiplier
+					Tooltip: ""
+				}
 			}
 
 			DamageConfig: {
@@ -1709,6 +1719,24 @@ Mods: {
 
 				AllowedPlayerSteamIds: {
 					Label: Allowed Player Steam Ids
+					Tooltip: ""
+				}
+			}
+
+			KnockbackConfig: {
+				Tooltip: ""
+
+				ItemKnockback: {
+					Label: Item Knockback
+					Tooltip: ""
+				}
+
+				ProjectileKnockback: {
+					Label: Projectile Knockback
+					Tooltip: ""
+				}
+				PvPKnockbackMultiplier: {
+					Label: PvP Knockback Multiplier
 					Tooltip: ""
 				}
 			}
