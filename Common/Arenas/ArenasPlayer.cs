@@ -25,11 +25,32 @@ internal class ArenasPlayer : ModPlayer
 
         // Clamp hp to max
         if (Player.statLifeMax2 != config.MaxHealth)
+        {
+            Player.statLifeMax = config.MaxHealth;
             Player.statLifeMax2 = config.MaxHealth;
+        }
 
         // Clamp mana to max
         if (Player.statManaMax2 != config.MaxMana)
+        {
             Player.statManaMax2 = config.MaxMana;
+            Player.statManaMax = config.MaxMana;
+        }
+    }
+    public override void ModifyMaxStats(out StatModifier health, out StatModifier mana)
+    {
+        base.ModifyMaxStats(out health, out mana);
+
+        if (!SubworldSystem.IsActive<ArenasSubworld>())
+            return;
+
+        var config = ModContent.GetInstance<ArenasConfig>();
+        if (config == null)
+            return;
+
+        // Force base max stats to arena values.
+        health.Base = config.MaxHealth - Player.statLifeMax;
+        mana.Base = config.MaxMana - Player.statManaMax;
     }
 
     public override void OnHurt(Player.HurtInfo info)
