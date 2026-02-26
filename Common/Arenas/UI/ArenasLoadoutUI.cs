@@ -182,9 +182,11 @@ public class ArenasLoadoutUI : UIState
         p.miscEquips[4].SetDefaults(ItemOrAir(loadout.Equipment.GrapplingHook));
 
         // Mount
-        p.mount.Dismount(p);
-        if (loadout.Equipment.Mount?.Type > 0)
-            p.mount.SetMount(loadout.Equipment.Mount.Type, p);
+        p.miscEquips[3].SetDefaults(ItemOrAir(loadout.Equipment.Mount));
+
+        //p.mount.Dismount(p);
+        //if (loadout.Equipment.Mount?.Type > 0)
+        //    p.mount.SetMount(loadout.Equipment.Mount.Type, p);
     }
 
     private static Player BuildPreviewPlayer(Player source, Loadout loadout)
