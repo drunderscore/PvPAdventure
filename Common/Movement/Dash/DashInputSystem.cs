@@ -27,22 +27,37 @@ public class DashInputSystem : ModSystem
         On_Player.DoCommonDashHandle -= VanillaDashDetour;
         On_Player.DashMovement -= CustomDashHandle;
     }
-    private static void VanillaDashDetour(On_Player.orig_DoCommonDashHandle orig, Player self, out int dir, out bool dashing, Player.DashStartAction dashStartAction)
+    private static void VanillaDashDetour(
+    On_Player.orig_DoCommonDashHandle orig,
+    Player self,
+    out int dir,
+    out bool dashing,
+    Player.DashStartAction dashStartAction)
     {
-        var config = ModContent.GetInstance<ClientConfig>();
-
-        // Execute vanilla dash only if enabled in config
-        if (config.IsVanillaDashEnabled)
+        // Server must always run vanilla dash logic (client config is irrelevant there).
+        if (Main.netMode == NetmodeID.Server)
         {
-            orig.Invoke(self, out dir, out dashing, dashStartAction);
+            orig(self, out dir, out dashing, dashStartAction);
             return;
         }
-        else
+
+        // Always run vanilla dash logic for other players so they animate/sim correctly on your client.
+        if (self.whoAmI != Main.myPlayer)
         {
-            // Must set out parameters even if not dashing
-            dir = 0;
-            dashing = false;
+            orig(self, out dir, out dashing, dashStartAction);
+            return;
         }
+
+        // Only your own player's dash is controlled by your client config.
+        var config = ModContent.GetInstance<ClientConfig>();
+        if (config.IsVanillaDashEnabled)
+        {
+            orig(self, out dir, out dashing, dashStartAction);
+            return;
+        }
+
+        dir = 0;
+        dashing = false;
     }
     private static void CustomDashHandle(On_Player.orig_DashMovement orig, Player self)
     {
