@@ -1,4 +1,4 @@
-﻿using MonoMod.Cil;
+﻿ using MonoMod.Cil;
 using PvPAdventure.Common.NPCs;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Core.Config;
