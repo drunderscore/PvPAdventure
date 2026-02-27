@@ -195,6 +195,9 @@ public class ServerConfig : ModConfig
         [Expand(false, false)]
         public FalloffConfig Falloff { get; set; } = new();
 
+        [Expand(false, false)]
+        public KnockbackConfig Knockback { get; set; } = new();
+
         [Range(0.0f, 1.0f)]
         [DefaultValue(0.0f)]
         public float ProjectileBounceDamageReduction { get; set; } = 0.0f;
@@ -226,6 +229,28 @@ public class ServerConfig : ModConfig
             [Expand(false, false)]
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             public Dictionary<ProjectileDefinition, float> ProjectileAP { get; set; } = [];
+        }
+        public class KnockbackConfig
+        {
+            [Expand(false, false)]
+            [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
+            [Range(0f, 2f)]
+            [Increment(0.01f)]
+            [Slider]
+            public Dictionary<ItemDefinition, float> ItemKnockback { get; set; } = [];
+
+            [Expand(false, false)]
+            [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
+            [Range(0f, 2f)]
+            [Increment(0.01f)]
+            [Slider]
+            public Dictionary<ProjectileDefinition, float> ProjectileKnockback { get; set; } = [];
+
+            [Range(0f, 1f)]
+            [DefaultValue(0.5f)]
+            [Increment(0.01f)]
+            [Slider]
+            public float PvPKnockbackMultiplier { get; set; } = 0.8f;
         }
 
         public class FalloffConfig

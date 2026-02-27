@@ -66,15 +66,15 @@ public class UnifiedRecipeGroupSystem : ModSystem
         new RecipeGroupData("AnyHallowedMimicPrimary", "Any Hallowed Mimic Primary", ItemID.Fake_HallowedChest, 2,
             ItemID.Fake_HallowedChest, ItemID.DaedalusStormbow, ItemID.CrystalVileShard, ItemID.FlyingKnife),
 
-        new RecipeGroupData("AnyMimicPrimary", "Any Mimic Primary", ItemID.TitanGlove, 3,
-            ItemID.DeadMansChest, ItemID.TitanGlove, ItemID.CrossNecklace, ItemID.StarCloak, ItemID.PhilosophersStone, ItemID.MagicDagger, ItemID.DualHook),
+        new RecipeGroupData("AnyMimicPrimary", "Any Mimic Primary", ItemID.MimicBanner, 3,
+            ItemID.MimicBanner, ItemID.TitanGlove, ItemID.CrossNecklace, ItemID.StarCloak, ItemID.PhilosophersStone, ItemID.MagicDagger, ItemID.DualHook),
         
         // Dungeon
         new RecipeGroupData("AnyBrickWall", "Any Brick Wall", ItemID.NecromanticSign, 3,
             ItemID.NecromanticSign, ItemID.ShadowbeamStaff, ItemID.RocketLauncher, ItemID.PaladinsHammer),
         
         // Chests
-        new RecipeGroupData("AnyGold", "Any Gold Chest Item", ItemID.CloudinaBottle, 3,
+        new RecipeGroupData("AnyGold", "Any Gold Chest Item", ItemID.GoldBunnyCage, 3,
             ItemID.CloudinaBottle, ItemID.HermesBoots, ItemID.FlareGun, ItemID.ShoeSpikes, ItemID.BandofRegeneration, ItemID.Mace),
 
         new RecipeGroupData("AnyJungle", "Any Jungle Chest Item", ItemID.AnkletoftheWind, 3,
