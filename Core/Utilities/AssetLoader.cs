@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Content.Shop;
 using ReLogic.Content;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Terraria;
 using Terraria.ModLoader;
@@ -14,9 +16,11 @@ namespace PvPAdventure.Core.Utilities;
 /// </summary>
 public static class Ass
 {
+    // Map backgrounds
+    public static Asset<Texture2D>[] MapBG;
+
     // Spawn selector assets
     public static Asset<Texture2D> CustomPlayerBackground;
-    public static Asset<Texture2D>[] MapBG;
     public static Asset<Texture2D> Icon_Dead; // 32x32
     public static Asset<Texture2D> Icon_Forbidden;
     public static Asset<Texture2D> Icon_Question_Mark;
@@ -70,6 +74,34 @@ public static class Ass
     // Achievements
     public static Asset<Texture2D> Achievements; /// Spritesheet, that includes vanilla and TPVPA achievements.
 
+    // Shop
+    public static Asset<Texture2D> Icon_Gem;
+
+    // Main menu TPVPA state assets
+    public static Asset<Texture2D> MenuIconBackground; 
+    public static Asset<Texture2D> Icon_PlayMenu;
+    public static Asset<Texture2D> Icon_Achievements;
+    public static Asset<Texture2D> Icon_MatchHistory;
+    public static Asset<Texture2D> Icon_More;
+    public static Asset<Texture2D> Icon_Shop;
+    public static Asset<Texture2D> Icon_Stats;
+    public static Asset<Texture2D> Icon_Checkmark; // for collecting achievements rewards
+
+    // PvP players crossing swords assets
+    public static Asset<Texture2D> Icon_PvPBalancing;
+    public static Asset<Texture2D> Icon_PvPBalancingv2;
+
+    // Shop assets
+    public static Asset<Texture2D> PinkSniperRifle;
+    public static Asset<Texture2D> RedSniperRifle;
+
+    private static readonly HashSet<string> ShopFields =
+    [
+        nameof(PinkSniperRifle),
+        nameof(RedSniperRifle),
+    ];
+
+
     /// --- Special Initialization flag ---
     public static bool Initialized { get; set; }
 
@@ -79,26 +111,43 @@ public static class Ass
     /// </summary>
     static Ass()
     {
-        // Load MapBGs
-        MapBG = new Asset<Texture2D>[42];
-        for (int i = 1; i <= 42; i++)
+        if (Main.dedServ)
         {
-            MapBG[i - 1] = ModContent.Request<Texture2D>(
-                $"PvPAdventure/Assets/Custom/MapBGs/MapBG{i}",
-                AssetRequestMode.AsyncLoad);
+            Initialized = true;
+            return;
         }
 
-        // Load all assets from Assets/Custom
-        foreach (FieldInfo f in typeof(Ass).GetFields())
+        MapBG = new Asset<Texture2D>[42];
+        for (int i = 1; i <= 42; i++)
+            MapBG[i - 1] = ModContent.Request<Texture2D>($"PvPAdventure/Assets/Custom/MapBGs/MapBG{i}", AssetRequestMode.AsyncLoad);
+
+        var fields = typeof(Ass).GetFields(BindingFlags.Public | BindingFlags.Static);
+
+        for (int i = 0; i < fields.Length; i++)
         {
-            if (f.FieldType == typeof(Asset<Texture2D>))
-            {
-                var asset = ModContent.Request<Texture2D>(
-                    $"PvPAdventure/Assets/Custom/{f.Name}",
-                    AssetRequestMode.AsyncLoad);
-                f.SetValue(null, asset);
-            }
+            FieldInfo f = fields[i];
+            if (f.FieldType != typeof(Asset<Texture2D>))
+                continue;
+
+            if (ShopFields.Contains(f.Name))
+                continue;
+
+            f.SetValue(null, ModContent.Request<Texture2D>($"PvPAdventure/Assets/Custom/{f.Name}", AssetRequestMode.AsyncLoad));
         }
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            FieldInfo f = fields[i];
+            if (f.FieldType != typeof(Asset<Texture2D>))
+                continue;
+
+            if (!ShopFields.Contains(f.Name))
+                continue;
+
+            f.SetValue(null, ModContent.Request<Texture2D>($"PvPAdventure/Assets/Shop/{f.Name}", AssetRequestMode.AsyncLoad));
+        }
+
+        Initialized = true;
     }
 }
 

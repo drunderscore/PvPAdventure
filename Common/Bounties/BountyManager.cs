@@ -1,12 +1,13 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.Statistics;
+using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Net;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Statistics;
-using PvPAdventure.Core.Config;
-using PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.Chat;
 using Terraria.DataStructures;
@@ -35,6 +36,67 @@ public class BountyManager : ModSystem
     {
         public IList<Item[]> Bounties { get; } = bounties;
     }
+
+#if DEBUG
+    public override void PostUpdateEverything()
+    {
+        if (!Main.keyState.IsKeyDown(Keys.NumPad7) || Main.oldKeyState.IsKeyDown(Keys.NumPad7))
+            return;
+
+        Team team = (Team)Main.LocalPlayer.team;
+
+        if (team == Team.None)
+        {
+            Log.Chat("NumPad7: you are Team.None. Join a team first.");
+            return;
+        }
+
+        if (!_bounties.TryGetValue(team, out var pages))
+        {
+            pages = new List<Page>();
+            _bounties[team] = pages;
+        }
+
+        var eligibleBounties = ModContent.GetInstance<ServerConfig>().Bounties.ClaimableItems
+            .Where(IsBountyAvailable)
+            .Select(b => b.Items)
+            .Select(items => items.Select(i => new Item(i.Item.Type, i.Stack, i.Prefix.Type)).ToArray())
+            .ToList();
+
+        if (eligibleBounties.Count == 0)
+        {
+            Log.Chat("NumPad7: no eligible bounties (check conditions/config).");
+            return;
+        }
+
+        // +500 bounty shards = +500 pages
+        for (int i = 0; i < 500; i++)
+            pages.Add(new Page(CloneBounties(eligibleBounties)));
+
+        UiBountyShop?.Invalidate();
+        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
+
+        Log.Chat($"+500 bounty shards to {team}. Shard count now: {pages.Count}");
+    }
+
+    private static IList<Item[]> CloneBounties(IList<Item[]> src)
+    {
+        List<Item[]> clone = new(src.Count);
+
+        for (int i = 0; i < src.Count; i++)
+        {
+            Item[] bounty = src[i];
+            Item[] bountyClone = new Item[bounty.Length];
+
+            for (int j = 0; j < bounty.Length; j++)
+                bountyClone[j] = bounty[j].Clone();
+
+            clone.Add(bountyClone);
+        }
+
+        return clone;
+    }
+#endif
 
     public sealed class Transaction(int id, byte team, byte pageIndex, byte bountyIndex)
         : IPacket<Transaction>

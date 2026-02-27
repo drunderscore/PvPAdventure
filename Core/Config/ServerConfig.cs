@@ -132,6 +132,10 @@ public class ServerConfig : ModConfig
     [Expand(false, false)]
     public WhitelistPlayersConfig WhitelistPlayers { get; set; } = new();
 
+    [BackgroundColor(150, 70, 20)]
+    [Expand(false, false)]
+    public AutoAdminsConfig AutoAdmins { get; set; } = new();
+
     [Header("WorldGen")]
     [BackgroundColor(90, 70, 40)]
     [Expand(false, false)]
@@ -341,6 +345,18 @@ public class ServerConfig : ModConfig
 
         [Expand(false, false)]
         public List<string> AllowedPlayerSteamIds { get; set; } = [];
+
+        [Expand(false, false)]
+        public List<string> AllowedPlayerDiscordIds { get; set; } = [];
+    }
+
+    public class AutoAdminsConfig
+    {
+        [DefaultValue(false)]
+        public bool Enabled { get; set; }
+
+        [Expand(false, false)]
+        public List<string> SteamIds { get; set; } = [];
     }
 
     public class WorldGenerationConfig

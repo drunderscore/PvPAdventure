@@ -22,6 +22,7 @@ public class WhitelistPlayerCheck : ModPlayer
 
         var steamId = SteamUser.GetSteamID().m_SteamID.ToString();
         Log.Debug($"Sending Steam ID to server: {steamId}");
+        //Log.Debug($"Sending Discord ID to server: {steamId}");
 
         var packet = Mod.GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.WhitelistPlayerCheck);
@@ -52,12 +53,20 @@ internal class WhitelistPlayerHandler
         // Check if Steam ID is in whitelist
         if (!config.WhitelistPlayers.AllowedPlayerSteamIds.Contains(steamId))
         {
-            Log.Debug($"Player {from} ({steamId}) is not whitelisted. Kicking...");
+            Log.Debug($"Player {from} (SteamID: {steamId}) is not whitelisted. Kicking...");
             NetMessage.BootPlayer(
                 from,
                 NetworkText.FromLiteral($"You are not whitelisted on this server")
             );
         }
+        //else if (!config.WhitelistPlayers.AllowedPlayerDiscordIds.Contains(discordID))
+        //{
+        //    Log.Debug($"Player {from} (DiscordID: {discordID}) is not whitelisted. Kicking...");
+        //    NetMessage.BootPlayer(
+        //        from,
+        //        NetworkText.FromLiteral($"You are not whitelisted on this server")
+        //    );
+        //}
         else
         {
             Log.Debug($"Success! Player {from} ({steamId}) is whitelisted. Joining...");

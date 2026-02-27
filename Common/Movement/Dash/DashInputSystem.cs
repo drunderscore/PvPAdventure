@@ -28,11 +28,11 @@ public class DashInputSystem : ModSystem
         On_Player.DashMovement -= CustomDashHandle;
     }
     private static void VanillaDashDetour(
-    On_Player.orig_DoCommonDashHandle orig,
-    Player self,
-    out int dir,
-    out bool dashing,
-    Player.DashStartAction dashStartAction)
+        On_Player.orig_DoCommonDashHandle orig,
+        Player self,
+        out int dir,
+        out bool dashing,
+        Player.DashStartAction dashStartAction)
     {
         // Server must always run vanilla dash logic (client config is irrelevant there).
         if (Main.netMode == NetmodeID.Server)

@@ -2,7 +2,7 @@ using PvPAdventure.Common.AdminTools.Tools.ArenasTool;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.GameTimer;
-using PvPAdventure.Common.MatchHistory.Net;
+using PvPAdventure.Common.MainMenu.MatchHistory.Net;
 using PvPAdventure.Common.Movement.Dash;
 using PvPAdventure.Common.Security;
 using PvPAdventure.Common.SpawnSelector.Net;

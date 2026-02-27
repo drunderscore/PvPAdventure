@@ -14,6 +14,9 @@ Mods: {
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
+			OpenLoadoutMenu.DisplayName: Open Loadout Menu
+			ArenasMenu.DisplayName: Arenas Menu
+			UseAdventureMirror.DisplayName: Use Adventure Mirror
 			DLAdminManagerTool.DisplayName: DL Admin Manager Tool
 			DLEndGameTool.DisplayName: DL End Game Tool
 			DLEndGameToolRightClick.DisplayName: DL End Game Tool Right Click
@@ -22,16 +25,10 @@ Mods: {
 			DLStartGameTool.DisplayName: DL Start Game Tool
 			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
 			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
-			OpenLoadoutMenu.DisplayName: Open Loadout Menu
-			DashKeybind.DisplayName: Dash Keybind
-			OpenArenasMenu.DisplayName: Open Arenas Menu
-			ArenasMenu.DisplayName: Arenas Menu
 			DLOpenConfigTool.DisplayName: DL Open Config Tool
-			UseAdventureMirror.DisplayName: Use Adventure Mirror
 			DLArenasAdminTool.DisplayName: Arenas Admin Tool
-			DLLeaveTool.DisplayName: D L Leave Tool
-			DebugDLLeaveTool.DisplayName: Debug D L Leave Tool
-			DebugDLClearChatTool.DisplayName: Debug D L Clear Chat Tool
+			DebugDLLeaveTool.DisplayName: DL Debug Leave Tool
+			DebugDLClearChatTool.DisplayName: DL Debug Clear Chat Tool
 		}
 
 		Tools: {
@@ -364,6 +361,26 @@ Mods: {
 
 			SecurityConfigItem: {
 				DisplayName: Security Config Item
+				Tooltip: ""
+			}
+
+			CombatConfigItemBig: {
+				DisplayName: Combat Config Item Big
+				Tooltip: ""
+			}
+
+			CombatConfigItemSmall: {
+				DisplayName: Combat Config Item Small
+				Tooltip: ""
+			}
+
+			PinkSniperRifle: {
+				DisplayName: Pink Sniper Rifle
+				Tooltip: ""
+			}
+
+			RedSniperRifle: {
+				DisplayName: Red Sniper Rifle
 				Tooltip: ""
 			}
 		}
@@ -789,6 +806,11 @@ Mods: {
 
 				WhitelistPlayers: {
 					Label: Whitelist Players
+					Tooltip: ""
+				}
+
+				AutoAdmins: {
+					Label: Auto Admins
 					Tooltip: ""
 				}
 			}
@@ -1711,6 +1733,25 @@ Mods: {
 					Label: Allowed Player Steam Ids
 					Tooltip: ""
 				}
+
+				AllowedPlayerDiscordIds: {
+					Label: Allowed Player Discord Ids
+					Tooltip: ""
+				}
+			}
+
+			AutoAdminsConfig: {
+				Tooltip: ""
+
+				Enabled: {
+					Label: Enabled
+					Tooltip: ""
+				}
+
+				SteamIds: {
+					Label: Steam Ids
+					Tooltip: ""
+				}
 			}
 		}
 
@@ -1762,6 +1803,23 @@ Mods: {
 			True: "[c/FF0000:The game has been paused.]"
 			False: "[c/00FF00:The game has been resumed.]"
 			Paused: PAUSED
+		}
+
+		MainMenu: {
+			TPVPA: TPVPA
+			TerrariaPvPAdventure: Terraria PvP Adventure
+			Play: Play
+			MatchHistory: Match History
+			Achievements: TPVPA Achievements
+			Stats: TPVPA Stats
+			Shop: TPVPA Shop
+			More: More coming soon...
+			PlayDescription: Join casual or competitive TPVPA servers.
+			MatchHistoryDescription: Review past matches and results.
+			AchievementsDescription: Track challenges and unlocks.
+			StatsDescription: View player K/D and W/L ratio.
+			ShopDescription: Spend TPVPA gems on rewards.
+			MoreDescription: More TPVPA features coming soon!
 		}
 
 		Sandstorm: "[c/FFC864:Desert winds are picking up...]"
