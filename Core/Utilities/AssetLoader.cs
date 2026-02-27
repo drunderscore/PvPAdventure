@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Content.Shop;
 using ReLogic.Content;
 using System;
 using System.Collections.Generic;

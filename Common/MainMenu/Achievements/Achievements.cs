@@ -8,7 +8,7 @@ namespace PvPAdventure.Common.MainMenu.Achievements;
 public static class Achievements
 {
     public static readonly AchievementDefinition MatchMade = new(
-        IconIndex: 82,
+        IconIndex: 1,
         Title: "Match Made",
         Description: "Finish your first TPVPA match.",
         Target: 1,
@@ -16,7 +16,7 @@ public static class Achievements
         Delta: _ => 1);
 
     public static readonly AchievementDefinition FirstBlood = new(
-        IconIndex: 82,
+        IconIndex: 2,
         Title: "First Blood",
         Description: "Get your first kill in TPVPA.",
         Target: 1,
@@ -29,7 +29,7 @@ public static class Achievements
         });
 
     public static readonly AchievementDefinition TeamPlayer = new(
-        IconIndex: 82,
+        IconIndex: 3,
         Title: "Team Player",
         Description: "Earn 200 team points in a single match.",
         Target: 1,
@@ -46,7 +46,7 @@ public static class Achievements
         });
 
     public static readonly AchievementDefinition ThirtyPieces = new(
-        IconIndex: 82,
+        IconIndex: 4,
         Title: "Thirty Pieces",
         Description: "Get 30 kills in a single TPVPA match.",
         Target: 1,
@@ -59,7 +59,7 @@ public static class Achievements
         });
 
     public static readonly AchievementDefinition HalfCentury = new(
-        IconIndex: 82,
+        IconIndex: 5,
         Title: "Half Century",
         Description: "Get 50 kills in a single TPVPA match.",
         Target: 1,
@@ -72,7 +72,7 @@ public static class Achievements
         });
 
     public static readonly AchievementDefinition OnARoll = new(
-        IconIndex: 82,
+        IconIndex: 64,
         Title: "On a Roll",
         Description: "Win 5 TPVPA matches.",
         Target: 5,
@@ -80,7 +80,7 @@ public static class Achievements
         Delta: match => match.Win ? 1 : 0);
 
     public static readonly AchievementDefinition BigWinner = new(
-        IconIndex: 82,
+        IconIndex: 64,
         Title: "Big Winner",
         Description: "Win 25 TPVPA matches.",
         Target: 25,
@@ -96,7 +96,7 @@ public static class Achievements
         Delta: _ => 1);
 
     public static readonly AchievementDefinition HundredClub = new(
-        IconIndex: 82,
+        IconIndex: 8,
         Title: "Hundred Club",
         Description: "Get 100 kills in a single TPVPA match.",
         Target: 1,
@@ -109,7 +109,7 @@ public static class Achievements
         });
 
     public static readonly AchievementDefinition TopDog = new(
-        IconIndex: 82,
+        IconIndex: 64,
         Title: "Top Dog",
         Description: "Win 50 TPVPA matches.",
         Target: 50,
