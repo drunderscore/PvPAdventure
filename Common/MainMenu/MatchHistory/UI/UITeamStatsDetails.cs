@@ -229,7 +229,7 @@ public sealed class UITeamStatsDetails : UIElement
 
         var name = new UIText(nameText, 0.7f)
         {
-            Left = new StyleDimension(-0.3f, 0f),
+            Left = new StyleDimension(1f, 0f),
             Width = new StyleDimension(-kdPx, 1f),
             Height = StyleDimension.Fill,
             VAlign = 0.5f,
@@ -315,20 +315,8 @@ public sealed class UITeamStatsDetails : UIElement
 
     private static string FormatPoints(int points) => points == 1 ? "1 pt" : $"{points} pts";
 
-    private static string Ordinal(int n)
+    public override void Draw(SpriteBatch spriteBatch)
     {
-        int mod100 = n % 100;
-        if (mod100 is 11 or 12 or 13)
-            return n + "th";
-
-        return (n % 10) switch
-        {
-            1 => n + "st",
-            2 => n + "nd",
-            3 => n + "rd",
-            _ => n + "th"
-        };
+        base.Draw(spriteBatch);
     }
-
-    public override void Draw(SpriteBatch spriteBatch) => base.Draw(spriteBatch);
 }

@@ -353,6 +353,7 @@ public class GameManager : ModSystem
 
         NetMessage.SendData(MessageID.WorldData);
 
+        // Send packet to clients to trigger match saving on their end.
         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.SaveMatch);
         packet.Write(startUtcBinary);

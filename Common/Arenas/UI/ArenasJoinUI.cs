@@ -80,7 +80,7 @@ public class ArenasJoinUI : UIState
 
         // Enter Arenas (with icon)
         var arenasRow = CreateButtonWithIcon(
-            Ass.Icon_Arenas_v2.Value,
+            Ass.Icon_Arenas.Value,
             "Enter Arenas",
             () => SubworldSystem.Enter<ArenasSubworld>(),
             panelHeight
@@ -159,16 +159,16 @@ public class ArenasJoinUI : UIState
         // Icon hover
         iconImage.OnMouseOver += (_, _) =>
         {
-            if (iconImage != null && icon == Ass.Icon_Arenas_v2.Value)
+            if (iconImage != null && icon == Ass.Icon_Arenas.Value)
             {
-                iconImage.SetImage(Ass.Icon_Arenas_v2_Highlighted);
+                iconImage.SetImage(Ass.Icon_Arenas_Highlighted);
             }
         };
         iconImage.OnMouseOut += (_, _) =>
         {
-            if (iconImage != null && iconImage._texture == Ass.Icon_Arenas_v2_Highlighted)
+            if (iconImage != null && iconImage._texture == Ass.Icon_Arenas_Highlighted)
             {
-                iconImage.SetImage(Ass.Icon_Arenas_v2);
+                iconImage.SetImage(Ass.Icon_Arenas);
             }
         };
 

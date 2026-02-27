@@ -3,15 +3,15 @@ using DragonLens.Core.Systems.ToolbarSystem;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
+using Terraria;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.AdminTools.DragonLens;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
-public class DLToolIcons : ModSystem
+internal sealed class DLToolIcons : ModSystem
 {
-    // Keys
     public static string StartGameKey => "StartGame";
     public static string EndGameKey => "EndGame";
     public static string PauseKey => "Pause";
@@ -21,33 +21,49 @@ public class DLToolIcons : ModSystem
     public static string OpenConfigKey => "OpenConfig";
     public static string ArenasAdminKey => "ArenasAdmin";
 
-    // Assets
-    public static Asset<Texture2D> GlowAlpha = ModContent.Request<Texture2D>("DragonLens/Assets/Misc/GlowAlpha");
+    public static Asset<Texture2D>? GlowAlpha { get; private set; }
+
+    public override bool IsLoadingEnabled(Mod mod) => !Main.dedServ && ModLoader.HasMod("DragonLens");
+
+    public override void Load()
+    {
+        if (Main.dedServ)
+            return;
+
+        GlowAlpha = ModContent.Request<Texture2D>("DragonLens/Assets/Misc/GlowAlpha");
+    }
+
+    public override void Unload()
+    {
+        GlowAlpha = null;
+    }
 
     public override void PostSetupContent()
     {
-        AddIcons();
-    }
+        if (Main.dedServ)
+            return;
 
-    private void AddIcons()
-    {
-        if (ModLoader.TryGetMod("DragonLens", out _))
+        if (!ModLoader.TryGetMod("DragonLens", out _))
+            return;
+
+        if (ThemeHandler.allIconProviders == null || ThemeHandler.allIconProviders.Count == 0)
+            return;
+
+        foreach (var provider in ThemeHandler.allIconProviders.Values)
         {
-            foreach (var provider in ThemeHandler.allIconProviders.Values)
-            {
-                provider.icons[StartGameKey] = Ass.Icon_StartGame.Value;
-                provider.icons[EndGameKey] = Ass.Icon_EndGame.Value;
-                provider.icons[PauseKey] = Ass.Icon_PauseGame.Value;
-                provider.icons[TeamAssignerKey] = Ass.Icon_TeamAssigner.Value;
-                provider.icons[PointsSetterKey] = Ass.Icon_PointsSetter.Value;
-                provider.icons[AdminManagerKey] = Ass.Icon_AdminManager.Value;
-                provider.icons[OpenConfigKey] = Ass.Icon_ConfigOpen.Value;
-                provider.icons[ArenasAdminKey] = Ass.Icon_Arenas_v2.Value;
-            }
+            if (provider == null || provider.icons == null)
+                continue;
 
-            // rebuild toolbars *after* icons (and tools) have been injected
-            ModContent.GetInstance<ToolbarHandler>().OnModLoad();
+            provider.icons[StartGameKey] = Ass.Icon_StartGame.Value;
+            provider.icons[EndGameKey] = Ass.Icon_EndGame.Value;
+            provider.icons[PauseKey] = Ass.Icon_PauseGame.Value;
+            provider.icons[TeamAssignerKey] = Ass.Icon_TeamAssigner.Value;
+            provider.icons[PointsSetterKey] = Ass.Icon_PointsSetter.Value;
+            provider.icons[AdminManagerKey] = Ass.Icon_AdminManager.Value;
+            provider.icons[OpenConfigKey] = Ass.Icon_ConfigOpen.Value;
+            provider.icons[ArenasAdminKey] = Ass.Icon_Arenas.Value;
         }
+
+        ModContent.GetInstance<ToolbarHandler>().OnModLoad();
     }
 }
-

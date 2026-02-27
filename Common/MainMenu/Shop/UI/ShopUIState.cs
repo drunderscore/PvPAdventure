@@ -1,14 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.MainMenu.Gems;
+using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.MatchHistory.UI;
+using PvPAdventure.Common.MainMenu.Profile;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
 using Terraria.UI.Gamepad;
 
@@ -18,6 +18,7 @@ public sealed class ShopUIState : ResizableUIState
 {
     private readonly UIState? previous;
     private ShopUIPanel shopPanel = null!;
+    private readonly List<MatchResult> matches = [];
 
     public ShopUIState(UIState? previous) => this.previous = previous;
 
@@ -25,22 +26,22 @@ public sealed class ShopUIState : ResizableUIState
     {
         var root = new UIElement
         {
-            Width = new StyleDimension(0f, 0.7f),
-            Height = new StyleDimension(0f, 0.9f),
-            Top = new StyleDimension(210, 0f),
+            Width = new StyleDimension(0f, 0.55f),
+            Height = new StyleDimension(0f, 0.95f),
+            Top = new StyleDimension(190, 0f),
             HAlign = 0.5f,
-            MinWidth = new StyleDimension(700f, 0f),
-            MaxWidth = new StyleDimension(900f, 0f)
+            MinWidth = new StyleDimension(650f, 0f),
+            //MaxWidth = new StyleDimension(900f, 0f)
         };
         Append(root);
 
-        var @base = new UIElement
+        var baseElement = new UIElement
         {
             Width = StyleDimension.Fill,
             Height = new StyleDimension(-160f * 1.75f, 1f),
             //BackgroundColor = new Color(33, 43, 79) * 0.8f
         };
-        root.Append(@base);
+        root.Append(baseElement);
 
         shopPanel = new ShopUIPanel
         {
@@ -49,7 +50,9 @@ public sealed class ShopUIState : ResizableUIState
             Top = new StyleDimension(6f, 0f),
             //BackgroundColor = UICommon.DefaultUIBlueMouseOver
         };
-        @base.Append(shopPanel);
+        shopPanel.SetPadding(12);
+        shopPanel.PaddingLeft = 4;
+        baseElement.Append(shopPanel);
 
         root.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), GoBack)
         {
@@ -63,9 +66,15 @@ public sealed class ShopUIState : ResizableUIState
 
     public override void OnActivate()
     {
-        base.OnActivate();
-        GemStorage.Read();
-        UnlockedStorage.Load();
+        // Load matches
+        matches.Clear();
+        matches.AddRange(MatchStorage.LoadMatchesFromFolder(MatchStorage.GetFolderPath()));
+
+        // Load profile gems
+        ProfileStorage.Load();
+        ProfileStorage.RebuildGems(matches);
+
+        // Refresh panel
         shopPanel.Refresh();
     }
 

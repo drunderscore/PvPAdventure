@@ -35,7 +35,7 @@ public class NetworkInspector : ModSystem
             .EmitDelegate((double now, double delta, double target) =>
             {
                 var missed = now - target;
-                Mod.Logger.Warn($"Can't keep up! Missed {missed:F2}ms, {(missed / delta):F2} ticks");
+                //Mod.Logger.Warn($"Can't keep up! Missed {missed:F2}ms, {(missed / delta):F2} ticks");
             });
     }
 }

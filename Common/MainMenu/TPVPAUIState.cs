@@ -8,6 +8,7 @@ using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
+using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
@@ -78,8 +79,7 @@ internal sealed class TPVPAUIState : ResizableUIState
             Ass.Icon_PlayMenu,
             "Mods.PvPAdventure.MainMenu.Play",
             "Mods.PvPAdventure.MainMenu.PlayDescription",
-            () => Log.Debug(1), // FIXME: Enter play menu
-            //() => OpenState(() => new MatchHistoryUIState()), /* TODO: open play menu instead of match history */
+            ConnectToPlay,
             hAlign: 0f,
             vAlign: 0f
         ));
@@ -260,6 +260,29 @@ internal sealed class TPVPAUIState : ResizableUIState
         {
             GoBack();
         }
+    }
+
+    private void ConnectToPlay()
+    {
+        SoundEngine.PlaySound(10);
+
+        Main.LoadPlayers();
+        var player = Main.PlayerList.FirstOrDefault();
+        if (player != null) Main.SelectPlayer(player);
+
+        Main.menuMultiplayer = true;
+        Main.menuServer = false;
+        Main.autoPass = true;
+
+        Netplay.ListenPort = 7777;
+        Main.getIP = "Tpvpa.terraria.sh";
+
+        Netplay.SetRemoteIPAsync(Main.getIP, () =>
+        {
+            Main.menuMode = 14;
+            Main.statusText = "Connecting to Tpvpa.terraria.sh:7777";
+            Netplay.StartTcpClient();
+        });
     }
 
     private void GoBack()

@@ -2,6 +2,7 @@
 using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Core.Utilities;
 using System.Collections.Generic;
+using Terraria;
 using Terraria.Audio;
 using Terraria.Enums;
 using Terraria.GameContent.UI.Elements;
@@ -106,6 +107,14 @@ internal class PlayerStatsUIPanel : UIPanel
                 VAlign = 0.5f,
                 ImageScale = i == 0 ? 1.0f : 0.75f
             });
+            string tooltip = i == 0 ? "Player Stats" : "Game Stats";
+            tab.OnUpdate += (element) =>
+            {
+                if (element.IsMouseHovering)
+                {
+                    Main.instance.MouseText(tooltip);
+                }
+            };
 
             top.Append(tab);
             tabs[idx] = tab;

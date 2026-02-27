@@ -1,10 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.MainMenu.MatchHistory.Legacy;
-using PvPAdventure.Common.MainMenu.MatchHistory.LegacyMatchHistory.UI;
 using PvPAdventure.Common.MainMenu.MatchHistory.UI;
 using System.Collections.Generic;
-using System.IO;
 using Terraria;
 using Terraria.Audio;
 using Terraria.Enums;
@@ -28,8 +25,6 @@ public sealed class MatchHistoryUIState : ResizableUIState
     private UIPanel detailsPanel = null!; // right side panel
     private UITeamStatsDetails teamStatsPanel = null!;
 
-    private UIText legacyMatchesTextButton;
-
     // Lists
     private readonly List<MatchResult> matches = [];
     private readonly List<UIMatchRow> rows = [];
@@ -38,25 +33,12 @@ public sealed class MatchHistoryUIState : ResizableUIState
 
     public override void OnInitialize()
     {
-        // Legacy matches button (top right) - only if legacy matches exist
-        string legacyDir = MatchJsonStorage.GetFolderPath();
-        if (Directory.Exists(legacyDir))
-        {
-            legacyMatchesTextButton = new UILegacyMatchesTextButton("Legacy Matches (pre 2026-02)", 1.0f, false)
-            {
-                Top = new StyleDimension(12f, 0f),
-                HAlign = 1f,
-                Left = new StyleDimension(-12f, 0f)
-            };
-            Append(legacyMatchesTextButton);
-        }
-
         // Base element
         matchesBaseElement = new()
         {
             Width = new StyleDimension(0f, 0.8f),
-            Height = new StyleDimension(0f, 0.9f),
-            Top = new StyleDimension(210f, 0f),
+            Height = new StyleDimension(0f, 1.0f),
+            Top = new StyleDimension(170f, 0f),
             HAlign = 0.5f,
             MinWidth = new StyleDimension(700f, 0f),
             MaxWidth = new StyleDimension(1100, 0f),
@@ -88,14 +70,14 @@ public sealed class MatchHistoryUIState : ResizableUIState
 
         UIElement left = new()
         {
-            Width = new StyleDimension(0f, 0.28f),
+            Width = new StyleDimension(0f, 0.25f),
             Height = StyleDimension.Fill
         };
         content.Append(left);
 
         UIElement right = new()
         {
-            Width = new StyleDimension(-6f, 0.72f),
+            Width = new StyleDimension(-6f, 0.75f),
             Height = StyleDimension.Fill,
             HAlign = 1f
         };
@@ -192,6 +174,8 @@ public sealed class MatchHistoryUIState : ResizableUIState
 
     private void SelectMatchAndRebuild(int index)
     {
+        SoundEngine.PlaySound(SoundID.MenuTick);
+
         if (matches.Count == 0)
             return;
 
@@ -279,24 +263,21 @@ public sealed class MatchHistoryUIState : ResizableUIState
         // advance y by the actual height
         y += teamStatsPanel.RequiredHeight + bigGap;
 
-        UIHorizontalSeparator sep2 = new(2, highlightSideUp: true)
+        detailsPanel.Append(new UIHorizontalSeparator(2, highlightSideUp: true)
         {
-            Top = new StyleDimension(y, 0f)
-        };
-        sep2.Width.Set(0f, 1f);
-        detailsPanel.Append(sep2);
+            Top = new StyleDimension(y, 0f),
+            Width = new StyleDimension(0,1)
+        });
 
-        y += sep2.Height.Pixels + bigGap;
+        y += 2 + bigGap;
 
-        var bossUi = new UITeamBossCompletion(match.BossScoreboard ?? [])
+        detailsPanel.Append(new UITeamBossCompletion(match.BossScoreboard ?? [])
         {
-            Width = new StyleDimension(10f, 1f),
-            MaxWidth = new StyleDimension(10f, 1f),
-            Left = new StyleDimension(-5f, 0f),
+            Width = new StyleDimension(0f, 1f),
             Height = new StyleDimension(bossHeight, 0f),
-            Top = new StyleDimension(y, 0f)
-        };
-        detailsPanel.Append(bossUi);
+            Top = new StyleDimension(y, 0f),
+            HAlign = 0.5f
+        });
 
         detailsPanel.Recalculate();
     }

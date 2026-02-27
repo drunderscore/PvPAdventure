@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.MainMenu.Profile;
 using System;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
@@ -61,25 +62,26 @@ internal sealed class AchievementsUIPanel : UIPanel
         _list.SetScrollbar(_scrollbar);
 
         // Add the completed achievements first, then the incomplete ones, so that completed ones are at the top of the list.
+        var claimed = new System.Collections.Generic.List<AchievementsUIRow>();
+        var completed = new System.Collections.Generic.List<AchievementsUIRow>();
+        var inProgress = new System.Collections.Generic.List<AchievementsUIRow>();
+
         for (int i = 0; i < Achievements.All.Length; i++)
         {
             var (id, def) = Achievements.All[i];
             int target = Math.Max(def.Target, 1);
-            int progress = Math.Clamp(AchievementStorage.Data.Get(id), 0, target);
+            int progress = Math.Clamp(ProfileStorage.Achievements.Get(id), 0, target);
 
-            if (progress >= target)
-                _list.Add(new AchievementsUIRow(id, def));
+            if (ProfileStorage.Achievements.IsCollected(id))
+                claimed.Add(new AchievementsUIRow(id, def));
+            else if (progress >= target)
+                completed.Add(new AchievementsUIRow(id, def));
+            else
+                inProgress.Add(new AchievementsUIRow(id, def));
         }
 
-        // Add the incompleted achievements.
-        for (int i = 0; i < Achievements.All.Length; i++)
-        {
-            var (id, def) = Achievements.All[i];
-            int target = Math.Max(def.Target, 1);
-            int progress = Math.Clamp(AchievementStorage.Data.Get(id), 0, target);
-
-            if (progress < target)
-                _list.Add(new AchievementsUIRow(id, def));
-        }
+        foreach (var row in claimed) _list.Add(row);
+        foreach (var row in completed) _list.Add(row);
+        foreach (var row in inProgress) _list.Add(row);
     }
 }

@@ -49,29 +49,19 @@ public static class Ass
     public static Asset<Texture2D> Icon_Off_Hover;
 
     // Arenas
-    public static Asset<Texture2D> Icon_Arenas;
-    public static Asset<Texture2D> Icon_Arenas_v2; // 50x48
-    public static Asset<Texture2D> Icon_Arenas_v2_Highlighted; // 54 x 52
-
-    // Matchmaking
-    public static Asset<Texture2D> Button;
-    public static Asset<Texture2D> Button_Small;
-    public static Asset<Texture2D> Button_Border;
-    public static Asset<Texture2D> Button_Small_Border;
+    public static Asset<Texture2D> Icon_Arenas; // 50x48
+    public static Asset<Texture2D> Icon_Arenas_Highlighted; // 54 x 52
 
     // Match history
     public static Asset<Texture2D> Icon_Trophy; // 48x48
     public static Asset<Texture2D> Icon_TeamBoss; // 54x54
     public static Asset<Texture2D> Icon_Attack; // 26x27
-    public static Asset<Texture2D> Icon_Gold; // 74x102
-    public static Asset<Texture2D> Icon_Silver; //74x102
-    public static Asset<Texture2D> Icon_Bronze; // 74x102
-    public static Asset<Texture2D> Icon_Medal1; // 64x64
-    public static Asset<Texture2D> Icon_Medal2; // 64x64
-    public static Asset<Texture2D> Icon_Medal3; // 64x64
+    public static Asset<Texture2D> Icon_Medal1; // 46x60
+    public static Asset<Texture2D> Icon_Medal2; // 46x60
+    public static Asset<Texture2D> Icon_Medal3; // 46x60
 
     // Achievements
-    public static Asset<Texture2D> Achievements; /// Spritesheet, that includes vanilla and TPVPA achievements.
+    public static Asset<Texture2D> Achievements; /// Spritesheet, that includes ALL vanilla and TPVPA achievements.
 
     // Shop
     public static Asset<Texture2D> Icon_Gem;
@@ -90,18 +80,38 @@ public static class Ass
     public static Asset<Texture2D> Icon_PvPBalancing;
     public static Asset<Texture2D> Icon_PvPBalancingv2;
 
-    // Shop assets
-    public static Asset<Texture2D> PinkSniperRifle;
-    public static Asset<Texture2D> RedSniperRifle;
+    // Shop item skins, sorted alphabetically
+    
+    public static Asset<Texture2D> AdventureMirrorShimmer;
+    public static Asset<Texture2D> InfluxWaverCyberblade;
+    public static Asset<Texture2D> MeteorStaffAvalancheStaff;
+    public static Asset<Texture2D> SniperRifleBlue;
+    public static Asset<Texture2D> SniperRifleGreen;
+    public static Asset<Texture2D> SniperRiflePink;
+    public static Asset<Texture2D> SniperRifleRed;
+    public static Asset<Texture2D> SniperRifleYellow;
+    public static Asset<Texture2D> VolcanoMolten;
 
-    private static readonly HashSet<string> ShopFields =
-    [
-        nameof(PinkSniperRifle),
-        nameof(RedSniperRifle),
-    ];
+    // Projectile skins
+    public static Asset<Texture2D> InfluxWaverCyberblade_Beam; // projectile texture
 
+    // Unused
+    public static Asset<Texture2D> DaedalusStormbowMolten;
+    public static Asset<Texture2D> DartRifleMolten;
+    public static Asset<Texture2D> FlamelashCryolash;
+    public static Asset<Texture2D> HeatRayGammaRay;
+    public static Asset<Texture2D> LaserMachineGunMolten;
+    public static Asset<Texture2D> LightDiscMolten;
+    public static Asset<Texture2D> PaladinsHammerHallowed;
+    public static Asset<Texture2D> RainbowRodMolten;
+    public static Asset<Texture2D> ShadowbeamStaffMolten;
+    public static Asset<Texture2D> ShadowJoustingLanceMoltenJoustingLance;
+    public static Asset<Texture2D> StarfuryMolten;
+    public static Asset<Texture2D> StyngerMolten;
+    public static Asset<Texture2D> ThornChakramMolten;
+    public static Asset<Texture2D> TrueExcaliburMolten;
 
-    /// --- Special Initialization flag ---
+    /// --- Special Initialization flag, do not touch ---
     public static bool Initialized { get; set; }
 
     /// <summary>
@@ -116,34 +126,28 @@ public static class Ass
             return;
         }
 
+        // Initialize Assets/Custom/MapBGs
         MapBG = new Asset<Texture2D>[42];
         for (int i = 1; i <= 42; i++)
             MapBG[i - 1] = ModContent.Request<Texture2D>($"PvPAdventure/Assets/Custom/MapBGs/MapBG{i}", AssetRequestMode.AsyncLoad);
 
+        // Initialize Assets/Custom and Assets/Shop
         var fields = typeof(Ass).GetFields(BindingFlags.Public | BindingFlags.Static);
-
-        for (int i = 0; i < fields.Length; i++)
+        foreach (FieldInfo f in fields)
         {
-            FieldInfo f = fields[i];
             if (f.FieldType != typeof(Asset<Texture2D>))
                 continue;
 
-            if (ShopFields.Contains(f.Name))
-                continue;
-
-            f.SetValue(null, ModContent.Request<Texture2D>($"PvPAdventure/Assets/Custom/{f.Name}", AssetRequestMode.AsyncLoad));
-        }
-
-        for (int i = 0; i < fields.Length; i++)
-        {
-            FieldInfo f = fields[i];
-            if (f.FieldType != typeof(Asset<Texture2D>))
-                continue;
-
-            if (!ShopFields.Contains(f.Name))
-                continue;
-
-            f.SetValue(null, ModContent.Request<Texture2D>($"PvPAdventure/Assets/Shop/{f.Name}", AssetRequestMode.AsyncLoad));
+            string[] folders = ["Custom", "Shop"];
+            foreach (string folder in folders)
+            {
+                string path = $"PvPAdventure/Assets/{folder}/{f.Name}";
+                if (ModContent.HasAsset(path))
+                {
+                    f.SetValue(null, ModContent.Request<Texture2D>(path, AssetRequestMode.AsyncLoad));
+                    break;
+                }
+            }
         }
 
         Initialized = true;

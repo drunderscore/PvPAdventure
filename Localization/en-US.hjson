@@ -1776,6 +1776,7 @@ Mods: {
 					Label: Projectile Knockback
 					Tooltip: ""
 				}
+
 				PvPKnockbackMultiplier: {
 					Label: PvP Knockback Multiplier
 					Tooltip: ""

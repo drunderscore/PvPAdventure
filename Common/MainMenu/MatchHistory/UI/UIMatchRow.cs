@@ -34,9 +34,11 @@ public class UIMatchRow : UIPanel
     {
         Index = index;
 
+        // UI properties
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
         BorderColor = new Color(89, 116, 213) * 0.7f;
 
+        // Placement text
         (string winnerText, Color winnerColor, int rank) = BuildWinnerLabel(result);
         Append(new UIText(winnerText, 1.05f)
         {
@@ -46,6 +48,7 @@ public class UIMatchRow : UIPanel
             TextColor = winnerColor
         });
 
+        // All team points
         Append(new UITeamPoints(result.TeamPoints)
         {
             VAlign = 1f,
@@ -53,6 +56,7 @@ public class UIMatchRow : UIPanel
             HAlign = 0.5f
         });
 
+        // Date text
         Append(new UIText(result.ToDaysAgoText(), 0.7f)
         {
             Top = new StyleDimension(18, 0),
@@ -61,21 +65,12 @@ public class UIMatchRow : UIPanel
             TextOriginY = 0,
         });
 
-        // Add trophy if won
-        //if (result.Win)
-        //{
-        //    Append(new UIImage(Ass.Icon_Trophy)
-        //    {
-        //        ImageScale = 1.10f,
-        //        Left = new StyleDimension(-4, 0),
-        //        Top = new StyleDimension(-10, 0)
-        //    });
-        //}
+        // Medal icon
         var medal = rank switch
         {
-            1 => Ass.Icon_Gold,
-            2 => Ass.Icon_Silver,
-            3 => Ass.Icon_Bronze,
+            1 => Ass.Icon_Medal1,
+            2 => Ass.Icon_Medal2,
+            3 => Ass.Icon_Medal3,
             _ => TextureAssets.MagicPixel
         };
 
@@ -83,17 +78,44 @@ public class UIMatchRow : UIPanel
         {
             Append(new UIImage(medal)
             {
-                ImageScale = 0.45f,
-                Left = new StyleDimension(-16, 0),
-                Top = new StyleDimension(-36, 0)
+                ImageScale = 0.7f,
+                Left = new StyleDimension(-2, 0),
+                Top = new StyleDimension(-20, 0)
             });
-            //Append(new UIText(rank.ToString(), 0.4f, true)
-            //{
-            //    Left = new StyleDimension(16, 0),
-            //    Top = new StyleDimension(14, 0)
-            //});
         }
 
+        // Gem reward
+        int gemReward = MatchStorage.GetPlacementGems(rank);
+        if (gemReward > 0)
+        {
+            Color rewardColor = rank switch
+            {
+                1 => Color.Gold,
+                2 => Color.Silver,
+                3 => new Color(205, 127, 50), // Bronze
+                _ => Color.White
+            };
+
+            Append(new UIImage(Ass.Icon_Gem)
+            {
+                ImageScale = 0.7f,
+                //VAlign = 0.5f,
+                HAlign = 1f,
+                Top = new StyleDimension(-9.5f, 0f),
+                Left = new StyleDimension(-16f, 0f)
+            });
+
+            Append(new UIText($"+{gemReward}", 0.85f)
+            {
+                //VAlign = 0.5f,
+                HAlign = 1f,
+                Top = new StyleDimension(-6f, 0f),
+                Left = new StyleDimension(5f, 0f),
+                TextColor = rewardColor
+            });
+        }
+
+        // Mouse hover
         OnMouseOver += (_, _) =>
         {
             hovering = true;

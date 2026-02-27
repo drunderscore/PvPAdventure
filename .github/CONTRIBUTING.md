@@ -36,15 +36,19 @@ If you're modifying/expanding existing functionality, here's a quick overview of
 
 #### `Common` (gameplay features)
 - `Common.AdminTools` — game timer, points/team assigner, integration with DragonLens.
+- `Common.Arenas` — subworld world, loadouts.
 - `Common.Bounties` — bounty shop.
 - `Common.Combat` — PvP/PvE changes, i-frames, hit/kill markers, ghost heal/LoS adjustments, etc.
 - `Common.Combat.TeamBoss` — bosses only take damage from the team with the most damage (set in BossBalanceConfig)
 - `Common.GameTimer` — match state, countdown, time remaining.
 - `Common.Items` — item stats, bans, shimmer transforms, prefixes.
 - `Common.Loot` — boss loot and drop rates.
+- `Common.Misc` — miscallaneous code.
 - `Common.Movement` — dash keybind.
-- `Common.NPCs` — spawn rules, boss changes, hitmarker sound.
+- `Common.NPCs` — town NPCs changes, spawn rules, boss behaviour changes, hitmarker sound.
 - `Common.Recipes` — crafting recipes.
+- `Common.Security` — automatic admin steamIDs, client mods check, whitelist players.
+- `Common.Shop` — TPVPA shop, drawing and registering custom weapon skins.
 - `Common.Spawnbox` — random teleport, movement rules, recall behavior.
 - `Common.SpawnSelector` — adventure mirror, bed/teammate teleports, select spawn when dead, etc.
 - `Common.SSC` — server sided character implementation.

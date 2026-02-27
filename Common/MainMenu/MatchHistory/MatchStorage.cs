@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
+using Terraria.Enums;
 using Terraria.ModLoader.IO;
 
 namespace PvPAdventure.Common.MainMenu.MatchHistory;
 
 /// <summary>
-/// Provides static methods and storage for recording, saving, and loading PvP match results as JSON files. Maintains an
+/// Provides static methods and storage for recording, saving, and loading PvP match results as .nbt files. Maintains an
 /// in-memory list of match history and handles persistence to disk.
 /// </summary>
 public static class MatchStorage
@@ -74,43 +75,6 @@ public static class MatchStorage
         return $"{local:yyyy-MM-dd_HH;mm}.nbt";
     }
 
-    public static void LoadAllFromDisk()
-    {
-        try
-        {
-            string dir = GetFolderPath();
-
-            if (!Directory.Exists(dir))
-            {
-                Log.Info("No match history directory found");
-                return;
-            }
-
-            Matches.Clear();
-
-            foreach (string file in Directory.EnumerateFiles(dir, "*.nbt"))
-            {
-                try
-                {
-                    TagCompound tag = TagIO.FromFile(file, compressed: true);
-                    MatchResult match = MatchResult.FromTag(tag);
-                    Matches.Add(match);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Failed to load match from {Path.GetFileName(file)}: {e}");
-                }
-            }
-
-            Matches.Sort((a, b) => b.Start.CompareTo(a.Start));
-            Log.Info($"Loaded {Matches.Count} matches from disk");
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Failed to load match history: {e}");
-        }
-    }
-
     public static List<MatchResult> LoadMatchesFromFolder(string folderPath)
     {
         if (!Directory.Exists(folderPath))
@@ -132,8 +96,46 @@ public static class MatchStorage
             }
         }
 
+        // Load legacy .json matches (pre 2026-02)
+        matches.AddRange(LegacyMatchJsonStorage.LoadMatchesFromFolder(folderPath));
+
         // Sort by date, newest first
         matches.Sort((a, b) => b.Start.CompareTo(a.Start));
         return matches;
+    }
+
+    public static int GetLocalPlacement(MatchResult match)
+    {
+        Team localTeam = Team.None;
+        foreach (var p in match.Players ?? [])
+            if (p.SteamId == match.LocalSteamId) { localTeam = p.Team; break; }
+
+        if (localTeam == Team.None) return 0;
+
+        List<int> points = [];
+        int localPoints = int.MinValue;
+        foreach (var tp in match.TeamPoints ?? [])
+        {
+            if (tp.Team == Team.None) continue;
+            points.Add(tp.Points);
+            if (tp.Team == localTeam) localPoints = tp.Points;
+        }
+
+        if (localPoints == int.MinValue) return 0;
+
+        points.Sort((a, b) => b.CompareTo(a));
+        int rank = 1;
+        for (int i = 0; i < points.Count; i++)
+        {
+            if (i > 0 && points[i] < points[i - 1]) rank = i + 1;
+            if (points[i] == localPoints) return rank;
+        }
+        return 0;
+    }
+
+    public static int GetPlacementGems(int placement)
+    {
+        ReadOnlySpan<int> rewards = [50, 40, 30, 20, 10];
+        return placement > 0 && placement <= rewards.Length ? rewards[placement - 1] : 0;
     }
 }

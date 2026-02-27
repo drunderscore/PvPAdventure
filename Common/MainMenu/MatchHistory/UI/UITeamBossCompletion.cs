@@ -52,10 +52,10 @@ public class UITeamBossCompletion : UIElement
         //sb.Draw(TextureAssets.MagicPixel.Value, dims.ToRectangle(), Color.Red * 0.35f);
 #endif
 
-        const int horizontalSpaceBetweenBossHeads = 50;
+        const int horizontalSpaceBetweenBossHeads = 48;
         const int verticalSeparationBetweenBossHeadAndTeamIcon = 40;
         const int verticalSpaceBetweenTeamIcons = 26;
-        const int padding = 14;
+        const int padding = 20;
         const int teamIconXOffset = 8;
         const int separatorYOffset = 28;
 
