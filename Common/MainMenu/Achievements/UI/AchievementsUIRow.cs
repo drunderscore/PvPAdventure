@@ -117,7 +117,7 @@ internal sealed class AchievementsUIRow : UIPanel
         if (!completed && rowHover)
             iconTint = Color.Lerp(iconTint, Color.White, 0.25f);
 
-        int idx = def.IconIndex+9;
+        int idx = def.IconIndex+8;
         Rectangle frame = new(idx % 8 * 66, idx / 8 * 66, 64, 64);
         if (!completed)
             frame.X += 8 * 66;

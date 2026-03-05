@@ -45,6 +45,14 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
         }
     }
 
+    public override void PostUpdate(Item item)
+    {
+        if (!SkinRegistry.TryGetSkin(item, out SkinDefinition skin))
+            return;
+
+        item.SetNameOverride($"{skin.Name} ({Lang.GetItemNameValue(item.type)})");
+    }
+
     private static DrawData ScaleDrawData(DrawData data, Texture2D from, Texture2D to)
     {
         float sx = to.Width / (float)from.Width;

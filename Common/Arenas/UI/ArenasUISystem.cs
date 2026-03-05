@@ -4,6 +4,7 @@ using PvPAdventure.Core.Config;
 using SubworldLibrary;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -38,6 +39,10 @@ public sealed class ArenasUISystem : ModSystem
         Interface = new();
         LoadoutUIState = new();
         JoinUIState = new();
+
+        // Don't show in SP.
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            return;
 
         if (IsEnabled)
         {

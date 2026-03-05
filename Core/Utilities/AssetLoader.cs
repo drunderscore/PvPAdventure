@@ -81,19 +81,21 @@ public static class Ass
     public static Asset<Texture2D> Icon_PvPBalancingv2;
 
     // Shop item skins, sorted alphabetically
-    
     public static Asset<Texture2D> AdventureMirrorShimmer;
     public static Asset<Texture2D> InfluxWaverCyberblade;
-    public static Asset<Texture2D> MeteorStaffAvalancheStaff;
+    public static Asset<Texture2D> LightDisc;
+    public static Asset<Texture2D> StaffOfEarthAvalancheStaff;
+    public static Asset<Texture2D> StaffOfEarthAvalancheStaffProjectile;
     public static Asset<Texture2D> SniperRifleBlue;
     public static Asset<Texture2D> SniperRifleGreen;
     public static Asset<Texture2D> SniperRiflePink;
     public static Asset<Texture2D> SniperRifleRed;
     public static Asset<Texture2D> SniperRifleYellow;
-    public static Asset<Texture2D> VolcanoMolten;
+    public static Asset<Texture2D> TrueExcaliburBlossomHaze;
+    //public static Asset<Texture2D> VolcanoMolten;
 
     // Projectile skins
-    public static Asset<Texture2D> InfluxWaverCyberblade_Beam; // projectile texture
+    public static Asset<Texture2D> InfluxWaverCyberbladeProjectile; // projectile texture
 
     // Unused
     public static Asset<Texture2D> DaedalusStormbowMolten;

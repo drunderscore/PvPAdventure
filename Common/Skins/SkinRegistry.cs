@@ -15,10 +15,10 @@ internal static class SkinRegistry
 
     static SkinRegistry()
     {
-        _byId = new Dictionary<string, SkinDefinition>(SkinCatalog.All.Length);
-        _skinnable = new HashSet<int>(SkinCatalog.All.Length);
+        _byId = new Dictionary<string, SkinDefinition>(Skins.All.Length);
+        _skinnable = new HashSet<int>(Skins.All.Length);
 
-        foreach (SkinDefinition def in SkinCatalog.All)
+        foreach (SkinDefinition def in Skins.All)
         {
             if (!_byId.TryAdd(def.Id, def))
                 Log.Error($"Duplicate skin id '{def.Id}' in SkinCatalog.All.");

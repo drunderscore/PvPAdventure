@@ -23,7 +23,9 @@ internal static class SkinProjectileCatalog
     {
         Dictionary<Key, Asset<Texture2D>> dict = [];
 
-         dict.Add(new Key("influx_waver_cyberblade", ProjectileID.InfluxWaver), Ass.InfluxWaverCyberblade_Beam);
+         dict.Add(new Key("influx_waver_cyberblade", ProjectileID.InfluxWaver), Ass.InfluxWaverCyberbladeProjectile);
+         dict.Add(new Key("staff_of_earth_avalanche_staff", ProjectileID.BoulderStaffOfEarth), Ass.StaffOfEarthAvalancheStaffProjectile);
+         dict.Add(new Key("light_disc", ProjectileID.LightDisc), Ass.LightDisc);
 
         return dict;
     }

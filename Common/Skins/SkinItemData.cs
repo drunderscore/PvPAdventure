@@ -27,7 +27,8 @@ internal sealed class SkinItemData : GlobalItem
 
     public override void SaveData(Item item, TagCompound tag)
     {
-        if (HasSkin) tag["pvpadv_skin"] = SkinId;
+        if (HasSkin) 
+            tag["pvpadv_skin"] = SkinId;
     }
 
     public override void LoadData(Item item, TagCompound tag)

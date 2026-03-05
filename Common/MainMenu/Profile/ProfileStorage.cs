@@ -135,9 +135,9 @@ internal static class ProfileStorage
     {
         EnsureLoaded();
 
-        for (int i = 0; i < SkinCatalog.All.Length; i++)
+        for (int i = 0; i < Common.Skins.Skins.All.Length; i++)
         {
-            SkinDefinition def = SkinCatalog.All[i];
+            SkinDefinition def = Common.Skins.Skins.All[i];
 
             if (def.ItemType != itemType)
                 continue;
@@ -295,9 +295,9 @@ internal static class ProfileStorage
 
     private static void RemoveAllSkinsForItem(int itemType)
     {
-        for (int i = 0; i < SkinCatalog.All.Length; i++)
+        for (int i = 0; i < Common.Skins.Skins.All.Length; i++)
         {
-            SkinDefinition def = SkinCatalog.All[i];
+            SkinDefinition def = Common.Skins.Skins.All[i];
 
             if (def.ItemType != itemType)
                 continue;
@@ -310,9 +310,9 @@ internal static class ProfileStorage
     {
         Dictionary<int, string> chosen = [];
 
-        for (int i = 0; i < SkinCatalog.All.Length; i++)
+        for (int i = 0; i < Common.Skins.Skins.All.Length; i++)
         {
-            SkinDefinition def = SkinCatalog.All[i];
+            SkinDefinition def = Common.Skins.Skins.All[i];
 
             if (!Skins.Contains(def.Id))
                 continue;

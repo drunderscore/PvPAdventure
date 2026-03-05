@@ -113,7 +113,7 @@ internal sealed class ShopUIPanel : UIPanel
         float totalW = cols * cardW + (cols - 1) * gap;
         float startX = Math.Max(0f, (innerW - totalW) * 0.5f);
 
-        int count = SkinCatalog.All.Length;
+        int count = Skins.Skins.All.Length;
         int rows = (count / cols) + (count % cols != 0 ? 1 : 0);
 
         var content = new UIElement
@@ -130,7 +130,7 @@ internal sealed class ShopUIPanel : UIPanel
             int col = i % cols;
             int row = i / cols;
 
-            var tile = new SkinUICard(SkinCatalog.All[i], cardW)
+            var tile = new SkinUICard(Skins.Skins.All[i], cardW)
             {
                 Height = StyleDimension.FromPixels(cardH),
                 Left = new StyleDimension(startX + col * (cardW + gap), 0f),
@@ -156,7 +156,7 @@ internal sealed class ShopUIPanel : UIPanel
 
         content.Height = new StyleDimension(rows * (cardH + gap), 0f);
 
-        SkinDefinition debugDef = SkinCatalog.All[^1]; // last item
+        SkinDefinition debugDef = Skins.Skins.All[^1]; // last item
 
         for (int i = 0; i < debugCount; i++)
         {
