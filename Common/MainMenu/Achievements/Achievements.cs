@@ -28,23 +28,6 @@ public static class Achievements
             return p.Value.Kills > 0 ? 1 : 0;
         });
 
-    public static readonly AchievementDefinition TeamPlayer = new(
-        IconIndex: 999,
-        Title: "Team Player",
-        Description: "Earn 200 team points in a single match.",
-        Target: 1,
-        GemsReward: 100,
-        Delta: match =>
-        {
-            var p = match.Players?.FirstOrDefault(x => (ulong)x.SteamId == (ulong)match.LocalSteamId);
-            if (p == null) return 0;
-
-            var tp = match.TeamPoints?.FirstOrDefault(x => x.Team == p.Value.Team);
-            if (tp == null) return 0;
-
-            return tp.Value.Points >= 200 ? 1 : 0;
-        });
-
     public static readonly AchievementDefinition HalfCentury = new(
         IconIndex: 83,
         Title: "Half Century",
@@ -59,7 +42,7 @@ public static class Achievements
         });
 
     public static readonly AchievementDefinition OnARoll = new(
-        IconIndex: 83,
+        IconIndex: 86,
         Title: "On a Roll",
         Description: "Win 5 TPVPA matches.",
         Target: 5,
@@ -67,20 +50,12 @@ public static class Achievements
         Delta: match => match.Win ? 1 : 0);
 
     public static readonly AchievementDefinition BigWinner = new(
-        IconIndex: 999,
+        IconIndex: 86,
         Title: "Big Winner",
         Description: "Win 25 TPVPA matches.",
         Target: 25,
         GemsReward: 200,
         Delta: match => match.Win ? 1 : 0);
-
-    public static readonly AchievementDefinition Veteran = new(
-        IconIndex: 999,
-        Title: "Veteran",
-        Description: "Finish 50 TPVPA matches.",
-        Target: 50,
-        GemsReward: 225,
-        Delta: _ => 1);
 
     public static readonly AchievementDefinition HundredClub = new(
         IconIndex: 84,
@@ -96,7 +71,7 @@ public static class Achievements
         });
 
     public static readonly AchievementDefinition TopDog = new(
-        IconIndex: 999,
+        IconIndex: 86,
         Title: "Top Dog",
         Description: "Win 50 TPVPA matches.",
         Target: 50,
@@ -113,11 +88,9 @@ public static class Achievements
         // easiest -> hardest
         (nameof(MatchMade), MatchMade),
         (nameof(FirstBlood), FirstBlood),
-        (nameof(TeamPlayer), TeamPlayer),
         (nameof(HalfCentury), HalfCentury),
         (nameof(OnARoll), OnARoll),
         (nameof(BigWinner), BigWinner),
-        (nameof(Veteran), Veteran),
         (nameof(HundredClub), HundredClub),
         (nameof(TopDog), TopDog),
     ];

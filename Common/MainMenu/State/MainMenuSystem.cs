@@ -9,7 +9,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.MainMenu;
+namespace PvPAdventure.Common.MainMenu.State;
 
 /// <summary>
 /// Adds a TPVPA History button to the Main Menu.
@@ -162,7 +162,7 @@ public class MainMenuSystem : ModSystem
                 Main.menuMode = 888;
 
                 // ------------- ENTER THE STATE -----------------
-                var state = new TPVPAUIState();
+                var state = new MainMenuTPVPAUIState();
                 state.Activate();
                 ui?.SetState(state);
             }

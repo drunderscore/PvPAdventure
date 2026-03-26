@@ -1,17 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Common.Skins;
-using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
-using Terraria.ModLoader;
-using Terraria.ModLoader.Default;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 using Terraria.UI.Chat;
@@ -24,252 +21,178 @@ internal sealed class SkinUICard : UIElement
     private static Asset<Texture2D>? Border;
     private static Asset<Texture2D>? Highlight;
 
-    private readonly SkinDefinition def;
-
-    private readonly UISlicedImage back;
-    private readonly UISlicedImage highlight;
-    private readonly UISlicedImage border;
+    private readonly SkinDefinition _def;
+    private readonly UISlicedImage _back;
+    private readonly UISlicedImage _highlight;
+    private readonly UISlicedImage _border;
 
     public SkinUICard(SkinDefinition def, float cardW)
     {
-        this.def = def;
+        _def = def;
 
-        // 44x44 textures
         Back ??= Main.Assets.Request<Texture2D>("Images/UI/CharCreation/SmallPanel");
         Border ??= Main.Assets.Request<Texture2D>("Images/UI/CharCreation/SmallPanelBorder");
         Highlight ??= Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanelHighlight");
 
         Width = StyleDimension.FromPixels(cardW);
 
-        back = new UISlicedImage(Back) { Width = StyleDimension.Fill, Height = StyleDimension.Fill, IgnoresMouseInteraction = true };
-        highlight = new UISlicedImage(Highlight) { Width = StyleDimension.Fill, Height = StyleDimension.Fill, IgnoresMouseInteraction = true };
-        border = new UISlicedImage(Border) { Width = StyleDimension.Fill, Height = StyleDimension.Fill, IgnoresMouseInteraction = true };
+        _back = new UISlicedImage(Back)
+        {
+            Width = StyleDimension.Fill,
+            Height = StyleDimension.Fill,
+            IgnoresMouseInteraction = true
+        };
+        _highlight = new UISlicedImage(Highlight)
+        {
+            Width = StyleDimension.Fill,
+            Height = StyleDimension.Fill,
+            IgnoresMouseInteraction = true
+        };
+        _border = new UISlicedImage(Border)
+        {
+            Width = StyleDimension.Fill,
+            Height = StyleDimension.Fill,
+            IgnoresMouseInteraction = true
+        };
 
-        back.SetSliceDepths(10);
-        highlight.SetSliceDepths(10);
-        border.SetSliceDepths(10);
+        _back.SetSliceDepths(10);
+        _highlight.SetSliceDepths(10);
+        _border.SetSliceDepths(10);
 
-        // Highlight inset
         float inset = 2f;
-        highlight.Left = StyleDimension.FromPixels(inset);
-        highlight.Top = StyleDimension.FromPixels(inset);
-        highlight.Width = StyleDimension.FromPixelsAndPercent(-inset * 2f, 1f);
-        highlight.Height = StyleDimension.FromPixelsAndPercent(-inset * 2f, 1f);
+        _highlight.Left = StyleDimension.FromPixels(inset);
+        _highlight.Top = StyleDimension.FromPixels(inset);
+        _highlight.Width = StyleDimension.FromPixelsAndPercent(-inset * 2f, 1f);
+        _highlight.Height = StyleDimension.FromPixelsAndPercent(-inset * 2f, 1f);
 
-        Append(back);
-        //Append(highlight);
-        Append(border);
-
-        OnMouseOver += (_,_) => SoundEngine.PlaySound(SoundID.MenuTick);
+        Append(_back);
+        Append(_highlight);
+        Append(_border);
     }
 
     public override void MouseOver(UIMouseEvent evt)
     {
         base.MouseOver(evt);
-        SoundEngine.PlaySound(12);
+        SoundEngine.PlaySound(SoundID.MenuTick);
     }
 
     public override void LeftClick(UIMouseEvent evt)
     {
         base.LeftClick(evt);
 
-        //ProfileStorage.EnsureLoaded();
+        SkinToggleResult result = MainMenuProfileState.Instance.ToggleSkin(_def);
 
-        //bool hasSkin = ProfileStorage.HasSkin(def.Id);
-        //bool hasOtherSkin = ProfileStorage.TryGetSelectedSkinForItem(def.ItemType, out SkinDefinition existing) && existing.Id != def.Id;
-
-        //if (!hasSkin && hasOtherSkin)
-        //{
-        //    SoundEngine.PlaySound(SoundID.MenuClose);
-        //    return;
-        //}
-
-        //if (!hasSkin && ProfileStorage.Gems < def.Price)
-        //{
-        //    SoundEngine.PlaySound(SoundID.MenuClose);
-        //    return;
-        //}
-
-        //var result = ProfileStorage.ToggleSkin(def);
-
-        //if (result == ProfileStorage.SkinToggleResult.Sold)
-        //{
-        //    SoundEngine.PlaySound(SoundID.Coins);
-        //    return;
-        //}
-
-        //if (result != ProfileStorage.SkinToggleResult.None)
-        //    SoundEngine.PlaySound(SoundID.Unlock);
-    }
-
-    private void DrawItemTooltip(int itemId, bool hasSkin, bool canAfford)
-    {
-        Color badRed = new(148, 39, 39);
-
-        Main.LocalPlayer.mouseInterface = true;
-
-        Item item = new(itemId);
-
-        string original = Lang.GetItemNameValue(itemId);
-        string buyOrSell = hasSkin ? "Sell " : "Buy ";
-        if (!canAfford) buyOrSell = "";
-        item.SetNameOverride($"{buyOrSell}{def.Name} ({original})");
-
-        if (!hasSkin && !canAfford)
-            item.SetNameOverride($"{buyOrSell}{def.Name} ({original})\n{C(badRed, "Not enough gems")}");
-
-        if (Main.gameMenu)
+        switch (result)
         {
-            item.damage = 0;
-            item.knockBack = 0f;
-            item.crit = 0;
+            case SkinToggleResult.Bought:
+                SoundEngine.PlaySound(SoundID.Coins);
+                break;
+
+            case SkinToggleResult.Equipped:
+            case SkinToggleResult.Unequipped:
+                SoundEngine.PlaySound(SoundID.Unlock);
+                break;
+
+            case SkinToggleResult.NotAffordable:
+                SoundEngine.PlaySound(SoundID.MenuClose);
+                break;
         }
-
-        Main.HoverItem = item;
-        Main.hoverItemName = item.Name;
-
-        Main.instance.MouseText("", 0, 0);
-        Main.mouseText = true;
     }
-
-    private void DrawTooltip()
-    {
-        //ProfileStorage.EnsureLoaded();
-        //Main.LocalPlayer.mouseInterface = true;
-
-        //static string C(Color c, string text) => $"[c/{c.R:X2}{c.G:X2}{c.B:X2}:{text}]";
-
-        //bool hasSkin = ProfileStorage.HasSkin(def.Id);
-        //bool hasOtherSkin = ProfileStorage.TryGetSelectedSkinForItem(def.ItemType, out SkinDefinition existing) && existing.Id != def.Id;
-        //bool canAfford = ProfileStorage.Gems >= def.Price;
-
-        //Color badRed = new(148, 39, 39);
-
-        //string original = Lang.GetItemNameValue(def.ItemType);
-        //string display = $"{def.Name} ({original})";
-
-        //if (hasSkin)
-        //    UICommon.TooltipMouseText(C(Color.LimeGreen, $"Sell {display}") + "\n" + C(Color.White, $"Value: {def.Price} gems"));
-        //else if (hasOtherSkin)
-        //    UICommon.TooltipMouseText(C(badRed, $"You already have a {existing.Name}"));
-        //else if (!canAfford)
-        //    UICommon.TooltipMouseText(C(Color.LimeGreen, $"Buy {display}") + "\n" + C(badRed, "Not enough gems"));
-        //else
-        //    UICommon.TooltipMouseText(C(Color.LimeGreen, $"Buy {display}") + "\n" + C(Color.White, $"Value: {def.Price} gems"));
-    }
-
-    
 
     public override void Draw(SpriteBatch sb)
     {
-        //base.Draw(sb);
+        var state = MainMenuProfileState.Instance;
 
-        //CalculatedStyle d = GetDimensions();
+        bool owned = state.HasSkin(_def);
+        bool equipped = state.IsEquipped(_def);
+        bool canAfford = state.CanAfford(_def);
+        bool hover = IsMouseHovering;
 
-        //ProfileStorage.EnsureLoaded();
+        _back.Color = owned
+            ? new Color(100, 255, 30) * (hover ? 0.9f : 0.75f)
+            : new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
 
-        //bool hasSkin = ProfileStorage.HasSkin(def.Id);
-        //bool canAfford = ProfileStorage.Gems >= def.Price;
-        //bool hover = IsMouseHovering;
+        _highlight.Color = equipped ? Color.White * 0.3f : Color.Transparent;
+        _border.Color = hover || equipped ? Color.White : Color.Transparent;
 
-        //back.Color = hasSkin
-        //    ? new Color(100, 255, 30) * (hover ? 0.9f : 1.0f)
-        //    : Color.LightGreen * (hover ? 1f : 0.5f);
+        base.Draw(sb);
 
-        //highlight.Color = hasSkin ? Color.White * 0.0f : Color.Transparent;
-        //border.Color = hover ? Color.White : Color.Transparent;
+        CalculatedStyle d = GetDimensions();
+        float contentAlpha = owned ? 0.65f : 1f;
 
-        //base.DrawSelf(sb);
+        string name = _def.Name;
+        float t = name.Length > 18 ? MathHelper.Clamp((name.Length - 18) / 12f, 0f, 1f) : 0f;
+        float titleScale = MathHelper.Lerp(0.75f, 0.55f, t);
 
-        //// Debug: draw full card size; do not delete!
-        ////sb.Draw(TextureAssets.MagicPixel.Value, d.ToRectangle(), Color.Red * 0.35f);
+        Vector2 nameSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, name, Vector2.One * titleScale);
+        Vector2 namePos = new(d.X + d.Width * 0.5f - nameSize.X * 0.5f, d.Y + 8f);
+        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, name, namePos, Color.White, 0f, Vector2.Zero, Vector2.One * titleScale, d.Width - 6f);
 
-        //float contentAlpha = hasSkin ? 0.5f : 1f;
+        Texture2D tex = _def.Texture?.Value ?? TextureAssets.Item[_def.ItemType].Value;
+        float maxIcon = 44f;
+        float iconScale = maxIcon / System.Math.Max(tex.Width, tex.Height);
+        Vector2 iconCenter = new(d.X + d.Width * 0.5f, d.Y + 52f);
 
-        //// Draw name (top); keep this comment!
-        //string name = def.Name;
+        sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
 
-        //float t = name.Length > 18 ? MathHelper.Clamp((name.Length - 18) / 12f, 0f, 1f) : 0f;
-        //float titleScale = MathHelper.Lerp(0.75f, 0.55f, t);
+        string priceText = _def.Price.ToString();
+        float priceScale = 1.05f;
+        Vector2 priceSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
 
-        //Vector2 nameSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, name, Vector2.One * titleScale);
-        //Vector2 namePos = new(d.X + d.Width * 0.5f - nameSize.X * 0.5f, d.Y + 8f);
-        //ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, name, namePos, Color.White, 0f, Vector2.Zero, Vector2.One * titleScale, d.Width - 6f);
+        float py = d.Y + d.Height - priceSize.Y - 6f;
+        float px = d.X + d.Width * 0.5f - priceSize.X * 0.5f + 8f;
 
+        Color priceColor = (owned || canAfford)
+            ? Color.White * contentAlpha
+            : new Color(148, 39, 39) * contentAlpha;
 
-        //// Draw item (center)
-        //Vector2 iconCenter = new(d.X + d.Width * 0.5f, d.Y);
-        //iconCenter.Y += 52f;
+        Texture2D badgeTex = owned ? Ass.Icon_Checkmark.Value : Ass.Icon_Gem.Value;
+        float badgeScale = owned ? 1.5f : 0.9f;
+        Vector2 badgePos = new Vector2(px - 14f, py + 12f) + (owned ? new Vector2(0f, -1f) : Vector2.Zero);
 
-        //bool unloaded = def.Texture == null || !def.Texture.IsLoaded;
+        sb.Draw(badgeTex, badgePos, null, Color.White, 0f, badgeTex.Size() * 0.5f, badgeScale, SpriteEffects.None, 0f);
+        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, priceText, new Vector2(px + 2f, py), priceColor, 0f, Vector2.Zero, Vector2.One * priceScale);
 
-        //Texture2D tex = unloaded ? TextureAssets.Item[ModContent.ItemType<UnloadedItem>()].Value : def.Texture.Value;
-        //float maxIcon = 44f;
-        //float iconScale = maxIcon / Math.Max(tex.Width, tex.Height);
-
-        //if (!unloaded && def.ItemType == ItemID.SniperRifle)
-        //    iconScale *= 1.25f;
-
-        //if (!unloaded && def.ItemType == ModContent.ItemType<AdventureMirror>())
-        //    iconScale *= 0.75f;
-
-        //sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
-
-        //// Draw price (bottom)
-        //string priceText = def.Price.ToString();
-        //float priceScale = 1.05f;
-
-        //Vector2 pSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
-
-        //float py = d.Y + d.Height - pSize.Y - 6f;
-        //float px = d.X + d.Width * 0.5f - pSize.X * 0.5f + 8f;
-
-        //Color priceColor = (hasSkin || canAfford) ? (Color.White * contentAlpha) : (new Color(148, 39, 39) * contentAlpha);
-
-        //// Draw badge
-        //Vector2 badgeAnchor = new(px - 14f, py + 12f);
-        //Vector2 gemOffset = new(0f, 0f);
-        //Vector2 checkOffset = new(0f, -1f);
-
-        //Texture2D badgeTex = hasSkin ? Ass.Icon_Checkmark.Value : Ass.Icon_Gem.Value;
-        //float badgeScale = hasSkin ? 1.5f : 0.9f;
-
-        //Vector2 offset = hasSkin ? checkOffset : gemOffset;
-        //Vector2 badgePos = badgeAnchor + offset;
-
-        //sb.Draw(badgeTex, badgePos, null, Color.White, 0f, badgeTex.Size() * 0.5f, badgeScale, SpriteEffects.None, 0f);
-
-        //// Draw price
-        //ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, priceText, new Vector2(px+2, py), priceColor, 0f, Vector2.Zero, Vector2.One * priceScale);
-
-        //// Draw tooltip
-        //if (hover)
-        //{
-        //    if (unloaded)
-        //    {
-        //        string msg = string.IsNullOrEmpty(def.Name) ? "Unloaded" : $"Unloaded: {def.Name}";
-        //        UICommon.TooltipMouseText(C(new Color(148, 39, 39), msg));
-        //        return;
-        //    }
-
-        //    bool hasOtherSkin = ProfileStorage.TryGetSelectedSkinForItem(def.ItemType, out SkinDefinition existing) && existing.Id != def.Id;
-
-        //    Color badRed = new(148, 39, 39);
-
-        //    string original = Lang.GetItemNameValue(def.ItemType);
-        //    string display = $"{def.Name} ({original})";
-
-        //    if (hasOtherSkin)
-        //        UICommon.TooltipMouseText(C(badRed, $"You already have a {existing.Name}"));
-        //    else
-        //        DrawItemTooltip(def.ItemType, hasSkin, canAfford);
-        //}
+        if (hover)
+            DrawTooltip(owned, equipped, canAfford);
     }
-
-    private string C(Color c, string text) => $"[c/{c.R:X2}{c.G:X2}{c.B:X2}:{text}]";
 
     protected override void DrawSelf(SpriteBatch sb)
     {
         base.DrawSelf(sb);
+    }
+
+    private void DrawTooltip(bool owned, bool equipped, bool canAfford)
+    {
+        Main.LocalPlayer.mouseInterface = true;
+
+        string original = Lang.GetItemNameValue(_def.ItemType);
+        string display = $"{_def.Name} ({original})";
+        Color badRed = new(148, 39, 39);
+
+        if (equipped)
+        {
+            UICommon.TooltipMouseText(C(Color.LimeGreen, $"Unequip {display}"));
+            return;
+        }
+
+        if (owned)
+        {
+            UICommon.TooltipMouseText(C(Color.LimeGreen, $"Equip {display}"));
+            return;
+        }
+
+        if (canAfford)
+        {
+            UICommon.TooltipMouseText(C(Color.LimeGreen, $"Buy {display}") + "\n" + C(Color.White, $"Price: {_def.Price} gems"));
+            return;
+        }
+
+        UICommon.TooltipMouseText(C(Color.LimeGreen, $"Buy {display}") + "\n" + C(badRed, "Not enough gems"));
+    }
+
+    private string C(Color c, string text)
+    {
+        return $"[c/{c.R:X2}{c.G:X2}{c.B:X2}:{text}]";
     }
 }

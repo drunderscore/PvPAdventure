@@ -2,7 +2,7 @@
 using Terraria;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.MainMenu;
+namespace PvPAdventure.Common.MainMenu.State;
 
 public abstract class ResizableUIState : UIState
 {

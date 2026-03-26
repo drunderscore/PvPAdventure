@@ -2,13 +2,14 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.MainMenu.Achievements.UI;
+using PvPAdventure.Common.MainMenu.Leaderboards;
 using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.PlayerStats;
+using PvPAdventure.Common.MainMenu.PlayServerList;
 using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
-using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
@@ -18,9 +19,9 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.MainMenu;
+namespace PvPAdventure.Common.MainMenu.State;
 
-internal sealed class TPVPAUIState : ResizableUIState
+internal sealed class MainMenuTPVPAUIState : ResizableUIState
 {
     private UIText descriptionText = null!;
 
@@ -79,7 +80,7 @@ internal sealed class TPVPAUIState : ResizableUIState
             Ass.Icon_PlayMenu,
             "Mods.PvPAdventure.MainMenu.Play",
             "Mods.PvPAdventure.MainMenu.PlayDescription",
-            ConnectToPlay,
+            () => OpenState(() => new PlayServerListUIState(this)),
             hAlign: 0f,
             vAlign: 0f
         ));
@@ -123,10 +124,10 @@ internal sealed class TPVPAUIState : ResizableUIState
         ));
 
         buttons.Append(CreateButton(
-            Ass.Icon_More,
-            "Mods.PvPAdventure.MainMenu.More",
-            "Mods.PvPAdventure.MainMenu.MoreDescription",
-            () => { SoundEngine.PlaySound(10); /* TODO: open more */ },
+            Ass.Icon_Leaderboards,
+            "Mods.PvPAdventure.MainMenu.Leaderboards",
+            "Mods.PvPAdventure.MainMenu.LeaderboardsDescription",
+            () => OpenState(() => new LeaderboardsUIState(this)),
             hAlign: 1f,
             vAlign: 1f
         ));
@@ -262,28 +263,28 @@ internal sealed class TPVPAUIState : ResizableUIState
         }
     }
 
-    private void ConnectToPlay()
-    {
-        SoundEngine.PlaySound(10);
+    //private void ConnectToPlay()
+    //{
+    //    SoundEngine.PlaySound(10);
 
-        Main.LoadPlayers();
-        var player = Main.PlayerList.FirstOrDefault();
-        if (player != null) Main.SelectPlayer(player);
+    //    Main.LoadPlayers();
+    //    var player = Main.PlayerList.FirstOrDefault();
+    //    if (player != null) Main.SelectPlayer(player);
 
-        Main.menuMultiplayer = true;
-        Main.menuServer = false;
-        Main.autoPass = true;
+    //    Main.menuMultiplayer = true;
+    //    Main.menuServer = false;
+    //    Main.autoPass = true;
 
-        Netplay.ListenPort = 7777;
-        Main.getIP = "Tpvpa.terraria.sh";
+    //    Netplay.ListenPort = 7777;
+    //    Main.getIP = "Tpvpa.terraria.sh";
 
-        Netplay.SetRemoteIPAsync(Main.getIP, () =>
-        {
-            Main.menuMode = 14;
-            Main.statusText = "Connecting to Tpvpa.terraria.sh:7777";
-            Netplay.StartTcpClient();
-        });
-    }
+    //    Netplay.SetRemoteIPAsync(Main.getIP, () =>
+    //    {
+    //        Main.menuMode = 14;
+    //        Main.statusText = "Connecting to Tpvpa.terraria.sh:7777";
+    //        Netplay.StartTcpClient();
+    //    });
+    //}
 
     private void GoBack()
     {

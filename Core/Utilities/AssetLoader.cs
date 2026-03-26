@@ -70,6 +70,7 @@ public static class Ass
     public static Asset<Texture2D> MenuIconBackground; 
     public static Asset<Texture2D> Icon_PlayMenu;
     public static Asset<Texture2D> Icon_Achievements;
+    public static Asset<Texture2D> Icon_Leaderboards;
     public static Asset<Texture2D> Icon_MatchHistory;
     public static Asset<Texture2D> Icon_More;
     public static Asset<Texture2D> Icon_Shop;
@@ -96,6 +97,12 @@ public static class Ass
 
     // Projectile skins
     public static Asset<Texture2D> InfluxWaverCyberbladeProjectile; // projectile texture
+
+    // Main menu server list
+    public static Asset<Texture2D> Button;
+    public static Asset<Texture2D> Button_Border;
+    public static Asset<Texture2D> Button_Small_Border;
+    public static Asset<Texture2D> Button_Small;
 
     // Unused
     public static Asset<Texture2D> DaedalusStormbowMolten;

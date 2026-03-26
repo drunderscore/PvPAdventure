@@ -1,7 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.MatchHistory.UI;
+using PvPAdventure.Common.MainMenu.State;
+using PvPAdventure.Common.MainMenu.UI;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
@@ -17,7 +18,6 @@ public sealed class ShopUIState : ResizableUIState
 {
     private readonly UIState? previous;
     private ShopUIPanel shopPanel = null!;
-    private readonly List<MatchResult> matches = [];
 
     public ShopUIState(UIState? previous) => this.previous = previous;
 
@@ -72,9 +72,9 @@ public sealed class ShopUIState : ResizableUIState
         //// Load profile gems
         //ProfileStorage.Load();
         //ProfileStorage.RebuildGems(matches);
-
-        //// Refresh panel
-        //shopPanel.Refresh();
+        
+        // Refresh panel
+        shopPanel.Refresh();
     }
 
     public override void Update(GameTime gameTime)

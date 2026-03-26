@@ -1,6 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.MainMenu.MatchHistory.UI;
+using PvPAdventure.Common.MainMenu.State;
+using PvPAdventure.Common.MainMenu.UI;
+using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
@@ -122,7 +125,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
         // Back button
         var backButton = new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), () =>
         {
-            TPVPAUIState.OpenState(() => new TPVPAUIState());
+            MainMenuTPVPAUIState.OpenState(() => new MainMenuTPVPAUIState());
         })
         {
             Top = new StyleDimension(-(160f + 50f), 0f),
@@ -137,27 +140,79 @@ public sealed class MatchHistoryUIState : ResizableUIState
     {
         base.OnActivate();
 
-        // Populate the list of matches
-        //string folder = MatchStorage.GetFolderPath();
-        //matches.Clear();
-        //matches.AddRange(MatchStorage.LoadMatchesFromFolder(folder));
-        //matchList.Clear();
-        //rows.Clear();
-        //for (int i = 0; i < matches.Count; i++)
-        //{
-        //    var row = new UIMatchRow(i, matches[i]);
-        //    row.Width.Set(0f, 1f);
-        //    row.Height.Set(78.29f, 0f);
-        //    row.OnClick += SelectMatchAndRebuild;
+        matches.Clear();
 
-        //    rows.Add(row);
-        //    matchList.Add(row);
-        //}
-        //matchList.Recalculate();
+        // Real load later:
+        // string folder = MatchStorage.GetFolderPath();
+        // matches.AddRange(MatchStorage.LoadMatchesFromFolder(folder));
 
-        //// Select first match by default
-        //if (matches.Count > 0)
-        //    SelectMatchAndRebuild(0);
+        // Example data for now:
+        matches.Add(CreateExampleMatch());
+
+        matchList.Clear();
+        rows.Clear();
+
+        if (matches.Count == 0)
+        {
+            UIElement emptyRow = new();
+            emptyRow.Width.Set(0f, 1f);
+            emptyRow.Height.Set(100, 0f);
+
+            UIText emptyText = new("No matches found! Play an official TPVPA match to see the match results here.", 0.85f)
+            {
+                IsWrapped = true,
+                HAlign = 0.5f,
+                VAlign = 0.5f
+            };
+            emptyText.Width.Set(-24f, 1f);
+            emptyRow.Append(emptyText);
+
+            matchList.Add(emptyRow);
+            matchList.Recalculate();
+            return;
+        }
+
+        for (int i = 0; i < matches.Count; i++)
+        {
+            var row = new UIMatchRow(i, matches[i]);
+            row.Width.Set(0f, 1f);
+            row.Height.Set(78.29f, 0f);
+            row.OnClick += SelectMatchAndRebuild;
+
+            rows.Add(row);
+            matchList.Add(row);
+        }
+
+        matchList.Recalculate();
+        SelectMatchAndRebuild(0);
+    }
+
+    private static MatchResult CreateExampleMatch()
+    {
+        ulong localSteamId = 76561198000000001UL;
+
+        DateTime end = DateTime.Now.AddMinutes(-23);
+        DateTime start = end.AddMinutes(-17).AddSeconds(-42);
+
+        return new MatchResult(
+            start,
+            end,
+            win: true,
+            localSteamId,
+            [
+                new TeamPoints(Team.Red, 230),
+            new TeamPoints(Team.Blue, 180)
+            ],
+            [
+                new PlayerKD(Team.Red, localSteamId, "Erky", 18, 7),
+            new PlayerKD(Team.Red, 76561198000000002UL, "BlueMage", 11, 9),
+            new PlayerKD(Team.Blue, 76561198000000003UL, "TrainHorn", 10, 13),
+            new PlayerKD(Team.Blue, 76561198000000004UL, "VineBoom", 7, 17)
+            ],
+            [
+                new TeamBossCompletion(4, Team.Red),
+            new TeamBossCompletion(13, Team.Blue)
+            ]);
     }
 
     public override void Update(GameTime gameTime)
@@ -168,7 +223,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
         // Exit state when pressing enter
         if (Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
         {
-            TPVPAUIState.OpenState(() => new TPVPAUIState());
+            MainMenuTPVPAUIState.OpenState(() => new MainMenuTPVPAUIState());
         }
     }
 

@@ -1842,13 +1842,13 @@ Mods: {
 			Achievements: TPVPA Achievements
 			Stats: TPVPA Stats
 			Shop: TPVPA Shop
-			More: More coming soon...
+			Leaderboards: TPVPA Leaderboards
 			PlayDescription: Join casual or competitive TPVPA servers.
 			MatchHistoryDescription: Review past matches and results.
 			AchievementsDescription: Track challenges and unlocks.
 			StatsDescription: View player K/D and W/L ratio.
 			ShopDescription: Spend TPVPA gems on rewards.
-			MoreDescription: More TPVPA features coming soon!
+			LeaderboardsDescription: Rise to the top of the ranks!
 		}
 
 		Sandstorm: "[c/FFC864:Desert winds are picking up...]"

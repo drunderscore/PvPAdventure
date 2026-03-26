@@ -1,5 +1,7 @@
-﻿using Microsoft.Xna.Framework;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using PvPAdventure.Common.MainMenu.Profile;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
 using Terraria.ModLoader.UI;
@@ -7,15 +9,12 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.MainMenu.Achievements.UI;
 
-/// <summary>
-/// Base UI displaying a list of achievements. Each achievement is represented by a <see cref="AchievementsUIRow"/>.
-/// </summary>
 internal sealed class AchievementsUIPanel : UIPanel
 {
     private const float ScrollbarWidth = 20f;
 
-    private UIList _list;
-    private UIScrollbar _scrollbar;
+    private UIList _list = null!;
+    private UIScrollbar _scrollbar = null!;
 
     public AchievementsUIPanel()
     {
@@ -39,7 +38,7 @@ internal sealed class AchievementsUIPanel : UIPanel
         {
             Top = new StyleDimension(6f, 0f),
             Width = new StyleDimension(-ScrollbarWidth - 6f, 1f),
-            Height = new StyleDimension(0, 1f),
+            Height = new StyleDimension(0f, 1f),
             ListPadding = 8f,
             ManualSortMethod = _ => { }
         };
@@ -60,27 +59,33 @@ internal sealed class AchievementsUIPanel : UIPanel
 
         _list.SetScrollbar(_scrollbar);
 
-        // Add the completed achievements first, then the incomplete ones, so that completed ones are at the top of the list.
-        var claimed = new System.Collections.Generic.List<AchievementsUIRow>();
-        var completed = new System.Collections.Generic.List<AchievementsUIRow>();
-        var inProgress = new System.Collections.Generic.List<AchievementsUIRow>();
+        var state = MainMenuProfileState.Instance;
 
-        //for (int i = 0; i < Achievements.All.Length; i++)
-        //{
-        //    var (id, def) = Achievements.All[i];
-        //    int target = Math.Max(def.Target, 1);
-        //    int progress = Math.Clamp(ProfileStorage.Achievements.Get(id), 0, target);
+        List<AchievementsUIRow> claimed = [];
+        List<AchievementsUIRow> completed = [];
+        List<AchievementsUIRow> inProgress = [];
 
-        //    if (ProfileStorage.Achievements.IsCollected(id))
-        //        claimed.Add(new AchievementsUIRow(id, def));
-        //    else if (progress >= target)
-        //        completed.Add(new AchievementsUIRow(id, def));
-        //    else
-        //        inProgress.Add(new AchievementsUIRow(id, def));
-        //}
+        foreach (var (id, def) in Achievements.All)
+        {
+            int target = Math.Max(def.Target, 1);
+            int progress = Math.Clamp(state.GetAchievementProgress(id), 0, target);
+            var row = new AchievementsUIRow(id, def);
 
-        //foreach (var row in claimed) _list.Add(row);
-        //foreach (var row in completed) _list.Add(row);
-        //foreach (var row in inProgress) _list.Add(row);
+            if (state.IsAchievementCollected(id))
+                claimed.Add(row);
+            else if (progress >= target)
+                completed.Add(row);
+            else
+                inProgress.Add(row);
+        }
+
+        foreach (var row in claimed)
+            _list.Add(row);
+
+        foreach (var row in completed)
+            _list.Add(row);
+
+        foreach (var row in inProgress)
+            _list.Add(row);
     }
 }

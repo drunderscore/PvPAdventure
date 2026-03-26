@@ -7,7 +7,7 @@ using Terraria.ID;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.MainMenu.MatchHistory.UI;
+namespace PvPAdventure.Common.MainMenu.UI;
 
 public sealed class UIBackButton<TText> : UITextPanel<TText>
 {
