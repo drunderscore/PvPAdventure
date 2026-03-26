@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.MainMenu.Profile;
 using System;
 using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
@@ -66,22 +65,22 @@ internal sealed class AchievementsUIPanel : UIPanel
         var completed = new System.Collections.Generic.List<AchievementsUIRow>();
         var inProgress = new System.Collections.Generic.List<AchievementsUIRow>();
 
-        for (int i = 0; i < Achievements.All.Length; i++)
-        {
-            var (id, def) = Achievements.All[i];
-            int target = Math.Max(def.Target, 1);
-            int progress = Math.Clamp(ProfileStorage.Achievements.Get(id), 0, target);
+        //for (int i = 0; i < Achievements.All.Length; i++)
+        //{
+        //    var (id, def) = Achievements.All[i];
+        //    int target = Math.Max(def.Target, 1);
+        //    int progress = Math.Clamp(ProfileStorage.Achievements.Get(id), 0, target);
 
-            if (ProfileStorage.Achievements.IsCollected(id))
-                claimed.Add(new AchievementsUIRow(id, def));
-            else if (progress >= target)
-                completed.Add(new AchievementsUIRow(id, def));
-            else
-                inProgress.Add(new AchievementsUIRow(id, def));
-        }
+        //    if (ProfileStorage.Achievements.IsCollected(id))
+        //        claimed.Add(new AchievementsUIRow(id, def));
+        //    else if (progress >= target)
+        //        completed.Add(new AchievementsUIRow(id, def));
+        //    else
+        //        inProgress.Add(new AchievementsUIRow(id, def));
+        //}
 
-        foreach (var row in claimed) _list.Add(row);
-        foreach (var row in completed) _list.Add(row);
-        foreach (var row in inProgress) _list.Add(row);
+        //foreach (var row in claimed) _list.Add(row);
+        //foreach (var row in completed) _list.Add(row);
+        //foreach (var row in inProgress) _list.Add(row);
     }
 }

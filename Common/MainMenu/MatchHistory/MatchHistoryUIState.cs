@@ -138,26 +138,26 @@ public sealed class MatchHistoryUIState : ResizableUIState
         base.OnActivate();
 
         // Populate the list of matches
-        string folder = MatchStorage.GetFolderPath();
-        matches.Clear();
-        matches.AddRange(MatchStorage.LoadMatchesFromFolder(folder));
-        matchList.Clear();
-        rows.Clear();
-        for (int i = 0; i < matches.Count; i++)
-        {
-            var row = new UIMatchRow(i, matches[i]);
-            row.Width.Set(0f, 1f);
-            row.Height.Set(78.29f, 0f);
-            row.OnClick += SelectMatchAndRebuild;
+        //string folder = MatchStorage.GetFolderPath();
+        //matches.Clear();
+        //matches.AddRange(MatchStorage.LoadMatchesFromFolder(folder));
+        //matchList.Clear();
+        //rows.Clear();
+        //for (int i = 0; i < matches.Count; i++)
+        //{
+        //    var row = new UIMatchRow(i, matches[i]);
+        //    row.Width.Set(0f, 1f);
+        //    row.Height.Set(78.29f, 0f);
+        //    row.OnClick += SelectMatchAndRebuild;
 
-            rows.Add(row);
-            matchList.Add(row);
-        }
-        matchList.Recalculate();
+        //    rows.Add(row);
+        //    matchList.Add(row);
+        //}
+        //matchList.Recalculate();
 
-        // Select first match by default
-        if (matches.Count > 0)
-            SelectMatchAndRebuild(0);
+        //// Select first match by default
+        //if (matches.Count > 0)
+        //    SelectMatchAndRebuild(0);
     }
 
     public override void Update(GameTime gameTime)

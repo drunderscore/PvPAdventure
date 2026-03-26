@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Core.Utilities;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
@@ -25,7 +24,7 @@ public class GemsPanel : UIPanel
     {
         base.Draw(sb);
 
-        int gems = ProfileStorage.Gems;
+        //int gems = ProfileStorage.Gems;
 
         if (IsMouseHovering)
             UICommon.TooltipMouseText("Gems are awarded for achievements and high placement in TPVPA matches.");
@@ -34,7 +33,8 @@ public class GemsPanel : UIPanel
         Vector2 pos = new(inner.X - 2, inner.Y - 2);
         sb.Draw(Ass.Icon_Gem.Value, pos, null, Color.White, 0f, Vector2.Zero, 1.3f, SpriteEffects.None, 0f);
 
-        string text = $"{gems} Gems";
+        //string text = $"{gems} Gems";
+        string text = $"TODOG Gems";
         float textAreaLeft = pos.X + 50f;
         float textAreaRight = inner.X + inner.Width - 10f;
         float textAreaWidth = System.Math.Max(0f, textAreaRight - textAreaLeft);

@@ -113,7 +113,6 @@ public readonly struct MatchResult
             ["Start"] = Start.ToBinary(),
             ["End"] = End.ToBinary(),
             ["Win"] = Win,
-            // store as long (SteamID64 fits in signed 64-bit range in practice)
             ["LocalSteamId"] = (long)LocalSteamId,
             ["Players"] = players,
             ["TeamPoints"] = teamPoints,

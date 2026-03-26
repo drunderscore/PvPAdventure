@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
@@ -49,44 +48,44 @@ internal sealed class AchievementsUIRow : UIPanel
 
     protected override void DrawSelf(SpriteBatch sb)
     {
-        ProfileStorage.EnsureLoaded();
+        //ProfileStorage.EnsureLoaded();
 
-        CalculatedStyle inner = GetInnerDimensions();
-        float panelWidth = inner.Width - (IconSize + 8f) - CollectWidth;
-        float collectW = CollectWidth - CollectPaddingLeft;
+        //CalculatedStyle inner = GetInnerDimensions();
+        //float panelWidth = inner.Width - (IconSize + 8f) - CollectWidth;
+        //float collectW = CollectWidth - CollectPaddingLeft;
 
-        Vector2 iconPos = new(inner.X, inner.Y);
-        Vector2 textOrigin = iconPos + new Vector2(IconSize + 11f, 0f);
-        Vector2 topPos = textOrigin - Vector2.UnitY * 2f;
-        Vector2 bottomPos = textOrigin + Vector2.UnitY * 24f;
-        Vector2 collectBottomPos = bottomPos + new Vector2(panelWidth + CollectPaddingLeft, 0f);
+        //Vector2 iconPos = new(inner.X, inner.Y);
+        //Vector2 textOrigin = iconPos + new Vector2(IconSize + 11f, 0f);
+        //Vector2 topPos = textOrigin - Vector2.UnitY * 2f;
+        //Vector2 bottomPos = textOrigin + Vector2.UnitY * 24f;
+        //Vector2 collectBottomPos = bottomPos + new Vector2(panelWidth + CollectPaddingLeft, 0f);
 
-        bool rowHover = IsMouseHovering;
+        //bool rowHover = IsMouseHovering;
 
-        ApplyRowColors(rowHover);
-        base.DrawSelf(sb);
+        //ApplyRowColors(rowHover);
+        //base.DrawSelf(sb);
 
-        GetProgress(out int target, out int progress, out bool completed);
-        bool collected = ProfileStorage.Achievements.IsCollected(id);
+        //GetProgress(out int target, out int progress, out bool completed);
+        //bool collected = ProfileStorage.Achievements.IsCollected(id);
 
-        DrawAchievementIcon(sb, iconPos, completed, rowHover);
+        //DrawAchievementIcon(sb, iconPos, completed, rowHover);
 
-        Color panelTint = rowHover ? Color.White : Color.Gray;
-        DrawInner(sb, InnerTop!.Value, topPos, panelWidth + CollectWidth, panelTint, 2, 2, 2);
+        //Color panelTint = rowHover ? Color.White : Color.Gray;
+        //DrawInner(sb, InnerTop!.Value, topPos, panelWidth + CollectWidth, panelTint, 2, 2, 2);
 
-        Color titleColor = completed ? Color.Gold : Color.Silver;
-        Vector2 titlePos = topPos + new Vector2(8f, 2f);
-        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, def.Title, titlePos, titleColor, 0f, Vector2.Zero, new Vector2(0.92f), panelWidth);
+        //Color titleColor = completed ? Color.Gold : Color.Silver;
+        //Vector2 titlePos = topPos + new Vector2(8f, 2f);
+        //ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, def.Title, titlePos, titleColor, 0f, Vector2.Zero, new Vector2(0.92f), panelWidth);
 
-        DrawRewardText(sb, topPos, panelWidth, completed, collected);
+        //DrawRewardText(sb, topPos, panelWidth, completed, collected);
 
-        if (!completed && progress > 0)
-            DrawProgressInfo(sb, topPos, titlePos, panelWidth, rowHover, progress, target, titleColor);
+        //if (!completed && progress > 0)
+        //    DrawProgressInfo(sb, topPos, titlePos, panelWidth, rowHover, progress, target, titleColor);
 
-        DrawInner(sb, InnerBottom!.Value, bottomPos, panelWidth, panelTint, 6, 7, 6);
-        DrawCollectPanel(sb, collectBottomPos, collectW, completed);
+        //DrawInner(sb, InnerBottom!.Value, bottomPos, panelWidth, panelTint, 6, 7, 6);
+        //DrawCollectPanel(sb, collectBottomPos, collectW, completed);
 
-        DrawDescription(sb, bottomPos, panelWidth, completed, rowHover);
+        //DrawDescription(sb, bottomPos, panelWidth, completed, rowHover);
     }
 
     private void ApplyRowColors(bool rowHover)
@@ -102,12 +101,12 @@ internal sealed class AchievementsUIRow : UIPanel
         BorderColor = new Color(13, 20, 44) * 0.8f;
     }
 
-    private void GetProgress(out int target, out int progress, out bool completed)
-    {
-        target = Math.Max(def.Target, 1);
-        progress = Math.Clamp(ProfileStorage.Achievements.Get(id), 0, target);
-        completed = progress >= target;
-    }
+    //private void GetProgress(out int target, out int progress, out bool completed)
+    //{
+        //target = Math.Max(def.Target, 1);
+        //progress = Math.Clamp(ProfileStorage.Achievements.Get(id), 0, target);
+        //completed = progress >= target;
+    //}
 
     private void DrawAchievementIcon(SpriteBatch sb, Vector2 iconPos, bool completed, bool rowHover)
     {
@@ -204,44 +203,44 @@ internal sealed class AchievementsUIRow : UIPanel
 
     private void DrawCollectPanel(SpriteBatch sb, Vector2 pos, float width, bool completed)
     {
-        Texture2D tex = InnerBottom!.Value;
-        Texture2D gemTex = Ass.Icon_Gem.Value;
-        Texture2D checkmarkTex = Ass.Icon_Checkmark.Value;
+        //Texture2D tex = InnerBottom!.Value;
+        //Texture2D gemTex = Ass.Icon_Gem.Value;
+        //Texture2D checkmarkTex = Ass.Icon_Checkmark.Value;
 
-        Rectangle rect = new((int)pos.X, (int)pos.Y, (int)width, tex.Height);
-        bool hover = rect.Contains(Main.MouseScreen.ToPoint());
+        //Rectangle rect = new((int)pos.X, (int)pos.Y, (int)width, tex.Height);
+        //bool hover = rect.Contains(Main.MouseScreen.ToPoint());
 
-        bool collected = ProfileStorage.Achievements.IsCollected(id);
-        bool canCollect = completed && !collected;
+        //bool collected = ProfileStorage.Achievements.IsCollected(id);
+        //bool canCollect = completed && !collected;
 
-        Color panelColor = Color.Gray;
-        if (!completed)
-            panelColor = new Color(180, 120, 80);
+        //Color panelColor = Color.Gray;
+        //if (!completed)
+        //    panelColor = new Color(180, 120, 80);
 
-        if (hover && !collected)
-            panelColor = Color.White;
+        //if (hover && !collected)
+        //    panelColor = Color.White;
 
-        DrawInner(sb, tex, pos, width, panelColor, 6, 7, 6);
+        //DrawInner(sb, tex, pos, width, panelColor, 6, 7, 6);
 
-        Vector2 gemPos = new(pos.X + 8, pos.Y + 6f);
-        if (collected)
-            sb.Draw(checkmarkTex, gemPos + new Vector2(-1, -3), null, Color.White, 0f, Vector2.Zero, 2.0f, SpriteEffects.None, 0f);
-        else
-            sb.Draw(gemTex, gemPos, null, Color.White, 0f, Vector2.Zero, 1.25f, SpriteEffects.None, 0f);
+        //Vector2 gemPos = new(pos.X + 8, pos.Y + 6f);
+        //if (collected)
+        //    sb.Draw(checkmarkTex, gemPos + new Vector2(-1, -3), null, Color.White, 0f, Vector2.Zero, 2.0f, SpriteEffects.None, 0f);
+        //else
+        //    sb.Draw(gemTex, gemPos, null, Color.White, 0f, Vector2.Zero, 1.25f, SpriteEffects.None, 0f);
 
-        Color textColor = Color.DarkGray;
-        if (completed && canCollect)
-            textColor = Color.Gold;
+        //Color textColor = Color.DarkGray;
+        //if (completed && canCollect)
+        //    textColor = Color.Gold;
 
-        string label = collected ? "Claimed" : "Claim";
-        Vector2 textPos = new(gemPos.X + gemTex.Width + 18f, pos.Y + 9);
-        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, label, textPos, textColor, 0f, Vector2.Zero, Vector2.One, 0);
+        //string label = collected ? "Claimed" : "Claim";
+        //Vector2 textPos = new(gemPos.X + gemTex.Width + 18f, pos.Y + 9);
+        //ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, label, textPos, textColor, 0f, Vector2.Zero, Vector2.One, 0);
 
-        if (canCollect && hover && Main.mouseLeft && Main.mouseLeftRelease)
-        {
-            SoundEngine.PlaySound(SoundID.Coins);
-            ProfileStorage.TryCollect(id);
-        }
+        //if (canCollect && hover && Main.mouseLeft && Main.mouseLeftRelease)
+        //{
+        //    SoundEngine.PlaySound(SoundID.Coins);
+        //    ProfileStorage.TryCollect(id);
+        //}
     }
 
     private void DrawProgressBar(SpriteBatch spriteBatch, float progress, Vector2 spot, float width = 169f, Color backColor = default, Color fillingColor = default, Color blipColor = default)

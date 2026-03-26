@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.MatchHistory.UI;
-using PvPAdventure.Common.MainMenu.Profile;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
@@ -106,13 +105,13 @@ public sealed class AchievementsUIState : ResizableUIState
     {
         base.OnActivate();
 
-        matches.Clear();
-        matches.AddRange(MatchStorage.LoadMatchesFromFolder(MatchStorage.GetFolderPath()));
+        //matches.Clear();
+        //matches.AddRange(MatchStorage.LoadMatchesFromFolder(MatchStorage.GetFolderPath()));
 
-        ProfileStorage.Load();
-        ProfileStorage.RebuildAchievements(matches);
+        //ProfileStorage.Load();
+        //ProfileStorage.RebuildAchievements(matches);
 
-        achievementsPanel.Refresh();
+        //achievementsPanel.Refresh();
     }
 
     public override void Update(GameTime gameTime)
@@ -128,15 +127,15 @@ public sealed class AchievementsUIState : ResizableUIState
     {
         SoundEngine.PlaySound(SoundID.Grab);
 
-        ProfileStorage.EnsureLoaded();
+        //ProfileStorage.EnsureLoaded();
 
-        ProfileStorage.Achievements = new AchievementProgress();
-        ProfileStorage.Save();
+        //ProfileStorage.Achievements = new AchievementProgress();
+        //ProfileStorage.Save();
 
-        ProfileStorage.RebuildAchievements(matches);
-        ProfileStorage.RebuildGems(matches);
+        //ProfileStorage.RebuildAchievements(matches);
+        //ProfileStorage.RebuildGems(matches);
 
-        achievementsPanel.Refresh();
+        //achievementsPanel.Refresh();
     }
 
     private void GoBack()

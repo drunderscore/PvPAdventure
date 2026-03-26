@@ -75,14 +75,14 @@ public sealed class PlayerStatsUIState : ResizableUIState
     {
         base.OnActivate();
 
-        matches.Clear();
-        matches.AddRange(MatchStorage.LoadMatchesFromFolder(MatchStorage.GetFolderPath()));
+        //matches.Clear();
+        //matches.AddRange(MatchStorage.LoadMatchesFromFolder(MatchStorage.GetFolderPath()));
 
-        ulong steamId;
-        try { steamId = SteamUser.GetSteamID().m_SteamID; }
-        catch { steamId = 0; }
+        //ulong steamId;
+        //try { steamId = SteamUser.GetSteamID().m_SteamID; }
+        //catch { steamId = 0; }
 
-        statsPanel.Update(matches, steamId);
+        //statsPanel.Update(matches, steamId);
     }
 
     public override void Update(GameTime gameTime)
