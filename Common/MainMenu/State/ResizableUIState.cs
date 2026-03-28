@@ -1,14 +1,23 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Terraria;
+using Terraria.Audio;
+using Terraria.ID;
+using Terraria.ModLoader;
 using Terraria.UI;
 
 namespace PvPAdventure.Common.MainMenu.State;
 
 public abstract class ResizableUIState : UIState
 {
-    private int _lastW;
-    private int _lastH;
-    private float _lastScale;
+    private int lastW;
+    private int lastH;
+    private float lastScale;
+
+    protected virtual UIState CreatePreviousState()
+    {
+        return new MainMenuTPVPABrowserUIState();
+    }
 
     public override void OnActivate()
     {
@@ -22,7 +31,10 @@ public abstract class ResizableUIState : UIState
     {
         base.Update(gameTime);
 
-        if (_lastW == Main.screenWidth && _lastH == Main.screenHeight && _lastScale == Main.UIScale)
+        if (Main.keyState.IsKeyDown(Keys.Escape) && Main.oldKeyState.IsKeyUp(Keys.Escape))
+            GoBackToTPVPABrowserState();
+
+        if (lastW == Main.screenWidth && lastH == Main.screenHeight && lastScale == Main.UIScale)
             return;
 
         Capture();
@@ -30,12 +42,25 @@ public abstract class ResizableUIState : UIState
         OnResized();
     }
 
-    private void Capture()
+    protected void GoBackToTPVPABrowserState()
     {
-        _lastW = Main.screenWidth;
-        _lastH = Main.screenHeight;
-        _lastScale = Main.UIScale;
+        SoundEngine.PlaySound(SoundID.MenuClose);
+
+        UIState previous = CreatePreviousState();
+        previous.Activate();
+
+        MainMenuSystem menu = ModContent.GetInstance<MainMenuSystem>();
+        menu.ui?.SetState(previous);
     }
 
-    protected virtual void OnResized() { }
+    private void Capture()
+    {
+        lastW = Main.screenWidth;
+        lastH = Main.screenHeight;
+        lastScale = Main.UIScale;
+    }
+
+    protected virtual void OnResized()
+    {
+    }
 }

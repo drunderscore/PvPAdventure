@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.MainMenu.Shop;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
@@ -23,7 +24,7 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
     {
         Item item = drawInfo.drawPlayer.HeldItem;
 
-        if (item is null || item.IsAir || !SkinRegistry.TryGetSkin(item, out SkinDefinition skin))
+        if (item is null || item.IsAir || !SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
         {
             orig(ref drawInfo);
             return;
@@ -47,7 +48,7 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
 
     public override void PostUpdate(Item item)
     {
-        if (!SkinRegistry.TryGetSkin(item, out SkinDefinition skin))
+        if (!SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
             return;
 
         item.SetNameOverride($"{skin.Name} ({Lang.GetItemNameValue(item.type)})");
@@ -72,7 +73,7 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
     public override bool PreDrawInInventory(Item item, SpriteBatch sb, Vector2 position, Rectangle frame,
         Color drawColor, Color itemColor, Vector2 origin, float scale)
     {
-        if (!SkinRegistry.TryGetSkin(item, out SkinDefinition skin))
+        if (!SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
             return true;
 
         Texture2D vanilla = TextureAssets.Item[item.type].Value;
@@ -91,7 +92,7 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
     public override bool PreDrawInWorld(Item item, SpriteBatch sb, Color lightColor, Color alphaColor,
         ref float rotation, ref float scale, int whoAmI)
     {
-        if (!SkinRegistry.TryGetSkin(item, out SkinDefinition skin))
+        if (!SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
             return true;
 
         Texture2D vanilla = TextureAssets.Item[item.type].Value;
@@ -115,7 +116,7 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
 
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
     {
-        if (!SkinRegistry.TryGetSkin(item, out SkinDefinition skin))
+        if (!SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
             return;
 
         for (int i = 0; i < tooltips.Count; i++)

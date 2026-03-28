@@ -20,10 +20,11 @@ namespace PvPAdventure.Common.MainMenu.PlayerStats;
 
 public sealed class PlayerStatsUIState : ResizableUIState
 {
-    private readonly UIState? previous;
     private PlayerStatsUIPanel statsPanel = null!;
     private readonly List<MatchResult> matches = [];
 
+    // Navigation
+    private readonly UIState? previous;
     public PlayerStatsUIState(UIState? previous) => this.previous = previous;
 
     public override void OnInitialize()
@@ -63,7 +64,7 @@ public sealed class PlayerStatsUIState : ResizableUIState
         };
         backPanel.Append(statsPanel);
 
-        root.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), GoBack)
+        root.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), GoBackToTPVPABrowserState)
         {
             Top = new StyleDimension(-(160f + 50f), 0f),
             VAlign = 1f,
@@ -91,15 +92,5 @@ public sealed class PlayerStatsUIState : ResizableUIState
     {
         base.Update(gameTime);
         UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
-
-        if (Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
-            GoBack();
-    }
-
-    private void GoBack()
-    {
-        SoundEngine.PlaySound(SoundID.MenuClose);
-        var menu = ModContent.GetInstance<MainMenuSystem>();
-        menu.ui?.SetState(previous);
     }
 }

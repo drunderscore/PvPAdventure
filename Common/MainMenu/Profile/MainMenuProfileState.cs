@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using PvPAdventure.Common.MainMenu.Achievements;
+using PvPAdventure.Common.MainMenu.Shop;
 using PvPAdventure.Common.Skins;
 
 namespace PvPAdventure.Common.MainMenu.Profile;
@@ -11,8 +12,9 @@ internal sealed class MainMenuProfileState
 
     private readonly Dictionary<string, int> _achievementProgress = [];
     private readonly HashSet<string> _collectedAchievements = [];
-    private readonly HashSet<string> _ownedSkins = [];
-    private readonly Dictionary<int, string> _equippedSkinsByItemType = [];
+
+    private readonly HashSet<SkinIdentity> _ownedSkins = [];
+    private readonly Dictionary<int, SkinIdentity> _equippedSkinsByItemType = [];
 
     public int Gems { get; private set; }
 
@@ -69,51 +71,51 @@ internal sealed class MainMenuProfileState
         return true;
     }
 
-    public void SetOwnedSkins(IEnumerable<string> skinIds)
+    public void SetOwnedSkins(IEnumerable<SkinIdentity> identities)
     {
         _ownedSkins.Clear();
 
-        foreach (string skinId in skinIds)
-            _ownedSkins.Add(skinId);
+        foreach (SkinIdentity identity in identities)
+            _ownedSkins.Add(identity);
     }
 
-    public void SetEquippedSkin(int itemType, string? skinId)
+    public void SetEquippedSkin(int itemType, SkinIdentity identity)
     {
-        if (string.IsNullOrEmpty(skinId))
+        if (!identity.IsValid)
         {
             _equippedSkinsByItemType.Remove(itemType);
             return;
         }
 
-        _equippedSkinsByItemType[itemType] = skinId;
+        _equippedSkinsByItemType[itemType] = identity;
     }
 
-    public bool HasSkin(string skinId)
+    public bool HasSkin(SkinIdentity identity)
     {
-        return _ownedSkins.Contains(skinId);
+        return _ownedSkins.Contains(identity);
     }
 
-    public bool HasSkin(SkinDefinition def)
+    public bool HasSkin(ProductDefinition def)
     {
-        return HasSkin(def.Id);
+        return HasSkin(def.Identity);
     }
 
-    public bool CanAfford(SkinDefinition def)
+    public bool CanAfford(ProductDefinition def)
     {
         return Gems >= def.Price;
     }
 
-    public bool IsEquipped(SkinDefinition def)
+    public bool IsEquipped(ProductDefinition def)
     {
-        return _equippedSkinsByItemType.TryGetValue(def.ItemType, out string selectedSkinId) && selectedSkinId == def.Id;
+        return _equippedSkinsByItemType.TryGetValue(def.ItemType, out SkinIdentity selectedIdentity) && selectedIdentity == def.Identity;
     }
 
-    public bool TryGetSelectedSkinForItem(int itemType, out string skinId)
+    public bool TryGetSelectedSkinForItem(int itemType, out SkinIdentity identity)
     {
-        return _equippedSkinsByItemType.TryGetValue(itemType, out skinId!);
+        return _equippedSkinsByItemType.TryGetValue(itemType, out identity);
     }
 
-    public SkinToggleResult ToggleSkin(SkinDefinition def)
+    public SkinToggleResult ToggleSkin(ProductDefinition def)
     {
         if (!HasSkin(def))
         {
@@ -121,8 +123,8 @@ internal sealed class MainMenuProfileState
                 return SkinToggleResult.NotAffordable;
 
             Gems -= def.Price;
-            _ownedSkins.Add(def.Id);
-            _equippedSkinsByItemType[def.ItemType] = def.Id;
+            _ownedSkins.Add(def.Identity);
+            _equippedSkinsByItemType[def.ItemType] = def.Identity;
             return SkinToggleResult.Bought;
         }
 
@@ -132,7 +134,7 @@ internal sealed class MainMenuProfileState
             return SkinToggleResult.Unequipped;
         }
 
-        _equippedSkinsByItemType[def.ItemType] = def.Id;
+        _equippedSkinsByItemType[def.ItemType] = def.Identity;
         return SkinToggleResult.Equipped;
     }
 }

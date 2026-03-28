@@ -1,17 +1,18 @@
-﻿using System.IO;
+﻿using PvPAdventure.Common.MainMenu.Shop;
+using System.IO;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-namespace PvPAdventure.Common.Skins;
+namespace PvPAdventure.Common.Skins.SkinProjectiles;
 
 internal sealed class SkinProjectileData : GlobalProjectile
 {
     public override bool InstancePerEntity => true;
 
-    public string SkinId = "";
+    public SkinIdentity Identity = default;
 
     public override void OnSpawn(Projectile projectile, IEntitySource source)
     {
@@ -28,26 +29,29 @@ internal sealed class SkinProjectileData : GlobalProjectile
         if (!item.TryGetGlobalItem(out SkinItemData itemData))
             return;
 
-        if (string.IsNullOrEmpty(itemData.SkinId))
+        if (!itemData.HasSkin)
             return;
 
-        SkinId = itemData.SkinId;
+        Identity = itemData.Identity;
 
         if (Main.netMode == NetmodeID.Server)
             projectile.netUpdate = true;
 
-        Log.Debug($"[SkinProj] item={item.type} proj={projectile.type} frameCount={Main.projFrames[projectile.type]} skin={SkinId}");
+        Log.Debug($"[SkinProj] item={item.type} proj={projectile.type} frameCount={Main.projFrames[projectile.type]} skin={Identity.Prototype}:{Identity.Name}");
     }
 
     public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter writer)
     {
         writer.Write((byte)1);
 
-        bool has = !string.IsNullOrEmpty(SkinId);
+        bool has = Identity.IsValid;
         writer.Write(has);
 
         if (has)
-            writer.Write(SkinId);
+        {
+            writer.Write(Identity.Prototype);
+            writer.Write(Identity.Name);
+        }
     }
 
     public override void ReceiveExtraAI(Projectile projectile, BitReader bitReader, BinaryReader reader)
@@ -55,6 +59,6 @@ internal sealed class SkinProjectileData : GlobalProjectile
         _ = reader.ReadByte();
 
         bool has = reader.ReadBoolean();
-        SkinId = has ? reader.ReadString() : "";
+        Identity = has ? new SkinIdentity(reader.ReadString(), reader.ReadString()) : default;
     }
 }

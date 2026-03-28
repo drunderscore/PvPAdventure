@@ -162,7 +162,7 @@ public class MainMenuSystem : ModSystem
                 Main.menuMode = 888;
 
                 // ------------- ENTER THE STATE -----------------
-                var state = new MainMenuTPVPAUIState();
+                var state = new MainMenuTPVPABrowserUIState();
                 state.Activate();
                 ui?.SetState(state);
             }

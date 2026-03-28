@@ -174,7 +174,7 @@ public class PlayServerListUIState : ResizableUIState
         var backButton = CreateNavigationButton("Back", new Color(63, 82, 151) * 0.8f, new Color(73, 94, 171));
         backButton.Width.Set(-10f, 0.5f);
         backButton.HAlign = 0f;
-        backButton.OnLeftClick += (_, _) => GoBack();
+        backButton.OnLeftClick += (_, _) => GoBackToTPVPABrowserState();
         root.Append(backButton);
 
         var joinButton = CreateNavigationButton("Join", new Color(5, 140, 8), new Color(10, 145, 15));
@@ -446,15 +446,5 @@ public class PlayServerListUIState : ResizableUIState
             warningPromptTimer--;
             Main.instance.MouseText("Select a server first!");
         }
-
-        if (Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
-            GoBack();
-    }
-
-    private void GoBack()
-    {
-        SoundEngine.PlaySound(SoundID.MenuClose);
-        var menu = ModContent.GetInstance<MainMenuSystem>();
-        menu.ui?.SetState(previous);
     }
 }

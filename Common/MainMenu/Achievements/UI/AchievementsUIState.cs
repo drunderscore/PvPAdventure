@@ -68,7 +68,7 @@ public sealed class AchievementsUIState : ResizableUIState
         float gap = 8f;
         float resetW = 110f;
 
-        btnRow.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), GoBack)
+        btnRow.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), GoBackToTPVPABrowserState)
         {
             Width = StyleDimension.FromPixelsAndPercent(-(resetW + gap), 1f),
             Height = StyleDimension.Fill
@@ -120,9 +120,6 @@ public sealed class AchievementsUIState : ResizableUIState
     {
         base.Update(gameTime);
         UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
-
-        if (Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
-            GoBack();
     }
 
     private void ResetAchievements()
@@ -138,13 +135,5 @@ public sealed class AchievementsUIState : ResizableUIState
         //ProfileStorage.RebuildGems(matches);
 
         //achievementsPanel.Refresh();
-    }
-
-    private void GoBack()
-    {
-        SoundEngine.PlaySound(SoundID.MenuClose);
-
-        var menu = ModContent.GetInstance<MainMenuSystem>();
-        menu.ui?.SetState(previous);
     }
 }

@@ -8,7 +8,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.Utilities;
 
-namespace PvPAdventure.Common.Skins;
+namespace PvPAdventure.Common.Skins.SkinProjectiles;
 
 [Autoload(Side = ModSide.Client)]
 internal sealed class SkinProjectileDrawHook : ModSystem

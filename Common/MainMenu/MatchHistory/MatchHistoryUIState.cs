@@ -11,6 +11,7 @@ using Terraria.Enums;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.Localization;
+using Terraria.ModLoader;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 using Terraria.UI.Gamepad;
@@ -33,6 +34,10 @@ public sealed class MatchHistoryUIState : ResizableUIState
     private readonly List<UIMatchRow> rows = [];
 
     private int selectedIndex = -1; // Currently selected match
+
+    // Navigation
+    private readonly UIState? previous;
+    public MatchHistoryUIState(UIState? previous) => this.previous = previous;
 
     public override void OnInitialize()
     {
@@ -125,7 +130,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
         // Back button
         var backButton = new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), () =>
         {
-            MainMenuTPVPAUIState.OpenState(() => new MainMenuTPVPAUIState());
+            MainMenuTPVPABrowserUIState.OpenState(() => new MainMenuTPVPABrowserUIState());
         })
         {
             Top = new StyleDimension(-(160f + 50f), 0f),
@@ -218,13 +223,6 @@ public sealed class MatchHistoryUIState : ResizableUIState
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-        UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
-
-        // Exit state when pressing enter
-        if (Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
-        {
-            MainMenuTPVPAUIState.OpenState(() => new MainMenuTPVPAUIState());
-        }
     }
 
     private void SelectMatchAndRebuild(int index)

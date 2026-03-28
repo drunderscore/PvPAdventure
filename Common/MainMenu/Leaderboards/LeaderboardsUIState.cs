@@ -183,7 +183,7 @@ public class LeaderboardsUIState : ResizableUIState
 
         UITextPanel<string> backButton = CreateNavigationButton(Language.GetTextValue("UI.Back"), new Color(63, 82, 151) * 0.8f, new Color(73, 94, 171));
         backButton.Width.Set(0f, 1f);
-        backButton.OnLeftClick += (_, _) => GoBack();
+        backButton.OnLeftClick += (_, _) => GoBackToTPVPABrowserState();
         root.Append(backButton);
 
         Append(root);
@@ -355,15 +355,5 @@ public class LeaderboardsUIState : ResizableUIState
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-
-        if (Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
-            GoBack();
-    }
-
-    private void GoBack()
-    {
-        SoundEngine.PlaySound(SoundID.MenuClose);
-        var menu = ModContent.GetInstance<MainMenuSystem>();
-        menu.ui?.SetState(previous);
     }
 }

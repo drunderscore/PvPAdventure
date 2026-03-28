@@ -1,14 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.MainMenu.Profile;
-using PvPAdventure.Common.Skins;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.ModLoader;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 using Terraria.UI.Chat;
@@ -21,12 +22,12 @@ internal sealed class SkinUICard : UIElement
     private static Asset<Texture2D>? Border;
     private static Asset<Texture2D>? Highlight;
 
-    private readonly SkinDefinition _def;
+    private readonly ProductDefinition _def;
     private readonly UISlicedImage _back;
     private readonly UISlicedImage _highlight;
     private readonly UISlicedImage _border;
 
-    public SkinUICard(SkinDefinition def, float cardW)
+    public SkinUICard(ProductDefinition def, float cardW)
     {
         _def = def;
 
@@ -80,17 +81,32 @@ internal sealed class SkinUICard : UIElement
     {
         base.LeftClick(evt);
 
+        // This updates the UI and local state immediately
         SkinToggleResult result = MainMenuProfileState.Instance.ToggleSkin(_def);
+
+        // Grab the Coordinator instance (adjust this to however you access your ModSystem)
+        var coordinator = ModContent.GetInstance<Coordinator>();
 
         switch (result)
         {
             case SkinToggleResult.Bought:
                 SoundEngine.PlaySound(SoundID.Coins);
+                // Fire and forget the purchase request
+                _ = Task.Run(() => coordinator.PurchaseProductAsync(_def.Identity));
+                // Also tell the backend we equipped it right after buying!
+                _ = Task.Run(() => coordinator.UpdateEquipmentAsync(_def.Identity.Prototype, _def.Identity.Name));
                 break;
 
             case SkinToggleResult.Equipped:
+                SoundEngine.PlaySound(SoundID.Unlock);
+                // Fire and forget the equip request
+                _ = Task.Run(() => coordinator.UpdateEquipmentAsync(_def.Identity.Prototype, _def.Identity.Name));
+                break;
+
             case SkinToggleResult.Unequipped:
                 SoundEngine.PlaySound(SoundID.Unlock);
+                // Send null for the name to unequip it
+                _ = Task.Run(() => coordinator.UpdateEquipmentAsync(_def.Identity.Prototype, null));
                 break;
 
             case SkinToggleResult.NotAffordable:

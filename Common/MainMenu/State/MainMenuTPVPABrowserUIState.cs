@@ -21,7 +21,7 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.MainMenu.State;
 
-internal sealed class MainMenuTPVPAUIState : ResizableUIState
+internal sealed class MainMenuTPVPABrowserUIState : UIState
 {
     private UIText descriptionText = null!;
 
@@ -67,7 +67,7 @@ internal sealed class MainMenuTPVPAUIState : ResizableUIState
             SetPanelColors(evt.Target, new Color(73, 94, 171), Colors.FancyUIFatButtonMouseOver);
         };
         back.OnMouseOut += (evt, _) => SetPanelColors(evt.Target, new Color(63, 82, 151) * 0.8f, Color.Black);
-        back.OnLeftClick += (_, _) => GoBack();
+        back.OnLeftClick += (_, _) => GoBackToMainMenu();
         root.Append(back);
 
         var buttons = new UIElement();
@@ -89,7 +89,7 @@ internal sealed class MainMenuTPVPAUIState : ResizableUIState
             Ass.Icon_MatchHistory,
             "Mods.PvPAdventure.MainMenu.MatchHistory",
             "Mods.PvPAdventure.MainMenu.MatchHistoryDescription",
-            () => OpenState(() => new MatchHistoryUIState()),
+            () => OpenState(() => new MatchHistoryUIState(this)),
             hAlign: 1f,
             vAlign: 0f
         ));
@@ -259,7 +259,7 @@ internal sealed class MainMenuTPVPAUIState : ResizableUIState
         if (Main.keyState.IsKeyDown(Keys.Escape) &&
             Main.oldKeyState.IsKeyUp(Keys.Escape))
         {
-            GoBack();
+            GoBackToMainMenu();
         }
     }
 
@@ -286,15 +286,16 @@ internal sealed class MainMenuTPVPAUIState : ResizableUIState
     //    });
     //}
 
-    private void GoBack()
+    private void GoBackToMainMenu()
     {
         SoundEngine.PlaySound(11);
         Main.menuMode = 0;
     }
 
-    public static void OpenState(Func<UIState> create)
+    public static void OpenState(Func<UIState> create, bool playSound=true)
     {
-        SoundEngine.PlaySound(SoundID.MenuOpen);
+        if (playSound)
+            SoundEngine.PlaySound(SoundID.MenuOpen);
 
         var menu = ModContent.GetInstance<MainMenuSystem>();
         var state = create();

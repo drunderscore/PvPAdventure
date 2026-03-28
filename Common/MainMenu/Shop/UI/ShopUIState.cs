@@ -53,7 +53,7 @@ public sealed class ShopUIState : ResizableUIState
         shopPanel.PaddingLeft = 4;
         baseElement.Append(shopPanel);
 
-        root.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), GoBack)
+        root.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), GoBackToTPVPABrowserState)
         {
             Top = new StyleDimension(-(160f + 50f), 0f),
             VAlign = 1f,
@@ -81,15 +81,5 @@ public sealed class ShopUIState : ResizableUIState
     {
         base.Update(gameTime);
         UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
-
-        if (Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
-            GoBack();
-    }
-
-    private void GoBack()
-    {
-        SoundEngine.PlaySound(SoundID.MenuClose);
-        var menu = ModContent.GetInstance<MainMenuSystem>();
-        menu.ui?.SetState(previous);
     }
 }
