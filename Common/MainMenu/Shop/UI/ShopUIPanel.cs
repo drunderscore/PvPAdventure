@@ -100,7 +100,25 @@ internal sealed class ShopUIPanel : UIPanel
         list.Clear();
         scrollbar.ViewPosition = 0f;
 
+        // Debug: Clear all items
+#if DEBUG
+        //Products.Clear();
+#endif
+
         IReadOnlyList<ProductDefinition> products = Products.All;
+
+        if (products.Count == 0)
+        {
+            list.Add(new UIText("No shop items available.\nDebug: Is the TPVPA API running?", 0.9f)
+            {
+                HAlign = 0.5f,
+                Top = new StyleDimension(24f, 0f),
+                TextColor = Color.LightGray
+            });
+
+            list.Recalculate();
+            return;
+        }
 
         float cardW = 120f;
         float cardH = 120f;

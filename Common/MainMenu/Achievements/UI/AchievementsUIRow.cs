@@ -244,7 +244,7 @@ internal sealed class AchievementsUIRow : UIPanel
     {
         Texture2D tex = InnerBottom!.Value;
         Texture2D gemTex = Ass.Icon_Gem.Value;
-        Texture2D checkmarkTex = Ass.Icon_Checkmark.Value;
+        Texture2D checkmarkTex = Ass.Icon_CheckmarkGreen.Value;
 
         bool collected = MainMenuProfileState.Instance.IsAchievementCollected(_id);
         bool canCollect = completed && !collected;

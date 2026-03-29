@@ -147,29 +147,24 @@ public sealed class MatchHistoryUIState : ResizableUIState
         // string folder = MatchStorage.GetFolderPath();
         // matches.AddRange(MatchStorage.LoadMatchesFromFolder(folder));
 
-        // Example data for now:
-        matches.Add(CreateExampleMatch());
-
         matchList.Clear();
         rows.Clear();
+        detailsPanel.RemoveAllChildren();
 
         if (matches.Count == 0)
         {
-            UIElement emptyRow = new();
-            emptyRow.Width.Set(0f, 1f);
-            emptyRow.Height.Set(100, 0f);
-
-            UIText emptyText = new("No matches found! Play an official TPVPA match to see the match results here.", 0.85f)
+            UIText emptyText = new("No matches available. \nPlay an official TPVPA match to see the match results here.", 1.0f)
             {
                 IsWrapped = true,
-                HAlign = 0.5f,
-                VAlign = 0.5f
+                HAlign = 0f,
+                VAlign = 0f,
+                Left = new StyleDimension(16f, 0f),
+                Top = new StyleDimension(16f, 0f)
             };
-            emptyText.Width.Set(-24f, 1f);
-            emptyRow.Append(emptyText);
+            emptyText.Width.Set(-32f, 1f);
 
-            matchList.Add(emptyRow);
-            matchList.Recalculate();
+            detailsPanel.Append(emptyText);
+            detailsPanel.Recalculate();
             return;
         }
 

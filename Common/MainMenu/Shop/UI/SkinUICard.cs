@@ -25,6 +25,7 @@ internal sealed class SkinUICard : UIElement
     private readonly UISlicedImage _back;
     private readonly UISlicedImage _highlight;
     private readonly UISlicedImage _border;
+    private static Asset<Texture2D>? EquippedFill;
 
     public SkinUICard(ProductDefinition def, float cardW)
     {
@@ -34,6 +35,8 @@ internal sealed class SkinUICard : UIElement
         Border ??= Main.Assets.Request<Texture2D>("Images/UI/CharCreation/SmallPanelBorder");
         Highlight ??= Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanelHighlight");
 
+        EquippedFill ??= Main.Assets.Request<Texture2D>("Images/MagicPixel");
+
         Width = StyleDimension.FromPixels(cardW);
 
         _back = new UISlicedImage(Back)
@@ -42,12 +45,12 @@ internal sealed class SkinUICard : UIElement
             Height = StyleDimension.Fill,
             IgnoresMouseInteraction = true
         };
-        _highlight = new UISlicedImage(Highlight)
-        {
-            Width = StyleDimension.Fill,
-            Height = StyleDimension.Fill,
-            IgnoresMouseInteraction = true
-        };
+        //_highlight = new UISlicedImage(Highlight)
+        //{
+        //    Width = StyleDimension.Fill,
+        //    Height = StyleDimension.Fill,
+        //    IgnoresMouseInteraction = true
+        //};
         _border = new UISlicedImage(Border)
         {
             Width = StyleDimension.Fill,
@@ -56,17 +59,18 @@ internal sealed class SkinUICard : UIElement
         };
 
         _back.SetSliceDepths(10);
-        _highlight.SetSliceDepths(10);
         _border.SetSliceDepths(10);
 
-        float inset = 2f;
-        _highlight.Left = StyleDimension.FromPixels(inset);
-        _highlight.Top = StyleDimension.FromPixels(inset);
-        _highlight.Width = StyleDimension.FromPixelsAndPercent(-inset * 2f, 1f);
-        _highlight.Height = StyleDimension.FromPixelsAndPercent(-inset * 2f, 1f);
+
+        //float inset = 2f;
+        //_highlight.SetSliceDepths(10);
+        //_highlight.Left = StyleDimension.FromPixels(inset);
+        //_highlight.Top = StyleDimension.FromPixels(inset);
+        //_highlight.Width = StyleDimension.FromPixelsAndPercent(-inset * 2f, 1f);
+        //_highlight.Height = StyleDimension.FromPixelsAndPercent(-inset * 2f, 1f);
+        //Append(_highlight);
 
         Append(_back);
-        Append(_highlight);
         Append(_border);
     }
 
@@ -138,14 +142,25 @@ internal sealed class SkinUICard : UIElement
         bool canAfford = state.CanAfford(_def);
         bool hover = IsMouseHovering;
 
-        _back.Color = owned
-            ? new Color(100, 255, 30) * (hover ? 0.9f : 0.75f)
-            : new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
+        _back.Color = equipped
+            ? new Color(80, 255, 80) * (hover ? 1f : 0.95f)
+            : owned
+                ? new Color(60, 120, 60) * (hover ? 0.75f : 0.6f)
+                : new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
 
-        _highlight.Color = equipped ? Color.White * 0.3f : Color.Transparent;
         _border.Color = hover || equipped ? Color.White : Color.Transparent;
+        //_highlight.Color = equipped ? Color.White * 0.3f : Color.Transparent;
 
         base.Draw(sb);
+
+        if (equipped)
+        {
+            CalculatedStyle dims = GetDimensions();
+            Rectangle fillRect = dims.ToRectangle();
+            fillRect.Inflate(-4, -4);
+
+            sb.Draw(EquippedFill!.Value, fillRect, new Color(60, 255, 60) * (hover ? 0.18f : 0.12f));
+        }
 
         CalculatedStyle d = GetDimensions();
         float contentAlpha = owned ? 0.65f : 1f;
@@ -159,7 +174,7 @@ internal sealed class SkinUICard : UIElement
         ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, name, namePos, Color.White, 0f, Vector2.Zero, Vector2.One * titleScale, d.Width - 6f);
 
         Texture2D tex = _def.Texture?.Value ?? TextureAssets.Item[_def.ItemType].Value;
-        float maxIcon = 44f;
+        float maxIcon = 48f;
         float iconScale = maxIcon / System.Math.Max(tex.Width, tex.Height);
         Vector2 iconCenter = new(d.X + d.Width * 0.5f, d.Y + 52f);
 
@@ -176,8 +191,17 @@ internal sealed class SkinUICard : UIElement
             ? Color.White * contentAlpha
             : new Color(148, 39, 39) * contentAlpha;
 
-        Texture2D badgeTex = owned ? Ass.Icon_Checkmark.Value : Ass.Icon_Gem.Value;
-        float badgeScale = owned ? 1.5f : 0.9f;
+        Texture2D badgeTex = equipped
+        ? Ass.Icon_CheckmarkGreenBox.Value
+        : owned
+            ? Ass.Icon_CheckmarkGray.Value
+            : Ass.Icon_Gem.Value;
+
+            float badgeScale = equipped
+                ? 1.1f
+                : owned
+                    ? 1.1f
+                    : 0.9f;
         Vector2 badgePos = new Vector2(px - 14f, py + 12f) + (owned ? new Vector2(0f, -1f) : Vector2.Zero);
 
         sb.Draw(badgeTex, badgePos, null, Color.White, 0f, badgeTex.Size() * 0.5f, badgeScale, SpriteEffects.None, 0f);

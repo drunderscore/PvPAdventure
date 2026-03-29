@@ -75,7 +75,13 @@ public static class Ass
     public static Asset<Texture2D> Icon_More;
     public static Asset<Texture2D> Icon_Shop;
     public static Asset<Texture2D> Icon_Stats;
-    public static Asset<Texture2D> Icon_Checkmark; // for collecting achievements rewards
+
+    // Main menu shop
+    public static Asset<Texture2D> Icon_CheckmarkGreen; // for collecting achievements rewards
+    public static Asset<Texture2D> Icon_CheckmarkGray;
+    public static Asset<Texture2D> Icon_CheckmarkGrayBox;
+    public static Asset<Texture2D> Icon_CheckmarkGreenBox;
+
 
     // PvP players crossing swords assets
     public static Asset<Texture2D> Icon_PvPBalancing;
