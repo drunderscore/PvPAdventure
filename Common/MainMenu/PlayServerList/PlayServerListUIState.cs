@@ -39,7 +39,6 @@ public class PlayServerListUIState : ResizableUIState
     private const float HeaderContentWidth = ServerColumnWidth + PlayersColumnWidth + StatusColumnWidth;
     private const float RootWidth = HeaderContentWidth + ScrollbarWidth + PanelPadding * 2f + 8f;
 
-    private readonly UIState? previous;
     private readonly List<ServerEntry> servers = [];
 
     private UIList serverList = null!;
@@ -74,11 +73,6 @@ public class PlayServerListUIState : ResizableUIState
     {
         public ServerEntry Entry { get; set; } = null!;
         public List<UIText> Texts { get; } = [];
-    }
-
-    public PlayServerListUIState(UIState? previous)
-    {
-        this.previous = previous;
     }
 
     public override void OnActivate()

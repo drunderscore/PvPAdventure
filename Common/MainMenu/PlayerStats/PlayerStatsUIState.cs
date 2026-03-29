@@ -21,11 +21,7 @@ namespace PvPAdventure.Common.MainMenu.PlayerStats;
 public sealed class PlayerStatsUIState : ResizableUIState
 {
     private PlayerStatsUIPanel statsPanel = null!;
-    private readonly List<MatchResult> matches = [];
-
-    // Navigation
-    private readonly UIState? previous;
-    public PlayerStatsUIState(UIState? previous) => this.previous = previous;
+    //private readonly List<MatchResult> matches = [];
 
     public override void OnInitialize()
     {

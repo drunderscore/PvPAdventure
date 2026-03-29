@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
@@ -98,6 +100,8 @@ internal sealed class ShopUIPanel : UIPanel
         list.Clear();
         scrollbar.ViewPosition = 0f;
 
+        IReadOnlyList<ProductDefinition> products = Products.All;
+
         float cardW = 120f;
         float cardH = 120f;
         float gap = 4f;
@@ -112,7 +116,7 @@ internal sealed class ShopUIPanel : UIPanel
         float totalW = cols * cardW + (cols - 1) * gap;
         float startX = Math.Max(0f, (innerW - totalW) * 0.5f);
 
-        int count = Products.All.Length;
+        int count = products.Count;
         int rows = (count / cols) + (count % cols != 0 ? 1 : 0);
 
         var content = new UIElement
@@ -129,7 +133,7 @@ internal sealed class ShopUIPanel : UIPanel
             int col = i % cols;
             int row = i / cols;
 
-            var tile = new SkinUICard(Products.All[i], cardW)
+            var tile = new SkinUICard(products[i], cardW)
             {
                 Height = StyleDimension.FromPixels(cardH),
                 Left = new StyleDimension(startX + col * (cardW + gap), 0f),
@@ -139,35 +143,6 @@ internal sealed class ShopUIPanel : UIPanel
             content.Append(tile);
         }
 
-        // Debug items
-        DebugAddExtraItems(content, count, cols, startX, cardW, cardH, gap);
-
         list.Recalculate();
-    }
-
-    private static void DebugAddExtraItems(UIElement content, int start, int cols, float startX, float cardW, float cardH, float gap)
-    {
-#if DEBUG
-        int debugCount = 0;
-
-        int totalCount = start + debugCount;
-        int rows = (totalCount / cols) + (totalCount % cols != 0 ? 1 : 0);
-
-        content.Height = new StyleDimension(rows * (cardH + gap), 0f);
-
-        ProductDefinition debugDef = Products.All[^1]; // last item
-
-        for (int i = 0; i < debugCount; i++)
-        {
-            int idx = start + i;
-
-            content.Append(new SkinUICard(debugDef, cardW)
-            {
-                Height = StyleDimension.FromPixels(cardH),
-                Left = new StyleDimension(startX + (idx % cols) * (cardW + gap), 0f),
-                Top = new StyleDimension((idx / cols) * (cardH + gap), 0f)
-            });
-        }
-#endif
     }
 }

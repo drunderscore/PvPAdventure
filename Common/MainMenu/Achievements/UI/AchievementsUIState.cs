@@ -18,11 +18,8 @@ namespace PvPAdventure.Common.MainMenu.Achievements.UI;
 
 public sealed class AchievementsUIState : ResizableUIState
 {
-    private readonly UIState? previous;
     private AchievementsUIPanel achievementsPanel = null!;
-    private readonly List<MatchResult> matches = [];
-
-    public AchievementsUIState(UIState? previous) => this.previous = previous;
+    //private readonly List<MatchResult> matches = [];
 
     public override void OnInitialize()
     {

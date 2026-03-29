@@ -1,25 +1,20 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.MainMenu.MatchHistory.UI;
+using PvPAdventure.Common.MainMenu.Profile;
+using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.Common.MainMenu.UI;
-using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
 using Terraria;
-using Terraria.Audio;
-using Terraria.ID;
 using Terraria.Localization;
-using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Gamepad;
 
-namespace PvPAdventure.Common.MainMenu.Shop.UI;
+namespace PvPAdventure.Common.MainMenu.Shop;
 
 public sealed class ShopUIState : ResizableUIState
 {
-    private readonly UIState? previous;
     private ShopUIPanel shopPanel = null!;
-
-    public ShopUIState(UIState? previous) => this.previous = previous;
 
     public override void OnInitialize()
     {
@@ -30,7 +25,6 @@ public sealed class ShopUIState : ResizableUIState
             Top = new StyleDimension(190, 0f),
             HAlign = 0.5f,
             MinWidth = new StyleDimension(650f, 0f),
-            //MaxWidth = new StyleDimension(900f, 0f)
         };
         Append(root);
 
@@ -38,7 +32,6 @@ public sealed class ShopUIState : ResizableUIState
         {
             Width = StyleDimension.Fill,
             Height = new StyleDimension(-160f * 1.75f, 1f),
-            //BackgroundColor = new Color(33, 43, 79) * 0.8f
         };
         root.Append(baseElement);
 
@@ -47,7 +40,6 @@ public sealed class ShopUIState : ResizableUIState
             Width = StyleDimension.Fill,
             Height = StyleDimension.Fill,
             Top = new StyleDimension(6f, 0f),
-            //BackgroundColor = UICommon.DefaultUIBlueMouseOver
         };
         shopPanel.SetPadding(12);
         shopPanel.PaddingLeft = 4;
@@ -65,16 +57,30 @@ public sealed class ShopUIState : ResizableUIState
 
     public override void OnActivate()
     {
-        //// Load matches
-        //matches.Clear();
-        //matches.AddRange(MatchStorage.LoadMatchesFromFolder(MatchStorage.GetFolderPath()));
-
-        //// Load profile gems
-        //ProfileStorage.Load();
-        //ProfileStorage.RebuildGems(matches);
-        
-        // Refresh panel
+        _ = LoadShopAndProfileAsync();
         shopPanel.Refresh();
+    }
+
+    private async Task LoadShopAndProfileAsync()
+    {
+        try
+        {
+            Task<string> shopTask = ShopApi.GetShopJsonAsync();
+            Task stateTask = ShopApi.RefreshProfileStateAsync();
+
+            string shopJson = await shopTask;
+            await stateTask;
+
+            Main.QueueMainThreadAction(() =>
+            {
+                Products.LoadFromApiJson(shopJson);
+                shopPanel.Refresh();
+            });
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Failed to load shop/profile/inventory: {e}");
+        }
     }
 
     public override void Update(GameTime gameTime)

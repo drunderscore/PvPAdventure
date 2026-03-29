@@ -35,10 +35,6 @@ public sealed class MatchHistoryUIState : ResizableUIState
 
     private int selectedIndex = -1; // Currently selected match
 
-    // Navigation
-    private readonly UIState? previous;
-    public MatchHistoryUIState(UIState? previous) => this.previous = previous;
-
     public override void OnInitialize()
     {
         // Base element

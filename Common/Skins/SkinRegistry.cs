@@ -11,33 +11,46 @@ namespace PvPAdventure.Common.Skins;
 
 internal static class SkinRegistry
 {
-    private static readonly Dictionary<SkinIdentity, ProductDefinition> _byIdentity;
-    private static readonly HashSet<int> _skinnable;
+    private static readonly Dictionary<SkinIdentity, ProductDefinition> ByIdentity;
+    private static readonly HashSet<int> SkinnableItemTypes;
 
     static SkinRegistry()
     {
-        _byIdentity = new Dictionary<SkinIdentity, ProductDefinition>(Products.All.Length);
-        _skinnable = new HashSet<int>(Products.All.Length);
+        ByIdentity = [];
+        SkinnableItemTypes = [];
 
-        foreach (ProductDefinition def in Products.All)
+        foreach (ProductDefinition definition in ProductCatalog.All)
         {
-            if (!_byIdentity.TryAdd(def.Identity, def))
-                Log.Error($"Duplicate skin identity '{def.Prototype}:{def.Name}' in Products.All.");
+            if (!ByIdentity.TryAdd(definition.Identity, definition))
+                Log.Error($"Duplicate skin identity '{definition.Prototype}:{definition.Name}' in ProductCatalog.");
 
-            _skinnable.Add(def.ItemType);
+            SkinnableItemTypes.Add(definition.ItemType);
         }
     }
 
-    public static bool TryGetByIdentity(SkinIdentity identity, out ProductDefinition def) => _byIdentity.TryGetValue(identity, out def);
-    public static bool IsSkinnableItemType(int itemType) => _skinnable.Contains(itemType);
-
-    public static bool TryGetSkin(Item item, out ProductDefinition def)
+    public static bool TryGetByIdentity(SkinIdentity identity, out ProductDefinition definition)
     {
-        def = default;
+        return ByIdentity.TryGetValue(identity, out definition);
+    }
+
+    public static bool TryGetByIdentity(string prototype, string name, out ProductDefinition definition)
+    {
+        return TryGetByIdentity(new SkinIdentity(prototype, name), out definition);
+    }
+
+    public static bool IsSkinnableItemType(int itemType)
+    {
+        return SkinnableItemTypes.Contains(itemType);
+    }
+
+    public static bool TryGetSkin(Item item, out ProductDefinition definition)
+    {
+        definition = default;
+
         if (!item.TryGetGlobalItem(out SkinItemData data) || !data.Identity.IsValid)
             return false;
 
-        if (!TryGetByIdentity(data.Identity, out def))
+        if (!TryGetByIdentity(data.Identity, out definition))
         {
             Log.Error($"[SkinRegistry] Unknown Skin Identity '{data.Identity.Prototype}:{data.Identity.Name}' on item type={item.type}");
             return false;
@@ -54,6 +67,7 @@ internal static class SkinRegistry
         if (asset is null || !asset.IsLoaded)
         {
             usingFallback = true;
+
             if (asset is not null)
                 Main.Assets.Request<Texture2D>(asset.Name, AssetRequestMode.AsyncLoad);
 

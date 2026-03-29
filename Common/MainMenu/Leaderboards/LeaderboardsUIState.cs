@@ -43,7 +43,6 @@ public class LeaderboardsUIState : ResizableUIState
     private const float HeaderContentWidth = RankColumnWidth + PlayerColumnWidth + KillsColumnWidth + DeathsColumnWidth + GamesColumnWidth;
     private const float RootWidth = HeaderContentWidth + ScrollbarWidth + PanelPadding * 2f + 8f;
 
-    private readonly UIState? previous;
     private readonly List<LeaderboardEntry> entries = [];
 
     private UIList list = null!;
@@ -73,11 +72,6 @@ public class LeaderboardsUIState : ResizableUIState
     internal sealed class LeaderboardRow : UIPanel
     {
         public List<UIText> Texts { get; } = [];
-    }
-
-    public LeaderboardsUIState(UIState? previous)
-    {
-        this.previous = previous;
     }
 
     public override void OnInitialize()

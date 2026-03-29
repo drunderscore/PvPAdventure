@@ -1,13 +1,11 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
-using Terraria.ID;
 
 namespace PvPAdventure.Common.MainMenu.Shop;
 
-// Added SkinIdentity to make passing the composite key around much easier
 public readonly record struct SkinIdentity(string Prototype, string Name)
 {
-    public bool IsValid => !string.IsNullOrEmpty(Prototype) && !string.IsNullOrEmpty(Name);
+    public bool IsValid => !string.IsNullOrWhiteSpace(Prototype) && !string.IsNullOrWhiteSpace(Name);
 }
 
 public readonly record struct ProductDefinition(

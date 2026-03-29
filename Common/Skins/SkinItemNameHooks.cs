@@ -23,8 +23,10 @@ internal sealed class SkinItemNameHooks : ModSystem
         string vanillaName = Lang.GetItemNameValue(self.type);
         string skinnedName = $"{skin.DisplayName} ({vanillaName})";
 
-        if (name.Contains(skinnedName))
+        //if (name.Contains(skinnedName))
             return name;
+
+        // TODO change item name here maybe
 
         return name.Replace(vanillaName, skinnedName);
     }

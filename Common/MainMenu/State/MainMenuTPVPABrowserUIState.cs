@@ -6,6 +6,7 @@ using PvPAdventure.Common.MainMenu.Leaderboards;
 using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.PlayerStats;
 using PvPAdventure.Common.MainMenu.PlayServerList;
+using PvPAdventure.Common.MainMenu.Shop;
 using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
@@ -80,7 +81,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             Ass.Icon_PlayMenu,
             "Mods.PvPAdventure.MainMenu.Play",
             "Mods.PvPAdventure.MainMenu.PlayDescription",
-            () => OpenState(() => new PlayServerListUIState(this)),
+            () => OpenState(() => new PlayServerListUIState()),
             hAlign: 0f,
             vAlign: 0f
         ));
@@ -89,7 +90,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             Ass.Icon_MatchHistory,
             "Mods.PvPAdventure.MainMenu.MatchHistory",
             "Mods.PvPAdventure.MainMenu.MatchHistoryDescription",
-            () => OpenState(() => new MatchHistoryUIState(this)),
+            () => OpenState(() => new MatchHistoryUIState()),
             hAlign: 1f,
             vAlign: 0f
         ));
@@ -99,7 +100,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             Ass.Icon_Stats,
             "Mods.PvPAdventure.MainMenu.Stats",
             "Mods.PvPAdventure.MainMenu.StatsDescription",
-            () => OpenState(() => new PlayerStatsUIState(this)),
+            () => OpenState(() => new PlayerStatsUIState()),
             hAlign: 0f,
             vAlign: 0.5f
         ));
@@ -108,7 +109,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             Ass.Icon_Achievements,
             "Mods.PvPAdventure.MainMenu.Achievements",
             "Mods.PvPAdventure.MainMenu.AchievementsDescription",
-            () => OpenState(() => new AchievementsUIState(this)),
+            () => OpenState(() => new AchievementsUIState()),
             hAlign: 1f,
             vAlign: 0.5f
         ));
@@ -118,7 +119,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             Ass.Icon_Shop,
             "Mods.PvPAdventure.MainMenu.Shop",
             "Mods.PvPAdventure.MainMenu.ShopDescription",
-            () => OpenState(() => new ShopUIState(this)),
+            () => OpenState(() => new ShopUIState()),
             hAlign: 0f,
             vAlign: 1f
         ));
@@ -127,7 +128,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             Ass.Icon_Leaderboards,
             "Mods.PvPAdventure.MainMenu.Leaderboards",
             "Mods.PvPAdventure.MainMenu.LeaderboardsDescription",
-            () => OpenState(() => new LeaderboardsUIState(this)),
+            () => OpenState(() => new LeaderboardsUIState()),
             hAlign: 1f,
             vAlign: 1f
         ));

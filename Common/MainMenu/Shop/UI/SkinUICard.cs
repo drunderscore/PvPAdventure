@@ -9,7 +9,6 @@ using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
-using Terraria.ModLoader;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 using Terraria.UI.Chat;
@@ -81,43 +80,58 @@ internal sealed class SkinUICard : UIElement
     {
         base.LeftClick(evt);
 
-        // This updates the UI and local state immediately
-        SkinToggleResult result = MainMenuProfileState.Instance.ToggleSkin(_def);
+        _ = HandleClickAsync();
+    }
 
-        // Grab the Coordinator instance (adjust this to however you access your ModSystem)
-        var coordinator = ModContent.GetInstance<Coordinator>();
+    private async Task HandleClickAsync()
+    {
+        MainMenuProfileState state = MainMenuProfileState.Instance;
 
-        switch (result)
+        bool owned = state.HasSkin(_def);
+        bool equipped = state.IsEquipped(_def);
+        bool canAfford = state.CanAfford(_def);
+
+        if (!owned)
         {
-            case SkinToggleResult.Bought:
-                SoundEngine.PlaySound(SoundID.Coins);
-                // Fire and forget the purchase request
-                _ = Task.Run(() => coordinator.PurchaseProductAsync(_def.Identity));
-                // Also tell the backend we equipped it right after buying!
-                _ = Task.Run(() => coordinator.UpdateEquipmentAsync(_def.Identity.Prototype, _def.Identity.Name));
-                break;
-
-            case SkinToggleResult.Equipped:
-                SoundEngine.PlaySound(SoundID.Unlock);
-                // Fire and forget the equip request
-                _ = Task.Run(() => coordinator.UpdateEquipmentAsync(_def.Identity.Prototype, _def.Identity.Name));
-                break;
-
-            case SkinToggleResult.Unequipped:
-                SoundEngine.PlaySound(SoundID.Unlock);
-                // Send null for the name to unequip it
-                _ = Task.Run(() => coordinator.UpdateEquipmentAsync(_def.Identity.Prototype, null));
-                break;
-
-            case SkinToggleResult.NotAffordable:
+            if (!canAfford)
+            {
                 SoundEngine.PlaySound(SoundID.MenuClose);
-                break;
+                return;
+            }
+
+            SoundEngine.PlaySound(SoundID.Coins);
+
+            PurchaseResult purchaseResult = await ShopApi.PurchaseProductAsync(_def.Identity.Prototype, _def.Identity.Name);
+            if (purchaseResult == PurchaseResult.Failed)
+            {
+                Log.Error($"Backend rejected purchase of {_def.Name}.");
+                await ShopApi.RefreshProfileStateAsync();
+                return;
+            }
+
+            bool equippedResult = await ShopApi.UpdateEquipmentAsync(_def.Identity.Prototype, _def.Identity.Name);
+            if (!equippedResult)
+                Log.Error($"Failed to equip {_def.Name} after purchase.");
+
+            await ShopApi.RefreshProfileStateAsync();
+            return;
         }
+
+        SoundEngine.PlaySound(SoundID.Unlock);
+
+        bool success = equipped
+            ? await ShopApi.UpdateEquipmentAsync(_def.Identity.Prototype, null)
+            : await ShopApi.UpdateEquipmentAsync(_def.Identity.Prototype, _def.Identity.Name);
+
+        if (!success)
+            Log.Error($"Failed to update equip state for {_def.Name}.");
+
+        await ShopApi.RefreshProfileStateAsync();
     }
 
     public override void Draw(SpriteBatch sb)
     {
-        var state = MainMenuProfileState.Instance;
+        MainMenuProfileState state = MainMenuProfileState.Instance;
 
         bool owned = state.HasSkin(_def);
         bool equipped = state.IsEquipped(_def);
@@ -171,11 +185,6 @@ internal sealed class SkinUICard : UIElement
 
         if (hover)
             DrawTooltip(owned, equipped, canAfford);
-    }
-
-    protected override void DrawSelf(SpriteBatch sb)
-    {
-        base.DrawSelf(sb);
     }
 
     private void DrawTooltip(bool owned, bool equipped, bool canAfford)
