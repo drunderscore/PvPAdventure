@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.MainMenu.Profile;
+using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.Common.MainMenu.UI;
-using System;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.Localization;
@@ -15,6 +14,7 @@ namespace PvPAdventure.Common.MainMenu.Shop;
 public sealed class ShopUIState : ResizableUIState
 {
     private ShopUIPanel shopPanel = null!;
+    private bool loading;
 
     public override void OnInitialize()
     {
@@ -22,16 +22,16 @@ public sealed class ShopUIState : ResizableUIState
         {
             Width = new StyleDimension(0f, 0.55f),
             Height = new StyleDimension(0f, 0.95f),
-            Top = new StyleDimension(190, 0f),
+            Top = new StyleDimension(190f, 0f),
             HAlign = 0.5f,
-            MinWidth = new StyleDimension(650f, 0f),
+            MinWidth = new StyleDimension(650f, 0f)
         };
         Append(root);
 
         var baseElement = new UIElement
         {
             Width = StyleDimension.Fill,
-            Height = new StyleDimension(-160f * 1.75f, 1f),
+            Height = new StyleDimension(-160f * 1.75f, 1f)
         };
         root.Append(baseElement);
 
@@ -39,7 +39,7 @@ public sealed class ShopUIState : ResizableUIState
         {
             Width = StyleDimension.Fill,
             Height = StyleDimension.Fill,
-            Top = new StyleDimension(6f, 0f),
+            Top = new StyleDimension(6f, 0f)
         };
         shopPanel.SetPadding(12);
         shopPanel.PaddingLeft = 4;
@@ -57,29 +57,54 @@ public sealed class ShopUIState : ResizableUIState
 
     public override void OnActivate()
     {
-        _ = LoadShopAndProfileAsync();
         shopPanel.Refresh();
+
+        if (!loading)
+            _ = LoadShopAndProfileAsync();
     }
 
     private async Task LoadShopAndProfileAsync()
     {
+        if (loading)
+            return;
+
+        loading = true;
+
         try
         {
-            Task<string> shopTask = ShopApi.GetShopJsonAsync();
-            Task stateTask = ShopApi.RefreshProfileStateAsync();
+            Task<ApiResult<string>> shopTask = ShopApi.GetShopJsonAsync();
+            Task<ApiResult<bool>> profileTask = ProfileApi.RefreshProfileStateAsync();
 
-            string shopJson = await shopTask;
-            await stateTask;
+            await Task.WhenAll(shopTask, profileTask);
+
+            ApiResult<string> shopResult = await shopTask;
+            ApiResult<bool> profileResult = await profileTask;
+
+            if (!shopResult.IsSuccess || string.IsNullOrWhiteSpace(shopResult.Data))
+            {
+                Log.Error($"[ShopUIState] Failed to load shop. Status={(int)shopResult.Status}, Error={shopResult.ErrorMessage}");
+                return;
+            }
+
+            if (!profileResult.IsSuccess)
+            {
+                Log.Error($"[ShopUIState] Failed to refresh profile state. Status={(int)profileResult.Status}, Error={profileResult.ErrorMessage}");
+                return;
+            }
 
             Main.QueueMainThreadAction(() =>
             {
-                Products.LoadFromApiJson(shopJson);
+                Products.LoadFromApiJson(shopResult.Data);
                 shopPanel.Refresh();
             });
         }
-        catch (Exception e)
+        catch (System.Exception ex)
         {
-            Log.Error($"Failed to load shop/profile/inventory: {e}");
+            Log.Error($"[ShopUIState] Failed to load shop/profile: {ex}");
+        }
+        finally
+        {
+            loading = false;
         }
     }
 

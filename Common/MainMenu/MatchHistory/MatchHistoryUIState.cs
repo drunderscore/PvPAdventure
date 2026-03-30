@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.MatchHistory.UI;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.Common.MainMenu.UI;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.Enums;
@@ -19,25 +21,24 @@ using Terraria.UI.Gamepad;
 namespace PvPAdventure.Common.MainMenu.MatchHistory;
 
 /// <summary>
-/// The main state for TPVPA match history, stats, and achievements.
+/// The main state for TPVPA match history
 /// </summary>
 public sealed class MatchHistoryUIState : ResizableUIState
 {
-    // Content
     private UIElement matchesBaseElement = null!;
-    private UIList matchList = null!; // left side list
-    private UIPanel detailsPanel = null!; // right side panel
+    private UIList matchList = null!;
+    private UIPanel detailsPanel = null!;
     private UITeamStatsDetails teamStatsPanel = null!;
 
-    // Lists
     private readonly List<MatchResult> matches = [];
     private readonly List<UIMatchRow> rows = [];
 
-    private int selectedIndex = -1; // Currently selected match
+    private int selectedIndex = -1;
+    private int loadVersion;
+    private bool loading;
 
     public override void OnInitialize()
     {
-        // Base element
         matchesBaseElement = new()
         {
             Width = new StyleDimension(0f, 0.8f),
@@ -45,7 +46,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
             Top = new StyleDimension(170f, 0f),
             HAlign = 0.5f,
             MinWidth = new StyleDimension(700f, 0f),
-            MaxWidth = new StyleDimension(1100, 0f),
+            MaxWidth = new StyleDimension(1100f, 0f),
         };
         Append(matchesBaseElement);
 
@@ -123,7 +124,6 @@ public sealed class MatchHistoryUIState : ResizableUIState
         };
         right.Append(detailsPanel);
 
-        // Back button
         var backButton = new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), () =>
         {
             MainMenuTPVPABrowserUIState.OpenState(() => new MainMenuTPVPABrowserUIState());
@@ -137,40 +137,79 @@ public sealed class MatchHistoryUIState : ResizableUIState
         };
         matchesBaseElement.Append(backButton);
     }
+
     public override void OnActivate()
     {
         base.OnActivate();
 
+        loadVersion++;
+        selectedIndex = -1;
+        loading = true;
+
         matches.Clear();
+        rows.Clear();
+        matchList.Clear();
+        detailsPanel.RemoveAllChildren();
 
-        // Real load later:
-        // string folder = MatchStorage.GetFolderPath();
-        // matches.AddRange(MatchStorage.LoadMatchesFromFolder(folder));
+        ShowLoadingState();
+        _ = LoadMatchesAsync(loadVersion);
+    }
 
+    private async Task LoadMatchesAsync(int version)
+    {
+        ApiResult<List<MatchResult>> result;
+
+        try
+        {
+            result = await MatchApi.GetMatchesAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Main.QueueMainThreadAction(() =>
+            {
+                if (version != loadVersion)
+                    return;
+
+                loading = false;
+                ShowErrorState($"Failed to load matches.\n{ex.Message}");
+            });
+            return;
+        }
+
+        Main.QueueMainThreadAction(() =>
+        {
+            if (version != loadVersion)
+                return;
+
+            loading = false;
+
+            if (!result.IsSuccess || result.Data is null)
+            {
+                ShowErrorState($"Failed to load matches.\n{result.ErrorMessage ?? "Unknown error"}");
+                return;
+            }
+
+            matches.Clear();
+            matches.AddRange(result.Data);
+            RebuildMatchUi();
+        });
+    }
+
+    private void RebuildMatchUi()
+    {
         matchList.Clear();
         rows.Clear();
         detailsPanel.RemoveAllChildren();
 
         if (matches.Count == 0)
         {
-            UIText emptyText = new("No matches available. \nPlay an official TPVPA match to see the match results here.", 1.0f)
-            {
-                IsWrapped = true,
-                HAlign = 0f,
-                VAlign = 0f,
-                Left = new StyleDimension(16f, 0f),
-                Top = new StyleDimension(16f, 0f)
-            };
-            emptyText.Width.Set(-32f, 1f);
-
-            detailsPanel.Append(emptyText);
-            detailsPanel.Recalculate();
+            ShowEmptyState();
             return;
         }
 
         for (int i = 0; i < matches.Count; i++)
         {
-            var row = new UIMatchRow(i, matches[i]);
+            UIMatchRow row = new(i, matches[i]);
             row.Width.Set(0f, 1f);
             row.Height.Set(78.29f, 0f);
             row.OnClick += SelectMatchAndRebuild;
@@ -183,37 +222,60 @@ public sealed class MatchHistoryUIState : ResizableUIState
         SelectMatchAndRebuild(0);
     }
 
-    private static MatchResult CreateExampleMatch()
+    private void ShowLoadingState()
     {
-        ulong localSteamId = 76561198000000001UL;
+        detailsPanel.RemoveAllChildren();
 
-        DateTime end = DateTime.Now.AddMinutes(-23);
-        DateTime start = end.AddMinutes(-17).AddSeconds(-42);
+        UIText text = new("Loading match history...", 1f)
+        {
+            IsWrapped = true,
+            Left = new StyleDimension(16f, 0f),
+            Top = new StyleDimension(16f, 0f)
+        };
+        text.Width.Set(-32f, 1f);
 
-        return new MatchResult(
-            start,
-            end,
-            win: true,
-            localSteamId,
-            [
-                new TeamPoints(Team.Red, 230),
-            new TeamPoints(Team.Blue, 180)
-            ],
-            [
-                new PlayerKD(Team.Red, localSteamId, "Erky", 18, 7),
-            new PlayerKD(Team.Red, 76561198000000002UL, "BlueMage", 11, 9),
-            new PlayerKD(Team.Blue, 76561198000000003UL, "TrainHorn", 10, 13),
-            new PlayerKD(Team.Blue, 76561198000000004UL, "VineBoom", 7, 17)
-            ],
-            [
-                new TeamBossCompletion(4, Team.Red),
-            new TeamBossCompletion(13, Team.Blue)
-            ]);
+        detailsPanel.Append(text);
+        detailsPanel.Recalculate();
+    }
+
+    private void ShowEmptyState()
+    {
+        detailsPanel.RemoveAllChildren();
+
+        UIText text = new("No matches available.\nPlay an official TPVPA match to see the match results here.", 1f)
+        {
+            IsWrapped = true,
+            Left = new StyleDimension(16f, 0f),
+            Top = new StyleDimension(16f, 0f)
+        };
+        text.Width.Set(-32f, 1f);
+
+        detailsPanel.Append(text);
+        detailsPanel.Recalculate();
+    }
+
+    private void ShowErrorState(string message)
+    {
+        matchList.Clear();
+        rows.Clear();
+        detailsPanel.RemoveAllChildren();
+
+        UIText text = new(message, 1f)
+        {
+            IsWrapped = true,
+            Left = new StyleDimension(16f, 0f),
+            Top = new StyleDimension(16f, 0f)
+        };
+        text.Width.Set(-32f, 1f);
+
+        detailsPanel.Append(text);
+        detailsPanel.Recalculate();
     }
 
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
+        UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
     }
 
     private void SelectMatchAndRebuild(int index)
@@ -243,7 +305,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
 
         MatchResult match = matches[selectedIndex];
 
-        float y = 6;
+        float y = 6f;
 
         UIElement topRow = new()
         {
@@ -253,29 +315,29 @@ public sealed class MatchHistoryUIState : ResizableUIState
         };
         detailsPanel.Append(topRow);
 
-        topRow.Append(new UIText($"Date:\n{match.Start:yyyy-MM-dd hh:mm tt}", 1.0f)
+        topRow.Append(new UIText($"Date:\n{match.Start:yyyy-MM-dd hh:mm tt}", 1f)
         {
-            Width = new StyleDimension(0, 1f / 3f),
+            Width = new StyleDimension(0f, 1f / 3f),
             Height = StyleDimension.Fill,
             Left = new StyleDimension(0f, 0f),
             TextOriginX = 0.5f,
             IsWrapped = false
         });
 
-        topRow.Append(new UIText($"Result:\n{(BuildPlacementLabel(match))}", 1.0f)
+        topRow.Append(new UIText($"Result:\n{BuildPlacementLabel(match)}", 1f)
         {
-            Width = new StyleDimension(-0, 1f / 3f),
+            Width = new StyleDimension(0f, 1f / 3f),
             Height = StyleDimension.Fill,
-            Left = new StyleDimension(0, 1f / 3f),
+            Left = new StyleDimension(0f, 1f / 3f),
             TextOriginX = 0.5f,
             IsWrapped = false
         });
 
-        topRow.Append(new UIText($"Duration:\n{match.ToDurationDetailsText()}", 1.0f)
+        topRow.Append(new UIText($"Duration:\n{match.ToDurationDetailsText()}", 1f)
         {
-            Width = new StyleDimension(-0, 1f / 3f),
+            Width = new StyleDimension(0f, 1f / 3f),
             Height = StyleDimension.Fill,
-            Left = new StyleDimension(0 * 2f, 2f / 3f),
+            Left = new StyleDimension(0f, 2f / 3f),
             TextOriginX = 0.5f,
             IsWrapped = false
         });
@@ -285,35 +347,34 @@ public sealed class MatchHistoryUIState : ResizableUIState
         detailsPanel.Append(new UIHorizontalSeparator(2, highlightSideUp: true)
         {
             Top = new StyleDimension(y, 0f),
-            Width = new StyleDimension(0, 1)
+            Width = new StyleDimension(0f, 1f)
         });
 
         y += bigGap;
 
-        // Team points, placement, and player k/d's
         TeamPoints[] teamPoints = match.TeamPoints ?? [];
         PlayerKD[] kd = match.Players ?? [];
         ulong localSteamId = match.LocalSteamId;
+
         teamStatsPanel = new UITeamStatsDetails(teamPoints, kd, localSteamId)
         {
-            Width = new StyleDimension(4, 1),
-            MaxWidth = new StyleDimension(4, 1),
-            Left = new StyleDimension(-2, 0),
+            Width = new StyleDimension(4f, 1f),
+            MaxWidth = new StyleDimension(4f, 1f),
+            Left = new StyleDimension(-2f, 0f),
             Top = new StyleDimension(y, 0f)
         };
         teamStatsPanel.Height.Set(teamStatsPanel.RequiredHeight, 0f);
         detailsPanel.Append(teamStatsPanel);
 
-        // advance y by the actual height
         y += teamStatsPanel.RequiredHeight + bigGap;
 
         detailsPanel.Append(new UIHorizontalSeparator(2, highlightSideUp: true)
         {
             Top = new StyleDimension(y, 0f),
-            Width = new StyleDimension(0,1)
+            Width = new StyleDimension(0f, 1f)
         });
 
-        y += 2 + bigGap;
+        y += 2f + bigGap;
 
         detailsPanel.Append(new UITeamBossCompletion(match.BossScoreboard ?? [])
         {
@@ -325,7 +386,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
 
         detailsPanel.Recalculate();
     }
-    
+
     private static string BuildPlacementLabel(MatchResult result)
     {
         Team localTeam = Team.None;
@@ -342,7 +403,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
         }
 
         if (localTeam == Team.None)
-            return ("No result");
+            return "No result";
 
         TeamPoints[] pts = result.TeamPoints ?? [];
         int localPoints = int.MinValue;
@@ -362,7 +423,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
         }
 
         if (localPoints == int.MinValue || points.Count == 0)
-            return ("No result");
+            return "No result";
 
         points.Sort((a, b) => b.CompareTo(a));
 
@@ -390,13 +451,7 @@ public sealed class MatchHistoryUIState : ResizableUIState
                 tieCount++;
         }
 
-        string text;
-        if (tieCount > 1)
-            text = $"Tied for {Ordinal(rank)}";
-        else
-            text = $"Your team placed {Ordinal(rank)}";
-
-        return text;
+        return tieCount > 1 ? $"Tied for {Ordinal(rank)}" : $"Your team placed {Ordinal(rank)}";
     }
 
     private static string Ordinal(int n)
@@ -415,5 +470,4 @@ public sealed class MatchHistoryUIState : ResizableUIState
 
         return n + "th";
     }
-
 }

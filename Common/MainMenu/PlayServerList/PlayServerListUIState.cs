@@ -411,10 +411,13 @@ public class PlayServerListUIState : ResizableUIState
     {
         Main.menuMode = 0;
 
-        Main.LoadPlayers();
-        var player = Main.PlayerList.FirstOrDefault();
-        if (player != null)
-            Main.SelectPlayer(player);
+        // DON'T SELECT A PLAYER, WE DO IT IN THE TPVPA CHARACTER SELECT MENUS!!:
+        ///<see cref="TPVPACharacterListItem"/>
+
+        //Main.LoadPlayers();
+        //var player = Main.PlayerList.FirstOrDefault();
+        //if (player != null)
+        //    Main.SelectPlayer(player);
 
         Main.menuMultiplayer = true;
         Main.menuServer = false;

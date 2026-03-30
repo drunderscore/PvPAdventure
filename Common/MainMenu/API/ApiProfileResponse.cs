@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace PvPAdventure.Common.MainMenu.Profile;
+namespace PvPAdventure.Common.MainMenu.API;
 
 public sealed class ApiProfileResponse
 {
@@ -11,7 +11,6 @@ public sealed class ApiProfileResponse
     [JsonPropertyName("gems")]
     public int Gems { get; set; }
 
-    // Maps Prototype -> Name (e.g., "sniper_rifle" -> "blue")
     [JsonPropertyName("equipment")]
     public Dictionary<string, string> Equipment { get; set; } = [];
 }
@@ -24,3 +23,5 @@ public sealed class ApiInventoryItem
     [JsonPropertyName("name")]
     public string Name { get; set; } = "";
 }
+
+internal sealed record ProfileSnapshot(ApiProfileResponse Profile, List<ApiInventoryItem> Inventory);

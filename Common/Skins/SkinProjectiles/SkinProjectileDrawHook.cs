@@ -29,6 +29,7 @@ internal sealed class SkinProjectileDrawHook : ModSystem
 
         if (proj.type == ProjectileID.TrueExcalibur)
         {
+            // TODO: AHH only if user has the special pink skin
             DrawProj_TrueExcalibur(proj);
             return;
         }

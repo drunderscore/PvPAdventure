@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using PvPAdventure.Common.MainMenu.Achievements;
+﻿using PvPAdventure.Common.MainMenu.Achievements;
+using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.Shop;
 using PvPAdventure.Common.Skins;
+using System;
+using System.Collections.Generic;
 
 namespace PvPAdventure.Common.MainMenu.Profile;
 
@@ -10,11 +11,10 @@ internal sealed class MainMenuProfileState
 {
     public static MainMenuProfileState Instance { get; } = new();
 
-    private readonly Dictionary<string, int> _achievementProgress = [];
-    private readonly HashSet<string> _collectedAchievements = [];
-
-    private readonly HashSet<SkinIdentity> _ownedSkins = [];
-    private readonly Dictionary<int, SkinIdentity> _equippedSkinsByItemType = [];
+    private readonly Dictionary<string, int> achievementProgress = [];
+    private readonly HashSet<string> collectedAchievements = [];
+    private readonly HashSet<SkinIdentity> ownedSkins = [];
+    private readonly Dictionary<int, SkinIdentity> equippedSkinsByItemType = [];
 
     public int Gems { get; private set; }
     public bool HasSyncedFromBackend { get; private set; }
@@ -27,10 +27,10 @@ internal sealed class MainMenuProfileState
     {
         Gems = 0;
         HasSyncedFromBackend = false;
-        _achievementProgress.Clear();
-        _collectedAchievements.Clear();
-        _ownedSkins.Clear();
-        _equippedSkinsByItemType.Clear();
+        achievementProgress.Clear();
+        collectedAchievements.Clear();
+        ownedSkins.Clear();
+        equippedSkinsByItemType.Clear();
     }
 
     public void SetGems(int gems)
@@ -40,27 +40,27 @@ internal sealed class MainMenuProfileState
 
     public void SetAchievement(string id, int progress, bool collected)
     {
-        _achievementProgress[id] = Math.Max(0, progress);
+        achievementProgress[id] = Math.Max(0, progress);
 
         if (collected)
-            _collectedAchievements.Add(id);
+            collectedAchievements.Add(id);
         else
-            _collectedAchievements.Remove(id);
+            collectedAchievements.Remove(id);
     }
 
     public int GetAchievementProgress(string id)
     {
-        return _achievementProgress.TryGetValue(id, out int progress) ? progress : 0;
+        return achievementProgress.TryGetValue(id, out int progress) ? progress : 0;
     }
 
     public bool IsAchievementCollected(string id)
     {
-        return _collectedAchievements.Contains(id);
+        return collectedAchievements.Contains(id);
     }
 
     public bool TryCollectAchievement(string id, AchievementDefinition def)
     {
-        if (_collectedAchievements.Contains(id))
+        if (collectedAchievements.Contains(id))
             return false;
 
         int target = Math.Max(def.Target, 1);
@@ -68,7 +68,7 @@ internal sealed class MainMenuProfileState
         if (progress < target)
             return false;
 
-        _collectedAchievements.Add(id);
+        collectedAchievements.Add(id);
         Gems += def.GemsReward;
         return true;
     }
@@ -76,32 +76,32 @@ internal sealed class MainMenuProfileState
     public void RevertPurchase(ProductDefinition def)
     {
         Gems += def.Price;
-        _ownedSkins.Remove(def.Identity);
-        _equippedSkinsByItemType.Remove(def.ItemType);
+        ownedSkins.Remove(def.Identity);
+        equippedSkinsByItemType.Remove(def.ItemType);
     }
 
     public void SetOwnedSkins(IEnumerable<SkinIdentity> identities)
     {
-        _ownedSkins.Clear();
+        ownedSkins.Clear();
 
         foreach (SkinIdentity identity in identities)
-            _ownedSkins.Add(identity);
+            ownedSkins.Add(identity);
     }
 
     public void SetEquippedSkin(int itemType, SkinIdentity identity)
     {
         if (!identity.IsValid)
         {
-            _equippedSkinsByItemType.Remove(itemType);
+            equippedSkinsByItemType.Remove(itemType);
             return;
         }
 
-        _equippedSkinsByItemType[itemType] = identity;
+        equippedSkinsByItemType[itemType] = identity;
     }
 
     public bool HasSkin(SkinIdentity identity)
     {
-        return _ownedSkins.Contains(identity);
+        return ownedSkins.Contains(identity);
     }
 
     public bool HasSkin(ProductDefinition def)
@@ -116,12 +116,12 @@ internal sealed class MainMenuProfileState
 
     public bool IsEquipped(ProductDefinition def)
     {
-        return _equippedSkinsByItemType.TryGetValue(def.ItemType, out SkinIdentity selectedIdentity) && selectedIdentity == def.Identity;
+        return equippedSkinsByItemType.TryGetValue(def.ItemType, out SkinIdentity selectedIdentity) && selectedIdentity == def.Identity;
     }
 
     public bool TryGetSelectedSkinForItem(int itemType, out SkinIdentity identity)
     {
-        return _equippedSkinsByItemType.TryGetValue(itemType, out identity);
+        return equippedSkinsByItemType.TryGetValue(itemType, out identity);
     }
 
     public SkinToggleResult ToggleSkin(ProductDefinition def)
@@ -132,57 +132,59 @@ internal sealed class MainMenuProfileState
                 return SkinToggleResult.NotAffordable;
 
             Gems -= def.Price;
-            _ownedSkins.Add(def.Identity);
-            _equippedSkinsByItemType[def.ItemType] = def.Identity;
+            ownedSkins.Add(def.Identity);
+            equippedSkinsByItemType[def.ItemType] = def.Identity;
             return SkinToggleResult.Bought;
         }
 
         if (IsEquipped(def))
         {
-            _equippedSkinsByItemType.Remove(def.ItemType);
+            equippedSkinsByItemType.Remove(def.ItemType);
             return SkinToggleResult.Unequipped;
         }
 
-        _equippedSkinsByItemType[def.ItemType] = def.Identity;
+        equippedSkinsByItemType[def.ItemType] = def.Identity;
         return SkinToggleResult.Equipped;
     }
 
-    public void SyncWithBackend(ApiProfileResponse profile, List<ApiInventoryItem> inventory)
+    public void SyncWithBackend(ApiProfileResponse profile, IReadOnlyCollection<ApiInventoryItem> inventory)
     {
-        Gems = profile.Gems;
-        _ownedSkins.Clear();
-        _equippedSkinsByItemType.Clear();
-
-        Log.Info($"[ProfileState] Sync start. Gems={profile.Gems}, inventoryCount={inventory?.Count ?? 0}, equipmentCount={profile.Equipment?.Count ?? 0}");
-
-        if (inventory != null)
+        if (profile is null)
         {
-            foreach (ApiInventoryItem item in inventory)
-            {
-                SkinIdentity identity = new(item.Prototype, item.Name);
-                _ownedSkins.Add(identity);
-                Log.Info($"[ProfileState] Owned skin loaded: {item.Prototype}:{item.Name}");
-            }
+            Reset();
+            return;
         }
 
-        if (profile.Equipment != null)
+        Gems = Math.Max(0, profile.Gems);
+        ownedSkins.Clear();
+        equippedSkinsByItemType.Clear();
+
+        Log.Info($"[ProfileState] Sync start. Gems={Gems}, InventoryCount={inventory.Count}, EquipmentCount={profile.Equipment.Count}");
+
+        foreach (ApiInventoryItem item in inventory)
         {
-            foreach ((string prototype, string name) in profile.Equipment)
+            if (string.IsNullOrWhiteSpace(item.Prototype) || string.IsNullOrWhiteSpace(item.Name))
             {
-                if (ProductCatalog.TryGet(prototype, name, out ProductDefinition def))
-                {
-                    _equippedSkinsByItemType[def.ItemType] = def.Identity;
-                    Log.Info($"[ProfileState] Equipped skin loaded: {prototype}:{name} -> itemType={def.ItemType}");
-                }
-                else
-                {
-                    Log.Error($"[ProfileState] Equipped skin missing from ProductCatalog: {prototype}:{name}");
-                }
+                Log.Warn("[ProfileState] Skipped invalid inventory item.");
+                continue;
             }
+
+            ownedSkins.Add(new SkinIdentity(item.Prototype, item.Name));
+        }
+
+        foreach ((string prototype, string name) in profile.Equipment)
+        {
+            if (!ProductCatalog.TryGet(prototype, name, out ProductDefinition definition))
+            {
+                Log.Warn($"[ProfileState] Equipped skin missing from ProductCatalog: {prototype}:{name}");
+                continue;
+            }
+
+            equippedSkinsByItemType[definition.ItemType] = definition.Identity;
         }
 
         HasSyncedFromBackend = true;
-        Log.Info($"[ProfileState] Sync complete. Owned={_ownedSkins.Count}, Equipped={_equippedSkinsByItemType.Count}");
+        Log.Info($"[ProfileState] Sync complete. Owned={ownedSkins.Count}, Equipped={equippedSkinsByItemType.Count}");
     }
 }
 

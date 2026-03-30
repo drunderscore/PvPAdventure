@@ -78,7 +78,7 @@ public class PvPAdventure : Mod
                 break;
 
             //case AdventurePacketIdentifier.SaveMatch:
-            //    PvPAdventure.Common.MainMenu.DeprecatedClientStorage.Net.SaveMatchNetHandler.HandlePacket(r, whoAmI);
+            //    Common.MainMenu.MatchHistory.Net.SaveMatchNetHandler.HandlePacket(r, whoAmI);
             //    break;
 
             case AdventurePacketIdentifier.ClientModCheck:

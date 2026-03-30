@@ -8,23 +8,23 @@ public static class ProductCatalog
 {
     private static readonly Dictionary<SkinIdentity, ProductDefinition> ByIdentity = new()
     {
-        [new("sniper_rifle", "red")] = new(
-            "sniper_rifle",
-            "red",
-            "Red Sniper Rifle",
-            "It's red, alright?",
-            50,
-            Ass.SniperRifleRed,
-            ItemID.SniperRifle),
+        [new(Prototype: "sniper_rifle", Name: "red")] = new(
+            Prototype: "sniper_rifle",
+            Name: "red",
+            DisplayName: "Red Sniper Rifle",
+            Description: "It's red, alright?",
+            Price: 50,
+            Texture: Ass.SniperRifleRed,
+            ItemType: ItemID.SniperRifle),
 
-        [new("sniper_rifle", "blue")] = new(
-            "sniper_rifle",
-            "blue",
-            "Blue Sniper Rifle",
-            "It's blue, alright?",
-            50,
-            Ass.SniperRifleBlue,
-            ItemID.SniperRifle),
+        [new(Prototype: "sniper_rifle", Name: "blue")] = new(
+            Prototype: "sniper_rifle",
+            Name: "blue",
+            DisplayName: "Blue Sniper Rifle",
+            Description: "It's blue, alright?",
+            Price: 50,
+            Texture: Ass.SniperRifleBlue,
+            ItemType: ItemID.SniperRifle),
     };
 
     public static IEnumerable<ProductDefinition> All => ByIdentity.Values;
@@ -36,6 +36,6 @@ public static class ProductCatalog
 
     public static bool TryGet(string prototype, string name, out ProductDefinition definition)
     {
-        return TryGet(new SkinIdentity(prototype, name), out definition);
+        return TryGet(new SkinIdentity(Prototype: prototype, Name: name), out definition);
     }
 }

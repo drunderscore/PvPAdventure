@@ -81,7 +81,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             Ass.Icon_PlayMenu,
             "Mods.PvPAdventure.MainMenu.Play",
             "Mods.PvPAdventure.MainMenu.PlayDescription",
-            () => OpenState(() => new PlayServerListUIState()),
+            () => PlayMenuFlow.OpenCharacterSelect(),
             hAlign: 0f,
             vAlign: 0f
         ));
@@ -293,14 +293,14 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         Main.menuMode = 0;
     }
 
-    public static void OpenState(Func<UIState> create, bool playSound=true)
+    public static void OpenState(Func<UIState> create, bool playSound = true)
     {
         if (playSound)
             SoundEngine.PlaySound(SoundID.MenuOpen);
 
         var menu = ModContent.GetInstance<MainMenuSystem>();
         var state = create();
-        state.Activate();
         menu.ui?.SetState(state);
+        state.Recalculate();
     }
 }
