@@ -1,12 +1,13 @@
 using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using MonoMod.Cil;
-using PvPAdventure.System;
+using PvPAdventure.Common.Combat.TeamBoss;
+using PvPAdventure.Common.Statistics;
+using PvPAdventure.Core.Discord;
+using PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
-using Terraria.Map;
 using Terraria.ModLoader;
 
 namespace PvPAdventure;
@@ -27,22 +28,6 @@ public class PvPAdventure : Mod
                 args.Allowed = true;
             };
         }
-
-        // Don't set Player.mouseInterface when mousing over buffs.
-        IL_Main.DrawBuffIcon += EditMainDrawBuffIcon;
-    }
-
-    private void EditMainDrawBuffIcon(ILContext il)
-    {
-        var cursor = new ILCursor(il);
-
-        // First, find a store to Player.mouseInterface...
-        // NOTE: The reference we find actually relates to gamepad, which we don't touch.
-        cursor.GotoNext(i => i.MatchStfld<Player>("mouseInterface"));
-        // ...and go past the gamepad interactions...
-        cursor.Index += 2;
-        // ...to remove the loads and stores to Player.mouseInterface for non-gamepad.
-        cursor.RemoveRange(5);
     }
 
     public override void HandlePacket(BinaryReader reader, int whoAmI)
@@ -107,10 +92,10 @@ public class PvPAdventure : Mod
             }
             case AdventurePacketIdentifier.PlayerStatistics:
             {
-                var statistics = AdventurePlayer.Statistics.Deserialize(reader);
+                var statistics = StatisticsPlayer.Statistics.Deserialize(reader);
                 var player = Main.player[Main.dedServ ? whoAmI : statistics.Player];
 
-                statistics.Apply(player.GetModPlayer<AdventurePlayer>());
+                statistics.Apply(player.GetModPlayer<StatisticsPlayer>());
 
                 // FIXME: bruh thats a little dumb maybe
                 if (!Main.dedServ)
@@ -120,10 +105,10 @@ public class PvPAdventure : Mod
             }
             case AdventurePacketIdentifier.PingPong:
             {
-                var pingPong = AdventurePlayer.PingPong.Deserialize(reader);
+                var pingPong = LatencyTrackerPlayer.PingPong.Deserialize(reader);
                 if (Main.dedServ)
                 {
-                    Main.player[whoAmI].GetModPlayer<AdventurePlayer>().OnPingPongReceived(pingPong);
+                    Main.player[whoAmI].GetModPlayer<LatencyTrackerPlayer>().OnPingPongReceived(pingPong);
                 }
                 else
                 {
@@ -137,11 +122,11 @@ public class PvPAdventure : Mod
             }
             case AdventurePacketIdentifier.PlayerItemPickup:
             {
-                var itemPickup = AdventurePlayer.ItemPickup.Deserialize(reader);
+                var itemPickup = StatisticsPlayer.ItemPickup.Deserialize(reader);
                 if (Main.dedServ)
                 {
                     var player = Main.player[whoAmI];
-                    itemPickup.Apply(player.GetModPlayer<AdventurePlayer>());
+                    itemPickup.Apply(player.GetModPlayer<StatisticsPlayer>());
                     ModContent.GetInstance<BountyManager>()
                         .OnPlayerItemPickupsUpdated(player, itemPickup.Items.ToHashSet());
                 }
@@ -150,12 +135,15 @@ public class PvPAdventure : Mod
             }
             case AdventurePacketIdentifier.PlayerTeam:
             {
-                var team = AdventurePlayer.Team.Deserialize(reader);
+                var team = StatisticsPlayer.Team.Deserialize(reader);
                 var player = Main.player[Main.dedServ ? whoAmI : team.Player];
 
                 player.team = (int)team.Value;
                 break;
             }
+            case AdventurePacketIdentifier.NpcStrikeTeam:
+                TeamBossNetHandler.HandlePacket(reader, whoAmI);
+                break;
         }
     }
 }
