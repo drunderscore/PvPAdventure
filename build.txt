@@ -1,5 +1,5 @@
 displayName = PvP Adventure
-author = James Puleo <james@jame.xyz>
+author = resin <hey@amberres.in>
 version = 1.1.0
 homepage = https://tpvpa.terraria.sh
 weakReferences = DragonLens
