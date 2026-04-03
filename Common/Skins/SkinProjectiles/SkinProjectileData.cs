@@ -37,7 +37,7 @@ internal sealed class SkinProjectileData : GlobalProjectile
         if (Main.netMode == NetmodeID.Server)
             projectile.netUpdate = true;
 
-        Log.Debug($"[SkinProj] item={item.type} proj={projectile.type} frameCount={Main.projFrames[projectile.type]} skin={Identity.Prototype}:{Identity.Name}");
+        //Log.Debug($"[SkinProj] item={item.type} proj={projectile.type} frameCount={Main.projFrames[projectile.type]} skin={Identity.Prototype}:{Identity.Name}");
     }
 
     public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter writer)

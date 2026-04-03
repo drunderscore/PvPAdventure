@@ -24,6 +24,8 @@ internal sealed class SkinProfileApplierSystem : ModSystem
 
     public override void PostUpdatePlayers()
     {
+        LogEquippedSkinsEverySeconds(5);
+
         if (!_pendingApply)
             return;
 
@@ -112,5 +114,23 @@ internal sealed class SkinProfileApplierSystem : ModSystem
         }
 
         return true;
+    }
+
+    private static void LogEquippedSkinsEverySeconds(int seconds)
+    {
+        if (seconds <= 0 || Main.GameUpdateCount % (60 * seconds) != 0)
+            return;
+
+        MainMenuProfileState state = MainMenuProfileState.Instance;
+
+        Log.Info("[SkinProfileApplier] Equipped skins snapshot:");
+
+        foreach (ProductDefinition definition in ProductCatalog.All)
+        {
+            if (!state.TryGetSelectedSkinForItem(definition.ItemType, out SkinIdentity identity) || !identity.IsValid)
+                continue;
+
+            Log.Info($"[SkinProfileApplier] itemType={definition.ItemType}, equipped={identity.Prototype}:{identity.Name}");
+        }
     }
 }
