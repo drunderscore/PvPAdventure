@@ -1,18 +1,18 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
+using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.UI;
+namespace PvPAdventure.UI;
 
-public class Slider : UIElement
+public class UISlider : UIElement
 {
     public Asset<Texture2D> InnerTexture;
     public Asset<Texture2D> OuterTexture;
@@ -20,7 +20,7 @@ public class Slider : UIElement
     public float Ratio;
     public event Action<float> OnDrag;
 
-    public Slider()
+    public UISlider()
     {
         Width.Set(0, 1f);
         Height.Set(16, 0f);

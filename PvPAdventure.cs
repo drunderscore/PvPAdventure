@@ -97,6 +97,14 @@ public class PvPAdventure : Mod
                 Common.Skins.SkinNetHandler.HandlePacket(r, whoAmI);
                 break;
 
+            case AdventurePacketIdentifier.Spectator:
+                Common.Spectator.SpectatorNetHandler.Receive(r, whoAmI);
+                break;
+
+            case AdventurePacketIdentifier.SessionTracker:
+                Common.Spectator.Trackers.SessionTrackerNetHandler.HandlePacket(r, whoAmI);
+                break;
+
             default:
                 Log.Warn($"Unknown packet id: {id}");
                 break;

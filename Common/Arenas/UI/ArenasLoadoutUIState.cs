@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Utilities;
+using PvPAdventure.UI;
 using ReLogic.Content;
 using SubworldLibrary;
 using System;
@@ -21,10 +23,10 @@ namespace PvPAdventure.Common.Arenas.UI;
 /// Provides a list of loadouts from <see cref="ArenasConfig"/>
 /// Shows a list of loadouts, containing previews of the loadout and a play button to equip it.
 /// </summary>
-public class ArenasLoadoutUI : UIState
+public class ArenasLoadoutUIState : UIState
 {
     // Root draggable element
-    private DraggableElement Root;
+    private UIDraggableElement Root;
 
     // Container panel
     private UIPanel Container;
@@ -49,7 +51,7 @@ public class ArenasLoadoutUI : UIState
         int baseHeight = 32; // enough to fit an "exit arena"
         int rootHeight = baseHeight + loadoutItemHeight * loadoutsCount;
 
-        Root = new DraggableElement
+        Root = new UIDraggableElement
         {
             Width = new StyleDimension(516, 0f), // Fixed width to fit 10 loadout slots
             Top = new StyleDimension(50f, 0f),
@@ -135,7 +137,8 @@ public class ArenasLoadoutUI : UIState
         }
 
         // Add exit button
-        var exitButton = ArenasJoinUI.CreateButton("Exit Arena",SubworldSystem.Exit);
+        //var exitButton = ArenasJoinUIState.CreateButton("Exit Arena",SubworldSystem.Exit);
+        var exitButton = new UITextActionPanel("Exit Arena", SubworldSystem.Exit, panelHeight, 0.5f, true, Ass.Icon_EndGame.Value);
         exitButton.MarginTop = 8f;
         exitButton.SetPadding(8f);
         list.Add(exitButton);

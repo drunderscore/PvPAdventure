@@ -1,8 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.GameTimer;
 using System.Linq;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static PvPAdventure.Common.Spawnbox.RegionManager;
 
 namespace PvPAdventure.Common.Spawnbox;
 
@@ -21,35 +24,45 @@ internal class GhostSpawnboxCollisionSystem : ModSystem
 
     private void OnPlayerGhost(On_Player.orig_Ghost orig, Player self)
     {
+        Vector2 oldPosition = self.position;
         orig(self);
 
         if (!self.ghost)
             return;
 
-        var regionManager = ModContent.GetInstance<RegionManager>();
-        var spawnRegion = regionManager.Regions.FirstOrDefault(r => r.Order == 10);
+        bool fastGhost = self.whoAmI == Main.myPlayer && (Main.keyState.IsKeyDown(Keys.LeftShift) || Main.keyState.IsKeyDown(Keys.RightShift));
+        if (fastGhost)
+        {
+            Vector2 delta = self.position - oldPosition;
+            self.position += delta * 3f;
+        }
+
+        GameManager gameManager = ModContent.GetInstance<GameManager>();
+        bool shouldClampToSpawnbox = gameManager.CurrentPhase != GameManager.Phase.Playing;
+
+        if (!shouldClampToSpawnbox)
+            return;
+
+        RegionManager regionManager = ModContent.GetInstance<RegionManager>();
+        Region spawnRegion = regionManager.Regions.FirstOrDefault(r => r.Order == 10);
 
         if (spawnRegion == null)
             return;
 
-        // Region.Area is in tiles. Convert to world pixels.
-        var bounds = new Rectangle(
+        Rectangle bounds = new(
             spawnRegion.Area.X * 16,
             spawnRegion.Area.Y * 16,
             spawnRegion.Area.Width * 16,
             spawnRegion.Area.Height * 16);
 
-        // Keep the full player hitbox inside the box.
         float minX = bounds.Left;
         float maxX = bounds.Right - self.width;
         float minY = bounds.Top;
         float maxY = bounds.Bottom - self.height;
 
-        var pos = self.position;
-
+        Vector2 pos = self.position;
         float clampedX = MathHelper.Clamp(pos.X, minX, maxX);
         float clampedY = MathHelper.Clamp(pos.Y, minY, maxY);
-
         bool changed = false;
 
         if (clampedX != pos.X)

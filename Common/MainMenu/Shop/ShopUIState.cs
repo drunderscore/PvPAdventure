@@ -2,7 +2,7 @@
 using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Common.MainMenu.State;
-using PvPAdventure.Common.MainMenu.UI;
+using PvPAdventure.UI;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.Localization;

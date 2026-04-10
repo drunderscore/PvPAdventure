@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Core.Net;
+using PvPAdventure.UI;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
@@ -9,7 +10,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.AdminTools.Tools.EndGameTool;
 
-internal class EndGamePanel : UI.DraggablePanel
+internal class EndGamePanel : UIDraggablePanel
 {
     private readonly UITextPanel<string> yesButton;
     private readonly UITextPanel<string> noButton;

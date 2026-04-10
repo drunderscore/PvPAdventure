@@ -7,7 +7,7 @@ using Terraria.ID;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.MainMenu.UI;
+namespace PvPAdventure.UI;
 
 public sealed class UIBackButton<TText> : UITextPanel<TText>
 {

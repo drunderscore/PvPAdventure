@@ -6,20 +6,20 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.UI;
+namespace PvPAdventure.UI;
 
-internal class SliderElement : UIElement
+internal class UISliderElement : UIElement
 {
     private readonly string labelTextKey;
     public UIText Label;
-    public Slider Slider;
+    public UISlider Slider;
     public float Min { get; }
     public float Max { get; }
     private readonly float step;
     private readonly Action<float> onValueChangedCallback;
     private float appliedValue;
 
-    public SliderElement(string label, float min, float max, float defaultValue, float step = 0.01f, Action<float> onValueChanged = null)
+    public UISliderElement(string label, float min, float max, float defaultValue, float step = 0.01f, Action<float> onValueChanged = null)
     {
         Min = min;
         Max = max;
@@ -51,7 +51,7 @@ internal class SliderElement : UIElement
             Label.TextColor = Color.Gray;
         };
 
-        Slider = new Slider
+        Slider = new UISlider
         {
             Left = { Percent = 0f, Pixels = -3f },
             Width = { Percent = 0.50f, Pixels = 0f },

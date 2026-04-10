@@ -52,6 +52,35 @@ public static class Ass
     public static Asset<Texture2D> Icon_Arenas; // 50x48
     public static Asset<Texture2D> Icon_Arenas_Highlighted; // 54 x 52
 
+    // Spectate
+    public static Asset<Texture2D> BG_Shimmer; 
+    public static Asset<Texture2D> BG_Biome;
+    public static Asset<Texture2D> BG_WorldInfo;
+    public static Asset<Texture2D> Shimmer; // 32x32
+    public static Asset<Texture2D> Biome; // 32x32
+
+    public static Asset<Texture2D> HeldItem; // 32x32
+    public static Asset<Texture2D> ButtonTeleport; // 32x32
+    public static Asset<Texture2D> ButtonEye; // 32x32
+    public static Asset<Texture2D> Icon_Player; // 32x32
+    public static Asset<Texture2D> Icon_PlayerHead; // 32x32
+    public static Asset<Texture2D> Icon_World; // 32x32
+    public static Asset<Texture2D> Icon_Eye; // 32x32
+    public static Asset<Texture2D> Icon_Eye2; // 32x32
+    public static Asset<Texture2D> Icon_Eye3; // 32x32
+    public static Asset<Texture2D> Icon_NPC; // 32x32
+    public static Asset<Texture2D> List; // 32x32
+    public static Asset<Texture2D> Grid; // 32x32
+    public static Asset<Texture2D> Sort; // 32x32
+    public static Asset<Texture2D> MinionCount; // 32x32
+    public static Asset<Texture2D> Distance; // 32x32
+    public static Asset<Texture2D> Ping; // 32x32
+    public static Asset<Texture2D> Time; // 32x32
+    public static Asset<Texture2D> PvE; // 32x32
+    public static Asset<Texture2D> PvP; // 32x32
+    public static Asset<Texture2D> BossDamage; // 32x32
+    public static Asset<Texture2D> InventoryCount; // 32x32
+
     // Match history
     public static Asset<Texture2D> Icon_Trophy; // 48x48
     public static Asset<Texture2D> Icon_TeamBoss; // 54x54
@@ -81,7 +110,6 @@ public static class Ass
     public static Asset<Texture2D> Icon_CheckmarkGray;
     public static Asset<Texture2D> Icon_CheckmarkGrayBox;
     public static Asset<Texture2D> Icon_CheckmarkGreenBox;
-
 
     // PvP players crossing swords assets
     public static Asset<Texture2D> Icon_PvPBalancing;

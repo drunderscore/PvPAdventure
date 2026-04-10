@@ -1,16 +1,15 @@
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.UI;
+namespace PvPAdventure.UI;
 
-public class ResizeButton : UIImageButton
+public class UIResizeButton : UIImageButton
 {
     public bool draggingResize;
 
@@ -19,7 +18,7 @@ public class ResizeButton : UIImageButton
     public event Action<float> OnDragX;
     public event Action<float> OnDragY;
 
-    public ResizeButton(Asset<Texture2D> texture) : base(texture)
+    public UIResizeButton(Asset<Texture2D> texture) : base(texture)
     {
         HAlign = 1f;
         VAlign = 1f;

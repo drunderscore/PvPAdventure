@@ -1,8 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Arenas;
+using PvPAdventure.Common.Spectator.UI;
 using PvPAdventure.Common.SSC;
 using PvPAdventure.Core.Utilities;
+using PvPAdventure.UI;
 using SubworldLibrary;
 using System;
 using Terraria.GameContent.UI.Elements;
@@ -10,7 +12,7 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.Arenas.UI;
 
-public class ArenasJoinUI : UIState
+public class ArenasJoinUIState : UIState
 {
     // Player count
     //private static int arenaPlayerCount;
@@ -24,14 +26,14 @@ public class ArenasJoinUI : UIState
 
 
     // UI
-    private DraggableElement Root;
+    private UIDraggableElement Root;
     private UIPanel Container;
 
     public override void OnActivate()
     {
         RemoveAllChildren();
 
-        Root = new DraggableElement
+        Root = new UIDraggableElement
         {
             Width = new StyleDimension(290f, 0f),
             Top = new StyleDimension(100f, 0f),
@@ -79,21 +81,10 @@ public class ArenasJoinUI : UIState
         Container.Append(list);
 
         // Enter Arenas (with icon)
-        var arenasRow = CreateButtonWithIcon(
-            Ass.Icon_Arenas.Value,
-            "Enter Arenas",
-            () => SubworldSystem.Enter<ArenasSubworld>(),
-            panelHeight
-        );
-        list.Add(arenasRow);
+        var arenasRow = new UITextActionPanel("Enter Arenas", () => SubworldSystem.Enter<ArenasSubworld>(), panelHeight, 0.5f, true, Ass.Icon_Arenas.Value);
+        var mainWorldRow = new UITextActionPanel("Enter Main World", EnterMainWorld, panelHeight, 0.5f, true, Ass.Icon_StartGame.Value);
 
-        // Enter Main World (with globe icon)
-        var mainWorldRow = CreateButtonWithIcon(
-            Ass.Icon_StartGame.Value, // replace with your actual globe asset field
-            "Enter Main World",
-            EnterMainWorld,
-            panelHeight
-        );
+        list.Add(arenasRow);
         list.Add(mainWorldRow);
 
         // Recalc after modifications
@@ -104,83 +95,6 @@ public class ArenasJoinUI : UIState
     {
         ArenasUISystem.Close();
         SSCDelayJoinSystem.SendJoinRequest();
-    }
-
-    private static UIElement CreateButtonWithIcon(Texture2D icon, string text, Action onClick, float minHeight)
-    {
-        var row = new UIElement();
-        row.Width.Set(0f, 1f);
-        row.MinHeight.Set(minHeight, 0f);
-
-        var panel = new UIPanel();
-        panel.Width.Set(0f, 1f);
-        panel.MinHeight.Set(minHeight, 0f);
-        panel.SetPadding(0f);
-
-        // Icon image
-        var iconImage = new UIImage(icon);
-
-        if (icon == Ass.Icon_StartGame.Value)
-        {
-            iconImage.Top.Set(3, 0);
-            iconImage.Left.Set(11, 0f);
-            iconImage.ImageScale = 0.85f;
-        }
-        else
-        {
-            iconImage.Top.Set(-4, 0);
-            iconImage.Left.Set(3, 0f);
-            iconImage.ImageScale = 0.76f;
-        }
-
-        // Panel handlers
-        panel.OnLeftClick += (_, _) => onClick();
-        panel.OnMouseOver += (_, _) =>
-        {
-            panel.BorderColor = Color.Yellow;
-            //if (iconImage != null && icon == Ass.Icon_Arenas_v2.Value)
-            //{
-            //    iconImage.SetImage(Ass.Icon_Arenas_v2_Highlighted);
-            //}
-        };
-        panel.OnMouseOut += (_, _) =>
-        {
-            panel.BorderColor = Color.Black;
-            //if (iconImage != null && iconImage._texture == Ass.Icon_Arenas_v2_Highlighted)
-            //{
-            //    iconImage.SetImage(Ass.Icon_Arenas_v2);
-            //}
-        };
-
-        row.Append(panel);
-
-        panel.Append(iconImage);
-
-        // Icon hover
-        iconImage.OnMouseOver += (_, _) =>
-        {
-            if (iconImage != null && icon == Ass.Icon_Arenas.Value)
-            {
-                iconImage.SetImage(Ass.Icon_Arenas_Highlighted);
-            }
-        };
-        iconImage.OnMouseOut += (_, _) =>
-        {
-            if (iconImage != null && iconImage._texture == Ass.Icon_Arenas_Highlighted)
-            {
-                iconImage.SetImage(Ass.Icon_Arenas);
-            }
-        };
-
-        // Text that starts AFTER the icon
-        var label = new UIText(text, 0.5f, large: true);
-        label.TextOriginX = 0;
-        label.TextOriginY = 0;
-        label.Left.Set(50, 0f);
-        label.VAlign = 0.5f;
-        panel.Append(label);
-
-        return row;
     }
 
     public static UITextPanel<string> CreateButton(string text, Action onClick)

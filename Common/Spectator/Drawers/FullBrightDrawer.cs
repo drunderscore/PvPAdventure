@@ -1,10 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Arenas.UI;
+namespace PvPAdventure.Common.Spectator.Drawers;
 
-public class DrawPlayerFullBright : ModPlayer
+public class FullBrightDrawer : ModPlayer
 {
     public static bool ForceFullBrightOnce;
     public override void ModifyDrawInfo(ref PlayerDrawSet drawInfo)
@@ -12,11 +13,12 @@ public class DrawPlayerFullBright : ModPlayer
         if (!ForceFullBrightOnce)
             return;
 
-        drawInfo.shadow = 0f;
-        drawInfo.stealth = 1f;
+        Player p = drawInfo.drawPlayer;
+        //p.socialIgnoreLight = true;
 
-        var p = drawInfo.drawPlayer;
-        p.socialIgnoreLight = true;
+        //drawInfo.colorDisplayDollSkin = PlayerDrawHelper.DISPLAY_DOLL_DEFAULT_SKIN_COLOR;
+        //drawInfo.shadow = 0f;
+        //drawInfo.stealth = 1f;
 
         drawInfo.colorEyeWhites = Color.White;
         drawInfo.colorEyes = p.eyeColor;
@@ -35,11 +37,9 @@ public class DrawPlayerFullBright : ModPlayer
         drawInfo.colorArmorLegs = Color.White;
         drawInfo.colorMount = Color.White;
 
-        drawInfo.colorDisplayDollSkin = PlayerDrawHelper.DISPLAY_DOLL_DEFAULT_SKIN_COLOR;
-
-        drawInfo.headGlowColor = new Color(drawInfo.headGlowColor.R, drawInfo.headGlowColor.G, drawInfo.headGlowColor.B, 0);
-        drawInfo.bodyGlowColor = new Color(drawInfo.bodyGlowColor.R, drawInfo.bodyGlowColor.G, drawInfo.bodyGlowColor.B, 0);
-        drawInfo.armGlowColor = new Color(drawInfo.armGlowColor.R, drawInfo.armGlowColor.G, drawInfo.armGlowColor.B, 0);
-        drawInfo.legsGlowColor = new Color(drawInfo.legsGlowColor.R, drawInfo.legsGlowColor.G, drawInfo.legsGlowColor.B, 0);
+        //drawInfo.headGlowColor = new Color(drawInfo.headGlowColor.R, drawInfo.headGlowColor.G, drawInfo.headGlowColor.B, 0);
+        //drawInfo.bodyGlowColor = new Color(drawInfo.bodyGlowColor.R, drawInfo.bodyGlowColor.G, drawInfo.bodyGlowColor.B, 0);
+        //drawInfo.armGlowColor = new Color(drawInfo.armGlowColor.R, drawInfo.armGlowColor.G, drawInfo.armGlowColor.B, 0);
+        //drawInfo.legsGlowColor = new Color(drawInfo.legsGlowColor.R, drawInfo.legsGlowColor.G, drawInfo.legsGlowColor.B, 0);
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.MatchHistory.UI;
 using PvPAdventure.Common.MainMenu.State;
-using PvPAdventure.Common.MainMenu.UI;
+using PvPAdventure.UI;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;

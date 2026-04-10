@@ -2,12 +2,12 @@
 using Terraria;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Arenas.UI;
+namespace PvPAdventure.UI;
 
 /// <summary>
 /// Drags this element (and therefore all children) by converting alignment-based layout to pixel layout on drag start.
 /// </summary>
-public class DraggableElement : UIElement
+public class UIDraggableElement : UIElement
 {
     bool moving;
     Vector2 offset;

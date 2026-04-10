@@ -40,14 +40,16 @@ public class BountyManager : ModSystem
 #if DEBUG
     public override void PostUpdateEverything()
     {
-        if (!Main.keyState.IsKeyDown(Keys.NumPad7) || Main.oldKeyState.IsKeyDown(Keys.NumPad7))
+        Keys debugKey = Keys.NumPad4; 
+
+        if (!Main.keyState.IsKeyDown(debugKey) || Main.oldKeyState.IsKeyDown(debugKey))
             return;
 
         Team team = (Team)Main.LocalPlayer.team;
 
         if (team == Team.None)
         {
-            Log.Chat("NumPad7: you are Team.None. Join a team first.");
+            Log.Chat($"{debugKey}: you are Team.None. Join a team first.");
             return;
         }
 
@@ -65,7 +67,7 @@ public class BountyManager : ModSystem
 
         if (eligibleBounties.Count == 0)
         {
-            Log.Chat("NumPad7: no eligible bounties (check conditions/config).");
+            Log.Chat($"{debugKey}: no eligible bounties (check conditions/config).");
             return;
         }
 

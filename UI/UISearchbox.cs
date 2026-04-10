@@ -9,10 +9,10 @@ using Terraria.GameContent.UI.Elements;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.MainMenu.ServerList;
+namespace PvPAdventure.UI;
 
 //ty jopojelly and darthmorf
-public class Searchbox : UIPanel
+public class UISearchbox : UIPanel
 {
     internal string currentString = string.Empty;
 
@@ -39,12 +39,13 @@ public class Searchbox : UIPanel
 
     internal bool unfocusOnTab = true;
 
-    internal Searchbox(string hintText, string text = "")
+    internal UISearchbox(string hintText="", string text = "")
     {
         this.hintText = hintText;
         currentString = text;
         SetPadding(0);
         BackgroundColor = new Color(63, 82, 151) * 0.7f;
+        BackgroundColor = Color.White;
         BorderColor = Color.Black;
     }
 
@@ -182,7 +183,8 @@ public class Searchbox : UIPanel
         if (hasText) drawPos.X += 3f;
 
         // Cursor only when there is actual text
-        if (focused && textBlinkerState == 1 && hasText)
+        //if (focused && textBlinkerState == 1 && hasText)
+        if (focused && textBlinkerState == 1)
             textToDraw += "|";
 
         float scale = hasText ? 1f : 1.0f;

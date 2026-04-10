@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.UI;
 using ReLogic.Content;
 using System.Collections.Generic;
 using Terraria;
@@ -12,7 +13,7 @@ namespace PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
 /// <summary>
 /// The base element for the team assigner UI (title and content panel).
 /// </summary>
-public class TeamAssignerPanel : UI.DraggablePanel
+public class TeamAssignerPanel : UIDraggablePanel
 {
     // Team colors: 0–5
     internal static readonly Color[] TeamColors =

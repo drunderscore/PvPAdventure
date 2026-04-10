@@ -1,8 +1,10 @@
+using DragonLens.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Arenas.UI;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Spectator.UI.State;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Teams;
 using PvPAdventure.Content.Items;
@@ -22,6 +24,7 @@ public class Keybinds : ModSystem
     public ModKeybind AllChat { get; private set; }
     public ModKeybind Dash { get; private set; }
     public ModKeybind ArenasMenu { get; private set; }
+    public ModKeybind SpectateMenu { get; private set; }
     public ModKeybind UseAdventureMirror { get; private set; }
 
     public override void Load()
@@ -30,7 +33,8 @@ public class Keybinds : ModSystem
         BountyShop = KeybindLoader.RegisterKeybind(Mod, "BountyShop", Keys.P);
         AllChat = KeybindLoader.RegisterKeybind(Mod, "AllChat", Keys.U);
         Dash = KeybindLoader.RegisterKeybind(Mod, "Dash", Keys.F);
-        ArenasMenu = KeybindLoader.RegisterKeybind(Mod, "ArenasMenu", Keys.F1);
+        ArenasMenu = KeybindLoader.RegisterKeybind(Mod, "ArenasMenu", Keys.NumPad7);
+        SpectateMenu = KeybindLoader.RegisterKeybind(Mod, "SpectateMenu", Keys.NumPad8);
         UseAdventureMirror = KeybindLoader.RegisterKeybind(Mod, "UseAdventureMirror", Keys.G);
     }
 }
@@ -64,16 +68,36 @@ internal class KeybindsPlayer : ModPlayer
             else
                 Main.InGameUI.SetState(bountyShop);
         }
-
         // All Chat
         if (keybinds.AllChat.JustPressed)
             ModContent.GetInstance<TeamChatManager>().OpenAllChat();
 
-        // Toggle UI
-        var config = ModContent.GetInstance<ArenasConfig>();
-        if (config.IsArenasEnabled && keybinds.ArenasMenu.JustPressed)
+        // Arenas UI
+        var arenasConfig = ModContent.GetInstance<ArenasConfig>();
+
+        if (arenasConfig.IsArenasEnabled && keybinds.ArenasMenu.JustPressed)
         {
             ArenasUISystem.Toggle();
+        }
+
+        // Spectator UI
+        var spectatorConfig = ModContent.GetInstance<SpectatorConfig>();
+        if (spectatorConfig.IsSpectateEnabled && keybinds.SpectateMenu.JustPressed)
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient && spectatorConfig.ForcePlayersToSpectateWhenJoining)
+            {
+                if (PermissionHandler.LooksLikeAdmin(Main.LocalPlayer))
+                {
+                    Main.NewText("Opening spectate options for admin.", Color.Yellow);
+                }
+                else
+                {
+                    Main.NewText("Spectator mode is enabled. Only admins can change your spectate status.", Color.OrangeRed);
+                }
+
+                return;
+            }
+            SpectatorUISystem.ToggleSpectateJoinUI();
         }
 
         // Adventure mirror keybind

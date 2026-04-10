@@ -29,6 +29,7 @@ Mods: {
 			DLArenasAdminTool.DisplayName: Arenas Admin Tool
 			DebugDLLeaveTool.DisplayName: DL Debug Leave Tool
 			DebugDLClearChatTool.DisplayName: DL Debug Clear Chat Tool
+			SpectateMenu.DisplayName: Spectate Menu
 		}
 
 		Tools: {
@@ -1779,6 +1780,51 @@ Mods: {
 
 				PvPKnockbackMultiplier: {
 					Label: PvP Knockback Multiplier
+					Tooltip: ""
+				}
+			}
+
+			SpectateConfig: {
+				DisplayName: Spectate Config
+				Headers.Spectate: Spectate Header
+
+				IsSpectateEnabled: {
+					Label: Is Spectate Enabled
+					Tooltip: ""
+				}
+
+				JoinedPlayersBecomeSpectatorsByDefault: {
+					Label: Joined Players Become Spectators By Default
+					Tooltip: ""
+				}
+
+				ShowSpectateOptionWhenJoining: {
+					Label: Show Spectate Option When Joining
+					Tooltip: ""
+				}
+			}
+
+			SpectatorConfig: {
+				DisplayName: Spectator Config
+				Headers.Spectate: Spectate Header
+
+				IsSpectateEnabled: {
+					Label: Is Spectate Enabled
+					Tooltip: ""
+				}
+
+				JoinedPlayersBecomeSpectatorsByDefault: {
+					Label: Joined Players Become Spectators By Default
+					Tooltip: ""
+				}
+
+				ShowSpectateOptionWhenJoining: {
+					Label: Show Spectate Option When Joining
+					Tooltip: ""
+				}
+
+				ForcePlayersToSpectateWhenJoining: {
+					Label: Force Players To Spectate When Joining
 					Tooltip: ""
 				}
 			}

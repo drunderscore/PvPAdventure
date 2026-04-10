@@ -1,11 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Utilities;
+using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.UI;
+namespace PvPAdventure.UI;
 
 /// <summary>
 /// Class used to define common properties for admin tool window panels,
@@ -13,7 +15,7 @@ namespace PvPAdventure.Common.AdminTools.UI;
 /// <see cref="PointsSetter"/> 
 /// <seealso cref="GameStarter"/>, etc.
 /// </summary>
-public abstract class DraggablePanel : UIElement
+public abstract class UIDraggablePanel : UIElement
 {
     // Dragging
     private bool dragging;
@@ -23,12 +25,16 @@ public abstract class DraggablePanel : UIElement
     protected UIPanel TitlePanel;
     protected UIPanel ContentPanel;
     protected UIPanel RefreshPanel;
+    protected UIPanel ActionPanel;
     protected UIPanel ClosePanel;
-    protected ResizeButton ResizeButton;
+    protected UIResizeButton ResizeButton;
 
     // Overridable properties
     protected abstract void OnClosePanelLeftClick();
     protected virtual void OnRefreshPanelLeftClick() { }
+    protected virtual void OnActionPanelLeftClick() { }
+    protected virtual Asset<Texture2D> ActionPanelIconAsset => null;
+    protected virtual string ActionPanelHoverText => null;
 
     /// <summary> Gets the minimum allowed width, in pixels, for resizing operations. </summary>
     protected virtual float MinResizeW => 350f;
@@ -38,9 +44,10 @@ public abstract class DraggablePanel : UIElement
     protected virtual float MaxResizeW => 1000f;
     /// <summary> Gets the maximum allowed height, in pixels, when resizing. </summary>
     protected virtual float MaxResizeH => 1000f;
+    protected virtual bool ShowResizeButton => true;
 
     // Constructor sets the style of this panel.
-    public DraggablePanel(string title)
+    public UIDraggablePanel(string title)
     {
         // Size and position
         Width.Set(350, 0);
@@ -117,70 +124,94 @@ public abstract class DraggablePanel : UIElement
         });
         TitlePanel.Append(RefreshPanel);
 
+        if (ActionPanelIconAsset is not null)
+        {
+            ActionPanel = new UIPanel
+            {
+                Height = new StyleDimension(0, 1),
+                Width = new StyleDimension(40, 0),
+                Left = new StyleDimension(40, 0),
+                VAlign = 0.5f
+            };
+            ActionPanel.OnLeftClick += (_, _) => OnActionPanelLeftClick();
+            ActionPanel.OnMouseOver += (_, _) => ActionPanel.BorderColor = Color.Yellow;
+            ActionPanel.OnMouseOut += (_, _) => ActionPanel.BorderColor = Color.Black;
+            ActionPanel.SetPadding(0);
+            ActionPanel.Append(new UIImage(ActionPanelIconAsset.Value)
+            {
+                HAlign = 0.5f,
+                VAlign = 0.5f
+            });
+            TitlePanel.Append(ActionPanel);
+        }
+
         // Resize
-        ResizeButton = new(Ass.Icon_Resize);
-
-        ResizeButton.OnDragX += dx =>
+        if (ShowResizeButton)
         {
-            if (Parent == null)
-                return;
+            ResizeButton = new(Ass.Icon_Resize);
 
-            if (HAlign != 0f || VAlign != 0f || Left.Percent != 0f || Top.Percent != 0f)
+            ResizeButton.OnDragX += dx =>
             {
-                var p = Parent.GetDimensions();
-                var d = GetDimensions();
+                if (Parent == null)
+                    return;
 
-                HAlign = 0f;
-                VAlign = 0f;
-                Left.Percent = 0f;
-                Top.Percent = 0f;
+                if (HAlign != 0f || VAlign != 0f || Left.Percent != 0f || Top.Percent != 0f)
+                {
+                    var p = Parent.GetDimensions();
+                    var d = GetDimensions();
 
-                Left.Pixels = d.X - p.X;
-                Top.Pixels = d.Y - p.Y;
+                    HAlign = 0f;
+                    VAlign = 0f;
+                    Left.Percent = 0f;
+                    Top.Percent = 0f;
 
+                    Left.Pixels = d.X - p.X;
+                    Top.Pixels = d.Y - p.Y;
+
+                    Recalculate();
+                }
+
+                var parent = Parent.GetDimensions();
+
+                float maxW = Math.Min(MaxResizeW, parent.Width - Left.Pixels);
+                float w = Utils.Clamp(Width.Pixels + dx, MinResizeW, maxW);
+
+                Width.Set(w, 0f);
                 Recalculate();
-            }
+            };
 
-            var parent = Parent.GetDimensions();
-
-            float maxW = Math.Min(MaxResizeW, parent.Width - Left.Pixels);
-            float w = Utils.Clamp(Width.Pixels + dx, MinResizeW, maxW);
-
-            Width.Set(w, 0f);
-            Recalculate();
-        };
-
-        ResizeButton.OnDragY += dy =>
-        {
-            if (Parent == null)
-                return;
-
-            if (HAlign != 0f || VAlign != 0f || Left.Percent != 0f || Top.Percent != 0f)
+            ResizeButton.OnDragY += dy =>
             {
-                var p = Parent.GetDimensions();
-                var d = GetDimensions();
+                if (Parent == null)
+                    return;
 
-                HAlign = 0f;
-                VAlign = 0f;
-                Left.Percent = 0f;
-                Top.Percent = 0f;
+                if (HAlign != 0f || VAlign != 0f || Left.Percent != 0f || Top.Percent != 0f)
+                {
+                    var p = Parent.GetDimensions();
+                    var d = GetDimensions();
 
-                Left.Pixels = d.X - p.X;
-                Top.Pixels = d.Y - p.Y;
+                    HAlign = 0f;
+                    VAlign = 0f;
+                    Left.Percent = 0f;
+                    Top.Percent = 0f;
 
+                    Left.Pixels = d.X - p.X;
+                    Top.Pixels = d.Y - p.Y;
+
+                    Recalculate();
+                }
+
+                var parent = Parent.GetDimensions();
+
+                float maxH = Math.Min(MaxResizeH, parent.Height - Top.Pixels);
+                float h = Utils.Clamp(Height.Pixels + dy, MinResizeH, Math.Max(MinResizeH, maxH));
+
+                Height.Set(h, 0f);
                 Recalculate();
-            }
+            };
 
-            var parent = Parent.GetDimensions();
-
-            float maxH = Math.Min(MaxResizeH, parent.Height - Top.Pixels);
-            float h = Utils.Clamp(Height.Pixels + dy, MinResizeH, Math.Max(MinResizeH, maxH));
-
-            Height.Set(h, 0f);
-            Recalculate();
-        };
-
-        Append(ResizeButton);
+            Append(ResizeButton);
+        }
     }
 
     #region Dragging
@@ -194,10 +225,13 @@ public abstract class DraggablePanel : UIElement
         if (RefreshPanel.IsMouseHovering)
             Main.instance.MouseText("Refresh");
 
+        if (ActionPanel?.IsMouseHovering == true && !string.IsNullOrWhiteSpace(ActionPanelHoverText))
+            Main.instance.MouseText(ActionPanelHoverText);
+
         if (Parent == null)
             return;
 
-        if (ClosePanel.IsMouseHovering || RefreshPanel.IsMouseHovering || ResizeButton.IsMouseHovering)
+        if (ClosePanel.IsMouseHovering || RefreshPanel.IsMouseHovering || ActionPanel?.IsMouseHovering == true || ResizeButton?.IsMouseHovering == true)
             return;
 
         if (dragging)
@@ -222,17 +256,27 @@ public abstract class DraggablePanel : UIElement
             Top.Pixels = Utils.Clamp(Top.Pixels, 0, parentSpace.Bottom - Height.Pixels);
             Recalculate();
         }
+
+#if DEBUG
+        // TODO: Debug rebuild panel on F5
+        //if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5) && !Main.oldKeyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5))
+        //{
+            //RemoveAllChildren();
+        //}
+#endif
     }
 
     public override void LeftMouseDown(UIMouseEvent evt)
     {
         base.LeftMouseDown(evt);
 
-        if (ClosePanel.IsMouseHovering || RefreshPanel.IsMouseHovering || ResizeButton.IsMouseHovering)
+        if (ClosePanel.IsMouseHovering || RefreshPanel.IsMouseHovering || ActionPanel?.IsMouseHovering == true || ResizeButton?.IsMouseHovering == true)
             return;
 
         if (TitlePanel == null || !TitlePanel.ContainsPoint(evt.MousePosition) || Parent == null)
             return;
+
+        BringToFront();
 
         if (HAlign != 0f || VAlign != 0f || Left.Percent != 0f || Top.Percent != 0f)
         {
@@ -252,6 +296,15 @@ public abstract class DraggablePanel : UIElement
 
         dragging = true;
         dragOffset = evt.MousePosition - GetDimensions().Position();
+    }
+
+    private void BringToFront()
+    {
+        if (Parent is not UIElement parent)
+            return;
+
+        parent.RemoveChild(this);
+        parent.Append(this);
     }
 
     public override void LeftMouseUp(UIMouseEvent evt)
