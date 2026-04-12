@@ -81,7 +81,6 @@ public class AuthenticationManager : ModSystem
                     else
                     {
                         Netplay.Disconnect = true;
-                        // FIXME: localize
                         Main.statusText = Language.GetTextValue("Mods.PvPAdventure.Authentication.SteamInvalidTicket");
                         Main.menuMode = MenuID.MultiplayerJoining;
                     }
@@ -97,7 +96,6 @@ public class AuthenticationManager : ModSystem
             if (messageType == MessageID.PlayerInfo && !didServerRequestToAuthenticate)
             {
                 Netplay.Disconnect = true;
-                // FIXME: localize
                 Main.statusText =
                     Language.GetTextValue("Mods.PvPAdventure.Authentication.ServerDidntRequestAuthentication");
                 Main.menuMode = MenuID.MultiplayerJoining;
