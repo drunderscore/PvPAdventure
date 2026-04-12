@@ -216,79 +216,79 @@ public class DiscordSocialManager : ModSystem
         orig(self, gameTime);
     }
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_Init(out nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_Drop(ref nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_Connect(ref nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_Disconnect(ref nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern ClientStatus Discord_Client_GetStatus(ref nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_Authorize(ref nint self, ref nint args, ClientAuthorizationCallback cb,
         nint freeFn, nint userData);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_GetToken(ref nint self, ulong applicationId, DiscordString code,
         DiscordString codeVerifier, DiscordString redirectUri, TokenExchangeCallback cb, nint freeFn, nint userData);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_UpdateToken(ref nint self, AuthorizationTokenType tokenType,
         DiscordString token, UpdateTokenCallback cb, nint freeFn, nint userData);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_RunCallbacks();
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_AddLogCallback(ref nint client, ClientLogCallback cb, nint freeFn,
         nint userData, LoggingSeverity minSev);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_SetStatusChangedCallback(ref nint client, ClientOnStatusChanged cb,
         nint freeFn, nint userData);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_Client_CreateAuthorizationCodeVerifier(ref nint client, out nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_AuthorizationCodeVerifier_Drop(ref nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_AuthorizationArgs_Init(out nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_AuthorizationArgs_Drop(ref nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_AuthorizationArgs_SetClientId(ref nint self, ulong value);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_AuthorizationArgs_SetScopes(ref nint self, DiscordString value);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_AuthorizationCodeVerifier_Challenge(ref nint self, out nint value);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_AuthorizationArgs_SetCodeChallenge(ref nint self, ref nint value);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern void Discord_AuthorizationCodeVerifier_Verifier(ref nint self, out DiscordString value);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U1)]
     private static extern bool Discord_ClientResult_Successful(ref nint self);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.U1)]
     private static extern bool Discord_Client_GetCurrentUserV2(ref nint self, out nint value);
 
-    [DllImport("libdiscord_partner_sdk.so", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("Discord Social SDK", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
     private static extern ulong Discord_UserHandle_Id(ref nint self);
 }

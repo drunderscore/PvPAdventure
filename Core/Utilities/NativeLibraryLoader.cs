@@ -20,11 +20,19 @@ public class NativeLibraryLoader : ModSystem
 
     private static nint ResolveDllImport(string library, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        var mod = ModLoader.GetMod("PvPAdventure");
-
         var lazyLibrary = libraries.GetOrAdd(library, name =>
             new Lazy<nint>(() =>
             {
+                if (name == "Discord Social SDK")
+                {
+                    if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                        name = "discord_partner_sdk.dll";
+                    else if (Environment.OSVersion.Platform == PlatformID.Unix)
+                        name = "libdiscord_partner_sdk.so";
+                }
+
+                var mod = ModLoader.GetMod("PvPAdventure");
+
                 var nativeLibraryPathInMod = $"lib/Native/{name}";
                 if (!mod.FileExists(nativeLibraryPathInMod))
                     return nint.Zero;
