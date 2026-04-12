@@ -370,9 +370,6 @@ public class ServerConfig : ModConfig
 
         [Expand(false, false)]
         public List<string> AllowedPlayerSteamIds { get; set; } = [];
-
-        [Expand(false, false)]
-        public List<string> AllowedPlayerDiscordIds { get; set; } = [];
     }
 
     public class AutoAdminsConfig

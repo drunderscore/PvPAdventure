@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using PvPAdventure.Common.Authentication;
 using Terraria;
+using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.MainMenu.API;
 
@@ -11,17 +13,11 @@ internal static class ProfileApi
 {
     public static Task<ApiResult<ApiProfileResponse>> GetProfileAsync(CancellationToken cancellationToken = default)
     {
-        if (!SteamAuthSystem.HasTicket)
-            return Task.FromResult(ApiResult<ApiProfileResponse>.Error(HttpStatusCode.Unauthorized, "Steam auth ticket is unavailable."));
-
         return ApiClient.GetJsonAsync<ApiProfileResponse>("profile/v1", cancellationToken);
     }
 
     public static Task<ApiResult<List<ApiInventoryItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
-        if (!SteamAuthSystem.HasTicket)
-            return Task.FromResult(ApiResult<List<ApiInventoryItem>>.Error(HttpStatusCode.Unauthorized, "Steam auth ticket is unavailable."));
-
         return ApiClient.GetJsonAsync<List<ApiInventoryItem>>("profile/inventory/v1", cancellationToken);
     }
 
@@ -50,9 +46,6 @@ internal static class ProfileApi
 
     public static async Task<ApiResult<bool>> UpdateEquipmentAsync(string prototype, string? name, CancellationToken cancellationToken = default)
     {
-        if (!SteamAuthSystem.HasTicket)
-            return ApiResult<bool>.Error(HttpStatusCode.Unauthorized, "Steam auth ticket is unavailable.");
-
         var payload = new
         {
             prototype,

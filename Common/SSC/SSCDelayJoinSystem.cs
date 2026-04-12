@@ -1,8 +1,8 @@
 ﻿using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
-using PvPAdventure.Discord.Systems;
 using Steamworks;
 using System;
+using PvPAdventure.Common.Discord;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -95,9 +95,6 @@ public class SSCDelayJoinSystem : ModSystem
         // Get the desired name based on config setting
         string desiredName = GetDesiredPlayerName();
 
-        // Use steamID to differentiate users
-        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
-
         Player appearanceSource = SSCGhostJoinSystem.JoinPlayerSnapshot ?? Main.LocalPlayer;
 
         // Send packet
@@ -105,7 +102,6 @@ public class SSCDelayJoinSystem : ModSystem
 
         packet.Write((byte)AdventurePacketIdentifier.SSC);
         packet.Write((byte)SSCPacketType.ClientJoin);
-        packet.Write(steamId);
         packet.Write(desiredName);
         Appearance.WriteAppearence(packet, appearanceSource);
 
@@ -143,13 +139,7 @@ public class SSCDelayJoinSystem : ModSystem
 
     public static string GetDiscordName()
     {
-        if (DiscordIdentity.TryGetIdentity(out var identity) &&
-            !string.IsNullOrWhiteSpace(identity.DisplayName))
-        {
-            return identity.DisplayName;
-        }
-
-        return Main.LocalPlayer.name;
+        return ModContent.GetInstance<DiscordSocialManager>().CurrentUser?.GlobalName ?? Main.LocalPlayer.name;
     }
 
     public static string SanitizePlayerName(string name)
@@ -162,6 +152,7 @@ public class SSCDelayJoinSystem : ModSystem
                    .Replace("\t", "")
                    .Trim();
 
+        // FIXME: Change Player.nameLen to be way bigger so hopefully this would be not needed?
         const int maxLen = 16;
         if (name.Length > maxLen)
             name = name.Substring(0, maxLen);

@@ -4,6 +4,7 @@ using PvPAdventure.Core.Config;
 using Steamworks;
 using System;
 using System.IO;
+using PvPAdventure.Common.Authentication;
 using Terraria;
 using Terraria.IO;
 using Terraria.ModLoader;
@@ -61,7 +62,7 @@ internal class SSCGhostJoinSystem : ModSystem
         var JoinPlayer = (Player)Main.ActivePlayerFileData.Player.Clone();
 
         // UUID会影响本地的map数据,同一个UUID的不同角色会拥有相同的地图探索
-        var PID = SteamUser.GetSteamID().m_SteamID.ToString();
+        var PID = SteamAuthentication.ClientSteamId;
 
         // Get the desired name based on config setting
         string desiredName = SSCDelayJoinSystem.GetDesiredPlayerName();
