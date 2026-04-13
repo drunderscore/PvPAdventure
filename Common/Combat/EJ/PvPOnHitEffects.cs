@@ -28,7 +28,7 @@ internal class PvPOnHitEffects : ModPlayer
                 Player.Center,
                 Vector2.Zero,
                 ProjectileID.Volcano,
-                    (int)(info.SourceDamage * 0.75f), // 75% damage like vanilla
+                    (int)(info.SourceDamage * 0.75f),
                 0f,
                 owner,
                 0f,
@@ -43,8 +43,8 @@ internal class PvPOnHitEffects : ModPlayer
 
         // Spawn Muramasa projectile when hit by Muramasa
         if (info.DamageSource.SourceItem != null &&
-    info.DamageSource.SourceItem.type == ItemID.Muramasa &&
-    Main.netMode != NetmodeID.MultiplayerClient)
+            info.DamageSource.SourceItem.type == ItemID.Muramasa &&
+            Main.netMode != NetmodeID.MultiplayerClient)
         {
             int owner = info.DamageSource.SourcePlayerIndex;
             Player attacker = Main.player[owner];
@@ -83,13 +83,12 @@ internal class PvPOnHitEffects : ModPlayer
 
                 spawnPos += Player.velocity * velocitySteps;
 
-                // Create the projectile
                 int proj = Projectile.NewProjectile(
                     Player.GetSource_OnHurt(info.DamageSource),
                     spawnPos,
                     velocity,
                     ProjectileID.Muramasa,
-                    (int)(info.SourceDamage * 0.5f), // 50% damage like vanilla
+                    (int)(info.SourceDamage * 0.5f),
                     0f,
                     owner,
                     rotationFactor,
@@ -102,17 +101,65 @@ internal class PvPOnHitEffects : ModPlayer
                 }
             }
         }
+
+        // Spawn Butcher's Chainsaw sparks when hit by Butcher's Chainsaw
+        if (info.DamageSource.SourceItem != null &&
+            info.DamageSource.SourceItem.type == ItemID.ButchersChainsaw &&
+            Main.netMode != NetmodeID.MultiplayerClient)
+        {
+            int owner = info.DamageSource.SourcePlayerIndex;
+            int sparkCount = Main.rand.Next(2, 6);
+            int sparkDamage = (int)(info.SourceDamage * 0.5f);
+
+            for (int i = 0; i < sparkCount; i++)
+            {
+                Vector2 velocity = new Vector2(
+                    Main.rand.NextFloat(-6f, 6f),
+                    Main.rand.NextFloat(-8f, -2f)
+                );
+
+                int proj = Projectile.NewProjectile(
+                    Player.GetSource_OnHurt(info.DamageSource),
+                    Player.Center,
+                    velocity,
+                    ProjectileID.Spark,
+                    sparkDamage,
+                    0f,
+                    owner
+                );
+
+                if (proj >= 0 && proj < Main.maxProjectiles)
+                {
+                    if (Main.rand.NextBool())
+                        Main.projectile[proj].ai[0] = 1f;
+
+                    if (Main.netMode == NetmodeID.Server)
+                        NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+                }
+            }
+        }
     }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
         var sourceItem = modifiers.DamageSource.SourceItem;
-        if (sourceItem != null && !sourceItem.IsAir)
+        if (sourceItem == null || sourceItem.IsAir)
+            return;
+
+        if (sourceItem.type == ItemID.BreakerBlade && Player.statLife >= Player.statLifeMax2 * 0.9f)
         {
-            // Breaker Blade bonus damage against high HP players
-            if (sourceItem.type == ItemID.BreakerBlade && Player.statLife >= Player.statLifeMax2 * 0.9f)
-            {
-                modifiers.IncomingDamageMultiplier *= 2.5f;
-            }
+            modifiers.IncomingDamageMultiplier *= 2.5f;
+        }
+
+        if (sourceItem.type == ItemID.Keybrand)
+        {
+            float hpFraction = (float)Player.statLife / Player.statLifeMax2;
+
+            float missingFraction = Math.Clamp(1f - hpFraction, 0f, 0.9f);
+
+            float keybrandMultiplier = 1f + (missingFraction / 0.9f);
+
+            modifiers.IncomingDamageMultiplier *= keybrandMultiplier;
         }
     }
 }

@@ -36,6 +36,7 @@ public class ItemPrefixesAndShimmer : GlobalItem
         AddCircularShimmerTransform(ItemID.SniperRifle, ItemID.RifleScope);
         AddCircularShimmerTransform(ItemID.Tabi, ItemID.BlackBelt);
         AddCircularShimmerTransform(ItemID.PiggyBank, ItemID.MoneyTrough);
+        AddCircularShimmerTransform(ItemID.TitanGlove, ItemID.FeralClaws); //expirimental asf
     }
 
     public override bool? PrefixChance(Item item, int pre, UnifiedRandom rand)

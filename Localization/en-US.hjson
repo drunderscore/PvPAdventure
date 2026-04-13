@@ -366,6 +366,25 @@ Mods: {
 				DisplayName: Security Config Item
 				Tooltip: ""
 			}
+
+			PowerBomb: {
+				Tooltip:
+					'''
+					A large explosion that will destroy most tiles
+					Can destroy hardmode ores
+					'''
+				DisplayName: Power Bomb
+			}
+
+			StickyPowerBomb: {
+				Tooltip:
+					'''
+					A large explosion that will destroy most tiles
+					Can destroy hardmode ores
+					'Tossing may be difficult.'
+					'''
+				DisplayName: Sticky Power Bomb
+			}
 		}
 
 		NPCs: {
@@ -1004,6 +1023,16 @@ Mods: {
 
 				SpectreHealing: {
 					Label: Spectre Healing
+					Tooltip: ""
+				}
+
+				BeetleEnergyMultiplier: {
+					Label: Beetle Energy Multiplier
+					Tooltip: ""
+				}
+
+				BeetleScaleMail: {
+					Label: Beetle Scale Mail
 					Tooltip: ""
 				}
 			}
@@ -1735,8 +1764,48 @@ Mods: {
 					Label: Projectile Knockback
 					Tooltip: ""
 				}
+
 				PvPKnockbackMultiplier: {
 					Label: PvP Knockback Multiplier
+					Tooltip: ""
+				}
+			}
+
+			BeetleScaleMailConfig: {
+				EnergyMultiplier: {
+					Label: Energy Multiplier
+					Tooltip: ""
+				}
+
+				Tooltip: ""
+
+				EnergyDecayPerTick: {
+					Label: Energy Decay Per Tick
+					Tooltip: ""
+				}
+
+				EnergyMax: {
+					Label: Energy Max
+					Tooltip: ""
+				}
+
+				Tier1Threshold: {
+					Label: Tier1 Threshold
+					Tooltip: ""
+				}
+
+				Tier2Threshold: {
+					Label: Tier2 Threshold
+					Tooltip: ""
+				}
+
+				Tier3Threshold: {
+					Label: Tier3 Threshold
+					Tooltip: ""
+				}
+
+				BeetleEnergyMultiplier: {
+					Label: Beetle Energy Multiplier
 					Tooltip: ""
 				}
 			}
@@ -1799,5 +1868,11 @@ Mods: {
 			Gain Beetles from player kills
 			Beetles increase your melee damage and attack speed
 			'''
+
+		Projectiles: {
+			PowerBombProjectile.DisplayName: Power Bomb Projectile
+			PowerBombExplosion.DisplayName: Power Bomb Explosion
+			StickyPowerBombProjectile.DisplayName: Sticky Power Bomb Projectile
+		}
 	}
 }

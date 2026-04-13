@@ -234,6 +234,9 @@ public class CombatProjectile : GlobalProjectile
                     ProjectileID.SporeGas => 10,
                     ProjectileID.SporeGas2 => 10,
                     ProjectileID.SporeGas3 => 10,
+                    ProjectileID.ButchersChainsaw => 6,
+                    ProjectileID.CoolWhipProj => 10,
+                    ProjectileID.Typhoon => 10,
                     ProjectileID.SporeTrap => 10,
                     ProjectileID.SporeTrap2 => 10,
 
