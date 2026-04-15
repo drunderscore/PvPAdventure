@@ -11,7 +11,7 @@ namespace PvPAdventure.Common.Spectator.UI;
 
 internal sealed class SpectatorControls : UIElement
 {
-    private const float NamePanelBaseScale = 0.65f;
+    private const float NamePanelBaseScale = 1.0f;
     private readonly SpectatorTargetKind targetKind;
 
     private UIElement controlsRoot;
@@ -39,7 +39,7 @@ internal sealed class SpectatorControls : UIElement
         prevButton.Left.Set(0f, 0f);
         controlsRoot.Append(prevButton);
 
-        namePanel = new UITextActionPanel("", HandleNamePanelClick, 36f, NamePanelBaseScale, true);
+        namePanel = new UITextActionPanel("", HandleNamePanelClick, 36f, NamePanelBaseScale, false);
         namePanel.Width.Set(220f, 0f);
         namePanel.Left.Set(40f, 0f);
         controlsRoot.Append(namePanel);

@@ -10,9 +10,13 @@ internal class SpectatorConfig : ModConfig
     [Header("Spectate")]
     [BackgroundColor(40, 40, 110)]
     [DefaultValue(true)]
-    public bool IsSpectateEnabled;
+    public bool ShowSpectateOptionWhenJoining;
 
     [BackgroundColor(40, 40, 110)]
-    [DefaultValue(true)]
-    public bool ForcePlayersToSpectateWhenJoining;
+    [DefaultValue(false)]
+    public bool ForcePlayersToBeSpectatorsWhenJoining;
+
+    [BackgroundColor(40, 40, 110)]
+    [DefaultValue(false)]
+    public bool DrawGhostsForOthers;
 }

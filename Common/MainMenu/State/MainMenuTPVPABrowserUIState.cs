@@ -79,8 +79,8 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         // row 1 (top): vAlign 0f
         buttons.Append(CreateButton(
             Ass.Icon_PlayMenu,
-            "Mods.PvPAdventure.MainMenu.Play",
-            "Mods.PvPAdventure.MainMenu.PlayDescription",
+            "Mods.PvPAdventure.MainMenu.ServerList",
+            "Mods.PvPAdventure.MainMenu.ServerListDescription",
             () => PlayMenuFlow.OpenCharacterSelect(),
             hAlign: 0f,
             vAlign: 0f

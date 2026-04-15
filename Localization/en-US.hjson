@@ -1784,47 +1784,26 @@ Mods: {
 				}
 			}
 
-			SpectateConfig: {
-				DisplayName: Spectate Config
-				Headers.Spectate: Spectate Header
-
-				IsSpectateEnabled: {
-					Label: Is Spectate Enabled
-					Tooltip: ""
-				}
-
-				JoinedPlayersBecomeSpectatorsByDefault: {
-					Label: Joined Players Become Spectators By Default
-					Tooltip: ""
-				}
-
-				ShowSpectateOptionWhenJoining: {
-					Label: Show Spectate Option When Joining
-					Tooltip: ""
-				}
-			}
-
 			SpectatorConfig: {
 				DisplayName: Spectator Config
-				Headers.Spectate: Spectate Header
-
-				IsSpectateEnabled: {
-					Label: Is Spectate Enabled
-					Tooltip: ""
-				}
-
-				JoinedPlayersBecomeSpectatorsByDefault: {
-					Label: Joined Players Become Spectators By Default
-					Tooltip: ""
-				}
+				Headers.Spectate: Spectate
 
 				ShowSpectateOptionWhenJoining: {
 					Label: Show Spectate Option When Joining
-					Tooltip: ""
+					Tooltip: Whether to show the choose your spectator mode UI when players enter the world
 				}
 
-				ForcePlayersToSpectateWhenJoining: {
-					Label: Force Players To Spectate When Joining
+				ForcePlayersToBeSpectatorsWhenJoining: {
+					Label: Force Players To Be Spectators When Joining
+					Tooltip:
+						'''
+						All players will be forced to spectate when entering the world.
+						This means an admin has to MANUALLY change their spectator status in DragonLens Player Manager to be able to play.
+						'''
+				}
+
+				DrawGhostsForOthers: {
+					Label: Draw Ghosts For Others
 					Tooltip: ""
 				}
 			}
@@ -1883,13 +1862,13 @@ Mods: {
 		MainMenu: {
 			TPVPA: TPVPA
 			TerrariaPvPAdventure: Terraria PvP Adventure
-			Play: Play
+			ServerList: TPVPA Server List
 			MatchHistory: TPVPA Match History
 			Achievements: TPVPA Achievements
 			Stats: TPVPA Stats
 			Shop: TPVPA Shop
 			Leaderboards: TPVPA Leaderboards
-			PlayDescription: Join casual or competitive TPVPA servers.
+			ServerListDescription: Join casual or competitive TPVPA servers.
 			MatchHistoryDescription: Review past matches and results.
 			AchievementsDescription: Track challenges and unlocks.
 			StatsDescription: View player K/D and W/L ratio.

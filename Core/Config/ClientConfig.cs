@@ -44,7 +44,7 @@ public class ClientConfig : ModConfig
     [DefaultValue(false)] public bool AutoSelectLatestSpawnOption;
 
     [BackgroundColor(30, 150, 150)]
-    [DefaultValue(SpawnSelectorPosition.Bottom)]
+    [DefaultValue(SpawnSelectorPosition.Top)]
     [JsonConverter(typeof(StringEnumConverter))]
     public SpawnSelectorPosition spawnSelectorPosition;
 

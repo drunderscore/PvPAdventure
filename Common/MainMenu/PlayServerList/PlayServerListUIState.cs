@@ -96,7 +96,7 @@ public class PlayServerListUIState : ResizableUIState
         panel.SetPadding(PanelPadding);
         root.Append(panel);
 
-        UITextPanel<string> title = new("Play TPVPA!", 0.8f, true);
+        UITextPanel<string> title = new("Server List", 0.8f, true);
         title.HAlign = 0.5f;
         title.Top.Set(-46f, 0f);
         title.SetPadding(15f);
@@ -184,7 +184,8 @@ public class PlayServerListUIState : ResizableUIState
                 return;
             }
 
-            JoinServer(selectedIP, selectedPort);
+            //JoinServer(selectedIP, selectedPort);
+            JoinServer(selectedRow.Entry.IP, selectedRow.Entry.Port);
         };
         root.Append(joinButton);
 
@@ -321,6 +322,7 @@ public class PlayServerListUIState : ResizableUIState
     private static UIElement MakeColumn(ServerRow row, float leftPixels, float widthPixels, string text, bool leftAligned)
     {
         UIElement column = new();
+        column.IgnoresMouseInteraction = true;
         column.Left.Set(leftPixels - PanelPadding, 0f);
         column.Width.Set(widthPixels, 0f);
         column.Height.Set(0f, 1f);
@@ -330,6 +332,7 @@ public class PlayServerListUIState : ResizableUIState
             TextColor = Color.White,
             VAlign = 0.5f
         };
+        label.IgnoresMouseInteraction = true;
 
         if (leftAligned)
         {
@@ -409,7 +412,7 @@ public class PlayServerListUIState : ResizableUIState
 
     private void JoinServer(string host, int port)
     {
-        Main.menuMode = 0;
+        //Main.menuMode = 0;
 
         // DON'T SELECT A PLAYER, WE DO IT IN THE TPVPA CHARACTER SELECT MENUS!!:
         ///<see cref="TPVPACharacterListItem"/>
@@ -426,12 +429,21 @@ public class PlayServerListUIState : ResizableUIState
         Netplay.ListenPort = port;
         Main.getIP = host.Trim();
 
+        Main.statusText = $"Resolving {host}:{port}...";
+
         Netplay.SetRemoteIPAsync(Main.getIP, () =>
         {
             Main.menuMode = 14;
             Main.statusText = $"Connecting to {host}:{port}";
             Netplay.StartTcpClient();
         });
+
+        //Netplay.SetRemoteIPAsync(Main.getIP, () =>
+        //{
+        //    Main.menuMode = 14;
+        //    Main.statusText = $"Connecting to {host}:{port}";
+        //    Netplay.StartTcpClient();
+        //});
     }
 
     public override void Update(GameTime gameTime)

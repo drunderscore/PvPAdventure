@@ -33,7 +33,7 @@ internal class InventoryWhileDeadSystem : ModSystem
         //}
         if (SpectatorSystem.IsInSpectateMode(self) && Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
         {
-            Main.NewText("Esc is disabled as a spectator!", Color.Yellow);
+            Main.NewText("'Esc' key is disabled as a spectator!", Color.Yellow);
             return;
         }
 
@@ -83,7 +83,7 @@ internal class InventoryWhileDeadSystem : ModSystem
     {
         if (SpectatorSystem.IsInSpectateMode(Main.LocalPlayer) && Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
         {
-            Main.NewText("Esc is disabled as a spectator!", Color.Yellow);
+            Main.NewText("'Esc' key is disabled as a spectator!", Color.Yellow);
             return;
         }
 

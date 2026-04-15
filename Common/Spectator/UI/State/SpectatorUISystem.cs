@@ -25,7 +25,7 @@ public sealed class SpectatorUISystem : ModSystem
                 return false;
             }
 
-            return config.IsSpectateEnabled;
+            return config.ShowSpectateOptionWhenJoining;
         }
     }
 
@@ -42,7 +42,7 @@ public sealed class SpectatorUISystem : ModSystem
 
         // If config wants it to open, then open!
         var config = ModContent.GetInstance<SpectatorConfig>();
-        if (config.IsSpectateEnabled && !config.ForcePlayersToSpectateWhenJoining)
+        if (config.ShowSpectateOptionWhenJoining && !config.ForcePlayersToBeSpectatorsWhenJoining)
         {
             ToggleSpectateJoinUI();
         }

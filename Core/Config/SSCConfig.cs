@@ -1,7 +1,6 @@
 ﻿using DragonLens.Core.Systems;
 using PvPAdventure.Common.Arenas;
 using PvPAdventure.Core.Config.ConfigElements.LoadoutItems;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Terraria;
@@ -30,15 +29,15 @@ internal class SSCConfig : ModConfig
     [Slider]
     [Increment(20)]
     [Range(100, 500)]
-    [DefaultValue(100)]
+    [DefaultValue(200)]
     public int StartLife { get; set; } = 200;
 
     [BackgroundColor(90, 70, 160)]
     [Slider]
     [Increment(20)]
     [Range(20, 200)]
-    [DefaultValue(40)]
-    public int StartMana { get; set; } = 40;
+    [DefaultValue(100)]
+    public int StartMana { get; set; } = 100;
 
     [Header("StartingItems")]
     [BackgroundColor(90, 70, 160)]
@@ -59,18 +58,15 @@ internal class SSCConfig : ModConfig
     #region Hooks / methods
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
-        // Singleplayer always allowed
         if (Main.netMode == NetmodeID.SinglePlayer)
             return true;
 
-        // If dragonlens isn't loaded, disallow modifying the config.
         if (!ModLoader.HasMod("DragonLens"))
         {
             message = NetworkText.FromLiteral("SSC changes require DragonLens admin (DragonLens not loaded).");
             return false;
         }
 
-        // DragonLens admin check
         return AcceptClientChanges_DragonLens(whoAmI, ref message);
     }
 
@@ -84,8 +80,8 @@ internal class SSCConfig : ModConfig
             message = NetworkText.FromLiteral("You must be a DragonLens admin to modify this config.");
             return false;
         }
-        message = NetworkText.FromLiteral("Saved!");
 
+        message = NetworkText.FromLiteral("Saved!");
         return true;
     }
 
@@ -94,13 +90,60 @@ internal class SSCConfig : ModConfig
         Log.Chat("Server accepted changes!");
         base.HandleAcceptClientChangesReply(success, player, message);
     }
+
     public override void OnLoaded()
     {
         base.OnLoaded();
+
+        StartItems ??= [];
+        if (StartItems.Count == 0)
+            StartItems = CreateDefaultStartItems();
     }
+
     public override void OnChanged()
     {
         base.OnChanged();
+    }
+
+    private static List<LoadoutItem> CreateDefaultStartItems()
+    {
+        int adventureMirrorType = ItemID.None;
+        if (ModContent.TryFind<ModItem>("PvPAdventure", "AdventureMirror", out ModItem adventureMirror))
+            adventureMirrorType = adventureMirror.Type;
+
+        return
+        [
+            new LoadoutItem
+            {
+                Item = new ItemDefinition(ItemID.CopperPickaxe)
+            },
+            new LoadoutItem
+            {
+                Item = new ItemDefinition(ItemID.CopperAxe)
+            },
+            new LoadoutItem
+            {
+                Item = new ItemDefinition(ItemID.CopperShortsword)
+            },
+            new LoadoutItem
+            {
+                Item = new ItemDefinition(ItemID.Wood),
+                Stack = 20
+            },
+            new LoadoutItem
+            {
+                Item = new ItemDefinition(ItemID.Torch),
+                Stack = 20
+            },
+            new LoadoutItem
+            {
+                Item = new ItemDefinition(adventureMirrorType)
+            },
+            new LoadoutItem
+            {
+                Item = new ItemDefinition(ItemID.Bed)
+            }
+        ];
     }
     #endregion
 }

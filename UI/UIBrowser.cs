@@ -24,11 +24,13 @@ internal abstract class UIBrowserPanel : UIDraggablePanel
     protected UISearchbox searchbox;
     protected UIBrowserSizeSlider sizeSlider;
 
+    // Sorting
     private UIBrowserSortButton sortButton;
     private readonly List<UIBrowserSort> sorts = [];
     private int sortIndex;
     protected virtual List<UIBrowserSort> GetSorts() => [];
-    private string CurrentSortText => sortIndex <= 0 ? "Sort: Default" : $"Sort: {sorts[sortIndex - 1].Name}";
+    private string CurrentSortText => sorts.Count > 0 ? $"Sort: {sorts[sortIndex].Name}" : "Sort";
+
 
     protected readonly List<UIBrowserEntry> entries = [];
 
@@ -134,7 +136,11 @@ internal abstract class UIBrowserPanel : UIDraggablePanel
         // Sorts
         sorts.Clear();
         sorts.AddRange(GetSorts());
-        sortIndex = Math.Clamp(sortIndex, 0, sorts.Count);
+
+        if (sorts.Count > 0)
+            sortIndex = Math.Clamp(sortIndex, 0, sorts.Count - 1);
+        else
+            sortIndex = 0;
 
         sortButton = new UIBrowserSortButton(Ass.Sort, true, () => CurrentSortText);
         sortButton.Left.Set(402f, 0f);
@@ -145,7 +151,7 @@ internal abstract class UIBrowserPanel : UIDraggablePanel
             if (sorts.Count == 0)
                 return;
 
-            sortIndex = (sortIndex + 1) % (sorts.Count + 1);
+            sortIndex = (sortIndex + 1) % sorts.Count;
             RefreshEntries();
         };
         headerRow.Append(sortButton);
@@ -195,8 +201,8 @@ internal abstract class UIBrowserPanel : UIDraggablePanel
             visibleEntries.Add(entry);
         }
 
-        if (sortIndex > 0)
-            visibleEntries.Sort(sorts[sortIndex - 1].Compare);
+        if (sorts.Count > 0)
+            visibleEntries.Sort(sorts[sortIndex].Compare);
 
         grid.AddRange(visibleEntries);
         grid.Recalculate();

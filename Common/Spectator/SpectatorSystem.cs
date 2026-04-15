@@ -58,7 +58,7 @@ internal sealed class SpectatorSystem : ModSystem
     internal static PlayerMode GetJoinDefaultMode()
     {
         SpectatorConfig config = ModContent.GetInstance<SpectatorConfig>();
-        return config.ForcePlayersToSpectateWhenJoining ? PlayerMode.Spectator : PlayerMode.Player;
+        return config.ForcePlayersToBeSpectatorsWhenJoining ? PlayerMode.Spectator : PlayerMode.Player;
     }
 
     public static PlayerMode GetMode(int slot) => Modes.TryGetValue(slot, out PlayerMode mode) ? mode : PlayerMode.Player;

@@ -563,6 +563,15 @@ public class ServerConfig : ModConfig
     #endregion
 
     #region Hooks / methods
+    public override void OnLoaded()
+    {
+        base.OnLoaded();
+
+        BossOrder ??= [];
+        if (BossOrder.Count == 0)
+            BossOrder = CreateDefaultBossOrder();
+    }
+
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
         // Singleplayer always allowed
@@ -600,13 +609,35 @@ public class ServerConfig : ModConfig
         Log.Chat("Server accepted changes!");
         base.HandleAcceptClientChangesReply(success, player, message);
     }
-    public override void OnLoaded()
-    {
-        base.OnLoaded();
-    }
     public override void OnChanged()
     {
         base.OnChanged();
+    }
+    #endregion
+
+    #region Default values
+    private static List<NPCDefinition> CreateDefaultBossOrder()
+    {
+        return
+        [
+            new(NPCID.KingSlime),
+        new(NPCID.EyeofCthulhu),
+        new(NPCID.EaterofWorldsHead),
+        new(NPCID.BrainofCthulhu),
+        new(NPCID.QueenBee),
+        new(NPCID.SkeletronHead),
+        new(NPCID.Deerclops),
+        new(NPCID.WallofFlesh),
+        new(NPCID.QueenSlimeBoss),
+        new(NPCID.Retinazer),
+        new(NPCID.TheDestroyer),
+        new(NPCID.SkeletronPrime),
+        new(NPCID.Plantera),
+        new(NPCID.Golem),
+        new(NPCID.DukeFishron),
+        new(NPCID.HallowBoss),
+        new(NPCID.CultistBoss)
+        ];
     }
     #endregion
 

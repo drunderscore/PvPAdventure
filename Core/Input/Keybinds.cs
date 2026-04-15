@@ -82,9 +82,9 @@ internal class KeybindsPlayer : ModPlayer
 
         // Spectator UI
         var spectatorConfig = ModContent.GetInstance<SpectatorConfig>();
-        if (spectatorConfig.IsSpectateEnabled && keybinds.SpectateMenu.JustPressed)
+        if (spectatorConfig.ShowSpectateOptionWhenJoining && keybinds.SpectateMenu.JustPressed)
         {
-            if (Main.netMode == NetmodeID.MultiplayerClient && spectatorConfig.ForcePlayersToSpectateWhenJoining)
+            if (Main.netMode == NetmodeID.MultiplayerClient && spectatorConfig.ForcePlayersToBeSpectatorsWhenJoining)
             {
                 if (PermissionHandler.LooksLikeAdmin(Main.LocalPlayer))
                 {

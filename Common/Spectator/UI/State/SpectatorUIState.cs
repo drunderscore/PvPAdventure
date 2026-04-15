@@ -16,8 +16,6 @@ namespace PvPAdventure.Common.Spectator.UI.State;
 
 internal sealed class SpectatorUIState : UIState
 {
-    private UIColoredImageButton ghostToggleButton; // temp
-    private UIColoredImageButton joinToggleButton; // temp
     private UIColoredImageButton playerButton;
     private UIColoredImageButton worldButton;
     private UIColoredImageButton npcButton;
@@ -35,16 +33,10 @@ internal sealed class SpectatorUIState : UIState
     {
         RemoveAllChildren();
 
-        ghostToggleButton = CreateTopButton(0, ToggleGhostState, Ass.Icon_More);
-        joinToggleButton = CreateTopButton(1, SpectatorUISystem.ToggleSpectateJoinUI, Ass.Icon_Reset);
         playerButton = CreateTopButton(2, TogglePlayerPanel, Ass.Icon_PlayerHead);
         worldButton = CreateTopButton(3, ToggleWorldPanel, Ass.Icon_World);
         npcButton = CreateTopButton(4, ToggleNpcPanel, Ass.Icon_NPC);
 
-#if DEBUG
-        Append(ghostToggleButton);
-        Append(joinToggleButton);
-#endif
         Append(playerButton);
         Append(worldButton);
         Append(npcButton);
@@ -190,8 +182,6 @@ internal sealed class SpectatorUIState : UIState
         if (local is null || !local.active)
             return;
 
-        HandleHover(ghostToggleButton, "Toggle ghost/player mode");
-        HandleHover(joinToggleButton, "Toggle spectate join UI");
         HandleHover(playerButton, "Open player panel");
         HandleHover(worldButton, "Open world panel");
         HandleHover(npcButton, "Open NPC panel");
@@ -202,7 +192,7 @@ internal sealed class SpectatorUIState : UIState
 
     public override void Draw(SpriteBatch sb)
     {
-        if (ghostToggleButton is null || joinToggleButton is null || playerButton is null || worldButton is null || npcButton is null)
+        if (playerButton is null || worldButton is null || npcButton is null)
             return;
 
         base.Draw(sb);

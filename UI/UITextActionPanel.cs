@@ -31,15 +31,25 @@ public class UITextActionPanel : UITextPanel<string>
     public Texture2D icon;
     public float? MaxTextScaleOverride { get; set; }
 
+    private readonly float fixedHeight;
+
     public UITextActionPanel(string text, Action leftClickAction, float height, float textScale = 1f, bool large = false, Texture2D icon = null) : base(text, textScale, large)
     {
         this.leftClickAction = leftClickAction;
         this.icon = icon;
+        fixedHeight = height;
 
         Width.Set(0f, 1f);
         Height.Set(height, 0f);
-        MinHeight.Set(height, 0f);
         SetPadding(0f);
+
+        EnforceFixedSize();
+    }
+
+    private void EnforceFixedSize()
+    {
+        MinWidth.Set(0f, 0f);
+        MinHeight.Set(fixedHeight, 0f);
     }
 
     public override void LeftClick(UIMouseEvent evt)
@@ -51,6 +61,8 @@ public class UITextActionPanel : UITextPanel<string>
     public void SetTextAndFitScale(string text, float baseScale, float minScale = 0.35f, float horizontalPadding = 12f)
     {
         SetText(text);
+        EnforceFixedSize();
+
         autoFitTextScale = true;
         autoFitBaseScale = baseScale;
         autoFitMinScale = minScale;
