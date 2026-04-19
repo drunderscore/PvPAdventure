@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Core.Utilities;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
@@ -24,11 +23,11 @@ public class GemsPanel : UIPanel
         PaddingLeft = 6f;
     }
 
-    public void SetProfile(ApiProfileResponse? profile)
-    {
-        hasProfile = profile != null;
-        gems = profile?.Gems ?? 0;
-    }
+    //public void SetProfile(ApiProfileResponse? profile)
+    //{
+    //    hasProfile = profile != null;
+    //    gems = profile?.Gems ?? 0;
+    //}
 
     public override void Draw(SpriteBatch sb)
     {

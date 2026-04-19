@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
@@ -145,11 +144,11 @@ internal sealed class SkinUICard : UIElement
 
     private static async Task RefreshProfileStateSafeAsync()
     {
-        ApiResult<bool> result = await ProfileApi.RefreshProfileStateAsync();
-        if (!result.IsSuccess)
-        {
-            Log.Error($"[SkinUICard] Failed to refresh profile state. Status={(int)result.Status}, Error={result.ErrorMessage}");
-        }
+        //ApiResult<bool> result = await ProfileApi.RefreshProfileStateAsync();
+        //if (!result.IsSuccess)
+        //{
+        //    Log.Error($"[SkinUICard] Failed to refresh profile state. Status={(int)result.Status}, Error={result.ErrorMessage}");
+        //}
     }
 
     public override void Draw(SpriteBatch sb)

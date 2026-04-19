@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Common.MainMenu.State;
 using Terraria;
-using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Gamepad;
@@ -58,55 +54,29 @@ public sealed class AchievementsUIState : MainMenuPageUIState
         SetCurrentAsyncState(AsyncProviderState.Completed);
     }
 
-    private void ResetAchievements()
+    private void RefreshAchievements()
     {
-        SoundEngine.PlaySound(SoundID.Grab);
+        bool buildExampleContent = true;
 
-        //ProfileStorage.EnsureLoaded();
+        AchievementsUIContent content = buildExampleContent
+            ? AchievementsExampleContent.Create()
+            : new AchievementsUIContent([]);
 
-        //ProfileStorage.Achievements = new AchievementProgress();
-        //ProfileStorage.Save();
+        if (!buildExampleContent)
+        {
+            // TODO: Call the achievements API here and map the response into AchievementsUIContent.
+        }
 
-        //ProfileStorage.RebuildAchievements(matches);
-        //ProfileStorage.RebuildGems(matches);
-
-        RefreshAchievements();
-        SetCurrentAsyncState(AsyncProviderState.Completed);
+        BuildAchievements(content);
     }
 
-    private void RefreshAchievements()
+    private void BuildAchievements(AchievementsUIContent content)
     {
         list.Clear();
         scrollbar.ViewPosition = 0f;
 
-        MainMenuProfileState state = MainMenuProfileState.Instance;
-
-        List<AchievementsUIRow> claimed = [];
-        List<AchievementsUIRow> completed = [];
-        List<AchievementsUIRow> inProgress = [];
-
-        foreach ((string id, AchievementDefinition def) in Achievements.All)
-        {
-            int target = Math.Max(def.Target, 1);
-            int progress = Math.Clamp(state.GetAchievementProgress(id), 0, target);
-            AchievementsUIRow row = new(id, def, RefreshAchievements);
-
-            if (state.IsAchievementCollected(id))
-                claimed.Add(row);
-            else if (progress >= target)
-                completed.Add(row);
-            else
-                inProgress.Add(row);
-        }
-
-        foreach (AchievementsUIRow row in claimed)
-            list.Add(row);
-
-        foreach (AchievementsUIRow row in completed)
-            list.Add(row);
-
-        foreach (AchievementsUIRow row in inProgress)
-            list.Add(row);
+        for (int i = 0; i < content.Entries.Length; i++)
+            list.Add(new AchievementsUIRow(content.Entries[i]));
 
         list.Recalculate();
     }

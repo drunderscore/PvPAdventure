@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Authentication;
-using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.Core.Utilities;
@@ -139,45 +138,45 @@ public sealed class PlayerStatsUIState : MainMenuPageUIState
 
     private async Task LoadStatsAsync(int version)
     {
-        try
-        {
-            // If you later add a dedicated stats endpoint, replace this one call.
-            ApiResult<List<MatchResult>> result = await MatchApi.GetMatchesAsync().ConfigureAwait(false);
+        //try
+        //{
+        //    // If you later add a dedicated stats endpoint, replace this one call.
+        //    ApiResult<List<MatchResult>> result = await MatchApi.GetMatchesAsync().ConfigureAwait(false);
 
-            Main.QueueMainThreadAction(() =>
-            {
-                if (version != loadVersion)
-                    return;
+        //    Main.QueueMainThreadAction(() =>
+        //    {
+        //        if (version != loadVersion)
+        //            return;
 
-                if (!result.IsSuccess)
-                {
-                    ShowContentMessage(FormatErrorMessage("player stats", result.ErrorMessage));
-                    SetStats(0, 0, 0, 0, 0);
-                    SetCurrentAsyncState(AsyncProviderState.Aborted);
-                    return;
-                }
+        //        if (!result.IsSuccess)
+        //        {
+        //            ShowContentMessage(FormatErrorMessage("player stats", result.ErrorMessage));
+        //            SetStats(0, 0, 0, 0, 0);
+        //            SetCurrentAsyncState(AsyncProviderState.Aborted);
+        //            return;
+        //        }
 
-                List<MatchResult> matches = result.Data ?? [];
-                ulong steamUserId = SteamAuthentication.ClientSteamId.m_SteamID;
+        //        List<MatchResult> matches = result.Data ?? [];
+        //        ulong steamUserId = SteamAuthentication.ClientSteamId.m_SteamID;
 
-                UpdateFromMatches(matches, steamUserId);
-                SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {matches.Count} matches.");
-            });
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"Failed to load player stats: {ex}");
+        //        UpdateFromMatches(matches, steamUserId);
+        //        SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {matches.Count} matches.");
+        //    });
+        //}
+        //catch (Exception ex)
+        //{
+        //    Log.Error($"Failed to load player stats: {ex}");
 
-            Main.QueueMainThreadAction(() =>
-            {
-                if (version != loadVersion)
-                    return;
+        //    Main.QueueMainThreadAction(() =>
+        //    {
+        //        if (version != loadVersion)
+        //            return;
 
-                ShowContentMessage(FormatErrorMessage("player stats", ex.Message));
-                SetStats(0, 0, 0, 0, 0);
-                SetCurrentAsyncState(AsyncProviderState.Aborted);
-            });
-        }
+        //        ShowContentMessage(FormatErrorMessage("player stats", ex.Message));
+        //        SetStats(0, 0, 0, 0, 0);
+        //        SetCurrentAsyncState(AsyncProviderState.Aborted);
+        //    });
+        //}
     }
 
     private void SelectTab(int index)

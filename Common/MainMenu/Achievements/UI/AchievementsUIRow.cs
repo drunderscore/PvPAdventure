@@ -1,14 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
 using Terraria;
-using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ID;
 using Terraria.Localization;
 using Terraria.UI;
 using Terraria.UI.Chat;
@@ -21,19 +18,15 @@ internal sealed class AchievementsUIRow : UIPanel
     private const int CollectWidth = 150;
     private const int CollectPaddingLeft = 8;
 
-    private static Asset<Texture2D>? Borders;
-    private static Asset<Texture2D>? InnerTop;
-    private static Asset<Texture2D>? InnerBottom;
+    private static Asset<Texture2D>? borders;
+    private static Asset<Texture2D>? innerTop;
+    private static Asset<Texture2D>? innerBottom;
 
-    private readonly string id;
-    private readonly AchievementDefinition def;
-    private readonly Action refreshAction;
+    private readonly AchievementUIEntry content;
 
-    public AchievementsUIRow(string id, AchievementDefinition def, Action refreshAction)
+    public AchievementsUIRow(AchievementUIEntry content)
     {
-        this.id = id;
-        this.def = def;
-        this.refreshAction = refreshAction;
+        this.content = content;
 
         BackgroundColor = new Color(26, 40, 89) * 0.8f;
         BorderColor = new Color(13, 20, 44) * 0.8f;
@@ -44,23 +37,9 @@ internal sealed class AchievementsUIRow : UIPanel
         PaddingTop = 8f;
         PaddingLeft = 9f;
 
-        Borders ??= Main.Assets.Request<Texture2D>("Images/UI/Achievement_Borders");
-        InnerTop ??= Main.Assets.Request<Texture2D>("Images/UI/Achievement_InnerPanelTop");
-        InnerBottom ??= Main.Assets.Request<Texture2D>("Images/UI/Achievement_InnerPanelBottom");
-    }
-
-    public override void LeftClick(UIMouseEvent evt)
-    {
-        base.LeftClick(evt);
-
-        if (!GetCollectBounds().Contains(Main.MouseScreen.ToPoint()))
-            return;
-
-        if (!MainMenuProfileState.Instance.TryCollectAchievement(id, def))
-            return;
-
-        SoundEngine.PlaySound(SoundID.Coins);
-        refreshAction();
+        borders ??= Main.Assets.Request<Texture2D>("Images/UI/Achievement_Borders");
+        innerTop ??= Main.Assets.Request<Texture2D>("Images/UI/Achievement_InnerPanelTop");
+        innerBottom ??= Main.Assets.Request<Texture2D>("Images/UI/Achievement_InnerPanelBottom");
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -80,26 +59,27 @@ internal sealed class AchievementsUIRow : UIPanel
         ApplyRowColors(rowHover);
         base.DrawSelf(sb);
 
-        GetProgress(out int target, out int progress, out bool completed);
-        bool collected = MainMenuProfileState.Instance.IsAchievementCollected(id);
+        int target = content.ClampedTarget;
+        int progress = content.ClampedProgress;
+        bool completed = content.IsCompleted;
+        bool collected = content.IsCollected;
 
         DrawAchievementIcon(sb, iconPos, completed, rowHover);
 
         Color panelTint = rowHover ? Color.White : Color.Gray;
-        DrawInner(sb, InnerTop!.Value, topPos, panelWidth + CollectWidth, panelTint, 2, 2, 2);
+        DrawInner(sb, innerTop!.Value, topPos, panelWidth + CollectWidth, panelTint, 2, 2, 2);
 
         Color titleColor = completed ? Color.Gold : Color.Silver;
         Vector2 titlePos = topPos + new Vector2(8f, 2f);
-        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, def.Title, titlePos, titleColor, 0f, Vector2.Zero, new Vector2(0.92f), panelWidth);
+        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, content.Title, titlePos, titleColor, 0f, Vector2.Zero, new Vector2(0.92f), panelWidth);
 
         DrawRewardText(sb, topPos, panelWidth, completed, collected);
 
         if (!completed && progress > 0)
             DrawProgressInfo(sb, topPos, titlePos, panelWidth, rowHover, progress, target, titleColor);
 
-        DrawInner(sb, InnerBottom!.Value, bottomPos, panelWidth, panelTint, 6, 7, 6);
+        DrawInner(sb, innerBottom!.Value, bottomPos, panelWidth, panelTint, 6, 7, 6);
         DrawCollectPanel(sb, collectBottomPos, collectW, completed);
-
         DrawDescription(sb, bottomPos, panelWidth, completed, rowHover);
     }
 
@@ -116,13 +96,6 @@ internal sealed class AchievementsUIRow : UIPanel
         BorderColor = new Color(13, 20, 44) * 0.8f;
     }
 
-    private void GetProgress(out int target, out int progress, out bool completed)
-    {
-        target = Math.Max(def.Target, 1);
-        progress = Math.Clamp(MainMenuProfileState.Instance.GetAchievementProgress(id), 0, target);
-        completed = progress >= target;
-    }
-
     private Rectangle GetCollectBounds()
     {
         CalculatedStyle inner = GetInnerDimensions();
@@ -133,7 +106,7 @@ internal sealed class AchievementsUIRow : UIPanel
         Vector2 bottomPos = textOrigin + Vector2.UnitY * 24f;
         Vector2 collectPos = bottomPos + new Vector2(panelWidth + CollectPaddingLeft, 0f);
 
-        int height = InnerBottom?.Value.Height ?? 26;
+        int height = innerBottom?.Value.Height ?? 26;
         return new Rectangle((int)collectPos.X, (int)collectPos.Y, (int)collectW, height);
     }
 
@@ -145,18 +118,18 @@ internal sealed class AchievementsUIRow : UIPanel
         if (!completed && rowHover)
             iconTint = Color.Lerp(iconTint, Color.White, 0.25f);
 
-        int idx = def.IconIndex + 8;
+        int idx = content.IconIndex + 8;
         Rectangle frame = new(idx % 8 * 66, idx / 8 * 66, 64, 64);
         if (!completed)
             frame.X += 8 * 66;
 
         sb.Draw(Ass.Achievements.Value, iconRect, frame, iconTint);
-        sb.Draw(Borders!.Value, iconPos + new Vector2(-4f, -4f), iconTint);
+        sb.Draw(borders!.Value, iconPos + new Vector2(-4f, -4f), iconTint);
     }
 
     private void DrawRewardText(SpriteBatch sb, Vector2 topPos, float panelWidth, bool completed, bool collected)
     {
-        string rewardText = $"Reward: {def.GemsReward} Gems";
+        string rewardText = $"Reward: {content.GemsReward} Gems";
         Vector2 scale = Vector2.One;
         Vector2 size = ChatManager.GetStringSize(FontAssets.ItemStack.Value, rewardText, scale);
 
@@ -185,7 +158,7 @@ internal sealed class AchievementsUIRow : UIPanel
         float barX = brandX - barGap - barWidth;
         float progX = barX - barGap - progSize.X;
 
-        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, def.Title, titlePos, titleColor, 0f, Vector2.Zero, new Vector2(0.92f), Math.Max(0f, progX - titlePos.X - 6f));
+        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, content.Title, titlePos, titleColor, 0f, Vector2.Zero, new Vector2(0.92f), Math.Max(0f, progX - titlePos.X - 6f));
 
         float p = (float)progress / target;
 
@@ -210,7 +183,7 @@ internal sealed class AchievementsUIRow : UIPanel
             descColor = Color.White;
 
         float descScale = 0.8f;
-        string wrapped = FontAssets.ItemStack.Value.CreateWrappedText(def.Description, (panelWidth - 20f) / descScale, Language.ActiveCulture.CultureInfo);
+        string wrapped = FontAssets.ItemStack.Value.CreateWrappedText(content.Description, (panelWidth - 20f) / descScale, Language.ActiveCulture.CultureInfo);
         ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.ItemStack.Value, wrapped, bottomPos + new Vector2(8f, 3.5f), descColor, 0f, Vector2.Zero, new Vector2(descScale));
     }
 
@@ -228,11 +201,11 @@ internal sealed class AchievementsUIRow : UIPanel
 
     private void DrawCollectPanel(SpriteBatch sb, Vector2 pos, float width, bool completed)
     {
-        Texture2D tex = InnerBottom!.Value;
+        Texture2D tex = innerBottom!.Value;
         Texture2D gemTex = Ass.Icon_Gem.Value;
         Texture2D checkmarkTex = Ass.Icon_CheckmarkGreen.Value;
 
-        bool collected = MainMenuProfileState.Instance.IsAchievementCollected(id);
+        bool collected = content.IsCollected;
         bool canCollect = completed && !collected;
         bool hover = GetCollectBounds().Contains(Main.MouseScreen.ToPoint());
 

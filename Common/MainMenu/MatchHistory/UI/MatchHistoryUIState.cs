@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.UI;
 using System;
@@ -118,44 +117,44 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
 
     private async Task LoadMatchesAsync(int version)
     {
-        ApiResult<List<MatchResult>> result;
+        //ApiResult<List<MatchResult>> result;
 
-        try
-        {
-            result = await MatchApi.GetMatchesAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"[MatchHistoryUIState] Failed to load match history: {ex}");
+        //try
+        //{
+        //    result = await MatchApi.GetMatchesAsync().ConfigureAwait(false);
+        //}
+        //catch (Exception ex)
+        //{
+        //    Log.Error($"[MatchHistoryUIState] Failed to load match history: {ex}");
 
-            Main.QueueMainThreadAction(() =>
-            {
-                if (version != loadVersion)
-                    return;
+        //    Main.QueueMainThreadAction(() =>
+        //    {
+        //        if (version != loadVersion)
+        //            return;
 
-                ShowErrorState(MainMenuPageUIState.FormatErrorMessage("match history", ex.Message));
-                SetCurrentAsyncState(AsyncProviderState.Aborted);
-            });
-            return;
-        }
+        //        ShowErrorState(MainMenuPageUIState.FormatErrorMessage("match history", ex.Message));
+        //        SetCurrentAsyncState(AsyncProviderState.Aborted);
+        //    });
+        //    return;
+        //}
 
-        Main.QueueMainThreadAction(() =>
-        {
-            if (version != loadVersion)
-                return;
+        //Main.QueueMainThreadAction(() =>
+        //{
+        //    if (version != loadVersion)
+        //        return;
 
-            if (!result.IsSuccess || result.Data is null)
-            {
-                ShowErrorState(MainMenuPageUIState.FormatErrorMessage("match history", result.ErrorMessage));
-                SetCurrentAsyncState(AsyncProviderState.Aborted);
-                return;
-            }
+        //    if (!result.IsSuccess || result.Data is null)
+        //    {
+        //        ShowErrorState(MainMenuPageUIState.FormatErrorMessage("match history", result.ErrorMessage));
+        //        SetCurrentAsyncState(AsyncProviderState.Aborted);
+        //        return;
+        //    }
 
-            matches.Clear();
-            matches.AddRange(result.Data);
-            RebuildMatchUi();
-            SetCurrentAsyncState(AsyncProviderState.Completed);
-        });
+        //    matches.Clear();
+        //    matches.AddRange(result.Data);
+        //    RebuildMatchUi();
+        //    SetCurrentAsyncState(AsyncProviderState.Completed);
+        //});
     }
 
     private void RebuildMatchUi()

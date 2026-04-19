@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.State;
 using System;
 using System.Threading.Tasks;
@@ -17,8 +16,6 @@ public sealed class ShopUIState : MainMenuPageUIState
     private GemsPanel gemsPanel = null!;
     private UIScrollbar scrollbar = null!;
     private UIList list = null!;
-    private string? stateMessage;
-    private int loadVersion;
 
     protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.Shop";
 
@@ -83,28 +80,15 @@ public sealed class ShopUIState : MainMenuPageUIState
 
     protected override void RefreshContent()
     {
-        int version = ++loadVersion;
-        SetCurrentAsyncState(AsyncProviderState.Loading);
-
-        gemsPanel.SetProfile(null);
-
-        if (Products.All.Count == 0)
-            SetStateMessage(MainMenuPageUIState.FormatLoadingMessage("shop items"));
-
-        _ = LoadShopAndProfileAsync(version);
-    }
-
-    private void RefreshList()
-    {
         list.Clear();
         scrollbar.ViewPosition = 0f;
 
-        if (!string.IsNullOrWhiteSpace(stateMessage))
-        {
-            list.Add(MainMenuPageUIState.CreateWrappedMessageElement(stateMessage, 0.9f, 140f));
-            list.Recalculate();
-            return;
-        }
+        //if (!string.IsNullOrWhiteSpace(stateMessage))
+        //{
+        //    list.Add(MainMenuPageUIState.CreateWrappedMessageElement(stateMessage, 0.9f, 140f));
+        //    list.Recalculate();
+        //    return;
+        //}
 
         float cardW = 120f;
         float cardH = 120f;
@@ -155,84 +139,16 @@ public sealed class ShopUIState : MainMenuPageUIState
         list.Recalculate();
     }
 
-    private void SetStateMessage(string? message)
+    public override void Update(GameTime gameTime)
     {
-        if (stateMessage == message)
-            return;
+        base.Update(gameTime);
+        UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
 
-        stateMessage = message;
-        RefreshList();
+        bool hover = list.IsMouseHovering
+            || list.GetDimensions().ToRectangle().Contains(Main.MouseScreen.ToPoint())
+            || scrollbar.IsMouseHovering;
+
+        if (hover)
+            PlayerInput.LockVanillaMouseScroll("PvPAdventure/ShopList");
     }
-
-    private async Task LoadShopAndProfileAsync(int version)
-    {
-        void Fail(string error)
-        {
-            Main.QueueMainThreadAction(() =>
-            {
-                if (version != loadVersion)
-                    return;
-
-                SetStateMessage(error);
-                SetCurrentAsyncState(AsyncProviderState.Aborted);
-            });
-        }
-
-        try
-        {
-            Task<ApiResult<string>> shopTask = ShopApi.GetShopJsonAsync();
-            Task<ApiResult<ApiProfileResponse>> profileTask = ProfileApi.GetProfileAsync();
-
-            await Task.WhenAll(shopTask, profileTask).ConfigureAwait(false);
-
-            ApiResult<string> shopResult = await shopTask.ConfigureAwait(false);
-            ApiResult<ApiProfileResponse> profileResult = await profileTask.ConfigureAwait(false);
-
-            if (!shopResult.IsSuccess || string.IsNullOrWhiteSpace(shopResult.Data))
-            {
-                Fail(MainMenuPageUIState.FormatErrorMessage("shop items", shopResult.ErrorMessage));
-                return;
-            }
-
-            Products.LoadFromApiJson(shopResult.Data);
-
-            Main.QueueMainThreadAction(() =>
-            {
-                if (version != loadVersion)
-                    return;
-
-                if (profileResult.IsSuccess && profileResult.Data != null)
-                {
-                    gemsPanel.SetProfile(profileResult.Data);
-                }
-                else
-                {
-                    gemsPanel.SetProfile(null);
-                    Log.Warn($"[ShopUIState] Profile load failed. Shop will still render. {profileResult.ErrorMessage}");
-                }
-
-                SetStateMessage(null);
-                RefreshList();
-                SetCurrentAsyncState(AsyncProviderState.Completed);
-            });
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"[ShopUIState] Failed to load shop/profile: {ex}");
-            Fail(MainMenuPageUIState.FormatErrorMessage("shop items", ex.Message));
-        }
-    }
-
-    //public override void Update(GameTime gameTime)
-    //{
-    //    base.Update(gameTime);
-    //    UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
-
-    //    bool hover = list.IsMouseHovering
-    //        || list.GetDimensions().ToRectangle().Contains(Main.MouseScreen.ToPoint())
-    //        || scrollbar.IsMouseHovering;
-
-    //    if (hover)
-    //        PlayerInput.LockVanillaMouseScroll("PvPAdventure/ShopList");
-    //}
 }
