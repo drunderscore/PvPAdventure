@@ -7,7 +7,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using PvPAdventure.Common.Authentication;
 using Terraria.Enums;
+using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.MainMenu.API;
 
@@ -25,9 +27,6 @@ internal static class MatchApi
 
     public static async Task<ApiResult<List<MatchResult>>> GetMatchesAsync(string? steamId, CancellationToken cancellationToken = default)
     {
-        if (!SteamAuthSystem.HasTicket)
-            return ApiResult<List<MatchResult>>.Error(HttpStatusCode.Unauthorized, "Steam auth ticket is unavailable.");
-
         // Updated URIs to use "match/v1"
         string uri = string.IsNullOrWhiteSpace(steamId)
             ? "match/v1"
@@ -55,11 +54,15 @@ internal static class MatchApi
         if (payloads is null || payloads.Count == 0)
             return ApiResult<List<MatchResult>>.Success([], result.Status);
 
-        ulong localSteamId = SteamAuthSystem.ClientSteamId?.m_SteamID ?? 0;
+        ulong localSteamIdValue = 0;
+        var localSteamId = SteamAuthentication.ClientSteamId;
+        if (localSteamId.IsValid())
+            localSteamIdValue = localSteamId.m_SteamID;
+
         List<MatchResult> matches = [];
 
         for (int i = 0; i < payloads.Count; i++)
-            matches.Add(ToMatchResult(payloads[i], localSteamId));
+            matches.Add(ToMatchResult(payloads[i], localSteamIdValue));
 
         return ApiResult<List<MatchResult>>.Success(matches, result.Status);
     }

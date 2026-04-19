@@ -1,6 +1,7 @@
 ﻿using Steamworks;
 using System;
 using System.IO;
+using PvPAdventure.Common.Authentication;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -19,7 +20,7 @@ internal static class ClientBackup
     {
         try
         {
-            string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
+            string steamId = SteamAuthentication.ClientSteamId.ToString();
             string safeName = playerName;
 
             string dir = Path.Combine(BackupRoot, MapID, steamId);

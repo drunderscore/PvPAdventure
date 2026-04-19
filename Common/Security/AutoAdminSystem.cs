@@ -3,6 +3,7 @@ using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
 using System;
 using System.Diagnostics;
+using PvPAdventure.Common.Authentication;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -91,7 +92,7 @@ internal sealed class AutoAdminPlayer : ModPlayer
             if (!loggedMissingSteam)
             {
                 loggedMissingSteam = true;
-                Log.Debug($"[AutoAdmins] ({source}) '{Player.name}' has no SteamAddress (non-Steam socket?).");
+                Log.Debug($"[AutoAdmins] ({source}) '{Player.name}' has no steam id?");
             }
 
             return;
@@ -151,23 +152,10 @@ internal sealed class AutoAdminPlayer : ModPlayer
 
     private static string TryGetSteamId64(int whoAmI)
     {
-        if (whoAmI < 0 || whoAmI >= Main.maxPlayers)
-        {
+        var player = Main.player[whoAmI];
+        if (!player.active)
             return null;
-        }
 
-        var client = Netplay.Clients[whoAmI];
-        if (client == null || client.Socket == null)
-        {
-            return null;
-        }
-
-        RemoteAddress addr = client.Socket.GetRemoteAddress();
-        if (addr is not SteamAddress steam)
-        {
-            return null;
-        }
-
-        return steam.SteamId.m_SteamID.ToString();
+        return player.GetModPlayer<AuthenticatedPlayer>().SteamId?.ToString();
     }
 }

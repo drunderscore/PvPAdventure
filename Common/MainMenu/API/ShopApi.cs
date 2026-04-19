@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using PvPAdventure.Common.Authentication;
+using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.MainMenu.API;
 
@@ -19,9 +21,6 @@ internal static class ShopApi
 
     public static async Task<ApiResult<PurchaseResult>> PurchaseProductAsync(string prototype, string name, CancellationToken cancellationToken = default)
     {
-        if (!SteamAuthSystem.HasTicket)
-            return ApiResult<PurchaseResult>.Error(HttpStatusCode.Unauthorized, "Steam auth ticket is unavailable.");
-
         var payload = new
         {
             prototype,

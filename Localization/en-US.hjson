@@ -1,12 +1,11 @@
 Mods: {
 	PvPAdventure: {
-		DiscordIdentification: {
-			WaitingForIdentityFromDiscord: Waiting for your identity from Discord...
-			WaitingForServerToAcceptIdentity: Waiting for server to accept your identity...
-			FailedToGetIdentityFromDiscord: Failed to get your identity: {0}\nBe sure to authorize the application to access your account in the Discord client
-			UnableToVerifyIdentity: Unable to verify your identity
-			LoggedInElsewhere: You are already logged in elsewhere
-			NotPermittedToJoin: You are not permitted to join
+		Authentication: {
+			WaitingForServer: Waiting for server to authenticate...
+			SteamInvalidTicket: Your client was unable to provide a Steam session ticket. Is Steam running?
+			ServerDidntRequestAuthentication: The server did not request authentication as required.
+			NotWhitelisted: You are not whitelisted on this server.
+			SteamTicketResponseFailure: Steam authentication failure
 		}
 
 		Keybinds: {
@@ -1440,7 +1439,7 @@ Mods: {
 
 				Discord: {
 					Label: Discord
-					Tooltip: Discord display names with authentication
+					Tooltip: Discord display names
 				}
 
 				Numbered: {
@@ -1742,11 +1741,6 @@ Mods: {
 
 				AllowedPlayerSteamIds: {
 					Label: Allowed Player Steam Ids
-					Tooltip: ""
-				}
-
-				AllowedPlayerDiscordIds: {
-					Label: Allowed Player Discord Ids
 					Tooltip: ""
 				}
 			}

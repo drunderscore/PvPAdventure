@@ -64,7 +64,6 @@ internal class SSCSaveSystem : ModSystem
 
         try
         {
-            var steamID = SteamUser.GetSteamID().m_SteamID.ToString();
             var fileData = Main.ActivePlayerFileData;
             var name = fileData.Player.name;
             //var name = SteamFriends.GetPersonaName();
@@ -96,7 +95,6 @@ internal class SSCSaveSystem : ModSystem
             var packet = Mod.GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.SSC);
             packet.Write((byte)SSCPacketType.SavePlayer);
-            packet.Write(steamID);
             packet.Write(name);
             packet.Write(plr.Length);
             packet.Write(plr);

@@ -7,4 +7,3 @@ buildIgnore = *.csproj, *.user, *.md, obj\*, bin\*, .vs\*, Assets\Old\*, Assets\
 sortAfter = SubworldLibrary, DragonLens
 loadAfter = SubworldLibrary, DragonLens
 modReferences = SubworldLibrary
-dllReferences = Discord.Net.Rest, Discord.Net.Core, System.Linq.Async

@@ -1,6 +1,5 @@
 using PvPAdventure.Core.Net;
 using System.IO;
-using Terraria;
 using Terraria.ModLoader;
 
 namespace PvPAdventure;
@@ -89,9 +88,9 @@ public class PvPAdventure : Mod
                 Common.Security.ClientModHandler.HandlePacket(r, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.WhitelistPlayerCheck:
-                Common.Security.WhitelistPlayerHandler.HandlePacket(r, whoAmI);
-                break;
+            // case AdventurePacketIdentifier.WhitelistPlayerCheck:
+            //     Common.Security.WhitelistPlayerHandler.HandlePacket(r, whoAmI);
+            //     break;
 
             case AdventurePacketIdentifier.ArenasAdmin:
                 Common.AdminTools.Tools.ArenasTool.ArenasAdminNetHandler.HandlePacket(r, whoAmI);

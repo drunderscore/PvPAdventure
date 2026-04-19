@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -9,22 +8,27 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using PvPAdventure.Common.Authentication;
+using Terraria;
+using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.MainMenu.API;
 
 internal static class ApiClient
 {
-    //private const string BaseUrl = "https://jame.xyz:50000/";
-    private const string BaseUrl = "https://api.tpvpa.terraria.sh/";
-    private const string PinnedThumbprint = "51A6F42F8479EDBB926C9E4385D7B8286A64C418";
+#if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
+    private const string BaseUrl = "https://dev.api.tpvpa.terraria.sh";
+    private const string DevThumbprint = "51A6F42F8479EDBB926C9E4385D7B8286A64C418";
+#else
+    private const string BaseUrl = "https://api.tpvpa.terraria.sh";
+#endif
+    private static readonly DateTime OfficialCertificateExpirePriorWarning = DateTime.Now.AddDays(14);
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
+    private const int MaxLoggedBodyLength = 256;
 
-    private static readonly HttpClient Client = CreateClient(useClientCertificate: false);
-    private static readonly HttpClient MatchClient = CreateClient(useClientCertificate: true);
+    private static readonly JsonSerializerOptions JsonOptions = new();
+
+    private static readonly HttpClient Client = CreateClient();
 
     public static Task<ApiResult<string>> GetStringAsync(string uri, CancellationToken cancellationToken = default)
     {
@@ -52,16 +56,17 @@ internal static class ApiClient
         {
             using HttpRequestMessage request = new(method, uri);
 
-            if (!string.IsNullOrWhiteSpace(SteamAuthSystem.AuthTicketHex))
-                request.Headers.Add("Ticket", SteamAuthSystem.AuthTicketHex);
+            var steamAuth = ModContent.GetInstance<SteamAuthentication>();
+            var ticket = steamAuth.WebTicket;
+
+            if (!string.IsNullOrWhiteSpace(ticket))
+                request.Headers.Add("Ticket", ticket);
 
             if (body != null)
                 request.Content = JsonContent.Create(body);
 
-            HttpClient httpClient = ShouldUseMatchClient(method, uri) ? MatchClient : Client;
-
-            using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-            string responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            using HttpResponseMessage response = await Client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            string responseText = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -76,11 +81,11 @@ internal static class ApiClient
                     error = $"Failed to build error message: {ex.Message}";
                 }
 
-                Log.Warn($"[ApiClient] [API] {method} {uri} -> {(int)response.StatusCode} {response.StatusCode}. {error}");
+                Log.Warn($"{method} {uri} -> {(int)response.StatusCode} {response.StatusCode}. {error}");
                 return ApiResult<string>.Error(response.StatusCode, error);
             }
 
-            Log.Info($"[ApiClient] [API] {method} {uri} -> {(int)response.StatusCode} {response.StatusCode}");
+            Log.Info($"{method} {uri} -> {(int)response.StatusCode} {response.StatusCode}");
             return ApiResult<string>.Success(responseText, response.StatusCode);
         }
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
@@ -116,20 +121,17 @@ internal static class ApiClient
         }
     }
 
-    private static bool ShouldUseMatchClient(HttpMethod method, string uri)
-    {
-        return method == HttpMethod.Post && string.Equals(uri, "match/v1", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static HttpClient CreateClient(bool useClientCertificate)
+    private static HttpClient CreateClient()
     {
         var sslOptions = new SslClientAuthenticationOptions
         {
             EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
+#if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
             RemoteCertificateValidationCallback = ValidateServerCertificate
+#endif
         };
 
-        if (useClientCertificate)
+        if (Main.dedServ)
             sslOptions.ClientCertificates = LoadClientCertificates();
 
         var handler = new SocketsHttpHandler
@@ -144,29 +146,31 @@ internal static class ApiClient
         return new HttpClient(handler)
         {
             BaseAddress = new Uri(BaseUrl),
-            Timeout = TimeSpan.FromSeconds(5)
+            Timeout = TimeSpan.FromSeconds(10)
         };
     }
 
+#if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
     private static bool ValidateServerCertificate(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
     {
         if (certificate is null)
             return false;
 
         X509Certificate2 cert2 = certificate as X509Certificate2 ?? new X509Certificate2(certificate);
-        string? thumbprint = cert2.Thumbprint?.Replace(" ", "");
+        string thumbprint = cert2.Thumbprint;
 
-        if (string.Equals(thumbprint, PinnedThumbprint, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(thumbprint, DevThumbprint, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return sslPolicyErrors == SslPolicyErrors.None;
     }
+#endif
 
     private static string BuildErrorMessage(HttpStatusCode status, string? reasonPhrase, string? body)
     {
         string trimmed = (body ?? "").Replace("\r", " ").Replace("\n", " ").Trim();
-        if (trimmed.Length > 256)
-            trimmed = trimmed[..256] + "...";
+        if (trimmed.Length > MaxLoggedBodyLength)
+            trimmed = trimmed[..MaxLoggedBodyLength] + "...";
 
         return string.IsNullOrWhiteSpace(trimmed)
             ? reasonPhrase ?? $"Request failed with status {(int)status}."
@@ -179,36 +183,26 @@ internal static class ApiClient
 
         try
         {
-            string certPath = @"C:\Users\erikm\Downloads\erky.p12";
-
-            // CHANGE HERE RESIN!
-            //string certPath = @"C:\Users\erikm\Downloads\resin.p12";
-
-
-            string password = ""; // set the real password here if the .p12 has one
-
-            if (!File.Exists(certPath))
+            var officialCertificatePath = Environment.GetEnvironmentVariable("PVPA_OFFICIAL_CERTIFICATE_PATH");
+            if (officialCertificatePath != null)
             {
-                Log.Warn($"[ApiClient] Client certificate not found: {certPath}");
-                return certificates;
+                X509Certificate2 certificate = new(
+                    officialCertificatePath,
+                    (string)null,
+                    X509KeyStorageFlags.UserKeySet);
+
+                Log.Info(
+                    $"Loaded client certificate for official identity {certificate.Subject} (expiry {certificate.GetExpirationDateString()}, thumbprint {certificate.Thumbprint})");
+
+                if (certificate.NotAfter <= OfficialCertificateExpirePriorWarning)
+                    Console.WriteLine("Your PvP Adventure official server certificate will soon expire!");
+
+                certificates.Add(certificate);
             }
-
-            X509Certificate2 certificate = new(
-                certPath,
-                password,
-                X509KeyStorageFlags.UserKeySet |
-                X509KeyStorageFlags.PersistKeySet |
-                X509KeyStorageFlags.Exportable);
-
-            Log.Info($"[ApiClient] Loaded client certificate: {certificate.Subject}");
-            Log.Info($"[ApiClient] Client certificate thumbprint: {certificate.Thumbprint}");
-            Log.Info($"[ApiClient] Client certificate has private key: {certificate.HasPrivateKey}");
-
-            certificates.Add(certificate);
         }
         catch (Exception ex)
         {
-            Log.Error($"[ApiClient] Failed to load client certificate: {ex}");
+            Log.Error($"Failed to load client certificate: {ex}");
         }
 
         return certificates;

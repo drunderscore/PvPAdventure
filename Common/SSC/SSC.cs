@@ -2,9 +2,9 @@
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
-using Steamworks;
 using System;
 using System.IO;
+using PvPAdventure.Common.Authentication;
 using Terraria;
 using Terraria.ID;
 using Terraria.IO;
@@ -71,7 +71,7 @@ public class SSC : ModSystem
                 LoadPlayer(reader);
                 break;
             case SSCPacketType.SavePlayer:
-                SavePlayer(reader);
+                SavePlayer(reader, from);
                 break;
         }
     }
@@ -84,7 +84,6 @@ public class SSC : ModSystem
             return;
 
         // Get data from client
-        string steamIdFromClient = reader.ReadString();
         string nameFromClient = reader.ReadString();
         PlayerAppearance appearance = ReadAppearence(reader);
 
@@ -101,7 +100,7 @@ public class SSC : ModSystem
         {
             Directory.CreateDirectory(Path.Combine(SSCFolder, MapID));
 
-            string dir = Path.Combine(SSCFolder, MapID, steamIdFromClient);
+            string dir = Path.Combine(SSCFolder, MapID, Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId.ToString());
             Directory.CreateDirectory(dir);
 
             string plrPath = Path.Combine(dir, nameFromClient + ".plr");
@@ -180,7 +179,7 @@ public class SSC : ModSystem
 
         TagCompound root = TagIO.Read(reader);
 
-        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
+        string steamId = SteamAuthentication.ClientSteamId.ToString();
         //string steamName = SteamFriends.GetPersonaName();
 
         byte[] tplrBytes;
@@ -309,15 +308,13 @@ public class SSC : ModSystem
         Log.Chat("Created and saved new player " + name);
     }
 
-    private static void SavePlayer(BinaryReader reader)
+    private static void SavePlayer(BinaryReader reader, int from)
     {
         if (Main.netMode != NetmodeID.Server)
             return;
 
         try
         {
-            // Read data from client (trusted for storage again)
-            string steamIdFromClient = reader.ReadString();
             string nameFromClient = reader.ReadString();
 
             int len = reader.ReadInt32();
@@ -347,12 +344,19 @@ public class SSC : ModSystem
                 return;
             }
 
+            string steamId = Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId?.ToString();
+            if (steamId == null)
+            {
+                Log.Warn($"Not saving SSC for player {from} without Steam ID");
+                return;
+            }
+
             lock (ioLock)
             {
-                Utils.TryCreatingDirectory(Path.Combine(SSCFolder, MapID, steamIdFromClient));
+                Utils.TryCreatingDirectory(Path.Combine(SSCFolder, MapID, steamId));
 
-                string plrPath = Path.Combine(SSCFolder, MapID, steamIdFromClient, nameFromClient + ".plr");
-                string tplrPath = Path.Combine(SSCFolder, MapID, steamIdFromClient, nameFromClient + ".tplr");
+                string plrPath = Path.Combine(SSCFolder, MapID, steamId, nameFromClient + ".plr");
+                string tplrPath = Path.Combine(SSCFolder, MapID, steamId, nameFromClient + ".tplr");
 
                 File.WriteAllBytes(plrPath, data);
                 TagIO.ToFile(root, tplrPath);

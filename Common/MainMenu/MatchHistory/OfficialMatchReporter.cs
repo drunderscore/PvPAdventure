@@ -2,8 +2,8 @@
 using PvPAdventure.Common.Statistics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using PvPAdventure.Common.Authentication;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
@@ -127,7 +127,13 @@ internal static class OfficialMatchReporter
 
     private static bool TryGetPlayerSteamId(Player player, out ulong steamId)
     {
-        // TODO!!!!!!!!!!! Resin wanted custom steamID handling here...
+        var id = player.GetModPlayer<AuthenticatedPlayer>().SteamId;
+        if (id.HasValue)
+        {
+            steamId = id.Value;
+            return true;
+        }
+
         steamId = 0;
         return false;
     }
