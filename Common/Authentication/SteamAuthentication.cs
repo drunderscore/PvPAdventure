@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Steamworks;
 using Terraria;
@@ -46,6 +47,7 @@ public class SteamAuthentication : ModSystem
 
     public static CSteamID ClientSteamId => SteamUser.GetSteamID();
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public string WebTicket { get; private set; }
 
     public override void Load()
