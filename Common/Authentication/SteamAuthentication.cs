@@ -14,7 +14,8 @@ namespace PvPAdventure.Common.Authentication;
 public class SteamAuthentication : ModSystem
 {
 #if DEBUG
-    private const string WebTicketIdentity = "dev.api.tpvpa.terraria.sh";
+    //private const string WebTicketIdentity = "dev.api.tpvpa.terraria.sh";
+    private const string WebTicketIdentity = "api.tpvpa.terraria.sh";
 #else
     private const string WebTicketIdentity = "api.tpvpa.terraria.sh";
 #endif

@@ -17,7 +17,7 @@ namespace PvPAdventure.Common.MainMenu.API;
 internal static class ApiClient
 {
 #if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
-    private const string BaseUrl = "https://dev.api.tpvpa.terraria.sh";
+    private const string BaseUrl = "https://api.tpvpa.terraria.sh";
     private const string DevThumbprint = "51A6F42F8479EDBB926C9E4385D7B8286A64C418";
 #else
     private const string BaseUrl = "https://api.tpvpa.terraria.sh";
