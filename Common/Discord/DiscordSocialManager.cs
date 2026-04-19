@@ -1,12 +1,8 @@
 using System;
-using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;

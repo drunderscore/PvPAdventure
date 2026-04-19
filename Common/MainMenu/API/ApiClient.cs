@@ -81,11 +81,11 @@ internal static class ApiClient
                     error = $"Failed to build error message: {ex.Message}";
                 }
 
-                Log.Warn($"[ApiClient] [API] {method} {uri} -> {(int)response.StatusCode} {response.StatusCode}. {error}");
+                Log.Warn($"{method} {uri} -> {(int)response.StatusCode} {response.StatusCode}. {error}");
                 return ApiResult<string>.Error(response.StatusCode, error);
             }
 
-            Log.Info($"[ApiClient] [API] {method} {uri} -> {(int)response.StatusCode} {response.StatusCode}");
+            Log.Info($"{method} {uri} -> {(int)response.StatusCode} {response.StatusCode}");
             return ApiResult<string>.Success(responseText, response.StatusCode);
         }
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)

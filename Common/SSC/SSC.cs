@@ -2,7 +2,6 @@
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
-using Steamworks;
 using System;
 using System.IO;
 using PvPAdventure.Common.Authentication;
@@ -346,6 +345,12 @@ public class SSC : ModSystem
             }
 
             string steamId = Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId?.ToString();
+            if (steamId == null)
+            {
+                Log.Warn($"Not saving SSC for player {from} without Steam ID");
+                return;
+            }
+
             lock (ioLock)
             {
                 Utils.TryCreatingDirectory(Path.Combine(SSCFolder, MapID, steamId));
