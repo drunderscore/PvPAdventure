@@ -80,6 +80,11 @@ public class DiscordSocialManager : ModSystem
 
     public override void Load()
     {
+        // Turn annoying discord auth off for now.
+        // In the future, this should not be ran every time the client starts the game.
+        // Suggestion: Store it on the client's PC, as a .txt file in the Mods folder, or similar.
+        return;
+
         if (!Main.dedServ)
         {
             On_Main.Update += OnMainUpdate;
