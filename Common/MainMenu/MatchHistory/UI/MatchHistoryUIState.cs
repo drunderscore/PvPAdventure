@@ -1,9 +1,7 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.UI;
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.Enums;
@@ -25,11 +23,10 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
     private UIPanel detailsPanel = null!;
     private UITeamStatsDetails teamStatsPanel = null!;
 
-    private readonly List<MatchResult> matches = [];
+    private MatchHistoryUIContent content;
     private readonly List<UIMatchRow> rows = [];
 
     private int selectedIndex = -1;
-    private int loadVersion;
 
     protected override float MainPanelMinWidth => 700f;
     //protected override float MainPanelTop => 170f;
@@ -102,59 +99,25 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
 
     protected override void RefreshContent()
     {
-        int version = ++loadVersion;
         selectedIndex = -1;
 
-        matches.Clear();
         rows.Clear();
         matchList.Clear();
         detailsPanel.RemoveAllChildren();
 
         SetCurrentAsyncState(AsyncProviderState.Loading);
-        ShowLoadingState();
-        _ = LoadMatchesAsync(version);
-    }
+        bool buildExampleContent = true;
+        content = buildExampleContent
+            ? MatchHistoryExampleContent.Create()
+            : new MatchHistoryUIContent([]);
 
-    private async Task LoadMatchesAsync(int version)
-    {
-        //ApiResult<List<MatchResult>> result;
+        if (!buildExampleContent)
+        {
+            // TODO: Call the match history API here and map the response into MatchHistoryUIContent.
+        }
 
-        //try
-        //{
-        //    result = await MatchApi.GetMatchesAsync().ConfigureAwait(false);
-        //}
-        //catch (Exception ex)
-        //{
-        //    Log.Error($"[MatchHistoryUIState] Failed to load match history: {ex}");
-
-        //    Main.QueueMainThreadAction(() =>
-        //    {
-        //        if (version != loadVersion)
-        //            return;
-
-        //        ShowErrorState(MainMenuPageUIState.FormatErrorMessage("match history", ex.Message));
-        //        SetCurrentAsyncState(AsyncProviderState.Aborted);
-        //    });
-        //    return;
-        //}
-
-        //Main.QueueMainThreadAction(() =>
-        //{
-        //    if (version != loadVersion)
-        //        return;
-
-        //    if (!result.IsSuccess || result.Data is null)
-        //    {
-        //        ShowErrorState(MainMenuPageUIState.FormatErrorMessage("match history", result.ErrorMessage));
-        //        SetCurrentAsyncState(AsyncProviderState.Aborted);
-        //        return;
-        //    }
-
-        //    matches.Clear();
-        //    matches.AddRange(result.Data);
-        //    RebuildMatchUi();
-        //    SetCurrentAsyncState(AsyncProviderState.Completed);
-        //});
+        RebuildMatchUi();
+        SetCurrentAsyncState(AsyncProviderState.Completed);
     }
 
     private void RebuildMatchUi()
@@ -163,15 +126,15 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
         rows.Clear();
         detailsPanel.RemoveAllChildren();
 
-        if (matches.Count == 0)
+        if (content.Matches.Length == 0)
         {
             ShowEmptyState();
             return;
         }
 
-        for (int i = 0; i < matches.Count; i++)
+        for (int i = 0; i < content.Matches.Length; i++)
         {
-            UIMatchRow row = new(i, matches[i]);
+            UIMatchRow row = new(i, content.Matches[i]);
             row.Width.Set(0f, 1f);
             row.Height.Set(78.29f, 0f);
             row.OnClick += SelectMatchAndRebuild;
@@ -211,14 +174,14 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
     {
         SoundEngine.PlaySound(SoundID.MenuTick);
 
-        if (matches.Count == 0)
+        if (content.Matches.Length == 0)
             return;
 
         if (index < 0)
             index = 0;
 
-        if (index >= matches.Count)
-            index = matches.Count - 1;
+        if (index >= content.Matches.Length)
+            index = content.Matches.Length - 1;
 
         selectedIndex = index;
 
@@ -232,7 +195,7 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
         const float gap = 6f;
         const float bigGap = gap * 4;
 
-        MatchResult match = matches[selectedIndex];
+        MatchResult match = content.Matches[selectedIndex];
 
         float y = 6f;
 

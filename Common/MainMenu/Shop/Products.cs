@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using PvPAdventure.Common.MainMenu.Shop;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace PvPAdventure.Common.MainMenu.Shop;
+namespace PvPAdventure.Common.MainMenu._DeprecatedShopStorage;
 
 public sealed class ApiShopProduct
 {

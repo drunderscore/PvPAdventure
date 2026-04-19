@@ -29,6 +29,12 @@ public class GemsPanel : UIPanel
     //    gems = profile?.Gems ?? 0;
     //}
 
+    public void SetContent(int gems, bool hasProfile)
+    {
+        this.gems = gems;
+        this.hasProfile = hasProfile;
+    }
+
     public override void Draw(SpriteBatch sb)
     {
         base.Draw(sb);

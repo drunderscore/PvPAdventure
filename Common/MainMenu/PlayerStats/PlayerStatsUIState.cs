@@ -1,15 +1,9 @@
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Authentication;
-using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.Core.Utilities;
 using PvPAdventure.UI;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
-using Terraria.Enums;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -24,7 +18,6 @@ public sealed class PlayerStatsUIState : MainMenuPageUIState
 
     private UIElement content = null!;
     private int selectedTab;
-    private int loadVersion;
 
     protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.Stats";
 
@@ -124,59 +117,26 @@ public sealed class PlayerStatsUIState : MainMenuPageUIState
             };
         }
 
-        SetStats(0, 0, 0, 0, 0);
+        SetStats(default);
         SelectTab(0);
     }
 
     protected override void RefreshContent()
     {
-        int version = ++loadVersion;
         SetCurrentAsyncState(AsyncProviderState.Loading);
-        ShowContentMessage(FormatLoadingMessage("player stats"));
-        _ = LoadStatsAsync(version);
-    }
 
-    private async Task LoadStatsAsync(int version)
-    {
-        //try
-        //{
-        //    // If you later add a dedicated stats endpoint, replace this one call.
-        //    ApiResult<List<MatchResult>> result = await MatchApi.GetMatchesAsync().ConfigureAwait(false);
+        bool buildExampleContent = true;
+        PlayerStatsUIContent stats = buildExampleContent
+            ? PlayerStatsExampleContent.Create()
+            : default;
 
-        //    Main.QueueMainThreadAction(() =>
-        //    {
-        //        if (version != loadVersion)
-        //            return;
+        if (!buildExampleContent)
+        {
+            // TODO: Call the player stats API here and map the response into PlayerStatsUIContent.
+        }
 
-        //        if (!result.IsSuccess)
-        //        {
-        //            ShowContentMessage(FormatErrorMessage("player stats", result.ErrorMessage));
-        //            SetStats(0, 0, 0, 0, 0);
-        //            SetCurrentAsyncState(AsyncProviderState.Aborted);
-        //            return;
-        //        }
-
-        //        List<MatchResult> matches = result.Data ?? [];
-        //        ulong steamUserId = SteamAuthentication.ClientSteamId.m_SteamID;
-
-        //        UpdateFromMatches(matches, steamUserId);
-        //        SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {matches.Count} matches.");
-        //    });
-        //}
-        //catch (Exception ex)
-        //{
-        //    Log.Error($"Failed to load player stats: {ex}");
-
-        //    Main.QueueMainThreadAction(() =>
-        //    {
-        //        if (version != loadVersion)
-        //            return;
-
-        //        ShowContentMessage(FormatErrorMessage("player stats", ex.Message));
-        //        SetStats(0, 0, 0, 0, 0);
-        //        SetCurrentAsyncState(AsyncProviderState.Aborted);
-        //    });
-        //}
+        SetStats(stats);
+        SetCurrentAsyncState(AsyncProviderState.Completed);
     }
 
     private void SelectTab(int index)
@@ -210,59 +170,7 @@ public sealed class PlayerStatsUIState : MainMenuPageUIState
         content.Recalculate();
     }
 
-    private void UpdateFromMatches(IReadOnlyList<MatchResult> matches, ulong steamUserId)
-    {
-        int kills = 0;
-        int deaths = 0;
-        int wins = 0;
-        int losses = 0;
-        int teamPointsTotal = 0;
-
-        for (int i = 0; i < matches.Count; i++)
-        {
-            MatchResult match = matches[i];
-
-            if (match.Win)
-                wins++;
-            else
-                losses++;
-
-            ulong myId = steamUserId != 0 ? steamUserId : (ulong)match.LocalSteamId;
-            if (myId == 0)
-                continue;
-
-            Team myTeam = Team.None;
-
-            PlayerKD[] players = match.Players ?? [];
-            for (int j = 0; j < players.Length; j++)
-            {
-                if ((ulong)players[j].SteamId != myId)
-                    continue;
-
-                kills += players[j].Kills;
-                deaths += players[j].Deaths;
-                myTeam = players[j].Team;
-                break;
-            }
-
-            if (myTeam == Team.None)
-                continue;
-
-            TeamPoints[] teamPoints = match.TeamPoints ?? [];
-            for (int j = 0; j < teamPoints.Length; j++)
-            {
-                if (teamPoints[j].Team != myTeam)
-                    continue;
-
-                teamPointsTotal += teamPoints[j].Points;
-                break;
-            }
-        }
-
-        SetStats(kills, deaths, wins, losses, teamPointsTotal);
-    }
-
-    private void SetStats(int kills, int deaths, int wins, int losses, int teamPointsTotal)
+    private void SetStats(PlayerStatsUIContent stats)
     {
         static string Ratio(int a, int b)
         {
@@ -273,16 +181,16 @@ public sealed class PlayerStatsUIState : MainMenuPageUIState
         }
 
         pages[0].SetText(
-            $"Total Kills: {kills}\n" +
-            $"Total Deaths: {deaths}\n" +
-            $"Total K/D: {Ratio(kills, deaths)}"
+            $"Total Kills: {stats.Kills}\n" +
+            $"Total Deaths: {stats.Deaths}\n" +
+            $"Total K/D: {Ratio(stats.Kills, stats.Deaths)}"
         );
 
         pages[1].SetText(
-            $"Total Wins: {wins}\n" +
-            $"Total Losses: {losses}\n" +
-            $"Total W/L: {Ratio(wins, losses)}\n" +
-            $"Total Points: {teamPointsTotal}"
+            $"Total Wins: {stats.Wins}\n" +
+            $"Total Losses: {stats.Losses}\n" +
+            $"Total W/L: {Ratio(stats.Wins, stats.Losses)}\n" +
+            $"Total Points: {stats.TeamPointsTotal}"
         );
 
         ShowSelectedPage();

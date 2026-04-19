@@ -1,11 +1,9 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.MainMenu.State;
 using System;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.GameInput;
-using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Gamepad;
 
@@ -16,6 +14,7 @@ public sealed class ShopUIState : MainMenuPageUIState
     private GemsPanel gemsPanel = null!;
     private UIScrollbar scrollbar = null!;
     private UIList list = null!;
+    private ShopUIContent content;
 
     protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.Shop";
 
@@ -83,12 +82,17 @@ public sealed class ShopUIState : MainMenuPageUIState
         list.Clear();
         scrollbar.ViewPosition = 0f;
 
-        //if (!string.IsNullOrWhiteSpace(stateMessage))
-        //{
-        //    list.Add(MainMenuPageUIState.CreateWrappedMessageElement(stateMessage, 0.9f, 140f));
-        //    list.Recalculate();
-        //    return;
-        //}
+        bool buildExampleContent = true;
+        content = buildExampleContent
+            ? ShopExampleContent.Create()
+            : new ShopUIContent(0, []);
+
+        if (!buildExampleContent)
+        {
+            // TODO: Call the shop/profile API here and map the response into ShopUIContent.
+        }
+
+        gemsPanel.SetContent(content.Gems, hasProfile: buildExampleContent);
 
         float cardW = 120f;
         float cardH = 120f;
@@ -104,23 +108,18 @@ public sealed class ShopUIState : MainMenuPageUIState
         float totalW = cols * cardW + (cols - 1) * gap;
         float startX = Math.Max(0f, (innerW - totalW) * 0.5f);
 
-        var products = Products.All;
-        int count = products.Count;
+        ProductDefinition[] products = content.Products;
+        int count = products.Length;
         int rows = count / cols + (count % cols != 0 ? 1 : 0);
 
-        // Debug log
-        Log.Info($"Loaded {products.Count} shop products");
-        for (int i = 0; i < products.Count; i++)
-            Log.Info($"Product[{i}] Prototype='{products[i].Identity.Prototype}' Name='{products[i].Identity.Name}' DisplayName='{products[i].DisplayName}' Price={products[i].Price} ItemType={products[i].ItemType}");
-
-        UIElement content = new()
+        UIElement contentRoot = new()
         {
             Width = StyleDimension.Fill,
             Height = new StyleDimension(rows * (cardH + gap), 0f)
         };
-        content.SetPadding(4f);
+        contentRoot.SetPadding(4f);
 
-        list.Add(content);
+        list.Add(contentRoot);
 
         for (int i = 0; i < count; i++)
         {
@@ -133,7 +132,7 @@ public sealed class ShopUIState : MainMenuPageUIState
                 Left = new StyleDimension(startX + col * (cardW + gap), 0f),
                 Top = new StyleDimension(row * (cardH + gap), 0f)
             };
-            content.Append(tile);
+            contentRoot.Append(tile);
         }
 
         list.Recalculate();

@@ -56,7 +56,7 @@ public sealed class AchievementsUIState : MainMenuPageUIState
 
     private void RefreshAchievements()
     {
-        bool buildExampleContent = true;
+        bool buildExampleContent = false;
 
         AchievementsUIContent content = buildExampleContent
             ? AchievementsExampleContent.Create()

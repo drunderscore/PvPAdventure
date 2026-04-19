@@ -7,7 +7,6 @@ using ReLogic.Content;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
@@ -36,7 +35,7 @@ public class ServerListUIState : MainMenuPageUIState
 
     private const float HeaderContentWidth = ServerColumnWidth + PlayersColumnWidth + StatusColumnWidth;
 
-    private readonly List<ServerEntry> servers = [];
+    private ServerListUIContent content;
 
     private UIList serverList = null!;
     private UIScrollbar scrollbar = null!;
@@ -46,7 +45,6 @@ public class ServerListUIState : MainMenuPageUIState
     private int selectedPort;
 
     private int warningPromptTimer;
-    private int loadVersion;
 
     private SortColumn sortColumn = SortColumn.Server;
     private bool sortAscending = true;
@@ -58,18 +56,9 @@ public class ServerListUIState : MainMenuPageUIState
         Status
     }
 
-    internal sealed class ServerEntry
-    {
-        public string IP { get; set; } = "";
-        public int Port { get; set; }
-        public int Players { get; set; }
-        public int MaxPlayers { get; set; }
-        public bool Status { get; set; }
-    }
-
     internal sealed class ServerRow : UIPanel
     {
-        public ServerEntry Entry { get; set; } = null!;
+        public ServerEntryContent Entry { get; set; }
         public List<UIText> Texts { get; } = [];
     }
 
@@ -143,60 +132,27 @@ public class ServerListUIState : MainMenuPageUIState
 
     protected override void RefreshContent()
     {
-        int version = ++loadVersion;
         SetCurrentAsyncState(AsyncProviderState.Loading);
-        ShowContentMessage(MainMenuPageUIState.FormatLoadingMessage("server list"));
-        _ = LoadServersAsync(version);
-    }
 
-    private async Task LoadServersAsync(int version)
-    {
-        try
+        bool buildExampleContent = true;
+        content = buildExampleContent
+            ? ServerListExampleContent.Create()
+            : new ServerListUIContent([]);
+
+        if (!buildExampleContent)
         {
-            List<ServerEntry>? result = null;
-
-            // TODO: Fetch server list from API.
-            // Example:
-            // ApiResult<List<ServerEntry>> apiResult = await ServerListApi.GetServersAsync().ConfigureAwait(false);
-            // if (!apiResult.IsSuccess)
-            // {
-            //     throw new Exception(apiResult.ErrorMessage ?? "Unknown error");
-            // }
-            // result = apiResult.Data;
-
-            await Task.CompletedTask.ConfigureAwait(false);
-
-            Main.QueueMainThreadAction(() =>
-            {
-                if (version != loadVersion)
-                    return;
-
-                if (result == null || result.Count == 0)
-                {
-                    ShowContentMessage(MainMenuPageUIState.FormatErrorMessage("server list", "No servers found."));
-                    SetCurrentAsyncState(AsyncProviderState.Aborted);
-                    return;
-                }
-
-                servers.Clear();
-                servers.AddRange(result);
-                RefreshList();
-                SetCurrentAsyncState(AsyncProviderState.Completed);
-            });
+            // TODO: Call the server list API here and map the response into ServerListUIContent.
         }
-        catch (Exception ex)
+
+        if (content.Entries.Length == 0)
         {
-            Log.Error($"[ServerListUIState] Failed to load server list: {ex}");
-
-            Main.QueueMainThreadAction(() =>
-            {
-                if (version != loadVersion)
-                    return;
-
-                ShowContentMessage(MainMenuPageUIState.FormatErrorMessage("server list", ex.Message));
-                SetCurrentAsyncState(AsyncProviderState.Aborted);
-            });
+            ShowContentMessage(MainMenuPageUIState.FormatErrorMessage("server list", "No servers found."));
+            SetCurrentAsyncState(AsyncProviderState.Aborted);
+            return;
         }
+
+        RefreshList();
+        SetCurrentAsyncState(AsyncProviderState.Completed);
     }
 
     private void ShowContentMessage(string message)
@@ -206,42 +162,30 @@ public class ServerListUIState : MainMenuPageUIState
         serverList.Recalculate();
     }
 
-    private void SeedExampleEntries()
-    {
-        servers.Clear();
-
-        servers.Add(new ServerEntry { IP = "127.0.0.1", Port = 5555, Players = 0, MaxPlayers = 16, Status = true });
-        servers.Add(new ServerEntry { IP = "127.0.0.1", Port = 7777, Players = 5, MaxPlayers = 16, Status = true });
-        servers.Add(new ServerEntry { IP = "127.0.0.2", Port = 5555, Players = 3, MaxPlayers = 16, Status = false });
-        servers.Add(new ServerEntry { IP = "127.0.0.3", Port = 5555, Players = 11, MaxPlayers = 16, Status = true });
-        servers.Add(new ServerEntry { IP = "eu.tpvpa.net", Port = 7777, Players = 16, MaxPlayers = 16, Status = true });
-        servers.Add(new ServerEntry { IP = "dev.tpvpa.net", Port = 5555, Players = 1, MaxPlayers = 8, Status = false });
-    }
-
     private void RefreshList()
     {
         serverList.Clear();
 
-        IEnumerable<ServerEntry> sorted = sortColumn switch
+        IEnumerable<ServerEntryContent> sorted = sortColumn switch
         {
             SortColumn.Server => sortAscending
-                ? servers.OrderBy(x => x.IP).ThenBy(x => x.Port)
-                : servers.OrderByDescending(x => x.IP).ThenByDescending(x => x.Port),
+                ? content.Entries.OrderBy(x => x.IP).ThenBy(x => x.Port)
+                : content.Entries.OrderByDescending(x => x.IP).ThenByDescending(x => x.Port),
 
             SortColumn.Players => sortAscending
-                ? servers.OrderBy(x => x.Players).ThenBy(x => x.MaxPlayers).ThenBy(x => x.IP).ThenBy(x => x.Port)
-                : servers.OrderByDescending(x => x.Players).ThenByDescending(x => x.MaxPlayers).ThenBy(x => x.IP).ThenBy(x => x.Port),
+                ? content.Entries.OrderBy(x => x.Players).ThenBy(x => x.MaxPlayers).ThenBy(x => x.IP).ThenBy(x => x.Port)
+                : content.Entries.OrderByDescending(x => x.Players).ThenByDescending(x => x.MaxPlayers).ThenBy(x => x.IP).ThenBy(x => x.Port),
 
             SortColumn.Status => sortAscending
-                ? servers.OrderByDescending(x => x.Status).ThenBy(x => x.IP).ThenBy(x => x.Port)
-                : servers.OrderBy(x => x.Status).ThenBy(x => x.IP).ThenBy(x => x.Port),
+                ? content.Entries.OrderByDescending(x => x.Status).ThenBy(x => x.IP).ThenBy(x => x.Port)
+                : content.Entries.OrderBy(x => x.Status).ThenBy(x => x.IP).ThenBy(x => x.Port),
 
-            _ => servers
+            _ => content.Entries
         };
 
         bool selectionStillVisible = false;
 
-        foreach (ServerEntry entry in sorted)
+        foreach (ServerEntryContent entry in sorted)
         {
             ServerRow row = new();
             row.Entry = entry;
@@ -279,7 +223,6 @@ public class ServerListUIState : MainMenuPageUIState
             };
 
             row.OnLeftClick += (_, _) => SelectRow(row);
-
             row.OnLeftDoubleClick += (_, _) =>
             {
                 SelectRow(row);
@@ -304,9 +247,9 @@ public class ServerListUIState : MainMenuPageUIState
         UIText label = new(text)
         {
             TextColor = Color.White,
-            VAlign = 0.5f
+            VAlign = 0.5f,
+            IgnoresMouseInteraction = true
         };
-        label.IgnoresMouseInteraction = true;
 
         if (leftAligned)
         {

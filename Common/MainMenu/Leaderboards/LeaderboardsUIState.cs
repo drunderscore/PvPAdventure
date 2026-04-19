@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
-using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -37,7 +36,7 @@ public class LeaderboardsUIState : MainMenuPageUIState
 
     private const float HeaderContentWidth = RankColumnWidth + PlayerColumnWidth + KillsColumnWidth + DeathsColumnWidth + GamesColumnWidth;
 
-    private readonly List<LeaderboardEntry> entries = [];
+    private LeaderboardsUIContent content;
 
     private UIList list = null!;
     private UIScrollbar scrollbar = null!;
@@ -52,15 +51,6 @@ public class LeaderboardsUIState : MainMenuPageUIState
         Kills,
         Deaths,
         Games
-    }
-
-    internal sealed class LeaderboardEntry
-    {
-        public int Rank { get; set; }
-        public string Player { get; set; } = "";
-        public int Kills { get; set; }
-        public int Deaths { get; set; }
-        public int Games { get; set; }
     }
 
     internal sealed class LeaderboardRow : UIPanel
@@ -141,57 +131,41 @@ public class LeaderboardsUIState : MainMenuPageUIState
     protected override void RefreshContent()
     {
         SetCurrentAsyncState(AsyncProviderState.Loading);
-        SeedExampleEntries();
+
+        bool buildExampleContent = true;
+        content = buildExampleContent
+            ? LeaderboardsExampleContent.Create()
+            : new LeaderboardsUIContent([]);
+
+        if (!buildExampleContent)
+        {
+            // TODO: Call the leaderboards API here and map the response into LeaderboardsUIContent.
+        }
+
         RefreshList();
         SetCurrentAsyncState(AsyncProviderState.Completed);
-    }
-
-    private void SeedExampleEntries()
-    {
-        entries.Clear();
-
-        entries.Add(new LeaderboardEntry { Rank = 1, Player = "Erky", Kills = 412, Deaths = 121, Games = 58 });
-        entries.Add(new LeaderboardEntry { Rank = 2, Player = "BlueMage", Kills = 398, Deaths = 160, Games = 61 });
-        entries.Add(new LeaderboardEntry { Rank = 3, Player = "TacticalBed", Kills = 355, Deaths = 144, Games = 49 });
-        entries.Add(new LeaderboardEntry { Rank = 4, Player = "VolcanoMain", Kills = 301, Deaths = 201, Games = 63 });
-        entries.Add(new LeaderboardEntry { Rank = 5, Player = "TrainHorn", Kills = 280, Deaths = 132, Games = 40 });
-        entries.Add(new LeaderboardEntry { Rank = 6, Player = "VineBoom", Kills = 267, Deaths = 173, Games = 52 });
-        entries.Add(new LeaderboardEntry { Rank = 7, Player = "RedSniper", Kills = 240, Deaths = 118, Games = 34 });
-        entries.Add(new LeaderboardEntry { Rank = 8, Player = "CasualPlayer", Kills = 221, Deaths = 199, Games = 57 });
-        entries.Add(new LeaderboardEntry { Rank = 9, Player = "ArenaEnjoyer", Kills = 205, Deaths = 142, Games = 39 });
-        entries.Add(new LeaderboardEntry { Rank = 10, Player = "MirrorTech", Kills = 188, Deaths = 111, Games = 28 });
     }
 
     private void RefreshList()
     {
         list.Clear();
 
-        IEnumerable<LeaderboardEntry> sorted = sortColumn switch
+        IEnumerable<LeaderboardEntryContent> sorted = sortColumn switch
         {
-            SortColumn.Rank => sortAscending
-                ? entries.OrderBy(x => x.Rank)
-                : entries.OrderByDescending(x => x.Rank),
+            SortColumn.Rank => sortAscending ? content.Entries.OrderBy(x => x.Rank) : content.Entries.OrderByDescending(x => x.Rank),
 
-            SortColumn.Player => sortAscending
-                ? entries.OrderBy(x => x.Player)
-                : entries.OrderByDescending(x => x.Player),
+            SortColumn.Player => sortAscending ? content.Entries.OrderBy(x => x.Player) : content.Entries.OrderByDescending(x => x.Player),
 
-            SortColumn.Kills => sortAscending
-                ? entries.OrderBy(x => x.Kills).ThenBy(x => x.Rank)
-                : entries.OrderByDescending(x => x.Kills).ThenBy(x => x.Rank),
+            SortColumn.Kills => sortAscending ? content.Entries.OrderBy(x => x.Kills).ThenBy(x => x.Rank) : content.Entries.OrderByDescending(x => x.Kills).ThenBy(x => x.Rank),
 
-            SortColumn.Deaths => sortAscending
-                ? entries.OrderBy(x => x.Deaths).ThenBy(x => x.Rank)
-                : entries.OrderByDescending(x => x.Deaths).ThenBy(x => x.Rank),
+            SortColumn.Deaths => sortAscending ? content.Entries.OrderBy(x => x.Deaths).ThenBy(x => x.Rank) : content.Entries.OrderByDescending(x => x.Deaths).ThenBy(x => x.Rank),
 
-            SortColumn.Games => sortAscending
-                ? entries.OrderBy(x => x.Games).ThenBy(x => x.Rank)
-                : entries.OrderByDescending(x => x.Games).ThenBy(x => x.Rank),
+            SortColumn.Games => sortAscending ? content.Entries.OrderBy(x => x.Games).ThenBy(x => x.Rank) : content.Entries.OrderByDescending(x => x.Games).ThenBy(x => x.Rank),
 
-            _ => entries
+            _ => content.Entries
         };
 
-        foreach (LeaderboardEntry entry in sorted)
+        foreach (LeaderboardEntryContent entry in sorted)
         {
             LeaderboardRow row = new();
             row.BackgroundColor = new Color(63, 82, 151) * 0.35f;
