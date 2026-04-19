@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Authentication;
 using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.MainMenu.State;
@@ -157,7 +158,7 @@ public sealed class PlayerStatsUIState : MainMenuPageUIState
                 }
 
                 List<MatchResult> matches = result.Data ?? [];
-                ulong steamUserId = SteamAuthSystem.ClientSteamId?.m_SteamID ?? 0;
+                ulong steamUserId = SteamAuthentication.ClientSteamId.m_SteamID;
 
                 UpdateFromMatches(matches, steamUserId);
                 SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {matches.Count} matches.");
@@ -165,7 +166,7 @@ public sealed class PlayerStatsUIState : MainMenuPageUIState
         }
         catch (Exception ex)
         {
-            Log.Error($"[PlayerStatsUIState] Failed to load player stats: {ex}");
+            Log.Error($"Failed to load player stats: {ex}");
 
             Main.QueueMainThreadAction(() =>
             {
