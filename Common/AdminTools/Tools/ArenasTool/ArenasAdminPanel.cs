@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Net;
 using PvPAdventure.Core.Utilities;
+using PvPAdventure.UI;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
@@ -12,7 +13,7 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.AdminTools.Tools.ArenasTool;
 
-internal sealed class ArenasAdminPanel : UI.DraggablePanel
+internal sealed class ArenasAdminPanel : UIDraggablePanel
 {
     private readonly UITextPanel<string> sendToMainWorldButton;
     private readonly UITextPanel<string> sendToArenasButton;
@@ -201,7 +202,7 @@ internal sealed class ArenasAdminPanel : UI.DraggablePanel
         const float rightPadding = 12f;
 
 
-        var arenasIcon = new UIImage(Ass.Icon_Arenas_v2.Value)
+        var arenasIcon = new UIImage(Ass.Icon_Arenas.Value)
         {
             ImageScale = 0.7f,
             Width = { Pixels = iconSize },

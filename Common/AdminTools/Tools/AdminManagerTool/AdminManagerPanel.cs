@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Utilities;
+using PvPAdventure.UI;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -16,7 +17,7 @@ namespace PvPAdventure.Common.AdminTools.Tools.AdminManagerTool;
 
 [JITWhenModsEnabled("DragonLens")]
 [ExtendsFromMod("DragonLens")]
-internal class AdminManagerPanel : UI.DraggablePanel
+internal class AdminManagerPanel : UIDraggablePanel
 {
     private readonly List<int> playerIndices = [];
 

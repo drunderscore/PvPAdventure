@@ -4,6 +4,7 @@ using PvPAdventure.Core.Config;
 using SubworldLibrary;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -13,9 +14,9 @@ namespace PvPAdventure.Common.Arenas.UI;
 public sealed class ArenasUISystem : ModSystem
 {
     // UI
-    public static UserInterface Interface;
-    public static ArenasLoadoutUI LoadoutUIState;
-    public static ArenasJoinUI JoinUIState;
+    private static UserInterface Interface;
+    private static ArenasLoadoutUIState LoadoutUIState;
+    private static ArenasJoinUIState JoinUIState;
 
     // Enabled check
     public static bool IsEnabled
@@ -38,6 +39,14 @@ public sealed class ArenasUISystem : ModSystem
         Interface = new();
         LoadoutUIState = new();
         JoinUIState = new();
+
+#if DEBUG
+        // Show in SP for testing.
+#else
+        // Don't show in SP.
+    if (Main.netMode == NetmodeID.SinglePlayer)
+                return;
+#endif
 
         if (IsEnabled)
         {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Core.Net;
+using PvPAdventure.UI;
 using Steamworks;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
@@ -10,10 +11,10 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.AdminTools.Tools.StartGameTool;
 
-public class ExtendGamePanel : UI.DraggablePanel
+public class ExtendGamePanel : UIDraggablePanel
 {
     private readonly UITextPanel<string> applyButton;
-    private readonly UI.SliderElement timeAdjustSlider;
+    private readonly UISliderElement timeAdjustSlider;
 
     private int timeAdjustInFrames;
     protected override float MinResizeH => 130f;
@@ -28,7 +29,7 @@ public class ExtendGamePanel : UI.DraggablePanel
         VAlign = 0.7f;
         ContentPanel.SetPadding(12);
 
-        timeAdjustSlider = new UI.SliderElement(
+        timeAdjustSlider = new UI.UISliderElement(
             label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Time"),
             min: -60f,
             max: 60f,

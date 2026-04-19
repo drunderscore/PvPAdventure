@@ -19,6 +19,9 @@ public enum AdventurePacketIdentifier : byte
     TeleportFx, // teleport effects
     SaveMatch, // save match data to disk after game ends
     ClientModCheck, // check for client mods when joining
-    WhitelistPlayerCheck,
-    ArenasAdmin // admin for arenas (send players to arenas, etc)
+    WhitelistPlayerCheck, // check if player is whitelisted to join the server
+    ArenasAdmin, // admin for arenas (send players to arenas, etc)
+    Skins, // sync who has skins for all players
+    Spectator, // sync spectator mode for all players
+    SessionTracker // sync session time for all players
 }

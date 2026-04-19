@@ -63,6 +63,9 @@ public class PvPIconDrawerLayer : ModSystem
 
         protected override bool DrawSelf()
         {
+            if (Main.LocalPlayer.ghost)
+                return true;
+
             SpriteBatch sb = Main.spriteBatch;
             int headOffset = 12;
 

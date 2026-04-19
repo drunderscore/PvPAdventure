@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Core.Net;
+using PvPAdventure.UI;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
@@ -12,11 +13,11 @@ namespace PvPAdventure.Common.AdminTools.Tools.StartGameTool;
 /// <summary>
 /// The main UI element for starting a game (draggable title + content panel)
 /// </summary>
-internal class StartGamePanel : UI.DraggablePanel
+internal class StartGamePanel : UIDraggablePanel
 {
     private readonly UITextPanel<string> _startButton;
-    private readonly UI.SliderElement _gameTimeSlider;
-    private readonly UI.SliderElement _countdownSlider;
+    private readonly UISliderElement _gameTimeSlider;
+    private readonly UISliderElement _countdownSlider;
 
     private int _countdownTimeInSeconds = 10;
     private int _gameTimeInFrames = 195 * 60 * 60;
@@ -32,7 +33,7 @@ internal class StartGamePanel : UI.DraggablePanel
         VAlign = 0.7f;
         ContentPanel.SetPadding(12);
 
-        _gameTimeSlider = new UI.SliderElement(
+        _gameTimeSlider = new UI.UISliderElement(
             label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Time"),
             min: 0f,
             max: 195f,
@@ -46,7 +47,7 @@ internal class StartGamePanel : UI.DraggablePanel
         );
         ContentPanel.Append(_gameTimeSlider);
 
-        _countdownSlider = new UI.SliderElement(
+        _countdownSlider = new UI.UISliderElement(
             label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Countdown"),
             min: 0f,
             max: 10f,

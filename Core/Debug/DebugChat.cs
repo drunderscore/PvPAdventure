@@ -1,24 +1,34 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using System.Reflection;
+using Terraria;
 using Terraria.GameContent.UI.Chat;
 using Terraria.ModLoader;
 using Terraria.UI.Chat;
 
 namespace PvPAdventure.Core.Debug;
 
+#if DEBUG
 internal class DebugChat : ModSystem
 {
-#if DEBUG
     public override void Load()
     {
         On_RemadeChatMonitor.AddNewMessage += OnAddNewChatMessage;
+        On_Main.DrawPlayerChat += OnDrawPlayerChat;
     }
-#endif
 
     public override void Unload()
     {
         On_RemadeChatMonitor.AddNewMessage -= OnAddNewChatMessage;
+        On_Main.DrawPlayerChat -= OnDrawPlayerChat;
+    }
+
+    private void OnDrawPlayerChat(On_Main.orig_DrawPlayerChat orig, Main self)
+    {
+        if (!DebugDrawer.ShowChat)
+            return;
+
+        orig(self);
     }
 
     private void OnAddNewChatMessage(On_RemadeChatMonitor.orig_AddNewMessage orig, RemadeChatMonitor self, string text, Color color, int widthLimitInPixels)
@@ -43,3 +53,4 @@ internal class DebugChat : ModSystem
         timeLeftField?.SetValue(msg, 60 * 60);
     }
 }
+#endif

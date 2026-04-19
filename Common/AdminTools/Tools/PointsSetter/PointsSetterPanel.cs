@@ -5,6 +5,7 @@ using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Net;
+using PvPAdventure.UI;
 using ReLogic.Graphics;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.AdminTools.Tools.PointsSetter;
 
-internal class PointsSetterPanel : UI.DraggablePanel
+internal class PointsSetterPanel : UIDraggablePanel
 {
     protected override float MinResizeW => 250f;
 

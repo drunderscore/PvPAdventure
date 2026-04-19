@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.MainMenu.MatchHistory.Net;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Net;
@@ -338,29 +339,22 @@ public class GameManager : ModSystem
         }
     }
 
-    private static void BroadcastSaveMatchToClients()
+    private static void ReportCompletedMatchToBackend()
     {
         if (Main.netMode != NetmodeID.Server)
             return;
 
-        var gameManager = ModContent.GetInstance<GameManager>();
-
+        GameManager gameManager = ModContent.GetInstance<GameManager>();
         if (!gameManager.MatchStartTime.HasValue)
-            return; // No valid match to save
+            return;
 
-        long startUtcBinary = gameManager.MatchStartTime.Value.ToBinary();
-        long endUtcBinary = DateTime.UtcNow.ToBinary();
+        DateTime startUtc = DateTime.SpecifyKind(gameManager.MatchStartTime.Value, DateTimeKind.Utc);
+        DateTime endUtc = DateTime.UtcNow;
 
-        NetMessage.SendData(MessageID.WorldData);
+        OfficialMatchReporter.PostCompletedMatch(startUtc, endUtc);
 
-        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-        packet.Write((byte)AdventurePacketIdentifier.SaveMatch);
-        packet.Write(startUtcBinary);
-        packet.Write(endUtcBinary);
-        packet.Send();
-
-        Log.Chat("Broadcasted save match from server to clients");
-        Log.Debug("Broadcasted save match from server to clients");
+        Log.Chat("Queued completed match for backend reporting");
+        Log.Debug("Queued completed match for backend reporting");
     }
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
@@ -372,7 +366,8 @@ public class GameManager : ModSystem
         if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)
         {
             BroadcastEndGameSummary();
-            BroadcastSaveMatchToClients();
+            //BroadcastSaveMatchToClients();
+            ReportCompletedMatchToBackend();
             ResetMatchState(); // Clear the match start time after broadcasting
         }
 
