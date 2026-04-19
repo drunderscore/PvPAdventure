@@ -15,6 +15,7 @@ public enum AdventurePacketIdentifier : byte
     TeleportRequest, // teleport to beds or world spawn
     SpawnSelection, // set random or player spawn while respawn timer or map timer is running
     AdventureMirrorRightClickUse, // player right click use of adventure mirror item
+    AdventurePortal, // sync active adventure portals
     HoldingMap, // player is holding the map item
     TeleportFx, // teleport effects
     SaveMatch, // save match data to disk after game ends

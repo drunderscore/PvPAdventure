@@ -58,11 +58,11 @@ public class SpectateSystem : ModSystem
 
     private static bool IsValidPlayer(int idx)
     {
-        if (idx < 0 || idx >= Main.maxPlayers)
+        Player local = Main.LocalPlayer;
+        if (idx < 0 || idx >= Main.maxPlayers || local == null || !local.active)
             return false;
 
-        Player p = Main.player[idx];
-        return p != null && p.active && !p.dead;
+        return AdventurePortalSystem.IsValidTeammatePortalIndex(local, idx);
     }
 
     private static bool IsValidBed(int idx)
@@ -195,9 +195,11 @@ public class SpectateSystem : ModSystem
 
             if (HoveringType == SpawnType.Teammate)
             {
-                Vector2 teammatePos = p.position;
-                Main.screenPosition = teammatePos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
-                return;
+                if (AdventurePortalSystem.TryGetPortalWorldPosition(idx, out Vector2 portalPosition))
+                {
+                    Main.screenPosition = portalPosition - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+                    return;
+                }
             }
             if (HoveringType == SpawnType.TeammateBed)
             {
