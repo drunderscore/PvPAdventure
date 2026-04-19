@@ -97,7 +97,7 @@ public abstract class MainMenuPageUIState : UIState
     {
         if (lastScreenWidth != Main.screenWidth || lastScreenHeight != Main.screenHeight || lastUiScale != Main.UIScale)
         {
-            Log.Debug("Recalculating page due to screen size change.");
+            //Log.Debug("Recalculating page due to screen size change.");
             lastScreenWidth = Main.screenWidth;
             lastScreenHeight = Main.screenHeight;
             lastUiScale = Main.UIScale;
