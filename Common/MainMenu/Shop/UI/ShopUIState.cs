@@ -14,6 +14,7 @@ namespace PvPAdventure.Common.MainMenu.Shop.UI;
 
 public sealed class ShopUIState : MainMenuPageUIState
 {
+    private GemsPanel gemsPanel = null!;
     private UIScrollbar scrollbar = null!;
     private UIList list = null!;
     private string? stateMessage;
@@ -32,13 +33,14 @@ public sealed class ShopUIState : MainMenuPageUIState
         float sepPad = 6f;
         float gemsH = 42f;
 
-        panel.Append(new GemsPanel
+        gemsPanel = new GemsPanel
         {
             Top = new StyleDimension(topPad, 0f),
             Width = new StyleDimension(0f, 0.2f),
             Height = new StyleDimension(gemsH, 0f),
             Left = new StyleDimension(10f, 0f),
-        });
+        };
+        panel.Append(gemsPanel);
 
         panel.Append(new UIHorizontalSeparator
         {
@@ -79,23 +81,12 @@ public sealed class ShopUIState : MainMenuPageUIState
         listHost.Append(list);
     }
 
-    //public override void Update(GameTime gameTime)
-    //{
-    //    base.Update(gameTime);
-    //    UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
-
-    //    bool hover = list.IsMouseHovering
-    //        || list.GetDimensions().ToRectangle().Contains(Main.MouseScreen.ToPoint())
-    //        || scrollbar.IsMouseHovering;
-
-    //    if (hover)
-    //        PlayerInput.LockVanillaMouseScroll("PvPAdventure/ShopList");
-    //}
-
     protected override void RefreshContent()
     {
         int version = ++loadVersion;
         SetCurrentAsyncState(AsyncProviderState.Loading);
+
+        gemsPanel.SetProfile(null);
 
         if (Products.All.Count == 0)
             SetStateMessage(MainMenuPageUIState.FormatLoadingMessage("shop items"));
@@ -115,20 +106,6 @@ public sealed class ShopUIState : MainMenuPageUIState
             return;
         }
 
-        var products = Products.All;
-        if (products.Count == 0)
-        {
-            list.Add(new UIText("No shop items available.\nDebug: Is the TPVPA API running?", 0.9f)
-            {
-                HAlign = 0.5f,
-                Top = new StyleDimension(24f, 0f),
-                TextColor = Color.LightGray
-            });
-
-            list.Recalculate();
-            return;
-        }
-
         float cardW = 120f;
         float cardH = 120f;
         float gap = 4f;
@@ -143,6 +120,7 @@ public sealed class ShopUIState : MainMenuPageUIState
         float totalW = cols * cardW + (cols - 1) * gap;
         float startX = Math.Max(0f, (innerW - totalW) * 0.5f);
 
+        var products = Products.All;
         int count = products.Count;
         int rows = count / cols + (count % cols != 0 ? 1 : 0);
 
@@ -198,22 +176,16 @@ public sealed class ShopUIState : MainMenuPageUIState
         try
         {
             Task<ApiResult<string>> shopTask = ShopApi.GetShopJsonAsync();
-            Task<ApiResult<bool>> profileTask = ProfileApi.RefreshProfileStateAsync();
+            Task<ApiResult<ApiProfileResponse>> profileTask = ProfileApi.GetProfileAsync();
 
             await Task.WhenAll(shopTask, profileTask).ConfigureAwait(false);
 
             ApiResult<string> shopResult = await shopTask.ConfigureAwait(false);
-            ApiResult<bool> profileResult = await profileTask.ConfigureAwait(false);
+            ApiResult<ApiProfileResponse> profileResult = await profileTask.ConfigureAwait(false);
 
             if (!shopResult.IsSuccess || string.IsNullOrWhiteSpace(shopResult.Data))
             {
                 Fail(MainMenuPageUIState.FormatErrorMessage("shop items", shopResult.ErrorMessage));
-                return;
-            }
-
-            if (!profileResult.IsSuccess)
-            {
-                Fail(MainMenuPageUIState.FormatErrorMessage("shop items", profileResult.ErrorMessage));
                 return;
             }
 
@@ -223,6 +195,16 @@ public sealed class ShopUIState : MainMenuPageUIState
             {
                 if (version != loadVersion)
                     return;
+
+                if (profileResult.IsSuccess && profileResult.Data != null)
+                {
+                    gemsPanel.SetProfile(profileResult.Data);
+                }
+                else
+                {
+                    gemsPanel.SetProfile(null);
+                    Log.Warn($"[ShopUIState] Profile load failed. Shop will still render. {profileResult.ErrorMessage}");
+                }
 
                 SetStateMessage(null);
                 RefreshList();
@@ -235,4 +217,17 @@ public sealed class ShopUIState : MainMenuPageUIState
             Fail(MainMenuPageUIState.FormatErrorMessage("shop items", ex.Message));
         }
     }
+
+    //public override void Update(GameTime gameTime)
+    //{
+    //    base.Update(gameTime);
+    //    UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
+
+    //    bool hover = list.IsMouseHovering
+    //        || list.GetDimensions().ToRectangle().Contains(Main.MouseScreen.ToPoint())
+    //        || scrollbar.IsMouseHovering;
+
+    //    if (hover)
+    //        PlayerInput.LockVanillaMouseScroll("PvPAdventure/ShopList");
+    //}
 }

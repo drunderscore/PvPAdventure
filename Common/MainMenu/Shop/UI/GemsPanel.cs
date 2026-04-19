@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Core.Utilities;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
@@ -11,6 +12,9 @@ namespace PvPAdventure.Common.MainMenu.Shop.UI;
 
 public class GemsPanel : UIPanel
 {
+    private int gems;
+    private bool hasProfile;
+
     public GemsPanel()
     {
         Height.Set(42f, 0f);
@@ -20,20 +24,31 @@ public class GemsPanel : UIPanel
         PaddingLeft = 6f;
     }
 
+    public void SetProfile(ApiProfileResponse? profile)
+    {
+        hasProfile = profile != null;
+        gems = profile?.Gems ?? 0;
+    }
+
     public override void Draw(SpriteBatch sb)
     {
         base.Draw(sb);
 
-        int gems = 0;
-
         if (IsMouseHovering)
-            UICommon.TooltipMouseText("Gems are awarded for achievements and high placement in TPVPA matches.");
+        {
+            string tooltip = hasProfile
+                ? "Gems are awarded for achievements and high placement in TPVPA matches."
+                : "Could not load your TPVPA profile. Shop items can still be browsed.";
+
+            UICommon.TooltipMouseText(tooltip);
+        }
 
         CalculatedStyle inner = GetInnerDimensions();
         Vector2 pos = new(inner.X - 2f, inner.Y - 2f);
         sb.Draw(Ass.Icon_Gem.Value, pos, null, Color.White, 0f, Vector2.Zero, 1.3f, SpriteEffects.None, 0f);
 
-        string text = $"{gems} Gems";
+        string gemsText = gems > 0 ? gems.ToString() : "No";
+        string text = $"{gemsText} Gems";
         float textAreaLeft = pos.X + 50f;
         float textAreaRight = inner.X + inner.Width - 10f;
         float textAreaWidth = System.Math.Max(0f, textAreaRight - textAreaLeft);

@@ -16,15 +16,10 @@ namespace PvPAdventure.Common.MainMenu.API;
 
 internal static class ApiClient
 {
-#if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
-    private const string BaseUrl = "https://dev.api.tpvpa.terraria.sh";
-    private const string DevThumbprint = "51A6F42F8479EDBB926C9E4385D7B8286A64C418";
-#else
-    private const string BaseUrl = "https://api.tpvpa.terraria.sh";
-#endif
-    private static readonly DateTime OfficialCertificateExpirePriorWarning = DateTime.Now.AddDays(14);
+    //private const string DevThumbprint = "51A6F42F8479EDBB926C9E4385D7B8286A64C418";
 
-    private const int MaxLoggedBodyLength = 256;
+    private const string BaseUrl = "https://api.tpvpa.terraria.sh";
+    private static readonly DateTime OfficialCertificateExpirePriorWarning = DateTime.Now.AddDays(14);
 
     private static readonly JsonSerializerOptions JsonOptions = new();
 
@@ -126,9 +121,9 @@ internal static class ApiClient
         var sslOptions = new SslClientAuthenticationOptions
         {
             EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
-#if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
-            RemoteCertificateValidationCallback = ValidateServerCertificate
-#endif
+//#if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
+            //RemoteCertificateValidationCallback = ValidateServerCertificate
+//#endif
         };
 
         if (Main.dedServ)
@@ -150,27 +145,27 @@ internal static class ApiClient
         };
     }
 
-#if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
-    private static bool ValidateServerCertificate(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
-    {
-        if (certificate is null)
-            return false;
+//#if DEBUG && !USE_PRODUCTION_API_IN_DEBUG
+//    private static bool ValidateServerCertificate(object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+//    {
+//        if (certificate is null)
+//            return false;
 
-        X509Certificate2 cert2 = certificate as X509Certificate2 ?? new X509Certificate2(certificate);
-        string thumbprint = cert2.Thumbprint;
+//        X509Certificate2 cert2 = certificate as X509Certificate2 ?? new X509Certificate2(certificate);
+//        string thumbprint = cert2.Thumbprint;
 
-        if (string.Equals(thumbprint, DevThumbprint, StringComparison.OrdinalIgnoreCase))
-            return true;
+//        if (string.Equals(thumbprint, DevThumbprint, StringComparison.OrdinalIgnoreCase))
+//            return true;
 
-        return sslPolicyErrors == SslPolicyErrors.None;
-    }
-#endif
+//        return sslPolicyErrors == SslPolicyErrors.None;
+//    }
+//#endif
 
     private static string BuildErrorMessage(HttpStatusCode status, string? reasonPhrase, string? body)
     {
         string trimmed = (body ?? "").Replace("\r", " ").Replace("\n", " ").Trim();
-        if (trimmed.Length > MaxLoggedBodyLength)
-            trimmed = trimmed[..MaxLoggedBodyLength] + "...";
+        if (trimmed.Length > 256)
+            trimmed = trimmed[..256] + "...";
 
         return string.IsNullOrWhiteSpace(trimmed)
             ? reasonPhrase ?? $"Request failed with status {(int)status}."

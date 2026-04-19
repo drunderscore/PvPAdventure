@@ -13,11 +13,7 @@ namespace PvPAdventure.Common.Authentication;
 /// </summary>
 public class SteamAuthentication : ModSystem
 {
-#if DEBUG
-    private const string WebTicketIdentity = "dev.api.tpvpa.terraria.sh";
-#else
     private const string WebTicketIdentity = "api.tpvpa.terraria.sh";
-#endif
 
     private Callback<GetTicketForWebApiResponse_t> ticketForWebApiCallback;
     private Callback<ValidateAuthTicketResponse_t> validateAuthTicketCallback;
@@ -52,12 +48,12 @@ public class SteamAuthentication : ModSystem
 
     public override void Load()
     {
+        On_Main.Update += OnMainUpdate;
+
         if (Main.dedServ)
         {
             if (!GameServer.Init(0, 7775, 7774, EServerMode.eServerModeAuthentication, Main.versionNumber))
                 throw new Exception("Failed to initialize Steam for game server");
-
-            On_Main.Update += OnMainUpdate;
 
             SteamGameServer.SetGameDescription("PvP Adventure");
             SteamGameServer.SetProduct("tModLoader");
@@ -88,66 +84,81 @@ public class SteamAuthentication : ModSystem
         }
     }
 
-    public override void Unload()
+    private void OnMainUpdate(On_Main.orig_Update orig, Main self, GameTime gameTime)
     {
-        if (webTicketHandle != HAuthTicket.Invalid)
-        {
-            SteamUser.CancelAuthTicket(webTicketHandle);
-            WebTicket = null;
-            webTicketHandle = HAuthTicket.Invalid;
-        }
-
-        if (multiplayerTicketHandle != HAuthTicket.Invalid)
-        {
-            SteamUser.CancelAuthTicket(multiplayerTicketHandle);
-            multiplayerTicketHandle = HAuthTicket.Invalid;
-        }
-
-        if (validateAuthTicketCallback != null)
-        {
-            validateAuthTicketCallback.Dispose();
-            validateAuthTicketCallback = null;
-        }
-
-        if (ticketForWebApiCallback != null)
-        {
-            ticketForWebApiCallback.Dispose();
-            ticketForWebApiCallback = null;
-        }
-
-        if (steamServersConnectedCallback != null)
-        {
-            steamServersConnectedCallback.Dispose();
-            steamServersConnectedCallback = null;
-        }
-
-        if (steamServersDisconnectedCallback != null)
-        {
-            steamServersDisconnectedCallback.Dispose();
-            steamServersDisconnectedCallback = null;
-        }
-
-        if (steamServerConnectFailureCallback != null)
-        {
-            steamServerConnectFailureCallback.Dispose();
-            steamServerConnectFailureCallback = null;
-        }
-
         if (Main.dedServ)
         {
-            foreach (var (id, _) in authentication)
-                SteamGameServer.EndAuthSession(new(id));
-
-            authentication.Clear();
-
-            GameServer.Shutdown();
+            GameServer.RunCallbacks();
         }
         else
         {
-            Netplay.OnDisconnect -= OnDisconnect;
+            // Needed?
+            //SteamAPI.RunCallbacks();
+        }
+
+        orig(self, gameTime);
+    }
+
+    public ulong? GetAuthenticatedIdentity(byte whoAmI)
+    {
+        if (!Main.dedServ)
+        {
+            Log.Debug("Attempt to query authentication on the client (wrong side!)");
+            return null;
+        }
+
+        foreach (var kv in authentication)
+        {
+            if (kv.Value.Who == whoAmI)
+            {
+                if (kv.Value.Ok)
+                    return kv.Key;
+
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private void OnGetTicketForWebApiResponse(GetTicketForWebApiResponse_t param)
+    {
+        if (param.m_hAuthTicket == webTicketHandle)
+        {
+            if (param.m_eResult != EResult.k_EResultOK)
+            {
+                Log.Error($"Failed to obtain Steam web ticket ({param.m_eResult})");
+                return;
+            }
+
+            WebTicket = Convert.ToHexString(param.m_rgubTicket[..param.m_cubTicket]);
+            Log.Debug("Obtained Steam web ticket");
         }
     }
 
+    private void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t param)
+    {
+        Log.Debug($"Steam ticket validation response for {param.m_SteamID}: {param.m_eAuthSessionResponse}");
+
+        try
+        {
+            if (authentication.TryGetValue(param.m_SteamID.m_SteamID, out var info))
+            {
+                info.Callback(param.m_SteamID.m_SteamID, info.Who, param.m_eAuthSessionResponse, info.Ok);
+
+                if (param.m_eAuthSessionResponse == EAuthSessionResponse.k_EAuthSessionResponseOK)
+                    info.Ok = true;
+                else
+                    authentication.Remove(param.m_SteamID.m_SteamID);
+            }
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Steam ticket validation unexpected", e);
+        }
+    }
+
+    #region Multiplayer auth
     public byte[] BeginMultiplayerSession()
     {
         const int ticketMaxLength = 1024;
@@ -215,65 +226,6 @@ public class SteamAuthentication : ModSystem
         }
     }
 
-    public ulong? GetAuthenticatedIdentity(byte whoAmI)
-    {
-        if (!Main.dedServ)
-        {
-            Log.Debug("Attempt to query authentication on the client (wrong side!)");
-            return null;
-        }
-
-        foreach (var kv in authentication)
-        {
-            if (kv.Value.Who == whoAmI)
-            {
-                if (kv.Value.Ok)
-                    return kv.Key;
-
-                return null;
-            }
-        }
-
-        return null;
-    }
-
-    private void OnGetTicketForWebApiResponse(GetTicketForWebApiResponse_t param)
-    {
-        if (param.m_hAuthTicket == webTicketHandle)
-        {
-            if (param.m_eResult != EResult.k_EResultOK)
-            {
-                Log.Error($"Failed to obtain Steam web ticket ({param.m_eResult})");
-                return;
-            }
-
-            WebTicket = Convert.ToHexString(param.m_rgubTicket[..param.m_cubTicket]);
-            Log.Debug("Obtained Steam web ticket");
-        }
-    }
-
-    private void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t param)
-    {
-        Log.Debug($"Steam ticket validation response for {param.m_SteamID}: {param.m_eAuthSessionResponse}");
-
-        try
-        {
-            if (authentication.TryGetValue(param.m_SteamID.m_SteamID, out var info))
-            {
-                info.Callback(param.m_SteamID.m_SteamID, info.Who, param.m_eAuthSessionResponse, info.Ok);
-
-                if (param.m_eAuthSessionResponse == EAuthSessionResponse.k_EAuthSessionResponseOK)
-                    info.Ok = true;
-                else
-                    authentication.Remove(param.m_SteamID.m_SteamID);
-            }
-        }
-        catch (Exception e)
-        {
-            throw new Exception("Steam ticket validation unexpected", e);
-        }
-    }
-
     private void OnDisconnect()
     {
         if (multiplayerTicketHandle != HAuthTicket.Invalid)
@@ -310,10 +262,67 @@ public class SteamAuthentication : ModSystem
         if (Main.dedServ)
             Console.WriteLine(msg);
     }
+    #endregion
 
-    private void OnMainUpdate(On_Main.orig_Update orig, Main self, GameTime gameTime)
+    #region Unload
+    public override void Unload()
     {
-        GameServer.RunCallbacks();
-        orig(self, gameTime);
+        if (webTicketHandle != HAuthTicket.Invalid)
+        {
+            SteamUser.CancelAuthTicket(webTicketHandle);
+            WebTicket = null;
+            webTicketHandle = HAuthTicket.Invalid;
+        }
+
+        if (multiplayerTicketHandle != HAuthTicket.Invalid)
+        {
+            SteamUser.CancelAuthTicket(multiplayerTicketHandle);
+            multiplayerTicketHandle = HAuthTicket.Invalid;
+        }
+
+        if (validateAuthTicketCallback != null)
+        {
+            validateAuthTicketCallback.Dispose();
+            validateAuthTicketCallback = null;
+        }
+
+        if (ticketForWebApiCallback != null)
+        {
+            ticketForWebApiCallback.Dispose();
+            ticketForWebApiCallback = null;
+        }
+
+        if (steamServersConnectedCallback != null)
+        {
+            steamServersConnectedCallback.Dispose();
+            steamServersConnectedCallback = null;
+        }
+
+        if (steamServersDisconnectedCallback != null)
+        {
+            steamServersDisconnectedCallback.Dispose();
+            steamServersDisconnectedCallback = null;
+        }
+
+        if (steamServerConnectFailureCallback != null)
+        {
+            steamServerConnectFailureCallback.Dispose();
+            steamServerConnectFailureCallback = null;
+        }
+
+        if (Main.dedServ)
+        {
+            foreach (var (id, _) in authentication)
+                SteamGameServer.EndAuthSession(new(id));
+
+            authentication.Clear();
+
+            GameServer.Shutdown();
+        }
+        else
+        {
+            Netplay.OnDisconnect -= OnDisconnect;
+        }
     }
+    #endregion
 }
