@@ -1,26 +1,21 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.Core.Utilities;
+using PvPAdventure.UI;
 using ReLogic.Content;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
 namespace PvPAdventure.Common.MainMenu.Leaderboards;
 
-public class LeaderboardsUIState : ResizableUIState
+public class LeaderboardsUIState : MainMenuPageUIState
 {
-    private const int BottomMargin = 20;
-    private const int TopOffset = 220;
-    private const int FooterHeight = 50;
     private const float PanelPadding = 12f;
     private const float ScrollbarWidth = 20f;
     private const float HeaderHeight = 28f;
@@ -41,7 +36,6 @@ public class LeaderboardsUIState : ResizableUIState
     private const float GamesColumnLeft = DeathsColumnLeft + DeathsColumnWidth;
 
     private const float HeaderContentWidth = RankColumnWidth + PlayerColumnWidth + KillsColumnWidth + DeathsColumnWidth + GamesColumnWidth;
-    private const float RootWidth = HeaderContentWidth + ScrollbarWidth + PanelPadding * 2f + 8f;
 
     private readonly List<LeaderboardEntry> entries = [];
 
@@ -74,41 +68,11 @@ public class LeaderboardsUIState : ResizableUIState
         public List<UIText> Texts { get; } = [];
     }
 
-    public override void OnInitialize()
+    protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.Leaderboards";
+
+    protected override void Populate(UIPanel panel)
     {
-        base.OnInitialize();
-    }
-
-    public override void OnActivate()
-    {
-        base.OnActivate();
-
-        RemoveAllChildren();
-        SeedExampleEntries();
-
-        int screenH = Main.minScreenH;
-
-        UIElement root = new();
-        root.Width.Set(RootWidth, 0f);
-        root.Top.Set(TopOffset, 0f);
-        root.Height.Set(screenH - TopOffset, 0f);
-        root.HAlign = 0.5f;
-
-        UIPanel panel = new();
-        panel.BackgroundColor = new Color(33, 43, 79) * 0.8f;
-        panel.BorderColor = Color.Black;
-        panel.Width.Set(0f, 1f);
-        panel.Height.Set(screenH - TopOffset - FooterHeight - BottomMargin * 2, 0f);
-        panel.SetPadding(PanelPadding);
-        root.Append(panel);
-
-        UITextPanel<string> title = new(Language.GetTextValue("Mods.PvPAdventure.MainMenu.Leaderboards"), 0.8f, true);
-        title.HAlign = 0.5f;
-        title.Top.Set(-46f, 0f);
-        title.SetPadding(15f);
-        title.BackgroundColor = new Color(73, 94, 171);
-        root.Append(title);
-
+        base.Populate(panel);
         UIElement headerBar = new();
         headerBar.Width.Set(HeaderContentWidth, 0f);
         headerBar.Height.Set(32f, 0f);
@@ -117,7 +81,7 @@ public class LeaderboardsUIState : ResizableUIState
 
         UIImageButton AddHeader(Asset<Texture2D> asset, string text, float left, float width, SortColumn column)
         {
-            var header = new UIImageButton(asset)
+            UIImageButton header = new(asset)
             {
                 Left = { Pixels = left },
                 Top = { Pixels = 0f },
@@ -172,52 +136,14 @@ public class LeaderboardsUIState : ResizableUIState
         list.ManualSortMethod += _ => { };
         list.SetScrollbar(scrollbar);
         contentRoot.Append(list);
-
-        RefreshList();
-
-        UITextPanel<string> backButton = CreateNavigationButton(Language.GetTextValue("UI.Back"), new Color(63, 82, 151) * 0.8f, new Color(73, 94, 171));
-        backButton.Width.Set(0f, 1f);
-        backButton.OnLeftClick += (_, _) => GoBackToTPVPABrowserState();
-        root.Append(backButton);
-
-        Append(root);
     }
 
-    private UITextPanel<string> CreateNavigationButton(string text, Color idleBg, Color hoverBg)
+    protected override void RefreshContent()
     {
-        var button = new UITextPanel<string>(text, 0.7f, true);
-        button.SetPadding(10f);
-        button.Height.Set(50f, 0f);
-        button.VAlign = 1f;
-        button.Top.Set(-BottomMargin, 0f);
-
-        Color idleBorder = Color.Black;
-        Color hoverBorder = Colors.FancyUIFatButtonMouseOver;
-        bool playedTick = false;
-
-        button.BackgroundColor = idleBg;
-        button.BorderColor = idleBorder;
-
-        button.OnMouseOver += (_, _) =>
-        {
-            button.BackgroundColor = hoverBg;
-            button.BorderColor = hoverBorder;
-
-            if (playedTick)
-                return;
-
-            SoundEngine.PlaySound(SoundID.MenuTick);
-            playedTick = true;
-        };
-
-        button.OnMouseOut += (_, _) =>
-        {
-            button.BackgroundColor = idleBg;
-            button.BorderColor = idleBorder;
-            playedTick = false;
-        };
-
-        return button;
+        SetCurrentAsyncState(AsyncProviderState.Loading);
+        SeedExampleEntries();
+        RefreshList();
+        SetCurrentAsyncState(AsyncProviderState.Completed);
     }
 
     private void SeedExampleEntries()
@@ -265,7 +191,7 @@ public class LeaderboardsUIState : ResizableUIState
             _ => entries
         };
 
-        foreach (var entry in sorted)
+        foreach (LeaderboardEntry entry in sorted)
         {
             LeaderboardRow row = new();
             row.BackgroundColor = new Color(63, 82, 151) * 0.35f;
@@ -344,10 +270,5 @@ public class LeaderboardsUIState : ResizableUIState
         }
 
         RefreshList();
-    }
-
-    public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
     }
 }

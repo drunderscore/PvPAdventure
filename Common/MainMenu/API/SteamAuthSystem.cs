@@ -12,6 +12,7 @@ public sealed class SteamAuthSystem : ModSystem
     private Callback<GetTicketForWebApiResponse_t>? authTicketCallback;
     private HAuthTicket ticketHandle = HAuthTicket.Invalid;
     private static bool steamAvailable;
+    private const string BaseUrl = "https://api.tpvpa.terraria.sh/";
 
     public static string? AuthTicketHex { get; private set; }
     public static bool HasTicket => !string.IsNullOrWhiteSpace(AuthTicketHex);
@@ -24,7 +25,7 @@ public sealed class SteamAuthSystem : ModSystem
             return;
 
         authTicketCallback = Callback<GetTicketForWebApiResponse_t>.Create(OnGetTicketForWebApiResponse);
-        ticketHandle = SteamUser.GetAuthTicketForWebApi("api.tpvpa.terraria.sh");
+        ticketHandle = SteamUser.GetAuthTicketForWebApi(BaseUrl);
     }
 
     public override void Unload()

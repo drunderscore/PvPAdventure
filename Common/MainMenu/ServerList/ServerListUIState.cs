@@ -1,11 +1,13 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.Core.Utilities;
+using PvPAdventure.UI;
 using ReLogic.Content;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
@@ -13,14 +15,10 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.MainMenu.PlayServerList;
+namespace PvPAdventure.Common.MainMenu.ServerList;
 
-public class PlayServerListUIState : ResizableUIState
+public class ServerListUIState : MainMenuPageUIState
 {
-    private const int BottomMargin = 20;
-    private const int TopOffset = 220;
-    private const int FooterHeight = 50;
-
     private const float PanelPadding = 12f;
     private const float ScrollbarWidth = 20f;
     private const float HeaderHeight = 28f;
@@ -37,7 +35,6 @@ public class PlayServerListUIState : ResizableUIState
     private const float StatusColumnLeft = PlayersColumnLeft + PlayersColumnWidth;
 
     private const float HeaderContentWidth = ServerColumnWidth + PlayersColumnWidth + StatusColumnWidth;
-    private const float RootWidth = HeaderContentWidth + ScrollbarWidth + PanelPadding * 2f + 8f;
 
     private readonly List<ServerEntry> servers = [];
 
@@ -49,6 +46,7 @@ public class PlayServerListUIState : ResizableUIState
     private int selectedPort;
 
     private int warningPromptTimer;
+    private int loadVersion;
 
     private SortColumn sortColumn = SortColumn.Server;
     private bool sortAscending = true;
@@ -75,34 +73,11 @@ public class PlayServerListUIState : ResizableUIState
         public List<UIText> Texts { get; } = [];
     }
 
-    public override void OnActivate()
+    protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.ServerList";
+
+    protected override void Populate(UIPanel panel)
     {
-        base.OnActivate();
-        RemoveAllChildren();
-
-        int screenH = Main.minScreenH;
-
-        UIElement root = new();
-        root.Width.Set(RootWidth, 0f);
-        root.Top.Set(TopOffset, 0f);
-        root.Height.Set(screenH - TopOffset, 0f);
-        root.HAlign = 0.5f;
-
-        UIPanel panel = new();
-        panel.BackgroundColor = new Color(33, 43, 79) * 0.8f;
-        panel.BorderColor = Color.Black;
-        panel.Width.Set(0f, 1f);
-        panel.Height.Set(screenH - TopOffset - FooterHeight - BottomMargin * 2, 0f);
-        panel.SetPadding(PanelPadding);
-        root.Append(panel);
-
-        UITextPanel<string> title = new("Server List", 0.8f, true);
-        title.HAlign = 0.5f;
-        title.Top.Set(-46f, 0f);
-        title.SetPadding(15f);
-        title.BackgroundColor = new Color(73, 94, 171);
-        root.Append(title);
-
+        base.Populate(panel);
         UIElement headerBar = new();
         headerBar.Width.Set(HeaderContentWidth, 0f);
         headerBar.Height.Set(32f, 0f);
@@ -111,7 +86,7 @@ public class PlayServerListUIState : ResizableUIState
 
         UIImageButton AddHeader(Asset<Texture2D> asset, string text, float left, float width, SortColumn column)
         {
-            var header = new UIImageButton(asset)
+            UIImageButton header = new(asset)
             {
                 Left = { Pixels = left },
                 Top = { Pixels = 0f },
@@ -164,72 +139,71 @@ public class PlayServerListUIState : ResizableUIState
         serverList.ManualSortMethod += _ => { };
         serverList.SetScrollbar(scrollbar);
         contentRoot.Append(serverList);
-
-        var backButton = CreateNavigationButton("Back", new Color(63, 82, 151) * 0.8f, new Color(73, 94, 171));
-        backButton.Width.Set(-10f, 0.5f);
-        backButton.HAlign = 0f;
-        backButton.OnLeftClick += (_, _) => GoBackToTPVPABrowserState();
-        root.Append(backButton);
-
-        var joinButton = CreateNavigationButton("Join", new Color(5, 140, 8), new Color(10, 145, 15));
-        joinButton.Width.Set(-10f, 0.5f);
-        joinButton.HAlign = 1f;
-        joinButton.OnLeftClick += (_, _) =>
-        {
-            SoundEngine.PlaySound(SoundID.MenuOpen);
-
-            if (selectedIP == null)
-            {
-                warningPromptTimer = 30;
-                return;
-            }
-
-            //JoinServer(selectedIP, selectedPort);
-            JoinServer(selectedRow.Entry.IP, selectedRow.Entry.Port);
-        };
-        root.Append(joinButton);
-
-        Append(root);
-
-        SeedExampleEntries();
-        RefreshList();
     }
 
-    private UITextPanel<string> CreateNavigationButton(string text, Color idleBg, Color hoverBg)
+    protected override void RefreshContent()
     {
-        var button = new UITextPanel<string>(text, 0.7f, true);
-        button.SetPadding(10f);
-        button.Height.Set(50f, 0f);
-        button.VAlign = 1f;
-        button.Top.Set(-BottomMargin, 0f);
+        int version = ++loadVersion;
+        SetCurrentAsyncState(AsyncProviderState.Loading);
+        ShowContentMessage(MainMenuPageUIState.FormatLoadingMessage("server list"));
+        _ = LoadServersAsync(version);
+    }
 
-        Color idleBorder = Color.Black;
-        Color hoverBorder = Colors.FancyUIFatButtonMouseOver;
-        bool playedTick = false;
-
-        button.BackgroundColor = idleBg;
-        button.BorderColor = idleBorder;
-
-        button.OnMouseOver += (_, _) =>
+    private async Task LoadServersAsync(int version)
+    {
+        try
         {
-            button.BackgroundColor = hoverBg;
-            button.BorderColor = hoverBorder;
+            List<ServerEntry>? result = null;
 
-            if (playedTick)
-                return;
+            // TODO: Fetch server list from API.
+            // Example:
+            // ApiResult<List<ServerEntry>> apiResult = await ServerListApi.GetServersAsync().ConfigureAwait(false);
+            // if (!apiResult.IsSuccess)
+            // {
+            //     throw new Exception(apiResult.ErrorMessage ?? "Unknown error");
+            // }
+            // result = apiResult.Data;
 
-            SoundEngine.PlaySound(SoundID.MenuTick);
-            playedTick = true;
-        };
+            await Task.CompletedTask.ConfigureAwait(false);
 
-        button.OnMouseOut += (_, _) =>
+            Main.QueueMainThreadAction(() =>
+            {
+                if (version != loadVersion)
+                    return;
+
+                if (result == null || result.Count == 0)
+                {
+                    ShowContentMessage(MainMenuPageUIState.FormatErrorMessage("server list", "No servers found."));
+                    SetCurrentAsyncState(AsyncProviderState.Aborted);
+                    return;
+                }
+
+                servers.Clear();
+                servers.AddRange(result);
+                RefreshList();
+                SetCurrentAsyncState(AsyncProviderState.Completed);
+            });
+        }
+        catch (Exception ex)
         {
-            button.BackgroundColor = idleBg;
-            button.BorderColor = idleBorder;
-            playedTick = false;
-        };
+            Log.Error($"[ServerListUIState] Failed to load server list: {ex}");
 
-        return button;
+            Main.QueueMainThreadAction(() =>
+            {
+                if (version != loadVersion)
+                    return;
+
+                ShowContentMessage(MainMenuPageUIState.FormatErrorMessage("server list", ex.Message));
+                SetCurrentAsyncState(AsyncProviderState.Aborted);
+            });
+        }
+    }
+
+    private void ShowContentMessage(string message)
+    {
+        serverList.Clear();
+        serverList.Add(MainMenuPageUIState.CreateWrappedMessageElement(message, 0.9f, 140f));
+        serverList.Recalculate();
     }
 
     private void SeedExampleEntries()
@@ -267,7 +241,7 @@ public class PlayServerListUIState : ResizableUIState
 
         bool selectionStillVisible = false;
 
-        foreach (var entry in sorted)
+        foreach (ServerEntry entry in sorted)
         {
             ServerRow row = new();
             row.Entry = entry;
@@ -410,18 +384,21 @@ public class PlayServerListUIState : ResizableUIState
         RefreshList();
     }
 
+    private void JoinSelectedServer()
+    {
+        SoundEngine.PlaySound(SoundID.MenuOpen);
+
+        if (selectedRow == null)
+        {
+            warningPromptTimer = 30;
+            return;
+        }
+
+        JoinServer(selectedRow.Entry.IP, selectedRow.Entry.Port);
+    }
+
     private void JoinServer(string host, int port)
     {
-        //Main.menuMode = 0;
-
-        // DON'T SELECT A PLAYER, WE DO IT IN THE TPVPA CHARACTER SELECT MENUS!!:
-        ///<see cref="TPVPACharacterListItem"/>
-
-        //Main.LoadPlayers();
-        //var player = Main.PlayerList.FirstOrDefault();
-        //if (player != null)
-        //    Main.SelectPlayer(player);
-
         Main.menuMultiplayer = true;
         Main.menuServer = false;
         Main.autoPass = true;
@@ -437,13 +414,6 @@ public class PlayServerListUIState : ResizableUIState
             Main.statusText = $"Connecting to {host}:{port}";
             Netplay.StartTcpClient();
         });
-
-        //Netplay.SetRemoteIPAsync(Main.getIP, () =>
-        //{
-        //    Main.menuMode = 14;
-        //    Main.statusText = $"Connecting to {host}:{port}";
-        //    Netplay.StartTcpClient();
-        //});
     }
 
     public override void Update(GameTime gameTime)

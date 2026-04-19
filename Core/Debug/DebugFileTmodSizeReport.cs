@@ -12,6 +12,9 @@ internal class DebugFileTmodSizeReport : ModSystem
 {
     public override void Load()
     {
+        // Temp!
+        return;
+
         string path = @"C:\Users\erikm\Documents\My Games\Terraria\tModLoader\ModReader\PvPAdventure";
         DebugFileTmodSizeReport.PrintReport(path);
     }

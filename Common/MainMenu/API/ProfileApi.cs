@@ -1,5 +1,4 @@
-﻿using PvPAdventure.Common.MainMenu.Profile;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +41,7 @@ internal static class ProfileApi
 
         Main.QueueMainThreadAction(() =>
         {
-            MainMenuProfileState.Instance.SyncWithBackend(profileResult.Data, inventoryResult.Data);
+            //MainMenuProfileState.Instance.SyncWithBackend(profileResult.Data, inventoryResult.Data);
         });
 
         return ApiResult<bool>.Success(true);

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.MainMenu.API;
-using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
@@ -96,52 +95,52 @@ internal sealed class SkinUICard : UIElement
 
     private async Task HandleClickAsync()
     {
-        MainMenuProfileState state = MainMenuProfileState.Instance;
+        //MainMenuProfileState state = MainMenuProfileState.Instance;
 
-        bool owned = state.HasSkin(def);
-        bool equipped = state.IsEquipped(def);
-        bool canAfford = state.CanAfford(def);
+        //bool owned = state.HasSkin(def);
+        //bool equipped = state.IsEquipped(def);
+        //bool canAfford = state.CanAfford(def);
 
-        if (!owned)
-        {
-            if (!canAfford)
-            {
-                SoundEngine.PlaySound(SoundID.MenuClose);
-                return;
-            }
+        //if (!owned)
+        //{
+        //    if (!canAfford)
+        //    {
+        //        SoundEngine.PlaySound(SoundID.MenuClose);
+        //        return;
+        //    }
 
-            SoundEngine.PlaySound(SoundID.Coins);
+        //    SoundEngine.PlaySound(SoundID.Coins);
 
-            ApiResult<PurchaseResult> purchaseResult = await ShopApi.PurchaseProductAsync(def.Identity.Prototype, def.Identity.Name);
-            if (!purchaseResult.IsSuccess)
-            {
-                Log.Error($"[SkinUICard] Purchase failed for '{def.Identity.Prototype}:{def.Identity.Name}'. Status={(int)purchaseResult.Status}, Error={purchaseResult.ErrorMessage}");
-                await RefreshProfileStateSafeAsync();
-                return;
-            }
+        //    ApiResult<PurchaseResult> purchaseResult = await ShopApi.PurchaseProductAsync(def.Identity.Prototype, def.Identity.Name);
+        //    if (!purchaseResult.IsSuccess)
+        //    {
+        //        Log.Error($"[SkinUICard] Purchase failed for '{def.Identity.Prototype}:{def.Identity.Name}'. Status={(int)purchaseResult.Status}, Error={purchaseResult.ErrorMessage}");
+        //        await RefreshProfileStateSafeAsync();
+        //        return;
+        //    }
 
-            ApiResult<bool> equipResult = await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, def.Identity.Name);
-            if (!equipResult.IsSuccess)
-            {
-                Log.Error($"[SkinUICard] Failed to equip '{def.Identity.Prototype}:{def.Identity.Name}' after purchase. Status={(int)equipResult.Status}, Error={equipResult.ErrorMessage}");
-            }
+        //    ApiResult<bool> equipResult = await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, def.Identity.Name);
+        //    if (!equipResult.IsSuccess)
+        //    {
+        //        Log.Error($"[SkinUICard] Failed to equip '{def.Identity.Prototype}:{def.Identity.Name}' after purchase. Status={(int)equipResult.Status}, Error={equipResult.ErrorMessage}");
+        //    }
 
-            await RefreshProfileStateSafeAsync();
-            return;
-        }
+        //    await RefreshProfileStateSafeAsync();
+        //    return;
+        //}
 
-        SoundEngine.PlaySound(SoundID.Unlock);
+        //SoundEngine.PlaySound(SoundID.Unlock);
 
-        ApiResult<bool> toggleResult = equipped
-            ? await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, null)
-            : await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, def.Identity.Name);
+        //ApiResult<bool> toggleResult = equipped
+        //    ? await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, null)
+        //    : await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, def.Identity.Name);
 
-        if (!toggleResult.IsSuccess)
-        {
-            Log.Error($"[SkinUICard] Failed to update equip state for '{def.Identity.Prototype}:{def.Identity.Name}'. Status={(int)toggleResult.Status}, Error={toggleResult.ErrorMessage}");
-        }
+        //if (!toggleResult.IsSuccess)
+        //{
+        //    Log.Error($"[SkinUICard] Failed to update equip state for '{def.Identity.Prototype}:{def.Identity.Name}'. Status={(int)toggleResult.Status}, Error={toggleResult.ErrorMessage}");
+        //}
 
-        await RefreshProfileStateSafeAsync();
+        //await RefreshProfileStateSafeAsync();
     }
 
     private static async Task RefreshProfileStateSafeAsync()
@@ -155,75 +154,75 @@ internal sealed class SkinUICard : UIElement
 
     public override void Draw(SpriteBatch sb)
     {
-        MainMenuProfileState state = MainMenuProfileState.Instance;
+        //MainMenuProfileState state = MainMenuProfileState.Instance;
 
-        bool owned = state.HasSkin(def);
-        bool equipped = state.IsEquipped(def);
-        bool canAfford = state.CanAfford(def);
-        bool hover = IsMouseHovering;
+        //bool owned = state.HasSkin(def);
+        //bool equipped = state.IsEquipped(def);
+        //bool canAfford = state.CanAfford(def);
+        //bool hover = IsMouseHovering;
 
-        back.Color = equipped
-            ? new Color(80, 255, 80) * (hover ? 1f : 0.95f)
-            : owned
-                ? new Color(60, 120, 60) * (hover ? 0.75f : 0.6f)
-                : new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
+        //back.Color = equipped
+        //    ? new Color(80, 255, 80) * (hover ? 1f : 0.95f)
+        //    : owned
+        //        ? new Color(60, 120, 60) * (hover ? 0.75f : 0.6f)
+        //        : new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
 
-        border.Color = hover || equipped ? Color.White : Color.Transparent;
+        //border.Color = hover || equipped ? Color.White : Color.Transparent;
 
-        base.Draw(sb);
+        //base.Draw(sb);
 
-        if (equipped)
-        {
-            CalculatedStyle dims = GetDimensions();
-            Rectangle fillRect = dims.ToRectangle();
-            fillRect.Inflate(-4, -4);
+        //if (equipped)
+        //{
+        //    CalculatedStyle dims = GetDimensions();
+        //    Rectangle fillRect = dims.ToRectangle();
+        //    fillRect.Inflate(-4, -4);
 
-            sb.Draw(EquippedFill!.Value, fillRect, new Color(60, 255, 60) * (hover ? 0.18f : 0.12f));
-        }
+        //    sb.Draw(EquippedFill!.Value, fillRect, new Color(60, 255, 60) * (hover ? 0.18f : 0.12f));
+        //}
 
-        CalculatedStyle d = GetDimensions();
-        float contentAlpha = owned ? 0.65f : 1f;
+        //CalculatedStyle d = GetDimensions();
+        //float contentAlpha = owned ? 0.65f : 1f;
 
-        string name = def.DisplayName;
-        float t = name.Length > 18 ? MathHelper.Clamp((name.Length - 18) / 12f, 0f, 1f) : 0f;
-        float titleScale = MathHelper.Lerp(0.75f, 0.55f, t);
+        //string name = def.DisplayName;
+        //float t = name.Length > 18 ? MathHelper.Clamp((name.Length - 18) / 12f, 0f, 1f) : 0f;
+        //float titleScale = MathHelper.Lerp(0.75f, 0.55f, t);
 
-        Vector2 nameSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, name, Vector2.One * titleScale);
-        Vector2 namePos = new(d.X + d.Width * 0.5f - nameSize.X * 0.5f, d.Y + 8f);
-        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, name, namePos, Color.White, 0f, Vector2.Zero, Vector2.One * titleScale, d.Width - 6f);
+        //Vector2 nameSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, name, Vector2.One * titleScale);
+        //Vector2 namePos = new(d.X + d.Width * 0.5f - nameSize.X * 0.5f, d.Y + 8f);
+        //ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, name, namePos, Color.White, 0f, Vector2.Zero, Vector2.One * titleScale, d.Width - 6f);
 
-        Texture2D tex = def.Texture?.Value ?? TextureAssets.Item[def.ItemType].Value;
-        float maxIcon = 48f;
-        float iconScale = maxIcon / Math.Max(tex.Width, tex.Height);
-        Vector2 iconCenter = new(d.X + d.Width * 0.5f, d.Y + 52f);
+        //Texture2D tex = def.Texture?.Value ?? TextureAssets.Item[def.ItemType].Value;
+        //float maxIcon = 48f;
+        //float iconScale = maxIcon / Math.Max(tex.Width, tex.Height);
+        //Vector2 iconCenter = new(d.X + d.Width * 0.5f, d.Y + 52f);
 
-        sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
+        //sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
 
-        string priceText = def.Price.ToString();
-        float priceScale = 1.05f;
-        Vector2 priceSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
+        //string priceText = def.Price.ToString();
+        //float priceScale = 1.05f;
+        //Vector2 priceSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
 
-        float py = d.Y + d.Height - priceSize.Y - 6f;
-        float px = d.X + d.Width * 0.5f - priceSize.X * 0.5f + 8f;
+        //float py = d.Y + d.Height - priceSize.Y - 6f;
+        //float px = d.X + d.Width * 0.5f - priceSize.X * 0.5f + 8f;
 
-        Color priceColor = (owned || canAfford)
-            ? Color.White * contentAlpha
-            : new Color(148, 39, 39) * contentAlpha;
+        //Color priceColor = (owned || canAfford)
+        //    ? Color.White * contentAlpha
+        //    : new Color(148, 39, 39) * contentAlpha;
 
-        Texture2D badgeTex = equipped
-            ? Ass.Icon_CheckmarkGreen.Value
-            : owned
-                ? Ass.Icon_CheckmarkGray.Value
-                : Ass.Icon_Gem.Value;
+        //Texture2D badgeTex = equipped
+        //    ? Ass.Icon_CheckmarkGreen.Value
+        //    : owned
+        //        ? Ass.Icon_CheckmarkGray.Value
+        //        : Ass.Icon_Gem.Value;
 
-        float badgeScale = owned ? 1.1f : 0.9f;
-        Vector2 badgePos = new Vector2(px - 14f, py + 12f) + (owned ? new Vector2(0f, -1f) : Vector2.Zero);
+        //float badgeScale = owned ? 1.1f : 0.9f;
+        //Vector2 badgePos = new Vector2(px - 14f, py + 12f) + (owned ? new Vector2(0f, -1f) : Vector2.Zero);
 
-        sb.Draw(badgeTex, badgePos, null, Color.White, 0f, badgeTex.Size() * 0.5f, badgeScale, SpriteEffects.None, 0f);
-        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, priceText, new Vector2(px + 2f, py), priceColor, 0f, Vector2.Zero, Vector2.One * priceScale);
+        //sb.Draw(badgeTex, badgePos, null, Color.White, 0f, badgeTex.Size() * 0.5f, badgeScale, SpriteEffects.None, 0f);
+        //ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, priceText, new Vector2(px + 2f, py), priceColor, 0f, Vector2.Zero, Vector2.One * priceScale);
 
-        if (hover)
-            DrawTooltip(owned, equipped, canAfford);
+        //if (hover)
+        //    DrawTooltip(owned, equipped, canAfford);
     }
 
     private void DrawTooltip(bool owned, bool equipped, bool canAfford)

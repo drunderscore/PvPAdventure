@@ -1,122 +1,60 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.MainMenu.MatchHistory;
-using PvPAdventure.Common.MainMenu.MatchHistory.UI;
-using PvPAdventure.Common.MainMenu.State;
-using PvPAdventure.UI;
+using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using PvPAdventure.Common.MainMenu.State;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Gamepad;
 
 namespace PvPAdventure.Common.MainMenu.Achievements.UI;
 
-public sealed class AchievementsUIState : ResizableUIState
+public sealed class AchievementsUIState : MainMenuPageUIState
 {
-    private AchievementsUIPanel achievementsPanel = null!;
-    //private readonly List<MatchResult> matches = [];
+    private const float ScrollbarWidth = 20f;
 
-    public override void OnInitialize()
+    private UIList list = null!;
+    private UIScrollbar scrollbar = null!;
+
+    protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.Achievements";
+
+    protected override void Populate(UIPanel panel)
     {
-        var root = new UIElement
+        list = new UIList
         {
-            Width = new StyleDimension(0f, 0.7f),
+            Top = new StyleDimension(6f, 0f),
+            Width = new StyleDimension(-ScrollbarWidth - 6f, 1f),
             Height = new StyleDimension(0f, 1f),
-            Top = new StyleDimension(160f, 0f),
-            HAlign = 0.5f,
-            MinWidth = new StyleDimension(700f, 0f),
-            MaxWidth = new StyleDimension(900f, 0f)
+            ListPadding = 8f,
+            ManualSortMethod = _ => { }
         };
-        Append(root);
+        list.SetPadding(0f);
+        list.PaddingTop = 8f;
+        panel.Append(list);
 
-        var panel = new UIElement
+        scrollbar = new UIScrollbar
         {
-            Width = StyleDimension.Fill,
-            Height = new StyleDimension(-160f * 1.75f, 1f),
+            Top = list.Top,
+            Height = list.Height,
+            Width = new StyleDimension(ScrollbarWidth, 0f),
+            Left = new StyleDimension(-ScrollbarWidth, 1f)
         };
-        root.Append(panel);
+        scrollbar.Height.Pixels -= 6f;
+        scrollbar.SetView(100f, 1000f);
+        panel.Append(scrollbar);
 
-        achievementsPanel = new AchievementsUIPanel
-        {
-            Width = StyleDimension.Fill,
-            Height = StyleDimension.Fill,
-            Top = new StyleDimension(6f, 0f)
-        };
-        panel.Append(achievementsPanel);
-
-        float btnH = 50f;
-        float btnTop = -(160f + btnH);
-
-        var btnRow = new UIElement
-        {
-            Top = new StyleDimension(btnTop, 0f),
-            VAlign = 1f,
-            Width = StyleDimension.Fill,
-            Height = new StyleDimension(btnH, 0f)
-        };
-        btnRow.SetPadding(0f);
-        root.Append(btnRow);
-
-        float gap = 8f;
-        float resetW = 110f;
-
-        btnRow.Append(new UIBackButton<LocalizedText>(Language.GetText("UI.Back"), GoBackToTPVPABrowserState)
-        {
-            Width = StyleDimension.FromPixelsAndPercent(-(resetW + gap), 1f),
-            Height = StyleDimension.Fill
-        });
-
-        var reset = new UITextPanel<string>("Reset", 0.85f, true)
-        {
-            Width = new StyleDimension(resetW, 0f),
-            Height = StyleDimension.Fill,
-            HAlign = 1f,
-            BackgroundColor = new Color(63, 82, 151) * 0.8f,
-            BorderColor = Color.Black
-        };
-
-        reset.OnMouseOver += (_, _) =>
-        {
-            SoundEngine.PlaySound(12);
-            reset.BackgroundColor = new Color(73, 94, 171);
-            reset.TextColor = Color.White;
-            reset.BorderColor = Color.Yellow;
-        };
-
-        reset.OnMouseOut += (_, _) =>
-        {
-            reset.BackgroundColor = new Color(63, 82, 151) * 0.8f;
-            reset.TextColor = Color.LightGray;
-            reset.BorderColor = Color.Black;
-        };
-
-        reset.OnLeftClick += (_, _) => ResetAchievements();
-
-        btnRow.Append(reset);
+        list.SetScrollbar(scrollbar);
+        RefreshAchievements();
     }
 
-    public override void OnActivate()
+    protected override void RefreshContent()
     {
-        base.OnActivate();
-
-        //matches.Clear();
-        //matches.AddRange(MatchStorage.LoadMatchesFromFolder(MatchStorage.GetFolderPath()));
-
-        //ProfileStorage.Load();
-        //ProfileStorage.RebuildAchievements(matches);
-
-        //achievementsPanel.Refresh();
-    }
-
-    public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
-        UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
+        SetCurrentAsyncState(AsyncProviderState.Loading);
+        //RefreshAchievements();
+        SetCurrentAsyncState(AsyncProviderState.Completed);
     }
 
     private void ResetAchievements()
@@ -131,6 +69,50 @@ public sealed class AchievementsUIState : ResizableUIState
         //ProfileStorage.RebuildAchievements(matches);
         //ProfileStorage.RebuildGems(matches);
 
-        //achievementsPanel.Refresh();
+        RefreshAchievements();
+        SetCurrentAsyncState(AsyncProviderState.Completed);
+    }
+
+    private void RefreshAchievements()
+    {
+        list.Clear();
+        scrollbar.ViewPosition = 0f;
+
+        //MainMenuProfileState state = MainMenuProfileState.Instance;
+
+        //List<AchievementsUIRow> claimed = [];
+        //List<AchievementsUIRow> completed = [];
+        //List<AchievementsUIRow> inProgress = [];
+
+        //foreach ((string id, AchievementDefinition def) in Achievements.All)
+        //{
+        //    int target = Math.Max(def.Target, 1);
+        //    int progress = Math.Clamp(state.GetAchievementProgress(id), 0, target);
+        //    AchievementsUIRow row = new(id, def, RefreshAchievements);
+
+        //    if (state.IsAchievementCollected(id))
+        //        claimed.Add(row);
+        //    else if (progress >= target)
+        //        completed.Add(row);
+        //    else
+        //        inProgress.Add(row);
+        //}
+
+        //foreach (AchievementsUIRow row in claimed)
+        //    list.Add(row);
+
+        //foreach (AchievementsUIRow row in completed)
+        //    list.Add(row);
+
+        //foreach (AchievementsUIRow row in inProgress)
+        //    list.Add(row);
+
+        //list.Recalculate();
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+        UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
     }
 }

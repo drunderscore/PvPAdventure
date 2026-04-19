@@ -14,9 +14,9 @@ namespace PvPAdventure.Common.MainMenu.API;
 
 internal static class ApiClient
 {
-    private const string BaseUrl = "https://jame.xyz:50000/";
+    //private const string BaseUrl = "https://jame.xyz:50000/";
+    private const string BaseUrl = "https://api.tpvpa.terraria.sh/";
     private const string PinnedThumbprint = "51A6F42F8479EDBB926C9E4385D7B8286A64C418";
-    private const int MaxLoggedBodyLength = 256;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -144,7 +144,7 @@ internal static class ApiClient
         return new HttpClient(handler)
         {
             BaseAddress = new Uri(BaseUrl),
-            Timeout = TimeSpan.FromSeconds(10)
+            Timeout = TimeSpan.FromSeconds(5)
         };
     }
 
@@ -165,8 +165,8 @@ internal static class ApiClient
     private static string BuildErrorMessage(HttpStatusCode status, string? reasonPhrase, string? body)
     {
         string trimmed = (body ?? "").Replace("\r", " ").Replace("\n", " ").Trim();
-        if (trimmed.Length > MaxLoggedBodyLength)
-            trimmed = trimmed[..MaxLoggedBodyLength] + "...";
+        if (trimmed.Length > 256)
+            trimmed = trimmed[..256] + "...";
 
         return string.IsNullOrWhiteSpace(trimmed)
             ? reasonPhrase ?? $"Request failed with status {(int)status}."

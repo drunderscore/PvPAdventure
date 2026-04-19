@@ -13,6 +13,9 @@ public class AssetSizeLoggerSystem : ModSystem
 {
     public override void PostSetupContent()
     {
+        // Temp!
+        return;
+
         if (Main.dedServ) return;
         try { LogTmodSizes(); }
         catch (Exception ex) { Mod.Logger.Debug($"[AssetSizeLogger] Failed: {ex}"); }

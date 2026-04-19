@@ -15,19 +15,8 @@ internal static class DebugDrawer
 
     private static readonly List<(Rectangle rect, Color color)> Rectangles = [];
     private static readonly List<(string text, Vector2 pos, Color color)> Texts = [];
-    internal static bool ShowStateStats { get; private set; } = true;
-    internal static bool ShowBallStats { get; private set; } = true;
-    internal static bool ShowHitboxes { get; private set; } = true;
+    internal static bool ShowDebugStats { get; private set; } = true;
     internal static bool ShowChat { get; private set; } = true;
-
-    internal static void DrawRect(Rectangle rectangle, Color color)
-    {
-        if (!!ShowHitboxes) return;
-        if (ShowHitboxes)
-        {
-            Rectangles.Add((rectangle, color));
-        }
-    }
 
     internal static void DrawText(string content, Vector2 position, Color? color = null)
     {
@@ -43,9 +32,7 @@ internal static class DebugDrawer
 
         (string text, string tooltip, Func<bool> enabled, Action toggle)[] buttons =
         [
-            ("SS", "Show swing stats", () => ShowStateStats, () => ShowStateStats = !ShowStateStats),
-            ("BS", "Show ball stats", () => ShowBallStats, () => ShowBallStats = !ShowBallStats),
-            ("HB", "Show hitboxes", () => ShowHitboxes, () => ShowHitboxes = !ShowHitboxes),
+            ("SS", "Show debug stats", () => ShowDebugStats, () => ShowDebugStats = !ShowDebugStats),
             ("CH", "Show chat", () => ShowChat, () => ShowChat = !ShowChat)
         ];
 
@@ -84,50 +71,21 @@ internal static class DebugDrawer
 
     internal static void DrawDebugInfo()
     {
-        //Player player = Main.LocalPlayer;
+        Player player = Main.LocalPlayer;
         //BlazeBatPlayer state = player.GetModPlayer<BlazeBatPlayer>();
         //bool hasBall = ProjectileLookupHelper.TryGetActive(player, out Projectile projectile);
         //float meterLeft = Main.screenWidth * 0.5f - 140f;
         //Vector2 column1Pos = new(meterLeft + 292, 6f);
         //Vector2 column2Pos = column1Pos + new Vector2(160, 0);
+        Vector2 column1Pos = new(10, 600f);
 
-        //if (ShowStateStats)
-        //{
-        //    DrawColumn("Debug State:",
-        //    [
-        //        $"Action: {state.Action}",
-        //        $"ActionTime: {state.ActionTimeLeft}",
-        //        $"Cooldown: {state.BallHitCooldown}",
-        //        //$"Special: {state.SpecialMeter:0.00}",
-        //        $"PendingThrow: {state.PendingThrowTime}",
-        //        $"Has swing hitbox: {state.HasSwingHitbox}",
-        //    ], column1Pos);
-        //}
-
-        //if (ShowBallStats)
-        //{
-        //    DrawColumn("Debug Ball:",
-        //    [
-        //        $"Active: {hasBall}",
-        //        $"Tier: {(hasBall && projectile.ModProjectile is BlazeBallProjectile ball ? ball.SpeedTier : 0)}",
-        //        $"SourceItem: {(hasBall ? Lang.GetItemNameValue((int)projectile.ai[0]) : "-")}",
-        //        $"BallTex: {(hasBall ? BlazeBallProjectile.GetTexturePath(projectile) : "-")}",
-        //        $"AI: {(hasBall ? $"{projectile.ai[0]:0}/{projectile.ai[1]:0}" : "-")}",
-        //        $"LocalAI: {(hasBall ? $"{projectile.localAI[0]:0.00}/{projectile.localAI[1]:0.00}" : "-")}",
-        //        $"Vel: {(hasBall ? $"{projectile.velocity.X:0.0}, {projectile.velocity.Y:0.0}" : "-")}",
-        //        $"Damage: {(hasBall ? projectile.damage : 0)}",
-        //        $"Pos: {(hasBall ? $"{projectile.Center.X:0.0}, {projectile.Center.Y:0.0}" : "-")}",
-        //        $"Hitbox: {(hasBall ? $"{projectile.Hitbox.Width}x{projectile.Hitbox.Height}" : "-")}"
-        //    ], column2Pos);
-        //}
-
-        //if (ShowHitboxes)
-        //{
-        //    if (state.HasSwingHitbox)
-        //        DrawRect(state.SwingHitbox, Color.Orange);
-        //    if (state.ActionTimeLeft > 0 && state.Action != BlazeBatAction.None)
-        //        DrawRect(state.TryGetBallHitbox(out Rectangle hitbox, out _) ? hitbox : default, state.Action == BlazeBatAction.Throw ? Color.Yellow : Color.Cyan);
-        //}
+        if (ShowDebugStats)
+        {
+            DrawColumn("Debug Stats:",
+            [
+                //$"Special: {state.SpecialMeter:0.00}",
+            ], column1Pos);
+        }
     }
 
     internal static void Flush(SpriteBatch sb)

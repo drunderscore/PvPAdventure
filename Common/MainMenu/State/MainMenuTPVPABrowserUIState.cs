@@ -3,10 +3,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.MainMenu.Achievements.UI;
 using PvPAdventure.Common.MainMenu.Leaderboards;
-using PvPAdventure.Common.MainMenu.MatchHistory;
+using PvPAdventure.Common.MainMenu.MatchHistory.UI;
 using PvPAdventure.Common.MainMenu.PlayerStats;
-using PvPAdventure.Common.MainMenu.PlayServerList;
-using PvPAdventure.Common.MainMenu.Shop;
+using PvPAdventure.Common.MainMenu.ServerList;
 using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
@@ -26,26 +25,71 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
 {
     private UIText descriptionText = null!;
 
+    private int lastScreenWidth;
+    private int lastScreenHeight;
+    private float lastUiScale;
+
+    private bool pendingRebuild;
+
     public override void OnInitialize()
     {
-        base.OnInitialize();
+        Rebuild();
+    }
 
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        if (KeyboardHelper.JustPressed(Keys.Escape))
+            GoBackToMainMenu();
+
+#if DEBUG
+        if (KeyboardHelper.JustPressed(Keys.F5))
+            pendingRebuild = true;
+
+        if (pendingRebuild)
+        {
+            pendingRebuild = false;
+            Rebuild();
+            return;
+        }
+#endif
+
+        UpdateScreenMetrics();
+    }
+
+    private void UpdateScreenMetrics()
+    {
+        if (lastScreenWidth != Main.screenWidth || lastScreenHeight != Main.screenHeight || lastUiScale != Main.UIScale)
+            {
+            Log.Debug("Recalculating TPVPA browser due to screen size change.");
+            lastScreenWidth = Main.screenWidth;
+            lastScreenHeight = Main.screenHeight;
+            lastUiScale = Main.UIScale;
+            Recalculate();
+        }
+    }
+
+    private void Rebuild()
+    {
         const int marginPx = 20;
         const int topPx = 250;
         const int buttonsHeightPx = 284;
         const int backHeightPx = 50;
+
+        RemoveAllChildren();
 
         int screenH = Main.minScreenH;
         int panelHeightPx = screenH - topPx - (backHeightPx + marginPx * 2);
         float separatorY = buttonsHeightPx + 12f;
         float descHeight = panelHeightPx - buttonsHeightPx - 32f;
 
-        var root = new UIElement { HAlign = 0.5f };
+        UIElement root = new() { HAlign = 0.5f };
         root.Width.Set(600f, 0f);
         root.Top.Set(topPx, 0f);
         root.Height.Set(screenH - topPx, 0f);
 
-        var header = new UITextPanel<LocalizedText>(Language.GetText("Mods.PvPAdventure.MainMenu.TerrariaPvPAdventure"), 0.8f, large: true)
+        UITextPanel<LocalizedText> header = new(Language.GetText("Mods.PvPAdventure.MainMenu.TerrariaPvPAdventure"), 0.8f, true)
         {
             HAlign = 0.5f,
             BackgroundColor = new Color(73, 94, 171)
@@ -53,11 +97,11 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         header.Top.Set(-48f, 0f);
         header.SetPadding(15f);
 
-        var panel = new UIPanel { BackgroundColor = new Color(33, 43, 79) * 0.8f };
+        UIPanel panel = new() { BackgroundColor = new Color(33, 43, 79) * 0.8f };
         panel.Width.Set(0f, 1f);
         panel.Height.Set(panelHeightPx, 0f);
 
-        var back = new UITextPanel<LocalizedText>(Language.GetText("UI.Back"), 0.7f, large: true) { VAlign = 1f };
+        UITextPanel<LocalizedText> back = new(Language.GetText("UI.Back"), 0.7f, true) { VAlign = 1f };
         back.Width.Set(0f, 1f);
         back.Height.Set(backHeightPx, 0f);
         back.Top.Set(-marginPx, 0f);
@@ -71,19 +115,18 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         back.OnLeftClick += (_, _) => GoBackToMainMenu();
         root.Append(back);
 
-        var buttons = new UIElement();
+        UIElement buttons = new();
         buttons.Width.Set(0f, 1f);
         buttons.Height.Set(buttonsHeightPx, 0f);
         buttons.SetPadding(0f);
 
-        // row 1 (top): vAlign 0f
         buttons.Append(CreateButton(
             Ass.Icon_PlayMenu,
             "Mods.PvPAdventure.MainMenu.ServerList",
             "Mods.PvPAdventure.MainMenu.ServerListDescription",
-            () => PlayMenuFlow.OpenCharacterSelect(),
-            hAlign: 0f,
-            vAlign: 0f
+            () => OpenState(() => new ServerListUIState()),
+            0f,
+            0f
         ));
 
         buttons.Append(CreateButton(
@@ -91,18 +134,17 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             "Mods.PvPAdventure.MainMenu.MatchHistory",
             "Mods.PvPAdventure.MainMenu.MatchHistoryDescription",
             () => OpenState(() => new MatchHistoryUIState()),
-            hAlign: 1f,
-            vAlign: 0f
+            1f,
+            0f
         ));
 
-        // row 2: vAlign 0.5f
         buttons.Append(CreateButton(
             Ass.Icon_Stats,
             "Mods.PvPAdventure.MainMenu.Stats",
             "Mods.PvPAdventure.MainMenu.StatsDescription",
             () => OpenState(() => new PlayerStatsUIState()),
-            hAlign: 0f,
-            vAlign: 0.5f
+            0f,
+            0.5f
         ));
 
         buttons.Append(CreateButton(
@@ -110,18 +152,17 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             "Mods.PvPAdventure.MainMenu.Achievements",
             "Mods.PvPAdventure.MainMenu.AchievementsDescription",
             () => OpenState(() => new AchievementsUIState()),
-            hAlign: 1f,
-            vAlign: 0.5f
+            1f,
+            0.5f
         ));
 
-        // row 3 (bottom): vAlign 1f
         buttons.Append(CreateButton(
             Ass.Icon_Shop,
             "Mods.PvPAdventure.MainMenu.Shop",
             "Mods.PvPAdventure.MainMenu.ShopDescription",
             () => OpenState(() => new ShopUIState()),
-            hAlign: 0f,
-            vAlign: 1f
+            0f,
+            1f
         ));
 
         buttons.Append(CreateButton(
@@ -129,8 +170,8 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             "Mods.PvPAdventure.MainMenu.Leaderboards",
             "Mods.PvPAdventure.MainMenu.LeaderboardsDescription",
             () => OpenState(() => new LeaderboardsUIState()),
-            hAlign: 1f,
-            vAlign: 1f
+            1f,
+            1f
         ));
 
         UIWorkshopHub.AddHorizontalSeparator(panel, separatorY);
@@ -141,9 +182,11 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         root.Append(header);
         Append(root);
 
+        Recalculate();
+
         UIPanel CreateButton(Asset<Texture2D> icon, string textKey, string descKey, Action onClick, float hAlign, float vAlign)
         {
-            var button = new UIPanel
+            UIPanel button = new()
             {
                 HAlign = hAlign,
                 VAlign = vAlign,
@@ -162,8 +205,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             button.OnMouseOut += (_, _) => descriptionText.SetText(Language.GetText("Workshop.HubDescriptionDefault"));
             button.OnLeftClick += (_, _) => onClick();
 
-            // Icon container (holds bg + icon, keeps them centered together)
-            var iconBox = new UIElement
+            UIElement iconBox = new()
             {
                 IgnoresMouseInteraction = true,
                 VAlign = 0.5f
@@ -174,8 +216,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             iconBox.Top.Set(-2f, 0f);
             button.Append(iconBox);
 
-            // Bg image (centered in iconBox)
-            var bgImage = new UIImage(Ass.MenuIconBackground)
+            UIImage bgImage = new(Ass.MenuIconBackground)
             {
                 IgnoresMouseInteraction = true,
                 HAlign = 0.5f,
@@ -184,8 +225,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             };
             iconBox.Append(bgImage);
 
-            // Foreground icon (centered in iconBox)
-            var image = new UIImage(icon)
+            UIImage image = new(icon)
             {
                 IgnoresMouseInteraction = true,
                 HAlign = 0.5f,
@@ -194,8 +234,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             };
             iconBox.Append(image);
 
-            // Header text
-            var text = new UIText(Language.GetText(textKey), 0.45f, large: true)
+            UIText text = new(Language.GetText(textKey), 0.45f, true)
             {
                 IgnoresMouseInteraction = true,
                 HAlign = 0f,
@@ -217,7 +256,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
 
         UIElement CreateDescriptionPanel(float height)
         {
-            var box = new UISlicedImage(Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanelHighlight"))
+            UISlicedImage box = new(Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanelHighlight"))
             {
                 HAlign = 0.5f,
                 VAlign = 1f,
@@ -253,40 +292,6 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         }
     }
 
-    public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
-        // Custom ESC handling.
-        if (Main.keyState.IsKeyDown(Keys.Escape) &&
-            Main.oldKeyState.IsKeyUp(Keys.Escape))
-        {
-            GoBackToMainMenu();
-        }
-    }
-
-    //private void ConnectToPlay()
-    //{
-    //    SoundEngine.PlaySound(10);
-
-    //    Main.LoadPlayers();
-    //    var player = Main.PlayerList.FirstOrDefault();
-    //    if (player != null) Main.SelectPlayer(player);
-
-    //    Main.menuMultiplayer = true;
-    //    Main.menuServer = false;
-    //    Main.autoPass = true;
-
-    //    Netplay.ListenPort = 7777;
-    //    Main.getIP = "Tpvpa.terraria.sh";
-
-    //    Netplay.SetRemoteIPAsync(Main.getIP, () =>
-    //    {
-    //        Main.menuMode = 14;
-    //        Main.statusText = "Connecting to Tpvpa.terraria.sh:7777";
-    //        Netplay.StartTcpClient();
-    //    });
-    //}
-
     private void GoBackToMainMenu()
     {
         SoundEngine.PlaySound(11);
@@ -298,8 +303,8 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         if (playSound)
             SoundEngine.PlaySound(SoundID.MenuOpen);
 
-        var menu = ModContent.GetInstance<MainMenuSystem>();
-        var state = create();
+        MainMenuSystem menu = ModContent.GetInstance<MainMenuSystem>();
+        UIState state = create();
         menu.ui?.SetState(state);
         state.Recalculate();
     }

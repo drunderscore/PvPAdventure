@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using MonoMod.Cil;
-using PvPAdventure.Common.MainMenu.MatchHistory;
+using PvPAdventure.Common.MainMenu.MatchHistory.UI;
 using PvPAdventure.Core.Helpers;
 using Terraria;
 using Terraria.Audio;

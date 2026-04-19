@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.MainMenu.MatchHistory.Net;
+using PvPAdventure.Common.MainMenu.MatchHistory;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Net;
