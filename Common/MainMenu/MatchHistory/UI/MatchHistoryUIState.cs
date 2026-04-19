@@ -28,7 +28,7 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
 
     private int selectedIndex = -1;
 
-    protected override float MainPanelMinWidth => 700f;
+    protected override float MainPanelMinWidth => 850f;
     //protected override float MainPanelTop => 170f;
     //protected override float RootMaxWidth => 1100f;
     //protected override float? RootMinWidth => 700f;
@@ -45,16 +45,17 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
         };
         panel.Append(content);
 
+        float leftSidePercent = 0.3f;
         UIElement left = new()
         {
-            Width = new StyleDimension(0f, 0.25f),
+            Width = new StyleDimension(0f, leftSidePercent),
             Height = StyleDimension.Fill
         };
         content.Append(left);
 
         UIElement right = new()
         {
-            Width = new StyleDimension(-6f, 0.75f),
+            Width = new StyleDimension(0f, 1f - leftSidePercent),
             Height = StyleDimension.Fill,
             HAlign = 1f
         };

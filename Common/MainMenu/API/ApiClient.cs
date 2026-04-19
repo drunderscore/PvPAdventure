@@ -45,6 +45,8 @@ internal static class ApiClient
 
     private static async Task<ApiResult<string>> SendForStringAsync(HttpMethod method, string uri, object? body, CancellationToken cancellationToken)
     {
+        string requestUrl = new Uri(Client.BaseAddress!, uri).ToString();
+
         try
         {
             using HttpRequestMessage request = new(method, uri);
@@ -60,6 +62,7 @@ internal static class ApiClient
 
             using HttpResponseMessage response = await Client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             string responseText = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            string requestSummary = $"{method} {requestUrl} -> {(int)response.StatusCode} {response.StatusCode}";
 
             if (!response.IsSuccessStatusCode)
             {
@@ -74,20 +77,22 @@ internal static class ApiClient
                     error = $"Failed to build error message: {ex.Message}";
                 }
 
-                Log.Warn($"{method} {uri} -> {(int)response.StatusCode} {response.StatusCode}. {error}");
-                return ApiResult<string>.Error(response.StatusCode, error);
+                Log.Warn($"{requestSummary}. {error}");
+                return ApiResult<string>.Error(response.StatusCode, error, requestSummary);
             }
 
-            Log.Info($"{method} {uri} -> {(int)response.StatusCode} {response.StatusCode}");
-            return ApiResult<string>.Success(responseText, response.StatusCode);
+            Log.Info(requestSummary);
+            return ApiResult<string>.Success(responseText, response.StatusCode, requestSummary);
         }
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
-            return ApiResult<string>.Exception(ex, "The request timed out.");
+            string requestSummary = $"{method} {requestUrl} -> timeout";
+            return ApiResult<string>.Exception(ex, "The request timed out.", requestSummary);
         }
         catch (Exception ex)
         {
-            return ApiResult<string>.Exception(ex);
+            string requestSummary = $"{method} {requestUrl} -> {ex.GetType().Name}: {ex.Message}";
+            return ApiResult<string>.Exception(ex, requestSummary: requestSummary);
         }
     }
 
@@ -95,22 +100,22 @@ internal static class ApiClient
     {
         ApiResult<string> result = await SendForStringAsync(method, uri, body, cancellationToken).ConfigureAwait(false);
         if (!result.IsSuccess)
-            return ApiResult<T>.Error(result.Status, result.ErrorMessage ?? "The request failed.");
+            return ApiResult<T>.Error(result.Status, result.ErrorMessage ?? "The request failed.", result.RequestSummary);
 
         if (string.IsNullOrWhiteSpace(result.Data))
-            return ApiResult<T>.Error(result.Status, "The response body was empty.");
+            return ApiResult<T>.Error(result.Status, "The response body was empty.", result.RequestSummary);
 
         try
         {
             T? data = JsonSerializer.Deserialize<T>(result.Data, JsonOptions);
             if (data is null)
-                return ApiResult<T>.Error(result.Status, "The response body could not be deserialized.");
+                return ApiResult<T>.Error(result.Status, "The response body could not be deserialized.", result.RequestSummary);
 
-            return ApiResult<T>.Success(data, result.Status);
+            return ApiResult<T>.Success(data, result.Status, result.RequestSummary);
         }
         catch (JsonException ex)
         {
-            return ApiResult<T>.Exception(ex, $"Invalid JSON returned from '{uri}'.");
+            return ApiResult<T>.Exception(ex, $"Invalid JSON returned from '{uri}'.", result.RequestSummary);
         }
     }
 

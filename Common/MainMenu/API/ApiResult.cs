@@ -9,27 +9,29 @@ public sealed class ApiResult<T>
     public HttpStatusCode Status { get; }
     public T? Data { get; }
     public string? ErrorMessage { get; }
+    public string RequestSummary { get; }
 
-    private ApiResult(bool isSuccess, HttpStatusCode status, T? data, string? errorMessage)
+    private ApiResult(bool isSuccess, HttpStatusCode status, T? data, string? errorMessage, string requestSummary)
     {
         IsSuccess = isSuccess;
         Status = status;
         Data = data;
         ErrorMessage = errorMessage;
+        RequestSummary = requestSummary;
     }
 
-    public static ApiResult<T> Success(T data, HttpStatusCode status = HttpStatusCode.OK)
+    public static ApiResult<T> Success(T data, HttpStatusCode status = HttpStatusCode.OK, string requestSummary = "")
     {
-        return new ApiResult<T>(true, status, data, null);
+        return new ApiResult<T>(true, status, data, null, requestSummary);
     }
 
-    public static ApiResult<T> Error(HttpStatusCode status, string message)
+    public static ApiResult<T> Error(HttpStatusCode status, string message, string requestSummary = "")
     {
-        return new ApiResult<T>(false, status, default, message);
+        return new ApiResult<T>(false, status, default, message, requestSummary);
     }
 
-    public static ApiResult<T> Exception(Exception ex, string? message = null)
+    public static ApiResult<T> Exception(Exception ex, string? message = null, string requestSummary = "")
     {
-        return new ApiResult<T>(false, 0, default, message ?? ex.Message);
+        return new ApiResult<T>(false, 0, default, message ?? ex.Message, requestSummary);
     }
 }

@@ -1,9 +1,11 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.MainMenu.State;
+using PvPAdventure.UI;
 using System;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.GameInput;
+using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Gamepad;
 
@@ -14,7 +16,6 @@ public sealed class ShopUIState : MainMenuPageUIState
     private GemsPanel gemsPanel = null!;
     private UIScrollbar scrollbar = null!;
     private UIList list = null!;
-    private ShopUIContent content;
 
     protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.Shop";
 
@@ -79,20 +80,35 @@ public sealed class ShopUIState : MainMenuPageUIState
 
     protected override void RefreshContent()
     {
+        RenderSnapshot(ShopStorage.Snapshot);
+        SetCurrentAsyncState(AsyncProviderState.Loading);
+        _ = RefreshAndRenderAsync();
+    }
+
+    private async System.Threading.Tasks.Task RefreshAndRenderAsync()
+    {
+        await ShopStorage.RefreshAsync().ConfigureAwait(false);
+
+        Main.QueueMainThreadAction(() =>
+        {
+            ShopSnapshot snapshot = ShopStorage.Snapshot;
+            RenderSnapshot(snapshot);
+            SetCurrentAsyncState(snapshot.ErrorMessage == null ? AsyncProviderState.Completed : AsyncProviderState.Aborted, snapshot.ErrorMessage);
+        });
+    }
+
+    private void RenderSnapshot(ShopSnapshot snapshot)
+    {
         list.Clear();
         scrollbar.ViewPosition = 0f;
+        gemsPanel.SetContent(snapshot.Profile?.Gems ?? 0, snapshot.IsAuthenticated);
 
-        bool buildExampleContent = true;
-        content = buildExampleContent
-            ? ShopExampleContent.Create()
-            : new ShopUIContent(0, []);
-
-        if (!buildExampleContent)
+        if (!string.IsNullOrWhiteSpace(snapshot.ErrorMessage) && snapshot.Products.Count == 0)
         {
-            // TODO: Call the shop/profile API here and map the response into ShopUIContent.
+            list.Add(CreateWrappedMessageElement(snapshot.ErrorMessage, 0.9f, 140f));
+            list.Recalculate();
+            return;
         }
-
-        gemsPanel.SetContent(content.Gems, hasProfile: buildExampleContent);
 
         float cardW = 120f;
         float cardH = 120f;
@@ -108,8 +124,7 @@ public sealed class ShopUIState : MainMenuPageUIState
         float totalW = cols * cardW + (cols - 1) * gap;
         float startX = Math.Max(0f, (innerW - totalW) * 0.5f);
 
-        ProductDefinition[] products = content.Products;
-        int count = products.Length;
+        int count = snapshot.Products.Count;
         int rows = count / cols + (count % cols != 0 ? 1 : 0);
 
         UIElement contentRoot = new()
@@ -118,7 +133,6 @@ public sealed class ShopUIState : MainMenuPageUIState
             Height = new StyleDimension(rows * (cardH + gap), 0f)
         };
         contentRoot.SetPadding(4f);
-
         list.Add(contentRoot);
 
         for (int i = 0; i < count; i++)
@@ -126,7 +140,7 @@ public sealed class ShopUIState : MainMenuPageUIState
             int col = i % cols;
             int row = i / cols;
 
-            SkinUICard tile = new(products[i], cardW)
+            SkinUICard tile = new(snapshot.Products[i], cardW)
             {
                 Height = StyleDimension.FromPixels(cardH),
                 Left = new StyleDimension(startX + col * (cardW + gap), 0f),

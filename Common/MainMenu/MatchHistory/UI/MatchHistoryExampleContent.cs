@@ -22,7 +22,8 @@ internal static class MatchHistoryExampleContent
                     new TeamPoints(Team.Red, 128),
                     new TeamPoints(Team.Blue, 102),
                     new TeamPoints(Team.Green, 87),
-                    new TeamPoints(Team.Yellow, 75)
+                    new TeamPoints(Team.Yellow, 75),
+                    new TeamPoints(Team.Pink, 74)
                 ],
                 players:
                 [
