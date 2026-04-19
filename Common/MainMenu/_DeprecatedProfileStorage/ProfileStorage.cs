@@ -8,7 +8,7 @@
 //using Terraria.ModLoader.IO;
 //using AchievementCatalog = PvPAdventure.Common.MainMenu.Achievements.Achievements;
 
-//namespace PvPAdventure.Common.MainMenu.Profile;
+//namespace PvPAdventure.Common.MainMenu.DeprecatedProfileStorage;
 
 //internal static class ProfileStorage
 //{

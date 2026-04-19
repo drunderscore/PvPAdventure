@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Common.MainMenu.State;
 using Terraria;
 using Terraria.Audio;
@@ -53,7 +54,7 @@ public sealed class AchievementsUIState : MainMenuPageUIState
     protected override void RefreshContent()
     {
         SetCurrentAsyncState(AsyncProviderState.Loading);
-        //RefreshAchievements();
+        RefreshAchievements();
         SetCurrentAsyncState(AsyncProviderState.Completed);
     }
 
@@ -78,36 +79,36 @@ public sealed class AchievementsUIState : MainMenuPageUIState
         list.Clear();
         scrollbar.ViewPosition = 0f;
 
-        //MainMenuProfileState state = MainMenuProfileState.Instance;
+        MainMenuProfileState state = MainMenuProfileState.Instance;
 
-        //List<AchievementsUIRow> claimed = [];
-        //List<AchievementsUIRow> completed = [];
-        //List<AchievementsUIRow> inProgress = [];
+        List<AchievementsUIRow> claimed = [];
+        List<AchievementsUIRow> completed = [];
+        List<AchievementsUIRow> inProgress = [];
 
-        //foreach ((string id, AchievementDefinition def) in Achievements.All)
-        //{
-        //    int target = Math.Max(def.Target, 1);
-        //    int progress = Math.Clamp(state.GetAchievementProgress(id), 0, target);
-        //    AchievementsUIRow row = new(id, def, RefreshAchievements);
+        foreach ((string id, AchievementDefinition def) in Achievements.All)
+        {
+            int target = Math.Max(def.Target, 1);
+            int progress = Math.Clamp(state.GetAchievementProgress(id), 0, target);
+            AchievementsUIRow row = new(id, def, RefreshAchievements);
 
-        //    if (state.IsAchievementCollected(id))
-        //        claimed.Add(row);
-        //    else if (progress >= target)
-        //        completed.Add(row);
-        //    else
-        //        inProgress.Add(row);
-        //}
+            if (state.IsAchievementCollected(id))
+                claimed.Add(row);
+            else if (progress >= target)
+                completed.Add(row);
+            else
+                inProgress.Add(row);
+        }
 
-        //foreach (AchievementsUIRow row in claimed)
-        //    list.Add(row);
+        foreach (AchievementsUIRow row in claimed)
+            list.Add(row);
 
-        //foreach (AchievementsUIRow row in completed)
-        //    list.Add(row);
+        foreach (AchievementsUIRow row in completed)
+            list.Add(row);
 
-        //foreach (AchievementsUIRow row in inProgress)
-        //    list.Add(row);
+        foreach (AchievementsUIRow row in inProgress)
+            list.Add(row);
 
-        //list.Recalculate();
+        list.Recalculate();
     }
 
     public override void Update(GameTime gameTime)

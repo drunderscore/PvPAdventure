@@ -124,6 +124,11 @@ public sealed class ShopUIState : MainMenuPageUIState
         int count = products.Count;
         int rows = count / cols + (count % cols != 0 ? 1 : 0);
 
+        // Debug log
+        Log.Info($"Loaded {products.Count} shop products");
+        for (int i = 0; i < products.Count; i++)
+            Log.Info($"Product[{i}] Prototype='{products[i].Identity.Prototype}' Name='{products[i].Identity.Name}' DisplayName='{products[i].DisplayName}' Price={products[i].Price} ItemType={products[i].ItemType}");
+
         UIElement content = new()
         {
             Width = StyleDimension.Fill,

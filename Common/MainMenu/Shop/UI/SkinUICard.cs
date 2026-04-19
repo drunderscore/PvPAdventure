@@ -154,6 +154,65 @@ internal sealed class SkinUICard : UIElement
 
     public override void Draw(SpriteBatch sb)
     {
+        bool hover = IsMouseHovering;
+
+        back.Color = new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
+        border.Color = hover ? Color.White : Color.Transparent;
+
+        base.Draw(sb);
+
+        CalculatedStyle d = GetDimensions();
+
+        string name = def.DisplayName;
+        float titleScale = 0.75f;
+
+        Vector2 nameSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, name, Vector2.One * titleScale);
+        Vector2 namePos = new(d.X + d.Width * 0.5f - nameSize.X * 0.5f, d.Y + 8f);
+
+        ChatManager.DrawColorCodedStringWithShadow(
+            sb,
+            FontAssets.MouseText.Value,
+            name,
+            namePos,
+            Color.White,
+            0f,
+            Vector2.Zero,
+            Vector2.One * titleScale,
+            d.Width - 6f);
+
+        Texture2D tex = def.Texture?.Value ?? TextureAssets.Item[def.ItemType].Value;
+        float maxIcon = 48f;
+        float iconScale = maxIcon / Math.Max(tex.Width, tex.Height);
+        Vector2 iconCenter = new(d.X + d.Width * 0.5f, d.Y + 58f);
+
+        sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
+
+        string priceText = def.Price.ToString();
+        float priceScale = 1f;
+        Vector2 priceSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
+
+        float py = d.Y + d.Height - priceSize.Y - 8f;
+        float px = d.X + d.Width * 0.5f - priceSize.X * 0.5f + 8f;
+
+        sb.Draw(Ass.Icon_Gem.Value, new Vector2(px - 14f, py + 10f), null, Color.White, 0f, Ass.Icon_Gem.Value.Size() * 0.5f, 0.9f, SpriteEffects.None, 0f);
+
+        ChatManager.DrawColorCodedStringWithShadow(
+            sb,
+            FontAssets.MouseText.Value,
+            priceText,
+            new Vector2(px + 2f, py),
+            Color.White,
+            0f,
+            Vector2.Zero,
+            Vector2.One * priceScale);
+
+        if (hover)
+            UICommon.TooltipMouseText($"{def.DisplayName}\nPrice: {def.Price} gems");
+    }
+
+    //[Obsolete("Old main menu state.")]
+    //public override void Draw(SpriteBatch sb)
+    //{
         //MainMenuProfileState state = MainMenuProfileState.Instance;
 
         //bool owned = state.HasSkin(def);
@@ -223,7 +282,7 @@ internal sealed class SkinUICard : UIElement
 
         //if (hover)
         //    DrawTooltip(owned, equipped, canAfford);
-    }
+    //}
 
     private void DrawTooltip(bool owned, bool equipped, bool canAfford)
     {
