@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Steamworks;
 using Terraria;
@@ -28,6 +30,8 @@ public class SteamAuthentication : ModSystem
     // Used for game session authentication by this client on a server.
     private HAuthTicket multiplayerTicketHandle = HAuthTicket.Invalid;
 
+    private TaskCompletionSource<string> webTicketReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     public delegate void AuthenticationResponseCallback(ulong id, byte whoAmI, EAuthSessionResponse authSessionResponse,
         bool alreadyOk);
 
@@ -45,6 +49,18 @@ public class SteamAuthentication : ModSystem
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     public string WebTicket { get; private set; }
+
+    public Task<string> WaitForWebTicketAsync(CancellationToken cancellationToken = default)
+    {
+        if (Main.dedServ)
+            return Task.FromException<string>(new InvalidOperationException("Steam web ticket is only available on the client."));
+
+        if (!string.IsNullOrWhiteSpace(WebTicket))
+            return Task.FromResult(WebTicket);
+
+        Log.Debug($"Waiting for Steam web ticket, ready: {webTicketReady.Task.IsCompleted}, hasTicket: {WebTicket != null}");
+        return webTicketReady.Task.WaitAsync(cancellationToken);
+    }
 
     public override void Load()
     {
@@ -70,6 +86,9 @@ public class SteamAuthentication : ModSystem
         }
         else
         {
+            webTicketReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            WebTicket = null;
+
             ticketForWebApiCallback = Callback<GetTicketForWebApiResponse_t>.Create(OnGetTicketForWebApiResponse);
 
             steamServersConnectedCallback = Callback<SteamServersConnected_t>.Create(OnSteamServersConnected);
@@ -78,7 +97,7 @@ public class SteamAuthentication : ModSystem
                 Callback<SteamServerConnectFailure_t>.Create(OnSteamServerConnectFailure);
 
             webTicketHandle = SteamUser.GetAuthTicketForWebApi(WebTicketIdentity);
-            Log.Debug("Requested Steam web ticket");
+            Log.Debug($"Requested Steam web ticket, identity: {WebTicketIdentity}, handle: {webTicketHandle}");
 
             Netplay.OnDisconnect += OnDisconnect;
         }
@@ -86,6 +105,8 @@ public class SteamAuthentication : ModSystem
 
     public override void Unload()
     {
+        webTicketReady.TrySetCanceled();
+
         if (webTicketHandle != HAuthTicket.Invalid)
         {
             SteamUser.CancelAuthTicket(webTicketHandle);
@@ -239,12 +260,14 @@ public class SteamAuthentication : ModSystem
         {
             if (param.m_eResult != EResult.k_EResultOK)
             {
-                Log.Error($"Failed to obtain Steam web ticket ({param.m_eResult})");
+                Log.Error($"Failed to obtain Steam web ticket, result: {param.m_eResult}, handle: {param.m_hAuthTicket}");
+                webTicketReady.TrySetException(new InvalidOperationException($"Failed to obtain Steam web ticket ({param.m_eResult})"));
                 return;
             }
 
             WebTicket = Convert.ToHexString(param.m_rgubTicket[..param.m_cubTicket]);
-            Log.Debug("Obtained Steam web ticket");
+            Log.Debug($"Obtained Steam web ticket, bytes: {param.m_cubTicket}, ready: {webTicketReady.Task.IsCompleted}");
+            webTicketReady.TrySetResult(WebTicket);
         }
     }
 
