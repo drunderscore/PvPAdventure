@@ -11,55 +11,53 @@ public class WhipBuffs : GlobalProjectile
 {
     public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
     {
-        if (projectile.type == ProjectileID.SwordWhip && target.hostile)
-        {
-            if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
-            {
-                Player attacker = Main.player[projectile.owner];
-                if (attacker != null && attacker.active && attacker != target && attacker.hostile)
-                {
-                    int buffDuration = 420;
-                    attacker.AddBuff(BuffID.SwordWhipPlayerBuff, buffDuration);
-                }
-            }
-        }
-        if (projectile.type == ProjectileID.ThornWhip && target.hostile)
-        {
-            if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
-            {
-                Player attacker = Main.player[projectile.owner];
+        if (!target.hostile)
+            return;
+        if (projectile.owner < 0 || projectile.owner >= Main.maxPlayers)
+            return;
 
-                if (attacker != null && attacker.active && attacker != target && attacker.hostile)
-                {
-                    int buffDuration = 420; // 7 seconds
-                    attacker.AddBuff(BuffID.ThornWhipPlayerBuff, buffDuration);
-                }
-            }
-        }
-        if (projectile.type == ProjectileID.ScytheWhip && target.hostile)
-        {
-            if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
-            {
-                Player attacker = Main.player[projectile.owner];
+        Player attacker = Main.player[projectile.owner];
+        if (attacker == null || !attacker.active || attacker == target || !attacker.hostile)
+            return;
 
-                if (attacker != null && attacker.active && attacker != target && attacker.hostile)
-                {
-                    int buffDuration = 420;
-                    attacker.AddBuff(BuffID.ScytheWhipPlayerBuff, buffDuration);
-                }
-            }
-        }
-        if (projectile.type == ProjectileID.CoolWhip && target.hostile)
-        {
-            if (projectile.owner >= 0 && projectile.owner < Main.maxPlayers)
-            {
-                Player attacker = Main.player[projectile.owner];
+        const int BuffDuration = 420;
 
-                if (attacker != null && attacker.active && attacker != target && attacker.hostile)
-                {
-                    int buffDuration = 420;
-                    attacker.AddBuff(BuffID.CoolWhipPlayerBuff, buffDuration);
-                }
+        switch (projectile.type)
+        {
+            case ProjectileID.SwordWhip:
+                attacker.AddBuff(BuffID.SwordWhipPlayerBuff, BuffDuration);
+                break;
+
+            case ProjectileID.ThornWhip:
+                attacker.AddBuff(BuffID.ThornWhipPlayerBuff, BuffDuration);
+                break;
+
+            case ProjectileID.ScytheWhip:
+                attacker.AddBuff(BuffID.ScytheWhipPlayerBuff, BuffDuration);
+                break;
+
+            case ProjectileID.CoolWhip:
+                attacker.AddBuff(BuffID.CoolWhipPlayerBuff, BuffDuration);
+                attacker.GetModPlayer<WhipBuffPlayer>().PendingSnowflakeSpawn = true;
+                attacker.GetModPlayer<WhipBuffPlayer>().SnowflakeTarget = target;
+                break;
+        }
+    }
+}
+public class WhipBuffPlayer : ModPlayer
+{
+    public bool PendingSnowflakeSpawn = false;
+    public Player? SnowflakeTarget = null;
+
+    public override void PostUpdate()
+    {
+        if (PendingSnowflakeSpawn)
+        {
+            PendingSnowflakeSpawn = false;
+            if (SnowflakeTarget != null)
+            {
+                PvPSnowflake.TrySpawnSnowflake(Player, SnowflakeTarget);
+                SnowflakeTarget = null;
             }
         }
     }

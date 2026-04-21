@@ -342,16 +342,15 @@ public static class AdventureDropDatabase
                 break;
 
             case NPCID.Golem:
-                // Remove Picksaw drop, and the big loot pool -- we will re-create it ourselves.
                 npcLoot.RemoveWhere(drop =>
-                    (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.Picksaw) ||
+                    (drop is CommonDrop commonDrop && (commonDrop.itemId == ItemID.Picksaw || commonDrop.itemId == ItemID.BeetleHusk)) ||
                     drop is LeadingConditionRule);
 
                 var stynger = ItemDropRule.Common(ItemID.Stynger);
                 stynger.OnSuccess(ItemDropRule.Common(ItemID.StyngerBolt, 1, 60, 99), hideLootReport: true);
 
                 npcLoot.Add(
-                    new OneFromRulesRule(1,
+                    new FewFromRulesRule(2, 1,
                         stynger,
                         ItemDropRule.Common(ItemID.PossessedHatchet),
                         ItemDropRule.Common(ItemID.GolemFist),
@@ -360,13 +359,14 @@ public static class AdventureDropDatabase
                     )
                 );
 
-                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                npcLoot.Add(ItemDropRule.FewFromOptions(2, 1,
                     ItemID.Picksaw,
                     ItemID.EyeoftheGolem,
                     ItemID.SunStone,
                     ItemID.ShinyStone)
                 );
 
+                npcLoot.Add(ItemDropRule.Common(ItemID.BeetleHusk, 1, 6, 8));
                 break;
 
             case NPCID.QueenSlimeBoss:
@@ -374,7 +374,7 @@ public static class AdventureDropDatabase
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
 
                 // Always get two pieces of the Crystal Ninja set, separate from other drops.
-                npcLoot.Add(ItemDropRule.FewFromOptions(3, 1,
+                npcLoot.Add(ItemDropRule.FewFromOptions(2, 1,
                         ItemID.CrystalNinjaHelmet,
                         ItemID.CrystalNinjaChestplate,
                         ItemID.CrystalNinjaLeggings
@@ -391,9 +391,8 @@ public static class AdventureDropDatabase
                 break;
 
             case NPCID.QueenBee:
-                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 51, 87));
+                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 20, 25));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
-                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 10, 15));
                 npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 22, 32));
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HoneyComb) ||

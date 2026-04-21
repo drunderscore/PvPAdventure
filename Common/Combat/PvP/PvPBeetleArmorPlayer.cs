@@ -1,4 +1,7 @@
-﻿using MonoMod.Cil;
+﻿using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using PvPAdventure.Core.Config;
+using System.IO;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
@@ -9,6 +12,14 @@ namespace PvPAdventure.Common.Combat.PvP;
 
 internal class PvPBeetleArmorPlayer : ModPlayer
 {
+    public float BeetleEnergy = 0f;
+    private int _lastSentTier = -1;
+
+    public const byte PacketType = 11;
+
+    private static ServerConfig.OtherConfig.BeetleScaleMailConfig Cfg =>
+        ModContent.GetInstance<ServerConfig>().Other.BeetleScaleMail;
+
     public override void Load()
     {
         // Remove logic for handling Beetle Might buffs.
@@ -27,62 +38,95 @@ internal class PvPBeetleArmorPlayer : ModPlayer
 
     public override void PostUpdateEquips()
     {
-        //if (Player.beetleOffense)
-        //{
-        //    Player.GetDamage<MeleeDamageClass>() += 0;
-        //    Player.GetAttackSpeed<MeleeDamageClass>() += 0;
-        //}
-        //else
-        //{
-        //    Player.ClearBuff(BuffID.BeetleMight1);
-        //    Player.ClearBuff(BuffID.BeetleMight2);
-        //    Player.ClearBuff(BuffID.BeetleMight3);
-        //}
-
+        /// we apply the glowing eye effect from Yoraiz0rsSpell item
         if (Player.HasBuff(BuffID.BeetleMight3))
-        {
-            // we apply the glowing eye effect from Yoraiz0rsSpell item
             Player.yoraiz0rEye = 33;
+    }
+
+    public override void PostUpdate()
+    {
+        if (Player.whoAmI != Main.myPlayer)
+            return;
+
+        if (!Player.beetleOffense)
+        {
+            if (BeetleEnergy != 0f || _lastSentTier != 0)
+            {
+                BeetleEnergy = 0f;
+                SendTierToServer(0);
+            }
+            return;
         }
+
+        BeetleEnergy = System.Math.Max(0f, BeetleEnergy - Cfg.EnergyDecayPerTick);
+
+        int desiredTier = BeetleEnergy switch
+        {
+            var e when e >= Cfg.Tier3Threshold => 3,
+            var e when e >= Cfg.Tier2Threshold => 2,
+            var e when e >= Cfg.Tier1Threshold => 1,
+            _ => 0
+        };
+
+        if (desiredTier != _lastSentTier)
+            SendTierToServer(desiredTier);
     }
 
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
-        //if (Main.netMode == NetmodeID.MultiplayerClient)
-            //return;
+        BeetleEnergy = 0f;
+        if (Player.whoAmI == Main.myPlayer)
+            SendTierToServer(0);
+    }
 
-        int attackerIdx = damageSource.SourcePlayerIndex;
-        if ((uint)attackerIdx >= (uint)Main.maxPlayers)
+    public void AddEnergy(int damageDealt)
+    {
+        BeetleEnergy = System.Math.Min(Cfg.EnergyMax, BeetleEnergy + damageDealt * Cfg.EnergyMultiplier);
+    }
+
+    private void SendTierToServer(int tier)
+    {
+        _lastSentTier = tier;
+        ApplyTier(Player, tier);
+
+        if (Main.netMode == NetmodeID.SinglePlayer)
             return;
 
-        if (attackerIdx == Player.whoAmI)
+        ModPacket packet = Mod.GetPacket();
+        packet.Write(PacketType);
+        packet.Write((byte)Player.whoAmI);
+        packet.Write((byte)tier);
+        packet.Send();
+    }
+
+    public static void ReceivePacket(System.IO.BinaryReader reader, int sender)
+    {
+        byte playerIndex = reader.ReadByte();
+        byte tier = reader.ReadByte();
+
+        if (playerIndex >= Main.maxPlayers)
             return;
 
-        Player attacker = Main.player[attackerIdx];
-        if (!attacker.active)
-            return;
+        Player player = Main.player[playerIndex];
+        ApplyTier(player, tier);
 
-        if (!attacker.beetleOffense)
-            return;
+        if (Main.netMode == NetmodeID.Server)
+        {
+            ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+            packet.Write(PacketType);
+            packet.Write(playerIndex);
+            packet.Write(tier);
+            packet.Send(ignoreClient: sender);
+        }
+    }
 
-        int tier = 0;
-
-        if (attacker.HasBuff(BuffID.BeetleMight3))
-            tier = 3;
-        else if (attacker.HasBuff(BuffID.BeetleMight2))
-            tier = 2;
-        else if (attacker.HasBuff(BuffID.BeetleMight1))
-            tier = 1;
-
-        if (tier >= 3)
-            return;
-
-        attacker.ClearBuff(BuffID.BeetleMight1);
-        attacker.ClearBuff(BuffID.BeetleMight2);
-        attacker.ClearBuff(BuffID.BeetleMight3);
-
-        int buffType = BuffID.BeetleMight1 + tier;
-        attacker.AddBuff(buffType, 2);
+    private static void ApplyTier(Player player, int tier)
+    {
+        player.ClearBuff(BuffID.BeetleMight1);
+        player.ClearBuff(BuffID.BeetleMight2);
+        player.ClearBuff(BuffID.BeetleMight3);
+        if (tier >= 1)
+            player.AddBuff(BuffID.BeetleMight1 + tier - 1, 2);
     }
 
     private void EditPlayerUpdateBuffs(ILContext il)
@@ -129,3 +173,35 @@ internal class PvPBeetleArmorPlayer : ModPlayer
     }
 }
 
+public class PvPBeetleArmorEnergyGainProj : ModPlayer
+{
+    public override void ModifyHurt(ref Player.HurtModifiers modifiers)
+    {
+        if (!modifiers.PvP)
+            return;
+
+        int attackerIndex = modifiers.DamageSource.SourcePlayerIndex;
+        if (attackerIndex < 0 || attackerIndex >= Main.maxPlayers)
+            return;
+
+        Player attacker = Main.player[attackerIndex];
+        if (!attacker.active || attacker == Player)
+            return;
+
+        bool isMelee = false;
+        var sourceItem = modifiers.DamageSource.SourceItem;
+        if (sourceItem != null && !sourceItem.IsAir)
+            isMelee = sourceItem.DamageType.CountsAsClass(DamageClass.Melee);
+        else if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
+            isMelee = ContentSamples.ProjectilesByType[modifiers.DamageSource.SourceProjectileType]
+                          .DamageType.CountsAsClass(DamageClass.Melee);
+
+        if (!isMelee)
+            return;
+
+        modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
+        {
+            attacker.GetModPlayer<PvPBeetleArmorPlayer>().AddEnergy(info.Damage);
+        };
+    }
+}

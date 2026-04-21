@@ -199,64 +199,53 @@ internal class CombatPlayer : ModPlayer
         {
             var adventureConfig = ModContent.GetInstance<ServerConfig>();
             info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayers);
-
             if (info.PvP)
                 info.Damage = Math.Max(info.Damage, adventureConfig.MinimumDamageReceivedByPlayersFromPlayer);
         };
-
         if (!modifiers.PvP)
             return;
-
         if (modifiers.DamageSource.SourcePlayerIndex < 0)
             return;
-
         var sourcePlayer = Main.player[modifiers.DamageSource.SourcePlayerIndex];
         if (!sourcePlayer.active)
             return;
-
         var adventureConfig = ModContent.GetInstance<ServerConfig>();
         var damageConfig = adventureConfig.WeaponBalance.Damage;
         var falloffConfig = adventureConfig.WeaponBalance.Falloff;
-
         var tileDistance = Player.Distance(sourcePlayer.position) / 16f;
         var hasIncurredFalloff = false;
-
+        float totalPvPMultiplier = 1f;
         var sourceItem = modifiers.DamageSource.SourceItem;
         if (sourceItem != null && !sourceItem.IsAir)
         {
             var itemDef = new ItemDefinition(sourceItem.type);
-
             if (damageConfig.ItemDamage.TryGetValue(itemDef, out var multiplier))
-                modifiers.IncomingDamageMultiplier *= multiplier;
-
+                totalPvPMultiplier *= multiplier;
             if (falloffConfig.PerItem.TryGetValue(itemDef, out var falloff) && falloff != null)
             {
-                modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
+                totalPvPMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
         }
-
         if (modifiers.DamageSource.SourceProjectileType != ProjectileID.None)
         {
             var projDef = new ProjectileDefinition(modifiers.DamageSource.SourceProjectileType);
-
             if (damageConfig.ProjectileDamage.TryGetValue(projDef, out var multiplier))
-                modifiers.IncomingDamageMultiplier *= multiplier;
-
+                totalPvPMultiplier *= multiplier;
             if (falloffConfig.PerProjectile.TryGetValue(projDef, out var falloff) && falloff != null)
             {
-                modifiers.IncomingDamageMultiplier *= falloff.CalculateMultiplier(tileDistance);
+                totalPvPMultiplier *= falloff.CalculateMultiplier(tileDistance);
                 hasIncurredFalloff = true;
             }
         }
-
         if (!hasIncurredFalloff && falloffConfig.Default != null)
+            totalPvPMultiplier *= falloffConfig.Default.CalculateMultiplier(tileDistance);
+        modifiers.ModifyHurtInfo += (ref Player.HurtInfo info) =>
         {
-            modifiers.IncomingDamageMultiplier *=
-                falloffConfig.Default.CalculateMultiplier(tileDistance);
-        }
+            info.Damage = (int)(info.Damage * totalPvPMultiplier);
+        };
     }
-    
+
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         if (Main.netMode == NetmodeID.MultiplayerClient)

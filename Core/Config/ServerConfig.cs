@@ -258,7 +258,7 @@ public class ServerConfig : ModConfig
             public class Falloff
             {
                 [Increment(0.0001f)]
-                [Range(0.0f, 1.0f)]
+                [Range(0.0f, 5.0f)]
                 public float Coefficient { get; set; }
 
                 [Increment(0.05f)]
@@ -288,6 +288,48 @@ public class ServerConfig : ModConfig
         [Expand(false, false)]
         public SpectreHealingConfig SpectreHealing { get; set; } = new();
 
+        [Expand(false, false)]
+        public BeetleScaleMailConfig BeetleScaleMail { get; set; } = new();
+
+        public class BeetleScaleMailConfig
+        {
+            [Increment(0.01f)]
+            [Range(0f, 10f)]
+            [DefaultValue(1f)]
+            [Slider]
+            public float EnergyMultiplier { get; set; } = 1f;
+
+            [Increment(0.5f)]
+            [Range(0f, 10f)]
+            [DefaultValue(1f)]
+            [Slider]
+            public float EnergyDecayPerTick { get; set; } = 1f;
+
+            [Increment(100f)]
+            [Range(0f, 54000f)]
+            [DefaultValue(5400f)]
+            [Slider]
+            public float EnergyMax { get; set; } = 5400f;
+
+            [Increment(100f)]
+            [Range(0f, 54000f)]
+            [DefaultValue(900f)]
+            [Slider]
+            public float Tier1Threshold { get; set; } = 900f;
+
+            [Increment(100f)]
+            [Range(0f, 54000f)]
+            [DefaultValue(2160f)]
+            [Slider]
+            public float Tier2Threshold { get; set; } = 2160f;
+
+            [Increment(100f)]
+            [Range(0f, 54000f)]
+            [DefaultValue(4860f)]
+            [Slider]
+            public float Tier3Threshold { get; set; } = 4860f;
+
+        }
         public class SpectreHealingConfig
         {
             [DefaultValue(0.2f)]
