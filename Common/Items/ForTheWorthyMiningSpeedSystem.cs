@@ -9,11 +9,7 @@ namespace PvPAdventure.Common.Items;
 
 
 /// <summary>
-/// - Increases pickaxe mining damage globally <br/>
-/// - Hooks Player.GetPickaxeDamage via IL <br/>
-/// - Applies a fixed 1.5× mining multiplier <br/>
-/// - Emulates For the Worthy mining behavior <br/>
-/// - Affects all players and pickaxes <br/>
+/// - Emulates the For The Worthy seed's block health via IL edit
 /// </summary>
 public class ForTheWorthyMiningSpeedSystem : ModSystem
 {
@@ -44,22 +40,17 @@ public class ForTheWorthyMiningSpeedSystem : ModSystem
 
         try
         {
-            if (cursor.TryGotoNext(MoveType.Before,
-                i => i.MatchRet()
-            ))
+            while (cursor.TryGotoNext(MoveType.Before, i => i.MatchRet()))
             {
-                //ModContent.GetInstance<ForTheWorthyMiningSpeedSystem>().Mod.Logger.Info("Found return in GetPickaxeDamage");
+                cursor.Emit(OpCodes.Conv_R4);      
+                cursor.Emit(OpCodes.Ldc_R4, 1.5f); 
+                cursor.Emit(OpCodes.Mul);          
+                cursor.Emit(OpCodes.Conv_I4);     
 
-                cursor.Emit(OpCodes.Ldc_R4, 1.5f); //for the worthy mining speed
-                cursor.Emit(OpCodes.Mul);
-                cursor.Emit(OpCodes.Conv_I4);
+                cursor.Index++;
+            }
 
-                //ModContent.GetInstance<ForTheWorthyMiningSpeedSystem>().Mod.Logger.Info("Successfully modified GetPickaxeDamage to multiply damage by 1.5");
-            }
-            else
-            {
-                ModContent.GetInstance<ForTheWorthyMiningSpeedSystem>().Mod.Logger.Error("Could not find return statement in GetPickaxeDamage");
-            }
+            ModContent.GetInstance<ForTheWorthyMiningSpeedSystem>().Mod.Logger.Info("Successfully modified all returns in GetPickaxeDamage");
         }
         catch (Exception e)
         {

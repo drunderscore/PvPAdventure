@@ -4,59 +4,74 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
 namespace PvPAdventure.Common.World;
-
 /// <summary>
-/// - Triggers a Goblin Army invasion when entering Hardmode
-/// - Ensures the invasion only happens once
-/// - Persists Hardmode state across world loads
-/// </summary>
+/// - Triggers a Goblin Army invasion on the second dawn after Wall of Flesh is killed
+/// <summary>
 public class HardmodeGoblinInvasionSystem : ModSystem
 {
     private bool wasHardmode = false;
+    private bool pendingGoblinInvasion = false;
+
+    private bool hasSeenNightSinceHardmode = false;
+
+    private bool wasDaytime = false;
 
     public override void PostUpdateWorld()
     {
-        // Check if world just entered hardmode
         if (Main.hardMode && !wasHardmode)
         {
-            // Check if goblin army hasn't been defeated yet
             if (!NPC.downedGoblins)
             {
-                // Start goblin invasion
-                Main.StartInvasion(InvasionID.GoblinArmy);
-
-                // Send message to all players
-                if (Main.netMode == NetmodeID.Server)
-                {
-                    NetMessage.SendData(MessageID.WorldData);
-                }
+                pendingGoblinInvasion = true;
+                hasSeenNightSinceHardmode = false;
+                hasSeenNightSinceHardmode = !Main.dayTime;
             }
-
             wasHardmode = true;
         }
 
-        // Update state
         if (!Main.hardMode)
-        {
             wasHardmode = false;
+
+        if (pendingGoblinInvasion)
+        {
+            bool isDaytime = Main.dayTime;
+            if (!isDaytime)
+                hasSeenNightSinceHardmode = true;
+
+            if (isDaytime && !wasDaytime && hasSeenNightSinceHardmode)
+            {
+                Main.StartInvasion(InvasionID.GoblinArmy);
+                pendingGoblinInvasion = false;
+                hasSeenNightSinceHardmode = false;
+
+                if (Main.netMode == NetmodeID.Server)
+                    NetMessage.SendData(MessageID.WorldData);
+            }
+
+            wasDaytime = isDaytime;
+        }
+        else
+        {
+            wasDaytime = Main.dayTime;
         }
     }
 
     public override void SaveWorldData(TagCompound tag)
     {
-        // Save whether we were in hardmode
         tag["wasHardmode"] = wasHardmode;
+        tag["pendingGoblinInvasion"] = pendingGoblinInvasion;
+        tag["hasSeenNightSinceHardmode"] = hasSeenNightSinceHardmode;
     }
 
     public override void LoadWorldData(TagCompound tag)
     {
-        // Load saved state
         wasHardmode = tag.GetBool("wasHardmode");
+        pendingGoblinInvasion = tag.GetBool("pendingGoblinInvasion");
+        hasSeenNightSinceHardmode = tag.GetBool("hasSeenNightSinceHardmode");
 
-        // If loading into hardmode, set flag appropriately
         if (Main.hardMode)
-        {
             wasHardmode = true;
-        }
+
+        wasDaytime = Main.dayTime;
     }
 }

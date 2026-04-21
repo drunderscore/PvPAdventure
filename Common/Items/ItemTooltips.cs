@@ -9,7 +9,6 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Items;
-
 // - Adds PvP damage multiplier tooltip based on config.
 // - Adds "Disabled" tooltip when item is prevented.
 // - Adds summon restriction tooltips for Empress Butterfly and Queen Slime Crystal.
@@ -28,6 +27,16 @@ public class ItemTooltips : GlobalItem
             {
                 IsModifier = true,
                 IsModifierBad = true
+            });
+        }
+
+        if (adventureConfig.WeaponBalance.ArmorPenetration.ItemAP.TryGetValue(itemDefinition, out var armorPen))
+        {
+            tooltips.Add(new TooltipLine(Mod, "CombatPlayerArmorPenetration",
+                $"+{(int)(armorPen * 100)}% PvP armor penetration")
+            {
+                IsModifier = true,
+                IsModifierBad = false
             });
         }
 
@@ -65,43 +74,37 @@ public class ItemTooltips : GlobalItem
                 }
             }
         }
-
-        // Possible EJ changes below
         if (item.type == ItemID.BeetleScaleMail)
         {
             TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
             if (setBonusLine != null)
-            {
                 setBonusLine.Text = "Set bonus:\nGain Beetles from player kills\nBeetles increase your melee damage and attack speed";
-            }
         }
 
         if (item.type == ItemID.TikiMask || item.type == ItemID.TikiShirt || item.type == ItemID.TikiPants)
         {
             TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
             if (setBonusLine != null)
-            {
-                setBonusLine.Text = "Set bonus:\nIncreases your max number of minions\nIncreases whip range by 20%\nIncreases whip debuff duration against players by 150%\nPrevents whip range penalty";
-            }
+                setBonusLine.Text = "Set bonus:\nIncreases your max number of minions\nIncreases whip range by 20%\nIncreases whip debuff duration against players by 150%";
         }
+
         if (item.type == ItemID.ObsidianHelm || item.type == ItemID.ObsidianShirt || item.type == ItemID.ObsidianPants)
         {
             TooltipLine setBonusLine = tooltips.FirstOrDefault(x => x.Name == "SetBonus" && x.Mod == "Terraria");
             if (setBonusLine != null)
-            {
-                setBonusLine.Text = "Set bonus:\n\tIncreases whip range by 30% and speed by 15%\nIncreases summon damage by 15%\nPrevents whip range penalty";
-            }
+                setBonusLine.Text = "Set bonus:\n\tIncreases whip range by 30% and speed by 15%\nIncreases summon damage by 15%";
         }
+
         if (item.type == ItemID.BlandWhip || item.type == ItemID.ThornWhip ||
-        item.type == ItemID.BoneWhip || item.type == ItemID.FireWhip ||
-        item.type == ItemID.CoolWhip || item.type == ItemID.SwordWhip ||
-        item.type == ItemID.ScytheWhip || item.type == ItemID.MaceWhip ||
-        item.type == ItemID.RainbowWhip)
+            item.type == ItemID.BoneWhip || item.type == ItemID.FireWhip ||
+            item.type == ItemID.CoolWhip || item.type == ItemID.SwordWhip ||
+            item.type == ItemID.ScytheWhip || item.type == ItemID.MaceWhip ||
+            item.type == ItemID.RainbowWhip)
         {
-            tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without certain Set Bonuses")
-            {
-                OverrideColor = new Color(255, 100, 100)
-            });
+            //tooltips.Add(new TooltipLine(Mod, "WhipRangeWarning", "Range greatly reduced without certain Set Bonuses")
+            //{
+            //    OverrideColor = new Color(255, 100, 100)
+            //});
             tooltips.Add(new TooltipLine(Mod, "SummonsArePlayers", "All whip debuffs apply to players, and effect all non-summon damage")
             {
                 OverrideColor = new Color(100, 255, 100)
@@ -109,13 +112,11 @@ public class ItemTooltips : GlobalItem
         }
 
         if (item.type == ItemID.SpectrePickaxe || item.type == ItemID.ShroomiteDiggingClaw)
-        {
             tooltips.Add(new TooltipLine(Mod, "MiningPowerChange", "Capable of mining Lihzahrd Bricks"));
-        }
+
         if (item.type == ItemID.PhilosophersStone || item.type == ItemID.CharmofMyths)
-        {
             tooltips.Add(new TooltipLine(Mod, "FullHPRespawn", "Gain full health upon returning to the land of the living"));
-        }
+
         if (item.type == ItemID.ArcheryPotion)
         {
             for (int i = 0; i < tooltips.Count; i++)
@@ -132,6 +133,7 @@ public class ItemTooltips : GlobalItem
                 OverrideColor = new Color(255, 100, 100)
             });
         }
+
         if (item.type == ItemID.TempleKey)
         {
             for (int i = 0; i < tooltips.Count; i++)
@@ -148,6 +150,7 @@ public class ItemTooltips : GlobalItem
                 OverrideColor = new Color(255, 100, 100)
             });
         }
+
         if (item.type == ItemID.ShadowKey)
         {
             for (int i = 0; i < tooltips.Count; i++)
@@ -164,9 +167,8 @@ public class ItemTooltips : GlobalItem
                 OverrideColor = new Color(255, 100, 100)
             });
         }
+
         if (item.type == ItemID.LunarCraftingStation)
-        {
             tooltips.Add(new TooltipLine(Mod, "AllCraftTiles", "Counts as all crafting stations"));
-        }
     }
 }

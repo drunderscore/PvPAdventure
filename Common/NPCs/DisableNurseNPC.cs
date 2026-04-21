@@ -11,8 +11,8 @@ internal class DisableNurseNPC : ModSystem
         // The Nurse is never allowed to spawn.
         Main.townNPCCanSpawn[NPCID.Nurse] = false;
 
-        /// Shouldn't this also be here, so we can scrap <see cref="DisableTavernkeepNPC"/>?
-        //Main.townNPCCanSpawn[NPCID.BartenderUnconscious] = false;
+        /// Shouldn't this also be here, so we can scrap <see cref="DisableNPCs"/>?
+        //Main.townNPCCanSpawn[NPCID.BartenderUnconscious] = false
     }
 
 }

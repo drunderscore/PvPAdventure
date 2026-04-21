@@ -1028,6 +1028,16 @@ Mods: {
 					Label: Spectre Healing
 					Tooltip: ""
 				}
+
+				BeetleEnergyMultiplier: {
+					Label: Beetle Energy Multiplier
+					Tooltip: ""
+				}
+
+				BeetleScaleMail: {
+					Label: Beetle Scale Mail
+					Tooltip: ""
+				}
 			}
 
 			SpectreHealingConfig: {
@@ -1801,6 +1811,64 @@ Mods: {
 					Tooltip: ""
 				}
 			}
+
+			KnockbackConfig: {
+				Tooltip: ""
+
+				ItemKnockback: {
+					Label: Item Knockback
+					Tooltip: ""
+				}
+
+				ProjectileKnockback: {
+					Label: Projectile Knockback
+					Tooltip: ""
+				}
+
+				PvPKnockbackMultiplier: {
+					Label: PvP Knockback Multiplier
+					Tooltip: ""
+				}
+			}
+
+			BeetleScaleMailConfig: {
+				EnergyMultiplier: {
+					Label: Energy Multiplier
+					Tooltip: ""
+				}
+
+				Tooltip: ""
+
+				EnergyDecayPerTick: {
+					Label: Energy Decay Per Tick
+					Tooltip: ""
+				}
+
+				EnergyMax: {
+					Label: Energy Max
+					Tooltip: ""
+				}
+
+				Tier1Threshold: {
+					Label: Tier1 Threshold
+					Tooltip: ""
+				}
+
+				Tier2Threshold: {
+					Label: Tier2 Threshold
+					Tooltip: ""
+				}
+
+				Tier3Threshold: {
+					Label: Tier3 Threshold
+					Tooltip: ""
+				}
+
+				BeetleEnergyMultiplier: {
+					Label: Beetle Energy Multiplier
+					Tooltip: ""
+				}
+			}
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
@@ -1877,5 +1945,11 @@ Mods: {
 			Gain Beetles from player kills
 			Beetles increase your melee damage and attack speed
 			'''
+
+		Projectiles: {
+			PowerBombProjectile.DisplayName: Power Bomb Projectile
+			PowerBombExplosion.DisplayName: Power Bomb Explosion
+			StickyPowerBombProjectile.DisplayName: Sticky Power Bomb Projectile
+		}
 	}
 }
