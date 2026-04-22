@@ -5,7 +5,6 @@ using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.Localization;
 using Terraria.Map;
-using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -46,7 +45,6 @@ public class TeleportOnMap : ModSystem
         handledHover |= DrawWorldIcon(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
         handledHover |= DrawMyBedIcon(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
         handledHover |= DrawTeamBedIcons(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
-        handledHover |= DrawAdventurePortalIcons(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
     }
 
     private bool DrawWorldIcon(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, bool recallActive, ref MapOverlayDrawContext context, ref string text)
@@ -184,65 +182,6 @@ public class TeleportOnMap : ModSystem
 
             return true;
         }
-        return false;
-    }
-
-    private bool DrawAdventurePortalIcons(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, bool recallActive, ref MapOverlayDrawContext context, ref string text)
-    {
-        Texture2D portalTexture = TextureAssets.Item[ItemID.PotionOfReturn].Value;
-
-        for (int i = 0; i < Main.maxPlayers; i++)
-        {
-            Player other = Main.player[i];
-            if (other == null || !other.active)
-                continue;
-
-            if (!AdventurePortalSystem.TryGetPortalTilePosition(i, out Vector2 tilePos))
-                continue;
-
-            bool canInteract = AdventurePortalSystem.IsValidTeammatePortalIndex(local, i);
-            bool selected = canInteract && sp.SelectedType == SpawnType.Teammate && sp.SelectedPlayerIndex == i;
-
-            if (!DrawIcon(portalTexture, tilePos, selected, instantTeleport, recallActive, ref context, out bool hover))
-                continue;
-
-            if (!hover)
-                continue;
-
-            if (!selectorOpen)
-            {
-                text = $"{other.name}'s adventure portal";
-                return true;
-            }
-
-            if (!canInteract)
-            {
-                text = $"{other.name}'s adventure portal";
-                return true;
-            }
-
-            if (instantTeleport)
-            {
-                text = $"Teleport to {other.name}'s adventure portal";
-                if (IsClick())
-                {
-                    sp.ToggleSelection(SpawnType.Teammate, i);
-                    sp.RequestExecute();
-                }
-
-                return true;
-            }
-
-            text = selected
-                ? $"Cancel {other.name}'s adventure portal"
-                : $"Select {other.name}'s adventure portal";
-
-            if (IsClick())
-                sp.ToggleSelection(SpawnType.Teammate, i);
-
-            return true;
-        }
-
         return false;
     }
 

@@ -122,7 +122,7 @@ public class SpawnSystem : ModSystem
         return false;
     }
 
-    internal static bool IsUsingAdventureMirror(Player player, out bool ready, out int secondsLeft)
+    private static bool IsUsingAdventureMirror(Player player, out bool ready, out int secondsLeft)
     {
         ready = false;
         secondsLeft = 0;
@@ -185,13 +185,10 @@ public class SpawnSystem : ModSystem
 
     private static bool PerformTeleport(Player p, SpawnType type, int idx)
     {
-        bool createPortal = IsUsingAdventureMirror(p, out bool mirrorReady, out _) && mirrorReady;
-        Vector2 portalPosition = p.position;
-
         // MP client: always request (no local execution)
         if (Main.netMode == NetmodeID.MultiplayerClient)
         {
-            SendTeleportRequest(type, idx, createPortal);
+            SendTeleportRequest(type, idx);
             return true;
         }
 
@@ -199,32 +196,25 @@ public class SpawnSystem : ModSystem
         {
             case SpawnType.World:
                 p.Teleport(WorldSpawnWorldPos(), TeleportationStyleID.RecallPotion);
-                if (createPortal)
-                    AdventurePortalSystem.SetPortal(p, portalPosition);
                 return true;
 
             case SpawnType.MyBed:
-                if (!TryTeleportToBed(p, p))
-                    return false;
-
-                if (createPortal)
-                    AdventurePortalSystem.SetPortal(p, portalPosition);
-                return true;
+                return TryTeleportToBed(p, p);
 
             case SpawnType.Random:
                 p.TeleportationPotion();
                 SoundEngine.PlaySound(SoundID.Item6, p.Center);
-                if (createPortal)
-                    AdventurePortalSystem.SetPortal(p, portalPosition);
                 return true;
 
             case SpawnType.Teammate:
-                if (!AdventurePortalSystem.TryGetTeleportPosition(p, idx, out Vector2 portalTeleportPosition))
+                if (!IsValidTeammateIndex(p, idx))
                     return false;
 
-                p.UnityTeleport(portalTeleportPosition);
-                if (createPortal)
-                    AdventurePortalSystem.SetPortal(p, portalPosition);
+                Player t = Main.player[idx];
+                if (t == null || !t.active || t.dead)
+                    return false;
+
+                p.UnityTeleport(t.position);
                 return true;
 
             case SpawnType.TeammateBed:
@@ -235,12 +225,7 @@ public class SpawnSystem : ModSystem
                 if (bedOwner == null || !bedOwner.active)
                     return false;
 
-                if (!TryTeleportToBed(p, bedOwner))
-                    return false;
-
-                if (createPortal)
-                    AdventurePortalSystem.SetPortal(p, portalPosition);
-                return true;
+                return TryTeleportToBed(p, bedOwner);
 
             default:
                 return false;
@@ -260,13 +245,12 @@ public class SpawnSystem : ModSystem
         return true;
     }
 
-    private static void SendTeleportRequest(SpawnType type, int idx, bool createPortal)
+    private static void SendTeleportRequest(SpawnType type, int idx)
     {
         var pkt = ModContent.GetInstance<PvPAdventure>().GetPacket();
         pkt.Write((byte)AdventurePacketIdentifier.TeleportRequest);
         pkt.Write((byte)Main.myPlayer);
         pkt.Write((byte)type);
-        pkt.Write(createPortal);
 
         if (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
             pkt.Write((short)idx);
@@ -281,9 +265,6 @@ public class SpawnSystem : ModSystem
     {
         if (type != SpawnType.Teammate && type != SpawnType.TeammateBed)
             return type.ToString();
-
-        if (type == SpawnType.Teammate)
-            return "Adventure Portal (" + GetPlayerNameSafe(idx) + ")";
 
         return type.ToString() + " (" + GetPlayerNameSafe(idx) + ")";
     }

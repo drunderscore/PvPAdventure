@@ -99,9 +99,11 @@ public class SpawnHooks : ModSystem
         if (type == SpawnType.Teammate)
         {
             int idx = sp.SelectedPlayerIndex;
-            if (AdventurePortalSystem.TryGetTeleportPosition(self, idx, out Vector2 portalPosition))
+            if (SpawnSystem.IsValidTeammateIndex(idx))
             {
-                TeleportAndSync(self, portalPosition);
+                Player t = Main.player[idx];
+                if (t != null && t.active && !t.dead)
+                    TeleportAndSync(self, t.position);
             }
 
             sp.ClearSelection();

@@ -263,7 +263,7 @@ public class SpawnPlayer : ModPlayer
 
         if (normalizedType == SpawnType.Teammate)
         {
-            if (!AdventurePortalSystem.IsValidTeammatePortalIndex(Player, normalizedIdx))
+            if (!SpawnSystem.IsValidTeammateIndex(Player, normalizedIdx))
             {
                 normalizedType = SpawnType.None;
                 normalizedIdx = -1;
@@ -317,7 +317,7 @@ public class SpawnPlayer : ModPlayer
     private static string FormatSpawn(SpawnType type, int idx)
     {
         if (type == SpawnType.Teammate)
-            return $"Adventure Portal ({GetPlayerNameSafe(idx)})";
+            return $"Player ({GetPlayerNameSafe(idx)})";
 
         if (type == SpawnType.TeammateBed)
             return $"Bed ({GetPlayerNameSafe(idx)})";

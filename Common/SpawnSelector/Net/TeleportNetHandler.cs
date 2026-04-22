@@ -1,5 +1,4 @@
-using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Debug;
+﻿using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
 using Terraria.ID;
@@ -15,7 +14,6 @@ public static class TeleportNetHandler
 
         byte requesterId = reader.ReadByte();
         SpawnType type = (SpawnType)reader.ReadByte();
-        bool createPortal = reader.ReadBoolean();
 
         if (requesterId != whoAmI)
             return;
@@ -24,7 +22,6 @@ public static class TeleportNetHandler
         if (requester == null || !requester.active)
             return;
 
-        Vector2 portalPosition = requester.position;
         Vector2 teleportPos;
 
         switch (type)
@@ -36,13 +33,11 @@ public static class TeleportNetHandler
             case SpawnType.Teammate:
                 {
                     short idx = reader.ReadInt16();
-                    if (!AdventurePortalSystem.TryGetTeleportPosition(requester, idx, out teleportPos))
-                    {
-                        Log.Chat($"Adventure portal teleport failed, moreinfo: requester={requester.name} targetSlot={idx}");
+                    if (!SpawnSystem.IsValidTeammateIndex(requester, idx))
                         return;
-                    }
 
-                    Log.Chat($"Adventure portal teleport target resolved, moreinfo: requester={requester.name} target={Main.player[idx]?.name ?? idx.ToString()} pos=({teleportPos.X:0},{teleportPos.Y:0})");
+                    Player target = Main.player[idx];
+                    teleportPos = target.position;
                     break;
                 }
 
@@ -68,7 +63,6 @@ public static class TeleportNetHandler
                     teleportPos = new Vector2(bedOwner.SpawnX, bedOwner.SpawnY - 6).ToWorldCoordinates();
                     break;
                 }
-
             case SpawnType.MyBed:
                 {
                     if (requester.SpawnX < 0 || requester.SpawnY < 0 ||
@@ -81,17 +75,15 @@ public static class TeleportNetHandler
                     ).ToWorldCoordinates();
                     break;
                 }
-
             case SpawnType.Random:
                 {
+                    // Use vanilla logic to choose a random teleport destination
+                    Vector2 oldPos = requester.position;
+
                     requester.TeleportationPotion();
 
-                    if (createPortal)
-                    {
-                        Log.Chat($"Adventure portal creation requested after random teleport, moreinfo: player={requester.name} from=({portalPosition.X:0},{portalPosition.Y:0})");
-                        AdventurePortalSystem.SetPortal(requester, portalPosition);
-                    }
-
+                    // TeleportationPotion() already moved the player.
+                    // We must re-sync the final position to all clients.
                     NetMessage.SendData(
                         MessageID.TeleportEntity,
                         -1, -1, null,
@@ -102,6 +94,7 @@ public static class TeleportNetHandler
                         number5: TeleportationStyleID.RecallPotion
                     );
 
+                    // Play teleport sound for everyone (local guaranteed)
                     TeleportFxNetHandler.Send(requester.whoAmI);
                     return;
                 }
@@ -111,12 +104,6 @@ public static class TeleportNetHandler
         }
 
         requester.Teleport(teleportPos, TeleportationStyleID.RecallPotion);
-
-        if (createPortal)
-        {
-            Log.Chat($"Adventure portal creation requested after teleport, moreinfo: player={requester.name} from=({portalPosition.X:0},{portalPosition.Y:0})");
-            AdventurePortalSystem.SetPortal(requester, portalPosition);
-        }
 
         NetMessage.SendData(
             MessageID.TeleportEntity,
@@ -128,6 +115,10 @@ public static class TeleportNetHandler
             number5: TeleportationStyleID.RecallPotion
         );
 
+        // Send teleport sound effect to all clients
         TeleportFxNetHandler.Send(whoAmI);
     }
 }
+
+
+

@@ -6,7 +6,6 @@ using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ID;
 using Terraria.Localization;
 using Terraria.UI;
 
@@ -112,7 +111,8 @@ public class UISpawnCharacter : UIPanel
         if (local == null || !local.active)
             return;
 
-        if (!AdventurePortalSystem.IsValidTeammatePortalIndex(local, playerIndex))
+        // Only allow selecting valid teammates
+        if (!SpawnSystem.IsValidTeammateIndex(playerIndex))
             return;
 
         local.GetModPlayer<SpawnPlayer>()
@@ -127,7 +127,12 @@ public class UISpawnCharacter : UIPanel
         if (local == null || !local.active)
             return;
 
-        bool validTarget = AdventurePortalSystem.IsValidTeammatePortalIndex(local, playerIndex);
+        Player target = Main.player[playerIndex];
+        bool validTarget =
+            target != null &&
+            target.active &&
+            !target.dead &&
+            SpawnSystem.IsValidTeammateIndex(playerIndex);
 
         bool hovering = IsMouseHovering && validTarget;
 
@@ -155,45 +160,44 @@ public class UISpawnCharacter : UIPanel
             sp.SelectedType == SpawnType.Teammate &&
             sp.SelectedPlayerIndex == playerIndex;
 
-        bool hasPortal = AdventurePortalSystem.HasActivePortal(playerIndex);
         BackgroundColor =
-            !hasPortal ? new Color(58, 58, 58, 180) :
             selected ? Color.Gold :
             hovering ? new Color(73, 92, 161, 150) :
             new Color(63, 82, 151) * 0.8f;
     }
 
-    private void DrawHoverText(Player localPlayer, Player targetPlayer)
+    private void DrawHoverText(Player player)
     {
-        if (localPlayer == null || !localPlayer.active || targetPlayer == null || !targetPlayer.active)
+        if (player == null || !player.active)
             return;
 
-        localPlayer.mouseInterface = true;
-
-        if (!AdventurePortalSystem.HasActivePortal(targetPlayer.whoAmI))
+        if (!player.dead)
         {
-            Main.instance.MouseText($"{targetPlayer.name} has no active adventure portal");
+            // Prevent clicks/pings while hovering the UI element.
+            player.mouseInterface = true;
+
+            var sp = player.GetModPlayer<SpawnPlayer>();
+
+            bool committed = sp.SelectedType == SpawnType.Teammate;
+            bool ready = !SpawnSystem.CanTeleport;
+
+            string text;
+
+            if (ready)
+            {
+                text = committed
+                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammateSpawn", player.name)
+                    : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammateSpawn", player.name);
+            }
+            else
+            {
+                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammate", player.name);
+            }
+            Main.instance.MouseText(text);
             return;
         }
 
-        var sp = localPlayer.GetModPlayer<SpawnPlayer>();
-        bool committed = sp.SelectedType == SpawnType.Teammate && sp.SelectedPlayerIndex == targetPlayer.whoAmI;
-        bool ready = !SpawnSystem.CanTeleport;
-
-        string text;
-
-        if (ready)
-        {
-            text = committed
-                ? $"Cancel {targetPlayer.name}'s adventure portal"
-                : $"Select {targetPlayer.name}'s adventure portal";
-        }
-        else
-        {
-            text = $"Teleport to {targetPlayer.name}'s adventure portal";
-        }
-
-        Main.instance.MouseText(text);
+        Main.instance.MouseText("Cannot respawn (player dead)");
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -203,7 +207,6 @@ public class UISpawnCharacter : UIPanel
 
         // Get player
         Player player = Main.player[playerIndex];
-        Player localPlayer = Main.LocalPlayer;
 
         if (player == null || !player.active)
         {
@@ -238,10 +241,7 @@ public class UISpawnCharacter : UIPanel
         if (rowDensity == RowDensity.UltraCompact)
         {
             if (IsMouseHovering)
-                DrawHoverText(localPlayer, player);
-
-            if (!AdventurePortalSystem.HasActivePortal(playerIndex))
-                DrawDisabledOverlay(sb, GetDimensions().ToRectangle());
+                DrawHoverText(player);
             return;
         }
 
@@ -255,10 +255,7 @@ public class UISpawnCharacter : UIPanel
 
         // Draw hover text
         if (IsMouseHovering)
-            DrawHoverText(localPlayer, player);
-
-        if (!AdventurePortalSystem.HasActivePortal(playerIndex))
-            DrawDisabledOverlay(sb, GetDimensions().ToRectangle());
+            DrawHoverText(player);
     }
 
     #region Draw Helpers
@@ -267,20 +264,12 @@ public class UISpawnCharacter : UIPanel
     {
         try
         {
+            Vector2 playerDrawPos = pos + Main.screenPosition + new Vector2(34, 9);
             Vector2 headDrawPos = pos + new Vector2(42, 24);
-            bool hasPortal = AdventurePortalSystem.HasActivePortal(player.whoAmI);
-            Item portalItem = new(ItemID.PotionOfReturn);
 
             Color myTeamColor = Main.teamColor[Main.LocalPlayer.team];
 
-            ItemSlot.DrawItemIcon(portalItem, ItemSlot.Context.InventoryItem, Main.spriteBatch, headDrawPos, 1.05f, 28, hasPortal ? Color.White : Color.Gray);
-
-            if (!hasPortal)
-            {
-                Vector2 origin = Ass.Icon_Forbidden.Value.Size() * 0.5f;
-                Main.spriteBatch.Draw(Ass.Icon_Forbidden.Value, headDrawPos, null, Color.White, 0f, origin, 1.15f, SpriteEffects.None, 0f);
-            }
-
+            //Main.PlayerRenderer.DrawPlayer(Main.Camera,player,playerDrawPos,player.fullRotation,player.fullRotationOrigin,0f,0.9f);
             Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, headDrawPos, scale: 1.2f, borderColor: myTeamColor);
         }
         catch (Exception e)
@@ -445,11 +434,6 @@ public class UISpawnCharacter : UIPanel
 
 
         Utils.DrawBorderStringBig(sb, respawnTimeInSeconds, timerPos, Color.LightGray, scale: timerScale);
-    }
-
-    private static void DrawDisabledOverlay(SpriteBatch sb, Rectangle rect)
-    {
-        sb.Draw(TextureAssets.MagicPixel.Value, rect, Color.Black * 0.28f);
     }
 
     // Draws the inner panel background with a given width.
