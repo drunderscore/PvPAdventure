@@ -34,7 +34,9 @@ public class RecipeManager : ModSystem
             ItemID.FlaskofNanites,
             ItemID.FlaskofParty,
             ItemID.SpectreBar,
-            ItemID.SuspiciousLookingEye
+            ItemID.SuspiciousLookingEye,
+            ItemID.ManaCrystal
+
 
         };
 
@@ -51,6 +53,10 @@ public class RecipeManager : ModSystem
         Recipe.Create(ItemID.Headstone)
             .AddIngredient(ItemID.StoneBlock, 50)
             .AddTile(TileID.HeavyWorkBench)
+            .Register();
+
+        Recipe.Create(ItemID.ManaCrystal)
+            .AddIngredient(ItemID.FallenStar, 3)
             .Register();
 
 
