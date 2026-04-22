@@ -23,7 +23,7 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
     private UIPanel detailsPanel = null!;
     private UITeamStatsDetails teamStatsPanel = null!;
 
-    private MatchHistoryUIContent content;
+    private MatchResult[] content = [];
     private readonly List<UIMatchRow> rows = [];
 
     private int selectedIndex = -1;
@@ -107,15 +107,19 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
         detailsPanel.RemoveAllChildren();
 
         SetCurrentAsyncState(AsyncProviderState.Loading);
-        bool buildExampleContent = true;
-        content = buildExampleContent
-            ? MatchHistoryExampleContent.Create()
-            : new MatchHistoryUIContent([]);
 
-        if (!buildExampleContent)
+        content = [];
+
+        // Example content for UI testing.
+#if DEBUG
+        bool buildExampleContent = false; // Flip to true for UI testing without API.
+        if (buildExampleContent)
         {
-            // TODO: Call the match history API here and map the response into MatchHistoryUIContent.
+            content = MatchHistoryExampleContent.Create();
         }
+#endif
+
+        // TODO: Call the match history API here and map the response into MatchHistoryUIContent.
 
         RebuildMatchUi();
         SetCurrentAsyncState(AsyncProviderState.Completed);
@@ -127,15 +131,15 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
         rows.Clear();
         detailsPanel.RemoveAllChildren();
 
-        if (content.Matches.Length == 0)
+        if (content.Length == 0)
         {
             ShowEmptyState();
             return;
         }
 
-        for (int i = 0; i < content.Matches.Length; i++)
+        for (int i = 0; i < content.Length; i++)
         {
-            UIMatchRow row = new(i, content.Matches[i]);
+            UIMatchRow row = new(i, content[i]);
             row.Width.Set(0f, 1f);
             row.Height.Set(78.29f, 0f);
             row.OnClick += SelectMatchAndRebuild;
@@ -171,18 +175,20 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
         UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
     }
 
+
+    #region Build UI
     private void SelectMatchAndRebuild(int index)
     {
         SoundEngine.PlaySound(SoundID.MenuTick);
 
-        if (content.Matches.Length == 0)
+        if (content.Length == 0)
             return;
 
         if (index < 0)
             index = 0;
 
-        if (index >= content.Matches.Length)
-            index = content.Matches.Length - 1;
+        if (index >= content.Length)
+            index = content.Length - 1;
 
         selectedIndex = index;
 
@@ -196,7 +202,7 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
         const float gap = 6f;
         const float bigGap = gap * 4;
 
-        MatchResult match = content.Matches[selectedIndex];
+        MatchResult match = content[selectedIndex];
 
         float y = 6f;
 
@@ -363,4 +369,6 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
 
         return n + "th";
     }
+
+    #endregion
 }

@@ -383,6 +383,16 @@ Mods: {
 				DisplayName: Red Sniper Rifle
 				Tooltip: ""
 			}
+
+			PowerBomb: {
+				DisplayName: Power Bomb
+				Tooltip: ""
+			}
+
+			StickyPowerBomb: {
+				DisplayName: Sticky Power Bomb
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -1808,25 +1818,6 @@ Mods: {
 
 				DrawGhostsForOthers: {
 					Label: Draw Ghosts For Others
-					Tooltip: ""
-				}
-			}
-
-			KnockbackConfig: {
-				Tooltip: ""
-
-				ItemKnockback: {
-					Label: Item Knockback
-					Tooltip: ""
-				}
-
-				ProjectileKnockback: {
-					Label: Projectile Knockback
-					Tooltip: ""
-				}
-
-				PvPKnockbackMultiplier: {
-					Label: PvP Knockback Multiplier
 					Tooltip: ""
 				}
 			}

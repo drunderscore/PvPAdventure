@@ -14,9 +14,15 @@ internal static class DebugDrawer
     private readonly record struct DebugButton(string Label, Func<bool> IsEnabled, Action Toggle);
 
     private static readonly List<(Rectangle rect, Color color)> Rectangles = [];
+    private static readonly List<(Rectangle rect, Color color)> ScreenRectangles = [];
     private static readonly List<(string text, Vector2 pos, Color color)> Texts = [];
     internal static bool ShowDebugStats { get; private set; } = true;
     internal static bool ShowChat { get; private set; } = true;
+
+    internal static void DrawScreenRectangle(Rectangle rect, Color? color = null)
+    {
+        ScreenRectangles.Add((rect, color ?? Color.White));
+    }
 
     internal static void DrawText(string content, Vector2 position, Color? color = null)
     {
@@ -95,16 +101,12 @@ internal static class DebugDrawer
         foreach ((Rectangle rect, Color color) in Rectangles)
         {
             Rectangle screenRect = new(rect.X - (int)Main.screenPosition.X, rect.Y - (int)Main.screenPosition.Y, rect.Width, rect.Height);
+            DrawRectangle(sb, pixel, screenRect, color);
+        }
 
-            // Draw fill
-            sb.Draw(pixel, screenRect, color * 0.7f);
-
-            // Draw outline
-            Color black = Color.Black;
-            sb.Draw(pixel, new Rectangle(screenRect.X, screenRect.Y, screenRect.Width, 1), black);
-            sb.Draw(pixel, new Rectangle(screenRect.X, screenRect.Y, 1, screenRect.Height), black);
-            sb.Draw(pixel, new Rectangle(screenRect.X, screenRect.Bottom - 1, screenRect.Width, 1), black);
-            sb.Draw(pixel, new Rectangle(screenRect.Right - 1, screenRect.Y, 1, screenRect.Height), black);
+        foreach ((Rectangle rect, Color color) in ScreenRectangles)
+        {
+            DrawRectangle(sb, pixel, rect, color);
         }
 
         foreach ((string text, Vector2 pos, Color color) in Texts)
@@ -113,7 +115,19 @@ internal static class DebugDrawer
         }
 
         Rectangles.Clear();
+        ScreenRectangles.Clear();
         Texts.Clear();
+    }
+
+    private static void DrawRectangle(SpriteBatch sb, Texture2D pixel, Rectangle rect, Color color)
+    {
+        sb.Draw(pixel, rect, color * 0.3f);
+
+        Color black = Color.Black;
+        sb.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), black);
+        sb.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, rect.Height), black);
+        sb.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 1, rect.Width, 1), black);
+        sb.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), black);
     }
 
     private static void DrawColumn(string header, IEnumerable<string> rows, Vector2 origin)

@@ -129,14 +129,14 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         //    0f
         //));
 
-        buttons.Append(CreateButton(
-            Ass.Icon_MatchHistory,
-            "Mods.PvPAdventure.MainMenu.MatchHistory",
-            "Mods.PvPAdventure.MainMenu.MatchHistoryDescription",
-            () => OpenState(() => new MatchHistoryUIState()),
-            1f,
-            0f
-        ));
+        //buttons.Append(CreateButton(
+        //    Ass.Icon_MatchHistory,
+        //    "Mods.PvPAdventure.MainMenu.MatchHistory",
+        //    "Mods.PvPAdventure.MainMenu.MatchHistoryDescription",
+        //    () => OpenState(() => new MatchHistoryUIState()),
+        //    1f,
+        //    0f
+        //));
 
         //buttons.Append(CreateButton(
         //    Ass.Icon_Stats,

@@ -1,12 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Skins;
 using ReLogic.Content;
 
 namespace PvPAdventure.Common.MainMenu.Shop;
-
-public readonly record struct SkinIdentity(string Prototype, string Name)
-{
-    public bool IsValid => !string.IsNullOrWhiteSpace(Prototype) && !string.IsNullOrWhiteSpace(Name);
-}
 
 public readonly record struct ProductDefinition(
     string Prototype,

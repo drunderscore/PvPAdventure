@@ -1,13 +1,16 @@
 using Microsoft.Xna.Framework;
+using PvPAdventure.Common.MainMenu.API;
+using PvPAdventure.Common.MainMenu.API.Shop;
+using PvPAdventure.Common.MainMenu.Shop;
 using PvPAdventure.Common.MainMenu.State;
-using PvPAdventure.UI;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
 using Terraria.GameInput;
 using Terraria.ModLoader;
 using Terraria.UI;
-using Terraria.UI.Gamepad;
 
 namespace PvPAdventure.Common.MainMenu.Shop.UI;
 
@@ -16,6 +19,10 @@ public sealed class ShopUIState : MainMenuPageUIState
     private GemsPanel gemsPanel = null!;
     private UIScrollbar scrollbar = null!;
     private UIList list = null!;
+
+    private List<ProductDefinition> products = [];
+    private bool loading;
+    private string? error;
 
     protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.Shop";
 
@@ -80,83 +87,130 @@ public sealed class ShopUIState : MainMenuPageUIState
 
     protected override void RefreshContent()
     {
-        RenderSnapshot(ShopStorage.Snapshot);
-        SetCurrentAsyncState(AsyncProviderState.Loading);
-        _ = RefreshAndRenderAsync();
+        loading = true;
+        error = null;
+        products.Clear();
+
+#if DEBUG
+        bool buildExampleContent = false; // Flip to true to test UI without API.
+        if (buildExampleContent)
+        {
+            products = ShopProductsExampleContent.Create();
+            loading = false;
+            RebuildList();
+            SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {products.Count} example shop products.");
+            return;
+        }
+#endif
+
+        RebuildList();
+        SetCurrentAsyncState(AsyncProviderState.Loading, FormatLoadingMessage("shop products"));
+        _ = RefreshShopAsync();
     }
 
-    private async System.Threading.Tasks.Task RefreshAndRenderAsync()
+    private async Task RefreshShopAsync()
     {
-        await ShopStorage.RefreshAsync().ConfigureAwait(false);
+        ApiResult<List<ProductDefinition>> result = await ProductApi.GetShopAsync().ConfigureAwait(false);
 
         Main.QueueMainThreadAction(() =>
         {
-            ShopSnapshot snapshot = ShopStorage.Snapshot;
-            RenderSnapshot(snapshot);
-            SetCurrentAsyncState(snapshot.ErrorMessage == null ? AsyncProviderState.Completed : AsyncProviderState.Aborted, snapshot.ErrorMessage);
+            loading = false;
+
+            if (result.IsSuccess)
+            {
+                products = result.Data!;
+                error = null;
+                RebuildList();
+                SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {products.Count} shop products.");
+            }
+            else
+            {
+                products = [];
+                error = result.ErrorMessage;
+                RebuildList();
+                SetCurrentAsyncState(AsyncProviderState.Aborted, FormatErrorMessage("shop products", error));
+            }
         });
     }
 
-    private void RenderSnapshot(ShopSnapshot snapshot)
+    private void RebuildList()
     {
         list.Clear();
         scrollbar.ViewPosition = 0f;
-        gemsPanel.SetContent(snapshot.Profile?.Gems ?? 0, snapshot.IsAuthenticated);
 
-        if (!string.IsNullOrWhiteSpace(snapshot.ErrorMessage) && snapshot.Products.Count == 0)
+        if (loading)
         {
-            list.Add(CreateWrappedMessageElement(snapshot.ErrorMessage, 0.9f, 140f));
+            list.Add(CreateWrappedMessageElement(FormatLoadingMessage("shop products"), 0.9f, 80f));
             list.Recalculate();
             return;
         }
 
-        float cardW = 120f;
-        float cardH = 120f;
-        float gap = 4f;
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            list.Add(CreateWrappedMessageElement(FormatErrorMessage("shop products", error), 0.9f, 120f));
+            list.Recalculate();
+            return;
+        }
+
+        if (products.Count == 0)
+        {
+            list.Add(CreateWrappedMessageElement("No shop products found.", 0.9f, 80f));
+            list.Recalculate();
+            return;
+        }
+
+        const float cardWidth = 120f;
+        const float cardHeight = 120f;
+        const float gap = 4f;
 
         list.Recalculate();
 
-        float innerW = list.GetInnerDimensions().Width;
-        if (innerW <= 0f)
-            innerW = cardW * 3f + gap * 2f;
+        float innerWidth = list.GetInnerDimensions().Width;
+        if (innerWidth <= 0f)
+            innerWidth = cardWidth * 3f + gap * 2f;
 
-        int cols = Math.Max(1, (int)((innerW + gap) / (cardW + gap)));
-        float totalW = cols * cardW + (cols - 1) * gap;
-        float startX = Math.Max(0f, (innerW - totalW) * 0.5f);
+        int columns = Math.Max(1, (int)((innerWidth + gap) / (cardWidth + gap)));
+        float totalWidth = columns * cardWidth + (columns - 1) * gap;
+        float startX = Math.Max(0f, (innerWidth - totalWidth) * 0.5f);
 
-        int count = snapshot.Products.Count;
-        int rows = count / cols + (count % cols != 0 ? 1 : 0);
+        int count = products.Count;
+        int rows = count / columns + (count % columns != 0 ? 1 : 0);
 
         UIElement contentRoot = new()
         {
             Width = StyleDimension.Fill,
-            Height = new StyleDimension(rows * (cardH + gap), 0f)
+            Height = StyleDimension.FromPixels(rows * (cardHeight + gap))
         };
         contentRoot.SetPadding(4f);
         list.Add(contentRoot);
 
         for (int i = 0; i < count; i++)
         {
-            int col = i % cols;
-            int row = i / cols;
+            int column = i % columns;
+            int row = i / columns;
 
-            SkinUICard tile = new(snapshot.Products[i], cardW)
+            SkinUICard card = new(products[i], cardWidth)
             {
-                Height = StyleDimension.FromPixels(cardH),
-                Left = new StyleDimension(startX + col * (cardW + gap), 0f),
-                Top = new StyleDimension(row * (cardH + gap), 0f)
+                Height = StyleDimension.FromPixels(cardHeight),
+                Left = StyleDimension.FromPixels(startX + column * (cardWidth + gap)),
+                Top = StyleDimension.FromPixels(row * (cardHeight + gap))
             };
-            contentRoot.Append(tile);
+            contentRoot.Append(card);
         }
 
         list.Recalculate();
     }
 
+    #region Update
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-        UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
 
+        UpdateHotfixScrollbar();
+    }
+
+    private void UpdateHotfixScrollbar()
+    {
         bool hover = list.IsMouseHovering
             || list.GetDimensions().ToRectangle().Contains(Main.MouseScreen.ToPoint())
             || scrollbar.IsMouseHovering;
@@ -164,4 +218,5 @@ public sealed class ShopUIState : MainMenuPageUIState
         if (hover)
             PlayerInput.LockVanillaMouseScroll("PvPAdventure/ShopList");
     }
+    #endregion
 }

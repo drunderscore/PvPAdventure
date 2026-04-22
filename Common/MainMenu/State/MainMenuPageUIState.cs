@@ -43,12 +43,14 @@ public abstract class MainMenuPageUIState : UIState
     protected virtual string HeaderLocalizationKey => string.Empty;
 
     /// <summary>
-    /// Override this method to populate the main content panel: <see cref="mainPanel"/>
+    /// Builds the page-specific UI inside the main panel.
+    /// Called ONCE when the page is built (or rebuild with F5 in debug mode)
     /// </summary>
     protected virtual void Populate(UIPanel panel) { }
 
     /// <summary>
-    /// Override this method to refresh the content when the refresh button is clicked.
+    /// Reloads the page data.
+    /// Called when the page opens and when the refresh button is clicked.
     /// </summary>
     protected virtual void RefreshContent() { }
 

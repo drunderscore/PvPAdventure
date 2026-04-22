@@ -6,7 +6,7 @@ namespace PvPAdventure.Common.MainMenu.MatchHistory.UI;
 
 internal static class MatchHistoryExampleContent
 {
-    public static MatchHistoryUIContent Create()
+    public static MatchResult[] Create()
     {
         const ulong localSteamId = 76561198000000001;
 
@@ -95,6 +95,6 @@ internal static class MatchHistoryExampleContent
                 ])
         ];
 
-        return new MatchHistoryUIContent(matches);
+        return matches;
     }
 }

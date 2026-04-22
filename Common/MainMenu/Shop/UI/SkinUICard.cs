@@ -9,6 +9,7 @@ using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 using Terraria.UI.Chat;
@@ -161,127 +162,102 @@ internal sealed class SkinUICard : UIElement
         base.Draw(sb);
 
         CalculatedStyle d = GetDimensions();
+        Rectangle cardRect = new((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height);
+        Rectangle textRect = new(cardRect.X + 6, cardRect.Y + 7, cardRect.Width - 12, 30);
 
         string name = def.DisplayName;
-        float titleScale = 0.75f;
+        float titleScale = 0.7f;
+        string[] titleLines = GetTitleLines(name, textRect.Width, titleScale);
+        float lineHeight = FontAssets.MouseText.Value.MeasureString("A").Y * titleScale;
+        float titleTop = textRect.Y + Math.Max(0f, (textRect.Height - lineHeight * titleLines.Length) * 0.5f);
 
-        Vector2 nameSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, name, Vector2.One * titleScale);
-        Vector2 namePos = new(d.X + d.Width * 0.5f - nameSize.X * 0.5f, d.Y + 8f);
+        for (int i = 0; i < titleLines.Length; i++)
+        {
+            Vector2 lineSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, titleLines[i], Vector2.One * titleScale);
+            Vector2 linePos = new(textRect.X + textRect.Width * 0.5f - lineSize.X * 0.5f, titleTop + i * lineHeight);
 
-        ChatManager.DrawColorCodedStringWithShadow(
-            sb,
-            FontAssets.MouseText.Value,
-            name,
-            namePos,
-            Color.White,
-            0f,
-            Vector2.Zero,
-            Vector2.One * titleScale,
-            d.Width - 6f);
+            ChatManager.DrawColorCodedStringWithShadow(
+                sb,
+                FontAssets.MouseText.Value,
+                titleLines[i],
+                linePos,
+                Color.White,
+                0f,
+                Vector2.Zero,
+                Vector2.One * titleScale,
+                textRect.Width);
+        }
 
         Texture2D tex = def.Texture?.Value ?? TextureAssets.Item[def.ItemType].Value;
         float maxIcon = 48f;
         float iconScale = maxIcon / Math.Max(tex.Width, tex.Height);
-        Vector2 iconCenter = new(d.X + d.Width * 0.5f, d.Y + 58f);
+        Rectangle itemSlotRect = new((int)(d.X + d.Width * 0.5f - maxIcon * 0.5f), (int)d.Y + 34, (int)maxIcon, (int)maxIcon);
+        Vector2 iconCenter = itemSlotRect.Center.ToVector2();
 
         sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
 
         string priceText = def.Price.ToString();
         float priceScale = 1f;
         Vector2 priceSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
+        Texture2D gemTex = Ass.Icon_Gem.Value;
+        float gemScale = 0.9f;
+        float gemWidth = gemTex.Width * gemScale;
+        float gemHeight = gemTex.Height * gemScale;
+        float gemGap = 6f;
+        int gemRectWidth = (int)Math.Ceiling(gemWidth + gemGap + priceSize.X);
+        int gemRectHeight = (int)Math.Ceiling(Math.Max(gemHeight, priceSize.Y));
+        Rectangle gemRect = new((int)(d.X + d.Width * 0.5f - gemRectWidth * 0.5f), (int)(d.Y + d.Height - gemRectHeight - 9f), gemRectWidth, gemRectHeight);
 
-        float py = d.Y + d.Height - priceSize.Y - 8f;
-        float px = d.X + d.Width * 0.5f - priceSize.X * 0.5f + 8f;
+        Vector2 gemPos = new(gemRect.X + gemWidth * 0.5f, gemRect.Y + gemRect.Height * 0.5f);
+        Vector2 pricePos = new(gemRect.X + gemWidth + gemGap, gemRect.Y + (gemRect.Height - priceSize.Y) * 0.5f);
 
-        sb.Draw(Ass.Icon_Gem.Value, new Vector2(px - 14f, py + 10f), null, Color.White, 0f, Ass.Icon_Gem.Value.Size() * 0.5f, 0.9f, SpriteEffects.None, 0f);
+        sb.Draw(gemTex, gemPos, null, Color.White, 0f, gemTex.Size() * 0.5f, gemScale, SpriteEffects.None, 0f);
 
         ChatManager.DrawColorCodedStringWithShadow(
             sb,
             FontAssets.MouseText.Value,
             priceText,
-            new Vector2(px + 2f, py),
+            pricePos,
             Color.White,
             0f,
             Vector2.Zero,
             Vector2.One * priceScale);
 
+#if DEBUG
+        //DebugMainMenuDrawer.DrawSkinUICard(sb, cardRect, textRect, itemSlotRect, gemRect);
+#endif
+
         if (hover)
             UICommon.TooltipMouseText($"{def.DisplayName}\nPrice: {def.Price} gems");
     }
 
-    //[Obsolete("Old main menu state.")]
-    //public override void Draw(SpriteBatch sb)
-    //{
-        //MainMenuProfileState state = MainMenuProfileState.Instance;
+    private static string[] GetTitleLines(string text, float width, float scale)
+    {
+        string wrapped = FontAssets.MouseText.Value.CreateWrappedText(text, width / scale, Language.ActiveCulture.CultureInfo);
+        string[] lines = wrapped.Replace("\r", "").Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-        //bool owned = state.HasSkin(def);
-        //bool equipped = state.IsEquipped(def);
-        //bool canAfford = state.CanAfford(def);
-        //bool hover = IsMouseHovering;
+        if (lines.Length == 0)
+            return [text];
 
-        //back.Color = equipped
-        //    ? new Color(80, 255, 80) * (hover ? 1f : 0.95f)
-        //    : owned
-        //        ? new Color(60, 120, 60) * (hover ? 0.75f : 0.6f)
-        //        : new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
+        if (lines.Length <= 2)
+            return lines;
 
-        //border.Color = hover || equipped ? Color.White : Color.Transparent;
+        string overflow = lines[1];
+        for (int i = 2; i < lines.Length; i++)
+            overflow += " " + lines[i];
 
-        //base.Draw(sb);
+        return [lines[0], TrimToWidth(overflow, width, scale)];
+    }
 
-        //if (equipped)
-        //{
-        //    CalculatedStyle dims = GetDimensions();
-        //    Rectangle fillRect = dims.ToRectangle();
-        //    fillRect.Inflate(-4, -4);
+    private static string TrimToWidth(string text, float width, float scale)
+    {
+        const string suffix = "...";
 
-        //    sb.Draw(EquippedFill!.Value, fillRect, new Color(60, 255, 60) * (hover ? 0.18f : 0.12f));
-        //}
+        while (text.Length > 0 && ChatManager.GetStringSize(FontAssets.MouseText.Value, text + suffix, Vector2.One * scale).X > width)
+            text = text[..^1];
 
-        //CalculatedStyle d = GetDimensions();
-        //float contentAlpha = owned ? 0.65f : 1f;
-
-        //string name = def.DisplayName;
-        //float t = name.Length > 18 ? MathHelper.Clamp((name.Length - 18) / 12f, 0f, 1f) : 0f;
-        //float titleScale = MathHelper.Lerp(0.75f, 0.55f, t);
-
-        //Vector2 nameSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, name, Vector2.One * titleScale);
-        //Vector2 namePos = new(d.X + d.Width * 0.5f - nameSize.X * 0.5f, d.Y + 8f);
-        //ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, name, namePos, Color.White, 0f, Vector2.Zero, Vector2.One * titleScale, d.Width - 6f);
-
-        //Texture2D tex = def.Texture?.Value ?? TextureAssets.Item[def.ItemType].Value;
-        //float maxIcon = 48f;
-        //float iconScale = maxIcon / Math.Max(tex.Width, tex.Height);
-        //Vector2 iconCenter = new(d.X + d.Width * 0.5f, d.Y + 52f);
-
-        //sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
-
-        //string priceText = def.Price.ToString();
-        //float priceScale = 1.05f;
-        //Vector2 priceSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
-
-        //float py = d.Y + d.Height - priceSize.Y - 6f;
-        //float px = d.X + d.Width * 0.5f - priceSize.X * 0.5f + 8f;
-
-        //Color priceColor = (owned || canAfford)
-        //    ? Color.White * contentAlpha
-        //    : new Color(148, 39, 39) * contentAlpha;
-
-        //Texture2D badgeTex = equipped
-        //    ? Ass.Icon_CheckmarkGreen.Value
-        //    : owned
-        //        ? Ass.Icon_CheckmarkGray.Value
-        //        : Ass.Icon_Gem.Value;
-
-        //float badgeScale = owned ? 1.1f : 0.9f;
-        //Vector2 badgePos = new Vector2(px - 14f, py + 12f) + (owned ? new Vector2(0f, -1f) : Vector2.Zero);
-
-        //sb.Draw(badgeTex, badgePos, null, Color.White, 0f, badgeTex.Size() * 0.5f, badgeScale, SpriteEffects.None, 0f);
-        //ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, priceText, new Vector2(px + 2f, py), priceColor, 0f, Vector2.Zero, Vector2.One * priceScale);
-
-        //if (hover)
-        //    DrawTooltip(owned, equipped, canAfford);
-    //}
+        return text.Length == 0 ? suffix : text + suffix;
+    }
 
     private void DrawTooltip(bool owned, bool equipped, bool canAfford)
     {
