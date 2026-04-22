@@ -3,6 +3,7 @@ using PvPAdventure.Common.Items;
 using PvPAdventure.Core.Utilities;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using static PvPAdventure.Common.Spawnbox.RegionManager;
@@ -38,6 +39,7 @@ internal class SpawnboxPlayer : ModPlayer
         if (distanceX <= 25 && distanceY <= 25)
         {
             Player.AddBuff(ModContent.BuffType<Content.Buffs.PlayerInSpawn>(), 2);
+            Player.AddBuff(BuffID.NoBuilding, 2);
         }
         else
         {
