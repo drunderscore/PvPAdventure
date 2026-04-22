@@ -43,8 +43,12 @@ public class BannedItems : GlobalItem
                 return false;
         }
 
+#if !DEBUG
         return !ModContent.GetInstance<ServerConfig>().PreventUse
             .Any(itemDefinition => item.type == itemDefinition.Type);
+#else
+        return true; // Allows every weapon in debug mode.
+#endif
     }
 
     // NOTE: This will not remove already-equipped accessories from players.

@@ -40,6 +40,7 @@ public class ItemTooltips : GlobalItem
             });
         }
 
+#if !DEBUG
         if (adventureConfig.PreventUse.Contains(itemDefinition))
         {
             tooltips.Add(new TooltipLine(Mod, "Disabled", Language.GetTextValue("Mods.PvPAdventure.Item.Disabled"))
@@ -47,6 +48,7 @@ public class ItemTooltips : GlobalItem
                 OverrideColor = Color.Red
             });
         }
+#endif
         else
         {
             var isUnderground = Main.LocalPlayer.position.Y > Main.worldSurface * 16;
