@@ -288,16 +288,7 @@ internal class AdventureMirror : ModItem
 
     private static void ShowPortalCreatedText(Player player)
     {
-        if (TryGetTeamName(player, out string teamName))
-        {
-            ShowPopup(
-                player,
-                Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.TeamPortalCreated", teamName),
-                PortalSystem.GetPortalColor(player));
-            return;
-        }
-
-        ShowPopup(player, Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.PortalCreated"), Color.White);
+        ShowPopup(player, "portal created", PortalSystem.GetPortalColor(player));
     }
 
     private static void ShowPopup(Player player, string text, Color color)
@@ -309,20 +300,5 @@ internal class AdventureMirror : ModItem
             Velocity = new Vector2(0f, -4f),
             DurationInFrames = 120
         }, player.Top + new Vector2(0, -4));
-    }
-
-    private static bool TryGetTeamName(Player player, out string teamName)
-    {
-        teamName = player.team switch
-        {
-            1 => "Red",
-            2 => "Green",
-            3 => "Blue",
-            4 => "Yellow",
-            5 => "Pink",
-            _ => string.Empty
-        };
-
-        return teamName.Length > 0;
     }
 }

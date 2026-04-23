@@ -2,11 +2,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Core.Config;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Terraria;
 using Terraria.Audio;
 using Terraria.Chat;
 using Terraria.Chat.Commands;
 using Terraria.GameContent;
+using Terraria.GameContent.UI.Chat;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -17,6 +19,10 @@ namespace PvPAdventure.Common.Teams;
 [Autoload(Side = ModSide.Client)]
 public class TeamChatManager : ModSystem
 {
+    private const string TeamSystemMarker = "\u0002PVPA_TEAM_SYS\u0002";
+    private static readonly Regex NameTagRegex = new(@"\[n:(?<name>[^\]]+)\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex ColorTagRegex = new(@"\[c\/[0-9a-fA-F]{3,8}:(?<text>[^\]]*?)(?::)?\]", RegexOptions.Compiled);
+
     public enum Channel
     {
         All,
@@ -26,6 +32,15 @@ public class TeamChatManager : ModSystem
     private Channel _channel = Channel.All;
     private FieldInfo _chatCommandIdName;
     private MethodInfo _soundEnginePlaySoundLegacy;
+
+    internal static Channel CurrentChannel
+    {
+        get
+        {
+            TeamChatManager system = ModContent.GetInstance<TeamChatManager>();
+            return system?._channel ?? Channel.All;
+        }
+    }
 
     // Toggle channels.
     private string _savedChatText = ""; // save and restore that chat text if switching channels with text.
@@ -56,7 +71,7 @@ public class TeamChatManager : ModSystem
             return;
         }
 
-        NetworkText message = NetworkText.FromLiteral(text);
+        NetworkText message = NetworkText.FromLiteral(TeamSystemMarker + text);
 
         if (player.team == 0)
         {
@@ -83,13 +98,25 @@ public class TeamChatManager : ModSystem
         On_Main.OpenPlayerChat += OnMainOpenPlayerChat;
         // Visualize which channel your message will be sent to.
         On_Main.DrawPlayerChat += OnMainDrawPlayerChat;
-        // Route your message to the correct channel.
+        // Route team chat and add the visual prefix to rendered chat.
         On_ChatCommandProcessor.CreateOutgoingMessage += OnChatCommandProcessorCreateOutgoingMessage;
+        On_RemadeChatMonitor.AddNewMessage += OnAddNewMessage;
+    }
+
+    public override void Unload()
+    {
+        On_Main.OpenPlayerChat -= OnMainOpenPlayerChat;
+        On_Main.DrawPlayerChat -= OnMainDrawPlayerChat;
+        On_ChatCommandProcessor.CreateOutgoingMessage -= OnChatCommandProcessorCreateOutgoingMessage;
+        On_RemadeChatMonitor.AddNewMessage -= OnAddNewMessage;
     }
 
     public override void PostUpdateInput()
     {
         if (Main.dedServ)
+            return;
+
+        if (Main.netMode == NetmodeID.SinglePlayer)
             return;
 
         // Comment this out! Always allow tab
@@ -135,6 +162,15 @@ public class TeamChatManager : ModSystem
 
     private void OnMainOpenPlayerChat(On_Main.orig_OpenPlayerChat orig)
     {
+        if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            _channel = Channel.All;
+            _forcedNextOpen = null;
+            _chatOpenedTick = (int)Main.GameUpdateCount;
+            orig();
+            return;
+        }
+
         if (_forcedNextOpen.HasValue)
         {
             _channel = _forcedNextOpen.Value;
@@ -233,16 +269,12 @@ public class TeamChatManager : ModSystem
     private ChatMessage OnChatCommandProcessorCreateOutgoingMessage(
         On_ChatCommandProcessor.orig_CreateOutgoingMessage orig, ChatCommandProcessor self, string text)
     {
-        var chatMessage = orig(self, text);
+        ChatMessage chatMessage = orig(self, text);
 
-        // FIXME: The parent function here will invoke ProcessOutgoingMessage for it's original ChatCommandId, which
-        //        probably isn't good. Worse, we don't invoke ProcessOutgoingMessage for the new ChatCommandId.
-        //        For our purposes (the say command and the party command), this is probably fine.
-        // NOTE: Need to check starting with '/' because TML shoves it's commands into the SayChatCommand and handles
-        //       it in some obtuse manner. Even this is not correct, because we don't assert that a leading slash
-        //       leads to any command being handled -- but it's the best we have.
-        if (!text.StartsWith('/') &&
-            _channel == Channel.Team &&
+        if (Main.netMode == NetmodeID.SinglePlayer || text.StartsWith('/'))
+            return chatMessage;
+
+        if (_channel == Channel.Team &&
             (string)_chatCommandIdName.GetValue(chatMessage.CommandId) ==
             (string)_chatCommandIdName.GetValue(ChatCommandId.FromType<SayChatCommand>()))
         {
@@ -252,8 +284,40 @@ public class TeamChatManager : ModSystem
         return chatMessage;
     }
 
+    private void OnAddNewMessage(On_RemadeChatMonitor.orig_AddNewMessage orig, RemadeChatMonitor self, string text, Color color, int widthLimitInPixels)
+    {
+        if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            orig(self, text, color, widthLimitInPixels);
+            return;
+        }
+
+        bool isTeam = false;
+
+        if (text.Contains(TeamSystemMarker))
+        {
+            text = text.Replace(TeamSystemMarker, string.Empty);
+            isTeam = true;
+        }
+        else if (!IsAllChatColor(color))
+        {
+            isTeam = true;
+        }
+
+        if (!isTeam)
+            text = NormalizeAllChatText(text);
+
+        text = InsertPrefix(text, isTeam ? " (TEAM)" : " (ALL)");
+
+        Color rowColor = isTeam && Main.LocalPlayer.team > 0 ? Main.teamColor[Main.LocalPlayer.team] : Color.White;
+        orig(self, text, rowColor, widthLimitInPixels);
+    }
+
     public void OpenAllChat()
     {
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            return;
+
         // Copied from Main.DoUpdate_Enter_ToggleChat
         if (!Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) &&
             !Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightAlt) &&
@@ -287,5 +351,62 @@ public class TeamChatManager : ModSystem
     {
         if (_soundEnginePlaySoundLegacy != null)
             _soundEnginePlaySoundLegacy.Invoke(null, [10, -1, -1, 1, 1.0f, 0.0f]);
+    }
+
+    private static bool IsAllChatColor(Color color)
+    {
+        int delta = System.Math.Abs(color.R - color.G) + System.Math.Abs(color.G - color.B) + System.Math.Abs(color.R - color.B);
+        return delta < 24 && color.R >= 180 && color.G >= 180 && color.B >= 180;
+    }
+
+    private static string NormalizeAllChatText(string text)
+    {
+        text = NameTagRegex.Replace(text, match =>
+        {
+            string name = match.Groups["name"].Value;
+            return ModLoader.HasMod("ChatPlus") ? $"{name}:" : $"[n:{name}]";
+        });
+
+        while (ColorTagRegex.IsMatch(text))
+            text = ColorTagRegex.Replace(text, "${text}");
+
+        return text;
+    }
+
+    private static string InsertPrefix(string text, string prefix)
+    {
+        if (text.Contains("(TEAM)") || text.Contains("(ALL)"))
+            return text;
+
+        int index = 0;
+        while (index < text.Length)
+        {
+            while (index < text.Length && char.IsWhiteSpace(text[index]))
+                index++;
+
+            if (index >= text.Length || text[index] != '[')
+                break;
+
+            int end = text.IndexOf(']', index);
+            if (end < 0)
+                break;
+
+            string tag = text[index..(end + 1)];
+            if (!tag.StartsWith("[m:", System.StringComparison.OrdinalIgnoreCase) &&
+                !tag.StartsWith("[p:", System.StringComparison.OrdinalIgnoreCase) &&
+                !tag.StartsWith("[player:", System.StringComparison.OrdinalIgnoreCase) &&
+                !tag.StartsWith("[playericon:", System.StringComparison.OrdinalIgnoreCase) &&
+                !tag.StartsWith("[i:", System.StringComparison.OrdinalIgnoreCase) &&
+                !tag.StartsWith("[item:", System.StringComparison.OrdinalIgnoreCase))
+            {
+                break;
+            }
+
+            index = end + 1;
+            if (index < text.Length && text[index] == ' ')
+                index++;
+        }
+
+        return text.Insert(index, prefix + " ");
     }
 }

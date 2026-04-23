@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.Audio;
@@ -33,6 +34,9 @@ public sealed class PortalSystem : ModSystem
             return;
 
         player.GetModPlayer<SpawnPlayer>().SetPortal(position);
+
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            TeamChatManager.SendSystemTeamMessage(player, $"{player.name} has created a portal", Color.Yellow);
     }
 
     public static void ClearPortal(Player player)
@@ -66,7 +70,9 @@ public sealed class PortalSystem : ModSystem
             return;
 
         if (damage > 0)
+        {
             CombatText.NewText(GetPortalHitbox(worldPos), CombatText.DamagedHostile, damage);
+        }
 
         if (!killed)
         {
@@ -91,12 +97,15 @@ public sealed class PortalSystem : ModSystem
         return Main.teamColor[player.team];
     }
 
-    public static void DrawOutlinedPortalIcon(SpriteBatch sb, Texture2D texture, Vector2 position, float scale, Color borderColor)
+    public static void DrawOutlinedPortalIcon(SpriteBatch sb, Texture2D texture, Vector2 position, float scale, Color borderColor, Color drawColor = default)
     {
+        if (drawColor == default)
+            drawColor = Color.White;
+
         Vector2 origin = texture.Size() * 0.5f;
-        DrawTextureOutline(sb, texture, position, origin, scale, Color.Black * 0.9f, 3f);
-        DrawTextureOutline(sb, texture, position, origin, scale, borderColor * 0.9f, 1.5f);
-        sb.Draw(texture, position, null, Color.White, 0f, origin, scale, SpriteEffects.None, 0f);
+        DrawTextureOutline(sb, texture, position, origin, scale, Color.Black * (0.9f * drawColor.A / 255f), 3f);
+        DrawTextureOutline(sb, texture, position, origin, scale, borderColor * (0.9f * drawColor.A / 255f), 1.5f);
+        sb.Draw(texture, position, null, drawColor, 0f, origin, scale, SpriteEffects.None, 0f);
     }
 
     private static void DrawTextureOutline(SpriteBatch sb, Texture2D texture, Vector2 position, Vector2 origin, float scale, Color color, float distance)
@@ -256,7 +265,7 @@ public sealed class PortalSystem : ModSystem
             if (!GetPortalHitbox(worldPos).Contains(Main.MouseWorld.ToPoint()))
                 return;
 
-            Main.instance.MouseText($"{(Terraria.Enums.Team)player.team} team portal: {health}/{PortalMaxHealth}");
+            //Main.instance.MouseText($"{(Terraria.Enums.Team)player.team} Team Portal: {health}/{PortalMaxHealth}");
         }
 
         private static void DrawTextureOutline(SpriteBatch sb, Texture2D texture, Vector2 position, Rectangle source, Vector2 origin, Color color, float distance)

@@ -2,6 +2,7 @@
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.SpawnSelector.Net;
+using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Terraria;
@@ -37,6 +38,7 @@ public class SpawnPlayer : ModPlayer
 
     public bool SpawnedPortalThisUse;
     public bool AdventureMirrorHadCountdownThisUse;
+    public int TeleportCooldownTicks { get; private set; }
 
     #region Portal
     private bool hasPortal;
@@ -111,7 +113,8 @@ public class SpawnPlayer : ModPlayer
 
         if (portalHealth <= 0)
         {
-            Log.Chat($"{Player.name}'s portal died to {attackerName}");
+            TeamChatManager.SendSystemTeamMessage(Player, $"{Player.name}'s portal has been destroyed.", Color.Yellow);
+            Log.Debug($"[Portal] dead {Player.name} by {attackerName}");
             PortalFxNetHandler.Send(portalWorldPos, killed: true, damage);
             ClearPortal();
             return true;
@@ -167,6 +170,13 @@ public class SpawnPlayer : ModPlayer
     public void ClearExecuteRequest()
     {
         ExecuteRequested = false;
+    }
+
+    public bool CanTeleportNow() => TeleportCooldownTicks <= 0;
+
+    public void StartTeleportCooldown()
+    {
+        TeleportCooldownTicks = 60;
     }
 
     public bool IsPlayerInSpawnRegion()
@@ -261,6 +271,9 @@ public class SpawnPlayer : ModPlayer
 
     public override void PostUpdate()
     {
+        if (TeleportCooldownTicks > 0)
+            TeleportCooldownTicks--;
+
         if (Main.netMode == NetmodeID.MultiplayerClient)
             UpdatePlayerSpawnpoint();
     }

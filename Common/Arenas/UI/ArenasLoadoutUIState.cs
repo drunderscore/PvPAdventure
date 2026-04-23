@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.SpawnSelector;
+using PvPAdventure.Common.Spectator;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using PvPAdventure.UI;
@@ -215,8 +216,8 @@ public class ArenasLoadoutUIState : UIState
             return;
         }
 
-        // Disable ghost mode
-        p.ghost = false;
+        // Selecting a loadout is the point where a spectator becomes an active player.
+        SpectatorSystem.RequestSetPlayerMode(p.whoAmI);
 
         // Apply loadout
         ApplyLoadoutToPlayer(p, loadout);

@@ -5,6 +5,7 @@ using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.Graphics;
+using PvPAdventure.Common.Spectator;
 
 namespace PvPAdventure.Common.Spectator.Drawers;
 
@@ -100,7 +101,7 @@ public static class PlayerDrawer
         drawPlayer.gfxOffY = player.gfxOffY;
 
         drawPlayer.dead = false;
-        drawPlayer.ghost = player.ghost || player.dead;
+        drawPlayer.ghost = (player.ghost || player.dead) && SpectatorGhostDrawPlayer.ShouldDrawGhost(player);
         if (drawPlayer.ghost)
         {
             drawPlayer.ghostFade = 1f;
@@ -171,7 +172,7 @@ public static class PlayerDrawer
     {
         Player headPlayer = player.SerializedClone();
         headPlayer.dead = false;
-        headPlayer.ghost = player.ghost || player.dead;
+        headPlayer.ghost = (player.ghost || player.dead) && SpectatorGhostDrawPlayer.ShouldDrawGhost(player);
 
         if (headPlayer.ghost)
         {

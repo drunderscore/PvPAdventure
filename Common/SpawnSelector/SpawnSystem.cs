@@ -25,6 +25,8 @@ public class SpawnSystem : ModSystem
 
     public static bool Enabled { get; private set; }
     public static bool CanTeleport { get; private set; }
+    public static bool IsLocalPlayerInSpawnRegion { get; private set; }
+    public static float TeleportIconOpacity => (CanTeleport || IsLocalPlayerInSpawnRegion) ? 1f : 0.3f;
 
     public static void SetCanTeleport(bool value) => CanTeleport = value;
 
@@ -46,6 +48,7 @@ public class SpawnSystem : ModSystem
         Player local = Main.LocalPlayer;
         if (local == null || local.ghost)
         {
+            IsLocalPlayerInSpawnRegion = false;
             ui?.SetState(null);
             return;
         }
@@ -55,6 +58,7 @@ public class SpawnSystem : ModSystem
         bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
         bool inSubworld = SubworldSystem.AnyActive();
         bool inSpawnRegion = sp.IsPlayerInSpawnRegion();
+        IsLocalPlayerInSpawnRegion = inSpawnRegion;
         bool enteredSpawnRegion = inSpawnRegion && !wasInSpawnRegion;
         wasInSpawnRegion = inSpawnRegion;
 
@@ -107,6 +111,10 @@ public class SpawnSystem : ModSystem
 
     private static bool ComputeCanTeleport(Player local, bool inSpawnRegion, bool usingMirror, bool mirrorReady)
     {
+        SpawnPlayer sp = local.GetModPlayer<SpawnPlayer>();
+        if (!sp.CanTeleportNow())
+            return false;
+
         if (local.dead)
             return local.respawnTimer <= 2;
 
@@ -292,7 +300,9 @@ public class SpawnSystem : ModSystem
         SpectateSystem.MapRestore = false;
         Main.mapFullscreen = false;
 
-        p.GetModPlayer<SpawnPlayer>().ClearSelection();
+        SpawnPlayer sp = p.GetModPlayer<SpawnPlayer>();
+        sp.StartTeleportCooldown();
+        sp.ClearSelection();
     }
 
     #region Load hooks
@@ -302,12 +312,14 @@ public class SpawnSystem : ModSystem
         spawnState = new UISpawnState();
 
         SetCanTeleport(false);
+        IsLocalPlayerInSpawnRegion = false;
         Main.OnPostFullscreenMapDraw += DrawOnFullscreenMap;
     }
 
     public override void Unload()
     {
         SetCanTeleport(false);
+        IsLocalPlayerInSpawnRegion = false;
         Main.OnPostFullscreenMapDraw -= DrawOnFullscreenMap;
     }
     #endregion

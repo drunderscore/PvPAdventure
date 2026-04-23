@@ -520,6 +520,16 @@ Mods: {
 					Label: Position
 					Tooltip: ""
 				}
+
+				DrawGhostsForOthers: {
+					Label: Draw Ghosts For Others
+					Tooltip: ""
+				}
+
+				ShowTeleportPlayerMessages: {
+					Label: Show Teleport Player Messages
+					Tooltip: ""
+				}
 			}
 
 			OutlinesConfig: {
@@ -1377,6 +1387,7 @@ Mods: {
 				Headers: {
 					Arenas: "[i:PvPAdventure/ArenasConfigItem] Arenas"
 					Loadouts: Loadouts
+					Respawn: Respawn Header
 				}
 
 				IsArenasEnabled: {
@@ -1401,6 +1412,16 @@ Mods: {
 
 				MaxMana: {
 					Label: "[i:ManaCrystal] Max Mana"
+					Tooltip: ""
+				}
+
+				EnableCustomRespawnTimer: {
+					Label: Enable Custom Respawn Timer
+					Tooltip: ""
+				}
+
+				RespawnTimeSeconds: {
+					Label: Respawn Time Seconds
 					Tooltip: ""
 				}
 			}

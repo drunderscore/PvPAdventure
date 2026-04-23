@@ -201,7 +201,7 @@ public class TeleportOnMap : ModSystem
 
         Vector2 pos = portalWorldPos / 16f;
         bool selected = sp.SelectedType == SpawnType.MyPortal;
-        Texture2D tex = Ass.Icon_Portal2.Value;
+        Texture2D tex = Ass.Icon_PortalMinimap2.Value;
 
         //DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(local), ref context);
 
@@ -305,6 +305,7 @@ public class TeleportOnMap : ModSystem
     private static bool DrawIcon(Texture2D tex, Vector2 tilePos, bool selected, bool instantTeleport, bool recallActive,
     ref MapOverlayDrawContext context, out bool hover)
     {
+        Color iconColor = Color.White * SpawnSystem.TeleportIconOpacity;
         bool canHoverZoom = instantTeleport || recallActive;
 
         // Stick: if selected, always 1.8
@@ -316,7 +317,7 @@ public class TeleportOnMap : ModSystem
         var result = context.Draw(
             texture: tex,
             position: tilePos,
-            color: Color.White,
+            color: iconColor,
             frame: new SpriteFrame(1, 1),
             scaleIfNotSelected: baseScale,
             scaleIfSelected: hoverScale,

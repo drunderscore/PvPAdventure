@@ -26,7 +26,8 @@ public static class Ass
     public static Asset<Texture2D> Icon_Portal; // 32x32
     public static Asset<Texture2D> Icon_Portal2; // 28x38
     public static Asset<Texture2D> Icon_Portal3; // 28x24 (compact)
-    public static Asset<Texture2D> Icon_PortalMinimap; // 28x30
+    public static Asset<Texture2D> Icon_PortalMinimap; // 28x30 (small vanilla texture)
+    public static Asset<Texture2D> Icon_PortalMinimap2; // 34x36 (extra outline)
     public static Asset<Texture2D> Portal; // 36x368 (vertical spritesheet with 8 sprites)
     public static Asset<Texture2D> Spawnbox;
 

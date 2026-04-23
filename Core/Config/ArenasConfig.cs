@@ -38,6 +38,16 @@ internal class ArenasConfig : ModConfig
     [DefaultValue(false)]
     public bool RevealMap { get; set; } = false;
 
+    [Header("Respawn")]
+    [BackgroundColor(90, 40, 110)]
+    [DefaultValue(false)]
+    public bool EnableCustomRespawnTimer { get; set; } = false;
+
+    [BackgroundColor(90, 40, 110)]
+    [Range(1, 60)]
+    [DefaultValue(5)]
+    public int RespawnTimeSeconds { get; set; } = 5;
+
     [Header("Loadouts")]
     [BackgroundColor(90, 40, 110)]
     [CustomModConfigItem(typeof(LoadoutListElement))]

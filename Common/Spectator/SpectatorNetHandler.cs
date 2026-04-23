@@ -129,7 +129,7 @@ internal static class SpectatorNetHandler
         {
             int slot = reader.ReadInt32();
             PlayerMode mode = (PlayerMode)reader.ReadByte();
-            SpectatorSystem.Modes[slot] = mode;
+            SpectatorSystem.SetModeLocal(slot, mode);
 
             if (local?.active == true && local.whoAmI == slot)
                 local.GetModPlayer<SpectatorPlayer>().HandleInitialModeMessage(mode);

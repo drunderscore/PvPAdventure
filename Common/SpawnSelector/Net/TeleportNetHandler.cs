@@ -22,6 +22,10 @@ public static class TeleportNetHandler
         if (requester == null || !requester.active)
             return;
 
+        SpawnPlayer spawnPlayer = requester.GetModPlayer<SpawnPlayer>();
+        if (!spawnPlayer.CanTeleportNow())
+            return;
+
         Vector2 teleportPos;
         int targetIdx = -1;
 
@@ -106,6 +110,7 @@ public static class TeleportNetHandler
                     // Play teleport sound for everyone (local guaranteed)
                     TeleportFxNetHandler.Send(requester.whoAmI);
                     TeleportChat.Announce(requester, type);
+                    spawnPlayer.StartTeleportCooldown();
                     return;
                 }
 
@@ -128,6 +133,7 @@ public static class TeleportNetHandler
         // Send teleport sound effect to all clients
         TeleportFxNetHandler.Send(whoAmI);
         TeleportChat.Announce(requester, type, targetIdx);
+        spawnPlayer.StartTeleportCooldown();
     }
 
     private static bool TryGetPortalTeleportPos(Player requester, Player portalOwner, out Vector2 teleportPos)

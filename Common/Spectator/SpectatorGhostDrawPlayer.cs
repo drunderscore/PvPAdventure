@@ -7,22 +7,22 @@ namespace PvPAdventure.Common.Spectator;
 
 internal sealed class SpectatorGhostDrawPlayer : ModPlayer
 {
-    private static bool ShouldHideGhost(Player drawPlayer)
+    internal static bool ShouldDrawGhost(Player drawPlayer)
     {
         if (drawPlayer == null || !drawPlayer.active || !drawPlayer.ghost)
-            return false;
+            return true;
 
         if (drawPlayer.whoAmI == Main.myPlayer)
-            return false;
+            return true;
 
-        SpectatorConfig config = ModContent.GetInstance<SpectatorConfig>();
-        return !config.DrawGhostsForOthers;
+        ClientConfig config = ModContent.GetInstance<ClientConfig>();
+        return config.DrawGhostsForOthers;
     }
 
     public override void HideDrawLayers(PlayerDrawSet drawInfo)
     {
         Player drawPlayer = drawInfo.drawPlayer;
-        if (!ShouldHideGhost(drawPlayer))
+        if (ShouldDrawGhost(drawPlayer))
             return;
 
         foreach (PlayerDrawLayer layer in PlayerDrawLayerLoader.GetDrawLayers(drawInfo))

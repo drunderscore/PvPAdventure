@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Teams;
+using PvPAdventure.Core.Config;
 using Terraria;
+using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
@@ -10,6 +12,10 @@ public static class TeleportChat
 
     public static void Announce(Player player, SpawnType type, int targetIdx = -1)
     {
+        var clientConfig = ModContent.GetInstance<ClientConfig>();
+        if (!clientConfig.ShowTeleportPlayerMessages)
+            return;
+
         if (player == null || !player.active)
             return;
 
@@ -19,7 +25,7 @@ public static class TeleportChat
 
         TeamChatManager.SendSystemTeamMessage(
             player,
-            $"{player.name} has teleported to {destination}.",
+            $"{player.name} has teleported to {destination}",
             MessageColor
         );
     }

@@ -43,6 +43,26 @@ internal sealed class SpectatorSystem : ModSystem
         return local?.GetModPlayer<SpectatorPlayer>();
     }
 
+    private static void ApplyLocalModeEffects(int slot, PlayerMode mode)
+    {
+        if (Main.netMode == NetmodeID.Server)
+            return;
+
+        Player local = LocalPlayerOrNull();
+        if (local?.whoAmI != slot)
+            return;
+
+        if (mode == PlayerMode.Spectator)
+        {
+            local.ghost = true;
+            Main.playerInventory = false;
+            return;
+        }
+
+        local.ghost = false;
+        local.GetModPlayer<SpectatorPlayer>().ClearTarget();
+    }
+
     private static int NextIndex(List<int> list, int current, bool forward)
     {
         if (list.Count == 0)
@@ -78,11 +98,10 @@ internal sealed class SpectatorSystem : ModSystem
         if (Main.myPlayer < 0 || Main.myPlayer >= Main.maxPlayers)
             return;
 
+        SetModeLocal(Main.myPlayer, mode);
+
         if (Main.netMode == NetmodeID.SinglePlayer)
-        {
-            Modes[Main.myPlayer] = mode;
             return;
-        }
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
             SpectatorNetHandler.SendRequestSetMode(Main.myPlayer, mode);
@@ -136,20 +155,14 @@ internal sealed class SpectatorSystem : ModSystem
             return;
 
         Modes[slot] = mode;
-
-        if (Main.netMode == NetmodeID.Server)
-            return;
-
-        Player local = LocalPlayerOrNull();
-        if (local?.whoAmI == slot && mode != PlayerMode.Spectator)
-            local.GetModPlayer<SpectatorPlayer>().ClearTarget();
+        ApplyLocalModeEffects(slot, mode);
     }
 
     public static List<int> GetTargets(int exclude = -1)
     {
         List<int> list = [];
         for (int i = 0; i < Main.maxPlayers; i++)
-            if (Main.player[i].active && i != exclude && IsInPlayerMode(Main.player[i]))
+            if (Main.player[i].active && i != exclude && IsInPlayerMode(Main.player[i]) && !Main.player[i].ghost)
                 list.Add(i);
 
         return list;
@@ -355,7 +368,7 @@ internal sealed class SpectatorSystem : ModSystem
             return null;
 
         Player player = Main.player[target];
-        return player.active && IsInPlayerMode(player) ? player : null;
+        return player.active && IsInPlayerMode(player) && !player.ghost ? player : null;
     }
 
     public static NPC GetNPCTarget()
