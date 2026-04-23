@@ -9,4 +9,7 @@ public sealed class ApiProductItem
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = "";
+
+    [JsonPropertyName("price")]
+    public int Price { get; set; }
 }

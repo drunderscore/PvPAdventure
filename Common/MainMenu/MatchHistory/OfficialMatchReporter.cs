@@ -7,6 +7,7 @@ using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
+using PvPAdventure.Common.MainMenu.API;
 
 namespace PvPAdventure.Common.MainMenu.MatchHistory;
 
@@ -24,28 +25,28 @@ internal static class OfficialMatchReporter
 
     private static async Task PostMatchSafeAsync(MatchResult match)
     {
-        //try
-        //{
-        //    ApiResult<string> result = await MatchApi.PostOfficialMatchAsync(match).ConfigureAwait(false);
+        try
+        {
+            ApiResult<string> result = await MatchApi.PostOfficialMatchAsync(match).ConfigureAwait(false);
 
-        //    if (!result.IsSuccess)
-        //    {
-        //        Log.Error($"[OfficialMatchReporter] Failed to post match. Status={(int)result.Status}, Error={result.ErrorMessage}");
-        //        return;
-        //    }
+            if (!result.IsSuccess)
+            {
+                Log.Error($"[OfficialMatchReporter] Failed to post match. Status={(int)result.Status}, Error={result.ErrorMessage}");
+                return;
+            }
 
-        //    if (string.IsNullOrWhiteSpace(result.Data))
-        //    {
-        //        Log.Info("[OfficialMatchReporter] Posted match successfully.");
-        //        return;
-        //    }
+            if (string.IsNullOrWhiteSpace(result.Data))
+            {
+                Log.Info("[OfficialMatchReporter] Posted match successfully.");
+                return;
+            }
 
-        //    Log.Info($"[OfficialMatchReporter] Posted match successfully. MatchId={result.Data}");
-        //}
-        //catch (Exception ex)
-        //{
-        //    Log.Error($"[OfficialMatchReporter] Unexpected error while posting match: {ex}");
-        //}
+            Log.Info($"[OfficialMatchReporter] Posted match successfully. MatchId={result.Data}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"[OfficialMatchReporter] Unexpected error while posting match: {ex}");
+        }
     }
 
     private static MatchResult BuildMatchResult(DateTime startUtc, DateTime endUtc)

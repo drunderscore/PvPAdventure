@@ -91,7 +91,7 @@ public sealed class UITeammatePortalButton : UIElement
         Vector2 iconCenter = rect.Center.ToVector2();
         iconCenter.Y += 0f;
         Texture2D icon = Ass.Icon_Portal3.Value;
-        float iconScale = 0.75f;
+        float iconScale = 0.65f;
 
         if (hasPortal && owner != null)
             PortalSystem.DrawOutlinedPortalIcon(sb, icon, iconCenter, iconScale, PortalSystem.GetPortalColor(owner));

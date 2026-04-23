@@ -147,7 +147,7 @@ public sealed class PortalSystem : ModSystem
                 //spriteBatch.Draw(texture, drawPos, source, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
 
                 DrawOutlinedPortal(spriteBatch, texture, drawPos, source, origin, portalColor);
-                DrawPortalDustGlow(spriteBatch, drawPos - new Vector2(0f, source.Height - 5f), GetPortalColor(player));
+                //DrawPortalDustGlow(spriteBatch, drawPos - new Vector2(0f, source.Height - 5f), GetPortalColor(player));
 
 #if DEBUG
                 //string text = $"{player.name} [{((Terraria.Enums.Team)player.team)}]";

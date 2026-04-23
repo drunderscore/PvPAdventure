@@ -203,7 +203,7 @@ public class TeleportOnMap : ModSystem
         bool selected = sp.SelectedType == SpawnType.MyPortal;
         Texture2D tex = Ass.Icon_Portal2.Value;
 
-        DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(local), ref context);
+        //DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(local), ref context);
 
         if (!DrawIcon(tex, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
             return false;
@@ -259,7 +259,7 @@ public class TeleportOnMap : ModSystem
             Vector2 pos = portalWorld / 16f;
             bool selected = sp.SelectedType == SpawnType.TeammatePortal && sp.SelectedPlayerIndex == i;
 
-            DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(other), ref context);
+            //DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(other), ref context);
 
             if (!DrawIcon(Ass.Icon_Portal3.Value, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
                 continue;
@@ -328,16 +328,16 @@ public class TeleportOnMap : ModSystem
         return true;
     }
 
-    private static void DrawPortalMapGlow(Vector2 tilePos, Color color, ref MapOverlayDrawContext context)
-    {
-        Texture2D pixel = TextureAssets.MagicPixel.Value;
-        float pulse = 0.55f + (float)System.Math.Sin(Main.GameUpdateCount * 0.08f) * 0.15f;
-        Color glow = color * pulse;
+    //private static void DrawPortalMapGlow(Vector2 tilePos, Color color, ref MapOverlayDrawContext context)
+    //{
+    //    Texture2D pixel = TextureAssets.MagicPixel.Value;
+    //    float pulse = 0.55f + (float)System.Math.Sin(Main.GameUpdateCount * 0.08f) * 0.15f;
+    //    Color glow = color * pulse;
 
-        DrawMapDust(pixel, tilePos + new Vector2(0f, -2.0f), glow, 5f, ref context);
-        DrawMapDust(pixel, tilePos + new Vector2(-0.55f, -1.55f), glow * 0.8f, 4f, ref context);
-        DrawMapDust(pixel, tilePos + new Vector2(0.55f, -1.55f), glow * 0.8f, 4f, ref context);
-    }
+    //    DrawMapDust(pixel, tilePos + new Vector2(0f, -2.0f), glow, 5f, ref context);
+    //    DrawMapDust(pixel, tilePos + new Vector2(-0.55f, -1.55f), glow * 0.8f, 4f, ref context);
+    //    DrawMapDust(pixel, tilePos + new Vector2(0.55f, -1.55f), glow * 0.8f, 4f, ref context);
+    //}
 
     private static void DrawMapDust(Texture2D pixel, Vector2 tilePos, Color color, float scale, ref MapOverlayDrawContext context)
     {

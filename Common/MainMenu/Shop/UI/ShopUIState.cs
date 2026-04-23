@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.MainMenu.API;
+using PvPAdventure.Common.MainMenu.API.Profile;
 using PvPAdventure.Common.MainMenu.API.Shop;
+using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Common.MainMenu.Shop;
 using PvPAdventure.Common.MainMenu.State;
 using System;
@@ -104,21 +106,32 @@ public sealed class ShopUIState : MainMenuPageUIState
 #endif
 
         RebuildList();
-        SetCurrentAsyncState(AsyncProviderState.Loading, FormatLoadingMessage("shop products"));
+        gemsPanel.SetContent(MainMenuProfileState.Instance.Gems, MainMenuProfileState.Instance.HasSyncedFromBackend);
+        SetCurrentAsyncState(AsyncProviderState.Loading, FormatLoadingMessage("shop profile and products"));
         _ = RefreshShopAsync();
     }
 
     private async Task RefreshShopAsync()
     {
-        ApiResult<List<ProductDefinition>> result = await ProductApi.GetShopAsync().ConfigureAwait(false);
+        Task<ApiResult<bool>> profileTask = ProfileApi.RefreshProfileStateAsync();
+        Task<ApiResult<List<ProductDefinition>>> shopTask = ProductApi.GetShopAsync();
+
+        await Task.WhenAll(profileTask, shopTask).ConfigureAwait(false);
+
+        ApiResult<bool> profileResult = await profileTask.ConfigureAwait(false);
+        ApiResult<List<ProductDefinition>> shopResult = await shopTask.ConfigureAwait(false);
 
         Main.QueueMainThreadAction(() =>
         {
             loading = false;
+            gemsPanel.SetContent(MainMenuProfileState.Instance.Gems, MainMenuProfileState.Instance.HasSyncedFromBackend);
 
-            if (result.IsSuccess)
+            if (!profileResult.IsSuccess)
+                Log.Warn($"[ShopUI] Failed to refresh profile. {profileResult.ErrorMessage}");
+
+            if (shopResult.IsSuccess)
             {
-                products = result.Data!;
+                products = shopResult.Data!;
                 error = null;
                 RebuildList();
                 SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {products.Count} shop products.");
@@ -126,7 +139,7 @@ public sealed class ShopUIState : MainMenuPageUIState
             else
             {
                 products = [];
-                error = result.ErrorMessage;
+                error = shopResult.ErrorMessage;
                 RebuildList();
                 SetCurrentAsyncState(AsyncProviderState.Aborted, FormatErrorMessage("shop products", error));
             }
@@ -206,6 +219,7 @@ public sealed class ShopUIState : MainMenuPageUIState
     {
         base.Update(gameTime);
 
+        gemsPanel.SetContent(MainMenuProfileState.Instance.Gems, MainMenuProfileState.Instance.HasSyncedFromBackend);
         UpdateHotfixScrollbar();
     }
 

@@ -14,12 +14,12 @@ internal static class SkinNetHandler
 
     private static readonly Dictionary<int, SkinIdentity> _lastSent = [];
 
-    public static void SendSelectedSkin(int itemType, SkinIdentity identity)
+    public static void SendSelectedSkin(int itemType, SkinIdentity identity, bool force = false)
     {
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
-        if (_lastSent.TryGetValue(itemType, out SkinIdentity last) && last == identity)
+        if (!force && _lastSent.TryGetValue(itemType, out SkinIdentity last) && last == identity)
             return;
 
         _lastSent[itemType] = identity;
@@ -70,6 +70,9 @@ internal static class SkinNetHandler
         }
 
         if (changed)
+        {
             NetMessage.SendData(MessageID.SyncPlayer, -1, -1, null, player.whoAmI);
+            NetMessage.SendData(MessageID.SyncEquipment, -1, -1, null, player.whoAmI);
+        }
     }
 }

@@ -21,7 +21,12 @@ internal static class ProductApi
         foreach (ApiProductItem item in result.Data)
         {
             if (ProductCatalog.TryGet(item.Prototype, item.Name, out ProductDefinition definition))
+            {
+                if (item.Price > 0)
+                    definition = definition with { Price = item.Price };
+
                 products.Add(definition);
+            }
         }
 
         return ApiResult<List<ProductDefinition>>.Success(products, result.Status, result.RequestSummary);

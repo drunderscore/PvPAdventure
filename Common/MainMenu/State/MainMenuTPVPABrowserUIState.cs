@@ -42,7 +42,6 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
 
         if (KeyboardHelper.JustPressed(Keys.Escape))
             GoBackToMainMenu();
-
 #if DEBUG
         if (KeyboardHelper.JustPressed(Keys.F5))
             pendingRebuild = true;
@@ -120,41 +119,41 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         buttons.Height.Set(buttonsHeightPx, 0f);
         buttons.SetPadding(0f);
 
-        //buttons.Append(CreateButton(
-        //    Ass.Icon_PlayMenu,
-        //    "Mods.PvPAdventure.MainMenu.ServerList",
-        //    "Mods.PvPAdventure.MainMenu.ServerListDescription",
-        //    () => OpenState(() => new ServerListUIState()),
-        //    0f,
-        //    0f
-        //));
+        buttons.Append(CreateButton(
+            Ass.Icon_PlayMenu,
+            "Mods.PvPAdventure.MainMenu.ServerList",
+            "Mods.PvPAdventure.MainMenu.ServerListDescription",
+            () => OpenState(() => new ServerListUIState()),
+            0f,
+            0f
+        ));
 
-        //buttons.Append(CreateButton(
-        //    Ass.Icon_MatchHistory,
-        //    "Mods.PvPAdventure.MainMenu.MatchHistory",
-        //    "Mods.PvPAdventure.MainMenu.MatchHistoryDescription",
-        //    () => OpenState(() => new MatchHistoryUIState()),
-        //    1f,
-        //    0f
-        //));
+        buttons.Append(CreateButton(
+            Ass.Icon_MatchHistory,
+            "Mods.PvPAdventure.MainMenu.MatchHistory",
+            "Mods.PvPAdventure.MainMenu.MatchHistoryDescription",
+            () => OpenState(() => new MatchHistoryUIState()),
+            1f,
+            0f
+        ));
 
-        //buttons.Append(CreateButton(
-        //    Ass.Icon_Stats,
-        //    "Mods.PvPAdventure.MainMenu.Stats",
-        //    "Mods.PvPAdventure.MainMenu.StatsDescription",
-        //    () => OpenState(() => new PlayerStatsUIState()),
-        //    0f,
-        //    0.5f
-        //));
+        buttons.Append(CreateButton(
+            Ass.Icon_Stats,
+            "Mods.PvPAdventure.MainMenu.Stats",
+            "Mods.PvPAdventure.MainMenu.StatsDescription",
+            () => OpenState(() => new PlayerStatsUIState()),
+            0f,
+            0.5f
+        ));
 
-        //buttons.Append(CreateButton(
-        //    Ass.Icon_Achievements,
-        //    "Mods.PvPAdventure.MainMenu.Achievements",
-        //    "Mods.PvPAdventure.MainMenu.AchievementsDescription",
-        //    () => OpenState(() => new AchievementsUIState()),
-        //    1f,
-        //    0.5f
-        //));
+        buttons.Append(CreateButton(
+            Ass.Icon_Achievements,
+            "Mods.PvPAdventure.MainMenu.Achievements",
+            "Mods.PvPAdventure.MainMenu.AchievementsDescription",
+            () => OpenState(() => new AchievementsUIState()),
+            1f,
+            0.5f
+        ));
 
         buttons.Append(CreateButton(
             Ass.Icon_Shop,
@@ -165,14 +164,14 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             1f
         ));
 
-        //buttons.Append(CreateButton(
-        //    Ass.Icon_Leaderboards,
-        //    "Mods.PvPAdventure.MainMenu.Leaderboards",
-        //    "Mods.PvPAdventure.MainMenu.LeaderboardsDescription",
-        //    () => OpenState(() => new LeaderboardsUIState()),
-        //    1f,
-        //    1f
-        //));
+        buttons.Append(CreateButton(
+            Ass.Icon_Leaderboards,
+            "Mods.PvPAdventure.MainMenu.Leaderboards",
+            "Mods.PvPAdventure.MainMenu.LeaderboardsDescription",
+            () => OpenState(() => new LeaderboardsUIState()),
+            1f,
+            1f
+        ));
 
         UIWorkshopHub.AddHorizontalSeparator(panel, separatorY);
         panel.Append(buttons);

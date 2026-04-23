@@ -48,7 +48,7 @@ internal sealed class SpectatorUIState : UIState
     {
         UIColoredImageButton button = new(icon, isSmall: true);
         button.HAlign = 1f;
-        button.Top.Set(20f, 0f);
+        button.Top.Set(80f, 0f);
         button.Left.Set(-100f - index * 32f, 0f);
         button.SetVisibility(1f, 1f);
         button.OnLeftClick += (_, _) => onClick();

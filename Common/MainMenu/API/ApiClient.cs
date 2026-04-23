@@ -19,7 +19,7 @@ internal static class ApiClient
     private const string BaseUrl = "https://api.tpvpa.terraria.sh";
     private static readonly DateTime OfficialCertificateExpirePriorWarning = DateTime.Now.AddDays(14);
 
-    private static readonly JsonSerializerOptions JsonOptions = new();
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private static readonly HttpClient Client = CreateClient();
 
@@ -58,7 +58,7 @@ internal static class ApiClient
                 request.Headers.Add("Ticket", ticket);
 
             if (body != null)
-                request.Content = JsonContent.Create(body);
+                request.Content = JsonContent.Create(body, options: JsonOptions);
 
             using HttpResponseMessage response = await Client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             string responseText = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);

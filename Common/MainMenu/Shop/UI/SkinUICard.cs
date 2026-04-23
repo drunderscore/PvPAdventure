@@ -1,5 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.MainMenu.API;
+using PvPAdventure.Common.MainMenu.API.Profile;
+using PvPAdventure.Common.MainMenu.API.Shop;
+using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
@@ -95,69 +99,71 @@ internal sealed class SkinUICard : UIElement
 
     private async Task HandleClickAsync()
     {
-        //MainMenuProfileState state = MainMenuProfileState.Instance;
+        MainMenuProfileState state = MainMenuProfileState.Instance;
 
-        //bool owned = state.HasSkin(def);
-        //bool equipped = state.IsEquipped(def);
-        //bool canAfford = state.CanAfford(def);
+        if (!state.HasSyncedFromBackend)
+        {
+            SoundEngine.PlaySound(SoundID.MenuClose);
+            return;
+        }
 
-        //if (!owned)
-        //{
-        //    if (!canAfford)
-        //    {
-        //        SoundEngine.PlaySound(SoundID.MenuClose);
-        //        return;
-        //    }
+        bool owned = state.HasSkin(def);
+        bool equipped = state.IsEquipped(def);
+        bool canAfford = state.CanAfford(def);
 
-        //    SoundEngine.PlaySound(SoundID.Coins);
+        if (!owned)
+        {
+            if (!canAfford)
+            {
+                SoundEngine.PlaySound(SoundID.MenuClose);
+                return;
+            }
 
-        //    ApiResult<PurchaseResult> purchaseResult = await ShopApi.PurchaseProductAsync(def.Identity.Prototype, def.Identity.Name);
-        //    if (!purchaseResult.IsSuccess)
-        //    {
-        //        Log.Error($"[SkinUICard] Purchase failed for '{def.Identity.Prototype}:{def.Identity.Name}'. Status={(int)purchaseResult.Status}, Error={purchaseResult.ErrorMessage}");
-        //        await RefreshProfileStateSafeAsync();
-        //        return;
-        //    }
+            SoundEngine.PlaySound(SoundID.Coins);
 
-        //    ApiResult<bool> equipResult = await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, def.Identity.Name);
-        //    if (!equipResult.IsSuccess)
-        //    {
-        //        Log.Error($"[SkinUICard] Failed to equip '{def.Identity.Prototype}:{def.Identity.Name}' after purchase. Status={(int)equipResult.Status}, Error={equipResult.ErrorMessage}");
-        //    }
+            ApiResult<PurchaseResult> purchaseResult = await ShopApi.PurchaseProductAsync(def.Prototype, def.Name).ConfigureAwait(false);
+            if (!purchaseResult.IsSuccess)
+            {
+                Log.Error($"[SkinUICard] Purchase failed for '{def.Prototype}:{def.Name}'. Status={(int)purchaseResult.Status}, Error={purchaseResult.ErrorMessage}");
+                await RefreshProfileStateSafeAsync().ConfigureAwait(false);
+                return;
+            }
 
-        //    await RefreshProfileStateSafeAsync();
-        //    return;
-        //}
+            ApiResult<bool> equipResult = await ProfileApi.UpdateEquipmentAsync(def.Prototype, def.Name).ConfigureAwait(false);
+            if (!equipResult.IsSuccess)
+                Log.Error($"[SkinUICard] Failed to equip '{def.Prototype}:{def.Name}' after purchase. Status={(int)equipResult.Status}, Error={equipResult.ErrorMessage}");
 
-        //SoundEngine.PlaySound(SoundID.Unlock);
+            await RefreshProfileStateSafeAsync().ConfigureAwait(false);
+            return;
+        }
 
-        //ApiResult<bool> toggleResult = equipped
-        //    ? await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, null)
-        //    : await ProfileApi.UpdateEquipmentAsync(def.Identity.Prototype, def.Identity.Name);
+        SoundEngine.PlaySound(SoundID.Unlock);
 
-        //if (!toggleResult.IsSuccess)
-        //{
-        //    Log.Error($"[SkinUICard] Failed to update equip state for '{def.Identity.Prototype}:{def.Identity.Name}'. Status={(int)toggleResult.Status}, Error={toggleResult.ErrorMessage}");
-        //}
+        string nextName = equipped ? "" : def.Name;
+        ApiResult<bool> toggleResult = await ProfileApi.UpdateEquipmentAsync(def.Prototype, nextName).ConfigureAwait(false);
+        if (!toggleResult.IsSuccess)
+            Log.Error($"[SkinUICard] Failed to update equip state for '{def.Prototype}:{def.Name}'. Status={(int)toggleResult.Status}, Error={toggleResult.ErrorMessage}");
 
-        //await RefreshProfileStateSafeAsync();
+        await RefreshProfileStateSafeAsync().ConfigureAwait(false);
     }
 
     private static async Task RefreshProfileStateSafeAsync()
     {
-        //ApiResult<bool> result = await ProfileApi.RefreshProfileStateAsync();
-        //if (!result.IsSuccess)
-        //{
-        //    Log.Error($"[SkinUICard] Failed to refresh profile state. Status={(int)result.Status}, Error={result.ErrorMessage}");
-        //}
+        ApiResult<bool> result = await ProfileApi.RefreshProfileStateAsync().ConfigureAwait(false);
+        if (!result.IsSuccess)
+            Log.Error($"[SkinUICard] Failed to refresh profile state. Status={(int)result.Status}, Error={result.ErrorMessage}");
     }
 
     public override void Draw(SpriteBatch sb)
     {
         bool hover = IsMouseHovering;
+        MainMenuProfileState state = MainMenuProfileState.Instance;
+        bool owned = state.HasSkin(def);
+        bool equipped = state.IsEquipped(def);
+        bool canAfford = state.CanAfford(def);
 
         back.Color = new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
-        border.Color = hover ? Color.White : Color.Transparent;
+        border.Color = equipped ? Color.LimeGreen : hover ? Color.White : Color.Transparent;
 
         base.Draw(sb);
 
@@ -194,9 +200,12 @@ internal sealed class SkinUICard : UIElement
         Rectangle itemSlotRect = new((int)(d.X + d.Width * 0.5f - maxIcon * 0.5f), (int)d.Y + 34, (int)maxIcon, (int)maxIcon);
         Vector2 iconCenter = itemSlotRect.Center.ToVector2();
 
-        sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
+        if (equipped)
+            sb.Draw(EquippedFill.Value, itemSlotRect, Color.LimeGreen * 0.25f);
 
-        string priceText = def.Price.ToString();
+        sb.Draw(tex, iconCenter, null, owned || canAfford ? Color.White : Color.White * 0.45f, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
+
+        string priceText = owned ? (equipped ? "Equipped" : "Owned") : def.Price.ToString();
         float priceScale = 1f;
         Vector2 priceSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
         Texture2D gemTex = Ass.Icon_Gem.Value;
@@ -211,14 +220,15 @@ internal sealed class SkinUICard : UIElement
         Vector2 gemPos = new(gemRect.X + gemWidth * 0.5f, gemRect.Y + gemRect.Height * 0.5f);
         Vector2 pricePos = new(gemRect.X + gemWidth + gemGap, gemRect.Y + (gemRect.Height - priceSize.Y) * 0.5f);
 
-        sb.Draw(gemTex, gemPos, null, Color.White, 0f, gemTex.Size() * 0.5f, gemScale, SpriteEffects.None, 0f);
+        if (!owned)
+            sb.Draw(gemTex, gemPos, null, Color.White, 0f, gemTex.Size() * 0.5f, gemScale, SpriteEffects.None, 0f);
 
         ChatManager.DrawColorCodedStringWithShadow(
             sb,
             FontAssets.MouseText.Value,
             priceText,
-            pricePos,
-            Color.White,
+            owned ? new Vector2(gemRect.X + (gemRect.Width - priceSize.X) * 0.5f, pricePos.Y) : pricePos,
+            equipped ? Color.LimeGreen : Color.White,
             0f,
             Vector2.Zero,
             Vector2.One * priceScale);
@@ -228,7 +238,7 @@ internal sealed class SkinUICard : UIElement
 #endif
 
         if (hover)
-            UICommon.TooltipMouseText($"{def.DisplayName}\nPrice: {def.Price} gems");
+            DrawTooltip(owned, equipped, canAfford);
     }
 
     private static string[] GetTitleLines(string text, float width, float scale)

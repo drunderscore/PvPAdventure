@@ -167,11 +167,17 @@ internal class AdventureMirror : ModItem
         player.channel = false;
 
         int framesLeft = player.itemTime - 2;
-        if (framesLeft < 0)
-            framesLeft = 0;
+        if (framesLeft < 0) framesLeft = 0;
 
         bool finishedUse = framesLeft == 0;
         SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+
+        // Initialize on the first frame of the animation
+        if (player.itemAnimation == player.itemAnimationMax - 1)
+        {
+            sp.SpawnedPortalThisUse = false;
+            sp.AdventureMirrorHadCountdownThisUse = false;
+        }
 
         // If this player moves, cancel their use and reset
         if (!finishedUse && player.velocity.LengthSquared() > 0)
