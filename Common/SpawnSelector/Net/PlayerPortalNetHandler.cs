@@ -9,7 +9,7 @@ namespace PvPAdventure.Common.SpawnSelector.Net;
 
 public static class PlayerPortalNetHandler
 {
-    public static void Send(int playerId, bool hasPortal, Vector2 worldPos, int health, int toWho = -1, int ignoreClient = -1)
+    public static void Send(int playerId, bool hasPortal, Vector2 worldPos, int health, int createTicks, int toWho = -1, int ignoreClient = -1)
     {
         if (Main.netMode == NetmodeID.SinglePlayer)
             return;
@@ -21,6 +21,7 @@ public static class PlayerPortalNetHandler
         packet.Write(worldPos.X);
         packet.Write(worldPos.Y);
         packet.Write(health);
+        packet.Write(createTicks);
         packet.Send(toWho, ignoreClient);
     }
 
@@ -30,6 +31,7 @@ public static class PlayerPortalNetHandler
         bool hasPortal = reader.ReadBoolean();
         Vector2 worldPos = new(reader.ReadSingle(), reader.ReadSingle());
         int health = reader.ReadInt32();
+        int createTicks = reader.ReadInt32();
 
         if (playerId >= Main.maxPlayers)
             return;
@@ -41,9 +43,9 @@ public static class PlayerPortalNetHandler
         if (player == null || !player.active)
             return;
 
-        player.GetModPlayer<SpawnPlayer>().ApplyPortalFromNet(hasPortal, worldPos, health);
+        player.GetModPlayer<SpawnPlayer>().ApplyPortalFromNet(hasPortal, worldPos, health, createTicks);
 
         if (Main.netMode == NetmodeID.Server)
-            Send(playerId, hasPortal, worldPos, health, toWho: -1, ignoreClient: whoAmI);
+            Send(playerId, hasPortal, worldPos, health, createTicks, toWho: -1, ignoreClient: whoAmI);
     }
 }

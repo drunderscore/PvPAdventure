@@ -125,7 +125,7 @@ public sealed class PlayerStatsUIState : MainMenuPageUIState
     {
         SetCurrentAsyncState(AsyncProviderState.Loading);
 
-        bool buildExampleContent = true;
+        bool buildExampleContent = false;
         PlayerStatsUIContent stats = buildExampleContent
             ? PlayerStatsExampleContent.Create()
             : default;

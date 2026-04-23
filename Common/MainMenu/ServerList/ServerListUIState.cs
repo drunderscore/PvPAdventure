@@ -11,6 +11,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
+using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.UI;
 
@@ -165,6 +166,7 @@ public class ServerListUIState : MainMenuPageUIState
     private void RefreshList()
     {
         serverList.Clear();
+        ServerRow? firstRow = null;
 
         IEnumerable<ServerEntryContent> sorted = sortColumn switch
         {
@@ -188,6 +190,7 @@ public class ServerListUIState : MainMenuPageUIState
         foreach (ServerEntryContent entry in sorted)
         {
             ServerRow row = new();
+            firstRow ??= row;
             row.Entry = entry;
             row.Width.Set(0f, 1f);
             row.Height.Set(30f, 0f);
@@ -233,7 +236,12 @@ public class ServerListUIState : MainMenuPageUIState
         }
 
         if (!selectionStillVisible)
+        {
             ClearSelection();
+
+            if (firstRow != null)
+                SelectRow(firstRow);
+        }
     }
 
     private static UIElement MakeColumn(ServerRow row, float leftPixels, float widthPixels, string text, bool leftAligned)
@@ -297,6 +305,7 @@ public class ServerListUIState : MainMenuPageUIState
         selectedPort = row.Entry.Port;
 
         ApplyRowStyle(row, true, false);
+        Log.Debug($"Selected server={selectedIP}:{selectedPort}");
     }
 
     private void ClearSelection()
@@ -342,21 +351,65 @@ public class ServerListUIState : MainMenuPageUIState
 
     private void JoinServer(string host, int port)
     {
+        string resolvedHost = host?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(resolvedHost) || port <= 0)
+        {
+            Log.Debug($"Join aborted host={resolvedHost}:{port}");
+            warningPromptTimer = 30;
+            return;
+        }
+
+        if (!EnsureSelectedPlayer(out PlayerFileData playerData))
+        {
+            warningPromptTimer = 30;
+            return;
+        }
+
+        Log.Debug($"Joining server {resolvedHost}:{port} with {playerData.Player.name}");
+
         Main.menuMultiplayer = true;
         Main.menuServer = false;
         Main.autoPass = true;
 
         Netplay.ListenPort = port;
-        Main.getIP = host.Trim();
+        Main.getIP = resolvedHost;
 
-        Main.statusText = $"Resolving {host}:{port}...";
+        Main.statusText = $"Resolving {resolvedHost}:{port}...";
 
         Netplay.SetRemoteIPAsync(Main.getIP, () =>
         {
+            Log.Debug($"Resolved ip={Main.getIP}");
             Main.menuMode = 14;
-            Main.statusText = $"Connecting to {host}:{port}";
+            Main.statusText = $"Connecting to {resolvedHost}:{port}";
             Netplay.StartTcpClient();
         });
+    }
+
+    private static bool EnsureSelectedPlayer(out PlayerFileData playerData)
+    {
+        Main.LoadPlayers();
+
+        List<PlayerFileData> players = Main.PlayerList?
+            .Where(p => p?.Player != null && p.Player.loadStatus == 0)
+            .ToList()
+            ?? [];
+
+        Log.Debug($"Loaded {players.Count} players");
+
+        playerData = null;
+        if (players.Count == 0)
+            return false;
+
+        playerData = Main.ActivePlayerFileData;
+        if (playerData == null || playerData.Player == null || playerData.Player.loadStatus != 0 || !players.Contains(playerData))
+            playerData = players[0];
+
+        Main.ServerSideCharacter = false;
+        Main.myPlayer = 0;
+        playerData.SetAsActive();
+
+        Log.Debug($"Selected player={playerData.Player.name}");
+        return true;
     }
 
     public override void Update(GameTime gameTime)

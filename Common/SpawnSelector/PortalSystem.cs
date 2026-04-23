@@ -18,6 +18,9 @@ namespace PvPAdventure.Common.SpawnSelector;
 public sealed class PortalSystem : ModSystem
 {
     public const int PortalMaxHealth = 27;
+    public const float PortalUseRangeTiles = 8f;
+    public const float PortalUseRangeWorld = PortalUseRangeTiles * 16f;
+    public static int PortalCreateAnimationTicks => ModContent.GetInstance<Core.Config.ServerConfig>().AdventureMirrorRecallSeconds * 60;
 
     public static bool HasPortal(Player player)
     {
@@ -72,6 +75,14 @@ public sealed class PortalSystem : ModSystem
     public static Rectangle GetPortalHitbox(Vector2 worldPos)
     {
         return new Rectangle((int)worldPos.X - 24, (int)worldPos.Y - 72, 48, 72);
+    }
+
+    public static bool IsWithinPortalUseRange(Player player, Vector2 worldPos)
+    {
+        if (player == null || !player.active)
+            return false;
+
+        return Vector2.DistanceSquared(player.Center, worldPos) <= PortalUseRangeWorld * PortalUseRangeWorld;
     }
 
     public static void PlayPortalFx(Vector2 worldPos, bool killed, int damage = 0)
@@ -132,6 +143,61 @@ public sealed class PortalSystem : ModSystem
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.TransformationMatrix);
         PortalDrawer.DrawAllPortals(Main.spriteBatch);
         Main.spriteBatch.End();
+    }
+
+    public override void PostUpdateInput()
+    {
+        if (Main.dedServ)
+            return;
+
+        if (!Main.mouseRight || !Main.mouseRightRelease)
+            return;
+
+        if (Main.LocalPlayer == null || !Main.LocalPlayer.active)
+            return;
+
+        if (Main.LocalPlayer.mouseInterface || Main.drawingPlayerChat || Main.editSign || Main.editChest || Main.blockInput)
+            return;
+
+        if (!TryGetHoveredPortal(Main.MouseWorld, out _))
+            return;
+
+        OpenFullscreenMap();
+        Main.mouseRightRelease = false;
+    }
+
+    private static bool TryGetHoveredPortal(Vector2 mouseWorld, out int ownerIndex)
+    {
+        ownerIndex = -1;
+
+        Point mousePoint = mouseWorld.ToPoint();
+
+        for (int i = 0; i < Main.maxPlayers; i++)
+        {
+            Player player = Main.player[i];
+            if (player == null || !player.active)
+                continue;
+
+            if (!SpawnPlayer.TryGetPortalWorldPos(player, out Vector2 worldPos))
+                continue;
+
+            if (!GetPortalHitbox(worldPos).Contains(mousePoint))
+                continue;
+
+            ownerIndex = i;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void OpenFullscreenMap()
+    {
+        Main.playerInventory = false;
+        Main.LocalPlayer.talkNPC = -1;
+        Main.npcChatCornerItem = 0;
+        Main.mapFullscreen = true;
+        Main.resetMapFull = true;
     }
 
     #endregion

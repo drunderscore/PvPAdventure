@@ -14,7 +14,7 @@ public sealed class SpectatorUISystem : ModSystem
     private static UserInterface spectatorInterface;
     private static SpectatorUIState spectatorState;
 
-    public static bool IsEnabled
+    private static bool IsAutoJoinUiEnabled
     {
         get
         {
@@ -79,6 +79,7 @@ public sealed class SpectatorUISystem : ModSystem
 
     public static void ToggleSpectateJoinUI()
     {
+        EnsureInitialized();
         spectatorState?.ToggleJoinPanel();
     }
 
@@ -95,6 +96,12 @@ public sealed class SpectatorUISystem : ModSystem
     public static void EnsureNpcSpectatorControlsOpen()
     {
         spectatorState?.EnsureNpcSpectatorControlsOpen();
+    }
+
+    private static void EnsureInitialized()
+    {
+        spectatorInterface ??= new();
+        spectatorState ??= new();
     }
 
     public override void UpdateUI(GameTime gameTime)
@@ -134,7 +141,7 @@ public sealed class SpectatorUISystem : ModSystem
 
     private static bool ShouldShowSpectateUI()
     {
-        if (!IsEnabled || Main.gameMenu)
+        if (Main.gameMenu)
             return false;
 
 #if !DEBUG
@@ -146,6 +153,9 @@ public sealed class SpectatorUISystem : ModSystem
         if (local is null || !local.active)
             return false;
 
-        return SpectatorSystem.IsInSpectateMode(local) || spectatorState?.IsJoinPanelOpen() == true;
+        if (spectatorState?.IsJoinPanelOpen() == true)
+            return true;
+
+        return IsAutoJoinUiEnabled && SpectatorSystem.IsInSpectateMode(local);
     }
 }

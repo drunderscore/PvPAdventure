@@ -1,14 +1,20 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Graphics.PackedVector;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
+using System;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
 public static class PortalDrawer
 {
+    private static PotionOfReturnGateHelper? _formingGate;
+
     public static Color GetPortalColor(Player player)
     {
         if (player == null || player.team <= 0 || player.team >= Main.teamColor.Length)
@@ -67,23 +73,57 @@ public static class PortalDrawer
             if (player == null || !player.active)
                 continue;
 
-            if (!SpawnPlayer.TryGetPortal(player, out Vector2 worldPos, out int health))
+            if (!SpawnPlayer.TryGetPortal(player, out Vector2 worldPos, out int health, out int createTicksRemaining))
                 continue;
+
+            float progress = GetCreateProgress(createTicksRemaining);
+            bool inRange = PortalSystem.IsWithinPortalUseRange(Main.LocalPlayer, worldPos);
+            //Log.Chat(inRange);
+            SpawnPortalDust(worldPos, progress, inRange ? 1 : 0);
 
             Texture2D texture = GetPortalAsset(player).Value;
             Rectangle source = GetPortalFrameRectangle(texture);
             Vector2 origin = new(source.Width * 0.5f, source.Height);
             Vector2 drawPos = worldPos - Main.screenPosition;
+            bool hovered = PortalSystem.GetPortalHitbox(worldPos).Contains(Main.MouseWorld.ToPoint());
             Color borderColor = GetPortalColor(player);
+            //float rangeAlpha = inRange ? 1f : 0.5f;
+            float rangeAlpha = 1f;
+            int visualHealth = (int)MathHelper.Lerp(0f, health, progress);
 
-            DrawPortal(spriteBatch, texture, drawPos, source, origin, 1f, Color.White, borderColor, outline: true);
-            DrawPortalHealthBar(spriteBatch, worldPos + new Vector2(0f, 8f), health, PortalSystem.PortalMaxHealth, 1f, 1f);
-            DrawHoverText(player, worldPos, health);
+            DrawPortal(spriteBatch, texture, drawPos, source, origin, 1f, Color.White * (progress * rangeAlpha), borderColor, outline: true);
+            DrawPortalHealthBar(spriteBatch, worldPos + new Vector2(0f, 8f), visualHealth, PortalSystem.PortalMaxHealth, 1f, progress);
 
-#if DEBUG
-            string text = $"{(Terraria.Enums.Team)player.team} Team portal by {player.name}";
-            // Utils.DrawBorderStringFourWay(spriteBatch, FontAssets.MouseText.Value, text, drawPos.X, drawPos.Y, borderColor, Color.Black, Vector2.Zero);
-#endif
+            if (hovered)
+            {
+                if (inRange)
+                    DrawHoverIcon(spriteBatch, player, worldPos, borderColor, progress);
+
+                //string healthText = $"Portal: {health}/{PortalSystem.PortalMaxHealth}";
+                //float textScale = 0.9f;
+                //Vector2 textSize = FontAssets.MouseText.Value.MeasureString(healthText) * textScale;
+                //Vector2 textPos = worldPos + new Vector2(0f, 30f) - Main.screenPosition - new Vector2(textSize.X * 0.5f, 0f);
+
+                //Utils.DrawBorderStringFourWay(spriteBatch, FontAssets.MouseText.Value, healthText, textPos.X, textPos.Y, Color.White * progress, Color.Black * progress, Vector2.Zero, textScale);
+            }
+        }
+
+        DrawLocalFormingPortal(spriteBatch);
+    }
+
+    private static void SpawnPortalDust(Vector2 worldPos, float progress = 1f, int dustMultiplier = 1)
+    {
+        progress = MathHelper.Clamp(progress, 0f, 1f);
+
+        for (int i = 0; i < dustMultiplier; i++)
+        {
+            PotionOfReturnGateHelper gate = new(
+                PotionOfReturnGateHelper.GateType.EntryPoint,
+                worldPos,
+                progress
+            );
+
+            gate.SpawnReturnPortalDust();
         }
     }
 
@@ -110,6 +150,67 @@ public static class PortalDrawer
         }
 
         sb.Draw(texture, position, source, drawColor, 0f, origin, scale, SpriteEffects.None, 0f);
+    }
+
+    private static float GetCreateProgress(int createTicksRemaining)
+    {
+        int total = PortalSystem.PortalCreateAnimationTicks;
+        if (total <= 0)
+            return 1f;
+
+        return MathHelper.Clamp(1f - createTicksRemaining / (float)total, 0f, 1f);
+    }
+
+    private static void DrawLocalFormingPortal(SpriteBatch spriteBatch)
+    {
+        Player player = Main.LocalPlayer;
+        if (player == null || !player.active)
+            return;
+
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        if (sp.SelectedType != SpawnType.None)
+            return;
+
+        if (!IsMirrorPortalBuildActive(player, out float progress))
+            return;
+
+        Vector2 worldPos = player.Bottom;
+        SpawnPortalDust(worldPos, progress, 1);
+
+        Texture2D texture = GetPortalAsset(player).Value;
+        Rectangle source = GetPortalFrameRectangle(texture);
+        Vector2 origin = new(source.Width * 0.5f, source.Height);
+        Vector2 drawPos = worldPos - Main.screenPosition;
+        Color borderColor = GetPortalColor(player);
+
+        DrawPortal(spriteBatch, texture, drawPos, source, origin, 1f, Color.White * progress, borderColor, outline: true);
+        DrawPortalHealthBar(spriteBatch, worldPos + new Vector2(0f, 8f), (int)(PortalSystem.PortalMaxHealth * progress), PortalSystem.PortalMaxHealth, 1f, progress);
+    }
+
+    private static bool IsMirrorPortalBuildActive(Player player, out float progress)
+    {
+        progress = 0f;
+
+        if (player.itemAnimation <= 0)
+            return false;
+
+        int mirrorType = ModContent.ItemType<AdventureMirror>();
+        if (player.HeldItem == null || player.HeldItem.type != mirrorType)
+            return false;
+
+        int total = PortalSystem.PortalCreateAnimationTicks;
+        if (total <= 0)
+        {
+            progress = 1f;
+            return true;
+        }
+
+        int framesLeft = player.itemTime - 2;
+        if (framesLeft < 0)
+            framesLeft = 0;
+
+        progress = MathHelper.Clamp(1f - framesLeft / (float)total, 0f, 1f);
+        return true;
     }
 
     private static void DrawPortalHealthBar(SpriteBatch sb, Vector2 worldPos, int health, int maxHealth, float scale, float alpha)
@@ -157,12 +258,24 @@ public static class PortalDrawer
         sb.Draw(fillTex, screenOrigin, new Rectangle(0, 0, barPixels, fillTex.Height), barColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
     }
 
-    private static void DrawHoverText(Player player, Vector2 worldPos, int health)
+    private static void DrawHoverIcon(SpriteBatch sb, Player player, Vector2 worldPos, Color outlineColor, float alpha)
     {
-        if (!PortalSystem.GetPortalHitbox(worldPos).Contains(Main.MouseWorld.ToPoint()))
-            return;
+        const float pulseSpeed = 6f; // Lower = slower pulse.
+        const float pulseScaleVariance = 0.10f; // Higher = larger size change.
 
-        Main.instance.MouseText($"{(Terraria.Enums.Team)player.team} Team Portal: {health}/{PortalSystem.PortalMaxHealth}");
+        Texture2D iconTexture = GetPortalAsset(player).Value;
+        Rectangle source = GetPortalFrameRectangle(iconTexture);
+        Vector2 origin = new(source.Width * 0.5f, source.Height * 0.5f); // center
+        origin = Vector2.Zero;
+        Vector2 drawPos = new Vector2(Main.mouseX, Main.mouseY) + new Vector2(12f, 14f);
+
+        float pulse = 0.5f + 0.5f * (float)Math.Sin(Main.GlobalTimeWrappedHourly * pulseSpeed);
+        float iconScale = 0.58f + pulse * pulseScaleVariance;
+        Color drawColor = Color.White * alpha;
+
+        DrawTextureOutline(sb, iconTexture, drawPos, source, origin, Color.Black * alpha, iconScale, 2f);
+        DrawTextureOutline(sb, iconTexture, drawPos, source, origin, outlineColor * alpha, iconScale, 1f);
+        sb.Draw(iconTexture, drawPos, source, drawColor, 0f, origin, iconScale, SpriteEffects.None, 0f);
     }
 
     private static void DrawTextureOutline(SpriteBatch sb, Texture2D texture, Vector2 position, Rectangle source, Vector2 origin, Color color, float scale, float distance)

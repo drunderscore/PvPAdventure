@@ -44,6 +44,7 @@ public class SpawnPlayer : ModPlayer
     private bool hasPortal;
     private Vector2 portalWorldPos;
     private int portalHealth;
+    private int portalCreateTicksRemaining;
 
     public void SetPortal(Vector2 worldPos, bool sync = true)
     {
@@ -54,6 +55,7 @@ public class SpawnPlayer : ModPlayer
         hasPortal = true;
         portalWorldPos = worldPos;
         portalHealth = PortalSystem.PortalMaxHealth;
+        portalCreateTicksRemaining = 0;
 
         Log.Debug($"[Portal] set {Player.name} replace={replacing} hp={oldHealth}->{portalHealth} pos={oldPos}->{worldPos}");
 
@@ -71,6 +73,7 @@ public class SpawnPlayer : ModPlayer
         hasPortal = false;
         portalWorldPos = default;
         portalHealth = 0;
+        portalCreateTicksRemaining = 0;
 
         if (SelectedType == SpawnType.MyPortal || SelectedType == SpawnType.TeammatePortal)
             ClearSelection();
@@ -79,13 +82,14 @@ public class SpawnPlayer : ModPlayer
             SyncPortal();
     }
 
-    internal void ApplyPortalFromNet(bool hasPortal, Vector2 worldPos, int health)
+    internal void ApplyPortalFromNet(bool hasPortal, Vector2 worldPos, int health, int createTicks)
     {
         Log.Debug($"[Portal] net {Player.name} has={hasPortal} hp={health}");
 
         this.hasPortal = hasPortal;
         portalWorldPos = hasPortal ? worldPos : default;
         portalHealth = hasPortal ? Utils.Clamp(health, 1, PortalSystem.PortalMaxHealth) : 0;
+        portalCreateTicksRemaining = hasPortal ? Utils.Clamp(createTicks, 0, PortalSystem.PortalCreateAnimationTicks) : 0;
 
         if (Main.netMode == NetmodeID.Server || hasPortal)
             return;
@@ -158,6 +162,25 @@ public class SpawnPlayer : ModPlayer
 
         worldPos = sp.portalWorldPos;
         health = sp.portalHealth;
+        return true;
+    }
+
+    public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health, out int createTicksRemaining)
+    {
+        worldPos = default;
+        health = 0;
+        createTicksRemaining = 0;
+
+        if (player == null || !player.active)
+            return false;
+
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        if (!sp.hasPortal)
+            return false;
+
+        worldPos = sp.portalWorldPos;
+        health = sp.portalHealth;
+        createTicksRemaining = sp.portalCreateTicksRemaining;
         return true;
     }
     #endregion
@@ -271,6 +294,9 @@ public class SpawnPlayer : ModPlayer
 
     public override void PostUpdate()
     {
+        if (portalCreateTicksRemaining > 0)
+            portalCreateTicksRemaining--;
+
         if (TeleportCooldownTicks > 0)
             TeleportCooldownTicks--;
 
@@ -505,7 +531,7 @@ public class SpawnPlayer : ModPlayer
         if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI != Main.myPlayer)
             return;
 
-        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth);
+        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, portalCreateTicksRemaining);
     }
 
     public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
@@ -513,7 +539,7 @@ public class SpawnPlayer : ModPlayer
         if (!hasPortal)
             return;
 
-        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, toWho, fromWho);
+        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, portalCreateTicksRemaining, toWho, fromWho);
     }
 
     private void UpdatePlayerSpawnpoint()
