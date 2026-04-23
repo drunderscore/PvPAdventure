@@ -12,24 +12,24 @@ internal static class SkinNetHandler
 {
     private enum Msg : byte { SetSelectedSkin = 1 }
 
-    private static readonly Dictionary<int, SkinIdentity> _lastSent = [];
+    private static readonly Dictionary<int, ProductKey> _lastSent = [];
 
-    public static void SendSelectedSkin(int itemType, SkinIdentity identity, bool force = false)
+    public static void SendSelectedSkin(int itemType, ProductKey key, bool force = false)
     {
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
-        if (!force && _lastSent.TryGetValue(itemType, out SkinIdentity last) && last == identity)
+        if (!force && _lastSent.TryGetValue(itemType, out ProductKey last) && last == key)
             return;
 
-        _lastSent[itemType] = identity;
+        _lastSent[itemType] = key;
 
         ModPacket p = ModContent.GetInstance<PvPAdventure>().GetPacket();
         p.Write((byte)AdventurePacketIdentifier.Skins);
         p.Write((byte)Msg.SetSelectedSkin);
         p.Write(itemType);
-        p.Write(identity.Prototype ?? "");
-        p.Write(identity.Name ?? "");
+        p.Write(key.Prototype ?? "");
+        p.Write(key.Name ?? "");
         p.Send();
     }
 
@@ -48,24 +48,26 @@ internal static class SkinNetHandler
         string prototype = reader.ReadString();
         string name = reader.ReadString();
 
-        SkinIdentity identity = new(prototype, name);
+        ProductKey key = new(prototype, name);
         Player player = Main.player[whoAmI];
 
         if (player is null || !player.active)
             return;
 
-        if (identity.IsValid && (!SkinRegistry.TryGetByIdentity(identity, out ProductDefinition def) || def.ItemType != itemType))
+        if (key.IsValid && (!SkinRegistry.TryGetByKey(key, out ShopProduct def) || def.ItemType != itemType))
             return;
 
         bool changed = false;
+
         foreach (Item item in player.inventory)
         {
             if (item is null || item.IsAir || item.type != itemType)
                 continue;
-            if (!item.TryGetGlobalItem(out SkinItemData data) || data.Identity == identity)
+
+            if (!item.TryGetGlobalItem(out SkinItemData data) || data.Key == key)
                 continue;
 
-            data.Identity = identity;
+            data.Key = key;
             changed = true;
         }
 

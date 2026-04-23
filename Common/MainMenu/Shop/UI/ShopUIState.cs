@@ -22,7 +22,7 @@ public sealed class ShopUIState : MainMenuPageUIState
     private UIScrollbar scrollbar = null!;
     private UIList list = null!;
 
-    private List<ProductDefinition> products = [];
+    private List<ShopProduct> products = [];
     private bool loading;
     private string? error;
 
@@ -114,12 +114,12 @@ public sealed class ShopUIState : MainMenuPageUIState
     private async Task RefreshShopAsync()
     {
         Task<ApiResult<bool>> profileTask = ProfileApi.RefreshProfileStateAsync();
-        Task<ApiResult<List<ProductDefinition>>> shopTask = ProductApi.GetShopAsync();
+        Task<ApiResult<List<ShopProduct>>> shopTask = ProductApi.GetShopAsync();
 
         await Task.WhenAll(profileTask, shopTask).ConfigureAwait(false);
 
         ApiResult<bool> profileResult = await profileTask.ConfigureAwait(false);
-        ApiResult<List<ProductDefinition>> shopResult = await shopTask.ConfigureAwait(false);
+        ApiResult<List<ShopProduct>> shopResult = await shopTask.ConfigureAwait(false);
 
         Main.QueueMainThreadAction(() =>
         {
@@ -202,7 +202,7 @@ public sealed class ShopUIState : MainMenuPageUIState
             int column = i % columns;
             int row = i / columns;
 
-            SkinUICard card = new(products[i], cardWidth)
+            ShopUICard card = new(products[i], cardWidth)
             {
                 Height = StyleDimension.FromPixels(cardHeight),
                 Left = StyleDimension.FromPixels(startX + column * (cardWidth + gap)),

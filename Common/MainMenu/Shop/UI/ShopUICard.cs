@@ -20,19 +20,19 @@ using Terraria.UI.Chat;
 
 namespace PvPAdventure.Common.MainMenu.Shop.UI;
 
-internal sealed class SkinUICard : UIElement
+internal sealed class ShopUICard : UIElement
 {
     private static Asset<Texture2D>? Back;
     private static Asset<Texture2D>? Border;
     private static Asset<Texture2D>? EquippedFill;
 
-    private readonly ProductDefinition def;
+    private readonly ShopProduct def;
     private readonly UISlicedImage back;
     private readonly UISlicedImage border;
 
     private bool busy;
 
-    public SkinUICard(ProductDefinition def, float cardW)
+    public ShopUICard(ShopProduct def, float cardW)
     {
         this.def = def;
 
@@ -89,7 +89,7 @@ internal sealed class SkinUICard : UIElement
         }
         catch (Exception ex)
         {
-            Log.Error($"[SkinUICard] Unexpected error while handling click for '{def.Identity.Prototype}:{def.Identity.Name}': {ex}");
+            Log.Error($"[SkinUICard] Unexpected error while handling click for '{def.Prototype}:{def.Name}': {ex}");
         }
         finally
         {
@@ -171,7 +171,7 @@ internal sealed class SkinUICard : UIElement
         Rectangle cardRect = new((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height);
         Rectangle textRect = new(cardRect.X + 6, cardRect.Y + 7, cardRect.Width - 12, 30);
 
-        string name = def.DisplayName;
+        string name = def.Name;
         float titleScale = 0.7f;
         string[] titleLines = GetTitleLines(name, textRect.Width, titleScale);
         float lineHeight = FontAssets.MouseText.Value.MeasureString("A").Y * titleScale;
@@ -234,7 +234,7 @@ internal sealed class SkinUICard : UIElement
             Vector2.One * priceScale);
 
 #if DEBUG
-        //DebugMainMenuDrawer.DrawSkinUICard(sb, cardRect, textRect, itemSlotRect, gemRect);
+        DebugMainMenuDrawer.DrawSkinUICard(sb, cardRect, textRect, itemSlotRect, gemRect);
 #endif
 
         if (hover)
@@ -274,7 +274,7 @@ internal sealed class SkinUICard : UIElement
         Main.LocalPlayer.mouseInterface = true;
 
         string original = Lang.GetItemNameValue(def.ItemType);
-        string display = $"{def.DisplayName} ({original})";
+        string display = $"{def.Name} ({original})";
         Color badRed = new(148, 39, 39);
 
         if (busy)

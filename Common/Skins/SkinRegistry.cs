@@ -1,41 +1,43 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.MainMenu.Shop;
+﻿using PvPAdventure.Common.MainMenu.Shop;
 using ReLogic.Content;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Default;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace PvPAdventure.Common.Skins;
 
 internal static class SkinRegistry
 {
-    private static readonly Dictionary<SkinIdentity, ProductDefinition> ByIdentity;
+    private static readonly Dictionary<ProductKey, ShopProduct> ByKey;
     private static readonly HashSet<int> SkinnableItemTypes;
 
     static SkinRegistry()
     {
-        ByIdentity = [];
+        ByKey = [];
         SkinnableItemTypes = [];
 
-        foreach (ProductDefinition definition in ProductCatalog.All)
+        foreach (ShopProduct definition in ProductCatalog.All)
         {
-            if (!ByIdentity.TryAdd(definition.Identity, definition))
+            ProductKey key = new(definition.Prototype, definition.Name);
+
+            if (!ByKey.TryAdd(key, definition))
                 Log.Error($"Duplicate skin identity '{definition.Prototype}:{definition.Name}' in ProductCatalog.");
 
             SkinnableItemTypes.Add(definition.ItemType);
         }
     }
 
-    public static bool TryGetByIdentity(SkinIdentity identity, out ProductDefinition definition)
+    public static bool TryGetByKey(ProductKey key, out ShopProduct definition)
     {
-        return ByIdentity.TryGetValue(identity, out definition);
+        return ByKey.TryGetValue(key, out definition);
     }
 
-    public static bool TryGetByIdentity(string prototype, string name, out ProductDefinition definition)
+    public static bool TryGetByKey(string prototype, string name, out ShopProduct definition)
     {
-        return TryGetByIdentity(new SkinIdentity(prototype, name), out definition);
+        return TryGetByKey(new ProductKey(prototype, name), out definition);
     }
 
     public static bool IsSkinnableItemType(int itemType)
@@ -43,23 +45,23 @@ internal static class SkinRegistry
         return SkinnableItemTypes.Contains(itemType);
     }
 
-    public static bool TryGetSkin(Item item, out ProductDefinition definition)
+    public static bool TryGetSkin(Item item, out ShopProduct definition)
     {
         definition = default;
 
-        if (!item.TryGetGlobalItem(out SkinItemData data) || !data.Identity.IsValid)
+        if (!item.TryGetGlobalItem(out SkinItemData data) || !data.Key.IsValid)
             return false;
 
-        if (!TryGetByIdentity(data.Identity, out definition))
+        if (!TryGetByKey(data.Key, out definition))
         {
-            Log.Error($"[SkinRegistry] Unknown Skin Identity '{data.Identity.Prototype}:{data.Identity.Name}' on item type={item.type}");
+            Log.Error($"[SkinRegistry] Unknown ProductKey '{data.Key.Prototype}:{data.Key.Name}' on item type={item.type}");
             return false;
         }
 
         return true;
     }
 
-    public static Texture2D ResolveTexture(ProductDefinition skin, Texture2D vanilla, out bool usingFallback)
+    public static Texture2D ResolveTexture(ShopProduct skin, Texture2D vanilla, out bool usingFallback)
     {
         usingFallback = false;
         Asset<Texture2D> asset = skin.Texture;

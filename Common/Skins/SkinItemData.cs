@@ -13,53 +13,48 @@ internal sealed class SkinItemData : GlobalItem
     public override bool AppliesToEntity(Item entity, bool lateInstantiation)
         => SkinRegistry.IsSkinnableItemType(entity.type);
 
-    public SkinIdentity Identity = default;
-    public bool HasSkin => Identity.IsValid;
+    public ProductKey Key = default;
+    public bool HasSkin => Key.IsValid;
 
     public override GlobalItem Clone(Item item, Item itemClone)
     {
         var clone = (SkinItemData)base.Clone(item, itemClone);
-        clone.Identity = Identity;
+        clone.Key = Key;
         return clone;
     }
 
     public override void SaveData(Item item, TagCompound tag)
     {
-        if (HasSkin)
-        {
-            tag["pvpadv_skin_proto"] = Identity.Prototype;
-            tag["pvpadv_skin_name"] = Identity.Name;
-        }
+        if (!HasSkin)
+            return;
+
+        tag["pvpadv_skin_proto"] = Key.Prototype;
+        tag["pvpadv_skin_name"] = Key.Name;
     }
 
     public override void LoadData(Item item, TagCompound tag)
     {
         string proto = tag.ContainsKey("pvpadv_skin_proto") ? tag.GetString("pvpadv_skin_proto") : "";
         string name = tag.ContainsKey("pvpadv_skin_name") ? tag.GetString("pvpadv_skin_name") : "";
-        Identity = new SkinIdentity(proto, name);
+        Key = new ProductKey(proto, name);
     }
 
     public override void NetSend(Item item, BinaryWriter writer)
     {
-        writer.Write((byte)1); // version
+        writer.Write((byte)1);
         writer.Write(HasSkin);
-        if (HasSkin)
-        {
-            writer.Write(Identity.Prototype);
-            writer.Write(Identity.Name);
-        }
+
+        if (!HasSkin)
+            return;
+
+        writer.Write(Key.Prototype);
+        writer.Write(Key.Name);
     }
 
     public override void NetReceive(Item item, BinaryReader reader)
     {
-        reader.ReadByte(); // version
-        if (reader.ReadBoolean())
-        {
-            Identity = new SkinIdentity(reader.ReadString(), reader.ReadString());
-        }
-        else
-        {
-            Identity = default;
-        }
+        reader.ReadByte();
+
+        Key = reader.ReadBoolean() ? new ProductKey(reader.ReadString(), reader.ReadString()) : default;
     }
 }

@@ -30,7 +30,7 @@ internal sealed class DebugParticleOrchestrator : ModSystem
         ParticleOrchestraType type,
         ParticleOrchestraSettings settings)
     {
-        Log.Debug($"ParticleOrchestraType: {type}");
+        //Log.Debug($"ParticleOrchestraType: {type}");
 
         if (type == ParticleOrchestraType.TrueExcalibur)
         {

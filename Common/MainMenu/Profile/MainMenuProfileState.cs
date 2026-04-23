@@ -10,8 +10,8 @@ internal sealed class MainMenuProfileState
 {
     public static MainMenuProfileState Instance { get; } = new();
 
-    private readonly HashSet<SkinIdentity> ownedSkins = [];
-    private readonly Dictionary<int, SkinIdentity> equippedSkinsByItemType = [];
+    private readonly HashSet<ProductKey> ownedSkins = [];
+    private readonly Dictionary<int, ProductKey> equippedSkinsByItemType = [];
 
     public int Gems { get; private set; }
     public bool HasSyncedFromBackend { get; private set; }
@@ -29,24 +29,24 @@ internal sealed class MainMenuProfileState
         SkinProfileApplierSystem.RequestApply();
     }
 
-    public bool HasSkin(ProductDefinition def)
+    public bool HasSkin(ShopProduct def)
     {
-        return ownedSkins.Contains(def.Identity);
+        return ownedSkins.Contains(new ProductKey(def.Prototype, def.Name));
     }
 
-    public bool CanAfford(ProductDefinition def)
+    public bool CanAfford(ShopProduct def)
     {
         return Gems >= def.Price;
     }
 
-    public bool IsEquipped(ProductDefinition def)
+    public bool IsEquipped(ShopProduct def)
     {
-        return equippedSkinsByItemType.TryGetValue(def.ItemType, out SkinIdentity selectedIdentity) && selectedIdentity == def.Identity;
+        return equippedSkinsByItemType.TryGetValue(def.ItemType, out ProductKey key) && key == new ProductKey(def.Prototype, def.Name);
     }
 
-    public bool TryGetSelectedSkinForItem(int itemType, out SkinIdentity identity)
+    public bool TryGetSelectedSkinForItem(int itemType, out ProductKey key)
     {
-        return equippedSkinsByItemType.TryGetValue(itemType, out identity);
+        return equippedSkinsByItemType.TryGetValue(itemType, out key);
     }
 
     public void SyncWithBackend(ApiProfileResponse profile, IReadOnlyCollection<ApiInventoryItem> inventory)
@@ -63,20 +63,20 @@ internal sealed class MainMenuProfileState
 
         foreach (ApiInventoryItem item in inventory)
         {
-            SkinIdentity identity = new(item.Prototype, item.Name);
-            if (identity.IsValid)
-                ownedSkins.Add(identity);
+            ProductKey key = new(item.Prototype, item.Name);
+            if (key.IsValid)
+                ownedSkins.Add(key);
         }
 
         foreach ((string prototype, string name) in profile.Equipment)
         {
-            if (!ProductCatalog.TryGet(prototype, name, out ProductDefinition definition))
+            if (!ProductCatalog.TryGet(prototype, name, out ShopProduct definition))
             {
                 Log.Warn($"[ProfileState] Equipped skin missing from ProductCatalog: {prototype}:{name}");
                 continue;
             }
 
-            equippedSkinsByItemType[definition.ItemType] = definition.Identity;
+            equippedSkinsByItemType[definition.ItemType] = new ProductKey(definition.Prototype, definition.Name);
         }
 
         HasSyncedFromBackend = true;

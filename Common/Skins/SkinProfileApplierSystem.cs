@@ -1,4 +1,5 @@
 using PvPAdventure.Common.MainMenu.Profile;
+using PvPAdventure.Common.MainMenu.Shop;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
@@ -52,15 +53,15 @@ internal sealed class SkinProfileApplierSystem : ModSystem
             if (!item.TryGetGlobalItem(out SkinItemData data))
                 continue;
 
-            state.TryGetSelectedSkinForItem(item.type, out SkinIdentity identity);
-            if (data.Identity == identity)
+            state.TryGetSelectedSkinForItem(item.type, out ProductKey key);
+            if (data.Key == key)
                 continue;
 
-            data.Identity = identity;
+            data.Key = key;
             changed = true;
 
             if (Main.netMode == NetmodeID.MultiplayerClient && syncedItemTypes.Add(item.type))
-                SkinNetHandler.SendSelectedSkin(item.type, identity, force: true);
+                SkinNetHandler.SendSelectedSkin(item.type, key, force: true);
         }
 
         if (changed && Main.netMode == NetmodeID.MultiplayerClient)

@@ -1,5 +1,7 @@
 ﻿using PvPAdventure.Common.MainMenu.Shop;
+using System.Reflection;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Skins;
@@ -7,27 +9,49 @@ namespace PvPAdventure.Common.Skins;
 [Autoload(Side = ModSide.Client)]
 internal sealed class SkinItemNameHooks : ModSystem
 {
-    public override void Load() => On_Item.AffixName += OverrideAffixName;
-    public override void Unload() => On_Item.AffixName -= OverrideAffixName;
+    public override void Load()
+    {
+        On_Item.AffixName += OverrideAffixName;
+    }
+    public override void Unload()
+    {
+        On_Item.AffixName -= OverrideAffixName;
+    }
 
     private static string OverrideAffixName(On_Item.orig_AffixName orig, Item self)
     {
         string name = orig(self);
 
-        if (self is null || self.IsAir)
-            return name;
-
-        if (!SkinRegistry.TryGetSkin(self, out ProductDefinition skin))
+        if (self == null || self.IsAir)
             return name;
 
         string vanillaName = Lang.GetItemNameValue(self.type);
-        string skinnedName = $"{skin.DisplayName} ({vanillaName})";
+        string replacement = GetDisplayName(self);
 
-        //if (name.Contains(skinnedName))
+        if (replacement == vanillaName)
             return name;
 
-        // TODO change item name here maybe
+        return name.Replace(vanillaName, replacement);
+    }
 
-        return name.Replace(vanillaName, skinnedName);
+    public static string GetDisplayName(Item item)
+    {
+        if (!SkinRegistry.TryGetSkin(item, out ShopProduct skin))
+            return Lang.GetItemNameValue(item.type);
+
+        return GetDisplayName(skin, item.type);
+    }
+
+    public static string GetDisplayName(ShopProduct skin, int fallbackItemType)
+    {
+        if (skin.Prototype == "sniper_rifle")
+            return skin.Name switch
+            {
+                "red" => "Red Sniper Rifle",
+                "blue" => "Blue Sniper Rifle",
+                _ => Lang.GetItemNameValue(fallbackItemType)
+            };
+
+        return Lang.GetItemNameValue(fallbackItemType);
     }
 }

@@ -56,7 +56,7 @@ public sealed class AchievementsUIState : MainMenuPageUIState
 
     private void RefreshAchievements()
     {
-        bool buildExampleContent = false;
+        bool buildExampleContent = true;
 
         AchievementsUIContent content = buildExampleContent
             ? AchievementsExampleContent.Create()
@@ -79,11 +79,5 @@ public sealed class AchievementsUIState : MainMenuPageUIState
             list.Add(new AchievementsUIRow(content.Entries[i]));
 
         list.Recalculate();
-    }
-
-    public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
-        UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
     }
 }

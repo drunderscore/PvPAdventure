@@ -169,13 +169,6 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
         MainMenuPageUIState.ShowWrappedMessage(detailsPanel, message);
     }
 
-    public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
-        UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
-    }
-
-
     #region Build UI
     private void SelectMatchAndRebuild(int index)
     {

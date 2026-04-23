@@ -24,7 +24,7 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
     {
         Item item = drawInfo.drawPlayer.HeldItem;
 
-        if (item is null || item.IsAir || !SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
+        if (item is null || item.IsAir || !SkinRegistry.TryGetSkin(item, out ShopProduct skin))
         {
             orig(ref drawInfo);
             return;
@@ -46,14 +46,6 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
         }
     }
 
-    public override void PostUpdate(Item item)
-    {
-        if (!SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
-            return;
-
-        item.SetNameOverride($"{skin.Name} ({Lang.GetItemNameValue(item.type)})");
-    }
-
     private static DrawData ScaleDrawData(DrawData data, Texture2D from, Texture2D to)
     {
         float sx = to.Width / (float)from.Width;
@@ -69,11 +61,10 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
     }
 
     // --- Inventory ---
-
     public override bool PreDrawInInventory(Item item, SpriteBatch sb, Vector2 position, Rectangle frame,
         Color drawColor, Color itemColor, Vector2 origin, float scale)
     {
-        if (!SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
+        if (!SkinRegistry.TryGetSkin(item, out ShopProduct skin))
             return true;
 
         Texture2D vanilla = TextureAssets.Item[item.type].Value;
@@ -88,11 +79,10 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
     }
 
     // --- World ---
-
     public override bool PreDrawInWorld(Item item, SpriteBatch sb, Color lightColor, Color alphaColor,
         ref float rotation, ref float scale, int whoAmI)
     {
-        if (!SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
+        if (!SkinRegistry.TryGetSkin(item, out ShopProduct skin))
             return true;
 
         Texture2D vanilla = TextureAssets.Item[item.type].Value;
@@ -113,21 +103,16 @@ internal sealed class SkinDrawGlobalItem : GlobalItem
     }
 
     // --- Tooltips ---
-
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
     {
-        if (!SkinRegistry.TryGetSkin(item, out ProductDefinition skin))
+        if (!SkinRegistry.TryGetSkin(item, out _))
             return;
 
         for (int i = 0; i < tooltips.Count; i++)
         {
             if (tooltips[i].Mod == "Terraria" && tooltips[i].Name == "ItemName")
             {
-                tooltips[i].Text = $"{skin.Name} ({Lang.GetItemNameValue(item.type)})";
-                tooltips.Insert(i + 1, new TooltipLine(Mod, "SkinDescription", skin.Description)
-                {
-                    OverrideColor = new Color(255, 150, 60)
-                });
+                tooltips[i].Text = SkinItemNameHooks.GetDisplayName(item);
                 break;
             }
         }

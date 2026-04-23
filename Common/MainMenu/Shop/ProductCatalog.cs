@@ -1,5 +1,4 @@
-﻿using PvPAdventure.Common.Skins;
-using PvPAdventure.Core.Utilities;
+﻿using PvPAdventure.Core.Utilities;
 using System.Collections.Generic;
 using Terraria.ID;
 
@@ -7,36 +6,30 @@ namespace PvPAdventure.Common.MainMenu.Shop;
 
 public static class ProductCatalog
 {
-    private static readonly Dictionary<SkinIdentity, ProductDefinition> ByIdentity = new()
+    private static readonly Dictionary<ProductKey, ShopProduct> ByKey = new()
     {
-        [new(Prototype: "sniper_rifle", Name: "red")] = new(
+        [new("sniper_rifle", "red")] = new(
             Prototype: "sniper_rifle",
             Name: "red",
-            DisplayName: "Red Sniper Rifle",
-            Description: "It's red, alright?",
-            Price: 50,
             Texture: Ass.SniperRifleRed,
             ItemType: ItemID.SniperRifle),
 
-        [new(Prototype: "sniper_rifle", Name: "blue")] = new(
+        [new("sniper_rifle", "blue")] = new(
             Prototype: "sniper_rifle",
             Name: "blue",
-            DisplayName: "Blue Sniper Rifle",
-            Description: "It's blue, alright?",
-            Price: 50,
             Texture: Ass.SniperRifleBlue,
             ItemType: ItemID.SniperRifle),
     };
 
-    public static IEnumerable<ProductDefinition> All => ByIdentity.Values;
+    public static IEnumerable<ShopProduct> All => ByKey.Values;
 
-    public static bool TryGet(SkinIdentity identity, out ProductDefinition definition)
+    public static bool TryGet(ProductKey key, out ShopProduct definition)
     {
-        return ByIdentity.TryGetValue(identity, out definition);
+        return ByKey.TryGetValue(key, out definition);
     }
 
-    public static bool TryGet(string prototype, string name, out ProductDefinition definition)
+    public static bool TryGet(string prototype, string name, out ShopProduct definition)
     {
-        return TryGet(new SkinIdentity(Prototype: prototype, Name: name), out definition);
+        return TryGet(new ProductKey(prototype, name), out definition);
     }
 }

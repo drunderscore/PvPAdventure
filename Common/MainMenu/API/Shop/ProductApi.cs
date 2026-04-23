@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using PvPAdventure.Common.MainMenu.API;
@@ -9,26 +8,28 @@ namespace PvPAdventure.Common.MainMenu.API.Shop;
 
 internal static class ProductApi
 {
-    public static async Task<ApiResult<List<ProductDefinition>>> GetShopAsync(CancellationToken cancellationToken = default)
+    public static async Task<ApiResult<List<ShopProduct>>> GetShopAsync(CancellationToken cancellationToken = default)
     {
         ApiResult<List<ApiProductItem>> result = await ApiClient.GetJsonAsync<List<ApiProductItem>>("shop/v1", cancellationToken).ConfigureAwait(false);
 
         if (!result.IsSuccess || result.Data is null)
-            return ApiResult<List<ProductDefinition>>.Error(result.Status, result.ErrorMessage ?? "Failed to load shop.", result.RequestSummary);
+            return ApiResult<List<ShopProduct>>.Error(result.Status, result.ErrorMessage ?? "Failed to load shop.", result.RequestSummary);
 
-        List<ProductDefinition> products = [];
+        List<ShopProduct> products = [];
 
         foreach (ApiProductItem item in result.Data)
         {
-            if (ProductCatalog.TryGet(item.Prototype, item.Name, out ProductDefinition definition))
-            {
-                if (item.Price > 0)
-                    definition = definition with { Price = item.Price };
+            if (!ProductCatalog.TryGet(item.Prototype, item.Name, out ShopProduct definition))
+                continue;
 
-                products.Add(definition);
-            }
+            products.Add(new ShopProduct(
+                Prototype: definition.Prototype,
+                Name: definition.Name,
+                Texture: definition.Texture,
+                ItemType: definition.ItemType,
+                Price: item.Price));
         }
 
-        return ApiResult<List<ProductDefinition>>.Success(products, result.Status, result.RequestSummary);
+        return ApiResult<List<ShopProduct>>.Success(products, result.Status, result.RequestSummary);
     }
 }
