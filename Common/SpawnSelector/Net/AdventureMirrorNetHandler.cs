@@ -46,6 +46,9 @@ public static class AdventureMirrorNetHandler
         }
         else if (Main.netMode == NetmodeID.MultiplayerClient)
         {
+            if (playerId == Main.myPlayer)
+                return;
+
             Player player = Main.player[playerId];
             if (player is null || !player.active)
                 return;

@@ -83,22 +83,22 @@ internal class AdventureMirror : ModItem
 
     private void TryUseInternal(Player player, int index)
     {
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        Log.Debug($"[Mirror] try {player.name} slot={index} anim={player.itemAnimation} spawned={sp.SpawnedPortalThisUse}");
+
         if (!CanUseItem(player))
-            return;
-
-        if (player.CCed || player.itemAnimation > 0 || player.reuseDelay > 0)
-            return;
-
-        if (Main.netMode == NetmodeID.SinglePlayer)
         {
-            player.selectedItem = index;
-            player.controlUseItem = true;
-            player.releaseUseItem = true;
-            player.ItemCheck();
-            player.controlUseItem = false;
-            player.releaseUseItem = false;
+            Log.Debug($"[Mirror] blocked CanUse {player.name}");
             return;
         }
+
+        if (player.CCed || player.itemAnimation > 0 || player.reuseDelay > 0)
+        {
+            Log.Debug($"[Mirror] blocked state {player.name} anim={player.itemAnimation} reuse={player.reuseDelay}");
+            return;
+        }
+
+        BeginMirrorUse(player, index);
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
         {
@@ -108,6 +108,31 @@ internal class AdventureMirror : ModItem
             p.Write((byte)index);
             p.Send();
         }
+    }
+
+    private void BeginMirrorUse(Player player, int index)
+    {
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        sp.SpawnedPortalThisUse = false;
+        sp.AdventureMirrorHadCountdownThisUse = false;
+
+        player.selectedItem = index;
+        player.controlUseItem = true;
+        player.releaseUseItem = true;
+        player.ItemCheck();
+
+        player.controlUseItem = false;
+        player.releaseUseItem = false;
+        player.channel = false;
+
+        if (player.itemAnimation <= 0)
+        {
+            ResetUseTimer(player);
+            player.itemAnimationMax = player.itemAnimation;
+            player.itemTimeMax = player.itemTime;
+        }
+
+        Log.Debug($"[Mirror] begin {player.name} slot={index} ticks={player.itemTime}");
     }
 
     #endregion
@@ -229,8 +254,12 @@ internal class AdventureMirror : ModItem
         if (framesLeft > 0)
             sp.AdventureMirrorHadCountdownThisUse = true;
 
+        if (finishedUse && !shouldCreatePortal)
+            Log.Debug($"[Mirror] no portal {player.name} spawned={sp.SpawnedPortalThisUse} countdown={sp.AdventureMirrorHadCountdownThisUse}");
+
         if (shouldCreatePortal)
         {
+            Log.Debug($"[Mirror] create {player.name} pos={player.Bottom}");
             ShowPortalCreatedText(player);
             sp.SpawnedPortalThisUse = true;
             PortalSystem.CreatePortalAtPosition(player, player.Bottom);

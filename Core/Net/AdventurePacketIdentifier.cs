@@ -24,5 +24,6 @@ public enum AdventurePacketIdentifier : byte
     Skins, // sync who has skins for all players
     Spectator, // sync spectator mode for all players
     SessionTracker, // sync session time for all players
-    PlayerPortal // sync player portal position for all players
+    PlayerPortal, // sync player portal position for all players
+    PortalFx // portal hit/kill effects
 }

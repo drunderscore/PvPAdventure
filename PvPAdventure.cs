@@ -108,6 +108,10 @@ public class PvPAdventure : Mod
                 Common.SpawnSelector.Net.PlayerPortalNetHandler.HandlePacket(r, whoAmI);
                 break;
 
+            case AdventurePacketIdentifier.PortalFx:
+                Common.SpawnSelector.Net.PortalFxNetHandler.HandlePacket(r, whoAmI);
+                break;
+
             default:
                 Log.Warn($"Unknown packet id: {id}");
                 break;

@@ -1,12 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Utilities;
-using System.Collections.Generic;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.UI;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
@@ -16,6 +15,8 @@ namespace PvPAdventure.Common.SpawnSelector;
 [Autoload(Side = ModSide.Client)]
 public sealed class PortalSystem : ModSystem
 {
+    public const int PortalMaxHealth = 27;
+
     public static bool HasPortal(Player player)
     {
         return SpawnPlayer.HasPortal(player);
@@ -40,6 +41,46 @@ public sealed class PortalSystem : ModSystem
             return;
 
         player.GetModPlayer<SpawnPlayer>().ClearPortal();
+    }
+
+    public static bool TryDamagePortal(Player attacker, int ownerIndex, int damage, string source)
+    {
+        if (ownerIndex < 0 || ownerIndex >= Main.maxPlayers)
+            return false;
+
+        Player owner = Main.player[ownerIndex];
+        if (owner == null || !owner.active)
+            return false;
+
+        return owner.GetModPlayer<SpawnPlayer>().DamagePortal(attacker, damage, source);
+    }
+
+    public static Rectangle GetPortalHitbox(Vector2 worldPos)
+    {
+        return new Rectangle((int)worldPos.X - 24, (int)worldPos.Y - 72, 48, 72);
+    }
+
+    public static void PlayPortalFx(Vector2 worldPos, bool killed, int damage = 0)
+    {
+        if (Main.dedServ)
+            return;
+
+        if (damage > 0)
+            CombatText.NewText(GetPortalHitbox(worldPos), CombatText.DamagedHostile, damage);
+
+        if (!killed)
+        {
+            SoundEngine.PlaySound(SoundID.NPCHit4, worldPos);
+            return;
+        }
+
+        SoundEngine.PlaySound(SoundID.NPCDeath6, worldPos);
+
+        for (int i = 0; i < 28; i++)
+        {
+            Vector2 velocity = Main.rand.NextVector2Circular(3.5f, 3.5f);
+            Dust.NewDustPerfect(worldPos + Main.rand.NextVector2Circular(24f, 36f), DustID.MagicMirror, velocity, 120, Color.White, Main.rand.NextFloat(1.1f, 1.8f));
+        }
     }
 
     public static Color GetPortalColor(Player player)
@@ -101,25 +142,19 @@ public sealed class PortalSystem : ModSystem
     #endregion
 
     #region Drawing
-    public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
+    public override void PostDrawTiles()
     {
-        int idx = layers.FindIndex(layer => layer.Name == "Vanilla: Interface Logic 1");
-        if (idx != -1)
-            layers.Insert(idx + 1, new PortalInterfaceLayer());
+        if (Main.dedServ)
+            return;
+
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.TransformationMatrix);
+        PortalDrawer.DrawAllPortals(Main.spriteBatch);
+        Main.spriteBatch.End();
     }
 
-    private sealed class PortalInterfaceLayer : GameInterfaceLayer
+    private static class PortalDrawer
     {
-        public PortalInterfaceLayer() : base("PvPAdventure: Portal", InterfaceScaleType.Game)
-        {
-        }
-
-        protected override bool DrawSelf()
-        {
-            DrawAllPortals(Main.spriteBatch);
-            return true;
-        }
-        private static void DrawAllPortals(SpriteBatch spriteBatch)
+        public static void DrawAllPortals(SpriteBatch spriteBatch)
         {
             if (Main.dedServ)
                 return;
@@ -137,7 +172,7 @@ public sealed class PortalSystem : ModSystem
                 if (player == null || !player.active)
                     continue;
 
-                if (!TryGetPortalWorldPos(player, out Vector2 worldPos))
+                if (!SpawnPlayer.TryGetPortal(player, out Vector2 worldPos, out int health))
                     continue;
 
                 Vector2 drawPos = worldPos - Main.screenPosition;
@@ -147,6 +182,8 @@ public sealed class PortalSystem : ModSystem
                 //spriteBatch.Draw(texture, drawPos, source, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
 
                 DrawOutlinedPortal(spriteBatch, texture, drawPos, source, origin, portalColor);
+                DrawHealthBar(spriteBatch, worldPos + new Vector2(0f, 8f), health, PortalMaxHealth, 1f, 1f);
+                DrawHoverText(player, worldPos, health);
                 //DrawPortalDustGlow(spriteBatch, drawPos - new Vector2(0f, source.Height - 5f), GetPortalColor(player));
 
 #if DEBUG
@@ -163,6 +200,63 @@ public sealed class PortalSystem : ModSystem
             DrawTextureOutline(sb, texture, position, source, origin, Color.Black * 0.9f, 3f);
             DrawTextureOutline(sb, texture, position, source, origin, borderColor * 0.9f, 1.5f);
             sb.Draw(texture, position, source, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
+        }
+
+        private static void DrawHealthBar(SpriteBatch sb, Vector2 worldPos, int health, int maxHealth, float scale, float alpha)
+        {
+            if (health <= 0 || health >= maxHealth)
+                return;
+
+            float healthRatio = (float)health / maxHealth;
+            if (healthRatio > 1f)
+                healthRatio = 1f;
+
+            int barPixels = (int)(36f * healthRatio);
+            if (barPixels < 3)
+                barPixels = 3;
+
+            healthRatio -= 0.1f;
+            float green = healthRatio > 0.5f ? 255f : 255f * healthRatio * 2f;
+            float red = healthRatio > 0.5f ? 255f * (1f - healthRatio) * 2f : 255f;
+            float colorScale = alpha * 0.95f;
+
+            red = MathHelper.Clamp(red * colorScale, 0f, 255f);
+            green = MathHelper.Clamp(green * colorScale, 0f, 255f);
+            float alphaByte = MathHelper.Clamp(255f * colorScale, 0f, 255f);
+            Color barColor = new((byte)red, (byte)green, 0, (byte)alphaByte);
+
+            Vector2 screenOrigin = new(worldPos.X - 18f * scale - Main.screenPosition.X, worldPos.Y - Main.screenPosition.Y);
+            Texture2D backTex = TextureAssets.Hb2.Value;
+            Texture2D fillTex = TextureAssets.Hb1.Value;
+
+            if (barPixels < 34)
+            {
+                if (barPixels < 36)
+                    sb.Draw(backTex, screenOrigin + new Vector2(barPixels * scale, 0f), new Rectangle(2, 0, 2, backTex.Height), barColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+                if (barPixels < 34)
+                    sb.Draw(backTex, screenOrigin + new Vector2((barPixels + 2) * scale, 0f), new Rectangle(barPixels + 2, 0, 36 - barPixels - 2, backTex.Height), barColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+                if (barPixels > 2)
+                    sb.Draw(fillTex, screenOrigin, new Rectangle(0, 0, barPixels - 2, fillTex.Height), barColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+                sb.Draw(fillTex, screenOrigin + new Vector2((barPixels - 2) * scale, 0f), new Rectangle(32, 0, 2, fillTex.Height), barColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+            }
+            else
+            {
+                if (barPixels < 36)
+                    sb.Draw(backTex, screenOrigin + new Vector2(barPixels * scale, 0f), new Rectangle(barPixels, 0, 36 - barPixels, backTex.Height), barColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+                sb.Draw(fillTex, screenOrigin, new Rectangle(0, 0, barPixels, fillTex.Height), barColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+            }
+        }
+
+        private static void DrawHoverText(Player player, Vector2 worldPos, int health)
+        {
+            if (!GetPortalHitbox(worldPos).Contains(Main.MouseWorld.ToPoint()))
+                return;
+
+            Main.instance.MouseText($"{(Terraria.Enums.Team)player.team} team portal: {health}/{PortalMaxHealth}");
         }
 
         private static void DrawTextureOutline(SpriteBatch sb, Texture2D texture, Vector2 position, Rectangle source, Vector2 origin, Color color, float distance)

@@ -41,11 +41,19 @@ public class SpawnPlayer : ModPlayer
     #region Portal
     private bool hasPortal;
     private Vector2 portalWorldPos;
+    private int portalHealth;
 
     public void SetPortal(Vector2 worldPos, bool sync = true)
     {
+        bool replacing = hasPortal;
+        Vector2 oldPos = portalWorldPos;
+        int oldHealth = portalHealth;
+
         hasPortal = true;
         portalWorldPos = worldPos;
+        portalHealth = PortalSystem.PortalMaxHealth;
+
+        Log.Debug($"[Portal] set {Player.name} replace={replacing} hp={oldHealth}->{portalHealth} pos={oldPos}->{worldPos}");
 
         if (sync)
             SyncPortal();
@@ -56,8 +64,11 @@ public class SpawnPlayer : ModPlayer
         if (!hasPortal && portalWorldPos == default)
             return;
 
+        Log.Debug($"[Portal] clear {Player.name} hp={portalHealth}");
+
         hasPortal = false;
         portalWorldPos = default;
+        portalHealth = 0;
 
         if (SelectedType == SpawnType.MyPortal || SelectedType == SpawnType.TeammatePortal)
             ClearSelection();
@@ -66,10 +77,13 @@ public class SpawnPlayer : ModPlayer
             SyncPortal();
     }
 
-    internal void ApplyPortalFromNet(bool hasPortal, Vector2 worldPos)
+    internal void ApplyPortalFromNet(bool hasPortal, Vector2 worldPos, int health)
     {
+        Log.Debug($"[Portal] net {Player.name} has={hasPortal} hp={health}");
+
         this.hasPortal = hasPortal;
         portalWorldPos = hasPortal ? worldPos : default;
+        portalHealth = hasPortal ? Utils.Clamp(health, 1, PortalSystem.PortalMaxHealth) : 0;
 
         if (Main.netMode == NetmodeID.Server || hasPortal)
             return;
@@ -81,6 +95,31 @@ public class SpawnPlayer : ModPlayer
         {
             local.ClearSelection();
         }
+    }
+
+    internal bool DamagePortal(Player attacker, int damage, string source)
+    {
+        if (!hasPortal)
+            return false;
+
+        damage = Utils.Clamp(damage, 1, PortalSystem.PortalMaxHealth);
+        int oldHealth = portalHealth;
+        portalHealth -= damage;
+
+        string attackerName = attacker?.name ?? "<unknown>";
+        Log.Debug($"[Portal] hit {Player.name} by {attackerName} {oldHealth}->{portalHealth} ({source})");
+
+        if (portalHealth <= 0)
+        {
+            Log.Chat($"{Player.name}'s portal died to {attackerName}");
+            PortalFxNetHandler.Send(portalWorldPos, killed: true, damage);
+            ClearPortal();
+            return true;
+        }
+
+        PortalFxNetHandler.Send(portalWorldPos, killed: false, damage);
+        SyncPortal();
+        return true;
     }
 
     public static bool HasPortal(Player player)
@@ -99,6 +138,23 @@ public class SpawnPlayer : ModPlayer
             return false;
 
         worldPos = sp.portalWorldPos;
+        return true;
+    }
+
+    public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health)
+    {
+        worldPos = default;
+        health = 0;
+
+        if (player == null || !player.active)
+            return false;
+
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        if (!sp.hasPortal)
+            return false;
+
+        worldPos = sp.portalWorldPos;
+        health = sp.portalHealth;
         return true;
     }
     #endregion
@@ -436,7 +492,7 @@ public class SpawnPlayer : ModPlayer
         if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI != Main.myPlayer)
             return;
 
-        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos);
+        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth);
     }
 
     public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
@@ -444,7 +500,7 @@ public class SpawnPlayer : ModPlayer
         if (!hasPortal)
             return;
 
-        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, toWho, fromWho);
+        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, toWho, fromWho);
     }
 
     private void UpdatePlayerSpawnpoint()
