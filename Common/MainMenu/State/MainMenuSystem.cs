@@ -11,6 +11,7 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.MainMenu.State;
 
+#if DEBUG // TEMP TODO: Remove me when launching!
 /// <summary>
 /// Adds a TPVPA History button to the Main Menu.
 /// Upon click, enter <see cref="MatchHistoryUIState"/>
@@ -148,8 +149,10 @@ public class MainMenuSystem : ModSystem
 
         Color color = hovered ? new Color(255, 240, 20) : Color.Gray;
 
+#if DEBUG
         // debug draw: do not delete!
         //Utils.DrawBorderStringBig(Main.spriteBatch, label, topLeft, color, 1f);
+#endif
 
         if (hovered)
         {
@@ -198,5 +201,5 @@ public class MainMenuSystem : ModSystem
             Main.blockMouse = false;
         }
     }
-
 }
+#endif

@@ -23,12 +23,6 @@ public class GemsPanel : UIPanel
         PaddingLeft = 6f;
     }
 
-    //public void SetProfile(ApiProfileResponse? profile)
-    //{
-    //    hasProfile = profile != null;
-    //    gems = profile?.Gems ?? 0;
-    //}
-
     public void SetContent(int gems, bool hasProfile)
     {
         this.gems = gems;
@@ -52,15 +46,30 @@ public class GemsPanel : UIPanel
         Vector2 pos = new(inner.X - 2f, inner.Y - 2f);
         sb.Draw(Ass.Icon_Gem.Value, pos, null, Color.White, 0f, Vector2.Zero, 1.3f, SpriteEffects.None, 0f);
 
-        string gemsText = gems > 0 ? gems.ToString() : "No";
-        string text = $"{gemsText} Gems";
+        string gemsText = "";
+        if (!hasProfile)
+        {
+            gemsText = "Error";
+        }
+        else
+        {
+            if (this.Width.Precent > 0)
+            {
+                gemsText = gems > 0 ? gems.ToString() + " Gems" : "No Gems";
+            }
+            else
+            {
+                gemsText = gems.ToString();
+            }
+        }
+
         float textAreaLeft = pos.X + 50f;
         float textAreaRight = inner.X + inner.Width - 10f;
         float textAreaWidth = System.Math.Max(0f, textAreaRight - textAreaLeft);
 
-        Vector2 textSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, text, Vector2.One);
+        Vector2 textSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, gemsText, Vector2.One);
         float textX = textAreaLeft + (textAreaWidth - textSize.X) * 0.5f;
 
-        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, text, new Vector2(textX, pos.Y + 4f), Color.WhiteSmoke, 0f, Vector2.Zero, Vector2.One);
+        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, gemsText, new Vector2(textX, pos.Y + 4f), Color.WhiteSmoke, 0f, Vector2.Zero, Vector2.One);
     }
 }

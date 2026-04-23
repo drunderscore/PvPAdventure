@@ -11,12 +11,14 @@ public static class ProductCatalog
         [new("sniper_rifle", "red")] = new(
             Prototype: "sniper_rifle",
             Name: "red",
+            DisplayName: "Red Sniper Rifle",
             Texture: Ass.SniperRifleRed,
             ItemType: ItemID.SniperRifle),
 
         [new("sniper_rifle", "blue")] = new(
             Prototype: "sniper_rifle",
             Name: "blue",
+            DisplayName: "Blue Sniper Rifle",
             Texture: Ass.SniperRifleBlue,
             ItemType: ItemID.SniperRifle),
     };

@@ -5,6 +5,7 @@ using PvPAdventure.Common.MainMenu.Achievements.UI;
 using PvPAdventure.Common.MainMenu.Leaderboards;
 using PvPAdventure.Common.MainMenu.MatchHistory.UI;
 using PvPAdventure.Common.MainMenu.PlayerStats;
+using PvPAdventure.Common.MainMenu.Profile;
 using PvPAdventure.Common.MainMenu.ServerList;
 using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Core.Utilities;
@@ -28,6 +29,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
     private int lastScreenWidth;
     private int lastScreenHeight;
     private float lastUiScale;
+    private GemsPanel gemsPanel = null!;
 
     private bool pendingRebuild;
 
@@ -95,6 +97,25 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         };
         header.Top.Set(-48f, 0f);
         header.SetPadding(15f);
+
+        gemsPanel = new GemsPanel
+        {
+            HAlign = 0f,
+        };
+        gemsPanel.Width.Set(90, 0f);
+        gemsPanel.Height.Set(42f, 0f);
+        gemsPanel.Left.Set(0f, 0f);
+        gemsPanel.Top.Set(-46f, 0f);
+        gemsPanel.SetContent(MainMenuProfileState.Instance.Gems, MainMenuProfileState.Instance.HasSyncedFromBackend);
+        gemsPanel.OnMouseOver += (_, _) =>
+        {
+            descriptionText.SetText("Gems are awarded for achievements and high placement in TPVPA matches.");
+        };
+
+        gemsPanel.OnMouseOut += (_, _) =>
+        {
+            descriptionText.SetText(Language.GetText("Workshop.HubDescriptionDefault"));
+        };
 
         UIPanel panel = new() { BackgroundColor = new Color(33, 43, 79) * 0.8f };
         panel.Width.Set(0f, 1f);
@@ -178,6 +199,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
         panel.Append(CreateDescriptionPanel(descHeight));
 
         root.Append(panel);
+        root.Append(gemsPanel);
         root.Append(header);
         Append(root);
 

@@ -16,6 +16,7 @@ public sealed class AchievementsUIState : MainMenuPageUIState
     private UIList list = null!;
     private UIScrollbar scrollbar = null!;
 
+    protected override float MainPanelMinWidth => 850f;
     protected override string HeaderLocalizationKey => "Mods.PvPAdventure.MainMenu.Achievements";
 
     protected override void Populate(UIPanel panel)

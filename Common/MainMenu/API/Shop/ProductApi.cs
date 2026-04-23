@@ -23,11 +23,12 @@ internal static class ProductApi
                 continue;
 
             products.Add(new ShopProduct(
-                Prototype: definition.Prototype,
-                Name: definition.Name,
-                Texture: definition.Texture,
-                ItemType: definition.ItemType,
-                Price: item.Price));
+            Prototype: definition.Prototype,
+            Name: definition.Name,
+            DisplayName: definition.DisplayName,
+            Texture: definition.Texture,
+            ItemType: definition.ItemType,
+            Price: item.Price));
         }
 
         return ApiResult<List<ShopProduct>>.Success(products, result.Status, result.RequestSummary);

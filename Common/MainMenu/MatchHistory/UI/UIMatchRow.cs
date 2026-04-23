@@ -84,36 +84,22 @@ public class UIMatchRow : UIPanel
             });
         }
 
-        // Gem reward
-        //int gemReward = MatchStorage.GetPlacementGems(rank);
-        //if (gemReward > 0)
-        //{
-        //    Color rewardColor = rank switch
-        //    {
-        //        1 => Color.Gold,
-        //        2 => Color.Silver,
-        //        3 => new Color(205, 127, 50), // Bronze
-        //        _ => Color.White
-        //    };
+        const int gemReward = 10;
+        Append(new UIImage(Ass.Icon_Gem)
+        {
+            ImageScale = 0.7f,
+            HAlign = 1f,
+            Top = new StyleDimension(-9.5f, 0f),
+            Left = new StyleDimension(-16f, 0f)
+        });
 
-        //    Append(new UIImage(Ass.Icon_Gem)
-        //    {
-        //        ImageScale = 0.7f,
-        //        //VAlign = 0.5f,
-        //        HAlign = 1f,
-        //        Top = new StyleDimension(-9.5f, 0f),
-        //        Left = new StyleDimension(-16f, 0f)
-        //    });
-
-        //    Append(new UIText($"+{gemReward}", 0.85f)
-        //    {
-        //        //VAlign = 0.5f,
-        //        HAlign = 1f,
-        //        Top = new StyleDimension(-6f, 0f),
-        //        Left = new StyleDimension(5f, 0f),
-        //        TextColor = rewardColor
-        //    });
-        //}
+        Append(new UIText($"+{gemReward}", 0.85f)
+        {
+            HAlign = 1f,
+            Top = new StyleDimension(-6f, 0f),
+            Left = new StyleDimension(5f, 0f),
+            TextColor = Color.White
+        });
 
         // Mouse hover
         OnMouseOver += (_, _) =>

@@ -44,13 +44,8 @@ internal sealed class SkinItemNameHooks : ModSystem
 
     public static string GetDisplayName(ShopProduct skin, int fallbackItemType)
     {
-        if (skin.Prototype == "sniper_rifle")
-            return skin.Name switch
-            {
-                "red" => "Red Sniper Rifle",
-                "blue" => "Blue Sniper Rifle",
-                _ => Lang.GetItemNameValue(fallbackItemType)
-            };
+        if (!string.IsNullOrWhiteSpace(skin.DisplayName))
+            return skin.DisplayName;
 
         return Lang.GetItemNameValue(fallbackItemType);
     }

@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.MainMenu.API;
+using PvPAdventure.Common.MainMenu.Profile;
+using PvPAdventure.Common.MainMenu.Shop.UI;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.UI;
 using System.Collections.Generic;
@@ -24,6 +26,7 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
     private UIList matchList = null!;
     private UIPanel detailsPanel = null!;
     private UITeamStatsDetails teamStatsPanel = null!;
+    private GemsPanel gemsPanel = null!;
 
     private MatchResult[] content = [];
     private readonly List<UIMatchRow> rows = [];
@@ -39,6 +42,18 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
     protected override void Populate(UIPanel panel)
     {
         base.Populate(panel);
+
+        gemsPanel = new GemsPanel
+        {
+            HAlign = 0f,
+        };
+        gemsPanel.Width.Set(0, 0.2f);
+        gemsPanel.Height.Set(42f, 0f);
+        gemsPanel.Left.Set(26f, 0f);
+        gemsPanel.Top.Set(-52f, 0f);
+        gemsPanel.SetContent(MainMenuProfileState.Instance.Gems, MainMenuProfileState.Instance.HasSyncedFromBackend);
+        panel.Append(gemsPanel);
+
         UIElement content = new()
         {
             Width = StyleDimension.Fill,

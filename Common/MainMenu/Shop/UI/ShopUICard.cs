@@ -162,16 +162,32 @@ internal sealed class ShopUICard : UIElement
         bool equipped = state.IsEquipped(def);
         bool canAfford = state.CanAfford(def);
 
-        back.Color = new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
-        border.Color = equipped ? Color.LimeGreen : hover ? Color.White : Color.Transparent;
+        back.Color = equipped
+            ? new Color(80, 255, 80) * (hover ? 1f : 0.95f)
+            : owned
+                ? new Color(60, 120, 60) * (hover ? 0.75f : 0.6f)
+                : new Color(63, 82, 151) * (hover ? 0.85f : 0.7f);
+
+        border.Color = hover || equipped ? Color.White : Color.Transparent;
 
         base.Draw(sb);
 
+        if (equipped)
+        {
+            CalculatedStyle dims = GetDimensions();
+            Rectangle fillRect = dims.ToRectangle();
+            fillRect.Inflate(-4, -4);
+
+            sb.Draw(EquippedFill!.Value, fillRect, new Color(60, 255, 60) * (hover ? 0.18f : 0.12f));
+        }
+
         CalculatedStyle d = GetDimensions();
+        float contentAlpha = owned ? 0.65f : 1f;
+
         Rectangle cardRect = new((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height);
         Rectangle textRect = new(cardRect.X + 6, cardRect.Y + 7, cardRect.Width - 12, 30);
 
-        string name = def.Name;
+        string name = def.DisplayName;
         float titleScale = 0.7f;
         string[] titleLines = GetTitleLines(name, textRect.Width, titleScale);
         float lineHeight = FontAssets.MouseText.Value.MeasureString("A").Y * titleScale;
@@ -182,16 +198,7 @@ internal sealed class ShopUICard : UIElement
             Vector2 lineSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, titleLines[i], Vector2.One * titleScale);
             Vector2 linePos = new(textRect.X + textRect.Width * 0.5f - lineSize.X * 0.5f, titleTop + i * lineHeight);
 
-            ChatManager.DrawColorCodedStringWithShadow(
-                sb,
-                FontAssets.MouseText.Value,
-                titleLines[i],
-                linePos,
-                Color.White,
-                0f,
-                Vector2.Zero,
-                Vector2.One * titleScale,
-                textRect.Width);
+            ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, titleLines[i], linePos, Color.White, 0f, Vector2.Zero, Vector2.One * titleScale, textRect.Width);
         }
 
         Texture2D tex = def.Texture?.Value ?? TextureAssets.Item[def.ItemType].Value;
@@ -200,41 +207,36 @@ internal sealed class ShopUICard : UIElement
         Rectangle itemSlotRect = new((int)(d.X + d.Width * 0.5f - maxIcon * 0.5f), (int)d.Y + 34, (int)maxIcon, (int)maxIcon);
         Vector2 iconCenter = itemSlotRect.Center.ToVector2();
 
-        if (equipped)
-            sb.Draw(EquippedFill.Value, itemSlotRect, Color.LimeGreen * 0.25f);
+        sb.Draw(tex, iconCenter, null, Color.White, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
 
-        sb.Draw(tex, iconCenter, null, owned || canAfford ? Color.White : Color.White * 0.45f, 0f, tex.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
-
-        string priceText = owned ? (equipped ? "Equipped" : "Owned") : def.Price.ToString();
-        float priceScale = 1f;
+        string priceText = def.Price.ToString();
+        float priceScale = 1.05f;
         Vector2 priceSize = ChatManager.GetStringSize(FontAssets.MouseText.Value, priceText, Vector2.One * priceScale);
-        Texture2D gemTex = Ass.Icon_Gem.Value;
-        float gemScale = 0.9f;
-        float gemWidth = gemTex.Width * gemScale;
-        float gemHeight = gemTex.Height * gemScale;
-        float gemGap = 6f;
-        int gemRectWidth = (int)Math.Ceiling(gemWidth + gemGap + priceSize.X);
-        int gemRectHeight = (int)Math.Ceiling(Math.Max(gemHeight, priceSize.Y));
-        Rectangle gemRect = new((int)(d.X + d.Width * 0.5f - gemRectWidth * 0.5f), (int)(d.Y + d.Height - gemRectHeight - 9f), gemRectWidth, gemRectHeight);
 
-        Vector2 gemPos = new(gemRect.X + gemWidth * 0.5f, gemRect.Y + gemRect.Height * 0.5f);
-        Vector2 pricePos = new(gemRect.X + gemWidth + gemGap, gemRect.Y + (gemRect.Height - priceSize.Y) * 0.5f);
+        float py = d.Y + d.Height - priceSize.Y - 6f;
+        float px = d.X + d.Width * 0.5f - priceSize.X * 0.5f + 8f;
 
-        if (!owned)
-            sb.Draw(gemTex, gemPos, null, Color.White, 0f, gemTex.Size() * 0.5f, gemScale, SpriteEffects.None, 0f);
+        Color priceColor = owned || canAfford
+            ? Color.White * contentAlpha
+            : new Color(148, 39, 39) * contentAlpha;
 
-        ChatManager.DrawColorCodedStringWithShadow(
-            sb,
-            FontAssets.MouseText.Value,
-            priceText,
-            owned ? new Vector2(gemRect.X + (gemRect.Width - priceSize.X) * 0.5f, pricePos.Y) : pricePos,
-            equipped ? Color.LimeGreen : Color.White,
-            0f,
-            Vector2.Zero,
-            Vector2.One * priceScale);
+        Texture2D badgeTex = equipped
+            ? Ass.Icon_CheckmarkGreen.Value
+            : owned
+                ? Ass.Icon_CheckmarkGray.Value
+                : Ass.Icon_Gem.Value;
+
+        float badgeScale = equipped || owned ? 1.1f : 0.9f;
+        Vector2 badgePos = new(px - 14f, py + 12f);
+
+        if (owned)
+            badgePos += new Vector2(0f, -1f);
+
+        sb.Draw(badgeTex, badgePos, null, Color.White, 0f, badgeTex.Size() * 0.5f, badgeScale, SpriteEffects.None, 0f);
+        ChatManager.DrawColorCodedStringWithShadow(sb, FontAssets.MouseText.Value, priceText, new Vector2(px + 2f, py), priceColor, 0f, Vector2.Zero, Vector2.One * priceScale);
 
 #if DEBUG
-        DebugMainMenuDrawer.DrawSkinUICard(sb, cardRect, textRect, itemSlotRect, gemRect);
+        //DebugMainMenuDrawer.DrawSkinUICard(sb, cardRect, textRect, itemSlotRect, gemRect);
 #endif
 
         if (hover)
@@ -274,7 +276,8 @@ internal sealed class ShopUICard : UIElement
         Main.LocalPlayer.mouseInterface = true;
 
         string original = Lang.GetItemNameValue(def.ItemType);
-        string display = $"{def.Name} ({original})";
+        //string display = $"{def.Name} ({original})";
+        string display = $"{def.DisplayName} \n(Original: {original})";
         Color badRed = new(148, 39, 39);
 
         if (busy)
