@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PvPAdventure.Common.Authentication;
+using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -8,7 +10,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using PvPAdventure.Common.Authentication;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -63,6 +64,8 @@ internal static class ApiClient
             using HttpResponseMessage response = await Client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             string responseText = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             string requestSummary = $"{method} {requestUrl} -> {(int)response.StatusCode} {response.StatusCode}";
+
+            Log.Debug($"[ApiClient] Raw response body for {method} {requestUrl}: {responseText}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -162,21 +165,40 @@ internal static class ApiClient
 
         try
         {
-            var officialCertificatePath = Environment.GetEnvironmentVariable("PVPA_OFFICIAL_CERTIFICATE_PATH");
-            if (officialCertificatePath != null)
+            string officialCertificatePathTest = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "Downloads", "erky.p12");
+
+            if (File.Exists(officialCertificatePathTest))
             {
-                X509Certificate2 certificate = new(
-                    officialCertificatePath,
-                    (string)null,
-                    X509KeyStorageFlags.UserKeySet);
-
-                Log.Info($"Loaded client certificate for official identity {certificate.Subject} (expiry {certificate.GetExpirationDateString()}, thumbprint {certificate.Thumbprint})");
-
-                if (certificate.NotAfter <= OfficialCertificateExpirePriorWarning)
-                    Log.Warn("Your PvP Adventure official server certificate will soon expire!");
-
-                certificates.Add(certificate);
+                Log.Debug("The file exists");
             }
+            else
+            {
+                Log.Error("NO CERTIFICATE EXISTS, ABORTING!!!");
+            }
+
+            //X509KeyStorageFlags.UserKeySet
+
+            const string officialCertificatePath = @"C:\Users\erikm\Downloads\erky.p12";
+            const string password = "";
+
+            //X509Certificate2 certificate = new(
+            //    officialCertificatePath,
+            //    string.IsNullOrWhiteSpace(password) ? null : password,
+            //    X509KeyStorageFlags.Exportable | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.MachineKeySet);
+
+            X509Certificate2 certificate = new(
+    officialCertificatePath,
+    string.IsNullOrWhiteSpace(password) ? null : password,
+    X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+
+            Log.Info($"Loaded client certificate for official identity {certificate.Subject} (expiry {certificate.NotAfter:yyyy-MM-dd HH:mm:ss}, thumbprint {certificate.Thumbprint})");
+
+            if (certificate.NotAfter <= OfficialCertificateExpirePriorWarning)
+                Log.Warn("Your PvP Adventure official server certificate will soon expire!");
+
+            certificates.Add(certificate);
         }
         catch (Exception ex)
         {

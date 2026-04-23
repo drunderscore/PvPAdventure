@@ -90,19 +90,23 @@ internal static class MatchApi
 
         try
         {
-            MatchCreateResponse? response = JsonSerializer.Deserialize<MatchCreateResponse>(trimmed, JsonOptions);
-            if (!string.IsNullOrWhiteSpace(response?.Id))
-                return response.Id;
-        }
-        catch (JsonException)
-        {
-        }
+            using JsonDocument doc = JsonDocument.Parse(trimmed);
+            JsonElement root = doc.RootElement;
 
-        try
-        {
-            string? rawString = JsonSerializer.Deserialize<string>(trimmed, JsonOptions);
-            if (!string.IsNullOrWhiteSpace(rawString))
-                return rawString;
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("id", out JsonElement idElement))
+            {
+                if (idElement.ValueKind == JsonValueKind.String)
+                    return idElement.GetString();
+
+                if (idElement.ValueKind == JsonValueKind.Number)
+                    return idElement.GetRawText();
+            }
+
+            if (root.ValueKind == JsonValueKind.String)
+                return root.GetString();
+
+            if (root.ValueKind == JsonValueKind.Number)
+                return root.GetRawText();
         }
         catch (JsonException)
         {
@@ -240,12 +244,6 @@ internal static class MatchApi
         }
 
         return max + 1;
-    }
-
-    private sealed class MatchCreateResponse
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; } = "";
     }
 
     private sealed class MatchPayload

@@ -1,7 +1,9 @@
 using Microsoft.Xna.Framework;
+using PvPAdventure.Common.MainMenu.API;
 using PvPAdventure.Common.MainMenu.State;
 using PvPAdventure.UI;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.Enums;
@@ -101,28 +103,45 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
     protected override void RefreshContent()
     {
         selectedIndex = -1;
-
         rows.Clear();
         matchList.Clear();
         detailsPanel.RemoveAllChildren();
-
-        SetCurrentAsyncState(AsyncProviderState.Loading);
-
         content = [];
 
-        // Example content for UI testing.
 #if DEBUG
-        bool buildExampleContent = false; // Flip to true for UI testing without API.
+        bool buildExampleContent = false;
         if (buildExampleContent)
         {
             content = MatchHistoryExampleContent.Create();
+            RebuildMatchUi();
+            SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {content.Length} example matches.");
+            return;
         }
 #endif
 
-        // TODO: Call the match history API here and map the response into MatchHistoryUIContent.
+        SetCurrentAsyncState(AsyncProviderState.Loading, FormatLoadingMessage("match history"));
+        ShowLoadingState();
+        _ = RefreshMatchesAsync();
+    }
 
-        RebuildMatchUi();
-        SetCurrentAsyncState(AsyncProviderState.Completed);
+    private async Task RefreshMatchesAsync()
+    {
+        ApiResult<List<MatchResult>> result = await MatchApi.GetMatchesAsync().ConfigureAwait(false);
+
+        Main.QueueMainThreadAction(() =>
+        {
+            if (result.IsSuccess && result.Data != null)
+            {
+                content = [.. result.Data];
+                RebuildMatchUi();
+                SetCurrentAsyncState(AsyncProviderState.Completed, $"Loaded {content.Length} matches.");
+                return;
+            }
+
+            content = [];
+            ShowErrorState(FormatErrorMessage("match history", result.ErrorMessage));
+            SetCurrentAsyncState(AsyncProviderState.Aborted, FormatErrorMessage("match history", result.ErrorMessage));
+        });
     }
 
     private void RebuildMatchUi()
@@ -159,7 +178,7 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
 
     private void ShowEmptyState()
     {
-        MainMenuPageUIState.ShowWrappedMessage(detailsPanel, "No matches available.\nPlay an official TPVPA match to see the match results here.");
+        MainMenuPageUIState.ShowWrappedMessage(detailsPanel, "No matches found.\nAll official TPVPA match results should show up here.");
     }
 
     private void ShowErrorState(string message)

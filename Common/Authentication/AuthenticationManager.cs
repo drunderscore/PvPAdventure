@@ -11,7 +11,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Authentication;
 
-#if !DEBUG
+//#if !DEBUG
 public class AuthenticationManager : ModSystem
 {
     private bool didServerRequestToAuthenticate;
@@ -180,4 +180,4 @@ public class AuthenticationManager : ModSystem
         didServerRequestToAuthenticate = false;
     }
 }
-#endif
+//#endif
