@@ -27,6 +27,34 @@ public class SpawnSystem : ModSystem
     public static bool CanTeleport { get; private set; }
     public static bool IsLocalPlayerInSpawnRegion { get; private set; }
     public static float TeleportIconOpacity => (CanTeleport || IsLocalPlayerInSpawnRegion) ? 1f : 0.3f;
+    public static bool CanUseStoredPortal(Player player)
+    {
+        if (player == null || !player.active)
+            return false;
+
+        if (player.dead)
+            return true;
+
+        if (player.whoAmI == Main.myPlayer)
+            return IsLocalPlayerInSpawnRegion;
+
+        return player.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
+    }
+
+    public static bool IsLocalPlayerReadyForSpawnUi
+    {
+        get
+        {
+            Player local = Main.LocalPlayer;
+            if (local == null || !local.active)
+                return false;
+
+            if (local.dead)
+                return local.respawnTimer <= 2;
+
+            return CanTeleport;
+        }
+    }
 
     public static void SetCanTeleport(bool value) => CanTeleport = value;
 
@@ -59,11 +87,7 @@ public class SpawnSystem : ModSystem
         bool inSubworld = SubworldSystem.AnyActive();
         bool inSpawnRegion = sp.IsPlayerInSpawnRegion();
         IsLocalPlayerInSpawnRegion = inSpawnRegion;
-        bool enteredSpawnRegion = inSpawnRegion && !wasInSpawnRegion;
         wasInSpawnRegion = inSpawnRegion;
-
-        if (enteredSpawnRegion && !local.dead)
-            sp.ClearSelection();
 
         bool usingMirror = IsUsingAdventureMirror(local, out bool mirrorReady, out _);
 
@@ -83,7 +107,7 @@ public class SpawnSystem : ModSystem
 
         if (!local.dead && CanTeleport)
         {
-            bool allowExecute = inSpawnRegion || usingMirror || sp.ExecuteRequested;
+            bool allowExecute = inSpawnRegion || sp.ExecuteRequested;
 
             if (allowExecute)
                 TryExecuteSelection(local, sp);
@@ -155,23 +179,24 @@ public class SpawnSystem : ModSystem
         return true;
     }
 
-    private void TryExecuteSelection(Player p, SpawnPlayer sp)
+    internal static bool TryExecuteSelection(Player p, SpawnPlayer sp)
     {
         if (sp.SelectedType == SpawnType.None)
-            return;
+            return false;
 
         if (p.whoAmI == Main.myPlayer)
             Log.Chat("Executing spawn: " + DescribeSelection(sp.SelectedType, sp.SelectedPlayerIndex));
 
         bool executed = PerformTeleport(p, sp.SelectedType, sp.SelectedPlayerIndex);
         if (!executed)
-            return;
+            return false;
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
             TeleportChat.Announce(p, sp.SelectedType, sp.SelectedPlayerIndex);
 
         sp.ClearExecuteRequest();
         OnTeleportExecuted(p);
+        return true;
     }
 
     private static bool PerformTeleport(Player p, SpawnType type, int idx)
@@ -193,6 +218,9 @@ public class SpawnSystem : ModSystem
                 return TryTeleportToBed(p, p);
 
             case SpawnType.MyPortal:
+                if (!CanUseStoredPortal(p))
+                    return false;
+
                 return TryTeleportToMyPortal(p);
 
             case SpawnType.TeammatePortal:
@@ -290,10 +318,7 @@ public class SpawnSystem : ModSystem
 
     private static void OnTeleportExecuted(Player p)
     {
-        // hard reset mirror use state
-        p.itemTime = 0;
-        p.itemAnimation = 0;
-        p.reuseDelay = 0;
+        AdventureMirror.ResetUseState(p);
 
         SetCanTeleport(false);
 

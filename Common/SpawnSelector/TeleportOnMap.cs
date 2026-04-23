@@ -201,11 +201,8 @@ public class TeleportOnMap : ModSystem
 
         Vector2 pos = portalWorldPos / 16f;
         bool selected = sp.SelectedType == SpawnType.MyPortal;
-        Texture2D tex = Ass.Icon_PortalMinimap2.Value;
-
-        //DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(local), ref context);
-
-        if (!DrawIcon(tex, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
+        bool canUsePortal = SpawnSystem.CanUseStoredPortal(local);
+        if (!DrawIcon(PortalDrawer.GetPortalMinimapAsset(local).Value, pos, selected, instantTeleport && canUsePortal, recallActive && canUsePortal, ref context, out bool hover))
             return false;
 
         if (!hover)
@@ -218,6 +215,12 @@ public class TeleportOnMap : ModSystem
         }
 
         BlockMapInput(local);
+
+        if (!canUsePortal)
+        {
+            text = "Can only teleport to your portal from spawn or while dead";
+            return true;
+        }
 
         if (instantTeleport)
         {
@@ -259,9 +262,7 @@ public class TeleportOnMap : ModSystem
             Vector2 pos = portalWorld / 16f;
             bool selected = sp.SelectedType == SpawnType.TeammatePortal && sp.SelectedPlayerIndex == i;
 
-            //DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(other), ref context);
-
-            if (!DrawIcon(Ass.Icon_Portal3.Value, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
+            if (!DrawIcon(PortalDrawer.GetPortalMinimapAsset(other).Value, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
                 continue;
 
             if (!hover)
@@ -305,7 +306,12 @@ public class TeleportOnMap : ModSystem
     private static bool DrawIcon(Texture2D tex, Vector2 tilePos, bool selected, bool instantTeleport, bool recallActive,
     ref MapOverlayDrawContext context, out bool hover)
     {
-        Color iconColor = Color.White * SpawnSystem.TeleportIconOpacity;
+        Color iconColor = Color.White;
+        if (!SpawnSystem.IsLocalPlayerInSpawnRegion)
+        {
+            iconColor = Color.White * 0.5f;
+        }
+
         bool canHoverZoom = instantTeleport || recallActive;
 
         // Stick: if selected, always 1.8

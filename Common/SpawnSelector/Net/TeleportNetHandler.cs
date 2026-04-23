@@ -36,6 +36,9 @@ public static class TeleportNetHandler
                 break;
 
             case SpawnType.MyPortal:
+                if (!SpawnSystem.CanUseStoredPortal(requester))
+                    return;
+
                 if (!TryGetPortalTeleportPos(requester, requester, out teleportPos))
                     return;
 

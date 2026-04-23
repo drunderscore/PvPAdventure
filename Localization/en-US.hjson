@@ -528,7 +528,7 @@ Mods: {
 
 				ShowTeleportPlayerMessages: {
 					Label: Show Teleport Player Messages
-					Tooltip: ""
+					Tooltip: Sends a team message when players use the spawn selector to teleport
 				}
 			}
 

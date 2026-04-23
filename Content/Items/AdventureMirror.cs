@@ -17,12 +17,15 @@ namespace PvPAdventure.Content.Items;
 internal class AdventureMirror : ModItem
 {
     public override string Texture => $"PvPAdventure/Assets/Items/AdventureMirror";
+
+    private static int GetRecallFrames() =>
+        ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallSeconds * 60;
+
     public override void SetDefaults()
     {
         //Item.CloneDefaults(ItemID.MagicMirror);
 
-        var config = ModContent.GetInstance<ServerConfig>();
-        int recallFrames = config.AdventureMirrorRecallSeconds * 60; // 5 seconds = 60 * 5
+        int recallFrames = GetRecallFrames();
 
         Item.useTime = recallFrames + 3; // + a few frames to ensure countdown shows
         Item.useAnimation = recallFrames + 3; // + a few frames to ensure countdown 
@@ -39,22 +42,42 @@ internal class AdventureMirror : ModItem
     {
         if (player.itemAnimation == Item.useAnimation)
         {
-            ResetUseTimer(player);
+            StartUseCountdown(player);
         }
     }
 
-    private void ResetUseTimer(Player player)
+    private static void StartUseCountdown(Player player)
     {
-        int recallFrames = ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallSeconds * 60;
-        
+        int recallFrames = GetRecallFrames();
+
         player.itemTime = recallFrames + 1;
         player.itemAnimation = recallFrames + 1;
+        player.itemTimeMax = player.itemTime;
+        player.itemAnimationMax = player.itemAnimation;
         player.reuseDelay = 0;
 
-        // Reset portal
+        ResetUseFlags(player);
+    }
+
+    private static void ResetUseFlags(Player player)
+    {
         SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
         sp.SpawnedPortalThisUse = false;
         sp.AdventureMirrorHadCountdownThisUse = false;
+    }
+
+    internal static void ResetUseState(Player player)
+    {
+        player.controlUseItem = false;
+        player.releaseUseItem = false;
+        player.channel = false;
+        player.itemAnimation = 0;
+        player.itemAnimationMax = 0;
+        player.itemTime = 0;
+        player.itemTimeMax = 0;
+        player.reuseDelay = 0;
+
+        ResetUseFlags(player);
     }
 
     #region Right click use
@@ -75,16 +98,19 @@ internal class AdventureMirror : ModItem
         {
             if (player.inventory[i].ModItem is AdventureMirror mirror)
             {
-                mirror.TryUseInternal(player, i);
+                mirror.TryStartUse(player, i, sendNet: true);
                 return;
             }
         }
     }
 
-    private void TryUseInternal(Player player, int index)
+    private void TryStartUse(Player player, int index, bool sendNet)
     {
         SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
         Log.Debug($"[Mirror] try {player.name} slot={index} anim={player.itemAnimation} spawned={sp.SpawnedPortalThisUse}");
+
+        if (sp.SelectedType == SpawnType.MyPortal)
+            sp.ClearSelection();
 
         if (!CanUseItem(player))
         {
@@ -98,9 +124,10 @@ internal class AdventureMirror : ModItem
             return;
         }
 
-        BeginMirrorUse(player, index);
+        if (!BeginMirrorUse(player, index))
+            return;
 
-        if (Main.netMode == NetmodeID.MultiplayerClient)
+        if (sendNet && Main.netMode == NetmodeID.MultiplayerClient)
         {
             ModPacket p = Mod.GetPacket();
             p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
@@ -110,11 +137,9 @@ internal class AdventureMirror : ModItem
         }
     }
 
-    private void BeginMirrorUse(Player player, int index)
+    private bool BeginMirrorUse(Player player, int index)
     {
-        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
-        sp.SpawnedPortalThisUse = false;
-        sp.AdventureMirrorHadCountdownThisUse = false;
+        ResetUseFlags(player);
 
         player.selectedItem = index;
         player.controlUseItem = true;
@@ -125,14 +150,13 @@ internal class AdventureMirror : ModItem
         player.releaseUseItem = false;
         player.channel = false;
 
-        if (player.itemAnimation <= 0)
-        {
-            ResetUseTimer(player);
-            player.itemAnimationMax = player.itemAnimation;
-            player.itemTimeMax = player.itemTime;
-        }
+        if (player.HeldItem?.ModItem is not AdventureMirror || player.itemAnimation <= 0)
+            return false;
+
+        StartUseCountdown(player);
 
         Log.Debug($"[Mirror] begin {player.name} slot={index} ticks={player.itemTime}");
+        return true;
     }
 
     #endregion
@@ -142,12 +166,6 @@ internal class AdventureMirror : ModItem
         if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
         {
             Warning(player, "Mods.PvPAdventure.AdventureMirror.GameNotStarted");
-            return false;
-        }
-
-        if (player.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion())
-        {
-            Warning(player, "Mods.PvPAdventure.AdventureMirror.CannotUseInSpawn");
             return false;
         }
 
@@ -162,26 +180,7 @@ internal class AdventureMirror : ModItem
 
     internal void CancelItemUse(Player player)
     {
-        player.controlUseItem = false;
-        player.channel = false;
-
-        player.itemAnimation = 0;
-        player.itemTime = 0;
-        player.reuseDelay = 0;
-
-        // Reset portal
-        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
-        sp.SpawnedPortalThisUse = false;
-        sp.AdventureMirrorHadCountdownThisUse = false;
-    }
-
-    private static void StopItemUse(Player player)
-    {
-        player.controlUseItem = false;
-        player.channel = false;
-        player.itemAnimation = 0;
-        player.itemTime = 0;
-        player.reuseDelay = 0;
+        ResetUseState(player);
     }
 
     public override void UseStyle(Player player, Rectangle heldItemFrame)
@@ -247,9 +246,19 @@ internal class AdventureMirror : ModItem
             return;
         }
 
+        bool hadSelectionAtFinish = finishedUse && sp.AdventureMirrorHadCountdownThisUse && sp.SelectedType != SpawnType.None;
+
+        if (hadSelectionAtFinish)
+        {
+            sp.RequestExecute();
+
+            if (SpawnSystem.TryExecuteSelection(player, sp))
+                return;
+        }
+
+        bool shouldCreatePortal = finishedUse && sp.AdventureMirrorHadCountdownThisUse && !sp.SpawnedPortalThisUse && !hadSelectionAtFinish;
+
         // Create portal
-        //bool usingExistingPortalAsTarget = sp.SelectedType == SpawnType.MyPortal && PortalSystem.HasPortal(player);
-        bool shouldCreatePortal = finishedUse && sp.AdventureMirrorHadCountdownThisUse && !sp.SpawnedPortalThisUse;
 
         if (framesLeft > 0)
             sp.AdventureMirrorHadCountdownThisUse = true;
@@ -263,7 +272,7 @@ internal class AdventureMirror : ModItem
             ShowPortalCreatedText(player);
             sp.SpawnedPortalThisUse = true;
             PortalSystem.CreatePortalAtPosition(player, player.Bottom);
-            StopItemUse(player);
+            ResetUseState(player);
         }
     }
 
@@ -281,14 +290,14 @@ internal class AdventureMirror : ModItem
             return;
 
         if (color == default)
-            color = PortalSystem.GetPortalColor(player);
+            color = PortalDrawer.GetPortalColor(player);
 
         ShowPopup(player, Language.GetTextValue(localizationKey), color);
     }
 
     private static void ShowPortalCreatedText(Player player)
     {
-        ShowPopup(player, "portal created", PortalSystem.GetPortalColor(player));
+        ShowPopup(player, "portal created", PortalDrawer.GetPortalColor(player));
     }
 
     private static void ShowPopup(Player player, string text, Color color)

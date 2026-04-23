@@ -90,13 +90,15 @@ public sealed class UITeammatePortalButton : UIElement
 
         Vector2 iconCenter = rect.Center.ToVector2();
         iconCenter.Y += 0f;
-        Texture2D icon = Ass.Icon_Portal3.Value;
-        float iconScale = 0.65f;
+
+        float iconScale = 0.45f;
+        float blackOutline = 2.5f;
+        float colorOutline = 2f;
 
         if (hasPortal && owner != null)
-            PortalSystem.DrawOutlinedPortalIcon(sb, icon, iconCenter, iconScale, PortalSystem.GetPortalColor(owner));
+            PortalDrawer.DrawPortalPreview(sb, owner, iconCenter, iconScale, blackOutlineDistance: blackOutline, colorOutlineDistance: colorOutline);
         else
-            sb.Draw(icon, iconCenter, null, Color.White, 0f, icon.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
+            PortalDrawer.DrawPortalPreview(sb, owner, iconCenter, iconScale, outline: false, drawColor: Color.White * 0.65f, blackOutlineDistance: blackOutline, colorOutlineDistance: colorOutline);
 
         if (!hasPortal)
             sb.Draw(Ass.Icon_Forbidden.Value, iconCenter, null, Color.White, 0f, Ass.Icon_Forbidden.Value.Size() * 0.5f, 1.25f, SpriteEffects.None, 0f);

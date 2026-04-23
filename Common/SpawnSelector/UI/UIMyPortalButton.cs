@@ -29,7 +29,7 @@ public class UIMyPortalButton : UIPanel
     {
         base.LeftClick(evt);
 
-        if (HasPortal())
+        if (HasPortal() && SpawnSystem.CanUseStoredPortal(Main.LocalPlayer))
         {
             Main.LocalPlayer.GetModPlayer<SpawnPlayer>().ToggleSelection(SpawnType.MyPortal);
         }
@@ -48,10 +48,12 @@ public class UIMyPortalButton : UIPanel
         if (hasPortal != nowHasPortal)
             hasPortal = nowHasPortal;
 
-        var sp = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
+        Player local = Main.LocalPlayer;
+        var sp = local?.GetModPlayer<SpawnPlayer>();
         bool selected = sp?.SelectedType == SpawnType.MyPortal;
+        bool available = SpawnSystem.CanUseStoredPortal(local);
 
-        if (IsMouseHovering && HasPortal())
+        if (IsMouseHovering && HasPortal() && available)
         {
             SpectateSystem.TrySetHover(SpawnType.MyPortal, Main.myPlayer);
         }
@@ -61,8 +63,8 @@ public class UIMyPortalButton : UIPanel
         }
 
         BackgroundColor =
-            selected ? new Color(220, 220, 0) :
-            !hasPortal ? new Color(230, 40, 10) * 0.37f :
+            selected && available ? new Color(220, 220, 0) :
+            !hasPortal || !available ? new Color(230, 40, 10) * 0.37f :
             IsMouseHovering ? new Color(73, 92, 161, 150) :
             new Color(63, 82, 151) * 0.8f;
     }
@@ -76,17 +78,16 @@ public class UIMyPortalButton : UIPanel
 
         var d = GetDimensions();
         Vector2 pos = new(d.X + d.Width * 0.5f, d.Y + d.Height * 0.5f);
-        var tex = Ass.Icon_Portal2.Value;
-        float scale = 1.0f;
 
-        // Draw portal icon
-        if (hasPortal)
-            PortalSystem.DrawOutlinedPortalIcon(sb, tex, pos, scale, PortalSystem.GetPortalColor(Main.LocalPlayer));
+        float iconScale = 0.8f;
+
+        if (hasPortal && SpawnSystem.CanUseStoredPortal(Main.LocalPlayer))
+            PortalDrawer.DrawPortalPreview(sb, Main.LocalPlayer, pos, iconScale);
         else
-            sb.Draw(tex, pos, null, Color.White, 0f, tex.Size() * 0.5f, scale, SpriteEffects.None, 0f);
+            PortalDrawer.DrawPortalPreview(sb, Main.LocalPlayer, pos, iconScale, outline: false, drawColor: Color.White * 0.65f);
 
-        // Draw forbidden icon above if the player does not have a portal
-        if (!hasPortal)
+        // Draw forbidden icon above if the player does not have a portal or cannot use it right now
+        if (!hasPortal || !SpawnSystem.CanUseStoredPortal(Main.LocalPlayer))
         {
             Vector2 origin = Ass.Icon_Forbidden.Value.Size() * 0.5f;
             sb.Draw(Ass.Icon_Forbidden.Value, pos, null, Color.White, 0f, origin, 2f, SpriteEffects.None, 0f);
@@ -106,13 +107,18 @@ public class UIMyPortalButton : UIPanel
         var sp = p.GetModPlayer<SpawnPlayer>();
 
         bool committed = sp.SelectedType == SpawnType.MyPortal;
-        bool ready = !SpawnSystem.CanTeleport;
+        bool ready = !SpawnSystem.IsLocalPlayerReadyForSpawnUi;
 
         string text;
 
         if (!HasPortal())
         {
             text = "No portal set";
+        }
+        else if (!SpawnSystem.CanUseStoredPortal(p))
+        {
+            //text = "Can only teleport to your portal from a spawn region";
+            text = "Your portal is being created...";
         }
         else if (ready)
         {
