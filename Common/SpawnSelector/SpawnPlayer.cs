@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spawnbox;
+using PvPAdventure.Common.SpawnSelector.Net;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Terraria;
@@ -33,6 +34,74 @@ public class SpawnPlayer : ModPlayer
     private int lastSelectedPlayerIndex = -1;
 
     public bool ExecuteRequested { get; private set; }
+
+    public bool SpawnedPortalThisUse;
+    public bool AdventureMirrorHadCountdownThisUse;
+
+    #region Portal
+    private bool hasPortal;
+    private Vector2 portalWorldPos;
+
+    public void SetPortal(Vector2 worldPos, bool sync = true)
+    {
+        hasPortal = true;
+        portalWorldPos = worldPos;
+
+        if (sync)
+            SyncPortal();
+    }
+
+    public void ClearPortal(bool sync = true)
+    {
+        if (!hasPortal && portalWorldPos == default)
+            return;
+
+        hasPortal = false;
+        portalWorldPos = default;
+
+        if (SelectedType == SpawnType.MyPortal || SelectedType == SpawnType.TeammatePortal)
+            ClearSelection();
+
+        if (sync)
+            SyncPortal();
+    }
+
+    internal void ApplyPortalFromNet(bool hasPortal, Vector2 worldPos)
+    {
+        this.hasPortal = hasPortal;
+        portalWorldPos = hasPortal ? worldPos : default;
+
+        if (Main.netMode == NetmodeID.Server || hasPortal)
+            return;
+
+        SpawnPlayer local = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
+        if (local != null &&
+            local.SelectedType == SpawnType.TeammatePortal &&
+            local.SelectedPlayerIndex == Player.whoAmI)
+        {
+            local.ClearSelection();
+        }
+    }
+
+    public static bool HasPortal(Player player)
+    {
+        return player != null && player.active && player.GetModPlayer<SpawnPlayer>().hasPortal;
+    }
+
+    public static bool TryGetPortalWorldPos(Player player, out Vector2 worldPos)
+    {
+        worldPos = default;
+        if (player == null || !player.active)
+            return false;
+
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        if (!sp.hasPortal)
+            return false;
+
+        worldPos = sp.portalWorldPos;
+        return true;
+    }
+    #endregion
 
     public void RequestExecute()
     {
@@ -78,7 +147,7 @@ public class SpawnPlayer : ModPlayer
         bool same = prevType == newType;
         if (same)
         {
-            if (newType == SpawnType.Teammate || newType == SpawnType.TeammateBed)
+            if (newType == SpawnType.TeammateBed || newType == SpawnType.TeammatePortal)
                 same = prevIdx == newIdx;
         }
 
@@ -123,13 +192,6 @@ public class SpawnPlayer : ModPlayer
             Player.respawnTimer = 1;
 
         SendSelectionIfNeeded();
-    }
-    public void RestoreLastSelection()
-    {
-        if (lastSelectedType == SpawnType.None)
-            return;
-
-        ToggleSelection(lastSelectedType, lastSelectedPlayerIndex);
     }
 
     internal void ApplySelectionFromNet(SpawnType type, int idx)
@@ -185,7 +247,10 @@ public class SpawnPlayer : ModPlayer
         base.Kill(damage, hitDirection, pvp, damageSource);
 
         if (Player.whoAmI == Main.myPlayer)
+        {
+            PortalSystem.ClearPortal(Player);
             TryAutoSelectLatestSelection();
+        }
     }
 
     public bool TryAutoSelectLatestSelection()
@@ -219,7 +284,7 @@ public class SpawnPlayer : ModPlayer
     {
         SelectedType = type;
 
-        if (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
+        if (type == SpawnType.TeammateBed || type == SpawnType.TeammatePortal)
             SelectedPlayerIndex = idx;
         else
             SelectedPlayerIndex = -1;
@@ -261,9 +326,19 @@ public class SpawnPlayer : ModPlayer
             return;
         }
 
-        if (normalizedType == SpawnType.Teammate)
+        if (normalizedType == SpawnType.MyPortal)
         {
-            if (!SpawnSystem.IsValidTeammateIndex(Player, normalizedIdx))
+            bool ok = PortalSystem.HasPortal(Player);
+            if (!ok)
+                normalizedType = SpawnType.None;
+
+            normalizedIdx = -1;
+            return;
+        }
+
+        if (normalizedType == SpawnType.TeammateBed)
+        {
+            if (!IsValidTeammateBedIndex(Player, normalizedIdx))
             {
                 normalizedType = SpawnType.None;
                 normalizedIdx = -1;
@@ -272,9 +347,9 @@ public class SpawnPlayer : ModPlayer
             return;
         }
 
-        if (normalizedType == SpawnType.TeammateBed)
+        if (normalizedType == SpawnType.TeammatePortal)
         {
-            if (!IsValidTeammateBedIndex(Player, normalizedIdx))
+            if (!IsValidTeammatePortalIndex(Player, normalizedIdx))
             {
                 normalizedType = SpawnType.None;
                 normalizedIdx = -1;
@@ -314,24 +389,28 @@ public class SpawnPlayer : ModPlayer
         return true;
     }
 
-    private static string FormatSpawn(SpawnType type, int idx)
+    internal static bool IsValidTeammatePortalIndex(Player requester, int idx)
     {
-        if (type == SpawnType.Teammate)
-            return $"Player ({GetPlayerNameSafe(idx)})";
+        if (requester == null || !requester.active)
+            return false;
 
-        if (type == SpawnType.TeammateBed)
-            return $"Bed ({GetPlayerNameSafe(idx)})";
-
-        return type.ToString();
-    }
-
-    private static string GetPlayerNameSafe(int idx)
-    {
         if (idx < 0 || idx >= Main.maxPlayers)
-            return "<unknown>";
+            return false;
 
-        Player p = Main.player[idx];
-        return p?.name ?? "<unknown>";
+        Player portalOwner = Main.player[idx];
+        if (portalOwner == null || !portalOwner.active)
+            return false;
+
+        if (!HasPortal(portalOwner))
+            return false;
+
+        if (idx == requester.whoAmI)
+            return true;
+
+        if (requester.team == 0 || portalOwner.team != requester.team)
+            return false;
+
+        return true;
     }
 
     private void SendSelectionIfNeeded()
@@ -347,6 +426,25 @@ public class SpawnPlayer : ModPlayer
         packet.Write((byte)SelectedType);
         packet.Write((short)SelectedPlayerIndex);
         packet.Send();
+    }
+
+    private void SyncPortal()
+    {
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            return;
+
+        if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI != Main.myPlayer)
+            return;
+
+        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos);
+    }
+
+    public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
+    {
+        if (!hasPortal)
+            return;
+
+        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, toWho, fromWho);
     }
 
     private void UpdatePlayerSpawnpoint()
@@ -385,6 +483,7 @@ public class SpawnPlayer : ModPlayer
 
     private bool ComputeIsPlayerInSpawnRegion(Point tilePos)
     {
+        // Check if player is in spawnbox
         var regionManager = ModContent.GetInstance<RegionManager>();
         if (regionManager.GetRegionContaining(tilePos) != null)
             return true;
@@ -392,6 +491,7 @@ public class SpawnPlayer : ModPlayer
         const float radiusWorld = 8f * 16f;
         const float radiusSq = radiusWorld * radiusWorld;
 
+        // Check if player is within my own bed tile pos
         if (Player.SpawnX >= 0 && Player.SpawnY >= 0)
         {
             Vector2 bedWorld = new Vector2(Player.SpawnX * 16f+1, Player.SpawnY * 16f);
@@ -416,6 +516,7 @@ public class SpawnPlayer : ModPlayer
             }
         }
 
+        // Check if player is within a teammate bed tile pos
         for (int i = 0; i < Main.maxPlayers; i++)
         {
             Player other = Main.player[i];
@@ -436,6 +537,27 @@ public class SpawnPlayer : ModPlayer
                 return true;
         }
 
+        // Check if player is within my portal world pos
+        if (PortalSystem.TryGetPortalWorldPos(Player, out Vector2 portalWorld) && Vector2.DistanceSquared(portalWorld, Player.Center) <= radiusSq)
+            return true;
+
+        // Check if player is within a teammate's portal world pos
+        for (int i = 0; i < Main.maxPlayers; i++)
+        {
+            Player other = Main.player[i];
+            if (other == null || !other.active || other.whoAmI == Player.whoAmI)
+                continue;
+
+            if (other.team == 0 || other.team != Player.team)
+                continue;
+
+            if (!PortalSystem.TryGetPortalWorldPos(other, out Vector2 teammatePortalWorld))
+                continue;
+
+            if (Vector2.DistanceSquared(teammatePortalWorld, Player.Center) <= radiusSq)
+                return true;
+        }
+
         return false;
     }
 
@@ -444,4 +566,26 @@ public class SpawnPlayer : ModPlayer
         lastSelectedType = SpawnType.None;
         lastSelectedPlayerIndex = -1;
     }
+
+    #region Helpers
+    private static string FormatSpawn(SpawnType type, int idx)
+    {
+        if (type == SpawnType.TeammateBed)
+            return $"Bed ({GetPlayerNameSafe(idx)})";
+
+        if (type == SpawnType.TeammatePortal)
+            return $"Portal ({GetPlayerNameSafe(idx)})";
+
+        return type.ToString();
+    }
+
+    private static string GetPlayerNameSafe(int idx)
+    {
+        if (idx < 0 || idx >= Main.maxPlayers)
+            return "<unknown>";
+
+        Player p = Main.player[idx];
+        return p?.name ?? "<unknown>";
+    }
+    #endregion
 }

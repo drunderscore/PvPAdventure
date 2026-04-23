@@ -17,7 +17,7 @@ namespace PvPAdventure.Common.SpawnSelector.UI;
 /// The main state containing all elements for the spawn and spectate UI.
 /// Contains the following UI:
 /// <see cref="UIWorldSpawnPanel"/>
-/// <see cref="UISpawnCharacter"/> (which contains: <seealso cref="UIBedButton"/>)
+/// <see cref="UITeammatePanel"/> (which contains: <seealso cref="UITeammateBedButton"/>)
 /// <see cref="UIRandomTeleportPanel"/>
 /// </summary>
 public class UISpawnState : UIState
@@ -31,12 +31,7 @@ public class UISpawnState : UIState
     private UIRandomTeleportPanel randomPanel;
     private UIMyBedButton myBedPanel;
     private UIWorldSpawnPanel worldSpawnPanel;
-    private readonly List<UISpawnCharacter> playerItems = []; // list of teammate player UI items
-
-    // Dimensions
-    private const float Spacing = 8f; // between items
-    private const float HorizontalPadding = 16f; // panel padding
-    private const float VerticalPadding = 12f; // panel padding
+    private readonly List<UITeammatePanel> playerItems = []; // list of teammate player UI items
 
     // Rebuild frequently
     private bool _forceRebuild;
@@ -101,18 +96,18 @@ public class UISpawnState : UIState
 #if DEBUG
         if (!Main.drawingPlayerChat)
         {
-            if (Main.keyState.IsKeyDown(Keys.L) && !Main.oldKeyState.IsKeyDown(Keys.L))
+            if (Main.keyState.IsKeyDown(Keys.NumPad1) && !Main.oldKeyState.IsKeyDown(Keys.NumPad1))
             {
                 s_debugExtraLocalCopies++;
-                Log.Chat($"Extra copies: {s_debugExtraLocalCopies}. Use J or L to adjust.");
+                Log.Chat($"Extra copies: {s_debugExtraLocalCopies}. Use Numpad1/2 to adjust.");
                 Rebuild();
             }
-            else if (Main.keyState.IsKeyDown(Keys.J) && !Main.oldKeyState.IsKeyDown(Keys.J))
+            else if (Main.keyState.IsKeyDown(Keys.NumPad2) && !Main.oldKeyState.IsKeyDown(Keys.NumPad2))
             {
                 if (s_debugExtraLocalCopies > 0)
                 {
                     s_debugExtraLocalCopies--;
-                    Log.Chat($"Extra copies: {s_debugExtraLocalCopies}. Use J or L to adjust.");
+                    Log.Chat($"Extra copies: {s_debugExtraLocalCopies}. Use Numpad1/2 to adjust.");
                 }
 
                 Rebuild();
@@ -162,8 +157,8 @@ public class UISpawnState : UIState
 
         int playerCount = players.Count;
 
-        var density = UISpawnCharacter.GetDensityForTeammateCount(playerCount);
-        float itemWidth = UISpawnCharacter.GetItemWidth(density);
+        var density = UITeammatePanel.GetDensityForTeammateCount(playerCount);
+        float itemWidth = UITeammatePanel.GetItemWidth(density);
 
         // Dimensions
         float itemHeight = 64;
@@ -179,9 +174,11 @@ public class UISpawnState : UIState
         }
 
         float contentWidth =
-            itemHeight + itemHeight +
-            (playerCount * itemWidth) +
-            itemHeight +
+            itemHeight +           // world spawn
+            itemHeight +           // my bed
+            itemHeight +           // my portal
+            (playerCount * itemWidth) + // players
+            itemHeight +           // random
             (gaps * Spacing);
 
         float panelWidth = contentWidth + HorizontalPadding * 2f + HorizontalPadding;
@@ -210,10 +207,18 @@ public class UISpawnState : UIState
         backgroundPanel.Append(myBedPanel);
         x += itemHeight + Spacing;
 
+        // My portal button
+        bool hasPortal = PortalSystem.HasPortal(Main.LocalPlayer);
+        var myPortalPanel = new UIMyPortalButton(itemHeight, hasPortal);
+        myPortalPanel.Left.Set(x, 0f);
+        myPortalPanel.Top.Set(y, 0f);
+        backgroundPanel.Append(myPortalPanel);
+        x += itemHeight + Spacing;
+
         // Players
         for (int i = 0; i < playerCount; i++)
         {
-            var row = new UISpawnCharacter(players[i].whoAmI, density);
+            var row = new UITeammatePanel(players[i].whoAmI, density);
             row.Left.Set(x, 0f);
             row.Top.Set(y, 0f);
             row.Activate();

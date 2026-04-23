@@ -58,6 +58,11 @@ public class SpawnHooks : ModSystem
         );
     }
 
+    private static Vector2 PortalTeleportPos(Player player, Vector2 portalWorldPos)
+    {
+        return portalWorldPos - new Vector2(player.width * 0.5f, player.height);
+    }
+
     private void ApplySelectedSpawn(On_Player.orig_Spawn_SetPosition orig, Player self, int floorX, int floorY)
     {
         SpawnPlayer sp = self.GetModPlayer<SpawnPlayer>();
@@ -79,6 +84,7 @@ public class SpawnHooks : ModSystem
                 Player.Spawn_ForceClearArea(fx, fy);
 
             orig(self, fx, fy);
+            TeleportChat.Announce(self, type);
             sp.ClearSelection();
             return;
         }
@@ -90,20 +96,38 @@ public class SpawnHooks : ModSystem
             if (Main.netMode == NetmodeID.MultiplayerClient)
                 NetMessage.SendData(MessageID.RequestTeleportationByServer);
             else
+            {
                 self.TeleportationPotion();
+                TeleportChat.Announce(self, type);
+            }
 
             sp.ClearSelection();
             return;
         }
 
-        if (type == SpawnType.Teammate)
+        if (type == SpawnType.MyPortal)
+        {
+            if (PortalSystem.TryGetPortalWorldPos(self, out Vector2 portalWorldPos))
+            {
+                TeleportAndSync(self, PortalTeleportPos(self, portalWorldPos));
+                TeleportChat.Announce(self, type);
+            }
+
+            sp.ClearSelection();
+            return;
+        }
+
+        if (type == SpawnType.TeammatePortal)
         {
             int idx = sp.SelectedPlayerIndex;
-            if (SpawnSystem.IsValidTeammateIndex(idx))
+            if (SpawnPlayer.IsValidTeammatePortalIndex(self, idx))
             {
-                Player t = Main.player[idx];
-                if (t != null && t.active && !t.dead)
-                    TeleportAndSync(self, t.position);
+                Player portalOwner = Main.player[idx];
+                if (PortalSystem.TryGetPortalWorldPos(portalOwner, out Vector2 portalWorldPos))
+                {
+                    TeleportAndSync(self, PortalTeleportPos(self, portalWorldPos));
+                    TeleportChat.Announce(self, type, idx);
+                }
             }
 
             sp.ClearSelection();

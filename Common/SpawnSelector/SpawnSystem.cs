@@ -147,26 +147,6 @@ public class SpawnSystem : ModSystem
         return true;
     }
 
-    public static bool IsValidTeammateIndex(Player requester, int idx)
-    {
-        if (requester == null || !requester.active)
-            return false;
-
-        if (idx < 0 || idx >= Main.maxPlayers)
-            return false;
-
-        Player t = Main.player[idx];
-        if (t == null || !t.active || t.dead)
-            return false;
-
-        if (requester.team == 0 || t.team != requester.team)
-            return false;
-
-        return true;
-    }
-
-    public static bool IsValidTeammateIndex(int idx) => IsValidTeammateIndex(Main.LocalPlayer, idx);
-
     private void TryExecuteSelection(Player p, SpawnPlayer sp)
     {
         if (sp.SelectedType == SpawnType.None)
@@ -178,6 +158,9 @@ public class SpawnSystem : ModSystem
         bool executed = PerformTeleport(p, sp.SelectedType, sp.SelectedPlayerIndex);
         if (!executed)
             return;
+
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            TeleportChat.Announce(p, sp.SelectedType, sp.SelectedPlayerIndex);
 
         sp.ClearExecuteRequest();
         OnTeleportExecuted(p);
@@ -201,20 +184,18 @@ public class SpawnSystem : ModSystem
             case SpawnType.MyBed:
                 return TryTeleportToBed(p, p);
 
+            case SpawnType.MyPortal:
+                return TryTeleportToMyPortal(p);
+
+            case SpawnType.TeammatePortal:
+                if (!SpawnPlayer.IsValidTeammatePortalIndex(p, idx))
+                    return false;
+
+                return TryTeleportToPortal(p, Main.player[idx]);
+
             case SpawnType.Random:
                 p.TeleportationPotion();
                 SoundEngine.PlaySound(SoundID.Item6, p.Center);
-                return true;
-
-            case SpawnType.Teammate:
-                if (!IsValidTeammateIndex(p, idx))
-                    return false;
-
-                Player t = Main.player[idx];
-                if (t == null || !t.active || t.dead)
-                    return false;
-
-                p.UnityTeleport(t.position);
                 return true;
 
             case SpawnType.TeammateBed:
@@ -230,6 +211,24 @@ public class SpawnSystem : ModSystem
             default:
                 return false;
         }
+    }
+
+    private static bool TryTeleportToMyPortal(Player player)
+    {
+        return TryTeleportToPortal(player, player);
+    }
+
+    private static bool TryTeleportToPortal(Player player, Player portalOwner)
+    {
+        if (portalOwner == null || !portalOwner.active)
+            return false;
+
+        if (!PortalSystem.TryGetPortalWorldPos(portalOwner, out Vector2 worldPos))
+            return false;
+
+        Vector2 topLeft = worldPos - new Vector2(player.width * 0.5f, player.height);
+        player.Teleport(topLeft, TeleportationStyleID.RecallPotion);
+        return true;
     }
 
     private static bool TryTeleportToBed(Player requester, Player bedOwner)
@@ -252,7 +251,7 @@ public class SpawnSystem : ModSystem
         pkt.Write((byte)Main.myPlayer);
         pkt.Write((byte)type);
 
-        if (type == SpawnType.Teammate || type == SpawnType.TeammateBed)
+        if (type == SpawnType.TeammateBed || type == SpawnType.TeammatePortal)
             pkt.Write((short)idx);
 
         pkt.Send();
@@ -263,7 +262,7 @@ public class SpawnSystem : ModSystem
 
     private static string DescribeSelection(SpawnType type, int idx)
     {
-        if (type != SpawnType.Teammate && type != SpawnType.TeammateBed)
+        if (type != SpawnType.TeammateBed && type != SpawnType.TeammatePortal)
             return type.ToString();
 
         return type.ToString() + " (" + GetPlayerNameSafe(idx) + ")";
@@ -296,6 +295,7 @@ public class SpawnSystem : ModSystem
         p.GetModPlayer<SpawnPlayer>().ClearSelection();
     }
 
+    #region Load hooks
     public override void OnWorldLoad()
     {
         ui = new UserInterface();
@@ -310,7 +310,9 @@ public class SpawnSystem : ModSystem
         SetCanTeleport(false);
         Main.OnPostFullscreenMapDraw -= DrawOnFullscreenMap;
     }
+    #endregion
 
+    #region Drawing
     private void DrawAdventureMirrorTimer(SpriteBatch sb)
     {
         Player local = Main.LocalPlayer;
@@ -374,10 +376,13 @@ public class SpawnSystem : ModSystem
             InterfaceScaleType.UI
         ));
     }
+    #endregion
 
+    #region Helpers
     private static bool IsAnyConfigUIOpen()
     {
         UIState s = Main.InGameUI?._currentState;
         return s is UIModConfig || s is UIModConfigList || Main.ingameOptionsWindow;
     }
+    #endregion
 }

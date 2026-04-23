@@ -14,7 +14,7 @@ namespace PvPAdventure.Common.SpawnSelector.UI;
 /// <summary>
 /// Character row of a player in the spawn selector UI.
 /// </summary>
-public class UISpawnCharacter : UIPanel
+public class UITeammatePanel : UIPanel
 {
     public const float ItemWidth = 260f;
     public const float ItemHeight = 72f;
@@ -27,8 +27,9 @@ public class UISpawnCharacter : UIPanel
     public int PlayerIndex => playerIndex;
 
     // UI
-    private UIBedButton bedButton;
-    
+    private UITeammateBedButton bedButton;
+    private UITeammatePortalButton portalButton;
+
     #region Row Density
     public enum RowDensity
     {
@@ -41,6 +42,11 @@ public class UISpawnCharacter : UIPanel
 
     public static RowDensity GetDensityForTeammateCount(int teammateCount)
     {
+        // Debug: keep this code commented out!
+#if DEBUG
+        //return RowDensity.Compact;
+#endif
+
         if (teammateCount > 8)
             return RowDensity.UltraCompact;
 
@@ -62,7 +68,7 @@ public class UISpawnCharacter : UIPanel
     
     #endregion
 
-    public UISpawnCharacter(int _playerIndex, RowDensity density)
+    public UITeammatePanel(int _playerIndex, RowDensity density)
     {
         playerIndex = _playerIndex;
         rowDensity = density;
@@ -72,10 +78,18 @@ public class UISpawnCharacter : UIPanel
         innerPanelTexture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
         playerBGTexture = Ass.CustomPlayerBackground;
 
-        // Bed button (top-right)
         var player = Main.player[playerIndex];
+        bool hasPortal = PortalSystem.HasPortal(player);
         bool hasBed = player.SpawnX != -1 && player.SpawnY != -1;
-        bedButton = new UIBedButton(playerIndex, hasBed);
+
+        // Teammate Portal button
+        portalButton = new UITeammatePortalButton(playerIndex, hasPortal);
+        portalButton.Top.Set(-2f, 0f);
+        portalButton.Left.Set(itemWidth - 92, 0f);
+        Append(portalButton);
+
+        // Teammate Bed button
+        bedButton = new UITeammateBedButton(playerIndex, hasBed);
         bedButton.Top.Set(-2f, 0f);
         bedButton.Left.Set(itemWidth - 52, 0f);
         Append(bedButton);
@@ -96,108 +110,18 @@ public class UISpawnCharacter : UIPanel
         SetPadding(6f);
     }
 
-    public override void LeftClick(UIMouseEvent evt)
-    {
-        base.LeftClick(evt);
-
-        if (bedButton != null && bedButton.IsMouseHovering)
-            return;
-
-        //bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
-        //if (!playing)
-            //return;
-
-        Player local = Main.LocalPlayer;
-        if (local == null || !local.active)
-            return;
-
-        // Only allow selecting valid teammates
-        if (!SpawnSystem.IsValidTeammateIndex(playerIndex))
-            return;
-
-        local.GetModPlayer<SpawnPlayer>()
-            .ToggleSelection(SpawnType.Teammate, playerIndex);
-    }
-
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
 
-        Player local = Main.LocalPlayer;
-        if (local == null || !local.active)
-            return;
-
-        Player target = Main.player[playerIndex];
-        bool validTarget =
-            target != null &&
-            target.active &&
-            !target.dead &&
-            SpawnSystem.IsValidTeammateIndex(playerIndex);
-
-        bool hovering = IsMouseHovering && validTarget;
-
-        // Hover routing
-        if (hovering)
-        {
-            if (SpectateSystem.HoveringType != SpawnType.TeammateBed)
-            {
-                SpectateSystem.TrySetHover(SpawnType.Teammate, playerIndex);
-            }
-
-            local.mouseInterface = true;
-        }
+        if (IsLiveSpectateHover())
+            SpectateSystem.TrySetTeammatePlayerHover(playerIndex);
         else
-        {
-            if (SpectateSystem.HoveringType == SpawnType.Teammate &&
-                SpectateSystem.HoveredPlayerIndex == playerIndex)
-            {
-                SpectateSystem.ClearHoverIfMatch(SpawnType.Teammate, playerIndex);
-            }
-        }
+            SpectateSystem.ClearTeammatePlayerHoverIfMatch(playerIndex);
 
-        var sp = local.GetModPlayer<SpawnPlayer>();
-        bool selected =
-            sp.SelectedType == SpawnType.Teammate &&
-            sp.SelectedPlayerIndex == playerIndex;
-
-        BackgroundColor =
-            selected ? Color.Gold :
-            hovering ? new Color(73, 92, 161, 150) :
-            new Color(63, 82, 151) * 0.8f;
-    }
-
-    private void DrawHoverText(Player player)
-    {
-        if (player == null || !player.active)
-            return;
-
-        if (!player.dead)
-        {
-            // Prevent clicks/pings while hovering the UI element.
-            player.mouseInterface = true;
-
-            var sp = player.GetModPlayer<SpawnPlayer>();
-
-            bool committed = sp.SelectedType == SpawnType.Teammate;
-            bool ready = !SpawnSystem.CanTeleport;
-
-            string text;
-
-            if (ready)
-            {
-                text = committed
-                    ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammateSpawn", player.name)
-                    : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammateSpawn", player.name);
-            }
-            else
-            {
-                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammate", player.name);
-            }
-            Main.instance.MouseText(text);
-            return;
-        }
-
-        Main.instance.MouseText("Cannot respawn (player dead)");
+        BackgroundColor = IsLiveSpectateHover()
+            ? new Color(73, 92, 161, 150)
+            : new Color(63, 82, 151) * 0.8f;
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -222,9 +146,7 @@ public class UISpawnCharacter : UIPanel
         Vector2 pos = new(inner.X, inner.Y);
 
         // Set Ultra compact width
-        int leftRectWidth = (int)(115 / 1.1f);
-        if (rowDensity == RowDensity.UltraCompact)
-            leftRectWidth = (int)itemWidth;
+        int leftRectWidth = GetLeftRectWidth();
 
         // Main rectangle for player drawing
         Rectangle rect = new(
@@ -237,28 +159,48 @@ public class UISpawnCharacter : UIPanel
         DrawMapFullscreenBackground(sb, rect, player);
         DrawPlayerHead(player, pos);
 
-        // Draw hover text for ultra compact mode
+        if (IsLiveSpectateHover())
+            DrawSpectateHoverText(player);
+
         if (rowDensity == RowDensity.UltraCompact)
-        {
-            if (IsMouseHovering)
-                DrawHoverText(player);
             return;
-        }
 
         // Draw statpanel
         DrawNameAndStatPanel(sb, inner, player.name, player.statLife, player.statMana);
 
         // Draw skull and respawn timer
-        int respawnTimer = player.respawnTimer;
-        if (respawnTimer != 0)
-            DrawRespawnTimerAndDeadIcon(sb, respawnTimer, rect);
+        if (player.dead && player.respawnTimer > 0)
+            DrawRespawnTimerAndDeadIcon(sb, player.respawnTimer, rect);
 
-        // Draw hover text
-        if (IsMouseHovering)
-            DrawHoverText(player);
     }
 
     #region Draw Helpers
+
+    private bool IsLiveSpectateHover()
+    {
+        return IsMouseHovering && !IsMouseOverButton();
+    }
+
+    private bool IsMouseOverButton()
+    {
+        Point mouse = Main.MouseScreen.ToPoint();
+        return IsMouseOverElement(portalButton, mouse) || IsMouseOverElement(bedButton, mouse);
+    }
+
+    private static bool IsMouseOverElement(UIElement element, Point mouse)
+    {
+        return element != null && element.GetDimensions().ToRectangle().Contains(mouse);
+    }
+
+    private static void DrawSpectateHoverText(Player player)
+    {
+        Player local = Main.LocalPlayer;
+        if (local == null || !local.active)
+            return;
+
+        local.mouseInterface = true;
+        Main.instance.MouseText(Language.GetTextValue("Mods.PvPAdventure.Spawn.SpectatingPlayer", player.name));
+    }
 
     private void DrawPlayerHead(Player player, Vector2 pos)
     {
@@ -297,46 +239,23 @@ public class UISpawnCharacter : UIPanel
 
         string name = string.IsNullOrWhiteSpace(playerName) ? "Unknown player" : playerName;
 
+#if DEBUG
         // Debug long name: do not delete!
         //name = "123456";
         //name = "123456789";
         //name = "1234567890";
         //name = "1234567890123";
         //name = "1234567890123456";
+#endif
 
-        // WORKING logic for right-aligning name to the edge of the bed properly!
-        int rightInset = rowDensity == RowDensity.Compact ? 41 : 48;
-        float nameRight = inner.X + inner.Width - rightInset;
-        float nameScale = rowDensity == RowDensity.Compact ? 0.8f : 1f;
-        float nameY = inner.Y + (rowDensity == RowDensity.Compact ? 2f : 0f);
-        Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name);
-        float borderPad = 2f * nameScale;
-        float scaledW = nameSize.X * nameScale;
-        float nameX = nameRight - (scaledW + borderPad);
-        if (nameX < inner.X)
-            nameX = inner.X;
+        Rectangle nameRect = GetNameRect(inner, rightAreaLeft);
+        float nameScale = FitNameScale(name, nameRect.Width, rowDensity == RowDensity.Compact ? 0.7f : 0.85f);
+        name = TrimToWidth(name, nameRect.Width - 4f, nameScale);
+        Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * nameScale;
+        Vector2 namePos = new(nameRect.Center.X - nameSize.X * 0.5f, nameRect.Center.Y - nameSize.Y * 0.5f + 2f);
 
-        // Custom extra logic to handle long names with smaller smale
-        if (rowDensity == RowDensity.Normal)
-        {
-            if (name.Length > 4 && name.Length <=6)
-            {
-                nameX -= 9f;
-            }
-            if (name.Length == 12) nameX += 5f;
-
-            if (name.Length > 12)
-            {
-                nameScale = 0.8f;
-                nameY += 3f;
-                nameX += 17f;
-            }
-            if (name.Length > 13) nameX += 9f;
-            if (name.Length > 14) nameX += 9f;
-            if (name.Length > 15) nameX += 5f;
-        }
-
-        Utils.DrawBorderString(sb, name, new Vector2(nameX, nameY), Color.White, nameScale);
+        Utils.DrawBorderString(sb, name, namePos, Color.White, nameScale);
+        DrawDebugNameRect(nameRect);
 
 
         // Draw divider
@@ -404,6 +323,66 @@ public class UISpawnCharacter : UIPanel
         }
     }
 
+    private int GetLeftRectWidth()
+    {
+        if (rowDensity == RowDensity.UltraCompact)
+            return (int)itemWidth;
+
+        return (int)(115 / 1.1f);
+    }
+
+    private Rectangle GetNameRect(CalculatedStyle inner, float rightAreaLeft)
+    {
+        if (rowDensity == RowDensity.Compact)
+            return new Rectangle((int)inner.X - 1, (int)inner.Y - 2, GetLeftRectWidth() - 10, 18);
+
+        float left = rightAreaLeft - 16f;
+        float right = GetFirstButtonLeft(inner.X + inner.Width) - 4f;
+        return new Rectangle((int)left, (int)inner.Y, Math.Max(1, (int)(right - left)), 20);
+    }
+
+    private float GetFirstButtonLeft(float fallback)
+    {
+        float left = fallback;
+
+        if (portalButton != null)
+            left = Math.Min(left, portalButton.GetDimensions().X);
+
+        if (bedButton != null)
+            left = Math.Min(left, bedButton.GetDimensions().X);
+
+        return left;
+    }
+
+    private static float FitNameScale(string text, float width, float maxScale)
+    {
+        float textWidth = FontAssets.MouseText.Value.MeasureString(text).X;
+        if (textWidth <= 0f)
+            return maxScale;
+
+        return Math.Clamp((width - 4f) / textWidth, 0.55f, maxScale);
+    }
+
+    private static string TrimToWidth(string text, float width, float scale)
+    {
+        const string suffix = "..";
+        if (FontAssets.MouseText.Value.MeasureString(text).X * scale <= width)
+            return text;
+
+        while (text.Length > 1 && FontAssets.MouseText.Value.MeasureString(text + suffix).X * scale > width)
+            text = text[..^1];
+
+        return text + suffix;
+    }
+
+    private static void DrawDebugNameRect(Rectangle rect)
+    {
+#if DEBUG
+        DebugDrawer.DrawScreenRectangle(rect, Color.Red * 0.4f);
+        DebugDrawer.DrawText($"{rect.Width}x{rect.Height}", new Vector2(rect.X + 2f, rect.Y + 2f), Color.LightGray * 0.6f);
+#endif
+    }
+
     private void DrawRespawnTimerAndDeadIcon(SpriteBatch sb, int respawnTimer, Rectangle rect)
     {
         // Draw dead icon
@@ -440,15 +419,6 @@ public class UISpawnCharacter : UIPanel
     private void DrawPanel(SpriteBatch spriteBatch, Vector2 position, float width)
     {
         Color color = Color.White;
-
-        var sp = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
-
-        bool selectedSpawn = sp.SelectedType == SpawnType.Teammate && sp.SelectedPlayerIndex == playerIndex;
-
-        if (selectedSpawn)
-        {
-            color = Color.Yellow * 0.5f;
-        }
 
         // left
         spriteBatch.Draw(innerPanelTexture.Value, position,new Rectangle(0, 0, 8, innerPanelTexture.Height()), color);

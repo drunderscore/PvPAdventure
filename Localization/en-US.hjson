@@ -1868,7 +1868,6 @@ Mods: {
 
 		Spawn: {
 			ChooseYourSpawn: Choose Your Spawn
-			TeleportToTeammate: Teleport to {0}
 			Random: Teleport to random location
 			TeleportToWorldSpawn: Teleport to world spawn
 			TeammatesBed: "{0}'s Bed"
@@ -1877,20 +1876,26 @@ Mods: {
 			CancelRandomSpawn: Cancel random spawn
 			SelectWorldSpawn: Select world spawn
 			CancelWorldSpawn: Cancel world spawn
-			SelectTeammateSpawn: Select {0}'s spawn
-			CancelTeammateSpawn: Cancel {0}'s spawn
 			SelectTeammatesBed: Select {0}'s bed
 			CancelTeammatesBed: Cancel {0}'s bed
 			SelectMyBed: Select my bed
 			CancelMyBed: Cancel my bed
+			CancelMyPortal: Cancel my portal
+			SelectMyPortal: Select my portal
+			TeleportToMyPortal: Teleport to my portal
 			TeleportToMyBed: Teleport to my bed
+			TeleportToTeammatesPortal: Teleport to {0}'s portal
+			SelectTeammatesPortal: Select {0}'s portal
+			CancelTeammatesPortal: Cancel {0}'s portal
+			TeammatesPortal: "{0}'s Portal"
+			SpectatingPlayer: Spectating {0}
 		}
 
 		Subworlds.ArenasSubworld.DisplayName: Arenas 1
 
 		AdventureMirror: {
 			GameNotStarted: wait until game starts!
-			CannotUseInSpawn: cannot use in spawn!
+			CannotUseInSpawn: cannot use in spawn region!
 			CannotUseWhileMoving: cannot use while moving!
 			CannotDrop: cannot drop!
 			CannotUnfavorite: cannot unfavorite!
@@ -1898,6 +1903,8 @@ Mods: {
 			CannotSell: cannot sell!
 			CannotStore: cannot store!
 			Cancelled: cancelled!
+			PortalCreated: portal created!
+			TeamPortalCreated: "{0} team portal created!"
 		}
 
 		Item: {

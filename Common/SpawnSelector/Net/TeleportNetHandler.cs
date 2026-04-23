@@ -23,6 +23,7 @@ public static class TeleportNetHandler
             return;
 
         Vector2 teleportPos;
+        int targetIdx = -1;
 
         switch (type)
         {
@@ -30,14 +31,23 @@ public static class TeleportNetHandler
                 teleportPos = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
                 break;
 
-            case SpawnType.Teammate:
+            case SpawnType.MyPortal:
+                if (!TryGetPortalTeleportPos(requester, requester, out teleportPos))
+                    return;
+
+                break;
+
+            case SpawnType.TeammatePortal:
                 {
                     short idx = reader.ReadInt16();
-                    if (!SpawnSystem.IsValidTeammateIndex(requester, idx))
+                    if (!SpawnPlayer.IsValidTeammatePortalIndex(requester, idx))
                         return;
 
-                    Player target = Main.player[idx];
-                    teleportPos = target.position;
+                    targetIdx = idx;
+
+                    if (!TryGetPortalTeleportPos(requester, Main.player[idx], out teleportPos))
+                        return;
+
                     break;
                 }
 
@@ -50,6 +60,8 @@ public static class TeleportNetHandler
                     Player bedOwner = Main.player[idx];
                     if (bedOwner == null || !bedOwner.active)
                         return;
+
+                    targetIdx = idx;
 
                     if (idx != requester.whoAmI)
                     {
@@ -77,9 +89,6 @@ public static class TeleportNetHandler
                 }
             case SpawnType.Random:
                 {
-                    // Use vanilla logic to choose a random teleport destination
-                    Vector2 oldPos = requester.position;
-
                     requester.TeleportationPotion();
 
                     // TeleportationPotion() already moved the player.
@@ -96,6 +105,7 @@ public static class TeleportNetHandler
 
                     // Play teleport sound for everyone (local guaranteed)
                     TeleportFxNetHandler.Send(requester.whoAmI);
+                    TeleportChat.Announce(requester, type);
                     return;
                 }
 
@@ -117,6 +127,21 @@ public static class TeleportNetHandler
 
         // Send teleport sound effect to all clients
         TeleportFxNetHandler.Send(whoAmI);
+        TeleportChat.Announce(requester, type, targetIdx);
+    }
+
+    private static bool TryGetPortalTeleportPos(Player requester, Player portalOwner, out Vector2 teleportPos)
+    {
+        teleportPos = Vector2.Zero;
+
+        if (portalOwner == null || !portalOwner.active)
+            return false;
+
+        if (!PortalSystem.TryGetPortalWorldPos(portalOwner, out Vector2 worldPos))
+            return false;
+
+        teleportPos = worldPos - new Vector2(requester.width * 0.5f, requester.height);
+        return true;
     }
 }
 

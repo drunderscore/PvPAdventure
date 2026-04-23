@@ -46,9 +46,7 @@ public class UIWorldSpawnPanel : UIPanel
 
         if (IsMouseHovering)
         {
-            SpectateSystem.HoveringType = SpawnType.World;
-            SpectateSystem.HoveredPlayerIndex = null;
-
+            SpectateSystem.TrySetHover(SpawnType.World, -1);
             DrawHoverText();
         }
         else if (SpectateSystem.HoveringType == SpawnType.World)

@@ -19,6 +19,8 @@ namespace PvPAdventure.Common.Visualization;
 [Autoload(Side =ModSide.Client)]
 internal class DisableTeamSelect : ModSystem
 {
+    private const int RedTeam = 1;
+
     public override void Load()
     {
         // Do not draw the PvP or team icons -- the server has full control over your PvP and team.
@@ -31,8 +33,21 @@ internal class DisableTeamSelect : ModSystem
         On_Main.DrawPVPIcons += ModifyDrawPvPIcons;
     }
 
+    public override void PostUpdateEverything()
+    {
+#if DEBUG
+        if (Main.netMode == NetmodeID.SinglePlayer && Main.LocalPlayer != null)
+            Main.LocalPlayer.team = RedTeam;
+#endif
+    }
+
     private bool Enabled()
     {
+#if DEBUG
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            return true;
+#endif
+
         var config = ModContent.GetInstance<ServerConfig>();
 
         bool allow = true;

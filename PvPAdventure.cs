@@ -104,6 +104,10 @@ public class PvPAdventure : Mod
                 Common.Spectator.Trackers.SessionTrackerNetHandler.HandlePacket(r, whoAmI);
                 break;
 
+            case AdventurePacketIdentifier.PlayerPortal:
+                Common.SpawnSelector.Net.PlayerPortalNetHandler.HandlePacket(r, whoAmI);
+                break;
+
             default:
                 Log.Warn($"Unknown packet id: {id}");
                 break;

@@ -14,9 +14,9 @@ namespace PvPAdventure.Common.SpawnSelector.UI;
 
 /// <summary>
 /// A small button that allows the player to teleport to a teammates bed.
-/// Added to the top-right corner of a <see cref="UISpawnCharacter"/>
+/// Added to the top-right corner of a <see cref="UITeammatePanel"/>
 /// </summary>
-public sealed class UIBedButton : UIElement
+public sealed class UITeammateBedButton : UIElement
 {
     private const float ButtonSize = 26f;
 
@@ -24,7 +24,7 @@ public sealed class UIBedButton : UIElement
     private readonly Item bedIcon;
     private bool hasBed;
 
-    public UIBedButton(int playerIndex, bool hasBed)
+    public UITeammateBedButton(int playerIndex, bool hasBed)
     {
         this.hasBed = hasBed;
         this.playerIndex = playerIndex;

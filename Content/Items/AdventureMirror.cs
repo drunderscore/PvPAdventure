@@ -33,19 +33,8 @@ internal class AdventureMirror : ModItem
         Item.noUseGraphic = false;
     }
     public override bool ConsumeItem(Player player) => false;
-    public override bool? UseItem(Player player)
-    {
-        //if (Main.netMode == NetmodeID.MultiplayerClient)
-        //{
-        //    ModPacket p = Mod.GetPacket();
-        //    p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
-        //    p.Write((byte)player.whoAmI);
-        //    p.Write((byte)player.selectedItem);
-        //    p.Send();
-        //}
+    public override bool? UseItem(Player player) => true;
 
-        return true;
-    }
     public override void UseItemFrame(Player player)
     {
         if (player.itemAnimation == Item.useAnimation)
@@ -57,10 +46,15 @@ internal class AdventureMirror : ModItem
     private void ResetUseTimer(Player player)
     {
         int recallFrames = ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallSeconds * 60;
-
+        
         player.itemTime = recallFrames + 1;
         player.itemAnimation = recallFrames + 1;
         player.reuseDelay = 0;
+
+        // Reset portal
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        sp.SpawnedPortalThisUse = false;
+        sp.AdventureMirrorHadCountdownThisUse = false;
     }
 
     #region Right click use
@@ -149,6 +143,20 @@ internal class AdventureMirror : ModItem
         player.itemAnimation = 0;
         player.itemTime = 0;
         player.reuseDelay = 0;
+
+        // Reset portal
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        sp.SpawnedPortalThisUse = false;
+        sp.AdventureMirrorHadCountdownThisUse = false;
+    }
+
+    private static void StopItemUse(Player player)
+    {
+        player.controlUseItem = false;
+        player.channel = false;
+        player.itemAnimation = 0;
+        player.itemTime = 0;
+        player.reuseDelay = 0;
     }
 
     public override void UseStyle(Player player, Rectangle heldItemFrame)
@@ -158,17 +166,20 @@ internal class AdventureMirror : ModItem
         player.controlUseItem = false;
         player.channel = false;
 
+        int framesLeft = player.itemTime - 2;
+        if (framesLeft < 0)
+            framesLeft = 0;
+
+        bool finishedUse = framesLeft == 0;
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+
         // If this player moves, cancel their use and reset
-        if (player.velocity.LengthSquared() > 0)
+        if (!finishedUse && player.velocity.LengthSquared() > 0)
         {
             Warning(player, "Mods.PvPAdventure.AdventureMirror.Cancelled");
             CancelItemUse(player);
             return;
         }
-
-        int framesLeft = player.itemTime - 2;
-        if (framesLeft < 0)
-            framesLeft = 0;
 
         int secondsLeft = (framesLeft + 59) / 60;
 
@@ -205,16 +216,19 @@ internal class AdventureMirror : ModItem
             return;
         }
 
-        // Make held item hold on indefinitely.
-        if (player.itemTime <= 2)
+        // Create portal
+        //bool usingExistingPortalAsTarget = sp.SelectedType == SpawnType.MyPortal && PortalSystem.HasPortal(player);
+        bool shouldCreatePortal = finishedUse && sp.AdventureMirrorHadCountdownThisUse && !sp.SpawnedPortalThisUse;
+
+        if (framesLeft > 0)
+            sp.AdventureMirrorHadCountdownThisUse = true;
+
+        if (shouldCreatePortal)
         {
-            player.itemTime = 2;
-
-            if (player.itemAnimation < 2)
-                player.itemAnimation = 2;
-
-            if (player.reuseDelay < 2)
-                player.reuseDelay = 2;
+            ShowPortalCreatedText(player);
+            sp.SpawnedPortalThisUse = true;
+            PortalSystem.CreatePortalAtPosition(player, player.Bottom);
+            StopItemUse(player);
         }
     }
 
@@ -231,21 +245,49 @@ internal class AdventureMirror : ModItem
         if (player.whoAmI != Main.myPlayer)
             return;
 
-        //if (!ModContent.GetInstance<AdventureClientConfig>().ShowPopupText)
-        //return;
-
         if (color == default)
-            color = Color.Crimson;
+            color = PortalSystem.GetPortalColor(player);
 
-        Color teamColor = Main.teamColor[(int)player.team];
+        ShowPopup(player, Language.GetTextValue(localizationKey), color);
+    }
 
+    private static void ShowPortalCreatedText(Player player)
+    {
+        if (TryGetTeamName(player, out string teamName))
+        {
+            ShowPopup(
+                player,
+                Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.TeamPortalCreated", teamName),
+                PortalSystem.GetPortalColor(player));
+            return;
+        }
+
+        ShowPopup(player, Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.PortalCreated"), Color.White);
+    }
+
+    private static void ShowPopup(Player player, string text, Color color)
+    {
         PopupText.NewText(new AdvancedPopupRequest
         {
-            Color = teamColor,
-            Text = Language.GetTextValue(localizationKey),
+            Color = color,
+            Text = text,
             Velocity = new Vector2(0f, -4f),
             DurationInFrames = 120
         }, player.Top + new Vector2(0, -4));
     }
 
+    private static bool TryGetTeamName(Player player, out string teamName)
+    {
+        teamName = player.team switch
+        {
+            1 => "Red",
+            2 => "Green",
+            3 => "Blue",
+            4 => "Yellow",
+            5 => "Pink",
+            _ => string.Empty
+        };
+
+        return teamName.Length > 0;
+    }
 }

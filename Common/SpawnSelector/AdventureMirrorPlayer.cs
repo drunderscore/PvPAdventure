@@ -14,7 +14,8 @@ internal class AdventureMirrorPlayer : ModPlayer
 
         // Only care if the player is currently using the AdventureMirror
         if (Player.itemTime > 0 &&
-            Player.HeldItem?.type == ModContent.ItemType<AdventureMirror>())
+            Player.HeldItem?.type == ModContent.ItemType<AdventureMirror>() &&
+            !Player.GetModPlayer<SpawnPlayer>().SpawnedPortalThisUse)
         {
             if (Player.HeldItem.ModItem is AdventureMirror mirror)
             {

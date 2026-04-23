@@ -8,6 +8,7 @@ using Terraria.Chat;
 using Terraria.Chat.Commands;
 using Terraria.GameContent;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI.Chat;
 
@@ -35,6 +36,41 @@ public class TeamChatManager : ModSystem
     private int _chatOpenedTick = -1;
 
     private static bool JustPressed(Keys k) => Main.keyState.IsKeyDown(k) && !Main.oldKeyState.IsKeyDown(k);
+
+    public static void SendSystemTeamMessage(Player player, string text, Color color)
+    {
+        if (player == null || !player.active)
+            return;
+
+        if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            Main.NewText(text, color);
+            return;
+        }
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            if (player.whoAmI == Main.myPlayer)
+                Main.NewText(text, color);
+
+            return;
+        }
+
+        NetworkText message = NetworkText.FromLiteral(text);
+
+        if (player.team == 0)
+        {
+            ChatHelper.SendChatMessageToClient(message, color, player.whoAmI);
+            return;
+        }
+
+        for (int i = 0; i < Main.maxPlayers; i++)
+        {
+            Player teammate = Main.player[i];
+            if (teammate != null && teammate.active && teammate.team == player.team)
+                ChatHelper.SendChatMessageToClient(message, color, i);
+        }
+    }
 
     public override void Load()
     {

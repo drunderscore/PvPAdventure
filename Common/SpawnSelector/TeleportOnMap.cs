@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
@@ -45,6 +46,8 @@ public class TeleportOnMap : ModSystem
         handledHover |= DrawWorldIcon(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
         handledHover |= DrawMyBedIcon(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
         handledHover |= DrawTeamBedIcons(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
+        handledHover |= DrawMyPortalIcon(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
+        handledHover |= DrawTeamPortalIcons(local, sp, selectorOpen, instantTeleport, recallActive, ref context, ref text);
     }
 
     private bool DrawWorldIcon(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, bool recallActive, ref MapOverlayDrawContext context, ref string text)
@@ -64,10 +67,12 @@ public class TeleportOnMap : ModSystem
             return false;
         }
 
+        BlockMapInput(local);
+
         if (instantTeleport)
         {
             text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToWorldSpawn");
-            if (IsClick())
+            if (TryConsumeClick(local))
             {
                 sp.ToggleSelection(SpawnType.World);
                 sp.RequestExecute();
@@ -80,7 +85,7 @@ public class TeleportOnMap : ModSystem
             ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelWorldSpawn")
             : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectWorldSpawn");
 
-        if (IsClick())
+        if (TryConsumeClick(local))
             sp.ToggleSelection(SpawnType.World);
 
         return true;
@@ -107,10 +112,12 @@ public class TeleportOnMap : ModSystem
             return false;
         }
 
+        BlockMapInput(local);
+
         if (instantTeleport)
         {
             text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToMyBed", local.name);
-            if (IsClick())
+            if (TryConsumeClick(local))
             {
                 sp.ToggleSelection(SpawnType.MyBed, local.whoAmI);
                 sp.RequestExecute();
@@ -123,7 +130,7 @@ public class TeleportOnMap : ModSystem
             ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelMyBed", local.name)
             : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectMyBed", local.name);
 
-        if (IsClick())
+        if (TryConsumeClick(local))
             sp.ToggleSelection(SpawnType.MyBed, local.whoAmI);
 
         return true;
@@ -161,10 +168,12 @@ public class TeleportOnMap : ModSystem
                 return true;
             }
 
+            BlockMapInput(local);
+
             if (instantTeleport)
             {
                 text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammatesBed", other.name);
-                if (IsClick())
+                if (TryConsumeClick(local))
                 {
                     sp.ToggleSelection(SpawnType.TeammateBed, i);
                     sp.RequestExecute();
@@ -177,11 +186,119 @@ public class TeleportOnMap : ModSystem
                 ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammatesBed", other.name)
                 : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammatesBed", other.name);
 
-            if (IsClick())
+            if (TryConsumeClick(local))
                 sp.ToggleSelection(SpawnType.TeammateBed, i);
 
             return true;
         }
+        return false;
+    }
+
+    private bool DrawMyPortalIcon(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, bool recallActive, ref MapOverlayDrawContext context, ref string text)
+    {
+        if (!PortalSystem.TryGetPortalWorldPos(local, out Vector2 portalWorldPos))
+            return false;
+
+        Vector2 pos = portalWorldPos / 16f;
+        bool selected = sp.SelectedType == SpawnType.MyPortal;
+        Texture2D tex = Ass.Icon_Portal2.Value;
+
+        DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(local), ref context);
+
+        if (!DrawIcon(tex, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
+            return false;
+
+        if (!hover)
+            return false;
+
+        if (!selectorOpen)
+        {
+            text = "My portal";
+            return true;
+        }
+
+        BlockMapInput(local);
+
+        if (instantTeleport)
+        {
+            text = "Teleport to my portal";
+            if (TryConsumeClick(local))
+            {
+                sp.ToggleSelection(SpawnType.MyPortal);
+                sp.RequestExecute();
+            }
+
+            return true;
+        }
+
+        text = selected ? "Cancel my portal" : "Select my portal";
+
+        if (TryConsumeClick(local))
+            sp.ToggleSelection(SpawnType.MyPortal);
+
+        return true;
+    }
+
+    private bool DrawTeamPortalIcons(Player local, SpawnPlayer sp, bool selectorOpen, bool instantTeleport, bool recallActive, ref MapOverlayDrawContext context, ref string text)
+    {
+        if (local.team == 0)
+            return false;
+
+        for (int i = 0; i < Main.maxPlayers; i++)
+        {
+            if (i == local.whoAmI)
+                continue;
+
+            Player other = Main.player[i];
+            if (other == null || !other.active || other.team != local.team)
+                continue;
+
+            if (!SpawnPlayer.TryGetPortalWorldPos(other, out Vector2 portalWorld))
+                continue;
+
+            Vector2 pos = portalWorld / 16f;
+            bool selected = sp.SelectedType == SpawnType.TeammatePortal && sp.SelectedPlayerIndex == i;
+
+            DrawPortalMapGlow(pos, PortalSystem.GetPortalColor(other), ref context);
+
+            if (!DrawIcon(Ass.Icon_Portal3.Value, pos, selected, instantTeleport, recallActive, ref context, out bool hover))
+                continue;
+
+            if (!hover)
+                continue;
+
+            SpectateSystem.TrySetHover(SpawnType.TeammatePortal, i);
+
+            if (!selectorOpen)
+            {
+                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeammatesPortal", other.name);
+                return true;
+            }
+
+            BlockMapInput(local);
+
+            if (instantTeleport)
+            {
+                text = Language.GetTextValue("Mods.PvPAdventure.Spawn.TeleportToTeammatesPortal", other.name);
+                if (TryConsumeClick(local))
+                {
+                    sp.ToggleSelection(SpawnType.TeammatePortal, i);
+                    sp.RequestExecute();
+                }
+
+                return true;
+            }
+
+            text = selected
+                ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammatesPortal", other.name)
+                : Language.GetTextValue("Mods.PvPAdventure.Spawn.SelectTeammatesPortal", other.name);
+
+            if (TryConsumeClick(local))
+                sp.ToggleSelection(SpawnType.TeammatePortal, i);
+
+            return true;
+        }
+
         return false;
     }
 
@@ -211,7 +328,39 @@ public class TeleportOnMap : ModSystem
         return true;
     }
 
-    private static bool IsClick() => Main.mouseLeft && Main.mouseLeftRelease;
+    private static void DrawPortalMapGlow(Vector2 tilePos, Color color, ref MapOverlayDrawContext context)
+    {
+        Texture2D pixel = TextureAssets.MagicPixel.Value;
+        float pulse = 0.55f + (float)System.Math.Sin(Main.GameUpdateCount * 0.08f) * 0.15f;
+        Color glow = color * pulse;
+
+        DrawMapDust(pixel, tilePos + new Vector2(0f, -2.0f), glow, 5f, ref context);
+        DrawMapDust(pixel, tilePos + new Vector2(-0.55f, -1.55f), glow * 0.8f, 4f, ref context);
+        DrawMapDust(pixel, tilePos + new Vector2(0.55f, -1.55f), glow * 0.8f, 4f, ref context);
+    }
+
+    private static void DrawMapDust(Texture2D pixel, Vector2 tilePos, Color color, float scale, ref MapOverlayDrawContext context)
+    {
+        context.Draw(pixel, tilePos, color, new SpriteFrame(1, 1), scale, scale, Alignment.Bottom, SpriteEffects.None);
+    }
+
+    private static bool TryConsumeClick(Player local)
+    {
+        if (!Main.mouseLeft || !Main.mouseLeftRelease)
+            return false;
+
+        BlockMapInput(local);
+        local.releaseUseItem = false;
+        local.controlUseItem = false;
+        Main.mouseLeftRelease = false;
+        return true;
+    }
+
+    private static void BlockMapInput(Player local)
+    {
+        local.mouseInterface = true;
+        local.controlUseItem = false;
+    }
 
     private static bool HasValidBedSpawn(Player player)
     {
