@@ -168,7 +168,7 @@ internal static class ApiClient
             if (Program.LaunchParameters.ContainsKey("-official"))
             {
                 using var store = new X509Store(StoreLocation.CurrentUser);
-                store.AddRange(store.Certificates);
+                certificates.AddRange(store.Certificates);
             }
 
             // Linux and otherwise can just use a file path.
