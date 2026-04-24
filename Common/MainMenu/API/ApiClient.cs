@@ -167,11 +167,8 @@ internal static class ApiClient
             // use certificate stores.
             if (Program.LaunchParameters.ContainsKey("-official"))
             {
-                // From the current user's personal certificate store, find all certificates issued by us.
                 using var store = new X509Store(StoreLocation.CurrentUser);
-                var applicableCertificates = store.Certificates.Find(X509FindType.FindByIssuerDistinguishedName,
-                    "CN=PvP Adventure Official", false);
-                Log.Info($"Found {applicableCertificates.Count} applicable certificate(s) from search");
+                store.AddRange(store.Certificates);
             }
 
             // Linux and otherwise can just use a file path.
