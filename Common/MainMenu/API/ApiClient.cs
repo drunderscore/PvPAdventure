@@ -168,6 +168,7 @@ internal static class ApiClient
             if (Program.LaunchParameters.ContainsKey("-official"))
             {
                 using var store = new X509Store(StoreLocation.CurrentUser);
+                store.Open(OpenFlags.ReadOnly);
                 certificates.AddRange(store.Certificates);
             }
 
