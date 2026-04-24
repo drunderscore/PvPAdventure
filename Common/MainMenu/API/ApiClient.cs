@@ -165,8 +165,7 @@ internal static class ApiClient
         {
             // Windows does not support ephemeral keys (in-memory privates, cannot do in-process crypto), must instead
             // use certificate stores.
-            var isStored = Environment.GetEnvironmentVariable("PVPA_OFFICIAL_CERTIFICATE_STORED");
-            if (isStored != null)
+            if (Program.LaunchParameters.ContainsKey("-official"))
             {
                 // From the current user's personal certificate store, find all certificates issued by us.
                 using var store = new X509Store(StoreLocation.CurrentUser);
