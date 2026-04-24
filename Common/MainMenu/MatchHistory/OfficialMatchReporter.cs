@@ -56,8 +56,6 @@ internal static class OfficialMatchReporter
         TeamPoints[] teamPoints = BuildTeamPointsArray(pointsManager);
         PlayerKD[] players = BuildPlayerKDArray();
         TeamBossCompletion[] bosses = BuildBossCompletionArray(pointsManager);
-        ulong localSteamId = SteamAuthentication.ClientSteamId.m_SteamID;
-        Log.Debug("Building match with steamID: " + localSteamId.ToString());
 
         return new MatchResult(
             start: DateTime.SpecifyKind(startUtc, DateTimeKind.Utc),
