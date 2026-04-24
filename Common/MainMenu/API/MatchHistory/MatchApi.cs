@@ -257,6 +257,12 @@ internal static class MatchApi
         [JsonPropertyName("players")]
         public Dictionary<string, MatchPlayerPayload> Players { get; set; } = [];
 
+        [JsonPropertyName("rewards")]
+        public Dictionary<string, ulong> Rewards { get; set; } = [];
+
+        [JsonPropertyName("metrics")]
+        public Dictionary<string, string> Metrics { get; set; } = [];
+
         [JsonPropertyName("teams")]
         public List<MatchTeamPayload?> Teams { get; set; } = [];
     }
