@@ -79,14 +79,28 @@ internal class LunarCraftingStationGlobalTile : GlobalTile
         }
         return base.AdjTiles(type);
     }
+
     public override void NearbyEffects(int i, int j, int type, bool closer)
     {
-        if (type == TileID.LunarCraftingStation && closer)
-        {
-            Player player = Main.LocalPlayer;
+        if (type != TileID.LunarCraftingStation || !closer)
+            return;
 
-            // Apply Alchemy Table effect (33% chance to not consume ingredients when crafting potions)
-            player.alchemyTable = true;
-        }
+        Player player = Main.LocalPlayer;
+
+        player.alchemyTable = true;
+        player.AddBuff(BuffID.Campfire, 5);
+        player.AddBuff(BuffID.HeartLamp, 5);
+        player.AddBuff(BuffID.StarInBottle, 5);
+        player.AddBuff(BuffID.Sunflower, 5);
+        player.AddBuff(BuffID.CatBast, 5);
+        player.AddBuff(BuffID.Bewitched, 5);
+        player.AddBuff(BuffID.Sharpened, 5);
+        player.AddBuff(BuffID.AmmoBox, 5);
+        player.AddBuff(BuffID.Clairvoyance, 5);
+        player.AddBuff(BuffID.PeaceCandle, 5);
+        player.AddBuff(BuffID.WaterCandle, 5);
+        player.AddBuff(BuffID.DryadsWard, 5);
+        player.AddBuff(BuffID.SugarRush, 2 * 60 * 60);
+        player.AddBuff(BuffID.Honey, 30 * 60);
     }
 }
