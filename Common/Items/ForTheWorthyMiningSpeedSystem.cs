@@ -43,7 +43,7 @@ public class ForTheWorthyMiningSpeedSystem : ModSystem
             while (cursor.TryGotoNext(MoveType.Before, i => i.MatchRet()))
             {
                 cursor.Emit(OpCodes.Conv_R4);      
-                cursor.Emit(OpCodes.Ldc_R4, 1.5f); 
+                cursor.Emit(OpCodes.Ldc_R4, 10.5f); 
                 cursor.Emit(OpCodes.Mul);          
                 cursor.Emit(OpCodes.Conv_I4);     
 
