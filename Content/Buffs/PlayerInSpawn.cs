@@ -18,6 +18,6 @@ public class PlayerInSpawn : ModBuff
     public override void Update(Player player, ref int buffIndex)
     {
         player.GetDamage(DamageClass.Generic) *= -999f;
-        player.statDefense += 99999999;
+        player.statDefense += 99999999; // scuffed way to prevent players from taking damage in spawn
     }
 }
