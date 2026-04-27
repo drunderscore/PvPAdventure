@@ -11,10 +11,10 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Authentication;
 
-//#if !DEBUG
 public class AuthenticationManager : ModSystem
 {
     private bool didServerRequestToAuthenticate;
+    private int authenticateTimeoutTicks;
 
     /// <summary>
     /// whoAmI is CLAIMING they are id.
@@ -78,6 +78,7 @@ public class AuthenticationManager : ModSystem
                         NetMessage.SendData(MessageID.SendPassword);
 
                         Main.statusText = Language.GetTextValue("Mods.PvPAdventure.Authentication.WaitingForServer");
+                        authenticateTimeoutTicks = 60 * 10;
                     }
                     else
                     {
@@ -92,6 +93,13 @@ public class AuthenticationManager : ModSystem
                 }
 
                 return true;
+            }
+
+            if (messageType == MessageID.PlayerInfo && didServerRequestToAuthenticate)
+            {
+                didServerRequestToAuthenticate = false;
+                authenticateTimeoutTicks = 0;
+                return false;
             }
 
             if (messageType == MessageID.PlayerInfo && !didServerRequestToAuthenticate)
@@ -122,7 +130,7 @@ public class AuthenticationManager : ModSystem
 
             var ticket = parts[1];
 
-            ModContent.GetInstance<SteamAuthentication>()
+            bool started = ModContent.GetInstance<SteamAuthentication>()
                 .BeginMultiplayerSessionWith((byte)playerNumber, id, ticket,
                     (authedId, whoAmI, response, alreadyOk) =>
                     {
@@ -152,6 +160,12 @@ public class AuthenticationManager : ModSystem
                         }
                     });
 
+            if (!started)
+            {
+                Log.Warn($"Failed to start Steam authentication for {playerNumber} claiming {id}");
+                NetMessage.BootPlayer(playerNumber, NetworkText.FromLiteral("Failed to start Steam authentication."));
+            }
+
             return true;
         }
 
@@ -179,5 +193,26 @@ public class AuthenticationManager : ModSystem
     {
         didServerRequestToAuthenticate = false;
     }
+
+    /// <summary>
+    /// Timeout the authentication request if the server doesn't respond in time.
+    /// </summary>
+    public override void PostUpdateEverything()
+    {
+        if (Main.dedServ)
+            return;
+
+        if (!didServerRequestToAuthenticate || authenticateTimeoutTicks <= 0)
+            return;
+
+        authenticateTimeoutTicks--;
+
+        if (authenticateTimeoutTicks > 0)
+            return;
+
+        didServerRequestToAuthenticate = false;
+        Netplay.Disconnect = true;
+        Main.statusText = "Timed out waiting for server authentication.";
+        Main.menuMode = MenuID.MultiplayerJoining;
+    }
 }
-//#endif

@@ -36,6 +36,10 @@ public class SteamAuthentication : ModSystem
         public byte Who { get; init; } = who;
         public AuthenticationResponseCallback Callback { get; init; } = callback;
         public bool Ok { get; set; }
+
+#if DEBUG
+        public bool DebugBypass { get; init; }
+#endif
     }
 
     // Authentication updates for this user. Removed upon first failure reported.
@@ -226,9 +230,14 @@ public class SteamAuthentication : ModSystem
             return false;
         }
 
-        var remote = Netplay.Clients[whoAmI].Socket.GetRemoteAddress().GetIdentifier();
+        string remote = Netplay.Clients[whoAmI].Socket.GetRemoteAddress().GetIdentifier();
 
         Log.Info($"Steam auth begin: whoAmI={whoAmI}, claimedSteamId={id}, remote={remote}, ticketBytes={ticketData.Length}");
+
+#if DEBUG
+        if (TryBeginDebugMultiplayerSessionWith(whoAmI, id, callback))
+            return true;
+#endif
 
         var result = SteamGameServer.BeginAuthSession(ticketData, ticketData.Length, new CSteamID(id));
 
@@ -275,11 +284,21 @@ public class SteamAuthentication : ModSystem
         if (!Main.dedServ)
             return;
 
-        if (!authentication.Remove(steamId))
+        if (!authentication.TryGetValue(steamId, out var info))
         {
             Log.Debug($"Steam auth end skipped: no session for steamId={steamId}");
             return;
         }
+
+        authentication.Remove(steamId);
+
+#if DEBUG
+        if (info.DebugBypass || IsDebugSteamId(steamId))
+        {
+            Log.Info($"Steam auth ended: steamId={steamId}, debugBypass=true");
+            return;
+        }
+#endif
 
         SteamGameServer.EndAuthSession(new CSteamID(steamId));
         Log.Info($"Steam auth ended: steamId={steamId}");
@@ -321,6 +340,43 @@ public class SteamAuthentication : ModSystem
         if (Main.dedServ)
             Console.WriteLine(msg);
     }
+    #endregion
+
+    #region Bypass Steam auth in debug mode so we can test multiple clients on a single machine
+#if DEBUG
+    private const bool DebugBypassMultiplayerSteamAuth = true;
+    private const ulong DebugSteamIdMask = 1UL << 63;
+
+    private static ulong GetDebugSteamId(ulong realSteamId, byte whoAmI)
+    {
+        return (realSteamId | DebugSteamIdMask) + whoAmI;
+    }
+
+    private static bool IsDebugSteamId(ulong steamId)
+    {
+        return (steamId & DebugSteamIdMask) != 0;
+    }
+
+    private bool TryBeginDebugMultiplayerSessionWith(byte whoAmI, ulong id, AuthenticationResponseCallback callback)
+    {
+        if (!DebugBypassMultiplayerSteamAuth)
+            return false;
+
+        string remote = Netplay.Clients[whoAmI].Socket.GetRemoteAddress().GetIdentifier();
+        ulong debugId = GetDebugSteamId(id, whoAmI);
+
+        authentication[debugId] = new(whoAmI, callback)
+        {
+            Ok = true,
+            DebugBypass = true
+        };
+
+        Log.Warn($"DEBUG Steam auth bypass accepted: whoAmI={whoAmI}, realSteamId={id}, debugSteamId={debugId}, remote={remote}");
+
+        callback(debugId, whoAmI, EAuthSessionResponse.k_EAuthSessionResponseOK, false);
+        return true;
+    }
+#endif
     #endregion
 
     #region Unload
@@ -371,8 +427,15 @@ public class SteamAuthentication : ModSystem
 
         if (Main.dedServ)
         {
-            foreach (var (id, _) in authentication)
-                SteamGameServer.EndAuthSession(new(id));
+            foreach (var (id, info) in authentication)
+            {
+#if DEBUG
+                if (info.DebugBypass || IsDebugSteamId(id))
+                    continue;
+#endif
+
+                SteamGameServer.EndAuthSession(new CSteamID(id));
+            }
 
             authentication.Clear();
 
