@@ -61,10 +61,6 @@ public class PvPAdventure : Mod
                 Common.SpawnSelector.Net.SpawnNetHandler.HandlePacket(r, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.AdventureMirrorRightClickUse:
-                Common.SpawnSelector.Net.AdventureMirrorNetHandler.HandlePacket(r, whoAmI);
-                break;
-
             case AdventurePacketIdentifier.TeleportFx:
                 Common.SpawnSelector.Net.TeleportFxNetHandler.HandlePacket(r, whoAmI);
                 break;

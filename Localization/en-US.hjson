@@ -34,6 +34,7 @@ Mods: {
 			DebugDLLeaveTool.DisplayName: DL Debug Leave Tool
 			DebugDLClearChatTool.DisplayName: DL Debug Clear Chat Tool
 			SpectateMenu.DisplayName: Spectate Menu
+			ToggleSpectateMode.DisplayName: Toggle Spectate Mode
 		}
 
 		Tools: {
@@ -239,9 +240,9 @@ Mods: {
 				DisplayName: Adventure Mirror
 				Tooltip:
 					'''
-					Gaze in the mirror to go on adventures
-					Creates a portal 
-					Allows you to choose a spawn
+					Hold still to charge the mirror.
+					When the timer ends, it creates a portal at your position.
+					Use the portal to choose a spawn.
 					'''
 			}
 
@@ -442,6 +443,7 @@ Mods: {
 			}
 
 			Target.DisplayName: Target
+			PortalNPC.DisplayName: Portal
 
 			AdventureSantaNPC: {
 				DisplayName: Adventure Santa

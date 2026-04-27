@@ -1,106 +1,106 @@
-﻿using System.Collections.Generic;
-using Terraria;
-using Terraria.ID;
-using Terraria.ModLoader;
+﻿//using System.Collections.Generic;
+//using Terraria;
+//using Terraria.ID;
+//using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Spectator.Trackers;
+//namespace PvPAdventure.Common.Spectator.Trackers;
 
-internal sealed class PingTracker : ModSystem
-{
-	internal static readonly Dictionary<int, int> Pings = [];
-	internal static readonly Dictionary<long, long> PendingPings = [];
+//internal sealed class PingTracker : ModSystem
+//{
+//	internal static readonly Dictionary<int, int> Pings = [];
+//	internal static readonly Dictionary<long, long> PendingPings = [];
 
-	private static long nextPingId;
-	private static int pingTimer;
+//	private static long nextPingId;
+//	private static int pingTimer;
 
-	public override void OnWorldLoad()
-	{
-		Pings.Clear();
-		PendingPings.Clear();
-		nextPingId = 0;
-		pingTimer = 0;
-	}
+//	public override void OnWorldLoad()
+//	{
+//		Pings.Clear();
+//		PendingPings.Clear();
+//		nextPingId = 0;
+//		pingTimer = 0;
+//	}
 
-	public override void OnWorldUnload()
-	{
-		Pings.Clear();
-		PendingPings.Clear();
-		nextPingId = 0;
-		pingTimer = 0;
-	}
+//	public override void OnWorldUnload()
+//	{
+//		Pings.Clear();
+//		PendingPings.Clear();
+//		nextPingId = 0;
+//		pingTimer = 0;
+//	}
 
-	public override void PostUpdatePlayers()
-	{
-        if (!_TrackerStatus.IsEnabled)
-		{
-			base.PostUpdatePlayers();
-            return;
-        }
+//	public override void PostUpdatePlayers()
+//	{
+//        if (!_TrackerStatus.IsEnabled)
+//		{
+//			base.PostUpdatePlayers();
+//            return;
+//        }
 
-        if (Main.netMode == NetmodeID.Server)
-		{
-			bool changed = false;
+//        if (Main.netMode == NetmodeID.Server)
+//		{
+//			bool changed = false;
 
-			for (int i = 0; i < Main.maxPlayers; i++)
-			{
-				if (!Main.player[i].active && Pings.Remove(i))
-					changed = true;
-			}
+//			for (int i = 0; i < Main.maxPlayers; i++)
+//			{
+//				if (!Main.player[i].active && Pings.Remove(i))
+//					changed = true;
+//			}
 
-			if (changed)
-				PingTrackerNetHandler.SendFullSync();
+//			if (changed)
+//				PingTrackerNetHandler.SendFullSync();
 
-			return;
-		}
+//			return;
+//		}
 
-		if (Main.netMode != NetmodeID.MultiplayerClient)
-			return;
+//		if (Main.netMode != NetmodeID.MultiplayerClient)
+//			return;
 
-		if (++pingTimer < 60)
-			return;
+//		if (++pingTimer < 60)
+//			return;
 
-		pingTimer = 0;
-		SendPing();
-	}
+//		pingTimer = 0;
+//		SendPing();
+//	}
 
-	private static void SendPing()
-	{
-        if (!_TrackerStatus.IsEnabled)
-        {
-            return;
-        }
+//	private static void SendPing()
+//	{
+//        if (!_TrackerStatus.IsEnabled)
+//        {
+//            return;
+//        }
 
-        long pingId = ++nextPingId;
-		long sentTicks = System.DateTime.UtcNow.Ticks;
+//        long pingId = ++nextPingId;
+//		long sentTicks = System.DateTime.UtcNow.Ticks;
 
-		PendingPings[pingId] = sentTicks;
-		PingTrackerNetHandler.SendPingRequest(pingId, sentTicks);
-	}
+//		PendingPings[pingId] = sentTicks;
+//		PingTrackerNetHandler.SendPingRequest(pingId, sentTicks);
+//	}
 
-	internal static void ReceivePingResponse(long pingId, long sentTicks)
-	{
-        if (!_TrackerStatus.IsEnabled)
-        {
-            return;
-        }
+//	internal static void ReceivePingResponse(long pingId, long sentTicks)
+//	{
+//        if (!_TrackerStatus.IsEnabled)
+//        {
+//            return;
+//        }
 
-        if (!PendingPings.TryGetValue(pingId, out long pendingTicks) || pendingTicks != sentTicks)
-			return;
+//        if (!PendingPings.TryGetValue(pingId, out long pendingTicks) || pendingTicks != sentTicks)
+//			return;
 
-		PendingPings.Remove(pingId);
+//		PendingPings.Remove(pingId);
 
-		int pingMs = (int)System.TimeSpan.FromTicks(System.DateTime.UtcNow.Ticks - sentTicks).TotalMilliseconds;
-		Pings[Main.myPlayer] = pingMs;
-		PingTrackerNetHandler.SendPingValue(Main.myPlayer, pingMs);
-	}
+//		int pingMs = (int)System.TimeSpan.FromTicks(System.DateTime.UtcNow.Ticks - sentTicks).TotalMilliseconds;
+//		Pings[Main.myPlayer] = pingMs;
+//		PingTrackerNetHandler.SendPingValue(Main.myPlayer, pingMs);
+//	}
 
-	internal static void SetPing(int playerIndex, int pingMs)
-	{
-        Pings[playerIndex] = pingMs;
-	}
+//	internal static void SetPing(int playerIndex, int pingMs)
+//	{
+//        Pings[playerIndex] = pingMs;
+//	}
 
-	public static int GetPing(int playerIndex)
-	{
-        return Pings.TryGetValue(playerIndex, out int ping) ? ping : -1;
-	}
-}
+//	public static int GetPing(int playerIndex)
+//	{
+//        return Pings.TryGetValue(playerIndex, out int ping) ? ping : -1;
+//	}
+//}

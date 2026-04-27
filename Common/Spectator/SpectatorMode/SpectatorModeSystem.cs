@@ -37,6 +37,15 @@ internal sealed class SpectatorModeSystem : ModSystem
 
     internal static PlayerMode GetJoinDefaultMode() => ModContent.GetInstance<SpectatorConfig>().ForceSpectating ? PlayerMode.Spectator : PlayerMode.Player;
 
+    public static void ToggleSpectateMode(int slot)
+    {
+        if (slot < 0 || slot >= Main.maxPlayers || !Main.player[slot].active)
+            return;
+        PlayerMode currentMode = GetMode(slot);
+        PlayerMode newMode = currentMode == PlayerMode.Player ? PlayerMode.Spectator : PlayerMode.Player;
+        RequestSetLocalMode(newMode);
+    }
+
     public static void RequestSetLocalMode(PlayerMode mode)
     {
         if (Main.myPlayer < 0 || Main.myPlayer >= Main.maxPlayers)

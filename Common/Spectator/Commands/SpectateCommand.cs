@@ -1,6 +1,7 @@
 ﻿using DragonLens.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Core.Config;
 using Terraria;
@@ -34,7 +35,7 @@ internal class SpectateCommand : ModCommand
         }
 
         // Toggle spectate mode.
-        SpectateCommandHelper.ToggleSpectateMode(Main.LocalPlayer);
+        SpectatorModeSystem.ToggleSpectateMode(Main.LocalPlayer.whoAmI);
     }
 }
 
@@ -56,39 +57,9 @@ internal class SpecCommand : ModCommand
         }
 
         // Toggle spectate mode.
-        SpectateCommandHelper.ToggleSpectateMode(Main.LocalPlayer);
+        SpectatorModeSystem.ToggleSpectateMode(Main.LocalPlayer.whoAmI);
     }
 }
-
-
-public static class SpectateCommandHelper
-{
-    public static void ToggleSpectateMode(Player player)
-    {
-        if (SpectatorModeSystem.IsInSpectateMode(player))
-        {
-            SpectatorModeSystem.RequestSetLocalMode(PlayerMode.Player);
-        }
-        else
-        {
-            SpectatorModeSystem.RequestSetLocalMode(PlayerMode.Spectator);
-        }
-    }
-}
-
-#if DEBUG
-public class SpectateDebugHelper : ModSystem
-{
-    public override void PostUpdateEverything()
-    {
-        if (Main.keyState.IsKeyDown(Keys.NumPad6) && Main.oldKeyState.IsKeyDown(Keys.NumPad6))
-        {
-            SpectateCommandHelper.ToggleSpectateMode(Main.LocalPlayer);
-        }
-    }
-}
-#endif
-
 
 internal class GhostCommand : ModCommand
 {

@@ -5,6 +5,7 @@ using PvPAdventure.Common.Arenas.UI;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Chat;
 using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Common.Spectator.UI;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.Items;
@@ -24,6 +25,7 @@ public class Keybinds : ModSystem
     public ModKeybind AllChat { get; private set; }
     public ModKeybind Dash { get; private set; }
     public ModKeybind ArenasMenu { get; private set; }
+    public ModKeybind ToggleSpectateMode { get; private set; }
     public ModKeybind UseAdventureMirror { get; private set; }
 
     #region Adventure mirror label
@@ -48,6 +50,7 @@ public class Keybinds : ModSystem
         Dash = KeybindLoader.RegisterKeybind(Mod, "Dash", Keys.F);
         ArenasMenu = KeybindLoader.RegisterKeybind(Mod, "ArenasMenu", Keys.F1);
         UseAdventureMirror = KeybindLoader.RegisterKeybind(Mod, "UseAdventureMirror", Keys.G);
+        ToggleSpectateMode = KeybindLoader.RegisterKeybind(Mod, "ToggleSpectateMode", Keys.NumPad0);
     }
 }
 
@@ -98,6 +101,13 @@ internal class KeybindsPlayer : ModPlayer
         {
             Log.Chat("Adventure mirror keybind pressed");
             AdventureMirror.TryUse(Player);
+        }
+
+        // Toggle spectate mode
+        if (keybinds.ToggleSpectateMode.JustPressed)
+        {
+            Log.Chat("Toggle spectate mode keybind pressed");
+            SpectatorModeSystem.ToggleSpectateMode(Main.LocalPlayer.whoAmI);
         }
     }
 }

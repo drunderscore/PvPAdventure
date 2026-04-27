@@ -1,89 +1,252 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Chat;
-using PvPAdventure.Common.Spectator.Drawers;
+using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spectator.UI.Tabs.Players;
-using PvPAdventure.Common.Teams;
+using PvPAdventure.Content.NPCs;
+using PvPAdventure.Core.Config;
+using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
+using Terraria.Chat;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.SpawnSelector;
 
 /// <summary>
-/// Manage all portals in the world.
+/// Server-authoritative portal registry and helpers.
+/// The portal's actual multiplayer state lives on <see cref="PortalNPC"/>.
 /// </summary>
-[Autoload(Side = ModSide.Client)]
 public sealed class PortalSystem : ModSystem
 {
     public static int PortalMaxHealth => NPC.downedPlantBoss ? 420 : Main.hardMode ? 69 : 27;
     public const float PortalUseRangeTiles = 8f;
     public const float PortalUseRangeWorld = PortalUseRangeTiles * 16f;
-    public static int PortalCreateAnimationTicks => ModContent.GetInstance<Core.Config.ServerConfig>().AdventureMirrorRecallSeconds * 60;
+    public static int PortalCreateAnimationTicks =>
+        Math.Max(0, ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallSeconds * 60);
 
-    public static bool HasPortal(Player player) => SpawnPlayer.HasPortal(player);
+    public static bool HasPortal(Player player) => TryGetPortalNpc(player, out _, out _);
 
-    public static bool TryGetPortalWorldPos(Player player, out Vector2 worldPos) =>
-        SpawnPlayer.TryGetPortalWorldPos(player, out worldPos);
-
-    public static void CreatePortalAtPosition(Player player, Vector2 position)
+    public static bool TryGetPortalWorldPos(Player player, out Vector2 worldPos)
     {
-        if (player == null || !player.active)
-            return;
+        if (TryGetPortal(player, out worldPos, out _, out _, out _))
+            return true;
 
-        player.GetModPlayer<SpawnPlayer>().SetPortal(position);
+        worldPos = default;
+        return false;
+    }
 
-        if (Main.netMode != NetmodeID.MultiplayerClient)
+    public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health)
+    {
+        return TryGetPortal(player, out worldPos, out health, out _, out _);
+    }
+
+    public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health, out int createTicksRemaining)
+    {
+        return TryGetPortal(player, out worldPos, out health, out createTicksRemaining, out _);
+    }
+
+    public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health, out int createTicksRemaining, out int maxHealth)
+    {
+        worldPos = default;
+        health = 0;
+        createTicksRemaining = 0;
+        maxHealth = 0;
+
+        if (!TryGetPortalNpc(player, out NPC npc, out PortalNPC portal))
+            return false;
+
+        worldPos = portal.WorldPosition;
+        health = npc.life;
+        createTicksRemaining = portal.CreateTicksRemaining;
+        maxHealth = npc.lifeMax;
+        return true;
+    }
+
+    public static IEnumerable<NPC> EnumeratePortalNpcs()
+    {
+        int type = ModContent.NPCType<PortalNPC>();
+
+        for (int i = 0; i < Main.maxNPCs; i++)
         {
-            string biome = PlayerStats.GetBiomeText(player);
-            int distance = (int)(Vector2.Distance(player.Center, position) / 16f);
-
-            TeleportChat.SendSystemTeamMessage(
-                player,
-                GetPortalMessage(player, biome, distance),
-                Main.OurFavoriteColor,
-                GetOwnPortalMessage(player, biome, distance));
+            NPC npc = Main.npc[i];
+            if (npc?.active == true && npc.type == type && npc.ModNPC is PortalNPC)
+                yield return npc;
         }
     }
 
-    internal static string GetOwnPortalMessage(Player player, string biome, int distance)
+    public static bool CreatePortalAtPosition(Player player, Vector2 requestedPosition)
     {
-        return $"{player.name} opened a portal in {biome} ({distance} tiles away)";
+        return TryCreatePortalAtPosition(player, requestedPosition, out _);
     }
 
-    internal static string GetPortalMessage(Player player, string biome, int distance)
+    public static bool TryCreatePortalAtPosition(Player player, Vector2 requestedPosition, out string reason)
     {
-        return $"{player.name} opened a portal in {biome} ({distance} tiles away)";
+        if (player?.active != true || Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            reason = $"blocked before create: active={player?.active == true}, netMode={Main.netMode}";
+            return false;
+        }
+
+        return TryCreatePortalServer(player, requestedPosition, announce: true, out reason);
+    }
+
+    private static bool TryCreatePortalServer(Player player, Vector2 worldPos, bool announce, out string reason)
+    {
+        if (player?.active != true || Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            reason = $"blocked server create: active={player?.active == true}, netMode={Main.netMode}";
+            return false;
+        }
+
+        if (!CanCreatePortal(player, out string blockedReason))
+        {
+            reason = blockedReason;
+            Log.Chat($"[Portal] Failed to create portal for {player.name}: {reason}");
+            return false;
+        }
+
+        RemovePortalsForOwner(player.whoAmI, silent: true);
+
+        int npcIndex = NPC.NewNPC(
+            player.GetSource_FromThis("AdventureMirrorPortal"),
+            (int)(worldPos.X - PortalNPC.PortalWidth * 0.5f),
+            (int)(worldPos.Y - PortalNPC.PortalHeight),
+            ModContent.NPCType<PortalNPC>(),
+            ai0: player.whoAmI,
+            ai1: player.team,
+            ai2: PortalMaxHealth,
+            ai3: 0
+        );
+
+        if ((uint)npcIndex >= Main.maxNPCs || Main.npc[npcIndex].ModNPC is not PortalNPC portal)
+        {
+            reason = $"NPC.NewNPC failed at {worldPos}, npcIndex={npcIndex}";
+            Log.Chat($"[Portal] Failed to create portal for {player.name}: {reason}");
+            return false;
+        }
+
+        NPC npc = Main.npc[npcIndex];
+        portal.Initialize(player, worldPos);
+        npc.netUpdate = true;
+
+        if (Main.netMode == NetmodeID.Server)
+            NetMessage.SendData(MessageID.SyncNPC, number: npcIndex);
+
+        InvalidateSpawnRegionCaches();
+
+        if (announce)
+            SendPortalCreatedMessages(player, worldPos);
+
+        reason = $"npc={npcIndex}, owner={player.name}, team={player.team}, hp={npc.life}/{npc.lifeMax}, pos={worldPos}";
+        Log.Chat($"[Portal] Successfully created portal: {reason}");
+        return true;
+    }
+
+    private static bool CanCreatePortal(Player player, out string blockedReason)
+    {
+        blockedReason = string.Empty;
+
+        if (player.ghost)
+        {
+            blockedReason = "owner is a ghost";
+            return false;
+        }
+
+        if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
+        {
+            blockedReason = "game is not playing";
+            return false;
+        }
+
+        return true;
     }
 
     public static void ClearPortal(Player player)
     {
-        if (player == null || !player.active)
+        if (player?.active != true)
             return;
 
-        player.GetModPlayer<SpawnPlayer>().ClearPortal();
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            ClearLocalPortalSelection(player.whoAmI);
+            return;
+        }
+
+        RemovePortalsForOwner(player.whoAmI, silent: true);
+        ClearLocalPortalSelection(player.whoAmI);
     }
 
-    public static bool TryDamagePortal(Player attacker, int ownerIndex, int damage, string source)
+    internal static void RemovePortalNpc(NPC npc, bool silent)
     {
-        if (ownerIndex < 0 || ownerIndex >= Main.maxPlayers || Main.player[ownerIndex] is not { active: true } owner)
-            return false;
+        if (npc == null || !npc.active)
+            return;
 
-        if (attacker?.active == true && attacker.whoAmI != ownerIndex && attacker.team != 0 && attacker.team == owner.team)
-            return false;
+        int ownerIndex = npc.ModNPC is PortalNPC portal ? portal.OwnerIndex : -1;
 
-        return owner.GetModPlayer<SpawnPlayer>().DamagePortal(attacker, damage, source);
+        npc.active = false;
+        npc.life = 0;
+        npc.netSkip = -1;
+
+        if (Main.netMode == NetmodeID.Server)
+            NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
+
+        InvalidateSpawnRegionCaches();
+        ClearLocalPortalSelection(ownerIndex);
+    }
+
+    private static void RemovePortalsForOwner(int ownerIndex, bool silent)
+    {
+        foreach (NPC npc in EnumeratePortalNpcs())
+        {
+            if (npc.ModNPC is PortalNPC portal && portal.OwnerIndex == ownerIndex)
+                RemovePortalNpc(npc, silent);
+        }
+    }
+
+    internal static void HandlePortalKilled(NPC npc, PortalNPC portal)
+    {
+        if (npc == null || portal == null)
+            return;
+
+        InvalidateSpawnRegionCaches();
+        ClearLocalPortalSelection(portal.OwnerIndex);
+
+        if (!TryGetActivePlayer(portal.OwnerIndex, out Player owner))
+        {
+            Log.Debug($"[Portal] destroyed npc={npc.whoAmI}, but owner index {portal.OwnerIndex} was not active");
+            return;
+        }
+
+        Color color = GetPortalTeamTextColor(owner);
+        TeleportChat.SendSystemTeamMessage(owner, $"{owner.name}'s portal has been destroyed.", color);
+        Log.Debug($"[Portal] destroyed owner={owner.name} npc={npc.whoAmI}");
     }
 
     public static Rectangle GetPortalHitbox(Vector2 worldPos) =>
-        new((int)worldPos.X - 24, (int)worldPos.Y - 72, 48, 72);
+        new((int)worldPos.X - PortalNPC.PortalWidth / 2, (int)worldPos.Y - PortalNPC.PortalHeight, PortalNPC.PortalWidth, PortalNPC.PortalHeight);
+
+    public static Vector2 GetPortalTopLeft(Vector2 worldPos) =>
+        worldPos - new Vector2(PortalNPC.PortalWidth * 0.5f, PortalNPC.PortalHeight);
 
     public static bool IsWithinPortalUseRange(Player player, Vector2 worldPos)
     {
         return player?.active == true &&
                Vector2.DistanceSquared(player.Center, worldPos) <= PortalUseRangeWorld * PortalUseRangeWorld;
+    }
+
+    internal static bool CanPlayerDamagePortal(Player attacker, int ownerIndex)
+    {
+        if (attacker?.active != true)
+            return false;
+
+        if (!TryGetActivePlayer(ownerIndex, out Player owner))
+            return false;
+
+        return attacker.team != 0 && owner.team != 0 && attacker.team != owner.team;
     }
 
     public static void PlayPortalFx(Vector2 worldPos, bool killed, int damage = 0)
@@ -92,9 +255,7 @@ public sealed class PortalSystem : ModSystem
             return;
 
         if (damage > 0)
-        {
             CombatText.NewText(GetPortalHitbox(worldPos), CombatText.DamagedHostile, damage);
-        }
 
         if (!killed)
         {
@@ -111,26 +272,156 @@ public sealed class PortalSystem : ModSystem
         }
     }
 
-    #region Clear hooks on load
+    internal static Color GetPortalTeamTextColor(Player player)
+    {
+        if (player != null && player.team >= 0 && player.team < Main.teamColor.Length)
+            return Main.teamColor[player.team];
+
+        Log.Debug($"Failed to resolve portal team text color for player={player?.name ?? "<null>"} team={player?.team ?? -1}; using white fallback");
+        return Color.White;
+    }
+
+    internal static string GetOwnPortalMessage(Player player, string biome, int distance)
+    {
+        return $"You opened a portal in {biome}";
+    }
+
+    internal static string GetPortalMessage(Player player, string biome, int distance)
+    {
+        return $"{player.name} opened a portal in {biome} ({distance} tiles away)";
+    }
+
+    private static void SendPortalCreatedMessages(Player owner, Vector2 portalWorldPos)
+    {
+        if (owner?.active != true)
+            return;
+
+        string biome = PlayerStats.GetBiomeText(owner);
+        Color color = GetPortalTeamTextColor(owner);
+
+        if (Main.netMode == NetmodeID.SinglePlayer)
+        {
+            int distance = GetDistanceTiles(Main.LocalPlayer ?? owner, portalWorldPos);
+            Main.NewText(GetOwnPortalMessage(owner, biome, distance), color);
+            return;
+        }
+
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        if (owner.team == 0)
+        {
+            int distance = GetDistanceTiles(owner, portalWorldPos);
+            ChatHelper.SendChatMessageToClient(NetworkText.FromLiteral(GetOwnPortalMessage(owner, biome, distance)), color, owner.whoAmI);
+            return;
+        }
+
+        for (int i = 0; i < Main.maxPlayers; i++)
+        {
+            Player viewer = Main.player[i];
+            if (viewer?.active != true || viewer.team != owner.team)
+                continue;
+
+            int distance = GetDistanceTiles(viewer, portalWorldPos);
+            string text = i == owner.whoAmI
+                ? GetOwnPortalMessage(owner, biome, distance)
+                : GetPortalMessage(owner, biome, distance);
+
+            ChatHelper.SendChatMessageToClient(NetworkText.FromLiteral(ChatPrefixFormatter.TeamChannelMarker + text), color, i);
+        }
+    }
+
+    private static int GetDistanceTiles(Player viewer, Vector2 worldPos)
+    {
+        if (viewer?.active != true)
+            return 0;
+
+        return Math.Max(0, (int)Math.Round(Vector2.Distance(viewer.Center, worldPos) / 16f));
+    }
+
+    private static bool TryGetPortalNpc(Player player, out NPC npc, out PortalNPC portal)
+    {
+        npc = null;
+        portal = null;
+
+        if (player?.active != true)
+            return false;
+
+        foreach (NPC candidate in EnumeratePortalNpcs())
+        {
+            if (candidate.ModNPC is not PortalNPC candidatePortal || candidatePortal.OwnerIndex != player.whoAmI)
+                continue;
+
+            npc = candidate;
+            portal = candidatePortal;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetActivePlayer(int playerIndex, out Player player)
+    {
+        player = playerIndex >= 0 && playerIndex < Main.maxPlayers ? Main.player[playerIndex] : null;
+        return player?.active == true;
+    }
+
+    internal static void InvalidateSpawnRegionCaches()
+    {
+        SpawnPlayer.InvalidateSpawnRegionCaches();
+    }
+
+    private static void ClearLocalPortalSelection(int ownerIndex)
+    {
+        if (Main.dedServ)
+            return;
+
+        Player local = Main.LocalPlayer;
+        if (local?.active != true)
+            return;
+
+        SpawnPlayer sp = local.GetModPlayer<SpawnPlayer>();
+
+        if (sp.SelectedType == SpawnType.MyPortal && ownerIndex == local.whoAmI)
+            sp.ClearSelection();
+
+        if (sp.SelectedType == SpawnType.TeammatePortal && sp.SelectedPlayerIndex == ownerIndex)
+            sp.ClearSelection();
+    }
+
     public override void OnWorldLoad()
     {
-        ClearAllPortals();
+        ClearAllPortalNpcs();
     }
 
     public override void OnWorldUnload()
     {
-        ClearAllPortals();
+        ClearAllPortalNpcs();
     }
 
-    private static void ClearAllPortals()
+    private static void ClearAllPortalNpcs()
     {
-        for (int i = 0; i < Main.maxPlayers; i++)
-            if (Main.player[i] is { active: true } player)
-                player.GetModPlayer<SpawnPlayer>().ClearPortal(sync: false);
+        foreach (NPC npc in EnumeratePortalNpcs())
+            RemovePortalNpc(npc, silent: true);
     }
-    #endregion
 
-    #region Drawing
+    public override void PostUpdateEverything()
+    {
+        if (Main.dedServ)
+            return;
+
+        Player local = Main.LocalPlayer;
+        if (local?.active != true)
+            return;
+
+        SpawnPlayer sp = local.GetModPlayer<SpawnPlayer>();
+
+        if (sp.SelectedType == SpawnType.MyPortal && !HasPortal(local))
+            sp.ClearSelection();
+        else if (sp.SelectedType == SpawnType.TeammatePortal && !SpawnPlayer.IsValidTeammatePortalIndex(local, sp.SelectedPlayerIndex))
+            sp.ClearSelection();
+    }
+
     public override void PostDrawTiles()
     {
         if (Main.dedServ)
@@ -165,17 +456,19 @@ public sealed class PortalSystem : ModSystem
     private static bool TryGetHoveredPortal(Vector2 mouseWorld, out int ownerIndex)
     {
         ownerIndex = -1;
-
         Point mousePoint = mouseWorld.ToPoint();
 
-        for (int i = 0; i < Main.maxPlayers; i++)
-            if (Main.player[i] is { active: true } player &&
-                SpawnPlayer.TryGetPortalWorldPos(player, out Vector2 worldPos) &&
-                GetPortalHitbox(worldPos).Contains(mousePoint))
-            {
-                ownerIndex = i;
-                return true;
-            }
+        foreach (NPC npc in EnumeratePortalNpcs())
+        {
+            if (npc.ModNPC is not PortalNPC portal)
+                continue;
+
+            if (!GetPortalHitbox(portal.WorldPosition).Contains(mousePoint))
+                continue;
+
+            ownerIndex = portal.OwnerIndex;
+            return true;
+        }
 
         return false;
     }
@@ -190,6 +483,4 @@ public sealed class PortalSystem : ModSystem
 
         SoundEngine.PlaySound(SoundID.MenuOpen);
     }
-
-    #endregion
 }

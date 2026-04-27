@@ -8,6 +8,7 @@ using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
 using PvPAdventure.Core.Utilities;
 using SubworldLibrary;
+using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
@@ -147,15 +148,15 @@ public class SpawnSystem : ModSystem
         ready = false;
         secondsLeft = 0;
 
-        if (player?.active != true || player.itemAnimation <= 0 || player.HeldItem?.type != ModContent.ItemType<AdventureMirror>())
+        if (player?.active != true || player.HeldItem?.type != ModContent.ItemType<AdventureMirror>())
             return false;
 
-        ready = player.itemTime <= 2;
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        if (!sp.AdventureMirrorCountdownStartedThisUse)
+            return false;
 
-        int framesLeft = player.itemTime - 2;
-        if (framesLeft <= 2)
-            framesLeft = 0;
-
+        ready = sp.AdventureMirrorTicksLeft <= 0;
+        int framesLeft = Math.Max(0, sp.AdventureMirrorTicksLeft);
         secondsLeft = (framesLeft + 59) / 60;
         return true;
     }

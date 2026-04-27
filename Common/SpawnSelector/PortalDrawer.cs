@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
 using PvPAdventure.Content.Items;
+using PvPAdventure.Content.NPCs;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
@@ -13,22 +14,27 @@ namespace PvPAdventure.Common.SpawnSelector;
 
 public static class PortalDrawer
 {
-    private static PotionOfReturnGateHelper? _formingGate;
-
     public static Color GetPortalColor(Player player)
     {
-        if (player == null || player.team <= 0 || player.team >= Main.teamColor.Length)
+        return GetPortalColor(player?.team ?? 0);
+    }
+
+    public static Color GetPortalColor(int team)
+    {
+        if (team <= 0 || team >= Main.teamColor.Length)
             return Color.White;
 
-        return Main.teamColor[player.team];
+        return Main.teamColor[team];
     }
 
     public static Asset<Texture2D> GetPortalAsset(Player player)
     {
-        if (player == null)
-            return Ass.Portal;
+        return GetPortalAsset(player?.team ?? 0);
+    }
 
-        return player.team switch
+    public static Asset<Texture2D> GetPortalAsset(int team)
+    {
+        return team switch
         {
             (int)Terraria.Enums.Team.Red => Ass.Portal_Red,
             (int)Terraria.Enums.Team.Green => Ass.Portal_Green,
@@ -41,10 +47,12 @@ public static class PortalDrawer
 
     public static Asset<Texture2D> GetPortalMinimapAsset(Player player)
     {
-        if (player == null)
-            return Ass.Portal_Minimap;
+        return GetPortalMinimapAsset(player?.team ?? 0);
+    }
 
-        return player.team switch
+    public static Asset<Texture2D> GetPortalMinimapAsset(int team)
+    {
+        return team switch
         {
             (int)Terraria.Enums.Team.Red => Ass.Portal_Red_Minimap,
             (int)Terraria.Enums.Team.Green => Ass.Portal_Green_Minimap,
@@ -67,26 +75,28 @@ public static class PortalDrawer
         if (Main.dedServ)
             return;
 
-        for (int i = 0; i < Main.maxPlayers; i++)
+        foreach (NPC npc in PortalSystem.EnumeratePortalNpcs())
         {
-            Player player = Main.player[i];
-            if (player == null || !player.active)
+            if (npc.ModNPC is not PortalNPC portal)
                 continue;
 
-            if (!SpawnPlayer.TryGetPortal(player, out Vector2 worldPos, out int health, out int createTicksRemaining, out int maxHealth))
-                continue;
+            Vector2 worldPos = portal.WorldPosition;
+            int team = portal.OwnerTeam;
+            int health = npc.life;
+            int maxHealth = npc.lifeMax;
+            int createTicksRemaining = portal.CreateTicksRemaining;
 
             float progress = GetCreateProgress(createTicksRemaining);
             bool inRange = PortalSystem.IsWithinPortalUseRange(Main.LocalPlayer, worldPos);
             //Log.Chat(inRange);
             SpawnPortalDust(worldPos, progress, dustMultiplier: inRange ? 3 : 1); // always spawn portal dust. we could gate it to only show if in range, etc.
 
-            Texture2D texture = GetPortalAsset(player).Value;
+            Texture2D texture = GetPortalAsset(team).Value;
             Rectangle source = GetPortalFrameRectangle(texture);
             Vector2 origin = new(source.Width * 0.5f, source.Height);
             Vector2 drawPos = worldPos - Main.screenPosition;
             bool hovered = PortalSystem.GetPortalHitbox(worldPos).Contains(Main.MouseWorld.ToPoint());
-            Color borderColor = GetPortalColor(player);
+            Color borderColor = GetPortalColor(team);
             //float rangeAlpha = inRange ? 1f : 0.5f;
             float rangeAlpha = 1f;
             int visualHealth = (int)MathHelper.Lerp(0f, health, progress);
@@ -97,7 +107,7 @@ public static class PortalDrawer
             if (hovered)
             {
                 if (inRange)
-                    DrawHoverIcon(spriteBatch, player, worldPos, borderColor, progress);
+                    DrawHoverIcon(spriteBatch, team, worldPos, borderColor, progress);
 
                 //string healthText = $"Portal: {health}/{PortalSystem.PortalMaxHealth}";
                 //float textScale = 0.9f;
@@ -207,11 +217,12 @@ public static class PortalDrawer
     {
         progress = 0f;
 
-        if (player.itemAnimation <= 0)
-            return false;
-
         int mirrorType = ModContent.ItemType<AdventureMirror>();
         if (player.HeldItem == null || player.HeldItem.type != mirrorType)
+            return false;
+
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        if (!sp.AdventureMirrorCountdownStartedThisUse)
             return false;
 
         int total = PortalSystem.PortalCreateAnimationTicks;
@@ -221,10 +232,7 @@ public static class PortalDrawer
             return true;
         }
 
-        int framesLeft = player.itemTime - 2;
-        if (framesLeft < 0)
-            framesLeft = 0;
-
+        int framesLeft = Math.Max(0, sp.AdventureMirrorTicksLeft);
         progress = MathHelper.Clamp(1f - framesLeft / (float)total, 0f, 1f);
         return true;
     }
@@ -277,7 +285,7 @@ public static class PortalDrawer
         sb.Draw(fillTex, screenOrigin, new Rectangle(0, 0, barPixels, fillTex.Height), barColor, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
     }
 
-    private static void DrawHoverIcon(SpriteBatch sb, Player player, Vector2 worldPos, Color outlineColor, float alpha)
+    private static void DrawHoverIcon(SpriteBatch sb, int team, Vector2 worldPos, Color outlineColor, float alpha)
     {
         const float pulseSpeed = 6f; // Lower = slower pulse.
         const float pulseScaleVariance = 0.15f; // Higher = larger size change.
@@ -286,7 +294,7 @@ public static class PortalDrawer
         //Texture2D iconTexture = GetPortalAsset(player).Value;
         //Rectangle source = GetPortalFrameRectangle(iconTexture);
 
-        Texture2D iconTexture = GetPortalMinimapAsset(player).Value;
+        Texture2D iconTexture = GetPortalMinimapAsset(team).Value;
         Rectangle source = iconTexture.Bounds;
 
         Vector2 origin = new(source.Width * 0.5f, source.Height * 0.5f); // center

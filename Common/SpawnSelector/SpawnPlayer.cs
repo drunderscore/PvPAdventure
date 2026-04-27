@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Chat;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.SpawnSelector.Net;
-using PvPAdventure.Common.Teams;
+using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Terraria;
@@ -32,105 +31,16 @@ public class SpawnPlayer : ModPlayer
 
     public bool SpawnedPortalThisUse;
     public bool AdventureMirrorHadCountdownThisUse;
+    public bool AdventureMirrorCountdownStartedThisUse;
+    public int AdventureMirrorTicksLeft;
+    public int AdventureMirrorElapsedTicks;
+    public Vector2 AdventureMirrorPortalWorld;
     public int TeleportCooldownTicks { get; private set; }
     public bool IsTeleportOnCooldown => TeleportCooldownTicks > 0;
     public int TeleportCooldownSecondsLeft => (TeleportCooldownTicks + 59) / 60;
 
     #region Portal
-    private bool hasPortal;
-    private Vector2 portalWorldPos;
-    private int portalHealth;
-    private int portalMaxHealth;
-    private int portalCreateTicksRemaining;
-
-    public void SetPortal(Vector2 worldPos, bool sync = true)
-    {
-        hasPortal = true;
-        portalWorldPos = worldPos;
-        portalHealth = portalMaxHealth = PortalSystem.PortalMaxHealth;
-        portalCreateTicksRemaining = PortalSystem.PortalCreateAnimationTicks;
-
-        Log.Debug($"[Portal] set {Player.name} hp={portalHealth} pos={worldPos}");
-        InvalidateSpawnRegionCaches();
-
-        if (sync)
-            SyncPortal();
-    }
-
-    public void ClearPortal(bool sync = true)
-    {
-        if (!hasPortal && portalWorldPos == default)
-            return;
-
-        Log.Debug($"[Portal] clear {Player.name} hp={portalHealth}");
-
-        hasPortal = false;
-        portalWorldPos = default;
-        portalHealth = portalMaxHealth = 0;
-        portalCreateTicksRemaining = 0;
-        InvalidateSpawnRegionCaches();
-
-        if (SelectedType == SpawnType.MyPortal || SelectedType == SpawnType.TeammatePortal)
-            ClearSelection();
-
-        if (sync)
-            SyncPortal();
-    }
-
-    internal void ApplyPortalFromNet(bool hasPortal, Vector2 worldPos, int health, int createTicks, int maxHealth = 0)
-    {
-        Log.Debug($"[Portal] net {Player.name} has={hasPortal} hp={health}");
-        bool changedSpawnRegion = this.hasPortal != hasPortal || this.portalWorldPos != worldPos;
-
-        this.hasPortal = hasPortal;
-        portalMaxHealth = hasPortal ? System.Math.Max(1, maxHealth > 0 ? maxHealth : PortalSystem.PortalMaxHealth) : 0;
-        portalWorldPos = hasPortal ? worldPos : default;
-        portalHealth = hasPortal ? Utils.Clamp(health, 1, portalMaxHealth) : 0;
-        portalCreateTicksRemaining = hasPortal ? Utils.Clamp(createTicks, 0, PortalSystem.PortalCreateAnimationTicks) : 0;
-
-        if (changedSpawnRegion)
-            InvalidateSpawnRegionCaches();
-
-        if (Main.netMode == NetmodeID.Server || hasPortal)
-            return;
-
-        SpawnPlayer local = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
-        if (local != null &&
-            local.SelectedType == SpawnType.TeammatePortal &&
-            local.SelectedPlayerIndex == Player.whoAmI)
-        {
-            local.ClearSelection();
-        }
-    }
-
-    internal bool DamagePortal(Player attacker, int damage, string source)
-    {
-        if (!hasPortal)
-            return false;
-
-        damage = Utils.Clamp(damage, 1, portalHealth);
-        int oldHealth = portalHealth;
-        portalHealth -= damage;
-
-        string attackerName = attacker?.name ?? "<unknown>";
-        Log.Debug($"[Portal] hit {Player.name} by {attackerName} {oldHealth}->{portalHealth} ({source})");
-
-        if (portalHealth <= 0)
-        {
-            Color color = Player.team > 0 ? Main.teamColor[Player.team] : Main.OurFavoriteColor;
-            TeleportChat.SendSystemTeamMessage(Player, $"{Player.name}'s portal has been destroyed.", color);
-            Log.Debug($"[Portal] dead {Player.name} by {attackerName}");
-            PortalFxNetHandler.Send(portalWorldPos, killed: true, damage);
-            ClearPortal();
-            return true;
-        }
-
-        PortalFxNetHandler.Send(portalWorldPos, killed: false, damage);
-        SyncPortal();
-        return true;
-    }
-
-    public static bool HasPortal(Player player) => player?.active == true && player.GetModPlayer<SpawnPlayer>().hasPortal;
+    public static bool HasPortal(Player player) => PortalSystem.HasPortal(player);
 
     public static bool TryGetPortalWorldPos(Player player, out Vector2 worldPos)
     {
@@ -149,23 +59,7 @@ public class SpawnPlayer : ModPlayer
 
     public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health, out int createTicksRemaining, out int maxHealth)
     {
-        worldPos = default;
-        health = 0;
-        createTicksRemaining = 0;
-        maxHealth = 0;
-
-        if (player?.active != true)
-            return false;
-
-        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
-        if (!sp.hasPortal)
-            return false;
-
-        worldPos = sp.portalWorldPos;
-        health = sp.portalHealth;
-        createTicksRemaining = sp.portalCreateTicksRemaining;
-        maxHealth = sp.portalMaxHealth;
-        return true;
+        return PortalSystem.TryGetPortal(player, out worldPos, out health, out createTicksRemaining, out maxHealth);
     }
     #endregion
 
@@ -177,6 +71,27 @@ public class SpawnPlayer : ModPlayer
 
     public void StartTeleportCooldown() =>
         TeleportCooldownTicks = ModContent.GetInstance<ServerConfig>().SpawnTeleportCooldownSeconds * 60;
+
+    internal void StartAdventureMirrorUse()
+    {
+        SpawnedPortalThisUse = false;
+        AdventureMirrorHadCountdownThisUse = true;
+        AdventureMirrorCountdownStartedThisUse = true;
+        AdventureMirrorTicksLeft = AdventureMirror.GetRecallFrames();
+        AdventureMirrorElapsedTicks = 0;
+        AdventureMirrorPortalWorld = Player.Bottom;
+        Log.Chat($"[Mirror] Start adventure mirror use: player={Player.name}, recallTicks={AdventureMirrorTicksLeft}, pos={AdventureMirrorPortalWorld}, netMode={Main.netMode}");
+    }
+
+    internal void ResetAdventureMirrorUse()
+    {
+        SpawnedPortalThisUse = false;
+        AdventureMirrorHadCountdownThisUse = false;
+        AdventureMirrorCountdownStartedThisUse = false;
+        AdventureMirrorTicksLeft = 0;
+        AdventureMirrorElapsedTicks = 0;
+        AdventureMirrorPortalWorld = Vector2.Zero;
+    }
 
     internal void InvalidateSpawnRegionCache() => nextSpawnRegionCheckTick = 0;
 
@@ -278,25 +193,79 @@ public class SpawnPlayer : ModPlayer
 
     public override void PostUpdate()
     {
-        UpdatePortalMaxHealth();
-
-        if (portalCreateTicksRemaining > 0)
-            portalCreateTicksRemaining--;
-
         if (TeleportCooldownTicks > 0)
             TeleportCooldownTicks--;
+
+        UpdateAdventureMirrorUse();
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
             UpdatePlayerSpawnpoint();
     }
 
-    private void UpdatePortalMaxHealth()
+    private void UpdateAdventureMirrorUse()
     {
-        if (!hasPortal || portalMaxHealth == PortalSystem.PortalMaxHealth)
+        if (!AdventureMirrorCountdownStartedThisUse)
             return;
 
-        portalHealth = portalMaxHealth = PortalSystem.PortalMaxHealth;
-        SyncPortal();
+        if (Player.dead || Player.ghost || Player.HeldItem?.ModItem is not AdventureMirror)
+        {
+            Log.Chat($"[Mirror] Failed to create portal: cancelled before finish, player={Player.name}, dead={Player.dead}, ghost={Player.ghost}, held={Player.HeldItem?.Name ?? "<null>"}, elapsedTicks={AdventureMirrorElapsedTicks}, ticksLeft={AdventureMirrorTicksLeft}");
+            AdventureMirror.ResetUseState(Player);
+            return;
+        }
+
+        if (Player.velocity.LengthSquared() > 0f)
+        {
+            if (Player.whoAmI == Main.myPlayer)
+                AdventureMirror.Warning(Player, "Mods.PvPAdventure.AdventureMirror.Cancelled");
+
+            Log.Chat($"[Mirror] Failed to create portal: cancelled by movement, player={Player.name}, velocity={Player.velocity}, elapsedTicks={AdventureMirrorElapsedTicks}, ticksLeft={AdventureMirrorTicksLeft}");
+            AdventureMirror.ResetUseState(Player);
+            return;
+        }
+
+        if (AdventureMirrorTicksLeft > 0)
+        {
+            AdventureMirrorTicksLeft--;
+            AdventureMirrorElapsedTicks++;
+            return;
+        }
+
+        if (SpawnedPortalThisUse)
+        {
+            Log.Chat($"[Mirror] End ignored: already spawned this use, player={Player.name}, elapsedTicks={AdventureMirrorElapsedTicks}, ticksLeft={AdventureMirrorTicksLeft}");
+            return;
+        }
+
+        SpawnedPortalThisUse = true;
+        Log.Chat($"[Mirror] End adventure mirror use: player={Player.name}, elapsedTicks={AdventureMirrorElapsedTicks}, ticksLeft={AdventureMirrorTicksLeft}, selectedType={SelectedType}, pos={AdventureMirrorPortalWorld}, netMode={Main.netMode}");
+
+        if (SelectedType != SpawnType.None)
+        {
+            if (Player.whoAmI == Main.myPlayer)
+            {
+                RequestExecute();
+                SpawnSystem.TryExecuteSelection(Player, this);
+            }
+
+            AdventureMirror.ResetUseState(Player);
+            return;
+        }
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            PlayerPortalNetHandler.SendFinishMirrorUse(Player, AdventureMirrorPortalWorld, AdventureMirrorElapsedTicks, AdventureMirrorTicksLeft);
+            Log.Chat($"[Mirror] Portal create request sent: player={Player.name}, elapsedTicks={AdventureMirrorElapsedTicks}, ticksLeft={AdventureMirrorTicksLeft}, pos={AdventureMirrorPortalWorld}");
+        }
+        else
+        {
+            bool success = PortalSystem.TryCreatePortalAtPosition(Player, AdventureMirrorPortalWorld, out string reason);
+            Log.Chat(success
+                ? $"Successfully created portal: player={Player.name}, elapsedTicks={AdventureMirrorElapsedTicks}, ticksLeft={AdventureMirrorTicksLeft}, reason={reason}"
+                : $"Failed to create portal: player={Player.name}, elapsedTicks={AdventureMirrorElapsedTicks}, ticksLeft={AdventureMirrorTicksLeft}, reason={reason}");
+        }
+
+        AdventureMirror.ResetUseState(Player);
     }
 
     public override void UpdateDead()
@@ -337,9 +306,11 @@ public class SpawnPlayer : ModPlayer
     {
         base.Kill(damage, hitDirection, pvp, damageSource);
 
+        if (Main.netMode != NetmodeID.MultiplayerClient || Player.whoAmI == Main.myPlayer)
+            PortalSystem.ClearPortal(Player);
+
         if (Player.whoAmI == Main.myPlayer)
         {
-            PortalSystem.ClearPortal(Player);
             TryAutoSelectLatestSelection();
         }
     }
@@ -490,25 +461,6 @@ public class SpawnPlayer : ModPlayer
         packet.Write((byte)SelectedType);
         packet.Write((short)SelectedPlayerIndex);
         packet.Send();
-    }
-
-    private void SyncPortal()
-    {
-        if (Main.netMode == NetmodeID.SinglePlayer)
-            return;
-
-        if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI != Main.myPlayer)
-            return;
-
-        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, portalCreateTicksRemaining, portalMaxHealth);
-    }
-
-    public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
-    {
-        if (!hasPortal)
-            return;
-
-        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, portalCreateTicksRemaining, portalMaxHealth, toWho, fromWho);
     }
 
     private void UpdatePlayerSpawnpoint()

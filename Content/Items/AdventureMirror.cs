@@ -3,7 +3,6 @@ using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Input;
-using PvPAdventure.Core.Net;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -14,24 +13,30 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Content.Items;
 
 /// <summary>
-/// An item that teleports the player to world spawn.
-/// Has a countdown of a few seconds before being used.
+/// An item that spawns a portal at the end of the use time.
+/// Starts spawning the portal instantly, fully formed after the end of use time.
 /// </summary>
 internal class AdventureMirror : ModItem
 {
     public override string Texture => $"PvPAdventure/Assets/Items/AdventureMirror";
 
-    private static int GetRecallFrames() =>
-        ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallSeconds * 60;
+    internal static int GetRecallFrames() =>
+        Math.Max(0, ModContent.GetInstance<ServerConfig>().AdventureMirrorRecallSeconds * 60);
+
+    internal static void PrepareUseTimings(Item item)
+    {
+        int recallFrames = GetRecallFrames();
+        int animationFrames = Math.Max(1, recallFrames + 3);
+
+        item.useTime = animationFrames;
+        item.useAnimation = animationFrames;
+    }
 
     public override void SetDefaults()
     {
         //Item.CloneDefaults(ItemID.MagicMirror);
 
-        int recallFrames = GetRecallFrames();
-
-        Item.useTime = recallFrames + 3; // + a few frames to ensure countdown shows
-        Item.useAnimation = recallFrames + 3; // + a few frames to ensure countdown 
+        PrepareUseTimings(Item);
         Item.useStyle = ItemUseStyleID.HoldUp;
         Item.UseSound = SoundID.Item6;
         Item.rare = ItemRarityID.Blue;
@@ -39,34 +44,13 @@ internal class AdventureMirror : ModItem
         Item.noUseGraphic = false;
     }
     public override bool ConsumeItem(Player player) => false;
-    public override bool? UseItem(Player player) => true;
-
-    public override void UseItemFrame(Player player)
-    {
-        if (player.itemAnimation == Item.useAnimation)
-        {
-            StartUseCountdown(player);
-        }
-    }
-
-    private static void StartUseCountdown(Player player)
-    {
-        int recallFrames = GetRecallFrames();
-
-        player.itemTime = recallFrames + 1;
-        player.itemAnimation = recallFrames + 1;
-        player.itemTimeMax = player.itemTime;
-        player.itemAnimationMax = player.itemAnimation;
-        player.reuseDelay = 0;
-
-        ResetUseFlags(player);
-    }
-
-    private static void ResetUseFlags(Player player)
+    public override bool? UseItem(Player player)
     {
         SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
-        sp.SpawnedPortalThisUse = false;
-        sp.AdventureMirrorHadCountdownThisUse = false;
+        if (!sp.AdventureMirrorCountdownStartedThisUse)
+            sp.StartAdventureMirrorUse();
+
+        return true;
     }
 
     internal static void ResetUseState(Player player)
@@ -80,10 +64,9 @@ internal class AdventureMirror : ModItem
         player.itemTimeMax = 0;
         player.reuseDelay = 0;
 
-        ResetUseFlags(player);
+        player.GetModPlayer<SpawnPlayer>().ResetAdventureMirrorUse();
     }
 
-    #region Right click use
     public override bool CanRightClick() => true;
     public override bool AltFunctionUse(Player player) => false;
 
@@ -101,52 +84,48 @@ internal class AdventureMirror : ModItem
         {
             if (player.inventory[i].ModItem is AdventureMirror mirror)
             {
-                mirror.TryStartUse(player, i, sendNet: true);
+                mirror.TryStartUse(player, i);
                 return;
             }
         }
     }
 
-    private void TryStartUse(Player player, int index, bool sendNet)
+    private void TryStartUse(Player player, int index)
     {
         SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
-        Log.Debug($"[Mirror] try {player.name} slot={index} anim={player.itemAnimation} spawned={sp.SpawnedPortalThisUse}");
+        Log.Debug($"[Mirror] try start use anim={player.itemAnimation} spawned={sp.SpawnedPortalThisUse}");
+
+        PrepareUseTimings(player.inventory[index]);
 
         if (sp.SelectedType == SpawnType.MyPortal)
             sp.ClearSelection();
 
         if (!CanUseItem(player))
         {
-            Log.Debug($"[Mirror] blocked CanUse {player.name}");
+            Log.Debug($"[Mirror] blocked");
             return;
         }
 
         if (player.CCed || player.itemAnimation > 0 || player.reuseDelay > 0)
         {
-            Log.Debug($"[Mirror] blocked state {player.name} anim={player.itemAnimation} reuse={player.reuseDelay}");
+            Log.Debug($"[Mirror] blocked state anim={player.itemAnimation} reuse={player.reuseDelay}");
             return;
         }
 
-        if (!BeginMirrorUse(player, index))
-            return;
-
-        if (sendNet && Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            ModPacket p = Mod.GetPacket();
-            p.Write((byte)AdventurePacketIdentifier.AdventureMirrorRightClickUse);
-            p.Write((byte)player.whoAmI);
-            p.Write((byte)index);
-            p.Send();
-        }
+        BeginMirrorUse(player, index);
     }
 
     private bool BeginMirrorUse(Player player, int index)
     {
-        ResetUseFlags(player);
+        player.GetModPlayer<SpawnPlayer>().ResetAdventureMirrorUse();
 
         player.selectedItem = index;
         player.controlUseItem = true;
         player.releaseUseItem = true;
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            NetMessage.SendData(MessageID.PlayerControls, -1, -1, null, player.whoAmI);
+
         player.ItemCheck();
 
         player.controlUseItem = false;
@@ -156,16 +135,64 @@ internal class AdventureMirror : ModItem
         if (player.HeldItem?.ModItem is not AdventureMirror || player.itemAnimation <= 0)
             return false;
 
-        StartUseCountdown(player);
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        if (!sp.AdventureMirrorCountdownStartedThisUse)
+            sp.StartAdventureMirrorUse();
 
         Log.Debug($"[Mirror] begin {player.name} slot={index} ticks={player.itemTime}");
         return true;
     }
 
-    #endregion
+    internal void CancelItemUse(Player player)
+    {
+        ResetUseState(player);
+    }
+
+    public override void UseStyle(Player player, Rectangle heldItemFrame)
+    {
+        base.UseStyle(player, heldItemFrame);
+
+        player.controlUseItem = false;
+        player.channel = false;
+
+        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
+        if (!sp.AdventureMirrorCountdownStartedThisUse)
+            return;
+
+        DrawMirrorUseVisuals(player, sp.AdventureMirrorTicksLeft);
+    }
+
+    #region Misc hooks that dont affect the item use state
+    // Visual popup text and dust effects for the countdown
+    private static void DrawMirrorUseVisuals(Player player, int framesLeft)
+    {
+        if (framesLeft <= 0)
+            return;
+
+        if (Main.rand.NextBool())
+            Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror, player.velocity.X * 0.5f, player.velocity.Y * 0.5f, 150, default, 1.5f);
+
+        if (player.itemTime % 60 != 0)
+            return;
+
+        int secondsLeft = (framesLeft + 59) / 60;
+
+        if (secondsLeft <= 0)
+            return;
+
+        PopupText.NewText(new AdvancedPopupRequest
+        {
+            Color = Main.teamColor[(int)player.team],
+            Text = secondsLeft.ToString(),
+            Velocity = new Vector2(0f, -4f),
+            DurationInFrames = 120
+        }, player.Top + new Vector2(0f, -4f));
+    }
 
     public override bool CanUseItem(Player player)
     {
+        PrepareUseTimings(Item);
+
         if (player.ghost)
             return false;
 
@@ -184,103 +211,6 @@ internal class AdventureMirror : ModItem
         return true;
     }
 
-    internal void CancelItemUse(Player player)
-    {
-        ResetUseState(player);
-    }
-
-    public override void UseStyle(Player player, Rectangle heldItemFrame)
-    {
-        base.UseStyle(player, heldItemFrame);
-
-        player.controlUseItem = false;
-        player.channel = false;
-
-        int framesLeft = player.itemTime - 2;
-        if (framesLeft < 0) framesLeft = 0;
-
-        bool finishedUse = framesLeft == 0;
-        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
-
-        // Initialize on the first frame of the animation
-        if (player.itemAnimation == player.itemAnimationMax - 1)
-        {
-            sp.SpawnedPortalThisUse = false;
-            sp.AdventureMirrorHadCountdownThisUse = false;
-        }
-
-        // If this player moves, cancel their use and reset
-        if (!finishedUse && player.velocity.LengthSquared() > 0)
-        {
-            Warning(player, "Mods.PvPAdventure.AdventureMirror.Cancelled");
-            CancelItemUse(player);
-            return;
-        }
-
-        int secondsLeft = (framesLeft + 59) / 60;
-
-        // Stop dust once we are at 0
-        if (framesLeft > 0)
-        {
-            if (Main.rand.NextBool())
-                Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror,
-                player.velocity.X * 0.5f, player.velocity.Y * 0.5f, 150, default, 1.5f);
-        }
-
-        // Countdown popup with team color
-        Color teamColor = Main.teamColor[(int)player.team];
-
-        if (framesLeft == 2 && player.reuseDelay == 0)
-        {
-            PopupText.NewText(new AdvancedPopupRequest
-            {
-                Color = teamColor,
-                Text = "0",
-                Velocity = new(0f, -4),
-                DurationInFrames = 120
-            }, player.Top + new Vector2(0, -4));
-        }
-        else if (framesLeft >= 2 && player.itemTime % 60 == 0 && secondsLeft > 0)
-        {
-            PopupText.NewText(new AdvancedPopupRequest
-            {
-                Color = teamColor,
-                Text = secondsLeft.ToString(),
-                Velocity = new(0f, -4),
-                DurationInFrames = 120
-            }, player.Top + new Vector2(0, -4));
-            return;
-        }
-
-        bool hadSelectionAtFinish = finishedUse && sp.AdventureMirrorHadCountdownThisUse && sp.SelectedType != SpawnType.None;
-
-        if (hadSelectionAtFinish)
-        {
-            sp.RequestExecute();
-
-            if (SpawnSystem.TryExecuteSelection(player, sp))
-                return;
-        }
-
-        bool shouldCreatePortal = finishedUse && sp.AdventureMirrorHadCountdownThisUse && !sp.SpawnedPortalThisUse && !hadSelectionAtFinish;
-
-        // Create portal
-
-        if (framesLeft > 0)
-            sp.AdventureMirrorHadCountdownThisUse = true;
-
-        if (finishedUse && !shouldCreatePortal)
-            Log.Debug($"[Mirror] no portal {player.name} spawned={sp.SpawnedPortalThisUse} countdown={sp.AdventureMirrorHadCountdownThisUse}");
-
-        if (shouldCreatePortal)
-        {
-            Log.Debug($"[Mirror] create {player.name} pos={player.Bottom}");
-            sp.SpawnedPortalThisUse = true;
-            PortalSystem.CreatePortalAtPosition(player, player.Bottom);
-            ResetUseState(player);
-        }
-    }
-
     public override void UpdateInventory(Player player)
     {
         // Force favorite every tick
@@ -289,7 +219,7 @@ internal class AdventureMirror : ModItem
     }
 
     // Helper warning popup text
-    private static void Warning(Player player, string localizationKey, Color color = default)
+    internal static void Warning(Player player, string localizationKey, Color color = default)
     {
         if (player.whoAmI != Main.myPlayer)
             return;
@@ -333,4 +263,5 @@ internal class AdventureMirror : ModItem
 
         tooltips.Insert(insertIndex + 1, new TooltipLine(Mod, "AdventureMirrorControls", controlsText));
     }
+    #endregion
 }

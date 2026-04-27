@@ -73,11 +73,11 @@ internal static class PlayerStats
         Ass.Time,
         player => SessionTracker.GetSessionDuration(player.whoAmI));
 
-    public static readonly PlayerStatDefinition Ping = new(
-        "Ping",
-        "Ping",
-        Ass.Ping,
-        player => $"{GetPlayerPingMs(player)} ms");
+    //public static readonly PlayerStatDefinition Ping = new(
+    //    "Ping",
+    //    "Ping",
+    //    Ass.Ping,
+    //    player => $"{GetPlayerPingMs(player)} ms");
 
     public static readonly PlayerStatDefinition InventoryItemCount = new(
         "InventoryItemCount",
@@ -147,7 +147,7 @@ internal static class PlayerStats
         MovementSpeed,
         Distance,
         SessionTime,
-        Ping,
+        //Ping,
         InventoryItemCount,
         //CoinCount,
         //AmmoCount,
@@ -220,11 +220,11 @@ internal static class PlayerStats
         return biomeName;
     }
 
-    private static int GetPlayerPingMs(Player player)
-    {
-        int ping = PingTracker.GetPing(player.whoAmI);
-        return ping < 0 ? 0 : ping;
-    }
+    //private static int GetPlayerPingMs(Player player)
+    //{
+    //    int ping = PingTracker.GetPing(player.whoAmI);
+    //    return ping < 0 ? 0 : ping;
+    //}
 
     private static int CountInventoryItems(Player player)
     {
