@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using Terraria;
 using Terraria.ID;
+using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
@@ -73,4 +74,50 @@ public class PlayerPositionSystem : ModSystem
         Log.Chat($"SSC: Restored {player.name}'s position to ({(int)posX / 16}, {(int)posY / 16})");
         return true;
     }
+
+    #region Helpers
+    public static string FormatPlayTime(TimeSpan t)
+    {
+        int hours = (int)t.TotalHours;
+        return $"{hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
+    }
+
+    public static void PrintWelcomeMessage(Player player, TagCompound sscData, bool positionRestored)
+    {
+        if (player == null)
+            return;
+
+        string positionText = GetPositionText(player, sscData, positionRestored);
+
+        Main.NewText(
+            $"Welcome, {player.name}! — " +
+            $"Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}" +
+            positionText,
+            Color.MediumPurple
+        );
+    }
+
+    public static void PrintWelcomeMessage(Player player)
+    {
+        if (player == null)
+            return;
+
+        Main.NewText(
+            $"Welcome, {player.name}! — " +
+            $"Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}",
+            Color.MediumPurple
+        );
+    }
+
+    private static string GetPositionText(Player player, TagCompound sscData, bool positionRestored)
+    {
+        Vector2 appliedPos = player.position;
+
+        if (!positionRestored || sscData == null || !sscData.ContainsKey("posX") || !sscData.ContainsKey("posY"))
+            return "";
+
+        Vector2 appliedTile = new(appliedPos.X / 16f, appliedPos.Y / 16f);
+        return $" — Position: ({appliedTile.X:0}, {appliedTile.Y:0})";
+    }
+    #endregion
 }

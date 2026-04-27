@@ -1,6 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Core.Config;
 using System;
 using Terraria;
+using Terraria.Chat;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.SSC.Commands;
@@ -19,15 +22,21 @@ public class SaveCommand : ModCommand
 
         if (fileData == null)
         {
-            Main.NewText("No active player data.", Color.Red);
+            Main.NewText("Error: No active player data.", Color.Red);
             return;
         }
 
         // Send save request to server
         ModContent.GetInstance<SSCSaveSystem>().SendPacketToSavePlayerFile();
 
-        // Notify player
-        string time = DateTime.Now.ToString("HH:mm:ss");
-        Main.NewText($"{Main.LocalPlayer.name} saved manually at {time}", Color.MediumPurple);
+        var config = ModContent.GetInstance<ClientConfig>();
+
+        if (config.ShowSavePlayerMessages)
+        {
+            string time = DateTime.Now.ToString("HH:mm:ss");
+            string playtime = PlayerPositionSystem.FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime());
+
+            Main.NewText($"Saved {Main.LocalPlayer.name} at {time} — Playtime: {playtime}",  Color.MediumPurple);
+        }
     }
 }

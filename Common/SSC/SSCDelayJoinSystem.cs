@@ -1,8 +1,9 @@
-﻿using PvPAdventure.Core.Config;
+﻿using PvPAdventure.Common.Discord;
+using PvPAdventure.Common.Spectator.SpectatorMode;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Steamworks;
 using System;
-using PvPAdventure.Common.Discord;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -22,6 +23,10 @@ public class SSCDelayJoinSystem : ModSystem
 {
     private bool _sent;
     private int _delayTicks;
+    private static bool _joining;
+    private static bool _sscLoaded;
+
+    public static bool IsWaitingForSSCLoad => _joining && !_sscLoaded;
     public override void OnWorldLoad()
     {
         if (Main.netMode != NetmodeID.MultiplayerClient)
@@ -31,6 +36,9 @@ public class SSCDelayJoinSystem : ModSystem
             return;
 
         _sent = false;
+        _joining = true;
+        _sscLoaded = false;
+
         _delayTicks = 30*1; // wait a second to ensure vanilla hooks run properly.
         // in the future, the delay may be 0 or we may use a hook that runs earlier for a smoother join experience.
 
@@ -82,6 +90,8 @@ public class SSCDelayJoinSystem : ModSystem
     {
         _sent = false;
         _delayTicks = 0;
+        _joining = false;
+        _sscLoaded = false;
     }
 
     public static void SendJoinRequest()
@@ -95,20 +105,44 @@ public class SSCDelayJoinSystem : ModSystem
         // Get the desired name based on config setting
         string desiredName = GetDesiredPlayerName();
 
+        if (string.IsNullOrWhiteSpace(desiredName))
+            desiredName = "TPVPAPlayer";
+
+        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
         Player appearanceSource = SSCGhostJoinSystem.JoinPlayerSnapshot ?? Main.LocalPlayer;
+        Log.Debug($"Player steamID: {steamId}, desiredName: {desiredName}, skin color: {appearanceSource.skinColor}");
 
         // Send packet
         var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-
         packet.Write((byte)AdventurePacketIdentifier.SSC);
         packet.Write((byte)SSCPacketType.ClientJoin);
+        //packet.Write(steamId); // old code where we sent steamID, keep for legacy's sake
         packet.Write(desiredName);
-        Appearance.WriteAppearence(packet, appearanceSource);
+        Appearance.WriteAppearance(packet, appearanceSource);
 
         packet.Send();
     }
 
-    #region Helpers
+    public static void NotifySSCLoaded()
+    {
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            return;
+
+        _sscLoaded = true;
+
+        var spectatorConfig = ModContent.GetInstance<SpectatorConfig>();
+
+        if (spectatorConfig.ForceSpectating)
+        {
+            Main.LocalPlayer.ghost = true;
+            Main.LocalPlayer.GetModPlayer<SpectatorModeJoinPlayer>().ScheduleForceSpectating();
+            return;
+        }
+
+        Main.LocalPlayer.ghost = false;
+    }
+
+    #region Get player name helper methods
 
     public static string GetDesiredPlayerName()
     {

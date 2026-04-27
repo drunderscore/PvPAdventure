@@ -1,4 +1,5 @@
-﻿using PvPAdventure.Common.Teams;
+﻿using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using System.Collections.Generic;
@@ -117,6 +118,24 @@ internal class StatisticsPlayer : ModPlayer
             Mod.Logger.Info($"Recent damage for {this} expired (was from {RecentDamageFromPlayer.Who})");
             RecentDamageFromPlayer = null;
         }
+
+#if DEBUG
+        if (Player.whoAmI == Main.myPlayer &&
+            !Main.dedServ &&
+            Main.keyState.IsKeyDown(Keys.NumPad7) &&
+            Main.oldKeyState.IsKeyUp(Keys.NumPad7))
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                var packet = Mod.GetPacket();
+                packet.Write((byte)AdventurePacketIdentifier.PlayerStatistics);
+                new Statistics((byte)Main.myPlayer, Kills + 1, Deaths).Serialize(packet);
+                packet.Send();
+
+                Log.Chat($"Debug requested +1 kill for {Player.name}. Kills: {Kills + 1}");
+            }
+        }
+#endif
     }
     public override void PostHurt(Player.HurtInfo info)
     {

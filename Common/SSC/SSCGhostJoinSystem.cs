@@ -11,6 +11,12 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.SSC;
 
+/// <summary>
+/// Use this hook from chinese SSC mod.
+/// Its purpose is to capture the joined player even EARLIER than OnWorldLoad/OnEnterWorld.
+/// Another purpose is to capture the player appearance.
+/// It's a little hacky/redundant.
+/// </summary>
 internal class SSCGhostJoinSystem : ModSystem
 {
     public static Player JoinPlayerSnapshot { get; private set; }
@@ -18,6 +24,13 @@ internal class SSCGhostJoinSystem : ModSystem
     {
         IL_MessageBuffer.GetData += ILHook2;
     }
+
+    public override void Unload()
+    {
+        IL_MessageBuffer.GetData -= ILHook2;
+        JoinPlayerSnapshot = null;
+    }
+
     void ILHook2(ILContext il)
     {
         //    if (Netplay.Connection.State == 1)
@@ -40,14 +53,29 @@ internal class SSCGhostJoinSystem : ModSystem
         cur.Emit(OpCodes.Ldfld, typeof(MessageBuffer).GetField(nameof(MessageBuffer.reader))!);
         cur.EmitDelegate<Action<BinaryReader>>(i =>
         {
-            var game_mode = i.ReadByte();
+            //var game_mode = i.ReadByte();
             if (Netplay.Connection.State != 2)
             {
                 return;
             }
 
             // Save joined player for appearance (skin color, etc)
-            JoinPlayerSnapshot ??= Main.ActivePlayerFileData?.Player?.SerializedClone();
+            // Save joined player for appearance (skin color, etc)
+            JoinPlayerSnapshot = Main.ActivePlayerFileData?.Player?.SerializedClone();
+
+            if (JoinPlayerSnapshot == null)
+            {
+                Log.Chat("Join player snapshot is null!");
+                return;
+            }
+
+            if (!JoinPlayerSnapshot.active)
+                Log.Chat("Join player isnt active");
+
+            if (string.IsNullOrWhiteSpace(JoinPlayerSnapshot.name))
+                Log.Chat("Join player's name is NULL!");
+
+            Log.Chat($"Intercepted join player {JoinPlayerSnapshot.name} with skin color {JoinPlayerSnapshot.skinColor}");
 
             CreateGhostPlayerWithSteamID();
         });
@@ -62,7 +90,8 @@ internal class SSCGhostJoinSystem : ModSystem
         var JoinPlayer = (Player)Main.ActivePlayerFileData.Player.Clone();
 
         // UUID会影响本地的map数据,同一个UUID的不同角色会拥有相同的地图探索
-        var PID = SteamAuthentication.ClientSteamId;
+        //var PID = SteamAuthentication.ClientSteamId;
+        var PID = SteamUser.GetSteamID().m_SteamID;
 
         // Get the desired name based on config setting
         string desiredName = SSCDelayJoinSystem.GetDesiredPlayerName();
@@ -88,5 +117,10 @@ internal class SSCGhostJoinSystem : ModSystem
         // 正常情况下不会拥有此标记,区别与Main.SSC,这个只会影响本地角色的保存,不会更改游戏流程
         fileData.MarkAsServerSide();
         fileData.SetAsActive();
+    }
+
+    public override void OnWorldUnload()
+    {
+        JoinPlayerSnapshot = null;
     }
 }

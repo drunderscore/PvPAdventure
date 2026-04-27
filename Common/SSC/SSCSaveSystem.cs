@@ -1,12 +1,17 @@
-﻿using PvPAdventure.Common.Statistics;
+﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Statistics;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Steamworks;
 using System;
 using System.Linq;
 using Terraria;
+using Terraria.Chat;
 using Terraria.ID;
 using Terraria.IO;
+using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Engine;
 using Terraria.ModLoader.IO;
 using static PvPAdventure.Common.SSC.SSC;
 
@@ -15,6 +20,7 @@ namespace PvPAdventure.Common.SSC;
 /// <summary>
 /// Ensures that data is handled by the server rather than saved locally.
 /// Intercepts player file save events to redirect saving to the server.
+/// </summary>
 [Autoload(Side = ModSide.Client)]
 internal class SSCSaveSystem : ModSystem
 {
@@ -46,6 +52,11 @@ internal class SSCSaveSystem : ModSystem
     // Do not save SSC player files locally; send to server instead.
     private void OverrideSavePlayerFile(On_Player.orig_InternalSavePlayerFile orig, PlayerFileData fileData)
     {
+        Log.Debug("Vanilla save player file was called");
+
+        if (Main.LocalPlayer.ghost)
+            return;
+
         if (Main.netMode == NetmodeID.MultiplayerClient &&
             fileData.ServerSideCharacter && fileData.Path.EndsWith("SSC"))
         {
@@ -59,11 +70,15 @@ internal class SSCSaveSystem : ModSystem
 
     public void SendPacketToSavePlayerFile()
     {
+        if (Main.LocalPlayer.ghost)
+            return;
+
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
         try
         {
+            //var steamID = SteamUser.GetSteamID().m_SteamID.ToString(); // keep this legacy code
             var fileData = Main.ActivePlayerFileData;
             var name = fileData.Player.name;
             //var name = SteamFriends.GetPersonaName();
@@ -75,19 +90,8 @@ internal class SSCSaveSystem : ModSystem
             // Save player stats
             var stats = fileData.Player.GetModPlayer<StatisticsPlayer>();
 
-            var sscTag = new TagCompound
-            {
-                ["kills"] = stats.Kills,
-                ["deaths"] = stats.Deaths,
-                ["itemPickups"] = stats.ItemPickups.ToArray(),
-                ["team"] = fileData.Player.team
-            };
-
-            // Save player position for this world
-            PlayerPositionSystem.SavePlayerPosition(fileData.Player, sscTag);
-
-            // Merge sscTag into tplr
-            tplr["PvPAdventureSSC"] = sscTag;
+            // Save kills, deaths, item pickups, team and player position
+            PvPAdventureSSCData.SavePvPAdventureStats(fileData.Player, tplr);
 
             // Save client backup plr and tplr files
             ClientBackup.WritePlayerBackup(name, plr, tplr);
@@ -95,14 +99,24 @@ internal class SSCSaveSystem : ModSystem
             var packet = Mod.GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.SSC);
             packet.Write((byte)SSCPacketType.SavePlayer);
+            //packet.Write(steamID); // keep this legacy code
             packet.Write(name);
             packet.Write(plr.Length);
             packet.Write(plr);
             TagIO.Write(tplr, packet);
             packet.Send();
 
-            Log.Chat($"Client sent packet to server for player: {fileData.Player.name}");
-            Log.Debug($"Client sent packet to server: {fileData.Player.name}, k/d: {stats.Kills}/{stats.Deaths}, itemPickups: {stats.ItemPickups.ToArray()}, team: {(Terraria.Enums.Team)fileData.Player.team}");
+            Log.Debug($"Client sent packet to server to save: {fileData.Player.name}, k/d: {stats.Kills}/{stats.Deaths}, itemPickups: {stats.ItemPickups.ToArray()}, team: {(Terraria.Enums.Team)fileData.Player.team}");
+
+            var config = ModContent.GetInstance<ClientConfig>();
+
+            if (config.ShowSavePlayerMessages)
+            {
+                string time = DateTime.Now.ToString("HH:mm:ss");
+                string playtime = PlayerPositionSystem.FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime());
+
+                Main.NewText($"Saved {Main.LocalPlayer.name} at {time} — Playtime: {playtime}", Color.MediumPurple);
+            }
         }
         catch (Exception e)
         {

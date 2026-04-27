@@ -44,7 +44,7 @@ public static class Appearance
             r.ReadByte()
         );
     }
-    public static void WriteAppearence(ModPacket packet, Player player)
+    public static void WriteAppearance(ModPacket packet, Player player)
     {
         packet.Write(player.Male);
         packet.Write(player.skinVariant);
@@ -57,7 +57,22 @@ public static class Appearance
         WriteColor(packet, player.pantsColor);
         WriteColor(packet, player.shoeColor);
     }
-    public static PlayerAppearance ReadAppearence(BinaryReader reader)
+
+    public static void WriteAppearance(ModPacket packet, PlayerAppearance appearance)
+    {
+        packet.Write(appearance.Male);
+        packet.Write(appearance.SkinVariant);
+        packet.Write(appearance.Hair);
+        WriteColor(packet, appearance.SkinColor);
+        WriteColor(packet, appearance.EyeColor);
+        WriteColor(packet, appearance.HairColor);
+        WriteColor(packet, appearance.ShirtColor);
+        WriteColor(packet, appearance.UnderShirtColor);
+        WriteColor(packet, appearance.PantsColor);
+        WriteColor(packet, appearance.ShoeColor);
+    }
+
+    public static PlayerAppearance ReadAppearance(BinaryReader reader)
     {
         return new PlayerAppearance
         {

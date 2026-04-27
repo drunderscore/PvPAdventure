@@ -1,13 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Statistics;
+using PvPAdventure.Common.Authentication;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
+using Steamworks;
 using System;
 using System.IO;
-using PvPAdventure.Common.Authentication;
 using Terraria;
+using Terraria.Chat;
 using Terraria.ID;
 using Terraria.IO;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using static PvPAdventure.Common.SSC.Appearance;
@@ -16,7 +18,7 @@ namespace PvPAdventure.Common.SSC;
 
 /// <summary>
 /// Provides server-side character (SSC) functionality.
-/// Stores player files on the server at ..tModLoader/PvPAdventureSSC/[WorldName]/[SteamID]/[PlayerName].plr
+/// Stores player files on the server at ..tModLoader/PvPAdventureSSC/[WorldName]/[SteamID].plr
 /// Stores temporary player data at ..tModLoader/Players/[SteamID].SSC
 /// Also <see cref="SSCDelayJoinSystem"/> <seealso cref="SSCSaveSystem"/>
 /// </summary>
@@ -24,24 +26,22 @@ namespace PvPAdventure.Common.SSC;
 public class SSC : ModSystem
 {
     // Whether SSC is enabled from config
-    public static bool IsEnabled
-    {
-        get
-        {
-            var config = ModContent.GetInstance<SSCConfig>();
-            if (config == null)
-            {
-                Log.Warn("ServerConfig not loaded – SSC disabled by default");
-                return false;
-            }
-
-            return config.IsSSCEnabled;
-        }
-    }
+    public static bool IsEnabled => ModContent.GetInstance<SSCConfig>().IsSSCEnabled;
 
     // Folder to store SSC files
     private static string SSCFolder => Path.Combine(Main.SavePath, "PvPAdventureSSC");
     private static string MapID => Main.ActiveWorldFileData?.Name ?? "UnknownWorld";
+    private static string WorldSSCFolder => Path.Combine(SSCFolder, MapID);
+
+    private static string GetPlayerPath(string steamId)
+    {
+        return Path.Combine(WorldSSCFolder, steamId + ".plr");
+    }
+
+    private static string GetTPlayerPath(string steamId)
+    {
+        return Path.Combine(WorldSSCFolder, steamId + ".tplr");
+    }
 
     // Lock object used for IO operations
     private static readonly object ioLock = new();
@@ -53,6 +53,7 @@ public class SSC : ModSystem
         LoadPlayer,
         SavePlayer
     }
+
     private const int MaxPlayerFileBytes = 1024 * 1024; // = 1 MB
 
     public static void HandlePacket(BinaryReader reader, int from)
@@ -84,13 +85,30 @@ public class SSC : ModSystem
             return;
 
         // Get data from client
+        //string steamIdFromClient = reader.ReadString();
         string nameFromClient = reader.ReadString();
-        PlayerAppearance appearance = ReadAppearence(reader);
+        PlayerAppearance appearance = ReadAppearance(reader);
 
         //Main.player[from].name = nameFromClient;
         //NetMessage.SendData(MessageID.PlayerInfo, -1, -1, null, from);
 
-        Log.Debug("Server received player name: " + nameFromClient + ", skin color: " + appearance.SkinColor.ToString());
+        ulong? authenticatedSteamId = Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId;
+
+        if (!authenticatedSteamId.HasValue)
+        {
+            Log.Warn($"Rejected SSC join for player {from}: Steam authentication is missing or pending");
+
+            ChatHelper.SendChatMessageToClient(
+                NetworkText.FromLiteral("Server has not verified your Steam identity yet. Try rejoining if this persists."),
+                Color.OrangeRed,
+                from);
+
+            return;
+        }
+
+        string steamId = authenticatedSteamId.Value.ToString();
+
+        Log.Debug($"Server accepted SSC join for authenticated SteamID: {steamId}, player name: {nameFromClient}, skin color: {appearance.SkinColor}");
 
         byte[] data;
         TagCompound root;
@@ -98,13 +116,12 @@ public class SSC : ModSystem
 
         lock (ioLock)
         {
-            Directory.CreateDirectory(Path.Combine(SSCFolder, MapID));
+            //string dir = Path.Combine(SSCFolder, MapID, Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId.ToString());
 
-            string dir = Path.Combine(SSCFolder, MapID, Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId.ToString());
-            Directory.CreateDirectory(dir);
+            Directory.CreateDirectory(WorldSSCFolder);
 
-            string plrPath = Path.Combine(dir, nameFromClient + ".plr");
-            string tplrPath = Path.Combine(dir, nameFromClient + ".tplr");
+            string plrPath = GetPlayerPath(steamId);
+            string tplrPath = GetTPlayerPath(steamId);
 
             isNew = !File.Exists(plrPath) || !File.Exists(tplrPath);
 
@@ -115,13 +132,15 @@ public class SSC : ModSystem
 
             data = File.ReadAllBytes(plrPath);
             root = TagIO.FromFile(tplrPath);
-            ApplySscStatsToServerPlayer(from, root);
+            PvPAdventureSSCData.ApplyStatsToServerPlayer(from, root);
         }
 
         var p = ModContent.GetInstance<PvPAdventure>().GetPacket();
         p.Write((byte)AdventurePacketIdentifier.SSC);
         p.Write((byte)SSCPacketType.LoadPlayer);
         p.Write(isNew);
+        p.Write(nameFromClient);
+        Appearance.WriteAppearance(p, appearance);
         p.Write(data.Length);
         p.Write(data);
         TagIO.Write(root, p);
@@ -130,29 +149,7 @@ public class SSC : ModSystem
         Log.Chat("Server sent SSC load for " + nameFromClient + " bytes=" + data.Length);
     }
 
-    private static void ApplySscStatsToServerPlayer(int whoAmI, TagCompound root)
-    {
-        if (whoAmI < 0 || whoAmI >= Main.maxPlayers)
-            return;
-
-        Player p = Main.player[whoAmI];
-        if (p == null || !p.active)
-            return;
-
-        if (!root.ContainsKey("PvPAdventureSSC"))
-            return;
-
-        TagCompound ssc = root.GetCompound("PvPAdventureSSC");
-
-        var stats = p.GetModPlayer<StatisticsPlayer>();
-        stats.ApplySscOverride(ssc);
-
-        // Push the corrected values to everyone (including the joining client)
-        // so the server does not overwrite SSC-loaded client state with 0/0.
-        typeof(StatisticsPlayer)
-            .GetMethod("SyncStatistics", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-            ?.Invoke(stats, [-1, -1]);
-    }
+    
 
     private static void LoadPlayer(BinaryReader reader)
     {
@@ -162,6 +159,8 @@ public class SSC : ModSystem
             return;
 
         bool isNew = reader.ReadBoolean();
+        string desiredName = reader.ReadString();
+        PlayerAppearance appearance = ReadAppearance(reader);
 
         int len = reader.ReadInt32();
         if (len < 0 || len > MaxPlayerFileBytes)
@@ -179,8 +178,9 @@ public class SSC : ModSystem
 
         TagCompound root = TagIO.Read(reader);
 
-        string steamId = SteamAuthentication.ClientSteamId.ToString();
+        //string steamId = SteamAuthentication.ClientSteamId.ToString();
         //string steamName = SteamFriends.GetPersonaName();
+        string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
 
         byte[] tplrBytes;
         using (var ms = new MemoryStream())
@@ -195,7 +195,7 @@ public class SSC : ModSystem
         {
             try
             {
-                Log.Debug("Client trying to load tempPlayerPath: " + tempPlayerPath);
+                Log.Debug($"Client trying to load tempPlayerPath: {tempPlayerPath} with skin color: {appearance.SkinColor}");
 
                 var fileData = new PlayerFileData(tempPlayerPath, cloudSave: false)
                 {
@@ -203,6 +203,8 @@ public class SSC : ModSystem
                 };
 
                 Player.LoadPlayerFromStream(fileData, plrBytes, tplrBytes);
+                fileData.Player.name = desiredName;
+                Appearance.ApplyAppearance(fileData.Player, appearance);
 
                 fileData.Player.hbLocked = true; // force hb locked (user preference)
 
@@ -214,7 +216,7 @@ public class SSC : ModSystem
                 NetMessage.SendData(MessageID.SyncPlayer, number: Main.myPlayer);
                 NetMessage.SendData(MessageID.SyncEquipment, number: Main.myPlayer);
 
-                Log.Debug("Spawning into world as: " + fileData.Player.name);
+                Log.Debug($"Spawning into world as: {fileData.Player.name} with skin color: {appearance.SkinColor}");
 
                 // Re-Enter the world with SSC character.
                 fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
@@ -225,6 +227,8 @@ public class SSC : ModSystem
                 {
                     sscData = root.GetCompound("PvPAdventureSSC");
                 }
+
+                PvPAdventureSSCData.ApplyStatsToServerPlayer(Main.myPlayer, root);
 
                 bool positionRestored = PlayerPositionSystem.TryLoadPlayerPosition(fileData.Player, sscData);
 
@@ -237,39 +241,10 @@ public class SSC : ModSystem
                 // Request map load to update world map data for the client based on their steam id
                 MapLoadSystem.Request(delayTicks: 30);
 
-                // Prepare position text
-                Vector2 appliedPos = fileData.Player.position;
-                string positionText;
-                if (positionRestored && sscData != null && sscData.ContainsKey("posX") && sscData.ContainsKey("posY"))
-                {
-                    float savedX = sscData.GetFloat("posX");
-                    float savedY = sscData.GetFloat("posY");
+                // Print player position
+                PlayerPositionSystem.PrintWelcomeMessage(fileData.Player, sscData, positionRestored);
+                SSCDelayJoinSystem.NotifySSCLoaded();
 
-                    Vector2 savedTile = new(savedX / 16f, savedY / 16f);
-                    Vector2 appliedTile = new(appliedPos.X / 16f, appliedPos.Y / 16f);
-
-                    bool clamped =
-                        Math.Abs(appliedTile.X - savedTile.X) > 0.01f ||
-                        Math.Abs(appliedTile.Y - savedTile.Y) > 0.01f;
-
-                    //positionText = $" - Position: {appliedTile.X:0}, {appliedTile.Y:0} (saved from previous session)";
-                    positionText = $" — Position: ({appliedTile.X:0}, {appliedTile.Y:0})";
-                }
-                else
-                {
-                    Vector2 appliedTile = new(appliedPos.X / 16f, appliedPos.Y / 16f);
-                    //positionText = $"{appliedTile.X:0}, {appliedTile.Y:0} (world spawn)";
-                    positionText = "";
-                }
-
-                // Print welcome message
-                Main.NewText(
-                    $"Welcome, {Main.LocalPlayer.name}! — " +
-                    //$"Welcome, {steamName}! — " +
-                    $"Playtime: {FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime())}" +
-                    $"{positionText}",
-                    Color.MediumPurple
-                );
             }
             catch (Exception e)
             {
@@ -315,9 +290,29 @@ public class SSC : ModSystem
 
         try
         {
+            ulong? authenticatedSteamId = Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId;
+            //string steamId = reader.ReadString(); // old code where we sent steamID, keep for legacy's sake
             string nameFromClient = reader.ReadString();
 
+            if (!authenticatedSteamId.HasValue)
+            {
+                Log.Warn($"Rejected SSC save for player {from}: Steam authentication is missing or pending");
+
+                ChatHelper.SendChatMessageToClient(
+                    NetworkText.FromLiteral($"{nameFromClient} Server FAILED to save because Steam ID authentication failed or is missing."),
+                    Color.OrangeRed,
+                    from);
+
+                return;
+            }
+
+            string steamId = authenticatedSteamId.Value.ToString();
+
+            if (string.IsNullOrWhiteSpace(nameFromClient))
+                nameFromClient = "TPVPAPlayer";
+
             int len = reader.ReadInt32();
+
             if (len < 0 || len > MaxPlayerFileBytes)
             {
                 Log.Chat("Server received invalid SSC save length: " + len);
@@ -325,6 +320,7 @@ public class SSC : ModSystem
             }
 
             byte[] data = reader.ReadBytes(len);
+
             if (data.Length != len)
             {
                 Log.Chat("Server received truncated SSC save: " + data.Length + "/" + len);
@@ -333,6 +329,7 @@ public class SSC : ModSystem
 
             TagCompound root;
             int playerTeam = -1;
+
             try
             {
                 root = TagIO.Read(reader);
@@ -344,41 +341,34 @@ public class SSC : ModSystem
                 return;
             }
 
-            string steamId = Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId?.ToString();
-            if (steamId == null)
-            {
-                Log.Warn($"Not saving SSC for player {from} without Steam ID");
-                return;
-            }
-
             lock (ioLock)
             {
-                Utils.TryCreatingDirectory(Path.Combine(SSCFolder, MapID, steamId));
+                Directory.CreateDirectory(WorldSSCFolder);
 
-                string plrPath = Path.Combine(SSCFolder, MapID, steamId, nameFromClient + ".plr");
-                string tplrPath = Path.Combine(SSCFolder, MapID, steamId, nameFromClient + ".tplr");
+                string plrPath = GetPlayerPath(steamId);
+                string tplrPath = GetTPlayerPath(steamId);
 
                 File.WriteAllBytes(plrPath, data);
                 TagIO.ToFile(root, tplrPath);
 
-                // Get team
                 if (root.ContainsKey("PvPAdventureSSC"))
                 {
                     TagCompound ssc = root.GetCompound("PvPAdventureSSC");
+
                     if (ssc.ContainsKey("team"))
                         playerTeam = ssc.GetInt("team");
                 }
             }
 
-            Log.Chat("Server received SSC save for " + nameFromClient + " bytes=" + len);
-            Log.Debug($"Server received player: {nameFromClient}, team: {(Terraria.Enums.Team)playerTeam}");
+            Log.Debug($"Server successfully received SSC save for {nameFromClient}, authenticated SteamID: {steamId}, bytes= {len}, team: {(Terraria.Enums.Team)playerTeam}");
 
-            var config = ModContent.GetInstance<ClientConfig>();
-            if (config.ShowSavePlayerMessages)
-            {
-                string time = DateTime.Now.ToString("HH:mm:ss");
-                Main.NewText($"{nameFromClient} saved at {time}", Color.MediumPurple);
-            }
+            //var config = ModContent.GetInstance<ClientConfig>();
+
+            //if (config.ShowSavePlayerMessages)
+            //{
+            //    string time = DateTime.Now.ToString("HH:mm:ss");
+            //    ChatHelper.SendChatMessageToClient(NetworkText.FromLiteral($"Server saved {steamId} at {time}"),Color.LightSeaGreen,from);
+            //}
         }
         catch (Exception e)
         {
@@ -386,11 +376,4 @@ public class SSC : ModSystem
         }
     }
 
-    #region Helpers
-    public static string FormatPlayTime(TimeSpan t)
-    {
-        int hours = (int)t.TotalHours;
-        return $"{hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
-    }
-    #endregion
 }

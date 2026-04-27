@@ -21,21 +21,25 @@ public static class PlayerStatisticsNetHandler
         }
 
         if (playerIndex < 0 || playerIndex >= Main.maxPlayers)
-        {
             return;
-        }
 
         var player = Main.player[playerIndex];
         if (player == null)
-        {
             return;
-        }
 
         statistics.Apply(player.GetModPlayer<StatisticsPlayer>());
 
-        if (!Main.dedServ)
+#if DEBUG
+        if (Main.dedServ)
         {
-            ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
+            var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+            packet.Write((byte)Core.Net.AdventurePacketIdentifier.PlayerStatistics);
+            new StatisticsPlayer.Statistics((byte)playerIndex, statistics.Kills, statistics.Deaths).Serialize(packet);
+            packet.Send();
         }
+#endif
+
+        if (!Main.dedServ)
+            ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
     }
 }
