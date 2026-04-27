@@ -12,9 +12,12 @@ public class PvPAdventure : Mod
     /// </summary>
     public override void HandlePacket(BinaryReader r, int whoAmI)
     {
+        long packetStart = r.BaseStream.Position;
+        long packetLength = r.BaseStream.Length;
+
         var id = (AdventurePacketIdentifier)r.ReadByte();
 
-        //Log.Debug($"[Packet] PvPAdventure received identifier: {(byte)id} ({id}), bytes left: {r.BaseStream.Length - r.BaseStream.Position}");
+        //Log.Debug($"[Packet] Start id={(byte)id} ({id}), whoAmI={whoAmI}, bytes={packetLength - packetStart}");
 
         switch (id)
         {
@@ -26,9 +29,9 @@ public class PvPAdventure : Mod
                 Common.Statistics.PlayerStatisticsNetHandler.HandlePacket(r, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.PingPong:
-                PingPongNetHandler.HandlePacket(r, whoAmI);
-                break;
+            //case AdventurePacketIdentifier.PingPong:
+            //    PingPongNetHandler.HandlePacket(r, whoAmI);
+            //    break;
 
             case AdventurePacketIdentifier.PlayerItemPickup:
                 Common.Statistics.PlayerItemPickupNetHandler.HandlePacket(r, whoAmI);
@@ -70,6 +73,14 @@ public class PvPAdventure : Mod
                 Common.SSC.SSC.HandlePacket(r, whoAmI);
                 break;
 
+            // case AdventurePacketIdentifier.WhitelistPlayerCheck:
+            //     Common.Security.WhitelistPlayerHandler.HandlePacket(r, whoAmI);
+            //     break;
+
+            //case AdventurePacketIdentifier.SaveMatch:
+            //    Common.MainMenu.MatchHistory.Net.SaveMatchNetHandler.HandlePacket(r, whoAmI);
+            //    break;
+
             case AdventurePacketIdentifier.NpcStrikeTeam:
                 Common.Combat.TeamBoss.TeamBossNetHandler.HandlePacket(r, whoAmI);
                 break;
@@ -78,17 +89,9 @@ public class PvPAdventure : Mod
                 Common.Visualization.HoldingMap.MapHoldingNetHandler.HandlePacket(r, whoAmI);
                 break;
 
-            //case AdventurePacketIdentifier.SaveMatch:
-            //    Common.MainMenu.MatchHistory.Net.SaveMatchNetHandler.HandlePacket(r, whoAmI);
-            //    break;
-
             case AdventurePacketIdentifier.ClientModCheck:
                 Common.Security.ClientModHandler.HandlePacket(r, whoAmI);
                 break;
-
-            // case AdventurePacketIdentifier.WhitelistPlayerCheck:
-            //     Common.Security.WhitelistPlayerHandler.HandlePacket(r, whoAmI);
-            //     break;
 
             case AdventurePacketIdentifier.ArenasAdmin:
                 Common.AdminTools.Tools.ArenasTool.ArenasAdminNetHandler.HandlePacket(r, whoAmI);
@@ -115,8 +118,16 @@ public class PvPAdventure : Mod
                 break;
 
             default:
-                Log.Warn($"Unknown packet id: {id}");
+                Log.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
                 break;
+        }
+
+        long bytesLeft = r.BaseStream.Length - r.BaseStream.Position;
+
+        if (bytesLeft != 0)
+        {
+            Log.Warn($"[Packet] Handler left unread bytes: id={(byte)id} ({id}), left={bytesLeft}, total={packetLength - packetStart}");
+            r.BaseStream.Position = r.BaseStream.Length;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using PvPAdventure.Common.Statistics;
+﻿using PvPAdventure.Common.SSC;
+using PvPAdventure.Common.Statistics;
+using PvPAdventure.Core.Net;
 using System.IO;
 using Terraria;
 using Terraria.Enums;
@@ -12,10 +14,11 @@ public static class GameTimerNetHandler
     public enum GameTimerPacketType : byte
     {
         PauseGame,
+        PauseGameRequestClientSave,
         StartGame,
         AdjustGameTime,
         EndGame,
-        SetPoints
+        SetPoints,
     }
 
     public static void HandlePacket(BinaryReader reader, int whoAmI)
@@ -34,6 +37,14 @@ public static class GameTimerNetHandler
                     var pm = ModContent.GetInstance<PauseManager>();
                     pm.TogglePause();
 
+                    return;
+                }
+            case GameTimerPacketType.PauseGameRequestClientSave:
+                {
+                    if (Main.netMode != NetmodeID.MultiplayerClient)
+                        return;
+
+                    ModContent.GetInstance<SSCSaveSystem>()?.SendPacketToSavePlayerFile();
                     return;
                 }
 
@@ -111,5 +122,16 @@ public static class GameTimerNetHandler
                     return;
                 }
         }
+    }
+
+    public static void SendRequestPlayerSave()
+    {
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.GameTimer);
+        packet.Write((byte)GameTimerPacketType.PauseGameRequestClientSave);
+        packet.Send();
     }
 }

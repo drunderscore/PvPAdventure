@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
+using PvPAdventure.Common.SSC;
 using Terraria;
 using Terraria.Chat;
 using Terraria.GameContent;
@@ -102,13 +103,7 @@ public class PauseManager : ModSystem
     {
         public override void Action(CommandCaller caller, string input, string[] args)
         {
-            var pause = ModContent.GetInstance<PauseManager>();
-            pause._paused = !pause._paused;
-
-            ChatHelper.BroadcastChatMessage(NetworkText.FromKey($"Mods.PvPAdventure.Pause.{pause._paused}"),
-                Color.White);
-
-            NetMessage.SendData(MessageID.WorldData);
+            ModContent.GetInstance<PauseManager>().TogglePause();
         }
 
         public override string Command => "pause";
@@ -133,6 +128,9 @@ public class PauseManager : ModSystem
 
         if (Main.GameUpdateCount < pause._blockPauseUntilTick)
             return;
+
+        if (Main.netMode == NetmodeID.Server)
+            GameTimerNetHandler.SendRequestPlayerSave();
 
         pause._paused = nextPaused;
 
