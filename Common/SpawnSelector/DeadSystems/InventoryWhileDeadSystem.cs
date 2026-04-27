@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.Spectator;
+using PvPAdventure.Common.Spectator.SpectatorMode;
+using PvPAdventure.Common.Spectator.UI;
 using Terraria;
 using Terraria.GameInput;
 using Terraria.ModLoader;
@@ -26,20 +27,17 @@ internal class InventoryWhileDeadSystem : ModSystem
 
     private void ModifyIngameOptionsInput(On_Player.orig_TryOpeningInGameOptionsBasedOnInput orig, Player self)
     {
-        //if (self.ghost && self.controlInv && Main.keyState.IsKeyDown(PlayerInput.Triggers.inv)
-        //{
-        //    Main.NewText("Esc is disabled as a spectator!", Color.Yellow);
-        //    return;
-        //}
-        if (SpectatorSystem.IsInSpectateMode(self) && Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
+        if (SpectatorModeSystem.IsInSpectateMode(Main.LocalPlayer) || self.ghost)
         {
-            Main.NewText("'Esc' key is disabled as a spectator!", Color.Yellow);
+            //if (Main.playerInventory)
+                //Main.playerInventory = false;
             return;
         }
 
         //orig(self);
+
         // Override to allow inventory access while dead
-        if (self.dead && !self.ghost)
+        if (self.dead)
         {
             if (self.controlInv)
             {
@@ -58,7 +56,7 @@ internal class InventoryWhileDeadSystem : ModSystem
         }
 
         // Vanilla logic
-        if (self.controlInv && !self.ghost)
+        if (self.controlInv)
         {
             if (self.releaseInventory)
             {
@@ -81,19 +79,17 @@ internal class InventoryWhileDeadSystem : ModSystem
 
     private void ModifyInterfaceLogic(On_Main.orig_DrawInterface_26_InterfaceLogic3 orig)
     {
-        if (SpectatorSystem.IsInSpectateMode(Main.LocalPlayer) && Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
+        if (SpectatorModeSystem.IsInSpectateMode(Main.LocalPlayer) && !Main.ingameOptionsWindow && Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
         {
-            Main.NewText("'Esc' key is disabled as a spectator!", Color.Yellow);
+            SpectatorUISystem.EnsurePlayerSpectatorControlsOpen();
+            SpectatorUISystem.ToggleSpectatePanel();
             return;
         }
-
-        //orig();
-        //return;
 
         bool flag = Main.playerInventory;
         if (Main.player[Main.myPlayer].dead)
         {
-            Main.playerInventory = false; // skip this
+            //Main.playerInventory = false; // skip this
         }
         if (!Main.playerInventory)
         {

@@ -378,7 +378,7 @@ public class UITeammatePanel : UIPanel
     private static void DrawDebugNameRect(Rectangle rect)
     {
 #if DEBUG
-        DebugDrawer.DrawScreenRectangle(rect, Color.Red * 0.4f);
+        DebugDrawer.DrawRectangle(rect, Color.Red * 0.4f);
         DebugDrawer.DrawText($"{rect.Width}x{rect.Height}", new Vector2(rect.X + 2f, rect.Y + 2f), Color.LightGray * 0.6f);
 #endif
     }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Chat;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.SpawnSelector.Net;
@@ -16,17 +17,10 @@ public class SpawnPlayer : ModPlayer
 {
     private Point lastSpawn = new(-1, -1);
 
-    private bool cachedInSpawnRegion;
-    private int spawnRegionCooldown;
-    private Point lastRegionTile = new(int.MinValue, int.MinValue);
-
-    private Point ownBedTileCached = new(-1, -1);
-    private bool ownBedValidCached;
-    private int ownBedValidCooldown;
-
-    private Point rawSpawnCached = new(-1, -1);
-    private bool rawSpawnValidCached;
-    private int rawSpawnValidCooldown;
+    private bool isInSpawnRegion;
+    private Point spawnRegionTile = new(int.MinValue, int.MinValue);
+    private ulong nextSpawnRegionCheckTick;
+    private ulong nextBedSyncTick;
 
     public SpawnType SelectedType { get; private set; } = SpawnType.None;
     public int SelectedPlayerIndex { get; private set; } = -1;
@@ -39,25 +33,25 @@ public class SpawnPlayer : ModPlayer
     public bool SpawnedPortalThisUse;
     public bool AdventureMirrorHadCountdownThisUse;
     public int TeleportCooldownTicks { get; private set; }
+    public bool IsTeleportOnCooldown => TeleportCooldownTicks > 0;
+    public int TeleportCooldownSecondsLeft => (TeleportCooldownTicks + 59) / 60;
 
     #region Portal
     private bool hasPortal;
     private Vector2 portalWorldPos;
     private int portalHealth;
+    private int portalMaxHealth;
     private int portalCreateTicksRemaining;
 
     public void SetPortal(Vector2 worldPos, bool sync = true)
     {
-        bool replacing = hasPortal;
-        Vector2 oldPos = portalWorldPos;
-        int oldHealth = portalHealth;
-
         hasPortal = true;
         portalWorldPos = worldPos;
-        portalHealth = PortalSystem.PortalMaxHealth;
-        portalCreateTicksRemaining = 0;
+        portalHealth = portalMaxHealth = PortalSystem.PortalMaxHealth;
+        portalCreateTicksRemaining = PortalSystem.PortalCreateAnimationTicks;
 
-        Log.Debug($"[Portal] set {Player.name} replace={replacing} hp={oldHealth}->{portalHealth} pos={oldPos}->{worldPos}");
+        Log.Debug($"[Portal] set {Player.name} hp={portalHealth} pos={worldPos}");
+        InvalidateSpawnRegionCaches();
 
         if (sync)
             SyncPortal();
@@ -72,8 +66,9 @@ public class SpawnPlayer : ModPlayer
 
         hasPortal = false;
         portalWorldPos = default;
-        portalHealth = 0;
+        portalHealth = portalMaxHealth = 0;
         portalCreateTicksRemaining = 0;
+        InvalidateSpawnRegionCaches();
 
         if (SelectedType == SpawnType.MyPortal || SelectedType == SpawnType.TeammatePortal)
             ClearSelection();
@@ -82,14 +77,19 @@ public class SpawnPlayer : ModPlayer
             SyncPortal();
     }
 
-    internal void ApplyPortalFromNet(bool hasPortal, Vector2 worldPos, int health, int createTicks)
+    internal void ApplyPortalFromNet(bool hasPortal, Vector2 worldPos, int health, int createTicks, int maxHealth = 0)
     {
         Log.Debug($"[Portal] net {Player.name} has={hasPortal} hp={health}");
+        bool changedSpawnRegion = this.hasPortal != hasPortal || this.portalWorldPos != worldPos;
 
         this.hasPortal = hasPortal;
+        portalMaxHealth = hasPortal ? System.Math.Max(1, maxHealth > 0 ? maxHealth : PortalSystem.PortalMaxHealth) : 0;
         portalWorldPos = hasPortal ? worldPos : default;
-        portalHealth = hasPortal ? Utils.Clamp(health, 1, PortalSystem.PortalMaxHealth) : 0;
+        portalHealth = hasPortal ? Utils.Clamp(health, 1, portalMaxHealth) : 0;
         portalCreateTicksRemaining = hasPortal ? Utils.Clamp(createTicks, 0, PortalSystem.PortalCreateAnimationTicks) : 0;
+
+        if (changedSpawnRegion)
+            InvalidateSpawnRegionCaches();
 
         if (Main.netMode == NetmodeID.Server || hasPortal)
             return;
@@ -108,7 +108,7 @@ public class SpawnPlayer : ModPlayer
         if (!hasPortal)
             return false;
 
-        damage = Utils.Clamp(damage, 1, PortalSystem.PortalMaxHealth);
+        damage = Utils.Clamp(damage, 1, portalHealth);
         int oldHealth = portalHealth;
         portalHealth -= damage;
 
@@ -117,7 +117,8 @@ public class SpawnPlayer : ModPlayer
 
         if (portalHealth <= 0)
         {
-            TeamChatManager.SendSystemTeamMessage(Player, $"{Player.name}'s portal has been destroyed.", Color.Yellow);
+            Color color = Player.team > 0 ? Main.teamColor[Player.team] : Main.OurFavoriteColor;
+            TeleportChat.SendSystemTeamMessage(Player, $"{Player.name}'s portal has been destroyed.", color);
             Log.Debug($"[Portal] dead {Player.name} by {attackerName}");
             PortalFxNetHandler.Send(portalWorldPos, killed: true, damage);
             ClearPortal();
@@ -129,49 +130,31 @@ public class SpawnPlayer : ModPlayer
         return true;
     }
 
-    public static bool HasPortal(Player player)
-    {
-        return player != null && player.active && player.GetModPlayer<SpawnPlayer>().hasPortal;
-    }
+    public static bool HasPortal(Player player) => player?.active == true && player.GetModPlayer<SpawnPlayer>().hasPortal;
 
     public static bool TryGetPortalWorldPos(Player player, out Vector2 worldPos)
     {
-        worldPos = default;
-        if (player == null || !player.active)
-            return false;
-
-        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
-        if (!sp.hasPortal)
-            return false;
-
-        worldPos = sp.portalWorldPos;
-        return true;
+        return TryGetPortal(player, out worldPos, out _);
     }
 
     public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health)
     {
-        worldPos = default;
-        health = 0;
-
-        if (player == null || !player.active)
-            return false;
-
-        SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
-        if (!sp.hasPortal)
-            return false;
-
-        worldPos = sp.portalWorldPos;
-        health = sp.portalHealth;
-        return true;
+        return TryGetPortal(player, out worldPos, out health, out _);
     }
 
     public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health, out int createTicksRemaining)
     {
+        return TryGetPortal(player, out worldPos, out health, out createTicksRemaining, out _);
+    }
+
+    public static bool TryGetPortal(Player player, out Vector2 worldPos, out int health, out int createTicksRemaining, out int maxHealth)
+    {
         worldPos = default;
         health = 0;
         createTicksRemaining = 0;
+        maxHealth = 0;
 
-        if (player == null || !player.active)
+        if (player?.active != true)
             return false;
 
         SpawnPlayer sp = player.GetModPlayer<SpawnPlayer>();
@@ -181,38 +164,39 @@ public class SpawnPlayer : ModPlayer
         worldPos = sp.portalWorldPos;
         health = sp.portalHealth;
         createTicksRemaining = sp.portalCreateTicksRemaining;
+        maxHealth = sp.portalMaxHealth;
         return true;
     }
     #endregion
 
-    public void RequestExecute()
-    {
-        ExecuteRequested = true;
-    }
+    public void RequestExecute() => ExecuteRequested = true;
 
-    public void ClearExecuteRequest()
-    {
-        ExecuteRequested = false;
-    }
+    public void ClearExecuteRequest() => ExecuteRequested = false;
 
     public bool CanTeleportNow() => TeleportCooldownTicks <= 0;
 
-    public void StartTeleportCooldown()
+    public void StartTeleportCooldown() =>
+        TeleportCooldownTicks = ModContent.GetInstance<ServerConfig>().SpawnTeleportCooldownSeconds * 60;
+
+    internal void InvalidateSpawnRegionCache() => nextSpawnRegionCheckTick = 0;
+
+    internal static void InvalidateSpawnRegionCaches()
     {
-        TeleportCooldownTicks = 60;
+        for (int i = 0; i < Main.maxPlayers; i++)
+            if (Main.player[i] is { active: true } player)
+                player.GetModPlayer<SpawnPlayer>().InvalidateSpawnRegionCache();
     }
 
     public bool IsPlayerInSpawnRegion()
     {
         Point tilePos = Player.Center.ToTileCoordinates();
 
-        if (spawnRegionCooldown-- > 0 && tilePos == lastRegionTile)
-            return cachedInSpawnRegion;
+        if (tilePos == spawnRegionTile && Main.GameUpdateCount < nextSpawnRegionCheckTick)
+            return isInSpawnRegion;
 
-        spawnRegionCooldown = 10;
-        lastRegionTile = tilePos;
-        cachedInSpawnRegion = ComputeIsPlayerInSpawnRegion(tilePos);
-        return cachedInSpawnRegion;
+        spawnRegionTile = tilePos;
+        nextSpawnRegionCheckTick = Main.GameUpdateCount + 10;
+        return isInSpawnRegion = ComputeIsPlayerInSpawnRegion(tilePos);
     }
 
     public void ClearSelection()
@@ -277,7 +261,7 @@ public class SpawnPlayer : ModPlayer
             }
         }
 
-        if (Player.dead && Player.respawnTimer == 2)
+        if (Player.dead && Player.respawnTimer == 2 && CanTeleportNow())
             Player.respawnTimer = 1;
 
         SendSelectionIfNeeded();
@@ -288,12 +272,14 @@ public class SpawnPlayer : ModPlayer
         NormalizeSelection(type, idx, out SpawnType newType, out int newIdx);
         SetSelection(newType, newIdx);
 
-        if (Player.dead && Player.respawnTimer == 2)
+        if (Player.dead && Player.respawnTimer == 2 && CanTeleportNow())
             Player.respawnTimer = 1;
     }
 
     public override void PostUpdate()
     {
+        UpdatePortalMaxHealth();
+
         if (portalCreateTicksRemaining > 0)
             portalCreateTicksRemaining--;
 
@@ -302,6 +288,15 @@ public class SpawnPlayer : ModPlayer
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
             UpdatePlayerSpawnpoint();
+    }
+
+    private void UpdatePortalMaxHealth()
+    {
+        if (!hasPortal || portalMaxHealth == PortalSystem.PortalMaxHealth)
+            return;
+
+        portalHealth = portalMaxHealth = PortalSystem.PortalMaxHealth;
+        SyncPortal();
     }
 
     public override void UpdateDead()
@@ -318,12 +313,13 @@ public class SpawnPlayer : ModPlayer
             return;
         }
 
-        if (SelectedType == SpawnType.None)
+        bool canTeleportNow = CanTeleportNow();
+        if (SelectedType == SpawnType.None || !canTeleportNow)
         {
             Player.respawnTimer = 2;
 
             if (Player.whoAmI == Main.myPlayer)
-                SpawnSystem.SetCanTeleport(true);
+                SpawnSystem.SetCanTeleport(SelectedType == SpawnType.None && canTeleportNow);
 
             return;
         }
@@ -410,11 +406,7 @@ public class SpawnPlayer : ModPlayer
 
         if (normalizedType == SpawnType.MyBed)
         {
-            bool ok = Player.SpawnX >= 0 && Player.SpawnY >= 0;
-            if (ok)
-                ok = Player.CheckSpawn(Player.SpawnX, Player.SpawnY);
-
-            if (!ok)
+            if (!IsOwnSpawnValid(Player))
                 normalizedType = SpawnType.None;
 
             normalizedIdx = -1;
@@ -459,54 +451,31 @@ public class SpawnPlayer : ModPlayer
 
     private static bool IsValidTeammateBedIndex(Player requester, int idx)
     {
-        if (requester == null || !requester.active)
-            return false;
-
-        if (idx < 0 || idx >= Main.maxPlayers)
-            return false;
-
-        Player bedOwner = Main.player[idx];
-        if (bedOwner == null || !bedOwner.active)
-            return false;
-
-        if (bedOwner.SpawnX < 0 || bedOwner.SpawnY < 0)
-            return false;
-
-        if (!Player.CheckSpawn(bedOwner.SpawnX, bedOwner.SpawnY))
-            return false;
-
-        if (idx == requester.whoAmI)
-            return true;
-
-        if (requester.team == 0 || bedOwner.team != requester.team)
-            return false;
-
-        return true;
+        return requester?.active == true &&
+               TryGetActivePlayer(idx, out Player bedOwner) &&
+               IsOwnSpawnValid(bedOwner) &&
+               IsSelfOrTeammate(requester, bedOwner);
     }
 
     internal static bool IsValidTeammatePortalIndex(Player requester, int idx)
     {
-        if (requester == null || !requester.active)
-            return false;
-
-        if (idx < 0 || idx >= Main.maxPlayers)
-            return false;
-
-        Player portalOwner = Main.player[idx];
-        if (portalOwner == null || !portalOwner.active)
-            return false;
-
-        if (!HasPortal(portalOwner))
-            return false;
-
-        if (idx == requester.whoAmI)
-            return true;
-
-        if (requester.team == 0 || portalOwner.team != requester.team)
-            return false;
-
-        return true;
+        return requester?.active == true &&
+               TryGetActivePlayer(idx, out Player portalOwner) &&
+               HasPortal(portalOwner) &&
+               IsSelfOrTeammate(requester, portalOwner);
     }
+
+    private static bool TryGetActivePlayer(int idx, out Player player)
+    {
+        player = idx >= 0 && idx < Main.maxPlayers ? Main.player[idx] : null;
+        return player?.active == true;
+    }
+
+    private static bool IsOwnSpawnValid(Player player) =>
+        player.SpawnX >= 0 && player.SpawnY >= 0 && Player.CheckSpawn(player.SpawnX, player.SpawnY);
+
+    private static bool IsSelfOrTeammate(Player requester, Player owner) =>
+        requester.whoAmI == owner.whoAmI || requester.team != 0 && owner.team == requester.team;
 
     private void SendSelectionIfNeeded()
     {
@@ -531,7 +500,7 @@ public class SpawnPlayer : ModPlayer
         if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI != Main.myPlayer)
             return;
 
-        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, portalCreateTicksRemaining);
+        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, portalCreateTicksRemaining, portalMaxHealth);
     }
 
     public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
@@ -539,26 +508,18 @@ public class SpawnPlayer : ModPlayer
         if (!hasPortal)
             return;
 
-        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, portalCreateTicksRemaining, toWho, fromWho);
+        PlayerPortalNetHandler.Send(Player.whoAmI, hasPortal, portalWorldPos, portalHealth, portalCreateTicksRemaining, portalMaxHealth, toWho, fromWho);
     }
 
     private void UpdatePlayerSpawnpoint()
     {
+        if (Main.GameUpdateCount < nextBedSyncTick)
+            return;
+
+        nextBedSyncTick = Main.GameUpdateCount + 60;
+
         Point raw = new(Player.SpawnX, Player.SpawnY);
-
-        if (raw != rawSpawnCached)
-        {
-            rawSpawnCached = raw;
-            rawSpawnValidCooldown = 0;
-        }
-
-        if (rawSpawnValidCooldown-- <= 0)
-        {
-            rawSpawnValidCached = raw.X >= 0 && raw.Y >= 0 && Player.CheckSpawn(raw.X, raw.Y);
-            rawSpawnValidCooldown = 60;
-        }
-
-        Point current = rawSpawnValidCached ? raw : new Point(-1, -1);
+        Point current = IsOwnSpawnValid(Player) ? raw : new Point(-1, -1);
         if (current == lastSpawn)
             return;
 
@@ -586,30 +547,8 @@ public class SpawnPlayer : ModPlayer
         const float radiusWorld = 8f * 16f;
         const float radiusSq = radiusWorld * radiusWorld;
 
-        // Check if player is within my own bed tile pos
-        if (Player.SpawnX >= 0 && Player.SpawnY >= 0)
-        {
-            Vector2 bedWorld = new Vector2(Player.SpawnX * 16f+1, Player.SpawnY * 16f);
-            if (Vector2.DistanceSquared(bedWorld, Player.Center) <= radiusSq)
-            {
-                Point bedTile = new Point(Player.SpawnX, Player.SpawnY);
-
-                if (bedTile != ownBedTileCached)
-                {
-                    ownBedTileCached = bedTile;
-                    ownBedValidCooldown = 0;
-                }
-
-                if (ownBedValidCooldown-- <= 0)
-                {
-                    ownBedValidCached = Player.CheckSpawn(bedTile.X, bedTile.Y);
-                    ownBedValidCooldown = 30;
-                }
-
-                if (ownBedValidCached)
-                    return true;
-            }
-        }
+        if (IsBedInRange(Player, radiusSq))
+            return true;
 
         // Check if player is within a teammate bed tile pos
         for (int i = 0; i < Main.maxPlayers; i++)
@@ -621,14 +560,7 @@ public class SpawnPlayer : ModPlayer
             if (other.team == 0 || other.team != Player.team)
                 continue;
 
-            if (other.SpawnX < 0 || other.SpawnY < 0)
-                continue;
-
-            Vector2 bedWorld = new Vector2(other.SpawnX * 16f, other.SpawnY * 16f);
-            if (Vector2.DistanceSquared(bedWorld, Player.Center) > radiusSq)
-                continue;
-
-            if (Player.CheckSpawn(other.SpawnX, other.SpawnY))
+            if (IsBedInRange(other, radiusSq))
                 return true;
         }
 
@@ -656,31 +588,21 @@ public class SpawnPlayer : ModPlayer
         return false;
     }
 
-    private void ClearLastSelection()
-    {
-        lastSelectedType = SpawnType.None;
-        lastSelectedPlayerIndex = -1;
-    }
+    private void ClearLastSelection() => (lastSelectedType, lastSelectedPlayerIndex) = (SpawnType.None, -1);
 
     #region Helpers
-    private static string FormatSpawn(SpawnType type, int idx)
+    private bool IsBedInRange(Player owner, float radiusSq) =>
+        IsOwnSpawnValid(owner) &&
+        Vector2.DistanceSquared(new Vector2(owner.SpawnX * 16f, owner.SpawnY * 16f), Player.Center) <= radiusSq;
+
+    private static string FormatSpawn(SpawnType type, int idx) => type switch
     {
-        if (type == SpawnType.TeammateBed)
-            return $"Bed ({GetPlayerNameSafe(idx)})";
+        SpawnType.TeammateBed => $"Bed ({GetPlayerNameSafe(idx)})",
+        SpawnType.TeammatePortal => $"Portal ({GetPlayerNameSafe(idx)})",
+        _ => type.ToString()
+    };
 
-        if (type == SpawnType.TeammatePortal)
-            return $"Portal ({GetPlayerNameSafe(idx)})";
-
-        return type.ToString();
-    }
-
-    private static string GetPlayerNameSafe(int idx)
-    {
-        if (idx < 0 || idx >= Main.maxPlayers)
-            return "<unknown>";
-
-        Player p = Main.player[idx];
-        return p?.name ?? "<unknown>";
-    }
+    private static string GetPlayerNameSafe(int idx) =>
+        idx >= 0 && idx < Main.maxPlayers ? Main.player[idx]?.name ?? "<unknown>" : "<unknown>";
     #endregion
 }

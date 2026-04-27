@@ -107,6 +107,7 @@ public sealed class UITeammateBedButton : UIElement
 
         // Refresh every draw
         hasBed = HasValidBed(owner);
+        bool cooldown = IsLocalPlayerOnTeleportCooldown;
 
         if (IsMouseHovering && hasBed)
         {
@@ -128,7 +129,7 @@ public sealed class UITeammateBedButton : UIElement
             IsMouseHovering ? TextureAssets.InventoryBack15.Value :
             TextureAssets.InventoryBack7.Value;
 
-        if (!hasBed)
+        if (!hasBed || (cooldown && !selected))
             bg = TextureAssets.InventoryBack5.Value;
 
         sb.Draw(bg, rect, Color.White);
@@ -158,7 +159,7 @@ public sealed class UITeammateBedButton : UIElement
         // Icon on top
         if (!hasBed)
         {
-            iconScale = (ButtonSize+8) / 32f;
+            iconScale = (ButtonSize + 8) / 32f;
         }
         else
         {
@@ -166,11 +167,8 @@ public sealed class UITeammateBedButton : UIElement
         }
         ItemSlot.DrawItemIcon(bedIcon, ItemSlot.Context.InventoryItem, sb, iconCenter, iconScale, ButtonSize, Color.White);
 
-        if (!hasBed)
-        {
-            Vector2 origin = Ass.Icon_Forbidden.Value.Size() * 0.5f;
-            sb.Draw(Ass.Icon_Forbidden.Value, iconCenter, null, Color.White*1.0f, 0f, origin, 1.25f, SpriteEffects.None, 0f);
-        }
+        if (!hasBed || cooldown)
+            DrawForbiddenIcon(sb, iconCenter, 1.25f);
 
         if (IsMouseHovering)
         {
@@ -181,6 +179,7 @@ public sealed class UITeammateBedButton : UIElement
 
             string text =
                 !hasBed ? "No bed set" :
+                cooldown ? LocalTeleportCooldownText :
                 selected
                     ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammatesBed", name)
                     : canRespawn

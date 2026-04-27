@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Chat;
 using System.IO;
 using Terraria;
 using Terraria.ID;
@@ -9,17 +10,17 @@ public static class TeleportNetHandler
 {
     public static void HandlePacket(BinaryReader reader, int whoAmI)
     {
+        int requesterId = reader.ReadByte();
+        SpawnType type = (SpawnType)reader.ReadByte();
+        short packetTargetIdx = reader.ReadInt16();
+
         if (Main.netMode != NetmodeID.Server)
             return;
 
-        byte requesterId = reader.ReadByte();
-        SpawnType type = (SpawnType)reader.ReadByte();
-
-        if (requesterId != whoAmI)
+        if (requesterId != whoAmI || requesterId < 0 || requesterId >= Main.maxPlayers)
             return;
 
-        Player requester = Main.player[requesterId];
-        if (requester == null || !requester.active)
+        if (Main.player[requesterId] is not { active: true } requester)
             return;
 
         SpawnPlayer spawnPlayer = requester.GetModPlayer<SpawnPlayer>();
@@ -45,114 +46,77 @@ public static class TeleportNetHandler
                 break;
 
             case SpawnType.TeammatePortal:
-                {
-                    short idx = reader.ReadInt16();
-                    if (!SpawnPlayer.IsValidTeammatePortalIndex(requester, idx))
-                        return;
+                if (!SpawnPlayer.IsValidTeammatePortalIndex(requester, packetTargetIdx))
+                    return;
 
-                    targetIdx = idx;
+                targetIdx = packetTargetIdx;
 
-                    if (!TryGetPortalTeleportPos(requester, Main.player[idx], out teleportPos))
-                        return;
+                if (!TryGetPortalTeleportPos(requester, Main.player[packetTargetIdx], out teleportPos))
+                    return;
 
-                    break;
-                }
+                break;
 
             case SpawnType.TeammateBed:
-                {
-                    short idx = reader.ReadInt16();
-                    if (idx < 0 || idx >= Main.maxPlayers)
-                        return;
+                targetIdx = packetTargetIdx;
 
-                    Player bedOwner = Main.player[idx];
-                    if (bedOwner == null || !bedOwner.active)
-                        return;
-
-                    targetIdx = idx;
-
-                    if (idx != requester.whoAmI)
-                    {
-                        if (requester.team == 0 || bedOwner.team != requester.team)
-                            return;
-                    }
-
-                    if (bedOwner.SpawnX < 0 || bedOwner.SpawnY < 0 || !Player.CheckSpawn(bedOwner.SpawnX, bedOwner.SpawnY))
-                        return;
-
-                    teleportPos = new Vector2(bedOwner.SpawnX, bedOwner.SpawnY - 6).ToWorldCoordinates();
-                    break;
-                }
-            case SpawnType.MyBed:
-                {
-                    if (requester.SpawnX < 0 || requester.SpawnY < 0 ||
-                        !Player.CheckSpawn(requester.SpawnX, requester.SpawnY))
-                        return;
-
-                    teleportPos = new Vector2(
-                        requester.SpawnX,
-                        requester.SpawnY - 6
-                    ).ToWorldCoordinates();
-                    break;
-                }
-            case SpawnType.Random:
-                {
-                    requester.TeleportationPotion();
-
-                    // TeleportationPotion() already moved the player.
-                    // We must re-sync the final position to all clients.
-                    NetMessage.SendData(
-                        MessageID.TeleportEntity,
-                        -1, -1, null,
-                        number: 0,
-                        number2: requester.whoAmI,
-                        number3: requester.position.X,
-                        number4: requester.position.Y,
-                        number5: TeleportationStyleID.RecallPotion
-                    );
-
-                    // Play teleport sound for everyone (local guaranteed)
-                    TeleportFxNetHandler.Send(requester.whoAmI);
-                    TeleportChat.Announce(requester, type);
-                    spawnPlayer.StartTeleportCooldown();
+                if (!TryGetBedTeleportPos(requester, targetIdx, out teleportPos))
                     return;
-                }
+
+                break;
+
+            case SpawnType.MyBed:
+                if (!TryGetBedTeleportPos(requester, requester.whoAmI, out teleportPos))
+                    return;
+
+                break;
+
+            case SpawnType.Random:
+                requester.TeleportationPotion();
+                SyncTeleport(requester, requester.position);
+                TeleportChat.Announce(requester, type);
+                spawnPlayer.StartTeleportCooldown();
+                return;
 
             default:
                 return;
         }
 
         requester.Teleport(teleportPos, TeleportationStyleID.RecallPotion);
-
-        NetMessage.SendData(
-            MessageID.TeleportEntity,
-            -1, -1, null,
-            number: 0,
-            number2: requester.whoAmI,
-            number3: teleportPos.X,
-            number4: teleportPos.Y,
-            number5: TeleportationStyleID.RecallPotion
-        );
-
-        // Send teleport sound effect to all clients
-        TeleportFxNetHandler.Send(whoAmI);
+        SyncTeleport(requester, teleportPos);
         TeleportChat.Announce(requester, type, targetIdx);
         spawnPlayer.StartTeleportCooldown();
+    }
+
+    private static void SyncTeleport(Player player, Vector2 position)
+    {
+        NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, player.whoAmI, position.X, position.Y, TeleportationStyleID.RecallPotion);
+        TeleportFxNetHandler.Send(player.whoAmI);
+    }
+
+    private static bool TryGetBedTeleportPos(Player requester, int ownerIndex, out Vector2 teleportPos)
+    {
+        teleportPos = Vector2.Zero;
+
+        if (ownerIndex < 0 || ownerIndex >= Main.maxPlayers || Main.player[ownerIndex] is not { active: true } owner)
+            return false;
+
+        if (ownerIndex != requester.whoAmI && (requester.team == 0 || owner.team != requester.team))
+            return false;
+
+        if (owner.SpawnX < 0 || owner.SpawnY < 0 || !Player.CheckSpawn(owner.SpawnX, owner.SpawnY))
+            return false;
+
+        teleportPos = new Vector2(owner.SpawnX, owner.SpawnY - 6).ToWorldCoordinates();
+        return true;
     }
 
     private static bool TryGetPortalTeleportPos(Player requester, Player portalOwner, out Vector2 teleportPos)
     {
         teleportPos = Vector2.Zero;
-
-        if (portalOwner == null || !portalOwner.active)
-            return false;
-
-        if (!PortalSystem.TryGetPortalWorldPos(portalOwner, out Vector2 worldPos))
+        if (portalOwner?.active != true || !PortalSystem.TryGetPortalWorldPos(portalOwner, out Vector2 worldPos))
             return false;
 
         teleportPos = worldPos - new Vector2(requester.width * 0.5f, requester.height);
         return true;
     }
 }
-
-
-

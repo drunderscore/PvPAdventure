@@ -37,7 +37,8 @@ public class UIMyBedButton : UIPanel
 
     private bool HasBed()
     {
-        return Main.LocalPlayer.SpawnX != 1 && Main.LocalPlayer.SpawnY != -1;
+        Player local = Main.LocalPlayer;
+        return local?.active == true && local.SpawnX >= 0 && local.SpawnY >= 0 && Player.CheckSpawn(local.SpawnX, local.SpawnY);
     }
 
     public override void Update(GameTime gameTime)
@@ -50,6 +51,7 @@ public class UIMyBedButton : UIPanel
 
         var sp = Main.LocalPlayer?.GetModPlayer<SpawnPlayer>();
         bool selected = sp?.SelectedType == SpawnType.MyBed;
+        bool cooldown = SpawnSystem.IsLocalPlayerOnTeleportCooldown;
 
         if (IsMouseHovering && HasBed())
         {
@@ -61,8 +63,9 @@ public class UIMyBedButton : UIPanel
         }
 
         BackgroundColor =
+            !hasBed ? SpawnSystem.DisabledButtonColor :
             selected ? new Color(220, 220, 0) :
-            !hasBed ? new Color(230, 40, 10) * 0.37f:
+            cooldown ? SpawnSystem.DisabledButtonColor :
             IsMouseHovering ? new Color(73, 92, 161, 150) :
             new Color(63, 82, 151) * 0.8f;
     }
@@ -98,16 +101,13 @@ public class UIMyBedButton : UIPanel
                 }
             }
         }
-        
+
 
         // Draw icon on top
         ItemSlot.DrawItemIcon(bedItem, ItemSlot.Context.InventoryItem, sb, pos, iconScale, iconSize, Color.White);
 
-        if (!hasBed) 
-        { 
-            Vector2 origin = Ass.Icon_Forbidden.Value.Size() * 0.5f; 
-            sb.Draw(Ass.Icon_Forbidden.Value, pos, null, Color.White, 0f, origin, 2f, SpriteEffects.None, 0f); 
-        }
+        if (!hasBed || SpawnSystem.IsLocalPlayerOnTeleportCooldown)
+            SpawnSystem.DrawForbiddenIcon(sb, pos, 2f);
     }
 
 
@@ -130,6 +130,10 @@ public class UIMyBedButton : UIPanel
         if (!HasBed())
         {
             text = "No bed set";
+        }
+        else if (SpawnSystem.IsLocalPlayerOnTeleportCooldown)
+        {
+            text = SpawnSystem.LocalTeleportCooldownText;
         }
         else if (ready)
         {

@@ -73,13 +73,13 @@ public static class PortalDrawer
             if (player == null || !player.active)
                 continue;
 
-            if (!SpawnPlayer.TryGetPortal(player, out Vector2 worldPos, out int health, out int createTicksRemaining))
+            if (!SpawnPlayer.TryGetPortal(player, out Vector2 worldPos, out int health, out int createTicksRemaining, out int maxHealth))
                 continue;
 
             float progress = GetCreateProgress(createTicksRemaining);
             bool inRange = PortalSystem.IsWithinPortalUseRange(Main.LocalPlayer, worldPos);
             //Log.Chat(inRange);
-            SpawnPortalDust(worldPos, progress, inRange ? 1 : 0);
+            SpawnPortalDust(worldPos, progress, dustMultiplier: inRange ? 3 : 1); // always spawn portal dust. we could gate it to only show if in range, etc.
 
             Texture2D texture = GetPortalAsset(player).Value;
             Rectangle source = GetPortalFrameRectangle(texture);
@@ -91,8 +91,8 @@ public static class PortalDrawer
             float rangeAlpha = 1f;
             int visualHealth = (int)MathHelper.Lerp(0f, health, progress);
 
-            DrawPortal(spriteBatch, texture, drawPos, source, origin, 1f, Color.White * (progress * rangeAlpha), borderColor, outline: true);
-            DrawPortalHealthBar(spriteBatch, worldPos + new Vector2(0f, 8f), visualHealth, PortalSystem.PortalMaxHealth, 1f, progress);
+            DrawPortal(spriteBatch, texture, drawPos, source, origin, 1f, Color.White * (progress * rangeAlpha), borderColor, outline: inRange);
+            DrawPortalHealthBar(spriteBatch, worldPos + new Vector2(0f, 8f), visualHealth, maxHealth, 1f, progress);
 
             if (hovered)
             {
@@ -127,6 +127,22 @@ public static class PortalDrawer
         }
     }
 
+    public static void SpawnPortalMapDust(Vector2 worldPos, bool emphasized)
+    {
+        int dustCount = emphasized ? 3 : 1;
+
+        for (int i = 0; i < dustCount; i++)
+        {
+            PotionOfReturnGateHelper gate = new(
+                PotionOfReturnGateHelper.GateType.EntryPoint,
+                worldPos,
+                1f
+            );
+
+            gate.SpawnReturnPortalDust();
+        }
+    }
+
     public static void DrawPortalPreview(SpriteBatch sb, Player player, Vector2 position, float scale, bool outline = true, Color drawColor = default, float blackOutlineDistance = 4f, float colorOutlineDistance = 3f)
     {
         Texture2D texture = GetPortalAsset(player).Value;
@@ -145,7 +161,7 @@ public static class PortalDrawer
         if (outline)
         {
             float alphaScale = 0.9f * drawColor.A / 255f;
-            DrawTextureOutline(sb, texture, position, source, origin, Color.Black * alphaScale, scale, blackOutlineDistance);
+            //DrawTextureOutline(sb, texture, position, source, origin, Color.Yellow * alphaScale, scale, blackOutlineDistance);
             DrawTextureOutline(sb, texture, position, source, origin, borderColor * alphaScale, scale, colorOutlineDistance);
         }
 
@@ -215,6 +231,9 @@ public static class PortalDrawer
 
     private static void DrawPortalHealthBar(SpriteBatch sb, Vector2 worldPos, int health, int maxHealth, float scale, float alpha)
     {
+        if (maxHealth <= 0)
+            return;
+
         float healthRatio = (float)health / maxHealth;
         if (healthRatio > 1f)
             healthRatio = 1f;
@@ -261,20 +280,25 @@ public static class PortalDrawer
     private static void DrawHoverIcon(SpriteBatch sb, Player player, Vector2 worldPos, Color outlineColor, float alpha)
     {
         const float pulseSpeed = 6f; // Lower = slower pulse.
-        const float pulseScaleVariance = 0.10f; // Higher = larger size change.
+        const float pulseScaleVariance = 0.15f; // Higher = larger size change.
 
-        Texture2D iconTexture = GetPortalAsset(player).Value;
-        Rectangle source = GetPortalFrameRectangle(iconTexture);
+        // Draw animated portal. Keep this commented out for now.
+        //Texture2D iconTexture = GetPortalAsset(player).Value;
+        //Rectangle source = GetPortalFrameRectangle(iconTexture);
+
+        Texture2D iconTexture = GetPortalMinimapAsset(player).Value;
+        Rectangle source = iconTexture.Bounds;
+
         Vector2 origin = new(source.Width * 0.5f, source.Height * 0.5f); // center
         origin = Vector2.Zero;
         Vector2 drawPos = new Vector2(Main.mouseX, Main.mouseY) + new Vector2(12f, 14f);
 
         float pulse = 0.5f + 0.5f * (float)Math.Sin(Main.GlobalTimeWrappedHourly * pulseSpeed);
-        float iconScale = 0.58f + pulse * pulseScaleVariance;
+        float iconScale = 1f + pulse * pulseScaleVariance;
         Color drawColor = Color.White * alpha;
 
-        DrawTextureOutline(sb, iconTexture, drawPos, source, origin, Color.Black * alpha, iconScale, 2f);
-        DrawTextureOutline(sb, iconTexture, drawPos, source, origin, outlineColor * alpha, iconScale, 1f);
+        //DrawTextureOutline(sb, iconTexture, drawPos, source, origin, Color.Black * alpha, iconScale, 2f);
+        //DrawTextureOutline(sb, iconTexture, drawPos, source, origin, outlineColor * alpha, iconScale, 1f);
         sb.Draw(iconTexture, drawPos, source, drawColor, 0f, origin, iconScale, SpriteEffects.None, 0f);
     }
 

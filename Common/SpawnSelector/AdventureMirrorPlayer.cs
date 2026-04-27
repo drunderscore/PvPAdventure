@@ -12,28 +12,21 @@ internal class AdventureMirrorPlayer : ModPlayer
     {
         base.OnHurt(info);
 
-        // Only care if the player is currently using the AdventureMirror
-        if (Player.itemTime > 0 &&
-            Player.HeldItem?.type == ModContent.ItemType<AdventureMirror>() &&
-            !Player.GetModPlayer<SpawnPlayer>().SpawnedPortalThisUse)
-        {
-            if (Player.HeldItem.ModItem is AdventureMirror mirror)
-            {
-                mirror.CancelItemUse(Player);
-            }
+        if (Player.itemTime <= 0 ||
+            Player.HeldItem?.type != ModContent.ItemType<AdventureMirror>() ||
+            Player.GetModPlayer<SpawnPlayer>().SpawnedPortalThisUse)
+            return;
 
-            // Show hurt popup to indicate cancellation
-            if (Player.whoAmI == Main.myPlayer)
-            {
-                PopupText.NewText(new AdvancedPopupRequest
-                {
-                    Color = Color.Crimson,
-                    Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.Cancelled"),
-                    Velocity = new(0f, -4),
-                    DurationInFrames = 120
-                }, Player.Top + new Vector2(0, -4));
-            }
-        }
+        if (Player.HeldItem.ModItem is AdventureMirror mirror)
+            mirror.CancelItemUse(Player);
 
+        if (Player.whoAmI == Main.myPlayer)
+            PopupText.NewText(new AdvancedPopupRequest
+            {
+                Color = Color.Crimson,
+                Text = Language.GetTextValue("Mods.PvPAdventure.AdventureMirror.Cancelled"),
+                Velocity = new(0f, -4),
+                DurationInFrames = 120
+            }, Player.Top + new Vector2(0, -4));
     }
 }

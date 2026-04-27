@@ -36,6 +36,7 @@ public class UIWorldSpawnPanel : UIPanel
 
         BackgroundColor =
             selected ? new Color(220, 220, 0) :
+            IsLocalPlayerOnTeleportCooldown ? DisabledButtonColor :
             IsMouseHovering ? new Color(73, 92, 161, 150) :
             new Color(63, 82, 151) * 0.8f;
     }
@@ -65,6 +66,9 @@ public class UIWorldSpawnPanel : UIPanel
 
         float scale = 1.6f;
         sb.Draw(tex, pos, null, Color.White, 0f, tex.Size() * 0.5f, scale, SpriteEffects.None, 0f);
+
+        if (IsLocalPlayerOnTeleportCooldown)
+            DrawForbiddenIcon(sb, pos, 2f);
     }
 
     private void DrawHoverText()
@@ -80,7 +84,11 @@ public class UIWorldSpawnPanel : UIPanel
 
         string text;
 
-        if (ready)
+        if (IsLocalPlayerOnTeleportCooldown)
+        {
+            text = LocalTeleportCooldownText;
+        }
+        else if (ready)
         {
             text = committed
                 ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelWorldSpawn")

@@ -1,8 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Chat;
+using PvPAdventure.Common.Spectator.Drawers;
+using PvPAdventure.Common.Spectator.UI.Tabs.Players;
 using PvPAdventure.Common.Teams;
-using PvPAdventure.Core.Utilities;
-using ReLogic.Content;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
@@ -17,20 +18,15 @@ namespace PvPAdventure.Common.SpawnSelector;
 [Autoload(Side = ModSide.Client)]
 public sealed class PortalSystem : ModSystem
 {
-    public const int PortalMaxHealth = 27;
+    public static int PortalMaxHealth => NPC.downedPlantBoss ? 420 : Main.hardMode ? 69 : 27;
     public const float PortalUseRangeTiles = 8f;
     public const float PortalUseRangeWorld = PortalUseRangeTiles * 16f;
     public static int PortalCreateAnimationTicks => ModContent.GetInstance<Core.Config.ServerConfig>().AdventureMirrorRecallSeconds * 60;
 
-    public static bool HasPortal(Player player)
-    {
-        return SpawnPlayer.HasPortal(player);
-    }
+    public static bool HasPortal(Player player) => SpawnPlayer.HasPortal(player);
 
-    public static bool TryGetPortalWorldPos(Player player, out Vector2 worldPos)
-    {
-        return SpawnPlayer.TryGetPortalWorldPos(player, out worldPos);
-    }
+    public static bool TryGetPortalWorldPos(Player player, out Vector2 worldPos) =>
+        SpawnPlayer.TryGetPortalWorldPos(player, out worldPos);
 
     public static void CreatePortalAtPosition(Player player, Vector2 position)
     {
@@ -40,7 +36,26 @@ public sealed class PortalSystem : ModSystem
         player.GetModPlayer<SpawnPlayer>().SetPortal(position);
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
-            TeamChatManager.SendSystemTeamMessage(player, $"{player.name} has created a portal", Color.Yellow);
+        {
+            string biome = PlayerStats.GetBiomeText(player);
+            int distance = (int)(Vector2.Distance(player.Center, position) / 16f);
+
+            TeleportChat.SendSystemTeamMessage(
+                player,
+                GetPortalMessage(player, biome, distance),
+                Main.OurFavoriteColor,
+                GetOwnPortalMessage(player, biome, distance));
+        }
+    }
+
+    internal static string GetOwnPortalMessage(Player player, string biome, int distance)
+    {
+        return $"{player.name} opened a portal in {biome} ({distance} tiles away)";
+    }
+
+    internal static string GetPortalMessage(Player player, string biome, int distance)
+    {
+        return $"{player.name} opened a portal in {biome} ({distance} tiles away)";
     }
 
     public static void ClearPortal(Player player)
@@ -53,36 +68,22 @@ public sealed class PortalSystem : ModSystem
 
     public static bool TryDamagePortal(Player attacker, int ownerIndex, int damage, string source)
     {
-        if (ownerIndex < 0 || ownerIndex >= Main.maxPlayers)
+        if (ownerIndex < 0 || ownerIndex >= Main.maxPlayers || Main.player[ownerIndex] is not { active: true } owner)
             return false;
 
-        Player owner = Main.player[ownerIndex];
-        if (owner == null || !owner.active)
+        if (attacker?.active == true && attacker.whoAmI != ownerIndex && attacker.team != 0 && attacker.team == owner.team)
             return false;
-
-        if (attacker != null &&
-            attacker.active &&
-            attacker.whoAmI != ownerIndex &&
-            attacker.team != 0 &&
-            attacker.team == owner.team)
-        {
-            return false;
-        }
 
         return owner.GetModPlayer<SpawnPlayer>().DamagePortal(attacker, damage, source);
     }
 
-    public static Rectangle GetPortalHitbox(Vector2 worldPos)
-    {
-        return new Rectangle((int)worldPos.X - 24, (int)worldPos.Y - 72, 48, 72);
-    }
+    public static Rectangle GetPortalHitbox(Vector2 worldPos) =>
+        new((int)worldPos.X - 24, (int)worldPos.Y - 72, 48, 72);
 
     public static bool IsWithinPortalUseRange(Player player, Vector2 worldPos)
     {
-        if (player == null || !player.active)
-            return false;
-
-        return Vector2.DistanceSquared(player.Center, worldPos) <= PortalUseRangeWorld * PortalUseRangeWorld;
+        return player?.active == true &&
+               Vector2.DistanceSquared(player.Center, worldPos) <= PortalUseRangeWorld * PortalUseRangeWorld;
     }
 
     public static void PlayPortalFx(Vector2 worldPos, bool killed, int damage = 0)
@@ -124,13 +125,8 @@ public sealed class PortalSystem : ModSystem
     private static void ClearAllPortals()
     {
         for (int i = 0; i < Main.maxPlayers; i++)
-        {
-            Player player = Main.player[i];
-            if (player == null || !player.active)
-                continue;
-
-            player.GetModPlayer<SpawnPlayer>().ClearPortal(sync: false);
-        }
+            if (Main.player[i] is { active: true } player)
+                player.GetModPlayer<SpawnPlayer>().ClearPortal(sync: false);
     }
     #endregion
 
@@ -173,20 +169,13 @@ public sealed class PortalSystem : ModSystem
         Point mousePoint = mouseWorld.ToPoint();
 
         for (int i = 0; i < Main.maxPlayers; i++)
-        {
-            Player player = Main.player[i];
-            if (player == null || !player.active)
-                continue;
-
-            if (!SpawnPlayer.TryGetPortalWorldPos(player, out Vector2 worldPos))
-                continue;
-
-            if (!GetPortalHitbox(worldPos).Contains(mousePoint))
-                continue;
-
-            ownerIndex = i;
-            return true;
-        }
+            if (Main.player[i] is { active: true } player &&
+                SpawnPlayer.TryGetPortalWorldPos(player, out Vector2 worldPos) &&
+                GetPortalHitbox(worldPos).Contains(mousePoint))
+            {
+                ownerIndex = i;
+                return true;
+            }
 
         return false;
     }
@@ -198,6 +187,8 @@ public sealed class PortalSystem : ModSystem
         Main.npcChatCornerItem = 0;
         Main.mapFullscreen = true;
         Main.resetMapFull = true;
+
+        SoundEngine.PlaySound(SoundID.MenuOpen);
     }
 
     #endregion

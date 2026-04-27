@@ -63,6 +63,7 @@ public sealed class UITeammatePortalButton : UIElement
 
         Player owner = playerIndex >= 0 && playerIndex < Main.maxPlayers ? Main.player[playerIndex] : null;
         hasPortal = owner != null && owner.active && PortalSystem.HasPortal(owner);
+        bool cooldown = SpawnSystem.IsLocalPlayerOnTeleportCooldown;
 
         if (IsMouseHovering && hasPortal)
         {
@@ -83,7 +84,7 @@ public sealed class UITeammatePortalButton : UIElement
             IsMouseHovering ? TextureAssets.InventoryBack15.Value :
             TextureAssets.InventoryBack7.Value;
 
-        if (!hasPortal)
+        if (!hasPortal || (cooldown && !selected))
             bg = TextureAssets.InventoryBack5.Value;
 
         sb.Draw(bg, rect, Color.White);
@@ -100,8 +101,8 @@ public sealed class UITeammatePortalButton : UIElement
         else
             PortalDrawer.DrawPortalPreview(sb, owner, iconCenter, iconScale, outline: false, drawColor: Color.White * 0.65f, blackOutlineDistance: blackOutline, colorOutlineDistance: colorOutline);
 
-        if (!hasPortal)
-            sb.Draw(Ass.Icon_Forbidden.Value, iconCenter, null, Color.White, 0f, Ass.Icon_Forbidden.Value.Size() * 0.5f, 1.25f, SpriteEffects.None, 0f);
+        if (!hasPortal || cooldown)
+            SpawnSystem.DrawForbiddenIcon(sb, iconCenter, 1.25f);
 
         if (IsMouseHovering)
         {
@@ -112,6 +113,7 @@ public sealed class UITeammatePortalButton : UIElement
 
             string text =
                 !hasPortal ? "No portal set" :
+                cooldown ? SpawnSystem.LocalTeleportCooldownText :
                 selected
                     ? Language.GetTextValue("Mods.PvPAdventure.Spawn.CancelTeammatesPortal", name)
                     : canRespawn

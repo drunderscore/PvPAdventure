@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Debug;
+using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
@@ -27,19 +28,12 @@ public class UISpawnState : UIState
     private UITextPanel<string> chooseYourSpawnPanel;
     public UITextPanel<string> TitlePanel => chooseYourSpawnPanel;
 
-    // UI components which are a part of backgroundPanel
-    private UIRandomTeleportPanel randomPanel;
-    private UIMyBedButton myBedPanel;
-    private UIWorldSpawnPanel worldSpawnPanel;
-    private readonly List<UITeammatePanel> playerItems = []; // list of teammate player UI items
-
-    // Rebuild frequently
-    private bool _forceRebuild;
-    public void RequestRebuild() => _forceRebuild = true;
+    private int playerSignature = int.MinValue;
+    private bool bossOffsetApplied;
 
     // Debug
 #if DEBUG
-    private static int s_debugExtraLocalCopies;
+    private static int debugExtraPlayersLocalCopies;
 #endif
 
     public override void OnActivate()
@@ -51,10 +45,12 @@ public class UISpawnState : UIState
         int top = 85;
 
         var config = ModContent.GetInstance<ClientConfig>();
+        bossOffsetApplied = ShouldOffsetForBossBar();
+
         if (config.spawnSelectorPosition == ClientConfig.SpawnSelectorPosition.Bottom)
         {
             vAlign = 1;
-            top = -22;
+            top = bossOffsetApplied ? -82 : -22;
         }
 
         // Background panel
@@ -83,12 +79,60 @@ public class UISpawnState : UIState
             {
                 HAlign = 0.5f,
                 BackgroundColor = new Color(73, 94, 171),
-                Top = new StyleDimension(top-38, 0),
+                Top = new StyleDimension(top - 38, 0),
                 VAlign = vAlign,
             };
             // Add title last, on top of everything else
             Append(chooseYourSpawnPanel);
         }
+    }
+
+    private void ApplyPosition()
+    {
+        int vAlign = 0;
+        int top = 85;
+
+        var config = ModContent.GetInstance<ClientConfig>();
+        if (config.spawnSelectorPosition == ClientConfig.SpawnSelectorPosition.Bottom)
+        {
+            vAlign = 1;
+            top = bossOffsetApplied ? -82 : -22;
+        }
+
+        backgroundPanel.Top.Set(top, 0f);
+        backgroundPanel.VAlign = vAlign;
+
+        if (chooseYourSpawnPanel != null)
+        {
+            if (config.spawnSelectorPosition == ClientConfig.SpawnSelectorPosition.Bottom)
+                top -= 38;
+
+            chooseYourSpawnPanel.Top.Set(top - 38, 0f);
+            chooseYourSpawnPanel.VAlign = vAlign;
+        }
+
+        Recalculate();
+    }
+
+    private static bool ShouldOffsetForBossBar()
+    {
+        var config = ModContent.GetInstance<ClientConfig>();
+        bool bossBarActive = IsBossBarActive();
+
+        return config.spawnSelectorPosition == ClientConfig.SpawnSelectorPosition.Bottom && bossBarActive;
+    }
+
+    private static bool IsBossBarActive()
+    {
+        for (int i = 0; i < Main.npc.Length; i++)
+        {
+            NPC npc = Main.npc[i];
+
+            if (npc.active && (npc.boss || npc.GetBossHeadTextureIndex() >= 0))
+                return true;
+        }
+
+        return false;
     }
 
     public override void Update(GameTime gameTime)
@@ -98,22 +142,30 @@ public class UISpawnState : UIState
         {
             if (Main.keyState.IsKeyDown(Keys.NumPad1) && !Main.oldKeyState.IsKeyDown(Keys.NumPad1))
             {
-                s_debugExtraLocalCopies++;
-                Log.Chat($"Extra copies: {s_debugExtraLocalCopies}. Use Numpad1/2 to adjust.");
-                Rebuild();
+                debugExtraPlayersLocalCopies++;
+                Log.Chat($"Extra copies: {debugExtraPlayersLocalCopies}. Use Numpad1/2 to adjust.");
+                playerSignature = int.MinValue;
             }
             else if (Main.keyState.IsKeyDown(Keys.NumPad2) && !Main.oldKeyState.IsKeyDown(Keys.NumPad2))
             {
-                if (s_debugExtraLocalCopies > 0)
+                if (debugExtraPlayersLocalCopies > 0)
                 {
-                    s_debugExtraLocalCopies--;
-                    Log.Chat($"Extra copies: {s_debugExtraLocalCopies}. Use Numpad1/2 to adjust.");
+                    debugExtraPlayersLocalCopies--;
+                    Log.Chat($"Extra copies: {debugExtraPlayersLocalCopies}. Use Numpad1/2 to adjust.");
                 }
 
-                Rebuild();
+                playerSignature = int.MinValue;
             }
         }
 #endif
+
+        bool nextBossOffset = ShouldOffsetForBossBar();
+        if (nextBossOffset != bossOffsetApplied)
+        {
+            bossOffsetApplied = nextBossOffset;
+            ApplyPosition();
+            Rebuild();
+        }
 
         if (NeedsRebuild())
         {
@@ -128,32 +180,10 @@ public class UISpawnState : UIState
     {
         // Clear
         backgroundPanel.RemoveAllChildren();
-        playerItems.Clear();
 
         // Add players
-        var players = new List<Player>();
-        Player local = Main.LocalPlayer;
-
-        if (local.team != 0)
-        {
-            for (int i = 0; i < Main.maxPlayers; i++)
-            {
-                Player p = Main.player[i];
-                if (p == null || !p.active)
-                    continue;
-
-                if (p.whoAmI == local.whoAmI || p.team != local.team)
-                    continue;
-
-                players.Add(p);
-            }
-        }
-
-#if DEBUG
-        if (Main.netMode != NetmodeID.Server && local != null && local.active)
-            for (int i = 0; i < s_debugExtraLocalCopies; i++)
-                players.Add(local);
-#endif
+        List<Player> players = GetPlayers();
+        playerSignature = GetPlayerSignature(players);
 
         int playerCount = players.Count;
 
@@ -188,10 +218,10 @@ public class UISpawnState : UIState
         backgroundPanel.Height.Set(panelHeight, 0f);
 
         float x = HorizontalPadding;
-        float y = VerticalPadding + 2 ; // [EXTRA]!
+        float y = VerticalPadding + 2; // [EXTRA]!
 
         // World spawn
-        worldSpawnPanel = new UIWorldSpawnPanel(itemHeight);
+        var worldSpawnPanel = new UIWorldSpawnPanel(itemHeight);
         worldSpawnPanel.Left.Set(x, 0f);
         worldSpawnPanel.Top.Set(y, 0f);
         worldSpawnPanel.SetPadding(0f);
@@ -201,7 +231,7 @@ public class UISpawnState : UIState
 
         // My bed button
         bool hasSelfBed = Main.LocalPlayer.SpawnX != -1 && Main.LocalPlayer.SpawnY != -1;
-        myBedPanel = new UIMyBedButton(itemHeight, hasSelfBed);
+        var myBedPanel = new UIMyBedButton(itemHeight, hasSelfBed);
         myBedPanel.Left.Set(x, 0f);
         myBedPanel.Top.Set(y, 0f);
         backgroundPanel.Append(myBedPanel);
@@ -224,7 +254,6 @@ public class UISpawnState : UIState
             row.Activate();
 
             backgroundPanel.Append(row);
-            playerItems.Add(row);
 
             x += itemWidth;
             if (i < playerCount - 1)
@@ -235,7 +264,7 @@ public class UISpawnState : UIState
             x += Spacing;
 
         // Random
-        randomPanel = new UIRandomTeleportPanel(itemHeight);
+        var randomPanel = new UIRandomTeleportPanel(itemHeight);
         randomPanel.Left.Set(x, 0f);
         randomPanel.Top.Set(y, 0f);
         backgroundPanel.Append(randomPanel);
@@ -246,12 +275,6 @@ public class UISpawnState : UIState
 
     private bool NeedsRebuild()
     {
-        if (_forceRebuild)
-        {
-            _forceRebuild = false;
-            return true;
-        }
-
         if (backgroundPanel == null)
             return true;
 
@@ -259,49 +282,70 @@ public class UISpawnState : UIState
         if (dims.Width <= 1f || dims.Height <= 1f)
             return true;
 
-        if (randomPanel == null)
-            return true;
+        if (Main.GameUpdateCount % 30 != 0)
+            return false;
 
-        if (worldSpawnPanel == null)
-            return true;
+        return GetCurrentPlayerSignature() != playerSignature;
+    }
 
-        var randomDims = randomPanel.GetDimensions();
-        if (randomDims.Width <= 0f || randomDims.Height <= 0f)
-            return true;
-
-        var local = Main.LocalPlayer;
-        var players = new List<int>();
+    private static List<Player> GetPlayers()
+    {
+        List<Player> players = [];
+        Player local = Main.LocalPlayer;
+        if (local?.active != true || local.team == 0)
+            return players;
 
         for (int i = 0; i < Main.maxPlayers; i++)
+            if (Main.player[i] is { active: true } p && p.whoAmI != local.whoAmI && p.team == local.team)
+                players.Add(p);
+
+#if DEBUG
+        if (Main.netMode != NetmodeID.Server)
+            for (int i = 0; i < debugExtraPlayersLocalCopies; i++)
+                players.Add(local);
+#endif
+
+        return players;
+    }
+
+    private static int GetPlayerSignature(List<Player> players)
+    {
+        HashCode hash = new();
+        hash.Add(Main.LocalPlayer?.team ?? -1);
+        foreach (Player player in players)
+            hash.Add(player.whoAmI);
+
+        hash.Add(players.Count);
+        return hash.ToHashCode();
+    }
+
+    private static int GetCurrentPlayerSignature()
+    {
+        HashCode hash = new();
+        Player local = Main.LocalPlayer;
+        hash.Add(local?.team ?? -1);
+
+        int count = 0;
+        if (local?.active == true && local.team != 0)
         {
-            var p = Main.player[i];
-            if (p == null || !p.active)
-                continue;
-
-            if (p.whoAmI == local.whoAmI || p.team != local.team)
-                continue;
-
-            players.Add(p.whoAmI);
+            for (int i = 0; i < Main.maxPlayers; i++)
+                if (Main.player[i] is { active: true } p && p.whoAmI != local.whoAmI && p.team == local.team)
+                {
+                    count++;
+                    hash.Add(p.whoAmI);
+                }
         }
 
 #if DEBUG
-        if (Main.netMode != NetmodeID.Server && local != null && local.active)
-            for (int i = 0; i < s_debugExtraLocalCopies; i++)
-                players.Add(local.whoAmI);
+        if (Main.netMode != NetmodeID.Server && local?.active == true)
+            for (int i = 0; i < debugExtraPlayersLocalCopies; i++)
+            {
+                count++;
+                hash.Add(local.whoAmI);
+            }
 #endif
 
-        if (players.Count != playerItems.Count)
-            return true;
-
-        for (int i = 0; i < players.Count; i++)
-        {
-            if (playerItems[i] == null)
-                return true;
-
-            if (playerItems[i].PlayerIndex != players[i])
-                return true;
-        }
-
-        return false;
+        hash.Add(count);
+        return hash.ToHashCode();
     }
 }

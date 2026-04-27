@@ -1,4 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Spectator;
+using PvPAdventure.Common.Spectator.SpectatorMode;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config.UI;
@@ -106,15 +108,28 @@ public class SpectateSystem : ModSystem
 
     public override void ModifyScreenPosition()
     {
+        Player local = Main.LocalPlayer;
+        if (local == null || !local.active)
+            return;
+
+        if (SpectatorModeSystem.IsInSpectateMode(local))
+        {
+            Restore();
+            return;
+        }
+
         if (IsAnyConfigUIOpen())
         {
             Restore();
             return;
         }
 
-        Player local = Main.LocalPlayer;
-        if (local == null || !local.active)
+        if (local.GetModPlayer<SpawnPlayer>().IsTeleportOnCooldown)
+        {
+            Restore();
             return;
+        }
+
 
         if (!local.dead && !SpawnSystem.Enabled)
         {
@@ -188,7 +203,7 @@ public class SpectateSystem : ModSystem
 
         if (hasRestorePos)
         {
-            Main.screenPosition = restoreScreenPos;
+            SpectateCameraFade.SetScreenPosition(restoreScreenPos);
             hasRestorePos = false;
         }
 
@@ -205,7 +220,7 @@ public class SpectateSystem : ModSystem
             if (p == null || !p.active)
                 return;
 
-            Main.screenPosition = p.Center - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+            SetCameraTo(p.Center);
             return;
         }
 
@@ -213,7 +228,7 @@ public class SpectateSystem : ModSystem
         if (HoveringType == SpawnType.World)
         {
             Vector2 pos = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
-            Main.screenPosition = pos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+            SetCameraTo(pos);
             return;
         }
 
@@ -222,7 +237,7 @@ public class SpectateSystem : ModSystem
         {
             Player me = Main.LocalPlayer;
             Vector2 myBedPos = new Vector2(me.SpawnX, me.SpawnY - 3).ToWorldCoordinates();
-            Main.screenPosition = myBedPos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+            SetCameraTo(myBedPos);
             return;
         }
 
@@ -232,7 +247,7 @@ public class SpectateSystem : ModSystem
             if (!PortalSystem.TryGetPortalWorldPos(Main.LocalPlayer, out Vector2 portalPos))
                 return;
 
-            Main.screenPosition = portalPos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+            SetCameraTo(portalPos);
             return;
         }
 
@@ -246,7 +261,7 @@ public class SpectateSystem : ModSystem
             if (!SpawnPlayer.TryGetPortalWorldPos(p, out Vector2 portalPos))
                 return;
 
-            Main.screenPosition = portalPos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+            SetCameraTo(portalPos);
             return;
         }
 
@@ -260,9 +275,14 @@ public class SpectateSystem : ModSystem
             if (HoveringType == SpawnType.TeammateBed)
             {
                 Vector2 teammateBedPos = new Vector2(p.SpawnX, p.SpawnY - 3).ToWorldCoordinates();
-                Main.screenPosition = teammateBedPos - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+                SetCameraTo(teammateBedPos);
                 return;
             }
         }
+    }
+
+    private static void SetCameraTo(Vector2 worldPosition)
+    {
+        SpectateCameraFade.SetScreenPosition(worldPosition - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f);
     }
 }

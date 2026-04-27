@@ -27,20 +27,7 @@ internal sealed class PortalProjectileDamage : GlobalProjectile
         if (attacker == null || !attacker.active)
             return;
 
-        for (int i = 0; i < Main.maxPlayers; i++)
-        {
-            Player owner = Main.player[i];
-            if (owner == null || !owner.active || !SpawnPlayer.TryGetPortal(owner, out Vector2 pos, out _))
-                continue;
-
-            if (!projectile.Hitbox.Intersects(PortalSystem.GetPortalHitbox(pos)))
-                continue;
-
-            if (!hitPortalOwners.Add(i))
-                continue;
-
-            PortalSystem.TryDamagePortal(attacker, i, projectile.damage, $"proj:{projectile.type}");
-        }
+        PortalDamageHelper.TryDamageHitPortals(attacker, projectile.Hitbox, hitPortalOwners, projectile.damage, $"proj:{projectile.type}");
     }
 }
 
@@ -63,21 +50,7 @@ internal sealed class PortalMeleeDamagePlayer : ModPlayer
         if (item == null || item.IsAir || item.damage <= 0 || item.noMelee)
             return;
 
-        Rectangle swingHitbox = GetSwingHitbox(item);
-        for (int i = 0; i < Main.maxPlayers; i++)
-        {
-            Player owner = Main.player[i];
-            if (owner == null || !owner.active || !SpawnPlayer.TryGetPortal(owner, out Vector2 pos, out _))
-                continue;
-
-            if (!swingHitbox.Intersects(PortalSystem.GetPortalHitbox(pos)))
-                continue;
-
-            if (!hitPortalOwners.Add(i))
-                continue;
-
-            PortalSystem.TryDamagePortal(Player, i, item.damage, $"melee:{item.type}");
-        }
+        PortalDamageHelper.TryDamageHitPortals(Player, GetSwingHitbox(item), hitPortalOwners, item.damage, $"melee:{item.type}");
     }
 
     private Rectangle GetSwingHitbox(Item item)
@@ -87,5 +60,36 @@ internal sealed class PortalMeleeDamagePlayer : ModPlayer
         Vector2 center = Player.Center + new Vector2(Player.direction * (Player.width * 0.5f + width * 0.35f), 0f);
 
         return new Rectangle((int)(center.X - width * 0.5f), (int)(center.Y - height * 0.5f), width, height);
+    }
+}
+
+internal static class PortalDamageHelper
+{
+    public static void TryDamageHitPortals(Player attacker, Rectangle hitbox, HashSet<int> hitPortalOwners, int damage, string source)
+    {
+        for (int i = 0; i < Main.maxPlayers; i++)
+        {
+            Player owner = Main.player[i];
+
+            if (owner == null || !owner.active)
+                continue;
+
+            // Skip self
+#if !DEBUG
+            if (i == attacker.whoAmI)
+                continue;
+#endif
+
+            // Skip teammates
+            if (attacker.team != 0 && attacker.team == owner.team)
+                continue;
+
+            if (SpawnPlayer.TryGetPortal(owner, out Vector2 pos, out _) &&
+                hitbox.Intersects(PortalSystem.GetPortalHitbox(pos)) &&
+                hitPortalOwners.Add(i))
+            {
+                PortalSystem.TryDamagePortal(attacker, i, damage, source);
+            }
+        }
     }
 }

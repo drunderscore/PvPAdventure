@@ -106,6 +106,11 @@ public class ServerConfig : ModConfig
     public int AdventureMirrorRecallSeconds { get; set; }
 
     [BackgroundColor(40, 90, 40)]
+    [Range(0, 60)]
+    [DefaultValue(5)]
+    public int SpawnTeleportCooldownSeconds { get; set; } = 5;
+
+    [BackgroundColor(40, 90, 40)]
     [Range(0, 30 * 60)]
     [DefaultValue(1.5 * 60)]
     public int SpawnImmuneFrames { get; set; }

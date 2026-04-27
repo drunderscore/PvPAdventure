@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Chat;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.SpawnSelector.UI;
 using PvPAdventure.Content.Items;
 using PvPAdventure.Core.Debug;
 using PvPAdventure.Core.Net;
+using PvPAdventure.Core.Utilities;
 using SubworldLibrary;
 using System.Collections.Generic;
 using Terraria;
@@ -27,39 +29,33 @@ public class SpawnSystem : ModSystem
     public static bool CanTeleport { get; private set; }
     public static bool IsLocalPlayerInSpawnRegion { get; private set; }
     public static float TeleportIconOpacity => (CanTeleport || IsLocalPlayerInSpawnRegion) ? 1f : 0.3f;
-    public static bool CanUseStoredPortal(Player player)
-    {
-        if (player == null || !player.active)
-            return false;
-
-        if (player.dead)
-            return true;
-
-        if (player.whoAmI == Main.myPlayer)
-            return IsLocalPlayerInSpawnRegion;
-
-        return player.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
-    }
+    public static bool IsLocalPlayerOnTeleportCooldown =>
+        Main.LocalPlayer?.GetModPlayer<SpawnPlayer>().IsTeleportOnCooldown == true;
+    public static string LocalTeleportCooldownText =>
+        $"Cooldown: {Main.LocalPlayer?.GetModPlayer<SpawnPlayer>().TeleportCooldownSecondsLeft ?? 0}";
+    public static bool CanUseStoredPortal(Player player) =>
+        player?.active == true && (player.dead ||
+        (player.whoAmI == Main.myPlayer ? IsLocalPlayerInSpawnRegion : player.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion()));
 
     public static bool IsLocalPlayerReadyForSpawnUi
     {
         get
         {
             Player local = Main.LocalPlayer;
-            if (local == null || !local.active)
-                return false;
-
-            if (local.dead)
-                return local.respawnTimer <= 2;
-
-            return CanTeleport;
+            return local?.active == true &&
+                   (local.dead ? local.respawnTimer <= 2 && local.GetModPlayer<SpawnPlayer>().CanTeleportNow() : CanTeleport);
         }
     }
 
     public static void SetCanTeleport(bool value) => CanTeleport = value;
 
-    private ulong _nextUiRebuildTick;
-    private const ulong UiRebuildIntervalTicks = 60 * 5;
+    public static Color DisabledButtonColor => new Color(230, 40, 10) * 0.37f;
+
+    public static void DrawForbiddenIcon(SpriteBatch sb, Vector2 pos, float scale)
+    {
+        Texture2D icon = Ass.Icon_Forbidden.Value;
+        sb.Draw(icon, pos, null, Color.White, 0f, icon.Size() * 0.5f, scale, SpriteEffects.None, 0f);
+    }
 
     public static bool IsUiOpen
     {
@@ -69,6 +65,7 @@ public class SpawnSystem : ModSystem
             return sys != null && sys.ui?.CurrentState == sys.spawnState;
         }
     }
+
     private bool wasInSpawnRegion;
 
     public override void UpdateUI(GameTime gameTime)
@@ -77,6 +74,7 @@ public class SpawnSystem : ModSystem
         if (local == null || local.ghost)
         {
             IsLocalPlayerInSpawnRegion = false;
+            wasInSpawnRegion = false;
             ui?.SetState(null);
             return;
         }
@@ -86,8 +84,8 @@ public class SpawnSystem : ModSystem
         bool playing = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
         bool inSubworld = SubworldSystem.AnyActive();
         bool inSpawnRegion = sp.IsPlayerInSpawnRegion();
+        UpdateSpawnRegionSound(inSpawnRegion, playing || inSubworld);
         IsLocalPlayerInSpawnRegion = inSpawnRegion;
-        wasInSpawnRegion = inSpawnRegion;
 
         bool usingMirror = IsUsingAdventureMirror(local, out bool mirrorReady, out _);
 
@@ -118,19 +116,21 @@ public class SpawnSystem : ModSystem
             spawnState = new UISpawnState();
             ui.SetState(spawnState);
 
-            _nextUiRebuildTick = Main.GameUpdateCount + UiRebuildIntervalTicks; // initialize / reset rebuild
-
             if (!local.dead && !inSpawnRegion) // Do NOT auto-select latest while in a spawn region (prevents instant execution).
                 sp.TryAutoSelectLatestSelection();
         }
 
-        if (ui.CurrentState == spawnState && Main.GameUpdateCount >= _nextUiRebuildTick)
+        ui.Update(gameTime);
+    }
+
+    private void UpdateSpawnRegionSound(bool inSpawnRegion, bool enabled)
+    {
+        if (enabled && inSpawnRegion != wasInSpawnRegion)
         {
-            _nextUiRebuildTick = Main.GameUpdateCount + UiRebuildIntervalTicks;
-            spawnState.RequestRebuild();
+            SoundEngine.PlaySound(inSpawnRegion ? SoundID.MenuOpen : SoundID.MenuClose);
         }
 
-        ui.Update(gameTime);
+        wasInSpawnRegion = enabled && inSpawnRegion;
     }
 
     private static bool ComputeCanTeleport(Player local, bool inSpawnRegion, bool usingMirror, bool mirrorReady)
@@ -139,19 +139,7 @@ public class SpawnSystem : ModSystem
         if (!sp.CanTeleportNow())
             return false;
 
-        if (local.dead)
-            return local.respawnTimer <= 2;
-
-        if (!Enabled)
-            return false;
-
-        if (inSpawnRegion)
-            return true;
-
-        if (usingMirror)
-            return mirrorReady;
-
-        return false;
+        return local.dead ? local.respawnTimer <= 2 : Enabled && (inSpawnRegion || usingMirror && mirrorReady);
     }
 
     private static bool IsUsingAdventureMirror(Player player, out bool ready, out int secondsLeft)
@@ -159,14 +147,7 @@ public class SpawnSystem : ModSystem
         ready = false;
         secondsLeft = 0;
 
-        if (player == null || !player.active)
-            return false;
-
-        if (player.itemAnimation <= 0)
-            return false;
-
-        int mirrorType = ModContent.ItemType<AdventureMirror>();
-        if (player.HeldItem == null || player.HeldItem.type != mirrorType)
+        if (player?.active != true || player.itemAnimation <= 0 || player.HeldItem?.type != ModContent.ItemType<AdventureMirror>())
             return false;
 
         ready = player.itemTime <= 2;
@@ -249,10 +230,7 @@ public class SpawnSystem : ModSystem
         }
     }
 
-    private static bool TryTeleportToMyPortal(Player player)
-    {
-        return TryTeleportToPortal(player, player);
-    }
+    private static bool TryTeleportToMyPortal(Player player) => TryTeleportToPortal(player, player);
 
     private static bool TryTeleportToPortal(Player player, Player portalOwner)
     {
@@ -309,11 +287,7 @@ public class SpawnSystem : ModSystem
         if (idx < 0 || idx >= Main.maxPlayers)
             return "<unknown>";
 
-        Player p = Main.player[idx];
-        if (p == null)
-            return "<unknown>";
-
-        return p.name;
+        return Main.player[idx]?.name ?? "<unknown>";
     }
 
     private static void OnTeleportExecuted(Player p)
@@ -381,7 +355,7 @@ public class SpawnSystem : ModSystem
             return;
 
         SpriteBatch sb = Main.spriteBatch;
-        sb.Begin(SpriteSortMode.Deferred,BlendState.AlphaBlend,SamplerState.LinearClamp,DepthStencilState.None,RasterizerState.CullCounterClockwise, null,Main.UIScaleMatrix);
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
         ui.Draw(sb, Main._drawInterfaceGameTime);
         DrawAdventureMirrorTimer(sb);
 
@@ -419,7 +393,7 @@ public class SpawnSystem : ModSystem
     private static bool IsAnyConfigUIOpen()
     {
         UIState s = Main.InGameUI?._currentState;
-        return s is UIModConfig || s is UIModConfigList || Main.ingameOptionsWindow;
+        return Main.ingameOptionsWindow || s is UIModConfig or UIModConfigList;
     }
     #endregion
 }

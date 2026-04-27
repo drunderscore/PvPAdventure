@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Chat;
+using PvPAdventure.Common.Spectator.SpectatorMode;
 using ReLogic.Graphics;
 using Terraria;
 using Terraria.GameContent;
@@ -19,6 +21,7 @@ public class SpawnHooks : ModSystem
     {
         On_Player.HasUnityPotion += ForceUnityPotion;
         On_Player.Spawn_SetPosition += ApplySelectedSpawn;
+        On_Player.Teleport += TPOverride;
         On_Main.DrawInterface_35_YouDied += DrawDeathText;
         On_Main.TriggerPing += SkipPingWhileHoveringSelector;
     }
@@ -26,6 +29,7 @@ public class SpawnHooks : ModSystem
     public override void Unload()
     {
         On_Player.HasUnityPotion -= ForceUnityPotion;
+        On_Player.Teleport -= TPOverride;
         On_Player.Spawn_SetPosition -= ApplySelectedSpawn;
         On_Main.DrawInterface_35_YouDied -= DrawDeathText;
         On_Main.TriggerPing -= SkipPingWhileHoveringSelector;
@@ -33,11 +37,21 @@ public class SpawnHooks : ModSystem
 
     private static bool ForceUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)
     {
+        // Spectators/ghosts can always teleport
+        if (self.whoAmI == Main.myPlayer && SpectatorModeSystem.IsInSpectateMode(self))
+            return true;
+
+        // Spawn selector UI is open and player can teleport, allow teleportation
         if (SpawnSystem.IsUiOpen && SpawnSystem.CanTeleport)
             return true;
 
         return false;
         //return orig(self);
+    }
+
+    private void TPOverride(On_Player.orig_Teleport orig, Player self, Vector2 newPos, int Style = 0, int extraInfo = 0)
+    {
+        orig(self, newPos, Style, extraInfo);
     }
 
     private static void TeleportAndSync(Player p, Vector2 pos)
