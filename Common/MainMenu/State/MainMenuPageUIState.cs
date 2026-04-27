@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.Spectator.UI.State;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
