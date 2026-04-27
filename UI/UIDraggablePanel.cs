@@ -4,7 +4,9 @@ using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent.UI.Elements;
+using Terraria.ID;
 using Terraria.UI;
 
 namespace PvPAdventure.UI;
@@ -14,6 +16,8 @@ namespace PvPAdventure.UI;
 /// such as 
 /// <see cref="PointsSetter"/> 
 /// <seealso cref="GameStarter"/>, etc.
+/// <seealso cref="Common.AdminTools"/>
+/// <seealso cref="Common.Spectator.UI"/>
 /// </summary>
 public abstract class UIDraggablePanel : UIElement
 {
@@ -25,21 +29,21 @@ public abstract class UIDraggablePanel : UIElement
     protected UIPanel TitlePanel;
     protected UIPanel ContentPanel;
     protected UIPanel RefreshPanel;
-    protected UIPanel ActionPanel;
     protected UIPanel ClosePanel;
     protected UIResizeButton ResizeButton;
+    private readonly string title;
 
     // Overridable properties
     protected abstract void OnClosePanelLeftClick();
     protected virtual void OnRefreshPanelLeftClick() { }
-    protected virtual void OnActionPanelLeftClick() { }
-    protected virtual Asset<Texture2D> ActionPanelIconAsset => null;
-    protected virtual string ActionPanelHoverText => null;
+    protected virtual void OnPanelRebuilt() { }
+    protected virtual bool ShowRefreshButton => true;
+    protected virtual bool IsTabButtonHovered() => false;
 
     /// <summary> Gets the minimum allowed width, in pixels, for resizing operations. </summary>
-    protected virtual float MinResizeW => 350f;
+    protected virtual float MinResizeW => 360;
     /// <summary> Gets the minimum allowed height, in pixels, when resizing. </summary>
-    protected virtual float MinResizeH => 210f;
+    protected virtual float MinResizeH => 250f;
     /// <summary> Gets the maximum allowed width, in pixels, for resizing operations. </summary>
     protected virtual float MaxResizeW => 1000f;
     /// <summary> Gets the maximum allowed height, in pixels, when resizing. </summary>
@@ -49,6 +53,8 @@ public abstract class UIDraggablePanel : UIElement
     // Constructor sets the style of this panel.
     public UIDraggablePanel(string title)
     {
+        this.title = title;
+
         // Size and position
         Width.Set(350, 0);
         Height.Set(460, 0);
@@ -57,6 +63,22 @@ public abstract class UIDraggablePanel : UIElement
         VAlign = 0.7f;
         HAlign = 0.9f;
         SetPadding(0);
+
+        // Rebuild the entire panel
+        Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        dragging = false;
+
+        RemoveAllChildren();
+
+        TitlePanel = null;
+        ContentPanel = null;
+        RefreshPanel = null;
+        ClosePanel = null;
+        ResizeButton = null;
 
         TitlePanel = new();
         TitlePanel.Height.Set(40, 0);
@@ -89,7 +111,11 @@ public abstract class UIDraggablePanel : UIElement
             HAlign = 1f,
             VAlign = 0.5f
         };
-        ClosePanel.OnLeftClick += (_, _) => OnClosePanelLeftClick();
+        ClosePanel.OnLeftClick += (_, _) =>
+        {
+            SoundEngine.PlaySound(SoundID.MenuClose);
+            OnClosePanelLeftClick();
+        };
         ClosePanel.OnMouseOver += (_, _) => ClosePanel.BorderColor = Color.Yellow;
         ClosePanel.OnMouseOut += (_, _) => ClosePanel.BorderColor = Color.Black;
 
@@ -104,45 +130,27 @@ public abstract class UIDraggablePanel : UIElement
         Append(TitlePanel);
 
         // Refresh panel
-        RefreshPanel = new()
+        if (ShowRefreshButton)
         {
-            Height = new StyleDimension(0, 1),
-            Width = new StyleDimension(40, 0),
-            VAlign = 0.5f
-        };
-        RefreshPanel.OnLeftClick += (_, _) => OnRefreshPanelLeftClick();
-        RefreshPanel.OnMouseOver += (_, _) =>
-        {
-            RefreshPanel.BorderColor = Color.Yellow;
-        };
-        RefreshPanel.OnMouseOut += (_, _) => RefreshPanel.BorderColor = Color.Black;
-        RefreshPanel.SetPadding(0);
-        RefreshPanel.Append(new UIImage(Ass.Icon_Reset.Value)
-        {
-            HAlign = 0.5f,
-            VAlign = 0.5f
-        });
-        TitlePanel.Append(RefreshPanel);
-
-        if (ActionPanelIconAsset is not null)
-        {
-            ActionPanel = new UIPanel
+            RefreshPanel = new()
             {
                 Height = new StyleDimension(0, 1),
                 Width = new StyleDimension(40, 0),
-                Left = new StyleDimension(40, 0),
                 VAlign = 0.5f
             };
-            ActionPanel.OnLeftClick += (_, _) => OnActionPanelLeftClick();
-            ActionPanel.OnMouseOver += (_, _) => ActionPanel.BorderColor = Color.Yellow;
-            ActionPanel.OnMouseOut += (_, _) => ActionPanel.BorderColor = Color.Black;
-            ActionPanel.SetPadding(0);
-            ActionPanel.Append(new UIImage(ActionPanelIconAsset.Value)
+
+            RefreshPanel.OnLeftClick += (_, _) => OnRefreshPanelLeftClick();
+            RefreshPanel.OnMouseOver += (_, _) => RefreshPanel.BorderColor = Color.Yellow;
+            RefreshPanel.OnMouseOut += (_, _) => RefreshPanel.BorderColor = Color.Black;
+            RefreshPanel.SetPadding(0);
+
+            RefreshPanel.Append(new UIImage(Ass.Icon_Reset.Value)
             {
                 HAlign = 0.5f,
                 VAlign = 0.5f
             });
-            TitlePanel.Append(ActionPanel);
+
+            TitlePanel.Append(RefreshPanel);
         }
 
         // Resize
@@ -212,6 +220,7 @@ public abstract class UIDraggablePanel : UIElement
 
             Append(ResizeButton);
         }
+        Recalculate();
     }
 
     #region Dragging
@@ -222,16 +231,13 @@ public abstract class UIDraggablePanel : UIElement
         if (IsMouseHovering)
             Main.LocalPlayer.mouseInterface = true;
 
-        if (RefreshPanel.IsMouseHovering)
+        if (RefreshPanel?.IsMouseHovering == true)
             Main.instance.MouseText("Refresh");
-
-        if (ActionPanel?.IsMouseHovering == true && !string.IsNullOrWhiteSpace(ActionPanelHoverText))
-            Main.instance.MouseText(ActionPanelHoverText);
 
         if (Parent == null)
             return;
 
-        if (ClosePanel.IsMouseHovering || RefreshPanel.IsMouseHovering || ActionPanel?.IsMouseHovering == true || ResizeButton?.IsMouseHovering == true)
+        if (ClosePanel.IsMouseHovering || RefreshPanel?.IsMouseHovering == true || ResizeButton?.IsMouseHovering == true || IsTabButtonHovered())
             return;
 
         if (dragging)
@@ -258,11 +264,11 @@ public abstract class UIDraggablePanel : UIElement
         }
 
 #if DEBUG
-        // TODO: Debug rebuild panel on F5
-        //if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5) && !Main.oldKeyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5))
-        //{
-            //RemoveAllChildren();
-        //}
+        if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5) && !Main.oldKeyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5))
+        {
+            Rebuild();
+            OnPanelRebuilt();
+        }
 #endif
     }
 
@@ -270,7 +276,7 @@ public abstract class UIDraggablePanel : UIElement
     {
         base.LeftMouseDown(evt);
 
-        if (ClosePanel.IsMouseHovering || RefreshPanel.IsMouseHovering || ActionPanel?.IsMouseHovering == true || ResizeButton?.IsMouseHovering == true)
+        if (ClosePanel.IsMouseHovering || RefreshPanel?.IsMouseHovering == true || ResizeButton?.IsMouseHovering == true || IsTabButtonHovered())
             return;
 
         if (TitlePanel == null || !TitlePanel.ContainsPoint(evt.MousePosition) || Parent == null)

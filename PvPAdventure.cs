@@ -14,6 +14,8 @@ public class PvPAdventure : Mod
     {
         var id = (AdventurePacketIdentifier)r.ReadByte();
 
+        //Log.Debug($"[Packet] PvPAdventure received identifier: {(byte)id} ({id}), bytes left: {r.BaseStream.Length - r.BaseStream.Position}");
+
         switch (id)
         {
             case AdventurePacketIdentifier.BountyTransaction:
@@ -97,7 +99,7 @@ public class PvPAdventure : Mod
                 break;
 
             case AdventurePacketIdentifier.Spectator:
-                Common.Spectator.SpectatorNetHandler.Receive(r, whoAmI);
+                Common.Spectator.Net.SpectatorModeNetHandler.Receive(r, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.SessionTracker:

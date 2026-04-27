@@ -48,11 +48,21 @@ public static class Log
         if (fileName.Length > 17)
             fileName = fileName[..17] + "..";
 
-        // Broadcast to Terraria chat to all clients
-        ChatHelper.BroadcastChatMessage(
-            text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),
-            color: Color.White
-            );
+        //// Broadcast to Terraria chat to all clients
+        //ChatHelper.BroadcastChatMessage(
+        //    text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),
+        //    color: Color.White
+        //    );
+
+        string text = $"[DEBUG/{fileName}]: {message}";
+
+        if (Main.netMode == Terraria.ID.NetmodeID.Server)
+        {
+            Base.Debug($"[Chat skipped on server] {text}");
+            return;
+        }
+
+        Main.NewText(text, Color.White);
     }
 
     public static void Info(object message, [CallerFilePath] string file = "")

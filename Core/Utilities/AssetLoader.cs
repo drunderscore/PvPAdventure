@@ -23,11 +23,6 @@ public static class Ass
     public static Asset<Texture2D> Icon_Dead; // 32x32
     public static Asset<Texture2D> Icon_Forbidden;
     public static Asset<Texture2D> Icon_Question_Mark;
-    //public static Asset<Texture2D> Icon_Portal; // 32x32
-    //public static Asset<Texture2D> Icon_Portal2; // 28x38
-    //public static Asset<Texture2D> Icon_Portal3; // 28x24 (compact)
-    //public static Asset<Texture2D> Icon_PortalMinimap; // 28x30 (small vanilla texture)
-    //public static Asset<Texture2D> Icon_PortalMinimap2; // 34x36 (extra outline)
     public static Asset<Texture2D> Portal; // 36x368 (vertical spritesheet with 8 sprites)
     public static Asset<Texture2D> Portal_Minimap; // 28x30
     public static Asset<Texture2D> Portal_Red; // 36x368 (vertical spritesheet with 8 sprites)
@@ -72,9 +67,12 @@ public static class Ass
     // Spectate
     public static Asset<Texture2D> BG_Shimmer; 
     public static Asset<Texture2D> BG_Biome;
-    public static Asset<Texture2D> BG_WorldInfo;
     public static Asset<Texture2D> Shimmer; // 32x32
     public static Asset<Texture2D> Biome; // 32x32
+    public static Asset<Texture2D> CollapseDown; // 32x32
+    public static Asset<Texture2D> CollapseUp; // 32x32
+    public static Asset<Texture2D> Ghost; // 18x18. for use in map
+    public static Asset<Texture2D> GhostLeft; // 18x18. for use in map
 
     public static Asset<Texture2D> HeldItem; // 32x32
     public static Asset<Texture2D> ButtonTeleport; // 32x32
@@ -83,10 +81,13 @@ public static class Ass
     public static Asset<Texture2D> Icon_PlayerHead; // 32x32
     public static Asset<Texture2D> Icon_World; // 32x32
     public static Asset<Texture2D> Icon_Eye; // 32x32
-    public static Asset<Texture2D> Icon_Eye2; // 32x32
-    public static Asset<Texture2D> Icon_Eye3; // 32x32
     public static Asset<Texture2D> Icon_NPC; // 32x32
+    public static Asset<Texture2D> Icon_Inventory; // 32x32
+    public static Asset<Texture2D> Icon_InventoryOpen; // 32x32
+    public static Asset<Texture2D> Icon_InventoryClosed; // 32x32
+    public static Asset<Texture2D> Icon_Warning; // 32x32
     public static Asset<Texture2D> List; // 32x32
+    public static Asset<Texture2D> GoTo; // 32x32
     public static Asset<Texture2D> Grid; // 32x32
     public static Asset<Texture2D> Sort; // 32x32
     public static Asset<Texture2D> MinionCount; // 32x32

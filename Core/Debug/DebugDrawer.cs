@@ -14,14 +14,20 @@ internal static class DebugDrawer
     private readonly record struct DebugButton(string Label, Func<bool> IsEnabled, Action Toggle);
 
     private static readonly List<(Rectangle rect, Color color)> Rectangles = [];
-    private static readonly List<(Rectangle rect, Color color)> ScreenRectangles = [];
     private static readonly List<(string text, Vector2 pos, Color color)> Texts = [];
-    internal static bool ShowDebugStats { get; private set; } = true;
+    internal static bool ShowDebugStats { get; private set; } = false;
     internal static bool ShowChat { get; private set; } = true;
+    internal static bool ShowRectangles { get; private set; } = true;
 
-    internal static void DrawScreenRectangle(Rectangle rect, Color? color = null)
+    internal static void DrawRectangle(Rectangle rect, Color? color = null, bool drawSize = false)
     {
-        ScreenRectangles.Add((rect, color ?? Color.White));
+        if (!ShowRectangles)
+            return;
+
+        Rectangles.Add((rect, color ?? Color.White));
+
+        if (drawSize)
+            DrawText($"{rect.Width}x\n{rect.Height}", new Vector2(rect.X + 2, rect.Y + 2), color ?? Color.White);
     }
 
     internal static void DrawText(string content, Vector2 position, Color? color = null)
@@ -38,8 +44,9 @@ internal static class DebugDrawer
 
         (string text, string tooltip, Func<bool> enabled, Action toggle)[] buttons =
         [
-            ("SS", "Show debug stats", () => ShowDebugStats, () => ShowDebugStats = !ShowDebugStats),
-            ("CH", "Show chat", () => ShowChat, () => ShowChat = !ShowChat)
+            ("ST", "Show debug Stats", () => ShowDebugStats, () => ShowDebugStats = !ShowDebugStats),
+            ("CH", "Show chat", () => ShowChat, () => ShowChat = !ShowChat),
+            ("RC", "Show debug Rectangles", () => ShowRectangles, () => ShowRectangles = !ShowRectangles)
         ];
 
         for (int i = 0; i < buttons.Length; i++)
@@ -78,18 +85,21 @@ internal static class DebugDrawer
     internal static void DrawDebugInfo()
     {
         Player player = Main.LocalPlayer;
-        //BlazeBatPlayer state = player.GetModPlayer<BlazeBatPlayer>();
-        //bool hasBall = ProjectileLookupHelper.TryGetActive(player, out Projectile projectile);
-        //float meterLeft = Main.screenWidth * 0.5f - 140f;
-        //Vector2 column1Pos = new(meterLeft + 292, 6f);
-        //Vector2 column2Pos = column1Pos + new Vector2(160, 0);
-        Vector2 column1Pos = new(10, 600f);
+        Vector2 column1Pos = new(Main.screenWidth-700, 10f);
 
         if (ShowDebugStats)
         {
             DrawColumn("Debug Stats:",
             [
-                //$"Special: {state.SpecialMeter:0.00}",
+                $"World pos: {player.position}",
+                $"Tile: {Utils.ToTileCoordinates(Main.LocalPlayer.position)}",
+                $"Screen world: {Main.screenPosition}",
+                $"Mouse world: {Main.MouseWorld}",
+                $"Mouse tile: {Utils.ToTileCoordinates(Main.MouseWorld)}",
+                $"Mouse screen: {Main.mouseX}, {Main.mouseY}",
+                $"World: {Main.worldName} (ID {Main.worldID}, seed {WorldGen.currentWorldSeed})",
+                $"Hardmode: {Main.hardMode} | Expert: {Main.expertMode} | Master: {Main.masterMode}",
+                $"Halloween: {Main.halloween} | XMas: {Main.xMas}",
             ], column1Pos);
         }
     }
@@ -100,13 +110,8 @@ internal static class DebugDrawer
 
         foreach ((Rectangle rect, Color color) in Rectangles)
         {
-            Rectangle screenRect = new(rect.X - (int)Main.screenPosition.X, rect.Y - (int)Main.screenPosition.Y, rect.Width, rect.Height);
-            DrawRectangle(sb, pixel, screenRect, color);
-        }
-
-        foreach ((Rectangle rect, Color color) in ScreenRectangles)
-        {
-            DrawRectangle(sb, pixel, rect, color);
+            if (ShowRectangles)
+                DrawRectangle(sb, pixel, rect, color);
         }
 
         foreach ((string text, Vector2 pos, Color color) in Texts)
@@ -115,7 +120,7 @@ internal static class DebugDrawer
         }
 
         Rectangles.Clear();
-        ScreenRectangles.Clear();
+        Rectangles.Clear();
         Texts.Clear();
     }
 

@@ -1,16 +1,23 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Spectator;
 using PvPAdventure.Common.Spectator.Drawers;
-using PvPAdventure.Common.Spectator.UI.NPCs;
-using PvPAdventure.Common.Spectator.UI.Players;
+using PvPAdventure.Common.Spectator.UI.Tabs.NPCs;
+using PvPAdventure.Common.Spectator.UI.Tabs.Players;
+using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using ReLogic.Graphics;
 using System;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.GameContent.UI.Elements;
+using Terraria.Graphics;
+using Terraria.ID;
+using Terraria.UI;
 
 internal static class StatDrawer
 {
+    #region Shared draw helpers
     public static void DrawBack(SpriteBatch spriteBatch, Rectangle area)
     {
         Color color = Color.White * 0.7f;
@@ -30,9 +37,11 @@ internal static class StatDrawer
             return text;
 
         const string ellipsis = "..";
+
         for (int i = text.Length - 1; i >= 0; i--)
         {
             string candidate = text[..i] + ellipsis;
+
             if (font.MeasureString(candidate).X * scale <= maxWidth)
                 return candidate;
         }
@@ -40,54 +49,17 @@ internal static class StatDrawer
         return ellipsis;
     }
 
-    public static string DrawPlayerListStats(SpriteBatch spriteBatch, Rectangle area, PlayerStatSnapshot[] stats)
-    {
-        int columns = GetResponsiveColumns(area.Width);
-        int rows = GetListRows(area.Height+50);
-        return DrawPlayerStatGrid(spriteBatch, area, stats, columns, rows, GetListStatHeight(area, rows), 4);
-    }
-
-    public static string DrawNPCListStats(SpriteBatch spriteBatch, Rectangle area, NPCStatSnapshot[] stats)
-    {
-        int columns = GetResponsiveColumns(area.Width);
-        int rows = GetListRows(area.Height+50);
-        return DrawNPCStatGrid(spriteBatch, area, stats, columns, rows, GetListStatHeight(area, rows), 4);
-    }
-
-    public static string DrawNPCStatGrid(SpriteBatch spriteBatch, Rectangle area, NPCStatSnapshot[] stats, int columns, int rows, int statHeight, int statSpacing)
-    {
-        if (rows <= 0 || columns <= 0 || stats.Length == 0)
-            return null;
-
-        int panelWidth = (area.Width - statSpacing * (columns - 1)) / columns;
-        int count = Math.Min(stats.Length, columns * rows);
-        Point mouse = Main.MouseScreen.ToPoint();
-        string hovered = null;
-
-        for (int i = 0; i < count; i++)
-        {
-            int column = i % columns;
-            int row = i / columns;
-            Rectangle panel = new(area.X + column * (panelWidth + statSpacing), area.Y + row * (statHeight + statSpacing), panelWidth, statHeight);
-
-            DrawNPCStat(spriteBatch, panel, stats[i]);
-            if (panel.Contains(mouse))
-                hovered = stats[i].HoverText;
-        }
-
-        return hovered;
-    }
-
     public static int GetResponsiveColumns(int width)
     {
-        if (width < 220)
-            return 2;
-        if (width < 340)
-            return 3;
-        if (width < 460)
-            return 4;
+        return Math.Clamp(width / 112, 1, 5);
+    }
 
-        return 5;
+    private static int GetListColumns(int width, int statCount, int rows)
+    {
+        int columnsByWidth = GetResponsiveColumns(width);
+        int columnsByContent = Math.Max(1, (int)Math.Ceiling(statCount / (float)Math.Max(1, rows)));
+
+        return Math.Min(columnsByWidth, columnsByContent);
     }
 
     public static int GetGridColumns(Rectangle area)
@@ -95,29 +67,10 @@ internal static class StatDrawer
         return GetResponsiveColumns(area.Width);
     }
 
-    private static int GetListColumns(Rectangle area, int statCount)
+    private static int GetVisibleListRows(int height, int statSpacing)
     {
-        return Math.Min(GetResponsiveColumns(area.Width), Math.Max(2, statCount));
+        return Math.Max(1, (height + statSpacing) / (FixedListStatHeight + statSpacing));
     }
-
-    private static int GetListRows(int entryHeight)
-    {
-        return entryHeight switch
-        {
-            < 90 => 1,
-            < 120 => 2,
-            _ => 3
-        };
-    }
-
-    private static int GetListStatHeight(Rectangle area, int rows)
-    {
-        const int statSpacing = 4;
-        return Math.Clamp((area.Height - statSpacing * (rows - 1)) / rows, 27, 29);
-    }
-
-    public static void DrawPlayerStat(SpriteBatch spriteBatch, Rectangle area, in PlayerStatSnapshot stat) => DrawStat(spriteBatch, area, stat.Icon.Value, stat.IconFrame, stat.Text);
-    public static void DrawNPCStat(SpriteBatch spriteBatch, Rectangle area, in NPCStatSnapshot stat) => DrawStat(spriteBatch, area, stat.Icon.Value, stat.IconFrame, stat.Text);
 
     private static void DrawStat(SpriteBatch spriteBatch, Rectangle area, Texture2D texture, Rectangle? frame, string text)
     {
@@ -131,6 +84,7 @@ internal static class StatDrawer
             float scale = Math.Min(iconArea.Width / (float)source.Width, iconArea.Height / (float)source.Height);
             int width = Math.Max(1, (int)Math.Round(source.Width * scale));
             int height = Math.Max(1, (int)Math.Round(source.Height * scale));
+
             spriteBatch.Draw(texture, new Rectangle(iconArea.X, iconArea.Y + (iconArea.Height - height) / 2, width, height), source, Color.White);
         }
 
@@ -138,28 +92,31 @@ internal static class StatDrawer
         Utils.DrawBorderString(spriteBatch, Truncate(FontAssets.MouseText.Value, text, textArea.Width, 0.8f), new Vector2(textArea.X, textArea.Y), Color.White, 0.8f);
     }
 
-    public static string DrawPlayerHeadStat(SpriteBatch spriteBatch, Rectangle area, Player player)
+    private static void DrawTextureIcon(SpriteBatch spriteBatch, Texture2D texture, Rectangle iconBox, int iconSize, Color color)
     {
-        Rectangle textArea = new(area.X + 30, area.Y + 3, area.Width - 30, area.Height - 8);
-        string text = Truncate(FontAssets.MouseText.Value, player.name, textArea.Width, 0.8f);
-        if (text == "..")
-            text = "";
+        if (texture is null)
+            return;
 
-        if (text.Length > 0)
-            DrawBack(spriteBatch, area);
+        float scale = Math.Min(iconSize / (float)texture.Width, iconSize / (float)texture.Height);
+        spriteBatch.Draw(texture, iconBox.Center.ToVector2(), null, color, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
+    }
+    #endregion
 
-        spriteBatch.End();
-        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
+    #region Player stats
+    private const int FixedListStatHeight = 27;
+    public static string DrawPlayerListStats(SpriteBatch spriteBatch, Rectangle area, PlayerStatSnapshot[] stats)
+    {
+        const int statSpacing = 4;
 
-        Rectangle headBox = new(area.X + 2, area.Y - 2, 16, 16);
-        Vector2 headPos = new(headBox.X + headBox.Width * 0.5f, headBox.Y + headBox.Height * 0.5f);
-        PlayerDrawer.DrawPlayerHead(spriteBatch, player, headPos, 0.85f);
+        int rows = GetVisibleListRows(area.Height, statSpacing);
+        int columns = GetListColumns(area.Width, stats.Length, rows);
 
-        spriteBatch.End();
-        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
+        return DrawPlayerStatGrid(spriteBatch, area, stats, columns, rows, FixedListStatHeight, statSpacing);
+    }
 
-        Utils.DrawBorderString(spriteBatch, text, new Vector2(textArea.X, textArea.Y), Color.White, 1f);
-        return area.Contains(Main.MouseScreen.ToPoint()) ? $"Player: {player.name}" : null;
+    public static void DrawPlayerStat(SpriteBatch spriteBatch, Rectangle area, in PlayerStatSnapshot stat)
+    {
+        DrawStat(spriteBatch, area, stat.Icon.Value, stat.IconFrame, stat.Text);
     }
 
     public static string DrawPlayerStatGrid(SpriteBatch spriteBatch, Rectangle area, PlayerStatSnapshot[] stats, int columns, int rows, int statHeight, int statSpacing)
@@ -179,10 +136,97 @@ internal static class StatDrawer
             Rectangle panel = new(area.X + column * (panelWidth + statSpacing), area.Y + row * (statHeight + statSpacing), panelWidth, statHeight);
 
             DrawPlayerStat(spriteBatch, panel, stats[i]);
+
             if (panel.Contains(mouse))
                 hovered = stats[i].HoverText;
         }
 
         return hovered;
     }
+    #endregion
+
+    #region NPC stats
+    public static string DrawNPCListStats(SpriteBatch spriteBatch, Rectangle area, NPCStatSnapshot[] stats)
+    {
+        const int statSpacing = 4;
+
+        int rows = GetVisibleListRows(area.Height, statSpacing);
+        int columns = GetListColumns(area.Width, stats.Length, rows);
+
+        return DrawNPCStatGrid(spriteBatch, area, stats, columns, rows, FixedListStatHeight, statSpacing);
+    }
+
+    public static void DrawNPCStat(SpriteBatch spriteBatch, Rectangle area, in NPCStatSnapshot stat)
+    {
+        DrawStat(spriteBatch, area, stat.Icon.Value, stat.IconFrame, stat.Text);
+    }
+
+    public static string DrawNPCStatGrid(SpriteBatch spriteBatch, Rectangle area, NPCStatSnapshot[] stats, int columns, int rows, int statHeight, int statSpacing)
+    {
+        if (rows <= 0 || columns <= 0 || stats.Length == 0)
+            return null;
+
+        int panelWidth = (area.Width - statSpacing * (columns - 1)) / columns;
+        int count = Math.Min(stats.Length, columns * rows);
+        Point mouse = Main.MouseScreen.ToPoint();
+        string hovered = null;
+
+        for (int i = 0; i < count; i++)
+        {
+            int column = i % columns;
+            int row = i / columns;
+            Rectangle panel = new(area.X + column * (panelWidth + statSpacing), area.Y + row * (statHeight + statSpacing), panelWidth, statHeight);
+
+            DrawNPCStat(spriteBatch, panel, stats[i]);
+
+            if (panel.Contains(mouse))
+                hovered = stats[i].HoverText;
+        }
+
+        return hovered;
+    }
+    #endregion
+
+    #region World stat panels
+    public static void DrawWorldStatPanel(SpriteBatch spriteBatch, Rectangle area, int itemId, string text, string hoverText, int iconSize = 25, Color? textColor = null)
+    {
+        DrawWorldStatPanel(spriteBatch, area, text, hoverText, textColor ?? Color.White, iconBox =>
+        {
+            if (itemId <= 0)
+            {
+                DrawTextureIcon(spriteBatch, Ass.Icon_World.Value, iconBox, iconSize + 2, Color.White * 0.75f);
+                return;
+            }
+
+            Item item = new(itemId);
+            ItemSlot.DrawItemIcon(item, ItemSlot.Context.InventoryItem, spriteBatch, iconBox.Center.ToVector2(), 0.9f, iconSize, Color.White);
+        });
+    }
+
+    public static void DrawWorldStatPanel(SpriteBatch spriteBatch, Rectangle area, Texture2D icon, string text, string hoverText, int iconSize = 30, Color? textColor = null)
+    {
+        DrawWorldStatPanel(spriteBatch, area, text, hoverText, textColor ?? Color.White, iconBox => DrawTextureIcon(spriteBatch, icon, iconBox, iconSize, Color.White));
+    }
+
+    private static void DrawWorldStatPanel(SpriteBatch spriteBatch, Rectangle area, string text, string hoverText, Color textColor, Action<Rectangle> drawIcon)
+    {
+        const float textScale = 0.78f;
+
+        DrawBack(spriteBatch, area);
+
+        Rectangle iconBox = new(area.X + 3, area.Y + 0, area.Height - 2, area.Height - 2);
+        Rectangle textArea = new(iconBox.Right + 6, area.Y + 6, area.Width - iconBox.Width - 13, area.Height - 8);
+
+        drawIcon(iconBox);
+
+        string displayText = Truncate(FontAssets.MouseText.Value, text, textArea.Width, textScale);
+        Utils.DrawBorderString(spriteBatch, displayText, new Vector2(textArea.X, textArea.Y), textColor, textScale);
+
+        if (area.Contains(Main.MouseScreen.ToPoint()) && !string.IsNullOrWhiteSpace(hoverText))
+        {
+            Main.LocalPlayer.mouseInterface = true;
+            Main.instance.MouseText(hoverText);
+        }
+    }
+    #endregion
 }

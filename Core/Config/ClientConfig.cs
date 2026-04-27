@@ -22,18 +22,22 @@ public class ClientConfig : ModConfig
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] 
     public bool PlayerOutlines = true;
+
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] 
     public bool BedOutlines = true;
+
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] 
     public bool LootOutlines = true;
+
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(false)] 
     public bool ShowVanityVisuals = false;
+
     [BackgroundColor(50, 70, 120)]
-    [DefaultValue(false)]
-    public bool DrawGhostsForOthers = false;
+    [DefaultValue(true)]
+    public bool DrawSpectators = true;
 
     [Header("Movement")]
     [BackgroundColor(50, 70, 120)]
@@ -42,8 +46,6 @@ public class ClientConfig : ModConfig
     [Header("SpawnAndRespawn")]
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(true)] public bool ShowChooseYourSpawnText;
-
-    
 
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(false)] public bool AutoSelectLatestSpawnOption;
@@ -59,12 +61,12 @@ public class ClientConfig : ModConfig
     public SoundEffectConfig SoundEffect = new();
 
     [Header("Chat")]
-    [DefaultValue(false)] public bool TabToSwitchChannel;
+    [DefaultValue(true)] public bool ShowChatChannelPrefixes;
     [DefaultValue(true)] public bool ShowSavePlayerMessages;
     [DefaultValue(true)] public bool ShowTeleportPlayerMessages;
     [DefaultValue(false)] public bool ShowDebugMessages;
 
-    #region Configs
+    #region NestedConfigTypes
     public class SoundEffectConfig
     {
         public abstract class MarkerConfig<TEnum>

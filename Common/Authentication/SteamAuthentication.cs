@@ -138,19 +138,32 @@ public class SteamAuthentication : ModSystem
 
     private void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t param)
     {
-        Log.Debug($"Steam ticket validation response for {param.m_SteamID}: {param.m_eAuthSessionResponse}");
+        ulong steamId = param.m_SteamID.m_SteamID;
+        Log.Debug($"Steam auth callback: steamId={steamId}, response={param.m_eAuthSessionResponse}");
 
         try
         {
-            if (authentication.TryGetValue(param.m_SteamID.m_SteamID, out var info))
+            if (!authentication.TryGetValue(steamId, out var info))
             {
-                info.Callback(param.m_SteamID.m_SteamID, info.Who, param.m_eAuthSessionResponse, info.Ok);
-
-                if (param.m_eAuthSessionResponse == EAuthSessionResponse.k_EAuthSessionResponseOK)
-                    info.Ok = true;
-                else
-                    authentication.Remove(param.m_SteamID.m_SteamID);
+                Log.Warn($"Steam auth callback ignored: no pending session for steamId={steamId}");
+                return;
             }
+
+            bool wasAlreadyOk = info.Ok;
+            bool isOk = param.m_eAuthSessionResponse == EAuthSessionResponse.k_EAuthSessionResponseOK;
+
+            if (isOk)
+            {
+                info.Ok = true;
+                Log.Info($"Steam auth accepted: steamId={steamId}, whoAmI={info.Who}, alreadyOk={wasAlreadyOk}");
+            }
+            else
+            {
+                authentication.Remove(steamId);
+                Log.Warn($"Steam auth rejected: steamId={steamId}, whoAmI={info.Who}, response={param.m_eAuthSessionResponse}");
+            }
+
+            info.Callback(steamId, info.Who, param.m_eAuthSessionResponse, wasAlreadyOk);
         }
         catch (Exception e)
         {
@@ -190,21 +203,44 @@ public class SteamAuthentication : ModSystem
         return ticket;
     }
 
-    public bool BeginMultiplayerSessionWith(byte whoAmI, ulong id, string ticket,
-        AuthenticationResponseCallback callback)
+    public bool BeginMultiplayerSessionWith(byte whoAmI, ulong id, string ticket, AuthenticationResponseCallback callback)
     {
         if (!Main.dedServ)
             return false;
 
-        var ticketData = Convert.FromHexString(ticket);
-        if (SteamGameServer.BeginAuthSession(ticketData, ticketData.Length, new(id)) !=
-            EBeginAuthSessionResult.k_EBeginAuthSessionResultOK)
+        if (string.IsNullOrWhiteSpace(ticket))
+        {
+            Log.Warn($"Steam auth rejected before BeginAuthSession: empty ticket, whoAmI={whoAmI}, claimedSteamId={id}");
             return false;
+        }
 
-        Log.Debug(
-            $"{whoAmI}/{Netplay.Clients[whoAmI].Socket.GetRemoteAddress().GetIdentifier()} is wishing to authenticate as {id}");
+        byte[] ticketData;
+
+        try
+        {
+            ticketData = Convert.FromHexString(ticket);
+        }
+        catch (Exception e)
+        {
+            Log.Warn($"Steam auth rejected before BeginAuthSession: invalid hex ticket, whoAmI={whoAmI}, claimedSteamId={id}, error={e.Message}");
+            return false;
+        }
+
+        var remote = Netplay.Clients[whoAmI].Socket.GetRemoteAddress().GetIdentifier();
+
+        Log.Info($"Steam auth begin: whoAmI={whoAmI}, claimedSteamId={id}, remote={remote}, ticketBytes={ticketData.Length}");
+
+        var result = SteamGameServer.BeginAuthSession(ticketData, ticketData.Length, new CSteamID(id));
+
+        if (result != EBeginAuthSessionResult.k_EBeginAuthSessionResultOK)
+        {
+            Log.Warn($"Steam auth BeginAuthSession failed: whoAmI={whoAmI}, claimedSteamId={id}, result={result}");
+            return false;
+        }
 
         authentication[id] = new(whoAmI, callback);
+
+        Log.Debug($"Steam auth pending: whoAmI={whoAmI}, claimedSteamId={id}, remote={remote}");
 
         return true;
     }
@@ -214,16 +250,39 @@ public class SteamAuthentication : ModSystem
         if (!Main.dedServ)
             return;
 
+        ulong? steamId = null;
+
         foreach (var kv in authentication)
         {
             if (kv.Value.Who == whoAmI)
             {
-                Log.Debug($"Ending Steam auth session with {kv.Key}/{whoAmI}");
-                SteamGameServer.EndAuthSession(new(kv.Key));
-                authentication.Remove(kv);
+                steamId = kv.Key;
                 break;
             }
         }
+
+        if (!steamId.HasValue)
+        {
+            Log.Debug($"Steam auth end skipped: no session for whoAmI={whoAmI}");
+            return;
+        }
+
+        EndMultiplayerSessionWith(steamId.Value);
+    }
+
+    public void EndMultiplayerSessionWith(ulong steamId)
+    {
+        if (!Main.dedServ)
+            return;
+
+        if (!authentication.Remove(steamId))
+        {
+            Log.Debug($"Steam auth end skipped: no session for steamId={steamId}");
+            return;
+        }
+
+        SteamGameServer.EndAuthSession(new CSteamID(steamId));
+        Log.Info($"Steam auth ended: steamId={steamId}");
     }
 
     private void OnDisconnect()

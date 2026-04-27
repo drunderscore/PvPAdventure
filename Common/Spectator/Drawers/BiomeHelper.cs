@@ -17,6 +17,7 @@ internal static class BiomeHelper
     private static readonly FieldInfo FilterIconFrameInfo = typeof(FilterProviderInfoElement).GetField("_filterIconFrame", BindingFlags.NonPublic | BindingFlags.Instance);
 
     internal static readonly SpawnConditionBestiaryInfoElement ShimmerBiome = new("Mods.PvPAdventure.Biomes.Shimmer", 0, "PvPAdventure/Assets/Custom/BG_Shimmer");
+    internal static readonly SpawnConditionBestiaryInfoElement ForestBiome = new("Mods.PvPAdventure.Biomes.Forest", 0, "Terraria/Images/MapBG0");
 
     internal readonly struct PlayerBiomeVisual
     {
@@ -35,7 +36,7 @@ internal static class BiomeHelper
     internal static PlayerBiomeVisual GetBiomeVisual(Player player)
     {
         if (player == null || !player.active)
-            return new(Biomes.Surface, Color.White, 0);
+            return new(ForestBiome, Color.White, 0);
 
         if (player.ZoneShimmer)
             return new(ShimmerBiome, Color.White, -1);
@@ -45,11 +46,11 @@ internal static class BiomeHelper
         Color color = player.dead ? new Color(50, 50, 50, 255) : Color.White;
 
         if (tileX < 0 || tileX >= Main.maxTilesX || tileY < 0 || tileY >= Main.maxTilesY)
-            return new(Biomes.Surface, color, 0);
+            return new(ForestBiome, color, 0);
 
         Tile tile = Main.tile[tileX, tileY];
         if (tile == null)
-            return new(Biomes.Surface, color, 0);
+            return new(ForestBiome, color, 0);
 
         int wall = tile.WallType;
         bool ocean = player.ZoneOverworldHeight && (tileX < 380 || tileX > Main.maxTilesX - 380);
@@ -154,15 +155,15 @@ internal static class BiomeHelper
             return new(Biomes.Graveyard, color, 26);
 
         if (Main.bloodMoon)
-            return new(Biomes.Surface, color * 2f, 25);
+            return new(ForestBiome, Color.White, 0);
 
-        return new(Biomes.Surface, color, 0);
+        return new(ForestBiome, Color.White, 0);
     }
 
     internal static PlayerBiomeVisual GetBiomeVisual(NPC npc)
     {
         if (npc == null || !npc.active)
-            return new(Biomes.Surface, Color.White, 0);
+            return new(ForestBiome, Color.White, 0);
 
         int tileX = Utils.Clamp((int)(npc.Center.X / 16f), 0, Main.maxTilesX - 1);
         int tileY = Utils.Clamp((int)(npc.Center.Y / 16f), 0, Main.maxTilesY - 1);
@@ -246,7 +247,7 @@ internal static class BiomeHelper
         if (IsDesertTile(sampledTileType))
             return new(Biomes.Desert, Color.White, 9);
 
-        return new(Biomes.Surface, Main.bloodMoon ? Color.White * 2f : Color.White, Main.bloodMoon ? 25 : 0);
+        return new(ForestBiome, Main.bloodMoon ? Color.White * 2f : Color.White, Main.bloodMoon ? 25 : 0);
     }
 
     internal static bool MatchesBiome(Player player, SpawnConditionBestiaryInfoElement biome)
@@ -256,12 +257,17 @@ internal static class BiomeHelper
 
     internal static bool TryGetBestiaryIconDrawData(SpawnConditionBestiaryInfoElement biome, out Asset<Texture2D> texture, out Rectangle source)
     {
+        // Custom shimmer
         if (biome == ShimmerBiome)
         {
             texture = Ass.Shimmer;
             source = texture.Value.Frame();
             return true;
         }
+
+        // Custom forest
+        if (biome == ForestBiome)
+            biome = Biomes.Surface;
 
         texture = Main.Assets.Request<Texture2D>("Images/UI/Bestiary/Icon_Tags_Shadow");
         source = default;

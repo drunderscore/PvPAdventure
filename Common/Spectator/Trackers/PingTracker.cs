@@ -1,5 +1,4 @@
-﻿using DragonLens.Content.Tools.Multiplayer;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -32,7 +31,13 @@ internal sealed class PingTracker : ModSystem
 
 	public override void PostUpdatePlayers()
 	{
-		if (Main.netMode == NetmodeID.Server)
+        if (!_TrackerStatus.IsEnabled)
+		{
+			base.PostUpdatePlayers();
+            return;
+        }
+
+        if (Main.netMode == NetmodeID.Server)
 		{
 			bool changed = false;
 
@@ -60,7 +65,12 @@ internal sealed class PingTracker : ModSystem
 
 	private static void SendPing()
 	{
-		long pingId = ++nextPingId;
+        if (!_TrackerStatus.IsEnabled)
+        {
+            return;
+        }
+
+        long pingId = ++nextPingId;
 		long sentTicks = System.DateTime.UtcNow.Ticks;
 
 		PendingPings[pingId] = sentTicks;
@@ -69,7 +79,12 @@ internal sealed class PingTracker : ModSystem
 
 	internal static void ReceivePingResponse(long pingId, long sentTicks)
 	{
-		if (!PendingPings.TryGetValue(pingId, out long pendingTicks) || pendingTicks != sentTicks)
+        if (!_TrackerStatus.IsEnabled)
+        {
+            return;
+        }
+
+        if (!PendingPings.TryGetValue(pingId, out long pendingTicks) || pendingTicks != sentTicks)
 			return;
 
 		PendingPings.Remove(pingId);
@@ -81,16 +96,11 @@ internal sealed class PingTracker : ModSystem
 
 	internal static void SetPing(int playerIndex, int pingMs)
 	{
-		Pings[playerIndex] = pingMs;
-	}
-
-	internal static void RemovePing(int playerIndex)
-	{
-		Pings.Remove(playerIndex);
+        Pings[playerIndex] = pingMs;
 	}
 
 	public static int GetPing(int playerIndex)
 	{
-		return Pings.TryGetValue(playerIndex, out int ping) ? ping : -1;
+        return Pings.TryGetValue(playerIndex, out int ping) ? ping : -1;
 	}
 }

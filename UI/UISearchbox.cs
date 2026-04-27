@@ -1,65 +1,64 @@
-using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using ReLogic.Graphics;
+using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
 
 namespace PvPAdventure.UI;
 
-//ty jopojelly and darthmorf
 public class UISearchbox : UIPanel
 {
     internal string currentString = string.Empty;
-
-    internal bool focused = false;
-
-    private readonly int _maxLength = 20;
-
-    private readonly string hintText;
-    private int textBlinkerCount;
-    private int textBlinkerState;
-    public float Scale;
-
-    public event Action OnFocus;
-
-    public event Action OnUnfocus;
-
-    public event Action OnTextChanged;
-
-    public event Action OnTabPressed;
-
-    public event Action OnEnterPressed;
-
+    internal bool focused;
     internal bool unfocusOnEnter = true;
-
     internal bool unfocusOnTab = true;
 
-    internal UISearchbox(string hintText="", string text = "")
+    private const int MaxLength = 20;
+    private readonly UIImageButton clearButton;
+    private string hintText;
+    private int textBlinkerCount;
+    private int textBlinkerState;
+
+    public float Scale;
+    public event Action OnFocus, OnUnfocus, OnTextChanged, OnTabPressed, OnEnterPressed;
+
+    internal UISearchbox(string hintText = "", string text = "")
     {
         this.hintText = hintText;
         currentString = text;
         SetPadding(0);
-        BackgroundColor = new Color(63, 82, 151) * 0.7f;
         BackgroundColor = Color.White;
         BorderColor = Color.Black;
+
+        clearButton = new UIImageButton(Main.Assets.Request<Texture2D>("Images/UI/SearchCancel"));
+        clearButton.Width.Set(20f, 0f);
+        clearButton.Height.Set(20f, 0f);
+        clearButton.OnLeftClick += (_, _) =>
+        {
+            SetText(string.Empty);
+            Focus();
+        };
+
+        Append(clearButton);
     }
+
+    internal void SetHintText(string text) => hintText = text ?? string.Empty;
 
     public override bool ContainsPoint(Vector2 point)
     {
-        bool isInPoint = base.ContainsPoint(point);
+        bool contains = base.ContainsPoint(point);
 
-        if (isInPoint && Main.mouseLeft)
+        if (contains && Main.mouseLeft)
         {
             Main.mouseLeftRelease = false;
             Focus();
         }
 
-        return isInPoint;
+        return contains;
     }
 
     public override void LeftClick(UIMouseEvent evt)
@@ -68,145 +67,129 @@ public class UISearchbox : UIPanel
         base.LeftClick(evt);
     }
 
-    internal void Unfocus()
-    {
-        if (focused)
-        {
-            focused = false;
-            Main.blockInput = false;
-
-            OnUnfocus?.Invoke();
-        }
-    }
-
     internal void Focus()
     {
-        if (!focused)
-        {
-            Main.clrInput();
-            focused = true;
-            Main.blockInput = true;
+        if (focused)
+            return;
 
-            OnFocus?.Invoke();
-        }
+        Main.clrInput();
+        focused = true;
+        Main.blockInput = true;
+        OnFocus?.Invoke();
+    }
+
+    internal void Unfocus()
+    {
+        if (!focused)
+            return;
+
+        focused = false;
+        Main.blockInput = false;
+        OnUnfocus?.Invoke();
     }
 
     public override void Update(GameTime gameTime)
     {
-        // if (IsMouseHovering)
-        // {
-        //     Log.Info("Mouse is hovering over searchbox");
-        // }
-        // else
-        // {
-        //     Log.Info("Not hovering over searchbox");
-        // }
-
-        Vector2 MousePosition = new(Main.mouseX, Main.mouseY);
-        if (!ContainsPoint(MousePosition) && (Main.mouseLeft || Main.mouseRight)) //This solution is fine, but we need a way to cleanly "unload" a UIElement
-        {
-            //TODO, figure out how to refocus without triggering unfocus while clicking enable button.
+        if (!ContainsPoint(new Vector2(Main.mouseX, Main.mouseY)) && (Main.mouseLeft || Main.mouseRight))
             Unfocus();
-        }
+
         base.Update(gameTime);
     }
 
     internal void SetText(string text)
     {
-        if (text.Length > _maxLength)
-        {
-            text = text.Substring(0, _maxLength);
-        }
-        if (currentString != text)
-        {
-            currentString = text;
-            OnTextChanged?.Invoke();
-        }
+        text = text.Length > MaxLength ? text[..MaxLength] : text;
+
+        if (currentString == text)
+            return;
+
+        currentString = text;
+        OnTextChanged?.Invoke();
     }
 
-    private static bool JustPressed(Keys key)
-    {
-        return Main.inputText.IsKeyDown(key) && !Main.oldInputText.IsKeyDown(key);
-    }
+    private static bool JustPressed(Keys key) => Main.inputText.IsKeyDown(key) && !Main.oldInputText.IsKeyDown(key);
 
     protected override void DrawSelf(SpriteBatch sb)
     {
-        // Panel background etc.
         base.DrawSelf(sb);
+        HandleTextInput();
 
-        if (focused)
-        {
-            Terraria.GameInput.PlayerInput.WritingText = true;
-            Main.instance.HandleIME();
-
-            string newString = Main.GetInputText(currentString);
-            if (!string.Equals(newString, currentString))
-            {
-                currentString = newString;
-                OnTextChanged?.Invoke();
-            }
-
-            if (JustPressed(Keys.Tab))
-            {
-                if (unfocusOnTab)
-                    Unfocus();
-
-                OnTabPressed?.Invoke();
-            }
-
-            if (JustPressed(Keys.Enter))
-            {
-                Main.drawingPlayerChat = false;
-
-                if (unfocusOnEnter)
-                    Unfocus();
-
-                OnEnterPressed?.Invoke();
-            }
-
-            textBlinkerCount++;
-            if (textBlinkerCount >= 20)
-            {
-                textBlinkerState = (textBlinkerState + 1) % 2;
-                textBlinkerCount = 0;
-            }
-
-            Main.instance.DrawWindowsIMEPanel(new Vector2(98f, Main.screenHeight - 36), 0f);
-        }
+        Rectangle box = GetInnerDimensions().ToRectangle();
+        clearButton.Left.Set(box.Width - 26f, 0f);
+        clearButton.Top.Set((box.Height - 24f) * 0.5f, 0f);
+        clearButton.Recalculate();
 
         DynamicSpriteFont font = FontAssets.MouseText.Value;
-        Vector2 drawPos = GetDimensions().Position() + new Vector2(8f, 3f);
-
         bool hasText = !string.IsNullOrEmpty(currentString);
-        string textToDraw = hasText ? currentString : hintText;
+        string text = hasText ? currentString : hintText;
+        float scale = hasText ? 1f : 0.9f;
+        Vector2 position = new(box.X, box.Y + (box.Height - font.MeasureString(text).Y * scale) * 0.5f);
+        // extra offset
+        Vector2 extraCustomOffset = new(8, 2);
+        position += extraCustomOffset;
 
-        if (hasText) drawPos.X += 3f;
-
-        // Cursor only when there is actual text
-        //if (focused && textBlinkerState == 1 && hasText)
-        if (focused && textBlinkerState == 1)
-            textToDraw += "|";
-
-        float scale = hasText ? 1f : 1.0f;
-        Color innerColor = hasText ? Color.White : Color.DimGray;
-        Color outlineColor = Color.Black;
-
-        Vector2[] offsets =
-        [
-            new(-1f, -1f),
-            new( 1f, -1f),
-            new(-1f,  1f),
-            new( 1f,  1f)
-        ];
-
-        // Outline
-        for (int i = 0; i < offsets.Length; i++)
+        if (!hasText)
         {
-            sb.DrawString(font,textToDraw,drawPos + offsets[i],outlineColor,0f,Vector2.Zero,scale,SpriteEffects.None,0f);
+            sb.DrawString(font, hintText, position, Color.DimGray, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+            if (focused && textBlinkerState == 1)
+                DrawOutlinedText(sb, font, "|", position, 1f);
+
+            return;
         }
 
-        // Fill
-        sb.DrawString(font,textToDraw,drawPos,innerColor,0f,Vector2.Zero, scale,SpriteEffects.None, 0f);
+        if (focused && textBlinkerState == 1)
+            text += "|";
+
+        while (text.Length > 0 && font.MeasureString(text).X > box.Width - 34f)
+            text = text[..^1];
+
+        DrawOutlinedText(sb, font, text, position, 1f);
     }
 
+    private void HandleTextInput()
+    {
+        if (!focused)
+            return;
+
+        Terraria.GameInput.PlayerInput.WritingText = true;
+        Main.instance.HandleIME();
+        SetText(Main.GetInputText(currentString));
+
+        if (JustPressed(Keys.Tab))
+        {
+            if (unfocusOnTab)
+                Unfocus();
+
+            OnTabPressed?.Invoke();
+        }
+
+        if (JustPressed(Keys.Enter))
+        {
+            Main.drawingPlayerChat = false;
+
+            if (unfocusOnEnter)
+                Unfocus();
+
+            OnEnterPressed?.Invoke();
+        }
+
+        if (++textBlinkerCount >= 20)
+        {
+            textBlinkerState = (textBlinkerState + 1) % 2;
+            textBlinkerCount = 0;
+        }
+
+        Main.instance.DrawWindowsIMEPanel(new Vector2(98f, Main.screenHeight - 36), 0f);
+    }
+
+    private static void DrawOutlinedText(SpriteBatch sb, DynamicSpriteFont font, string text, Vector2 position, float scale)
+    {
+        Vector2[] offsets = [new(-1f, -1f), new(1f, -1f), new(-1f, 1f), new(1f, 1f)];
+
+        for (int i = 0; i < offsets.Length; i++)
+            sb.DrawString(font, text, position + offsets[i], Color.Black, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+        sb.DrawString(font, text, position, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+    }
 }

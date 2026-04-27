@@ -10,19 +10,28 @@ internal class SessionTracker : ModSystem
 {
 	internal static readonly Dictionary<int, DateTime> Sessions = [];
 
-	public override void OnWorldLoad()
-	{
-		Sessions.Clear();
-	}
+    public override void OnWorldLoad()
+    {
+        Sessions.Clear();
 
-	public override void OnWorldUnload()
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            SessionTrackerNetHandler.SendRequestFullSync();
+    }
+
+    public override void OnWorldUnload()
 	{
 		Sessions.Clear();
 	}
 
 	public override void PostUpdatePlayers()
 	{
-		if (Main.netMode == NetmodeID.SinglePlayer)
+        if (!_TrackerStatus.IsEnabled)
+		{
+			base.PostUpdatePlayers();
+            return;
+        }
+
+        if (Main.netMode == NetmodeID.SinglePlayer)
 		{
 			Player player = Main.LocalPlayer;
 
@@ -67,7 +76,12 @@ internal class SessionTracker : ModSystem
 
 	public static string GetSessionDuration(int playerIndex)
 	{
-		if (!Sessions.TryGetValue(playerIndex, out DateTime start))
+        if (!_TrackerStatus.IsEnabled)
+        {
+            return "SpectatorConfig.AllowSpectating is disabled!";
+        }
+
+        if (!Sessions.TryGetValue(playerIndex, out DateTime start))
 			return "-";
 
 		TimeSpan span = DateTime.UtcNow - start;

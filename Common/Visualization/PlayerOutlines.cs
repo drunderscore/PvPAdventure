@@ -15,6 +15,7 @@ public class PlayerOutlines : ModSystem
     private delegate void CreateOutlinesDelegate(float alpha, float scale, Color borderColor);
 
     private CreateOutlinesDelegate _createOutlines;
+    public static bool ForcePreviewOutline;
 
     //private int _outlineCallsThisSecond;
     private int _secCounter;
@@ -58,6 +59,12 @@ public class PlayerOutlines : ModSystem
             Team team = (Team)p.team;
             if (team == Team.None)
                 return;
+
+            if (ForcePreviewOutline)
+            {
+                _createOutlines(1f, 1f, Main.teamColor[(int)team]);
+                return;
+            }
 
             var screenBounds = new Rectangle(
                 (int)Main.screenPosition.X,
