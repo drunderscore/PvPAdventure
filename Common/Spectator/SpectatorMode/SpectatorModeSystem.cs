@@ -92,7 +92,7 @@ internal sealed class SpectatorModeSystem : ModSystem
         if (SSCDelayJoinSystem.IsWaitingForSSCLoad && mode != PlayerMode.Spectator)
         {
             Main.LocalPlayer.ghost = true;
-            Log.Debug($"Player {playerId} received mode {mode} while SSC is loading; keeping ghost=true");
+            Log.Chat($"Player {playerId} received mode {mode} while SSC is loading; keeping ghost=true");
         }
         else
         {
@@ -142,8 +142,7 @@ internal sealed class SpectatorModeSystem : ModSystem
                 SpectatorModeNetHandler.SendSyncModes();
 
 #if DEBUG
-            if (Main.GameUpdateCount % (60*7) == 0)
-                Log.Chat(GetDebugStatusText());
+            DebugPrintSpectators();
 #endif
 
             return;
@@ -166,8 +165,11 @@ internal sealed class SpectatorModeSystem : ModSystem
 
     #region Debug
 
-    private static string GetDebugStatusText()
+    private static void DebugPrintSpectators()
     {
+        if (Main.GameUpdateCount % (60 * 7) != 0)
+            return;
+
         int playersOnline = 0;
         int spectators = 0;
         StringBuilder names = new();
@@ -189,7 +191,7 @@ internal sealed class SpectatorModeSystem : ModSystem
             spectators++;
         }
 
-        return $"Players online: {playersOnline}, spectators: {spectators} ({names})";
+        //Log.Chat($"Players online: {playersOnline}, spectators: {spectators}{(names.Length > 0 ? $" ({names})" : "")}");
     }
 
     #endregion

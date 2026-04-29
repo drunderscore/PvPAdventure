@@ -288,12 +288,44 @@ public class SSC : ModSystem
         if (Main.netMode != NetmodeID.Server)
             return;
 
+        string nameFromClient = reader.ReadString();
+
+        if (string.IsNullOrWhiteSpace(nameFromClient))
+            nameFromClient = "TPVPAPlayer";
+
+        int len = reader.ReadInt32();
+
+        if (len < 0 || len > MaxPlayerFileBytes)
+        {
+            Log.Chat("Server received invalid SSC save length: " + len);
+            return;
+        }
+
+        byte[] data = reader.ReadBytes(len);
+
+        if (data.Length != len)
+        {
+            Log.Chat("Server received truncated SSC save: " + data.Length + "/" + len);
+            return;
+        }
+
+        TagCompound root;
+
+        try
+        {
+            root = TagIO.Read(reader);
+        }
+        catch (Exception e)
+        {
+            Log.Chat("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
+            Log.Error("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
+            return;
+        }
+
         try
         {
             ulong? authenticatedSteamId = Main.player[from].GetModPlayer<AuthenticatedPlayer>().SteamId;
             //string steamId = reader.ReadString(); // old code where we sent steamID, keep for legacy's sake
-            string nameFromClient = reader.ReadString();
-
             if (!authenticatedSteamId.HasValue)
             {
                 Log.Warn($"Rejected SSC save for player {from}: Steam authentication is missing or pending");
@@ -307,39 +339,7 @@ public class SSC : ModSystem
             }
 
             string steamId = authenticatedSteamId.Value.ToString();
-
-            if (string.IsNullOrWhiteSpace(nameFromClient))
-                nameFromClient = "TPVPAPlayer";
-
-            int len = reader.ReadInt32();
-
-            if (len < 0 || len > MaxPlayerFileBytes)
-            {
-                Log.Chat("Server received invalid SSC save length: " + len);
-                return;
-            }
-
-            byte[] data = reader.ReadBytes(len);
-
-            if (data.Length != len)
-            {
-                Log.Chat("Server received truncated SSC save: " + data.Length + "/" + len);
-                return;
-            }
-
-            TagCompound root;
             int playerTeam = -1;
-
-            try
-            {
-                root = TagIO.Read(reader);
-            }
-            catch (Exception e)
-            {
-                Log.Chat("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
-                Log.Error("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
-                return;
-            }
 
             lock (ioLock)
             {
@@ -360,15 +360,7 @@ public class SSC : ModSystem
                 }
             }
 
-            Log.Debug($"Server successfully received SSC save for {nameFromClient}, authenticated SteamID: {steamId}, bytes= {len}, team: {(Terraria.Enums.Team)playerTeam}");
-
-            //var config = ModContent.GetInstance<ClientConfig>();
-
-            //if (config.ShowSavePlayerMessages)
-            //{
-            //    string time = DateTime.Now.ToString("HH:mm:ss");
-            //    ChatHelper.SendChatMessageToClient(NetworkText.FromLiteral($"Server saved {steamId} at {time}"),Color.LightSeaGreen,from);
-            //}
+            Log.Debug($"Server successfully received SSC save for {nameFromClient}, authenticated SteamID: {steamId}, bytes={len}, team={(Terraria.Enums.Team)playerTeam}");
         }
         catch (Exception e)
         {

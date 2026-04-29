@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.GameInput;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.SpawnSelector.DeadSystems;
+namespace PvPAdventure.Common.Misc.DeadSystems;
 
 [Autoload(Side = ModSide.Client)]
 internal sealed class MapZoomWhileUsingItemSystem : ModSystem

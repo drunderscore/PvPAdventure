@@ -133,7 +133,7 @@ internal sealed class DebugChlorophyteScan : ModSystem
                 _ => "unknown"
             };
 
-            Log.Chat($"Chloro cannot spawn. Reason: {reason}");
+            //Log.Chat($"Chloro cannot spawn. Reason: {reason}");
             return;
         }
 
@@ -155,8 +155,7 @@ internal sealed class DebugChlorophyteScan : ModSystem
             $"scan={scan:P0} deepGateY={deepGate:0} hardMode={Main.hardMode} " +
             $"seedDen={seedDen} seedChance={seedChance:P2} spreadN={spreadN} spreadAttemptChance={spreadAttemptChance:P0} limit={limit}";
 
-        Log.Debug(msg);
-        Log.Chat(msg);
+        //Log.Chat(msg);
     }
 }
 

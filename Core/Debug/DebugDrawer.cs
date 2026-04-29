@@ -2,6 +2,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Metadata;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
@@ -37,21 +39,24 @@ internal static class DebugDrawer
 
     internal static void DrawButtons()
     {
-
         Texture2D back = Main.Assets.Request<Texture2D>("Images/UI/CharCreation/SmallPanel").Value;
         Texture2D border = Main.Assets.Request<Texture2D>("Images/UI/CharCreation/SmallPanelBorder").Value;
-        Texture2D highlight = Main.Assets.Request<Texture2D>("Images/UI/CharCreation/CategoryPanelHighlight").Value;
 
         (string text, string tooltip, Func<bool> enabled, Action toggle)[] buttons =
         [
-            ("ST", "Show debug Stats", () => ShowDebugStats, () => ShowDebugStats = !ShowDebugStats),
-            ("CH", "Show chat", () => ShowChat, () => ShowChat = !ShowChat),
-            ("RC", "Show debug Rectangles", () => ShowRectangles, () => ShowRectangles = !ShowRectangles)
+            ("ST", "Show Debug Stats", () => ShowDebugStats, () => ShowDebugStats = !ShowDebugStats),
+            ("CH", "Show Chat", () => ShowChat, () => ShowChat = !ShowChat),
+            ("RC", "Show Debug Rectangles", () => ShowRectangles, () => ShowRectangles = !ShowRectangles)
         ];
+
+        // Draw buttons right aligned
+        int spacing = 6;
+        int totalWidth = buttons.Length * (back.Width + spacing) - spacing;
+        float startX = Main.screenWidth - totalWidth - 20f;
 
         for (int i = 0; i < buttons.Length; i++)
         {
-            Rectangle rect = new(Main.screenWidth - 400, 14 + i * (back.Height + 6), back.Width, back.Height);
+            Rectangle rect = new((int)startX + i * (back.Width + spacing), 350, back.Width, back.Height);
             bool hovered = rect.Contains(Main.MouseScreen.ToPoint());
 
             if (hovered)
@@ -70,7 +75,6 @@ internal static class DebugDrawer
             Color stateColor = buttons[i].enabled() ? new Color(70, 145, 90) : new Color(145, 70, 70);
 
             Main.spriteBatch.Draw(back, center, null, Color.White * (hovered ? 1f : 0.85f), 0f, back.Size() * 0.5f, 1f, SpriteEffects.None, 0f);
-            //Main.spriteBatch.Draw(highlight, center, null, stateColor * 0.7f, 0f, highlight.Size() * 0.5f, 1f, SpriteEffects.None, 0f);
 
             if (hovered)
             {
@@ -84,24 +88,26 @@ internal static class DebugDrawer
 
     internal static void DrawDebugInfo()
     {
-        Player player = Main.LocalPlayer;
-        Vector2 column1Pos = new(Main.screenWidth-700, 10f);
+        if (!ShowDebugStats) return;
 
-        if (ShowDebugStats)
-        {
-            DrawColumn("Debug Stats:",
-            [
-                $"World pos: {player.position}",
-                $"Tile: {Utils.ToTileCoordinates(Main.LocalPlayer.position)}",
-                $"Screen world: {Main.screenPosition}",
-                $"Mouse world: {Main.MouseWorld}",
-                $"Mouse tile: {Utils.ToTileCoordinates(Main.MouseWorld)}",
-                $"Mouse screen: {Main.mouseX}, {Main.mouseY}",
-                $"World: {Main.worldName} (ID {Main.worldID}, seed {WorldGen.currentWorldSeed})",
-                $"Hardmode: {Main.hardMode} | Expert: {Main.expertMode} | Master: {Main.masterMode}",
-                $"Halloween: {Main.halloween} | XMas: {Main.xMas}",
-            ], column1Pos);
-        }
+        string[] stats = [
+            $"World pos: {Main.LocalPlayer.position}",
+            $"Tile: {Utils.ToTileCoordinates(Main.LocalPlayer.position)}",
+            $"Screen world: {Main.screenPosition}",
+            $"Mouse world: {Main.MouseWorld}",
+            $"Mouse tile: {Utils.ToTileCoordinates(Main.MouseWorld)}",
+            $"Mouse screen: {Main.mouseX}, {Main.mouseY}",
+            $"World: {Main.worldName} (ID {Main.worldID}, seed {WorldGen.currentWorldSeed})",
+            $"Hardmode: {Main.hardMode} | Expert: {Main.expertMode} | Master: {Main.masterMode}",
+            $"Halloween: {Main.halloween}",
+            $"Hot Reload available: {MetadataUpdater.IsSupported}",
+        ];
+
+        // Calculate width of the longest line to right-align the column
+        float maxW = stats.Max(s => Terraria.GameContent.FontAssets.MouseText.Value.MeasureString(s).X * 0.78f);
+        Vector2 column1Pos = new(Main.screenWidth - maxW - 10f, 400f); // 10px padding from edge
+
+        DrawColumn("Debug Stats:", stats, column1Pos);
     }
 
     internal static void Flush(SpriteBatch sb)

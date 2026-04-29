@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using Terraria;
 using Terraria.Chat;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
@@ -29,7 +30,7 @@ public static class Log
     }
 
     /// <summary>
-    /// Sends a debug Terraria chat message to everyone, e.g [DEBUG/FileName: Your Message]
+    /// Sends a debug Terraria chat message, e.g [CLIENT/FileName: Your Message]
     /// </summary>
     public static void Chat(object message, [CallerFilePath] string file = "")
     {
@@ -48,21 +49,18 @@ public static class Log
         if (fileName.Length > 17)
             fileName = fileName[..17] + "..";
 
-        //// Broadcast to Terraria chat to all clients
-        //ChatHelper.BroadcastChatMessage(
-        //    text: NetworkText.FromLiteral($"[DEBUG/{fileName}]: {message}"),
-        //    color: Color.White
-        //    );
+        string text = "";
 
-        string text = $"[DEBUG/{fileName}]: {message}";
-
-        if (Main.netMode == Terraria.ID.NetmodeID.Server)
+        if (Main.netMode == NetmodeID.Server)
         {
-            Base.Debug($"[Chat skipped on server] {text}");
-            return;
+            text += $"[SERVER/{fileName}]: {message}";
+            ChatHelper.SendChatMessageToClient(NetworkText.FromLiteral(text), color: Color.White, playerId: Main.LocalPlayer.whoAmI);
         }
-
-        Main.NewText(text, Color.White);
+        else
+        {
+            text += $"[CLIENT/{fileName}]: {message}";
+            Main.NewText(text, Color.White);
+        }
     }
 
     public static void Info(object message, [CallerFilePath] string file = "")

@@ -72,7 +72,7 @@ internal sealed class DebugMapScan : ModSystem
 
         // Report explored percentage.
         double pct = revealed * 100.0 / total;
-        Log.Chat($"Map Explored: {pct:0.0000}%");
+        //Log.Chat($"Map Explored: {pct:0.0000}%");
     }
 }
 #endif

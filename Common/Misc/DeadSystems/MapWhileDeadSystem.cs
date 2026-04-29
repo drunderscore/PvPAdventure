@@ -2,7 +2,7 @@
 using Terraria.GameInput;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.SpawnSelector.DeadSystems;
+namespace PvPAdventure.Common.Misc.DeadSystems;
 
 /// <summary>
 /// Allows fullscreen map access while dead.

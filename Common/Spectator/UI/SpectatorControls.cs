@@ -24,12 +24,16 @@ internal sealed class SpectatorControls : UIElement
     private string shownTargets = "";
     private UIText status;
 
+    private int GetSlot() => 52;
+    private int GetTextHeight() => 26;
+    private int GetBottomPadding() => 40;
+
     public SpectatorControls()
     {
-        Height.Set(Slot + TextHeight, 0f);
+        Height.Set(GetSlot() + GetTextHeight(), 0f);
         HAlign = 0.5f;
         VAlign = 1f;
-        Top.Set(-BottomPadding, 0f);
+        Top.Set(-GetBottomPadding(), 0f);
         Rebuild();
     }
 
@@ -58,12 +62,20 @@ internal sealed class SpectatorControls : UIElement
             return;
         }
 
-        Width.Set(targets.Count * Slot, 0f);
+        int slotSize = GetSlot();
+        Width.Set(targets.Count * slotSize, 0f);
 
         for (int i = 0; i < targets.Count; i++)
-            Append(new SlotElement(targets[i], i));
+        {
+            SlotElement slot = new(targets[i], i);
+            slot.Width.Set(slotSize, 0f);
+            slot.Height.Set(slotSize, 0f);
+            slot.Left.Set(i * slotSize, 0f);
+            Append(slot);
+        }
 
-        status = new UIText("") { HAlign = 0.5f, Top = StyleDimension.FromPixels(Slot + 6f) };
+        status = new UIText("") { HAlign = 0.5f, Top = StyleDimension.FromPixels(slotSize + 6f) };
+
         Append(status);
         UpdateStatus();
         Recalculate();
@@ -211,8 +223,8 @@ internal sealed class SpectatorControls : UIElement
         {
             this.playerIndex = playerIndex;
 
-            Width.Set(Slot, 0f);
-            Height.Set(Slot, 0f);
+            Width.Set(64, 0f);
+            Height.Set(64, 0f);
             Left.Set(order * Slot, 0f);
 
             Append(bg);
@@ -269,7 +281,7 @@ internal sealed class SpectatorControls : UIElement
                 Asset<Texture2D> texture = selected ? TextureAssets.InventoryBack15 : TextureAssets.InventoryBack7;
                 Texture2D value = texture.Value;
 
-                float size = selected ? Slot : 30f;
+                float size = selected ? 64 : 30f;
                 float scale = size / value.Width;
                 Color color = selected ? Color.Yellow : Color.White;
 

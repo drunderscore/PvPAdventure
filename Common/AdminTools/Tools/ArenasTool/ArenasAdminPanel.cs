@@ -98,6 +98,7 @@ internal sealed class ArenasAdminPanel : UIDraggablePanel
     {
         base.Update(gameTime);
 
+        // always for now
         needsRebuild = true;
 
         bool changed = false;

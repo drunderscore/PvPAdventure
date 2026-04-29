@@ -48,6 +48,23 @@ internal class ClientModHandler
 {
     public static void HandlePacket(BinaryReader reader, int from)
     {
+        // Safety: Ensure we have at least 4 bytes to read the Int32 'num'
+        if (reader.BaseStream.Length - reader.BaseStream.Position < 4)
+        {
+            Log.Warn($"[ClientModCheck] Malformed packet from {from}. Not enough data to read count.");
+            return;
+        }
+
+        int num = reader.ReadInt32();
+
+        // Safety: Prevent an impossible loop if 'num' is a gargantuan number from corrupted data
+        long remainingBytes = reader.BaseStream.Length - reader.BaseStream.Position;
+        if (num < 0 || num > 500) // No one has 500 client mods
+        {
+            Log.Warn($"[ClientModCheck] Invalid mod count ({num}) from {from}. Skipping.");
+            return;
+        }
+
         List<string> allowedClientMods = [];
 
         allowedClientMods.AddRange(
@@ -64,7 +81,6 @@ internal class ClientModHandler
 
         List<string> unallowedClientMods = [];
 
-        int num = reader.ReadInt32();
         for (int i = 0; i < num; i++)
         {
             string name = reader.ReadString();
