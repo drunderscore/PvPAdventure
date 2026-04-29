@@ -31,6 +31,7 @@ public sealed class RemoveSummonProjectilesInventory : GlobalProjectile
         [ProjectileID.SoulscourgePirate] = ItemID.PirateStaff,
         [ProjectileID.PirateCaptain] = ItemID.PirateStaff,
         [ProjectileID.Tempest] = ItemID.TempestStaff,
+        [ProjectileID.BabyBird] = ItemID.BabyBirdStaff,
         [ProjectileID.EmpressBlade] = ItemID.EmpressBlade
     };
 

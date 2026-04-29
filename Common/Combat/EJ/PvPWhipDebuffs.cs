@@ -242,7 +242,19 @@ public class PressurePointsPlayer : WhipDebuffPlayer
         SpawnLineDust(Color.LimeGreen);
     }
 }
+public class TaggedPlayer : WhipDebuffPlayer
+{
+    protected override int WhipProjectileID => ProjectileID.BlandWhip;
+    protected override int DebuffType => ModContent.BuffType<Tagged>();
+    protected override int BaseDuration => 300;
+    protected override int FlatDamageBonus => 4;
 
+    protected override void UpdateVisualEffects()
+    {
+        SpawnCircularDust(DustID.WhiteTorch, Color.White, 8f, 0.15f);
+        SpawnLineDust(Color.White);
+    }
+}
 public class BrittleBonesPlayer : WhipDebuffPlayer
 {
     protected override int WhipProjectileID => ProjectileID.BoneWhip;
