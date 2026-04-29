@@ -47,7 +47,7 @@ public class UnifiedRecipeGroupSystem : ModSystem
         new RecipeGroupData("AnyPlanteraPrimary", "Any Plantera Drop", ItemID.PlanteraMasterTrophy, 2,
             ItemID.PlanteraMasterTrophy, ItemID.GrenadeLauncher, ItemID.NettleBurst, ItemID.FlowerPow, ItemID.VenusMagnum),
 
-        new RecipeGroupData("AnyDukePrimary", "Any Duke Primary", ItemID.DukeFishronMasterTrophy, 3,
+        new RecipeGroupData("AnyDukePrimary", "Any Duke Primary", ItemID.DukeFishronMasterTrophy, 2,
             ItemID.DukeFishronMasterTrophy, ItemID.RazorbladeTyphoon, ItemID.BubbleGun, ItemID.Flairon, ItemID.Tsunami, ItemID.TempestStaff),
 
         new RecipeGroupData("AnyEmpressPrimary", "Any Empress Primary", ItemID.FairyQueenMasterTrophy, 2,
