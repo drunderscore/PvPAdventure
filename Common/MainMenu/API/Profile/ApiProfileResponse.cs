@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -22,4 +23,10 @@ public sealed class ApiInventoryItem
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = "";
+
+    [JsonPropertyName("issued")]
+    public DateTime Issued { get; set; }
+
+    [JsonPropertyName("purchasePrice")]
+    public int? PurchasePrice { get; set; }
 }
