@@ -389,7 +389,7 @@ public static class AdventureDropDatabase
                     )
                 );
 
-                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                npcLoot.Add(ItemDropRule.FewFromOptions(2, 1,
                         ItemID.Smolstar,
                         ItemID.QueenSlimeHook,
                         ItemID.QueenSlimeMountSaddle
@@ -397,9 +397,15 @@ public static class AdventureDropDatabase
                 );
 
                 break;
+            case NPCID.Antlion:
+            case NPCID.GiantWalkingAntlion:
+            case NPCID.GiantFlyingAntlion:
+            case NPCID.WalkingAntlion:
+            case NPCID.FlyingAntlion:
+                npcLoot.Add(ItemDropRule.Common(ItemID.FossilOre, 1, 1, 1));
+                break;
 
             case NPCID.QueenBee:
-                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 20, 25));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyedGoggles, 1, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 22, 32));
@@ -514,6 +520,7 @@ public static class AdventureDropDatabase
                         ItemDropRule.Common(ItemID.BubbleGun),
                         ItemDropRule.Common(ItemID.Tsunami),
                         ItemDropRule.Common(ItemID.RazorbladeTyphoon),
+                        ItemDropRule.Common(ItemID.TempestStaff),
                         ItemDropRule.Common(ItemID.Flairon)
                     )
                 );
