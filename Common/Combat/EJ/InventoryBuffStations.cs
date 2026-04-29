@@ -12,22 +12,30 @@ namespace PvPAdventure.Common.Combat.EJ;
 /// </summary>
 public class InventoryBuffStations : ModPlayer
 {
-    private static readonly (int ItemId, int BuffId)[] BuffStationItems =
+    private static readonly (int ItemId, int[] BuffIds)[] BuffStationItems =
     [
-        (ItemID.SharpeningStation, BuffID.Sharpened),
-        (ItemID.BewitchingTable, BuffID.Bewitched),
-        (ItemID.CrystalBall, BuffID.Clairvoyance),
-        (ItemID.AmmoBox, BuffID.AmmoBox),
-        (ItemID.WarTable, BuffID.WarTable),
+        (ItemID.SharpeningStation, new[] { BuffID.Sharpened }),
+        (ItemID.BewitchingTable, new[] { BuffID.Bewitched }),
+        (ItemID.CrystalBall, new[] { BuffID.Clairvoyance }),
+        (ItemID.AmmoBox, new[] { BuffID.AmmoBox }),
+        (ItemID.WarTable, new[] { BuffID.WarTable }),
+        (ItemID.LunarCraftingStation, new[] {
+            BuffID.Sharpened,
+            BuffID.Bewitched,
+            BuffID.Clairvoyance,
+            BuffID.AmmoBox,
+            BuffID.SugarRush,
+        }),
     ];
 
     public override void OnRespawn()
     {
-        foreach (var (itemId, buffId) in BuffStationItems)
+        foreach (var (itemId, buffIds) in BuffStationItems)
         {
             if (Player.HasItem(itemId))
             {
-                Player.AddBuff(buffId, int.MaxValue);
+                foreach (int buffId in buffIds)
+                    Player.AddBuff(buffId, int.MaxValue);
             }
         }
     }

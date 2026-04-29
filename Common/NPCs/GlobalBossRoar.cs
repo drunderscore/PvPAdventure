@@ -12,8 +12,8 @@ namespace PvPAdventure.Common.World;
 public class GlobalBossRoar : GlobalNPC
 {
     public override bool InstancePerEntity => true;
-
     private bool _roarPlayed = false;
+
     private static readonly Dictionary<int, (SoundStyle Sound, bool AlwaysGlobal)> BossRoars = new()
     {
         // Pre-Hardmode
@@ -24,17 +24,16 @@ public class GlobalBossRoar : GlobalNPC
         [NPCID.SkeletronHead] = (SoundID.Roar, false),
         [NPCID.Deerclops] = (SoundID.DeerclopsScream, false),
         [NPCID.WallofFlesh] = (SoundID.NPCDeath10, false),
-
         // Hardmode
         [NPCID.QueenSlimeBoss] = (SoundID.NPCDeath64, false),
         [NPCID.TheDestroyer] = (SoundID.Roar, false),
         [NPCID.SkeletronPrime] = (SoundID.Roar, false),
-        [NPCID.Spazmatism] = (SoundID.Roar, false), 
-        [NPCID.Plantera] = (SoundID.Roar, true),   // always global 
+        [NPCID.Spazmatism] = (SoundID.Roar, false),
+        [NPCID.Plantera] = (SoundID.Roar, true),
         [NPCID.Golem] = (SoundID.Roar, false),
-        [NPCID.HallowBoss] = (SoundID.Item161, true),  // always global
-        [NPCID.DukeFishron] = (SoundID.Roar, true),   // always global
-        [NPCID.CultistBoss] = (SoundID.Roar, true),   // always global
+        [NPCID.HallowBoss] = (SoundID.Item161, true),
+        [NPCID.DukeFishron] = (SoundID.Roar, true),
+        [NPCID.CultistBoss] = (SoundID.Roar, true),
         [NPCID.MoonLordCore] = (SoundID.Roar, false),
     };
 
@@ -60,6 +59,7 @@ public class GlobalBossRoar : GlobalNPC
         NPCID.MoonLordCore => NPC.downedMoonlord,
         _ => true,
     };
+
     public override void PostAI(NPC npc)
     {
         if (Main.netMode == NetmodeID.Server)
@@ -75,6 +75,84 @@ public class GlobalBossRoar : GlobalNPC
 
         if (IsBossDowned(npc.type) && !entry.AlwaysGlobal)
             return;
+
         SoundEngine.PlaySound(entry.Sound with { Volume = 3f });
+    }
+}
+
+/// <summary>
+/// Handles global sound cues for world events
+/// </summary>
+public class WorldEventSounds : ModSystem
+{
+    private bool _goblinSoundPlayed = false;
+    private bool _martianSoundPlayed = false;
+
+    public override void OnWorldLoad()
+    {
+        _goblinSoundPlayed = false;
+        _martianSoundPlayed = false;
+    }
+
+    public override void PostUpdateWorld()
+    {
+        if (Main.netMode == NetmodeID.Server)
+            return;
+
+        // Goblin Army
+        if (Main.invasionType == InvasionID.GoblinArmy && !_goblinSoundPlayed)
+        {
+            _goblinSoundPlayed = true;
+            SoundEngine.PlaySound(SoundID.Dolphin with { Volume = 3f });
+        }
+        else if (Main.invasionType != InvasionID.GoblinArmy)
+        {
+            _goblinSoundPlayed = false;
+        }
+
+        // Martian Invasion
+        if (Main.invasionType == InvasionID.MartianMadness && !_martianSoundPlayed)
+        {
+            _martianSoundPlayed = true;
+            SoundEngine.PlaySound(SoundID.Dolphin with { Volume = 3f });
+        }
+        else if (Main.invasionType != InvasionID.MartianMadness)
+        {
+            _martianSoundPlayed = false;
+        }
+    }
+}
+
+/// <summary>
+/// Plays a sound when a demon altar is broken for the first time.
+/// </summary>
+public class DemonAltarSounds : GlobalTile
+{
+    public static bool FirstAltarBroken = false;
+
+    public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
+    {
+        if (Main.netMode == NetmodeID.Server)
+            return;
+
+        if (type != TileID.DemonAltar)
+            return;
+
+        if (fail || effectOnly)
+            return;
+
+        if (FirstAltarBroken)
+            return;
+
+        FirstAltarBroken = true;
+        SoundEngine.PlaySound(SoundID.DD2_FlameburstTowerShot with { Volume = 3f });
+    }
+}
+
+public class DemonAltarSoundsSystem : ModSystem
+{
+    public override void OnWorldLoad()
+    {
+        DemonAltarSounds.FirstAltarBroken = false;
     }
 }

@@ -194,6 +194,11 @@ Mods: {
 				DisplayName: Uncout Handboring
 				Description: Mods.PvPAdventure.Buffs.UncoutHandboring.Description
 			}
+
+			Tagged: {
+				DisplayName: Summon Tagged
+				Description: Take 4 more damage from enemies
+			}
 		}
 
 		Items: {

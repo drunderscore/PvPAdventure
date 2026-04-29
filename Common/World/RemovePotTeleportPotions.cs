@@ -8,9 +8,9 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.World;
 
 /// <summary>
-/// Removes Recall Potions, Wormhole Potions, Potions of Return, Featherfall Potions, and Gravitation Potions from Pot loot tables. It is currently suspected that the featherfall potion and gravitation potion portions do not work.
+/// Removes all potions from Pot loot tables.
 /// </summary>
-public class RemovePotTeleportPotions : ModSystem
+public class RemovePotPotions : ModSystem
 {
     private static ILHook? _hook;
 
@@ -25,30 +25,28 @@ public class RemovePotTeleportPotions : ModSystem
 
     private static void ILEdit(ILContext il)
     {
-        // Recall Potions
         var cursor = new ILCursor(il);
-        while (cursor.TryGotoNext(MoveType.Before,
-            i => i.MatchCall(out var mr) && mr.Name == "GetItemSource_FromTileBreak",
-            i => i.MatchLdarg(0),
-            i => i.MatchLdcI4(16),
-            i => i.MatchMul(),
-            i => i.MatchLdarg(1),
-            i => i.MatchLdcI4(16),
-            i => i.MatchMul(),
-            i => i.MatchLdcI4(16),
-            i => i.MatchLdcI4(16),
-            i => i.MatchLdcI4(2350)))
         {
-            cursor.Index -= 2;
-            for (int n = 0; n < 23; n++)
-            {
-                cursor.Next!.OpCode = OpCodes.Nop;
-                cursor.Next!.Operand = null;
-                cursor.Index++;
-            }
+            ILLabel elseLabel = null;
+            cursor.GotoNext(
+                i => i.MatchLdcI4(45),
+                i => i.MatchCallvirt(out _),
+                i => i.MatchBrtrue(out elseLabel)
+            );
+
+            cursor.Goto(0);
+            cursor.GotoNext(
+                i => i.MatchLdcI4(45),
+                i => i.MatchCallvirt(out _),
+                i => i.MatchBrfalse(out _)
+            );
+
+            cursor.Index -= 1;
+
+            cursor.MoveAfterLabels();
+            cursor.Emit(OpCodes.Br, elseLabel);
         }
 
-        // Wormhole Potions
         cursor.Goto(0);
         if (cursor.TryGotoNext(MoveType.Before,
             i => i.MatchCall(out var mr) && mr.Name == "get_rand",
@@ -69,77 +67,6 @@ public class RemovePotTeleportPotions : ModSystem
             i => i.MatchLdcI4(2997)))
         {
             for (int n = 0; n < 24; n++)
-            {
-                cursor.Next!.OpCode = OpCodes.Nop;
-                cursor.Next!.Operand = null;
-                cursor.Index++;
-            }
-        }
-
-        // Return Potions
-        cursor.Goto(0);
-        while (cursor.TryGotoNext(MoveType.Before,
-            i => i.MatchCall(out var mr) && mr.Name == "GetItemSource_FromTileBreak",
-            i => i.MatchLdarg(0),
-            i => i.MatchLdcI4(16),
-            i => i.MatchMul(),
-            i => i.MatchLdarg(1),
-            i => i.MatchLdcI4(16),
-            i => i.MatchMul(),
-            i => i.MatchLdcI4(16),
-            i => i.MatchLdcI4(16),
-            i => i.MatchLdcI4(4870)))
-        {
-            cursor.Index -= 2;
-            for (int n = 0; n < 20; n++)
-            {
-                cursor.Next!.OpCode = OpCodes.Nop;
-                cursor.Next!.Operand = null;
-                cursor.Index++;
-            }
-        }
-
-        // Gravitation Potions
-        cursor.Goto(0);
-        while (cursor.TryGotoNext(MoveType.Before,
-            i => i.MatchLdarg(0),
-            i => i.MatchLdarg(1),
-            i => i.MatchCall(out var mr) && mr.Name == "GetItemSource_FromTileBreak",
-            i => i.MatchLdarg(0),
-            i => i.MatchLdcI4(16),
-            i => i.MatchMul(),
-            i => i.MatchLdarg(1),
-            i => i.MatchLdcI4(16),
-            i => i.MatchMul(),
-            i => i.MatchLdcI4(16),
-            i => i.MatchLdcI4(16),
-            i => i.MatchLdcI4(303)))
-        {
-            for (int n = 0; n < 19; n++)
-            {
-                cursor.Next!.OpCode = OpCodes.Nop;
-                cursor.Next!.Operand = null;
-                cursor.Index++;
-            }
-        }
-
-        // Featherfall Potions
-        cursor.Goto(0);
-        while (cursor.TryGotoNext(MoveType.Before,
-            i => i.MatchLdarg(0),
-            i => i.MatchLdarg(1),
-            i => i.MatchCall(out var mr) && mr.Name == "GetItemSource_FromTileBreak",
-            i => i.MatchLdarg(0),
-            i => i.MatchLdcI4(16),
-            i => i.MatchMul(),
-            i => i.MatchLdarg(1),
-            i => i.MatchLdcI4(16),
-            i => i.MatchMul(),
-            i => i.MatchLdcI4(16),
-            i => i.MatchLdcI4(16),
-            i => i.MatchLdcI4(291)))
-        {
-            for (int n = 0; n < 19; n++)
             {
                 cursor.Next!.OpCode = OpCodes.Nop;
                 cursor.Next!.Operand = null;

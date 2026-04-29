@@ -32,8 +32,8 @@ public class PvPBeetleArmorBuff : GlobalBuff
 
             if (player.beetleOrbs >= 3)
             {
-                damage += 0.5f;
-                attackSpeed += 2.00f;
+                damage += 0.10f;
+                attackSpeed += 0.10f;
             }
 
             player.GetDamage<MeleeDamageClass>() += damage;

@@ -81,6 +81,14 @@ public static class AdventureDropDatabase
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.PsychoKnife, 1, 4);
                 break;
+            case NPCID.Demon:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.DemonScythe, 1, 15);
+                break;
+            case NPCID.VoodooDemon:
+                foreach (var drop in drops)
+                    ModifyDropRate(drop, ItemID.DemonScythe, 1, 15);
+                break;
             case NPCID.Harpy:
                 foreach (var drop in drops)
                 {
@@ -381,7 +389,7 @@ public static class AdventureDropDatabase
                     )
                 );
 
-                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                npcLoot.Add(ItemDropRule.FewFromOptions(2, 1,
                         ItemID.Smolstar,
                         ItemID.QueenSlimeHook,
                         ItemID.QueenSlimeMountSaddle
@@ -389,9 +397,16 @@ public static class AdventureDropDatabase
                 );
 
                 break;
+            case NPCID.Antlion:
+            case NPCID.GiantWalkingAntlion:
+            case NPCID.GiantFlyingAntlion:
+            case NPCID.WalkingAntlion:
+            case NPCID.FlyingAntlion:
+                npcLoot.Add(ItemDropRule.Common(ItemID.FossilOre, 1, 1, 1));
+                break;
 
             case NPCID.QueenBee:
-                npcLoot.Add(ItemDropRule.Common(ItemID.BeeWax, 1, 20, 25));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HoneyedGoggles, 1, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 22, 32));
                 npcLoot.RemoveWhere(drop =>
@@ -505,6 +520,7 @@ public static class AdventureDropDatabase
                         ItemDropRule.Common(ItemID.BubbleGun),
                         ItemDropRule.Common(ItemID.Tsunami),
                         ItemDropRule.Common(ItemID.RazorbladeTyphoon),
+                        ItemDropRule.Common(ItemID.TempestStaff),
                         ItemDropRule.Common(ItemID.Flairon)
                     )
                 );
@@ -523,7 +539,7 @@ public static class AdventureDropDatabase
             case NPCID.TheDestroyer:
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
-                npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 18, 30));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 20, 30));
 
                 // Remove existing soul drops
                 npcLoot.RemoveWhere(drop =>
@@ -534,7 +550,7 @@ public static class AdventureDropDatabase
             case NPCID.SkeletronPrime:
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HallowedBar));
-                npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 18, 30));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HallowedBar, 1, 20, 30));
 
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.SoulofFright));
@@ -547,7 +563,7 @@ public static class AdventureDropDatabase
 
                 npcLoot.Add(ItemDropRule.ByCondition(
                     new Conditions.LegacyHack_IsBossAndNotExpert(),
-                    ItemID.HallowedBar, 1, 18, 30));
+                    ItemID.HallowedBar, 1, 20, 30));
 
                 npcLoot.Add(ItemDropRule.ByCondition(
                     new Conditions.LegacyHack_IsBossAndNotExpert(),
@@ -575,6 +591,7 @@ public static class AdventureDropDatabase
                         ItemDropRule.Common(ItemID.VenusMagnum)
                     )
                 );
+                npcLoot.Add(ItemDropRule.Common(ItemID.ThornHook, 1, 1, 1));
                 break;
         }
     }
