@@ -10,6 +10,28 @@ namespace PvPAdventure.Common.Travel.UI;
 
 internal class BiomeBackgroundDrawer
 {
+    public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, int mapBgIndex, int fadePixels = 0, int shrinkPadding = 5)
+    {
+        int safeIndex = mapBgIndex >= 0 && mapBgIndex < Ass.MapBG.Length ? mapBgIndex : 0;
+        Texture2D texture = Ass.MapBG[safeIndex]?.Value;
+
+        if (texture == null)
+            return;
+
+        if (shrinkPadding > 0)
+        {
+            rect.X += shrinkPadding;
+            rect.Y += shrinkPadding;
+            rect.Width -= shrinkPadding * 2;
+            rect.Height -= shrinkPadding * 2;
+        }
+
+        if (rect.Width <= 0 || rect.Height <= 0)
+            return;
+
+        DrawZoomed(sb, texture, rect, Color.White, fadePixels);
+    }
+
     public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Vector2 worldPosition, int fadePixels = 0, int shrinkPadding = 5, Player zonePlayer = null)
     {
         if (!TryGetMapBG(worldPosition, zonePlayer, out Texture2D texture, out Color color))

@@ -408,7 +408,7 @@ Mods: {
 			}
 
 			PortalCreatorItem: {
-				DisplayName: Adventure Portal Creator
+				DisplayName: Portal Creator
 				Tooltip: ""
 			}
 		}
@@ -1886,12 +1886,16 @@ Mods: {
 
 				AllowSpectating: {
 					Label: "[i:PvPAdventure/AllowSpectatingConfigItem] Allow Spectating"
-					Tooltip: Allows players to use /spectate
+					Tooltip:
+						'''
+						Allows players to use /spectate to toggle spectator mode themselves during the game
+						Tip: Admins can use the Player Manager tool in DragonLens to toggle spectator mode for other players
+						'''
 				}
 
 				ForceSpectating: {
 					Label: "[i:PvPAdventure/ForceSpectatingConfigItem] Force Spectating"
-					Tooltip: Players enter the world as spectators
+					Tooltip: Players automatically enter as spectators when joining the server
 				}
 			}
 
@@ -1954,6 +1958,21 @@ Mods: {
 		DashKeybind.NoDashItem: you have no dash item!
 		Subworlds.ArenasSubworld.DisplayName: Arenas 1
 
+		PortalCreator: {
+			TravelDisabledInConfig: travel is disabled in config!
+			GameNotStarted: wait until game starts!
+			CannotUseInSpawn: cannot use in spawn region!
+			CannotUseWhileMoving: cannot use while moving!
+			CannotDrop: cannot drop!
+			CannotUnfavorite: cannot unfavorite!
+			CannotTrash: cannot trash!
+			CannotSell: cannot sell!
+			CannotStore: cannot store!
+			Cancelled: cancelled!
+			PortalCreated: portal created!
+			TeamPortalCreated: "{0} team portal created!"
+		}
+
 		Travel: {
 			ChooseYourDestination: Choose Your Destination
 			Random: Teleport to random location
@@ -1977,20 +1996,6 @@ Mods: {
 			CancelTeammatesPortal: Cancel {0}'s portal
 			TeammatesPortal: "{0}'s Portal"
 			SpectatingPlayer: Spectating {0}
-		}
-
-		PortalCreator: {
-			GameNotStarted: wait until game starts!
-			CannotUseInSpawn: cannot use in spawn region!
-			CannotUseWhileMoving: cannot use while moving!
-			CannotDrop: cannot drop!
-			CannotUnfavorite: cannot unfavorite!
-			CannotTrash: cannot trash!
-			CannotSell: cannot sell!
-			CannotStore: cannot store!
-			Cancelled: cancelled!
-			PortalCreated: portal created!
-			TeamPortalCreated: "{0} team portal created!"
 		}
 
 		Item: {

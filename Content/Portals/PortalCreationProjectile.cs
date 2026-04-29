@@ -10,6 +10,9 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Content.Portals;
 
+/// <summary>
+/// Draws a "pending" portal.
+/// </summary>
 public sealed class PortalCreationProjectile : ModProjectile
 {
     public override string Texture => "PvPAdventure/Assets/Portals/Portal_NoTeam";

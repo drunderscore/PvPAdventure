@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Chat;
 using PvPAdventure.Content.Portals;
 using System.Collections.Generic;
 using Terraria;
@@ -11,6 +12,9 @@ public static class PortalSystem
 {
     public static void StartPortalCreation(Player player)
     {
+        if (!TravelRules.Enabled)
+            return;
+
         if (player?.active != true || Main.netMode == NetmodeID.MultiplayerClient)
             return;
 
@@ -44,6 +48,9 @@ public static class PortalSystem
 
     public static bool CreateOrReplacePortal(Player owner, Vector2 worldPos)
     {
+        if (!TravelRules.Enabled)
+            return false;
+
         if (owner?.active != true || Main.netMode == NetmodeID.MultiplayerClient)
             return false;
 
@@ -55,7 +62,8 @@ public static class PortalSystem
             return false;
 
         portal.Initialize(owner, worldPos);
-        Log.Chat($"Portal created at {worldPos}");
+        Log.Chat($"Portal created at {(int)worldPos.X}, {(int)worldPos.Y}");
+        TeleportChat.AnnouncePortalOpened(owner);
 
         if (Main.netMode == NetmodeID.Server)
             NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, index);

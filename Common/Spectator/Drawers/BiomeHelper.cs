@@ -3,11 +3,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
+using System;
 using System.Reflection;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.Bestiary;
 using Terraria.ID;
+using Terraria.Localization;
 using Biomes = Terraria.GameContent.Bestiary.BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes;
 
 namespace PvPAdventure.Common.Spectator.Drawers;
@@ -31,6 +33,27 @@ internal static class BiomeHelper
             BackgroundColor = backgroundColor;
             BackgroundIndex = backgroundIndex;
         }
+    }
+
+    internal static string GetBiomeDisplayName(Player player)
+    {
+        PlayerBiomeVisual visual = GetBiomeVisual(player);
+        string name;
+
+        if (visual.BestiaryBiome == ShimmerBiome)
+            name = "Shimmer";
+        else if (visual.BestiaryBiome == ForestBiome)
+            name = "Forest";
+        else
+        {
+            string key = visual.BestiaryBiome.GetDisplayNameKey();
+            name = Language.GetTextValue(key);
+
+            if (string.IsNullOrWhiteSpace(name) || name == key)
+                return "an unknown biome";
+        }
+
+        return name.Contains("the", StringComparison.OrdinalIgnoreCase) ? name : $"the {name}";
     }
 
     internal static PlayerBiomeVisual GetBiomeVisual(Player player)

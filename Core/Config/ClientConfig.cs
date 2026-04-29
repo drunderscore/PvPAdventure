@@ -18,6 +18,13 @@ public class ClientConfig : ModConfig
         Bottom,
     }
 
+    public enum TravelUISize
+    {
+        Small,
+        Medium,
+        Big
+    }
+
     [Header("Visualization")]
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] 
@@ -48,6 +55,11 @@ public class ClientConfig : ModConfig
     [DefaultValue(TravelUIPosition.Top)]
     [JsonConverter(typeof(StringEnumConverter))]
     public TravelUIPosition travelUIPosition;
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(TravelUISize.Medium)]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public TravelUISize travelUISize;
 
     [Header("Sound")]
     [Expand(false, false)]

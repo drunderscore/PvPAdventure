@@ -107,15 +107,14 @@ public class ServerConfig : ModConfig
 
     [BackgroundColor(30, 150, 150)]
     [Range(0, 60)]
-    [DefaultValue(8)]
-    public int TravelRegionRadiusTiles { get; set; }
+    [DefaultValue(10)]
+    public int TravelPortalCreationTimeSeconds { get; set; }
 
     [BackgroundColor(30, 150, 150)]
     [Range(0, 60)]
-    [DefaultValue(4)]
-    public int TravelPortalCreationTimeSeconds { get; set; }
+    [DefaultValue(8)]
+    public int TravelRegionRadiusTiles { get; set; }
 
-    [Range(0, 60)]
     [DefaultValue(true)]
     [BackgroundColor(30, 150, 150)]
     public bool ShowPortalCreationProjectile { get; set; }

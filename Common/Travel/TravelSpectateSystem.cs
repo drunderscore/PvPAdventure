@@ -5,8 +5,6 @@ using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Content.Portals;
 using Terraria;
 using Terraria.ModLoader;
-using Terraria.ModLoader.Config.UI;
-using Terraria.UI;
 
 namespace PvPAdventure.Common.Travel;
 

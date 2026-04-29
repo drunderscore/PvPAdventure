@@ -32,6 +32,9 @@ public static class PortalNetHandler
 
     public static void SendPortalCreatorUse(int slot)
     {
+        if (!TravelRules.Enabled)
+            return;
+
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 

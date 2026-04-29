@@ -32,7 +32,7 @@ internal class TravelUIState : UIState
         backgroundPanel.VAlign = 1f;
         backgroundPanel.Top.Set(-82f, 0f);
         backgroundPanel.SetPadding(0f);
-        backgroundPanel.BackgroundColor = new Color(73, 94, 171);
+        backgroundPanel.BackgroundColor = new Color(33, 43, 79) * 1f;
         Append(backgroundPanel);
     }
 
@@ -68,15 +68,26 @@ internal class TravelUIState : UIState
     {
         backgroundPanel.RemoveAllChildren();
         chooseYourDestinationPanel?.Remove();
+        //backgroundPanel.BackgroundColor = new Color(33, 43, 79) * 1f;
 
         Player local = Main.LocalPlayer;
 
-        float scale = 1.0f;
+        ClientConfig config = ModContent.GetInstance<ClientConfig>();
+
+        // Set scale based on config
+        float scale = config.travelUISize switch
+        {
+            ClientConfig.TravelUISize.Small => 0.9f,
+            ClientConfig.TravelUISize.Big => 1.1f,
+            _ => 1f
+        };
+
+        // Padding
         float panelWidth = 115f * scale;
         float panelHeight = 65f * scale;
         float spacing = 12f * scale;
-        float paddingX = 10f * scale;
-        float paddingY = 10f * scale;
+        float paddingX = 12f * scale;
+        float paddingY = 16f * scale;
 
         List<Player> players = [];
 
@@ -102,7 +113,6 @@ internal class TravelUIState : UIState
         backgroundPanel.Height.Set(paddingY * 2f + panelHeight, 0f);
         backgroundPanel.SetPadding(0f);
 
-        var config = ModContent.GetInstance<ClientConfig>();
         bool bottom = config.travelUIPosition == ClientConfig.TravelUIPosition.Bottom;
 
         backgroundPanel.HAlign = 0.5f;
@@ -152,6 +162,7 @@ internal class TravelUIState : UIState
             Height = { Pixels = 45 * scale },
             Top = new StyleDimension(backgroundPanel.Top.Pixels - 44f * scale, 0f),
             BackgroundColor = new Color(73, 94, 171),
+            //BackgroundColor = new Color(33, 43, 79) * 1f,
         };
         chooseYourDestinationPanel.SetPadding(12f * scale);
         Append(chooseYourDestinationPanel);

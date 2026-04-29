@@ -96,14 +96,38 @@ public class UITravelPlayerButton : UIPanel
         sb.Draw(texture, position, null, Color.White, 0f, origin, new Vector2(scaleX, scaleY), SpriteEffects.None, 0f);
     }
 
+    //public override void Draw(SpriteBatch sb)
+    //{
+    //    if (player?.active != true)
+    //        return;
+
+    //    base.Draw(sb);
+
+    //    Rectangle rect = GetDimensions().ToRectangle();
+    //    DrawTravelSeparator(sb, rect);
+
+    //    if (player.dead && player.respawnTimer > 0)
+    //        DrawRespawnTimerAndDeadIcon(sb, player.respawnTimer, rect);
+    //}
+
     public override void Draw(SpriteBatch sb)
     {
         if (player?.active != true)
             return;
 
+        Rectangle rect = GetDimensions().ToRectangle();
+
+        BiomeBackgroundDrawer.DrawMapFullscreenBackground(
+            sb,
+            rect,
+            player.Center,
+            fadePixels: 8,
+            shrinkPadding: 0,
+            player
+        );
+
         base.Draw(sb);
 
-        Rectangle rect = GetDimensions().ToRectangle();
         DrawTravelSeparator(sb, rect);
 
         if (player.dead && player.respawnTimer > 0)
@@ -261,33 +285,21 @@ public class UITravelPlayerButton : UIPanel
         protected override void DrawSelf(SpriteBatch sb)
         {
             Rectangle rect = GetDimensions().ToRectangle();
-            Rectangle drawRect = GetExpandedPlayerPanelRect(rect);
+            Rectangle overlayRect = GetSplitColumnRect();
             bool selected = TravelTeleportSystem.IsSelected(target);
-
-            if (target.WorldPosition != Vector2.Zero)
-            {
-                Rectangle bgRect = drawRect;
-                if (fadeBottomLeft)       // bed side
-                    bgRect.Width += 4;
-                else if (fadeBottomRight) // portal side
-                {
-                    bgRect.X -= 4;
-                    bgRect.Width += 4;
-                }
-
-                BiomeBackgroundDrawer.DrawMapFullscreenBackground(sb, bgRect, target.WorldPosition, fadePixels: 10, shrinkPadding: 0, null);
-            }
 
             Color overlay =
                 selected ? new Color(220, 220, 0) * 0.8f :
-                !target.Available ? new Color(15, 15, 15) * 0.92f :
+                //!target.Available ? new Color(15, 15, 15) * 0.92f :
                 IsMouseHovering ? new Color(180, 180, 180) * 0.5f :
                 Color.Transparent;
 
             if (overlay != Color.Transparent)
-                BiomeBackgroundDrawer.DrawFadedFill(sb, drawRect, overlay, fadePixels: 8);
-
+                BiomeBackgroundDrawer.DrawFadedFill(sb, overlayRect, overlay, fadePixels: 10);
+            
             Color iconColor = target.Available ? Color.White : new Color(95, 95, 105) * 0.8f;
+            
+            //iconColor = Color.White;
 
             float iconYOffset =
                 target.Type == TravelType.Bed ? -4f :
@@ -307,6 +319,7 @@ public class UITravelPlayerButton : UIPanel
                 Rectangle frame = icon.Frame(1, frameCount, 0, frameIndex);
                 Vector2 origin = frame.Size() * 0.5f;
                 float scale = MathHelper.Min(1.85f, MathHelper.Min((rect.Width - 8f) / frame.Width, (rect.Height - 16f) / frame.Height));
+                scale *= 1.1f;
                 sb.Draw(icon, position, frame, iconColor, 0f, origin, scale, SpriteEffects.None, 0f);
             }
             else
@@ -315,13 +328,14 @@ public class UITravelPlayerButton : UIPanel
                 Rectangle frame = icon.Frame();
                 Vector2 origin = frame.Size() * 0.5f;
                 float scale = MathHelper.Min(1.25f, MathHelper.Min((rect.Width - 12f) / frame.Width, (rect.Height - 24f) / frame.Height));
+                scale *= 1.1f;
                 sb.Draw(icon, position, frame, iconColor, 0f, origin, scale, SpriteEffects.None, 0f);
             }
 
             if (!target.Available)
             {
                 Texture2D forbidden = Ass.Icon_Forbidden.Value;
-                float forbiddenScale = target.Type == TravelType.Portal ? 1.5f : 1.5f;
+                float forbiddenScale = target.Type == TravelType.Portal ? 1.6f : 1.6f;
 
                 sb.Draw(forbidden, position, null, Color.PaleVioletRed, 0f, forbidden.Size() * 0.5f, forbiddenScale, SpriteEffects.None, 0f);
             }
@@ -331,10 +345,18 @@ public class UITravelPlayerButton : UIPanel
         }
 
         // Get parent height.
-        private Rectangle GetExpandedPlayerPanelRect(Rectangle rect)
+        private Rectangle GetSplitColumnRect()
         {
             Rectangle parentRect = Parent.GetDimensions().ToRectangle();
-            return new Rectangle(rect.X, parentRect.Y, rect.Width, rect.Bottom - parentRect.Y);
+            int halfWidth = parentRect.Width / 2;
+
+            if (target.Type == TravelType.Bed)
+                return new Rectangle(parentRect.X, parentRect.Y, halfWidth + 4, parentRect.Height);
+
+            if (target.Type == TravelType.Portal)
+                return new Rectangle(parentRect.X + halfWidth -4, parentRect.Y, parentRect.Width - halfWidth + 4, parentRect.Height);
+
+            return GetDimensions().ToRectangle();
         }
     }
 }

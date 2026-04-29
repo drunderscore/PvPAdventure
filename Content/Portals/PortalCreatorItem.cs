@@ -41,8 +41,8 @@ public class PortalCreatorItem : ModItem
     {
         SetPortalCreationTime(Item);
 
-        Item.width = 32;
-        Item.height = 32;
+        Item.width = 42;
+        Item.height = 46;
 
         Item.useStyle = ItemUseStyleID.HoldUp;
         Item.UseSound = SoundID.Item6;
@@ -86,6 +86,12 @@ public class PortalCreatorItem : ModItem
         if (player?.whoAmI != Main.myPlayer)
             return;
 
+        if (!TravelRules.Enabled)
+        {
+            Warning(player, "Mods.PvPAdventure.PortalCreator.TravelDisabledInConfig");
+            return;
+        }
+
         for (int i = 0; i < player.inventory.Length; i++)
         {
             if (player.inventory[i].ModItem is PortalCreatorItem creator)
@@ -108,6 +114,9 @@ public class PortalCreatorItem : ModItem
 
     private bool BeginUse(Player player, int index)
     {
+        if (!TravelRules.Enabled)
+            return false;
+
         Item item = player.inventory[index];
 
         player.selectedItem = index;
@@ -140,7 +149,7 @@ public class PortalCreatorItem : ModItem
         player.controlUseItem = false;
         player.channel = false;
 
-        Vector2 offset = new(player.direction * 3f, +7f);
+        Vector2 offset = new(player.direction * -9f, -9f);
         player.itemLocation += offset;
 
         if (player.velocity.LengthSquared() > 0f)
@@ -158,7 +167,7 @@ public class PortalCreatorItem : ModItem
     #region Drawing
     public override bool PreDrawInInventory(SpriteBatch sb, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
     {
-        const float itemScale = 1.5f;
+        const float itemScale = 0.8f;
 
         Texture2D texture = PortalAssets.GetCreatorTexture(Main.LocalPlayer?.team ?? 0);
         sb.Draw(texture, position, frame, drawColor, 0f, origin, itemScale, SpriteEffects.None, 0f);
@@ -180,6 +189,12 @@ public class PortalCreatorItem : ModItem
     #region Popup text
     public override bool CanUseItem(Player player)
     {
+        if (!TravelRules.Enabled)
+        {
+            Warning(player, "Mods.PvPAdventure.PortalCreator.TravelDisabledInConfig");
+            return false;
+        }
+
         SetPortalCreationTime(Item);
 
         if (player.dead || player.ghost)

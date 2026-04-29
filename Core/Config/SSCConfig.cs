@@ -107,9 +107,9 @@ internal class SSCConfig : ModConfig
 
     private static List<LoadoutItem> CreateDefaultStartItems()
     {
-        int adventureMirrorType = ItemID.None;
-        if (ModContent.TryFind<ModItem>("PvPAdventure", "AdventureMirror", out ModItem adventureMirror))
-            adventureMirrorType = adventureMirror.Type;
+        int portalCreatorItemType = ItemID.None;
+        if (ModContent.TryFind<ModItem>("PvPAdventure", "PortalCreatorItem", out ModItem portalCreatorItem))
+            portalCreatorItemType = portalCreatorItem.Type;
 
         return
         [
@@ -137,7 +137,7 @@ internal class SSCConfig : ModConfig
             },
             new LoadoutItem
             {
-                Item = new ItemDefinition(adventureMirrorType)
+                Item = new ItemDefinition(portalCreatorItemType)
             },
             new LoadoutItem
             {

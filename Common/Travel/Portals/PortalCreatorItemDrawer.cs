@@ -72,7 +72,7 @@ internal sealed class PortalCreatorItemDrawer : GlobalItem
     #region Helpers
     private static DrawData ScaleDrawData(DrawData data, Texture2D from, Texture2D to)
     {
-        const float itemScale = 2f;
+        const float itemScale = 1f;
 
         float sx = to.Width / (float)from.Width;
         float sy = to.Height / (float)from.Height;

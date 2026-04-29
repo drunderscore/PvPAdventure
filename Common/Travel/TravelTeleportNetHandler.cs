@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Chat;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Content.Portals;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using System.Collections.Generic;
 using System.IO;
@@ -46,9 +48,14 @@ public static class TravelTeleportNetHandler
         if (Main.netMode == NetmodeID.SinglePlayer)
         {
             if (TravelTeleportSystem.TryTeleport(Main.LocalPlayer, target, out string reason))
+            {
                 PlayTeleportSound(Main.LocalPlayer.Center);
+                TeleportChat.Announce(Main.LocalPlayer, target.Type, target.PlayerIndex);
+            }
             else if (!string.IsNullOrWhiteSpace(reason))
+            {
                 Main.NewText(reason);
+            }
 
             return;
         }
@@ -104,6 +111,11 @@ public static class TravelTeleportNetHandler
         NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, player.whoAmI, position.X, position.Y, TeleportationStyleID.RodOfDiscord);
         NetMessage.SendData(MessageID.SyncPlayer, -1, -1, null, player.whoAmI);
         SendTeleportSound(player.Center);
+
+        if (ModContent.GetInstance<ClientConfig>().ShowTeleportPlayerMessages)
+        {
+            TeleportChat.Announce(player, type, targetPlayerIndex);
+        }
 
         //Log.Chat($"[TravelTeleport] Teleported {player.name}: type={type}, target={targetPlayerIndex}, pos={position}");
     }

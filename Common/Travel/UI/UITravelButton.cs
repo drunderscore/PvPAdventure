@@ -15,14 +15,12 @@ public class UITravelButton : UIPanel
 {
     private readonly TravelTarget target;
     private readonly Texture2D icon;
-    private readonly string label;
     private readonly string hoverText;
 
     public UITravelButton(TravelTarget target, Texture2D icon, string label, string hoverText, float width, float height)
     {
         this.target = target;
         this.icon = icon;
-        this.label = label;
         this.hoverText = hoverText;
 
         Width.Set(width, 0f);
@@ -46,7 +44,7 @@ public class UITravelButton : UIPanel
 
         BackgroundColor =
             selected ? new Color(220, 220, 0) :
-            !target.Available ? new Color(45, 45, 55) * 0.8f :
+            //!target.Available ? new Color(45, 45, 55) * 0.8f :
             IsMouseHovering ? new Color(73, 92, 161, 150) :
             new Color(63, 82, 151) * 0.8f;
 
@@ -74,15 +72,27 @@ public class UITravelButton : UIPanel
             ? Main.player[target.PlayerIndex]
             : Main.LocalPlayer;
 
-        if (target.Type != TravelType.Random && target.WorldPosition != Vector2.Zero)
+        if (target.Type == TravelType.Random)
+        {
+            BiomeBackgroundDrawer.DrawMapFullscreenBackground(
+                sb,
+                bgRect,
+                mapBgIndex: 7,
+                fadePixels: 5,
+                shrinkPadding: 0
+            );
+        }
+        else if (target.Type == TravelType.World && target.WorldPosition != Vector2.Zero)
+        {
             BiomeBackgroundDrawer.DrawMapFullscreenBackground(
                 sb,
                 bgRect,
                 target.WorldPosition,
-                fadePixels: 0,
-                shrinkPadding: 5,
+                fadePixels: 8,
+                shrinkPadding: 0,
                 null
             );
+        }
 
         Rectangle highlightRect = rect;
         highlightRect.Inflate(-2, -2);
@@ -95,7 +105,15 @@ public class UITravelButton : UIPanel
         Rectangle iconFrame = icon.Frame();
         Vector2 iconOrigin = iconFrame.Size() * 0.5f;
         Vector2 iconPos = new(d.X + d.Width * 0.5f, d.Y + d.Height * 0.5f);
-        float iconScale = MathHelper.Min(1.6f, MathHelper.Min((d.Width - 16f) / iconFrame.Width, (d.Height - 16f) / iconFrame.Height));
+
+        float iconScaleMultiplier = target.Type switch
+        {
+            TravelType.World => 0.9f,
+            TravelType.Random => 1.1f,
+            _ => 1f
+        };
+
+        float iconScale = MathHelper.Min(1.6f, MathHelper.Min((d.Width - 16f) / iconFrame.Width, (d.Height - 16f) / iconFrame.Height)) * iconScaleMultiplier;
 
         sb.Draw(icon, iconPos, iconFrame, color, 0f, iconOrigin, iconScale, SpriteEffects.None, 0f);
 

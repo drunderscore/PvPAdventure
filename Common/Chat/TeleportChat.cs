@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Spectator.Drawers;
 using PvPAdventure.Common.Teams;
 using PvPAdventure.Common.Travel;
 using PvPAdventure.Core.Config;
@@ -20,6 +21,7 @@ public static class TeleportChat
     public static void Announce(Player player, TravelType type, int targetIdx = -1)
     {
         var clientConfig = ModContent.GetInstance<ClientConfig>();
+
         if (!clientConfig.ShowTeleportPlayerMessages)
             return;
 
@@ -27,11 +29,60 @@ public static class TeleportChat
             return;
 
         string destination = GetDestination(player, type, targetIdx);
+
         if (destination == "")
             return;
 
-        Color teamColor = Main.teamColor[Math.Clamp(player.team, 0, Main.teamColor.Length - 1)];
-        SendSystemTeamMessage(player, $"{player.name} has teleported to {destination}", teamColor);
+        SendSystemTeamMessage(player, $"{player.name} has teleported to {destination}", Color.Yellow);
+    }
+
+    public static void AnnouncePortalOpened(Player player)
+    {
+        var clientConfig = ModContent.GetInstance<ClientConfig>();
+
+        if (!clientConfig.ShowTeleportPlayerMessages)
+            return;
+
+        if (player?.active != true)
+            return;
+
+        string biome = BiomeHelper.GetBiomeDisplayName(player);
+
+        SendSystemTeamMessage(player, $"{player.name} has opened a portal in {biome}", Color.Yellow);
+    }
+
+    private static string GetDestination(Player player, TravelType type, int targetIdx)
+    {
+        return type switch
+        {
+            TravelType.World => "world spawn",
+            TravelType.Bed => GetOwnedDestination(player, targetIdx, "bed"),
+            TravelType.Portal => GetOwnedDestination(player, targetIdx, "portal"),
+            TravelType.Random => "a random location",
+            _ => ""
+        };
+    }
+
+    private static string GetOwnedDestination(Player player, int targetIdx, string place)
+    {
+        if (player?.active != true)
+            return "";
+
+        if (targetIdx == player.whoAmI)
+            return $"their own {place}";
+
+        if (targetIdx < 0 || targetIdx >= Main.maxPlayers)
+            return "";
+
+        return Main.player[targetIdx] is { active: true } target ? $"{target.name}'s {place}" : "";
+    }
+
+    private static string GetOwnedDestination(int targetIdx, string place)
+    {
+        if (targetIdx < 0 || targetIdx >= Main.maxPlayers)
+            return "";
+
+        return Main.player[targetIdx] is { active: true } target ? $"{target.name}'s {place}" : "";
     }
 
     public static void SendSystemTeamMessage(Player player, string text, Color color, string selfText = null)
@@ -69,32 +120,10 @@ public static class TeleportChat
                 continue;
 
             string targetText = i == player.whoAmI ? selfText : text;
-            NetworkText message = NetworkText.FromLiteral(ChatPrefixFormatter.TeamChannelMarker + targetText);
+            //NetworkText message = NetworkText.FromLiteral(ChatPrefixFormatter.TeamChannelMarker + targetText);
+            NetworkText message = NetworkText.FromLiteral(targetText);
 
             ChatHelper.SendChatMessageToClient(message, color, i);
         }
-    }
-
-    private static string GetDestination(Player player, TravelType type, int targetIdx)
-    {
-        return type switch
-        {
-            TravelType.World => "world spawn",
-            TravelType.Bed => "a bed",
-            TravelType.Portal => "a portal",
-            TravelType.Random => "a random location",
-            _ => ""
-        };
-    }
-
-    private static string GetOwnedDestination(Player player, int targetIdx, string place)
-    {
-        if (targetIdx == player.whoAmI)
-            return $"their own {place}";
-
-        if (targetIdx < 0 || targetIdx >= Main.maxPlayers)
-            return "";
-
-        return Main.player[targetIdx] is { active: true } target ? $"{target.name}'s {place}" : "";
     }
 }
