@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+﻿using PvPAdventure.Content.Buffs;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.ID;
@@ -12,8 +13,15 @@ namespace PvPAdventure.Common.Items;
 // - Blocks ammo selection based on PreventUse config.
 public class BannedItems : GlobalItem
 {
+    private static bool PlayerInSpawn(Player player)
+        => player.HasBuff(ModContent.BuffType<PlayerInSpawn>());
+
     public override bool CanUseItem(Item item, Player player)
     {
+        // If player is in spawn, block using any item
+        if (PlayerInSpawn(player))
+            return false;
+
         var isUnderground = player.position.Y > Main.worldSurface * 16;
         var isHallow = player.ZoneHallow;
 
