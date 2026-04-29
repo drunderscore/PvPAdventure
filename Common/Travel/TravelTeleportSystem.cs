@@ -43,7 +43,7 @@ internal class TravelTeleportSystem : ModSystem
                 $"{targetPlayer.name}'s Bed",
                 "Bed",
                 hasBed,
-                i == player.whoAmI ? "You have no valid bed set" : $"{targetPlayer.name} has no valid bed set"
+                i == player.whoAmI ? "You have no bed set" : $"{targetPlayer.name} has no bed set"
             ));
 
             bool hasPortal = TryGetPortalPosition(player, i, out Vector2 portalPos);

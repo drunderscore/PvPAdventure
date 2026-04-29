@@ -10,7 +10,161 @@ namespace PvPAdventure.Common.Travel.UI;
 
 internal class BiomeBackgroundDrawer
 {
-    public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, int mapBgIndex, int fadePixels = 0, int shrinkPadding = 5)
+    public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Vector2 worldPosition, int fadePixels = 0, int shrinkPadding = 5, Color? overrideColor = null)
+    {
+        if (!TryGetMapBG(worldPosition, out Texture2D texture, out Color color))
+            return;
+
+        if (shrinkPadding > 0)
+        {
+            rect.X += shrinkPadding;
+            rect.Y += shrinkPadding;
+            rect.Width -= shrinkPadding * 2;
+            rect.Height -= shrinkPadding * 2;
+        }
+
+        if (rect.Width <= 0 || rect.Height <= 0)
+            return;
+
+        DrawZoomed(sb, texture, rect, overrideColor ?? color, fadePixels);
+    }
+
+    private static bool TryGetMapBG(Vector2 worldPosition, out Texture2D texture, out Color color)
+    {
+        texture = null;
+        color = Color.White;
+
+        // Convert world position to tile coords
+        int tileX = (int)(worldPosition.X / 16f);
+        int tileY = (int)(worldPosition.Y / 16f);
+        if (tileX < 0 || tileX >= Main.maxTilesX || tileY < 0 || tileY >= Main.maxTilesY)
+            return false;
+
+        Tile tile = Main.tile[tileX, tileY];
+        if (tile == null)
+            return false;
+
+        int wall = tile.WallType;
+        int bgIndex = -1;
+
+        // Simulate a dummy player at this position to set zone flags
+        Player dummy = new Player();
+        dummy.Center = worldPosition;
+        dummy.UpdateBiomes();  // now dummy.ZoneJungle, ZoneHallow, etc. are set as if standing here
+
+        float worldY = worldPosition.Y;
+        float tileYf = worldY / 16f;
+
+        // 1) Hell layer (underworld)
+        if (worldY > (Main.maxTilesY - 232) * 16f)
+        {
+            bgIndex = 2;
+        }
+        // 2) Dungeon (or dungeon walls)
+        else if (dummy.ZoneDungeon ||
+                 wall == WallID.BlueDungeonUnsafe ||
+                 wall == WallID.GreenDungeonUnsafe ||
+                 wall == WallID.PinkDungeonUnsafe)
+        {
+            bgIndex = 4;
+        }
+        // 3) Spider Cavern (jungle temple wall)
+        else if (wall == 87)
+        {
+            bgIndex = 13;
+        }
+        // 4) Underground/Cavern layers
+        else if (worldY > Main.worldSurface * 16.0)
+        {
+            bgIndex = wall switch
+            {
+                86 or 108 => 15,
+                180 or 184 => 16,
+                178 or 183 => 17,
+                62 or 263 => 18,
+                _ when dummy.ZoneGlowshroom => 20,
+                _ when dummy.ZoneCorrupt && dummy.ZoneDesert => 39,
+                _ when dummy.ZoneCorrupt && dummy.ZoneSnow => 33,
+                _ when dummy.ZoneCorrupt => 22,
+                _ when dummy.ZoneCrimson && dummy.ZoneDesert => 40,
+                _ when dummy.ZoneCrimson && dummy.ZoneSnow => 34,
+                _ when dummy.ZoneCrimson => 23,
+                _ when dummy.ZoneHallow && dummy.ZoneDesert => 41,
+                _ when dummy.ZoneHallow && dummy.ZoneSnow => 35,
+                _ when dummy.ZoneHallow => 21,
+                _ when dummy.ZoneSnow => 3,
+                _ when dummy.ZoneJungle => 12,
+                _ when dummy.ZoneDesert => 14,
+                _ when dummy.ZoneRockLayerHeight => 31,
+                _ => tileYf > Main.rockLayer ? 31 : 1
+            };
+        }
+        // 5) Surface Glowing Mushroom biome
+        else if (dummy.ZoneGlowshroom)
+        {
+            bgIndex = 19;
+        }
+        // 6) Surface/sky and other biomes
+        else
+        {
+            // If this position would be “dead” (not likely for a fake player, but we check)
+            if (dummy.dead)
+                color = new Color(50, 50, 50, 255);
+
+            if (dummy.ZoneSkyHeight)
+            {
+                bgIndex = 32;
+            }
+            else if (dummy.ZoneCorrupt)
+            {
+                bgIndex = dummy.ZoneDesert ? 36 : 5;
+            }
+            else if (dummy.ZoneCrimson)
+            {
+                bgIndex = dummy.ZoneDesert ? 37 : 6;
+            }
+            else if (dummy.ZoneHallow)
+            {
+                bgIndex = dummy.ZoneDesert ? 38 : 7;
+            }
+            else if (tileYf < Main.worldSurface + 10.0 && (tileX < 380 || tileX > Main.maxTilesX - 380))
+            {
+                bgIndex = 10;  // ocean-ish sky edge
+            }
+            else if (dummy.ZoneSnow)
+            {
+                bgIndex = 11;
+            }
+            else if (dummy.ZoneJungle)
+            {
+                bgIndex = 8;
+            }
+            else if (dummy.ZoneDesert)
+            {
+                bgIndex = 9;
+            }
+            else if (Main.bloodMoon)
+            {
+                bgIndex = 25;
+                color *= 2f;
+            }
+            else if (dummy.ZoneGraveyard)
+            {
+                bgIndex = 26;
+            }
+            else
+            {
+                bgIndex = 0; // default surface
+            }
+        }
+
+        // Fetch the texture for the chosen background index
+        int safeIndex = (bgIndex >= 0 && bgIndex < Ass.MapBG.Length) ? bgIndex : 0;
+        texture = Ass.MapBG[safeIndex]?.Value;
+        return texture != null;
+    }
+
+    public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, int mapBgIndex, int fadePixels = 0, int shrinkPadding = 5, Color? overrideColor = null)
     {
         int safeIndex = mapBgIndex >= 0 && mapBgIndex < Ass.MapBG.Length ? mapBgIndex : 0;
         Texture2D texture = Ass.MapBG[safeIndex]?.Value;
@@ -29,129 +183,111 @@ internal class BiomeBackgroundDrawer
         if (rect.Width <= 0 || rect.Height <= 0)
             return;
 
-        DrawZoomed(sb, texture, rect, Color.White, fadePixels);
+        DrawZoomed(sb, texture, rect, overrideColor ?? Color.White, fadePixels);
     }
 
-    public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Vector2 worldPosition, int fadePixels = 0, int shrinkPadding = 5, Player zonePlayer = null)
-    {
-        if (!TryGetMapBG(worldPosition, zonePlayer, out Texture2D texture, out Color color))
-            return;
 
-        if (shrinkPadding > 0)
-        {
-            rect.X += shrinkPadding;
-            rect.Y += shrinkPadding;
-            rect.Width -= shrinkPadding * 2;
-            rect.Height -= shrinkPadding * 2;
-        }
+    //private static bool TryGetMapBG(Vector2 worldPosition, Player zonePlayer, out Texture2D texture, out Color color)
+    //{
+    //    texture = null;
+    //    color = Color.White;
 
-        if (rect.Width <= 0 || rect.Height <= 0)
-            return;
+    //    int tileX = (int)(worldPosition.X / 16f);
+    //    int tileY = (int)(worldPosition.Y / 16f);
 
-        DrawZoomed(sb, texture, rect, color, fadePixels);
-    }
+    //    if (tileX < 0 || tileX >= Main.maxTilesX || tileY < 0 || tileY >= Main.maxTilesY)
+    //        return false;
 
-    private static bool TryGetMapBG(Vector2 worldPosition, Player zonePlayer, out Texture2D texture, out Color color)
-    {
-        texture = null;
-        color = Color.White;
+    //    Tile tile = Main.tile[tileX, tileY];
 
-        int tileX = (int)(worldPosition.X / 16f);
-        int tileY = (int)(worldPosition.Y / 16f);
+    //    if (tile == null)
+    //        return false;
 
-        if (tileX < 0 || tileX >= Main.maxTilesX || tileY < 0 || tileY >= Main.maxTilesY)
-            return false;
+    //    int wall = tile.WallType;
+    //    int bgIndex = -1;
 
-        Tile tile = Main.tile[tileX, tileY];
+    //    float worldY = worldPosition.Y;
+    //    float tileYFloat = worldY / 16f;
+    //    bool useZones = zonePlayer?.active == true;
 
-        if (tile == null)
-            return false;
+    //    if (worldY > (Main.maxTilesY - 232) * 16f)
+    //    {
+    //        bgIndex = 2;
+    //    }
+    //    else if (useZones && zonePlayer.ZoneDungeon || wall == WallID.BlueDungeonUnsafe || wall == WallID.GreenDungeonUnsafe || wall == WallID.PinkDungeonUnsafe)
+    //    {
+    //        bgIndex = 4;
+    //    }
+    //    else if (wall == 87)
+    //    {
+    //        bgIndex = 13;
+    //    }
+    //    else if (worldY > Main.worldSurface * 16.0)
+    //    {
+    //        bgIndex = wall switch
+    //        {
+    //            86 or 108 => 15,
+    //            180 or 184 => 16,
+    //            178 or 183 => 17,
+    //            62 or 263 => 18,
+    //            _ when useZones && zonePlayer.ZoneGlowshroom => 20,
+    //            _ when useZones && zonePlayer.ZoneCorrupt && zonePlayer.ZoneDesert => 39,
+    //            _ when useZones && zonePlayer.ZoneCorrupt && zonePlayer.ZoneSnow => 33,
+    //            _ when useZones && zonePlayer.ZoneCorrupt => 22,
+    //            _ when useZones && zonePlayer.ZoneCrimson && zonePlayer.ZoneDesert => 40,
+    //            _ when useZones && zonePlayer.ZoneCrimson && zonePlayer.ZoneSnow => 34,
+    //            _ when useZones && zonePlayer.ZoneCrimson => 23,
+    //            _ when useZones && zonePlayer.ZoneHallow && zonePlayer.ZoneDesert => 41,
+    //            _ when useZones && zonePlayer.ZoneHallow && zonePlayer.ZoneSnow => 35,
+    //            _ when useZones && zonePlayer.ZoneHallow => 21,
+    //            _ when useZones && zonePlayer.ZoneSnow => 3,
+    //            _ when useZones && zonePlayer.ZoneJungle => 12,
+    //            _ when useZones && zonePlayer.ZoneDesert => 14,
+    //            _ when useZones && zonePlayer.ZoneRockLayerHeight => 31,
+    //            _ => tileYFloat > Main.rockLayer ? 31 : 1
+    //        };
+    //    }
+    //    else if (useZones && zonePlayer.ZoneGlowshroom)
+    //    {
+    //        bgIndex = 19;
+    //    }
+    //    else
+    //    {
+    //        if (useZones && zonePlayer.dead)
+    //            color = new Color(50, 50, 50, 255);
 
-        int wall = tile.WallType;
-        int bgIndex = -1;
+    //        if (useZones && zonePlayer.ZoneSkyHeight)
+    //            bgIndex = 32;
+    //        else if (useZones && zonePlayer.ZoneCorrupt)
+    //            bgIndex = zonePlayer.ZoneDesert ? 36 : 5;
+    //        else if (useZones && zonePlayer.ZoneCrimson)
+    //            bgIndex = zonePlayer.ZoneDesert ? 37 : 6;
+    //        else if (useZones && zonePlayer.ZoneHallow)
+    //            bgIndex = zonePlayer.ZoneDesert ? 38 : 7;
+    //        else if (tileYFloat < Main.worldSurface + 10.0 && (tileX < 380 || tileX > Main.maxTilesX - 380))
+    //            bgIndex = 10;
+    //        else if (useZones && zonePlayer.ZoneSnow)
+    //            bgIndex = 11;
+    //        else if (useZones && zonePlayer.ZoneJungle)
+    //            bgIndex = 8;
+    //        else if (useZones && zonePlayer.ZoneDesert)
+    //            bgIndex = 9;
+    //        else if (Main.bloodMoon)
+    //        {
+    //            bgIndex = 25;
+    //            color *= 2f;
+    //        }
+    //        else if (useZones && zonePlayer.ZoneGraveyard)
+    //            bgIndex = 26;
+    //        else
+    //            bgIndex = 0;
+    //    }
 
-        float worldY = worldPosition.Y;
-        float tileYFloat = worldY / 16f;
-        bool useZones = zonePlayer?.active == true;
+    //    int safeIndex = bgIndex >= 0 && bgIndex < Ass.MapBG.Length ? bgIndex : 0;
+    //    texture = Ass.MapBG[safeIndex]?.Value;
 
-        if (worldY > (Main.maxTilesY - 232) * 16f)
-        {
-            bgIndex = 2;
-        }
-        else if (useZones && zonePlayer.ZoneDungeon || wall == WallID.BlueDungeonUnsafe || wall == WallID.GreenDungeonUnsafe || wall == WallID.PinkDungeonUnsafe)
-        {
-            bgIndex = 4;
-        }
-        else if (wall == 87)
-        {
-            bgIndex = 13;
-        }
-        else if (worldY > Main.worldSurface * 16.0)
-        {
-            bgIndex = wall switch
-            {
-                86 or 108 => 15,
-                180 or 184 => 16,
-                178 or 183 => 17,
-                62 or 263 => 18,
-                _ when useZones && zonePlayer.ZoneGlowshroom => 20,
-                _ when useZones && zonePlayer.ZoneCorrupt && zonePlayer.ZoneDesert => 39,
-                _ when useZones && zonePlayer.ZoneCorrupt && zonePlayer.ZoneSnow => 33,
-                _ when useZones && zonePlayer.ZoneCorrupt => 22,
-                _ when useZones && zonePlayer.ZoneCrimson && zonePlayer.ZoneDesert => 40,
-                _ when useZones && zonePlayer.ZoneCrimson && zonePlayer.ZoneSnow => 34,
-                _ when useZones && zonePlayer.ZoneCrimson => 23,
-                _ when useZones && zonePlayer.ZoneHallow && zonePlayer.ZoneDesert => 41,
-                _ when useZones && zonePlayer.ZoneHallow && zonePlayer.ZoneSnow => 35,
-                _ when useZones && zonePlayer.ZoneHallow => 21,
-                _ when useZones && zonePlayer.ZoneSnow => 3,
-                _ when useZones && zonePlayer.ZoneJungle => 12,
-                _ when useZones && zonePlayer.ZoneDesert => 14,
-                _ when useZones && zonePlayer.ZoneRockLayerHeight => 31,
-                _ => tileYFloat > Main.rockLayer ? 31 : 1
-            };
-        }
-        else if (useZones && zonePlayer.ZoneGlowshroom)
-        {
-            bgIndex = 19;
-        }
-        else
-        {
-            if (useZones && zonePlayer.dead)
-                color = new Color(50, 50, 50, 255);
-
-            if (useZones && zonePlayer.ZoneSkyHeight)
-                bgIndex = 32;
-            else if (useZones && zonePlayer.ZoneCorrupt)
-                bgIndex = zonePlayer.ZoneDesert ? 36 : 5;
-            else if (useZones && zonePlayer.ZoneCrimson)
-                bgIndex = zonePlayer.ZoneDesert ? 37 : 6;
-            else if (useZones && zonePlayer.ZoneHallow)
-                bgIndex = zonePlayer.ZoneDesert ? 38 : 7;
-            else if (tileYFloat < Main.worldSurface + 10.0 && (tileX < 380 || tileX > Main.maxTilesX - 380))
-                bgIndex = 10;
-            else if (useZones && zonePlayer.ZoneSnow)
-                bgIndex = 11;
-            else if (useZones && zonePlayer.ZoneJungle)
-                bgIndex = 8;
-            else if (useZones && zonePlayer.ZoneDesert)
-                bgIndex = 9;
-            else if (Main.bloodMoon)
-            {
-                bgIndex = 25;
-                color *= 2f;
-            }
-            else if (useZones && zonePlayer.ZoneGraveyard)
-                bgIndex = 26;
-            else
-                bgIndex = 0;
-        }
-
-        int safeIndex = bgIndex >= 0 && bgIndex < Ass.MapBG.Length ? bgIndex : 0;
-        texture = Ass.MapBG[safeIndex]?.Value;
-
-        return texture != null;
-    }
+    //    return texture != null;
+    //}
 
     public static void DrawFadedFill(SpriteBatch sb, Rectangle rect, Color color, int fadePixels = 0)
     {

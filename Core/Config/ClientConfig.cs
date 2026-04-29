@@ -1,9 +1,11 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using PvPAdventure.Common.Travel.UI;
 using PvPAdventure.Core.Utilities;
 using System;
 using System.ComponentModel;
 using Terraria.Audio;
+using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Core.Config;
@@ -20,10 +22,10 @@ public class ClientConfig : ModConfig
 
     public enum TravelUISize
     {
+        VerySmall,
         Small,
         Medium,
         Big,
-        Huge
     }
 
     [Header("Visualization")]
@@ -187,6 +189,13 @@ public class ClientConfig : ModConfig
     public override void OnChanged()
     {
         base.OnChanged();
+        Log.Chat("Client config changed");
+
+        var travelUISystem = ModContent.GetInstance<TravelUISystem>();
+        if (travelUISystem != null)
+        {
+            travelUISystem?.travelUIState?.ForceRebuildNextUpdate();
+        }
     }
     #endregion
 }

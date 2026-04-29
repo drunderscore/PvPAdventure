@@ -23,18 +23,6 @@ public static class Ass
     public static Asset<Texture2D> Icon_Dead; // 32x32
     public static Asset<Texture2D> Icon_Forbidden;
     public static Asset<Texture2D> Icon_Question_Mark;
-    public static Asset<Texture2D> Portal; // 36x368 (vertical spritesheet with 8 sprites)
-    public static Asset<Texture2D> Portal_Minimap; // 28x30
-    public static Asset<Texture2D> Portal_Red; // 36x368 (vertical spritesheet with 8 sprites)
-    public static Asset<Texture2D> Portal_Red_Minimap; // 28x30
-    public static Asset<Texture2D> Portal_Green; // 36x368 (vertical spritesheet with 8 sprites)
-    public static Asset<Texture2D> Portal_Green_Minimap; // 28x30
-    public static Asset<Texture2D> Portal_Blue; // 36x368 (vertical spritesheet with 8 sprites)
-    public static Asset<Texture2D> Portal_Blue_Minimap; // 28x30
-    public static Asset<Texture2D> Portal_Yellow; // 36x368 (vertical spritesheet with 8 sprites)
-    public static Asset<Texture2D> Portal_Yellow_Minimap; // 28x30
-    public static Asset<Texture2D> Portal_Pink; // 36x368 (vertical spritesheet with 8 sprites)
-    public static Asset<Texture2D> Portal_Pink_Minimap; // 28x30
     public static Asset<Texture2D> Spawnbox;
 
     // Admin tools assets

@@ -14,7 +14,7 @@ namespace PvPAdventure.Common.Travel.UI;
 internal class TravelUISystem : ModSystem
 {
     private UserInterface travelUI;
-    private TravelUIState travelUIState;
+    public TravelUIState travelUIState;
 
     public override void UpdateUI(GameTime gameTime)
     {

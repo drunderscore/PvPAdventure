@@ -101,9 +101,20 @@ public class ServerConfig : ModConfig
 
     [Header("TravelSystem")]
     [BackgroundColor(30, 150, 150)]
-    [Range(0, 60)]
     [DefaultValue(true)]
     public bool IsTravelSystemEnabled { get; set; }
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)]
+    public bool IsWorldSpawnTeleportEnabled { get; set; }
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)]
+    public bool IsTeammateSpawnTeleportEnabled { get; set; }
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)]
+    public bool IsRandomTeleportEnabled { get; set; }
 
     [BackgroundColor(30, 150, 150)]
     [Range(0, 60)]

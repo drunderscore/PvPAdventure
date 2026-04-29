@@ -45,6 +45,7 @@ internal class TravelUIState : UIState
     public void ForceRebuildNextUpdate()
     {
         lastTargetHash = int.MinValue;
+        Log.Chat("Travel UI hash changed, force rebuilding");
     }
 
     public void RebuildIfNeeded()
@@ -66,30 +67,24 @@ internal class TravelUIState : UIState
 
     private void Rebuild(List<TravelTarget> targets)
     {
+        // Clear existing UI elements
         backgroundPanel.RemoveAllChildren();
         chooseYourDestinationPanel?.Remove();
-        //backgroundPanel.BackgroundColor = new Color(33, 43, 79) * 1f;
 
         Player local = Main.LocalPlayer;
 
-        ClientConfig config = ModContent.GetInstance<ClientConfig>();
+        ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
+        ServerConfig serverConfig = ModContent.GetInstance<ServerConfig>();
 
         // Set scale based on config
-        float scale = config.travelUISize switch
+        float scale = clientConfig.travelUISize switch
         {
+            ClientConfig.TravelUISize.VerySmall => 0.8f,
             ClientConfig.TravelUISize.Small => 0.9f,
             ClientConfig.TravelUISize.Medium => 1.0f,
-            ClientConfig.TravelUISize.Big => 1.1f,
-            ClientConfig.TravelUISize.Huge => 1.2f,
+            ClientConfig.TravelUISize.Big => 1.15f,
             _ => 1f
         };
-
-        // Padding
-        float panelWidth = 115f * scale;
-        float panelHeight = 65f * scale;
-        float spacing = 12f * scale;
-        float paddingX = 12f * scale;
-        float paddingY = 16f * scale;
 
         List<Player> players = [];
 
@@ -106,52 +101,77 @@ internal class TravelUIState : UIState
                 players.Add(p);
         }
 
+        // Add debug players
 #if DEBUG
         for (int i = 0; i < debugPlayers; i++)
             players.Add(local);
 #endif
 
-        backgroundPanel.Width.Set(paddingX * 2f + panelWidth * (2 + players.Count) + spacing * (players.Count + 1), 0f);
-        backgroundPanel.Height.Set(paddingY * 2f + panelHeight, 0f);
-        backgroundPanel.SetPadding(0f);
+        // Set up layout
+        float unitWidth = 115f * scale;
+        float fullHeight = 76f * scale;
+        float innerSpacing = 0f * scale;
+        float spacing = 12f * scale;
+        float paddingX = 8f * scale;
+        float paddingY = 12f * scale;
+        bool bottom = clientConfig.travelUIPosition == ClientConfig.TravelUIPosition.Bottom;
+        
+        int worldUnits = serverConfig.IsWorldSpawnTeleportEnabled ? 1 : 0;
+        int randomUnits = serverConfig.IsRandomTeleportEnabled ? 1 : 0;
+        int playerCards = serverConfig.IsTeammateSpawnTeleportEnabled ? players.Count : 0;
+        int elementCount = worldUnits + randomUnits + playerCards;
+        float playerCardWidth = unitWidth * 2f + innerSpacing;
+        float contentWidth = unitWidth * (worldUnits + randomUnits) + playerCardWidth * playerCards + spacing * Math.Max(0, elementCount - 1);
 
-        bool bottom = config.travelUIPosition == ClientConfig.TravelUIPosition.Bottom;
-
+        backgroundPanel.Top.Set(bottom ? -116f * scale : 82f * scale, 0f);
         backgroundPanel.HAlign = 0.5f;
         backgroundPanel.VAlign = bottom ? 1f : 0f;
-        backgroundPanel.Top.Set(bottom ? -104f * scale : 82f * scale, 0f);
+        backgroundPanel.Width.Set(paddingX * 2f + contentWidth, 0f);
+        backgroundPanel.Height.Set(paddingY * 2f + fullHeight, 0f);
+        backgroundPanel.SetPadding(0f);
 
         float x = paddingX;
 
-        TravelTarget worldTarget = FindTarget(targets, TravelType.World, -1, new TravelTarget(TravelType.World, -1, Vector2.Zero, "World Spawn", "World", true));
-        UITravelButton world = new(worldTarget, TextureAssets.SpawnPoint.Value, "World", Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToWorldSpawn"), panelWidth, panelHeight);
-        world.Left.Set(x, 0f);
-        world.Top.Set(paddingY, 0f);
-        backgroundPanel.Append(world);
-        x += panelWidth + spacing;
-
-        foreach (Player player in players)
+        // Add world button
+        if (serverConfig.IsWorldSpawnTeleportEnabled)
         {
-            string bedReason = player.whoAmI == local.whoAmI ? "You have no valid bed set" : $"{player.name} has no bed set";
-            string portalReason = player.whoAmI == local.whoAmI ? "You have no portal" : $"{player.name} has no portal";
-
-            TravelTarget bed = FindTarget(targets, TravelType.Bed, player.whoAmI, new TravelTarget(TravelType.Bed, player.whoAmI, Vector2.Zero, $"{player.name}'s Bed", "Bed", false, bedReason));
-            TravelTarget portal = FindTarget(targets, TravelType.Portal, player.whoAmI, new TravelTarget(TravelType.Portal, player.whoAmI, Vector2.Zero, $"{player.name}'s Portal", "Portal", false, portalReason));
-
-            UITravelPlayerButton button = new(player, bed, portal, panelWidth, panelHeight);
-            button.Left.Set(x, 0f);
-            button.Top.Set(paddingY, 0f);
-            backgroundPanel.Append(button);
-
-            x += panelWidth + spacing;
+            TravelTarget worldTarget = FindTarget(targets, TravelType.World, -1, new TravelTarget(TravelType.World, -1, Vector2.Zero, "World Spawn", "World", true));
+            UITravelIconButton world = new(worldTarget, () => TextureAssets.SpawnPoint.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToWorldSpawn"), unitWidth, fullHeight, worldTarget.WorldPosition, null, null, 0.9f);
+            world.Left.Set(x, 0f);
+            world.Top.Set(paddingY, 0f);
+            backgroundPanel.Append(world);
+            x += unitWidth + spacing;
         }
 
-        TravelTarget randomTarget = FindTarget(targets, TravelType.Random, -1, new TravelTarget(TravelType.Random, -1, Vector2.Zero, "Random", "Random", true));
-        UITravelButton random = new(randomTarget, Ass.Icon_Question_Mark.Value, "Random", Language.GetTextValue("Mods.PvPAdventure.Travel.Random"), panelWidth, panelHeight);
-        random.Left.Set(x, 0f);
-        random.Top.Set(paddingY, 0f);
-        backgroundPanel.Append(random);
-        x += panelWidth + spacing;
+        // Add player cards for teammates
+        if (serverConfig.IsTeammateSpawnTeleportEnabled)
+        {
+            foreach (Player player in players)
+            {
+                string bedReason = player.whoAmI == local.whoAmI ? "You have no bed set" : $"{player.name} has no bed set";
+                string portalReason = player.whoAmI == local.whoAmI ? "You have no portal" : $"{player.name} has no portal";
+
+                TravelTarget bed = FindTarget(targets, TravelType.Bed, player.whoAmI, new TravelTarget(TravelType.Bed, player.whoAmI, Vector2.Zero, $"{player.name}'s Bed", "Bed", false, bedReason));
+                TravelTarget portal = FindTarget(targets, TravelType.Portal, player.whoAmI, new TravelTarget(TravelType.Portal, player.whoAmI, Vector2.Zero, $"{player.name}'s Portal", "Portal", false, portalReason));
+
+                UITravelPlayerCard button = new(player, bed, portal, unitWidth, fullHeight, innerSpacing);
+                button.Left.Set(x, 0f);
+                button.Top.Set(paddingY, 0f);
+                backgroundPanel.Append(button);
+
+                x += playerCardWidth + spacing;
+            }
+        }
+
+        // Add random button
+        if (serverConfig.IsRandomTeleportEnabled)
+        {
+            TravelTarget randomTarget = FindTarget(targets, TravelType.Random, -1, new TravelTarget(TravelType.Random, -1, Vector2.Zero, "Random", "Random", true));
+            UITravelIconButton random = new(randomTarget, () => Ass.Icon_Question_Mark.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.Random"), unitWidth, fullHeight, Vector2.Zero, null, 7, 1.1f);
+            random.Left.Set(x, 0f);
+            random.Top.Set(paddingY, 0f);
+            backgroundPanel.Append(random);
+        }
 
         backgroundPanel.Recalculate();
         backgroundPanel.RecalculateChildren();
@@ -160,7 +180,7 @@ internal class TravelUIState : UIState
         {
             HAlign = 0.5f,
             VAlign = backgroundPanel.VAlign,
-            Width = { Pixels = 260f * scale },
+            Width = { Pixels = 300f * scale },
             Height = { Pixels = 45 * scale },
             Top = new StyleDimension(backgroundPanel.Top.Pixels - 44f * scale, 0f),
             BackgroundColor = new Color(73, 94, 171),
@@ -261,7 +281,6 @@ internal class TravelUIState : UIState
         if (Main.keyState.IsKeyDown(Keys.F5) && !Main.oldKeyState.IsKeyDown(Keys.F5))
         {
             ForceRebuildNextUpdate();
-            Log.Chat("Travel UI force rebuilt");
         }
     }
 #endif

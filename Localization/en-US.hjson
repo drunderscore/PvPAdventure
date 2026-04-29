@@ -899,6 +899,21 @@ Mods: {
 					Label: Show Portal Creation Projectile
 					Tooltip: ""
 				}
+
+				IsWorldSpawnTeleportEnabled: {
+					Label: Is World Spawn Teleport Enabled
+					Tooltip: ""
+				}
+
+				IsTeammateSpawnTeleportEnabled: {
+					Label: Is Teammate Spawn Teleport Enabled
+					Tooltip: ""
+				}
+
+				IsRandomTeleportEnabled: {
+					Label: Is Random Teleport Enabled
+					Tooltip: ""
+				}
 			}
 
 			Bounty: {
@@ -1960,24 +1975,24 @@ Mods: {
 			TravelUISize: {
 				Tooltip: ""
 
+				VerySmall: {
+					Label: Very Small
+					Tooltip: ""
+				}
+
 				Small: {
 					Label: Small
-					Tooltip: Scale: 0.9
+					Tooltip: ""
 				}
 
 				Medium: {
 					Label: Medium
-					Tooltip: Scale: 1.0
+					Tooltip: ""
 				}
 
 				Big: {
 					Label: Big
-					Tooltip: Scale: 1.1
-				}
-
-				Huge: {
-					Label: Huge
-					Tooltip: Scale: 1.2
+					Tooltip: ""
 				}
 			}
 		}
