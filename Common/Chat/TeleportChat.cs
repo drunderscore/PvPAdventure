@@ -51,6 +51,23 @@ public static class TeleportChat
         SendSystemTeamMessage(player, $"{player.name} has opened a portal in {biome}", Color.Yellow);
     }
 
+    public static void AnnouncePortalDestroyed(Player owner, string fallbackOwnerName)
+    {
+        var clientConfig = ModContent.GetInstance<ClientConfig>();
+
+        if (!clientConfig.ShowTeleportPlayerMessages)
+            return;
+
+        if (owner?.active != true)
+            return;
+
+        //string biome = BiomeHelper.GetBiomeDisplayName(owner);
+
+        string name = !string.IsNullOrWhiteSpace(fallbackOwnerName) ? fallbackOwnerName : owner.name;
+
+        SendSystemTeamMessage(owner, $"{name}'s portal has been destroyed!", Color.Yellow);
+    }
+
     private static string GetDestination(Player player, TravelType type, int targetIdx)
     {
         return type switch

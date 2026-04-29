@@ -22,7 +22,8 @@ public class ClientConfig : ModConfig
     {
         Small,
         Medium,
-        Big
+        Big,
+        Huge
     }
 
     [Header("Visualization")]
@@ -57,7 +58,7 @@ public class ClientConfig : ModConfig
     public TravelUIPosition travelUIPosition;
 
     [BackgroundColor(30, 150, 150)]
-    [DefaultValue(TravelUISize.Medium)]
+    [DefaultValue(TravelUISize.Big)]
     [JsonConverter(typeof(StringEnumConverter))]
     public TravelUISize travelUISize;
 

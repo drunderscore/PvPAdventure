@@ -78,7 +78,9 @@ internal class TravelUIState : UIState
         float scale = config.travelUISize switch
         {
             ClientConfig.TravelUISize.Small => 0.9f,
+            ClientConfig.TravelUISize.Medium => 1.0f,
             ClientConfig.TravelUISize.Big => 1.1f,
+            ClientConfig.TravelUISize.Huge => 1.2f,
             _ => 1f
         };
 

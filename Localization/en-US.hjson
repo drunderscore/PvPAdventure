@@ -557,7 +557,12 @@ Mods: {
 				}
 
 				travelUIPosition: {
-					Label: Portal Travel Position
+					Label: Portal Travel UI Position
+					Tooltip: ""
+				}
+
+				travelUISize: {
+					Label: Portal Travel UI Size
 					Tooltip: ""
 				}
 			}
@@ -1949,6 +1954,30 @@ Mods: {
 				Bottom: {
 					Label: Bottom
 					Tooltip: ""
+				}
+			}
+
+			TravelUISize: {
+				Tooltip: ""
+
+				Small: {
+					Label: Small
+					Tooltip: Scale: 0.9
+				}
+
+				Medium: {
+					Label: Medium
+					Tooltip: Scale: 1.0
+				}
+
+				Big: {
+					Label: Big
+					Tooltip: Scale: 1.1
+				}
+
+				Huge: {
+					Label: Huge
+					Tooltip: Scale: 1.2
 				}
 			}
 		}

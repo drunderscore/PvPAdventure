@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Chat;
 using PvPAdventure.Common.Travel.Portals;
 using System;
 using System.IO;
@@ -162,8 +163,13 @@ public sealed class PortalNPC : ModNPC
 
     public override void OnKill()
     {
-        if (Main.netMode != NetmodeID.MultiplayerClient)
-            PortalSystem.ClearCreationProjectiles(OwnerIndex);
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        PortalSystem.ClearCreationProjectiles(OwnerIndex);
+
+        if (TryGetOwner(out Player owner))
+            TeleportChat.AnnouncePortalDestroyed(owner, GetOwnerName());
     }
 
     private bool TryGetOwner(out Player owner)
@@ -205,8 +211,12 @@ public sealed class PortalNPC : ModNPC
         if (player == null || player.whoAmI < 0 || player.whoAmI >= Main.maxPlayers)
             return false;
 
+        if (IsFriendlyPlayer(player))
+            return false;
+
         return NPC.immune[player.whoAmI] <= 0;
     }
+
     public override bool? CanBeHitByProjectile(Projectile projectile)
     {
         if (projectile == null || !projectile.active || !projectile.friendly || projectile.hostile || projectile.damage <= 0)
@@ -215,8 +225,14 @@ public sealed class PortalNPC : ModNPC
         if (projectile.owner < 0 || projectile.owner >= Main.maxPlayers)
             return false;
 
+        Player owner = Main.player[projectile.owner];
+
+        if (IsFriendlyPlayer(owner))
+            return false;
+
         return NPC.immune[projectile.owner] <= 0;
     }
+
     public override void OnHitByItem(Player player, Item item, NPC.HitInfo hit, int damageDone)
     {
         NPC.immune[player.whoAmI] = MeleeHitCooldown;
@@ -227,6 +243,17 @@ public sealed class PortalNPC : ModNPC
     {
         NPC.immune[projectile.owner] = ProjectileHitCooldown;
         PlayPortalFx(WorldPosition, NPC.life <= 0, hit.Damage);
+    }
+
+    private bool IsFriendlyPlayer(Player player)
+    {
+        if (player?.active != true)
+            return false;
+
+        if (player.whoAmI == OwnerIndex)
+            return true;
+
+        return player.team > 0 && player.team == OwnerTeam;
     }
 
     #endregion

@@ -60,7 +60,24 @@ public class PortalCreatorItem : ModItem
 
     #endregion
 
-    public override bool? UseItem(Player player) => true;
+    public override bool? UseItem(Player player)
+    {
+        if (player?.whoAmI != Main.myPlayer)
+            return true;
+
+        if (!TravelRules.Enabled)
+        {
+            Warning(player, "Mods.PvPAdventure.PortalCreator.TravelDisabledInConfig");
+            return false;
+        }
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            PortalNetHandler.SendPortalCreatorUse(player.selectedItem);
+        else
+            PortalSystem.StartPortalCreation(player);
+
+        return true;
+    }
 
     public static void ResetUseState(Player player)
     {
@@ -134,11 +151,6 @@ public class PortalCreatorItem : ModItem
         player.releaseUseItem = false;
         player.channel = false;
 
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-            PortalNetHandler.SendPortalCreatorUse(index);
-        else
-            PortalSystem.StartPortalCreation(player);
-
         return player.itemAnimation > 0;
     }
 
@@ -155,7 +167,10 @@ public class PortalCreatorItem : ModItem
         if (player.velocity.LengthSquared() > 0f)
         {
             if (player.whoAmI == Main.myPlayer)
+            {
                 Warning(player, "Mods.PvPAdventure.PortalCreator.Cancelled");
+                TravelTeleportSystem.ClearSelection();
+            }
 
             ResetUseState(player);
             return;
@@ -167,7 +182,7 @@ public class PortalCreatorItem : ModItem
     #region Drawing
     public override bool PreDrawInInventory(SpriteBatch sb, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
     {
-        const float itemScale = 0.8f;
+        const float itemScale = 0.6f;
 
         Texture2D texture = PortalAssets.GetCreatorTexture(Main.LocalPlayer?.team ?? 0);
         sb.Draw(texture, position, frame, drawColor, 0f, origin, itemScale, SpriteEffects.None, 0f);

@@ -2,6 +2,7 @@
 using PvPAdventure.Common.Spectator;
 using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Common.Travel.Portals;
+using PvPAdventure.Common.Travel.UI;
 using PvPAdventure.Content.Portals;
 using Terraria;
 using Terraria.ModLoader;
@@ -88,9 +89,22 @@ internal sealed class TravelSpectateSystem : ModSystem
             return;
         }
 
+        if (!TravelTeleportSystem.ShouldShowTravelUI(local))
+        {
+            RestoreIfPreviewing(local);
+            return;
+        }
+
         ValidateHover();
 
         bool hovering = hasHover || hoveringPlayer;
+
+        if (hovering && !TravelUISystem.IsMouseHovering)
+        {
+            RestoreToPlayer(local);
+            return;
+        }
+
         HandleHoverTransitions(local, hovering);
 
         if (hovering)
@@ -176,6 +190,32 @@ internal sealed class TravelSpectateSystem : ModSystem
             hasRestorePos = false;
         }
 
+        ClearHover();
+        wasHovering = false;
+    }
+
+    private static void RestoreIfPreviewing(Player player)
+    {
+        if (!wasHovering && !hasHover && !hoveringPlayer && !hasRestorePos && !MapRestore)
+            return;
+
+        RestoreToPlayer(player);
+    }
+
+    private static void RestoreToPlayer(Player player)
+    {
+        if (MapRestore)
+        {
+            Main.mapFullscreen = true;
+            MapRestore = false;
+        }
+
+        if (player?.active == true)
+            SpectateCameraFade.SetScreenPosition(player.Center - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f);
+        else if (hasRestorePos)
+            SpectateCameraFade.SetScreenPosition(restoreScreenPos);
+
+        hasRestorePos = false;
         ClearHover();
         wasHovering = false;
     }

@@ -89,10 +89,9 @@ public sealed class PortalCreationProjectile : ModProjectile
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
 
-        if (!TryGetOwner(out Player owner) || owner.dead || owner.ghost || owner.velocity.LengthSquared() > 0f)
+        if (!TryGetOwner(out Player owner) || owner.dead || owner.ghost || owner.velocity.LengthSquared() > 0.01f)
         {
-            Projectile.Kill();
-            //Log.Chat("Portal cancelled");
+            KillAndSync();
             return;
         }
 
@@ -101,15 +100,11 @@ public sealed class PortalCreationProjectile : ModProjectile
 
         if (!PortalSystem.CreateOrReplacePortal(owner, Projectile.Bottom))
         {
-            Projectile.Kill();
+            KillAndSync();
             return;
         }
 
-        //Log.Chat("Portal creation projectile killed");
-        Projectile.Kill();
-
-        if (Main.netMode == NetmodeID.Server)
-            NetMessage.SendData(MessageID.KillProjectile, -1, -1, null, Projectile.identity, Projectile.owner);
+        KillAndSync();
     }
 
     public override bool PreDraw(ref Color lightColor)
@@ -152,6 +147,21 @@ public sealed class PortalCreationProjectile : ModProjectile
     {
         owner = Projectile.owner >= 0 && Projectile.owner < Main.maxPlayers ? Main.player[Projectile.owner] : null;
         return owner?.active == true;
+    }
+
+    private void KillAndSync()
+    {
+        if (!Projectile.active)
+            return;
+
+        int identity = Projectile.identity;
+        int owner = Projectile.owner;
+
+        Projectile.Kill();
+        Log.Chat("Portal projectile killed");
+
+        if (Main.netMode == NetmodeID.Server)
+            NetMessage.SendData(MessageID.KillProjectile, -1, -1, null, identity, owner);
     }
 
 }
