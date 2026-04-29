@@ -1,0 +1,34 @@
+﻿using PvPAdventure.Core.Net;
+using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
+
+namespace PvPAdventure.Common.Travel.Beds;
+
+internal sealed class TeamBedPlayer : ModPlayer
+{
+    private int lastSpawnX = int.MinValue;
+    private int lastSpawnY = int.MinValue;
+    private int lastTeam;
+
+    public override void PostUpdate()
+    {
+        if (Main.netMode != NetmodeID.MultiplayerClient || Player.whoAmI != Main.myPlayer)
+            return;
+
+        if (Player.SpawnX == lastSpawnX && Player.SpawnY == lastSpawnY)
+            return;
+
+        lastSpawnX = Player.SpawnX;
+        lastSpawnY = Player.SpawnY;
+
+        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.TeamBed);
+        packet.Write((byte)Main.myPlayer);
+        packet.Write(Player.SpawnX);
+        packet.Write(Player.SpawnY);
+        packet.Send();
+
+        Log.Chat($"Bed update for {Player.name}, spawn=({Player.SpawnX},{Player.SpawnY}), team={(Terraria.Enums.Team)Player.team}");
+    }
+}

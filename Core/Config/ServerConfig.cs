@@ -99,16 +99,38 @@ public class ServerConfig : ModConfig
     [DefaultValue(0.25f)]
     public float BoundSpawnChance { get; set; }
 
-    [Header("Gameplay")]
-    [BackgroundColor(40, 90, 40)]
+    [Header("TravelSystem")]
+    [BackgroundColor(30, 150, 150)]
+    [Range(0, 60)]
+    [DefaultValue(true)]
+    public bool IsTravelSystemEnabled { get; set; }
+
+    [BackgroundColor(30, 150, 150)]
+    [Range(0, 60)]
+    [DefaultValue(8)]
+    public int TravelRegionRadiusTiles { get; set; }
+
+    [BackgroundColor(30, 150, 150)]
     [Range(0, 60)]
     [DefaultValue(4)]
-    public int AdventureMirrorRecallSeconds { get; set; }
+    public int TravelPortalCreationTimeSeconds { get; set; }
 
-    [BackgroundColor(40, 90, 40)]
+    [Range(0, 60)]
+    [DefaultValue(true)]
+    [BackgroundColor(30, 150, 150)]
+    public bool ShowPortalCreationProjectile { get; set; }
+
+    [BackgroundColor(30, 150, 150)]
+    [Range(-60, 60)]
+    [DefaultValue(30)]
+    public int PortalCreationOffset { get; set; }
+
+    [BackgroundColor(30, 150, 150)]
     [Range(0, 60)]
     [DefaultValue(5)]
-    public int SpawnTeleportCooldownSeconds { get; set; } = 5;
+    public int TeleportCooldownSeconds { get; set; }
+
+    [Header("Gameplay")]
 
     [BackgroundColor(40, 90, 40)]
     [Range(0, 30 * 60)]

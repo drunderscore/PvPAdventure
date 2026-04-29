@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Common.Teams;
+using PvPAdventure.Common.Travel;
 using PvPAdventure.Core.Config;
 using System;
 using Terraria;
@@ -17,7 +17,7 @@ namespace PvPAdventure.Common.Chat;
 /// </summary>
 public static class TeleportChat
 {
-    public static void Announce(Player player, SpawnType type, int targetIdx = -1)
+    public static void Announce(Player player, TravelType type, int targetIdx = -1)
     {
         var clientConfig = ModContent.GetInstance<ClientConfig>();
         if (!clientConfig.ShowTeleportPlayerMessages)
@@ -75,16 +75,14 @@ public static class TeleportChat
         }
     }
 
-    private static string GetDestination(Player player, SpawnType type, int targetIdx)
+    private static string GetDestination(Player player, TravelType type, int targetIdx)
     {
         return type switch
         {
-            SpawnType.World => "world spawn",
-            SpawnType.MyBed => "their own bed",
-            SpawnType.MyPortal => "their own portal",
-            SpawnType.Random => "a random location",
-            SpawnType.TeammateBed => GetOwnedDestination(player, targetIdx, "bed"),
-            SpawnType.TeammatePortal => GetOwnedDestination(player, targetIdx, "portal"),
+            TravelType.World => "world spawn",
+            TravelType.Bed => "a bed",
+            TravelType.Portal => "a portal",
+            TravelType.Random => "a random location",
             _ => ""
         };
     }

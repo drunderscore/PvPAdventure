@@ -35,6 +35,7 @@ Mods: {
 			DebugDLClearChatTool.DisplayName: DL Debug Clear Chat Tool
 			SpectateMenu.DisplayName: Spectate Menu
 			ToggleSpectateMode.DisplayName: Toggle Spectate Mode
+			UsePortalCreator.DisplayName: Use Portal Creator
 		}
 
 		Tools: {
@@ -236,16 +237,6 @@ Mods: {
 				Tooltip: ""
 			}
 
-			AdventureMirror: {
-				DisplayName: Adventure Mirror
-				Tooltip:
-					'''
-					Hold still to charge the mirror.
-					When the timer ends, it creates a portal at your position.
-					Use the portal to choose a spawn.
-					'''
-			}
-
 			AdminManagerConfigItem: {
 				DisplayName: Admin Manager Config Item
 				Tooltip: ""
@@ -415,6 +406,11 @@ Mods: {
 				DisplayName: Force Spectating Config Item
 				Tooltip: ""
 			}
+
+			PortalCreatorItem: {
+				DisplayName: Adventure Portal Creator
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -473,6 +469,7 @@ Mods: {
 					Movement: "[i:HermesBoots] Movement"
 					Chat: "[i:PvPAdventure/ChatConfigItem] Chat"
 					Visualization: Visualization
+					PortalTravel: Portal Travel
 				}
 
 				IsVanillaDashEnabled: {
@@ -556,6 +553,11 @@ Mods: {
 
 				spawnSelectorPosition: {
 					Label: Spawn Selector Position
+					Tooltip: ""
+				}
+
+				travelUIPosition: {
+					Label: Portal Travel Position
 					Tooltip: ""
 				}
 			}
@@ -725,6 +727,7 @@ Mods: {
 					Gameplay: "[i:GPS] Gameplay"
 					WorldGen: "[i:WorldGlobe] World Generation"
 					Security: "[i:PvPAdventure/SecurityConfigItem] Security"
+					TravelSystem: Portal Travel
 				}
 
 				Points: {
@@ -862,8 +865,33 @@ Mods: {
 					Tooltip: ""
 				}
 
-				SpawnTeleportCooldownSeconds: {
-					Label: Spawn Teleport Cooldown Seconds
+				TeleportCooldownSeconds: {
+					Label: Teleport Cooldown Seconds
+					Tooltip: The time after a teleport has been completed before a new one can be tried again
+				}
+
+				IsTravelSystemEnabled: {
+					Label: Is Travel System Enabled
+					Tooltip: Whether portal creator will spawn the portal and whether the UI will be drawn
+				}
+
+				TravelRegionRadiusTiles: {
+					Label: Travel Region Tiles
+					Tooltip: The distance in tiles to beds and portals where the UI will be opened
+				}
+
+				TravelPortalCreationTimeSeconds: {
+					Label: "[i:PvPAdventure/PortalCreatorItem] Portal Creation Use Time"
+					Tooltip: The time in seconds it takes for a portal to be created
+				}
+
+				PortalCreationOffset: {
+					Label: Portal Creation Offset
+					Tooltip: ""
+				}
+
+				ShowPortalCreationProjectile: {
+					Label: Show Portal Creation Projectile
 					Tooltip: ""
 				}
 			}
@@ -1420,7 +1448,7 @@ Mods: {
 				Headers: {
 					Arenas: "[i:PvPAdventure/ArenasConfigItem] Arenas"
 					Loadouts: Loadouts
-					Respawn: Respawn Header
+					Respawn: Respawn Settings
 				}
 
 				IsArenasEnabled: {
@@ -1905,14 +1933,29 @@ Mods: {
 					Tooltip: ""
 				}
 			}
+
+			TravelUIPosition: {
+				Tooltip: ""
+
+				Top: {
+					Label: Top
+					Tooltip: ""
+				}
+
+				Bottom: {
+					Label: Bottom
+					Tooltip: ""
+				}
+			}
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
 		Player.CannotRecall: Cannot recall!
 		DashKeybind.NoDashItem: you have no dash item!
+		Subworlds.ArenasSubworld.DisplayName: Arenas 1
 
-		Spawn: {
-			ChooseYourSpawn: Choose Your Spawn
+		Travel: {
+			ChooseYourDestination: Choose Your Destination
 			Random: Teleport to random location
 			TeleportToWorldSpawn: Teleport to world spawn
 			TeammatesBed: "{0}'s Bed"
@@ -1936,9 +1979,7 @@ Mods: {
 			SpectatingPlayer: Spectating {0}
 		}
 
-		Subworlds.ArenasSubworld.DisplayName: Arenas 1
-
-		AdventureMirror: {
+		PortalCreator: {
 			GameNotStarted: wait until game starts!
 			CannotUseInSpawn: cannot use in spawn region!
 			CannotUseWhileMoving: cannot use while moving!
@@ -1993,6 +2034,7 @@ Mods: {
 			PowerBombProjectile.DisplayName: Power Bomb Projectile
 			PowerBombExplosion.DisplayName: Power Bomb Explosion
 			StickyPowerBombProjectile.DisplayName: Sticky Power Bomb Projectile
+			PortalCreationProjectile.DisplayName: Portal Creation Projectile
 		}
 	}
 }

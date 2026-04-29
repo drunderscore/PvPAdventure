@@ -10,107 +10,84 @@ public class PvPAdventure : Mod
     /// Packet handler for PvP Adventure mod packets.
     /// See <see cref="AdventurePacketIdentifier"/> for packet types.
     /// </summary>
-    public override void HandlePacket(BinaryReader r, int whoAmI)
+    public override void HandlePacket(BinaryReader reader, int whoAmI)
     {
-        long packetStart = r.BaseStream.Position;
-        long packetLength = r.BaseStream.Length;
+        // This causes read underflow and bogus logs, dont do it!
+        //long packetStart = reader.BaseStream.Position;
+        //long packetLength = reader.BaseStream.Length;
 
-        var id = (AdventurePacketIdentifier)r.ReadByte();
+        var id = (AdventurePacketIdentifier)reader.ReadByte();
 
         //Log.Debug($"[Packet] Start id={(byte)id} ({id}), whoAmI={whoAmI}, bytes={packetLength - packetStart}");
 
         switch (id)
         {
             case AdventurePacketIdentifier.BountyTransaction:
-                Common.Bounties.BountyNetHandler.HandlePacket(r, whoAmI);
+                Common.Bounties.BountyNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.PlayerStatistics:
-                Common.Statistics.PlayerStatisticsNetHandler.HandlePacket(r, whoAmI);
+                Common.Statistics.PlayerStatisticsNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
-            //case AdventurePacketIdentifier.PingPong:
-            //    PingPongNetHandler.HandlePacket(r, whoAmI);
-            //    break;
-
             case AdventurePacketIdentifier.PlayerItemPickup:
-                Common.Statistics.PlayerItemPickupNetHandler.HandlePacket(r, whoAmI);
+                Common.Statistics.PlayerItemPickupNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.PlayerTeam:
-                Common.Teams.PlayerTeamNetHandler.HandlePacket(r, whoAmI);
+                Common.Teams.PlayerTeamNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.GameTimer:
-                Common.GameTimer.GameTimerNetHandler.HandlePacket(r, whoAmI);
+            case AdventurePacketIdentifier.TeamBed:
+                Common.Travel.Beds.TeamBedNetHandler.HandlePacket(reader, whoAmI);
+                break;
+
+            case AdventurePacketIdentifier.NpcStrikeTeam:
+                Common.Combat.TeamBoss.TeamBossNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.Dash:
-                Common.Movement.Dash.DashInputSystem.HandlePacket(r, whoAmI);
+                Common.Movement.Dash.DashInputSystem.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.TeleportRequest:
-                Common.SpawnSelector.Net.TeleportNetHandler.HandlePacket(r, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.PlayerBed:
-                Common.SpawnSelector.Net.PlayerBedNetHandler.HandlePacket(r, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.SpawnSelection:
-                Common.SpawnSelector.Net.SpawnNetHandler.HandlePacket(r, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.TeleportFx:
-                Common.SpawnSelector.Net.TeleportFxNetHandler.HandlePacket(r, whoAmI);
+            case AdventurePacketIdentifier.GameTimer:
+                Common.GameTimer.GameTimerNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.SSC:
-                Common.SSC.SSC.HandlePacket(r, whoAmI);
-                break;
-
-            // case AdventurePacketIdentifier.WhitelistPlayerCheck:
-            //     Common.Security.WhitelistPlayerHandler.HandlePacket(r, whoAmI);
-            //     break;
-
-            //case AdventurePacketIdentifier.SaveMatch:
-            //    Common.MainMenu.MatchHistory.Net.SaveMatchNetHandler.HandlePacket(r, whoAmI);
-            //    break;
-
-            case AdventurePacketIdentifier.NpcStrikeTeam:
-                Common.Combat.TeamBoss.TeamBossNetHandler.HandlePacket(r, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.HoldingMap:
-                Common.Visualization.HoldingMap.MapHoldingNetHandler.HandlePacket(r, whoAmI);
+                Common.SSC.SSC.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.ClientModCheck:
-                Common.Security.ClientModHandler.HandlePacket(r, whoAmI);
+                Common.Security.ClientModHandler.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.ArenasAdmin:
-                Common.AdminTools.Tools.ArenasTool.ArenasAdminNetHandler.HandlePacket(r, whoAmI);
+            case AdventurePacketIdentifier.HoldingMap:
+                Common.Visualization.HoldingMap.MapHoldingNetHandler.HandlePacket(reader, whoAmI);
                 break;
+
+            //case AdventurePacketIdentifier.ArenasAdmin:
+            //    Common.AdminTools.Tools.ArenasTool.ArenasAdminNetHandler.HandlePacket(reader, whoAmI);
+            //    break;
 
             case AdventurePacketIdentifier.Skins:
-                Common.Skins.SkinNetHandler.HandlePacket(r, whoAmI);
+                Common.Skins.SkinNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.Spectator:
-                Common.Spectator.Net.SpectatorModeNetHandler.Receive(r, whoAmI);
+                Common.Spectator.Net.SpectatorModeNetHandler.Receive(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.SessionTracker:
-                Common.Spectator.Trackers.SessionTrackerNetHandler.HandlePacket(r, whoAmI);
+                Common.Spectator.Trackers.SessionTrackerNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.PlayerPortal:
-                Common.SpawnSelector.Net.PlayerPortalNetHandler.HandlePacket(r, whoAmI);
+            case AdventurePacketIdentifier.TravelTeleport:
+                Common.Travel.TravelTeleportNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.PortalFx:
-                Common.SpawnSelector.Net.PortalFxNetHandler.HandlePacket(r, whoAmI);
+            case AdventurePacketIdentifier.UsePortal:
+                Common.Travel.Portals.PortalNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             default:
@@ -118,12 +95,12 @@ public class PvPAdventure : Mod
                 break;
         }
 
-        long bytesLeft = r.BaseStream.Length - r.BaseStream.Position;
+        //long bytesLeft = reader.BaseStream.Length - reader.BaseStream.Position;
 
-        if (bytesLeft != 0)
-        {
-            Log.Warn($"[Packet] Handler left unread bytes: id={(byte)id} ({id}), left={bytesLeft}, total={packetLength - packetStart}");
-            r.BaseStream.Position = r.BaseStream.Length;
-        }
+        //if (bytesLeft != 0)
+        //{
+        //    Log.Warn($"[Packet] Handler left unread bytes: id={(byte)id} ({id}), left={bytesLeft}, total={packetLength - packetStart}");
+        //    reader.BaseStream.Position = reader.BaseStream.Length;
+        //}
     }
 }

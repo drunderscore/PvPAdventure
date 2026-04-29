@@ -1,18 +1,14 @@
-using DragonLens.Core.Systems;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Arenas.UI;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Chat;
-using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spectator.SpectatorMode;
-using PvPAdventure.Common.Spectator.UI;
 using PvPAdventure.Common.Statistics;
-using PvPAdventure.Content.Items;
+using PvPAdventure.Content.Portals;
 using PvPAdventure.Core.Config;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.GameInput;
-using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Core.Input;
@@ -26,19 +22,23 @@ public class Keybinds : ModSystem
     public ModKeybind Dash { get; private set; }
     public ModKeybind ArenasMenu { get; private set; }
     public ModKeybind ToggleSpectateMode { get; private set; }
-    public ModKeybind UseAdventureMirror { get; private set; }
+    public ModKeybind UsePortalCreator { get; private set; }
 
-    #region Adventure mirror label
-    public static string UseAdventureMirrorLabel => GetLabel(ModContent.GetInstance<Keybinds>().UseAdventureMirror, "assign a keybind in Controls");
-    private static string GetLabel(ModKeybind keybind, string unboundText = "assign a keybind in Controls")
+    #region Portal creator label
+    public static string UsePortalCreatorLabel
     {
-        if (keybind is null)
-            return unboundText;
+        get
+        {
+            ModKeybind keybind = ModContent.GetInstance<Keybinds>().UsePortalCreator;
 
-        var keys = keybind.GetAssignedKeys();
-        keys.RemoveAll(static key => string.IsNullOrWhiteSpace(key));
+            if (keybind is null)
+                return null;
 
-        return keys.Count > 0 ? string.Join(" / ", keys) : unboundText;
+            List<string> keys = keybind.GetAssignedKeys();
+            keys.RemoveAll(static key => string.IsNullOrWhiteSpace(key));
+
+            return keys.Count > 0 ? string.Join(" / ", keys) : null;
+        }
     }
     #endregion
 
@@ -49,7 +49,7 @@ public class Keybinds : ModSystem
         AllChat = KeybindLoader.RegisterKeybind(Mod, "AllChat", Keys.U);
         Dash = KeybindLoader.RegisterKeybind(Mod, "Dash", Keys.F);
         ArenasMenu = KeybindLoader.RegisterKeybind(Mod, "ArenasMenu", Keys.F1);
-        UseAdventureMirror = KeybindLoader.RegisterKeybind(Mod, "UseAdventureMirror", Keys.G);
+        UsePortalCreator = KeybindLoader.RegisterKeybind(Mod, "UsePortalCreator", Keys.G);
         ToggleSpectateMode = KeybindLoader.RegisterKeybind(Mod, "ToggleSpectateMode", Keys.NumPad0);
     }
 }
@@ -96,11 +96,11 @@ internal class KeybindsPlayer : ModPlayer
             ArenasUISystem.Toggle();
         }
 
-        // Adventure mirror keybind
-        if (keybinds.UseAdventureMirror.JustPressed)
+        // UsePortalCreator keybind
+        if (keybinds.UsePortalCreator.JustPressed)
         {
-            Log.Chat("Adventure mirror keybind pressed");
-            AdventureMirror.TryUse(Player);
+            //Log.Chat("Portal creator item keybind pressed");
+            PortalCreatorItem.TryUse(Player);
         }
 
         // Toggle spectate mode

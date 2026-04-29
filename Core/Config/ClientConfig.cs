@@ -12,7 +12,7 @@ public class ClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
-    public enum SpawnSelectorPosition
+    public enum TravelUIPosition
     {
         Top,
         Bottom,
@@ -43,17 +43,11 @@ public class ClientConfig : ModConfig
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] public bool IsVanillaDashEnabled;
 
-    [Header("SpawnAndRespawn")]
+    [Header("PortalTravel")]
     [BackgroundColor(30, 150, 150)]
-    [DefaultValue(true)] public bool ShowChooseYourSpawnText;
-
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(false)] public bool AutoSelectLatestSpawnOption;
-
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(SpawnSelectorPosition.Top)]
+    [DefaultValue(TravelUIPosition.Top)]
     [JsonConverter(typeof(StringEnumConverter))]
-    public SpawnSelectorPosition spawnSelectorPosition;
+    public TravelUIPosition travelUIPosition;
 
     [Header("Sound")]
     [Expand(false, false)]

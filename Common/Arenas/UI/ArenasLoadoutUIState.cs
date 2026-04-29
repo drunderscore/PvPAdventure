@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.SpawnSelector;
 using PvPAdventure.Common.Spectator;
 using PvPAdventure.Common.Spectator.SpectatorMode;
+using PvPAdventure.Common.Travel;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using PvPAdventure.UI;
@@ -210,7 +210,8 @@ public class ArenasLoadoutUIState : UIState
 
         // Check if player can select loadout
         var arenaPlayer = p.GetModPlayer<ArenasPlayer>();
-        bool inSpawnRegion = p.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
+        //bool inSpawnRegion = p.GetModPlayer<SpawnPlayer>().IsPlayerInSpawnRegion();
+        bool inSpawnRegion = TravelRegionSystem.IsInTravelRegion(arenaPlayer.Player);
         if (!inSpawnRegion && !arenaPlayer.CanSelectLoadout(out string reason))
         {
             Main.NewText($"Cannot select loadout: {reason}", Color.OrangeRed);

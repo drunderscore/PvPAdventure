@@ -1,5 +1,6 @@
 ﻿using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
 using PvPAdventure.Common.Statistics;
+using PvPAdventure.Common.Travel.Beds;
 using PvPAdventure.Core.Net;
 using System.IO;
 using Terraria;

@@ -1,5 +1,6 @@
 ﻿namespace PvPAdventure.Common.Teams;
 
+using global::PvPAdventure.Common.Travel.Beds;
 using global::PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.ID;
@@ -20,6 +21,11 @@ public class TeamResyncPlayer : ModPlayer
         {
             _pendingResync = true;
             _resyncTimer = 0;
+        }
+
+        if (Main.netMode == NetmodeID.Server)
+        {
+            ModContent.GetInstance<TeamBedSystem>().SendAllBedsToClient(Player.whoAmI);
         }
     }
 

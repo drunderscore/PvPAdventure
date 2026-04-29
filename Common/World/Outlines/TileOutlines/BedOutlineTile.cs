@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Teams;
+using PvPAdventure.Common.Travel.Beds;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.ID;

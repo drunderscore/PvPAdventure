@@ -4,26 +4,19 @@ public enum AdventurePacketIdentifier : byte
 {
     BountyTransaction,
     PlayerStatistics,
-    PingPong,
     PlayerItemPickup,
     PlayerTeam,
+    TeamBed,
     NpcStrikeTeam,
     Dash, // player keybind dash ability
     GameTimer, // game manager with subpackets GameTimerPacketType
     SSC, // Server Sided Character with subpackets SSCPacketType
-    PlayerBed, // update player spawn point
-    TeleportRequest, // teleport to beds or world spawn
-    SpawnSelection, // set random or player spawn while respawn timer or map timer is running
-    AdventureMirrorRightClickUse, // player right click use of adventure mirror item
     HoldingMap, // player is holding the map item
-    TeleportFx, // teleport effects
-    SaveMatch, // save match data to disk after game ends
     ClientModCheck, // check for client mods when joining
-    WhitelistPlayerCheck, // check if player is whitelisted to join the server
     ArenasAdmin, // admin for arenas (send players to arenas, etc)
     Skins, // sync who has skins for all players
     Spectator, // sync spectator mode for all players
     SessionTracker, // sync session time for all players
-    PlayerPortal, // request server-owned PortalNPC create/clear
-    PortalFx // portal hit/kill effects
+    TravelTeleport, // teleport between beds/portals/world spawn, play sound/vfx, etc
+    UsePortal, // use portal creator item to create a portal, sync to everyone
 }

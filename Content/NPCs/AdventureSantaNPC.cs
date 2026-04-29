@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Content.Items;
+using PvPAdventure.Content.Portals;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent;
@@ -116,7 +117,7 @@ internal class AdventureSantaNPC : ModNPC
         var shop = new NPCShop(Type);
 
         //shop.Add(ModContent.ItemType<AdventureBag>());
-        shop.Add(ModContent.ItemType<AdventureMirror>());
+        shop.Add(ModContent.ItemType<PortalCreatorItem>());
         shop.Register();
     }
     public override void SetChatButtons(ref string button, ref string button2)
