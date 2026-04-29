@@ -28,10 +28,12 @@ public static class PlayerTeamNetHandler
                 return;
             }
 
+            // Sync player
             target.team = (int)team.Value;
 
-            // Sync player
-            ModContent.GetInstance<TeamBedSystem>().UpdateFromPlayer(target);
+            TeamBedSystem beds = ModContent.GetInstance<TeamBedSystem>();
+            beds.UpdateFromPlayer(target);
+            beds.SendAllStateToClient(whoAmI);
 
             ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.PlayerTeam);

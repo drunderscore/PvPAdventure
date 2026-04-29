@@ -55,7 +55,7 @@ public class TravelMapLayer : ModSystem
         BlockMapInput(local);
         text = GetMapHoverText(local, target, Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToWorldSpawn"));
 
-        if (TryClick(local))
+        if (CanExecuteMapTeleport(local, target) && TryClick(local))
             TravelTeleportSystem.ActivateTarget(target);
     }
 
@@ -89,7 +89,7 @@ public class TravelMapLayer : ModSystem
 
             text = GetMapHoverText(local, target, teleportText);
 
-            if (TryClick(local))
+            if (CanExecuteMapTeleport(local, target) && TryClick(local))
                 TravelTeleportSystem.ActivateTarget(target);
         }
     }
@@ -119,7 +119,7 @@ public class TravelMapLayer : ModSystem
 
             text = GetMapHoverText(local, target, teleportText);
 
-            if (TryClick(local))
+            if (CanExecuteMapTeleport(local, target) && TryClick(local))
                 TravelTeleportSystem.ActivateTarget(target);
         }
     }
@@ -132,6 +132,7 @@ public class TravelMapLayer : ModSystem
         BlockMapInput(local);
         local.releaseUseItem = false;
         Main.mouseLeftRelease = false;
+        Main.mapFullscreen = false;
         return true;
     }
 
@@ -165,9 +166,7 @@ public class TravelMapLayer : ModSystem
 
     private static bool CanExecuteMapTeleport(Player local, TravelTarget target)
     {
-        return TravelTeleportSystem.ShouldShowTravelUI(local) &&
-            !local.dead &&
-            !local.ghost &&
+        return TravelRegionSystem.IsInTravelRegion(local) &&
             !TravelTeleportSystem.IsWaitingForPortalCreator(local) &&
             TravelTeleportSystem.CanTeleport(local, target, out _);
     }

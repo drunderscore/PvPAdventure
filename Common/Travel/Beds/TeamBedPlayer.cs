@@ -9,7 +9,6 @@ internal sealed class TeamBedPlayer : ModPlayer
 {
     private int lastSpawnX = int.MinValue;
     private int lastSpawnY = int.MinValue;
-    private int lastTeam;
 
     public override void PostUpdate()
     {
@@ -28,7 +27,5 @@ internal sealed class TeamBedPlayer : ModPlayer
         packet.Write(Player.SpawnX);
         packet.Write(Player.SpawnY);
         packet.Send();
-
-        Log.Chat($"Bed update for {Player.name}, spawn=({Player.SpawnX},{Player.SpawnY}), team={(Terraria.Enums.Team)Player.team}");
     }
 }

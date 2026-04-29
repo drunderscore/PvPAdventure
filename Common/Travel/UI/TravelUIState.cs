@@ -136,7 +136,7 @@ internal class TravelUIState : UIState
         if (serverConfig.IsWorldSpawnTeleportEnabled)
         {
             TravelTarget worldTarget = FindTarget(targets, TravelType.World, -1, new TravelTarget(TravelType.World, -1, Vector2.Zero, "World Spawn", "World", true));
-            UITravelIconButton world = new(worldTarget, () => TextureAssets.SpawnPoint.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToWorldSpawn"), unitWidth, fullHeight, worldTarget.WorldPosition, null, null, 0.9f);
+            UITravelIconButton world = new(worldTarget, () => TextureAssets.SpawnPoint.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToWorldSpawn"), unitWidth, fullHeight, null, 0.9f);
             world.Left.Set(x, 0f);
             world.Top.Set(paddingY, 0f);
             backgroundPanel.Append(world);
@@ -167,7 +167,7 @@ internal class TravelUIState : UIState
         if (serverConfig.IsRandomTeleportEnabled)
         {
             TravelTarget randomTarget = FindTarget(targets, TravelType.Random, -1, new TravelTarget(TravelType.Random, -1, Vector2.Zero, "Random", "Random", true));
-            UITravelIconButton random = new(randomTarget, () => Ass.Icon_Question_Mark.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.Random"), unitWidth, fullHeight, Vector2.Zero, null, 7, 1.1f);
+            UITravelIconButton random = new(randomTarget, () => Ass.Icon_Question_Mark.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.Random"), unitWidth, fullHeight, forcedMapBgIndex: 7, iconScaleMultiplier: 1.1f);
             random.Left.Set(x, 0f);
             random.Top.Set(paddingY, 0f);
             backgroundPanel.Append(random);

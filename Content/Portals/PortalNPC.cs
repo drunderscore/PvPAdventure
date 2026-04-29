@@ -247,6 +247,11 @@ public sealed class PortalNPC : ModNPC
 
     private bool IsFriendlyPlayer(Player player)
     {
+        // Return false to allow testing damage in debug mode, even if the player is friendly.
+#if DEBUG
+        return false;
+#endif
+
         if (player?.active != true)
             return false;
 

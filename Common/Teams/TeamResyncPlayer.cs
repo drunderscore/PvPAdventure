@@ -23,10 +23,10 @@ public class TeamResyncPlayer : ModPlayer
             _resyncTimer = 0;
         }
 
-        if (Main.netMode == NetmodeID.Server)
-        {
-            ModContent.GetInstance<TeamBedSystem>().SendAllBedsToClient(Player.whoAmI);
-        }
+        //if (Main.netMode == NetmodeID.Server)
+        //{
+        //    ModContent.GetInstance<TeamBedSystem>().SendAllBedsToClient(Player.whoAmI);
+        //}
     }
 
     public override void PostUpdate()

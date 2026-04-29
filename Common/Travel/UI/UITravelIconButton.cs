@@ -14,18 +14,14 @@ internal sealed class UITravelIconButton : UIPanel
     private readonly TravelTarget target;
     private readonly Func<Texture2D> textureProvider;
     private readonly string hoverText;
-    private readonly Vector2 backgroundWorldPosition;
-    private readonly Player backgroundZonePlayer;
     private readonly int? forcedMapBgIndex;
     private readonly float iconScaleMultiplier;
 
-    public UITravelIconButton(TravelTarget target, Func<Texture2D> textureProvider, string hoverText, float width, float height, Vector2 backgroundWorldPosition, Player backgroundZonePlayer, int? forcedMapBgIndex, float iconScaleMultiplier)
+    public UITravelIconButton(TravelTarget target, Func<Texture2D> textureProvider, string hoverText, float width, float height, int? forcedMapBgIndex, float iconScaleMultiplier)
     {
         this.target = target;
         this.textureProvider = textureProvider;
         this.hoverText = hoverText;
-        this.backgroundWorldPosition = backgroundWorldPosition;
-        this.backgroundZonePlayer = backgroundZonePlayer;
         this.forcedMapBgIndex = forcedMapBgIndex;
         this.iconScaleMultiplier = iconScaleMultiplier;
 
@@ -99,8 +95,7 @@ internal sealed class UITravelIconButton : UIPanel
             return;
         }
 
-        if (backgroundWorldPosition != Vector2.Zero)
-            BiomeBackgroundDrawer.DrawMapFullscreenBackground(sb, rect, backgroundWorldPosition, fadePixels: 8, shrinkPadding: 0, overrideColor: color);
+        BiomeBackgroundDrawer.DrawMapFullscreenBackground(sb, rect, target.WorldPosition, fadePixels: 8, shrinkPadding: 0, overrideColor: color);
     }
 
     private void DrawIcon(SpriteBatch sb, Rectangle rect)

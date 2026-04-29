@@ -68,6 +68,32 @@ public static class TeleportChat
         SendSystemTeamMessage(owner, $"{name}'s portal has been destroyed!", Color.Yellow);
     }
 
+    public static void AnnounceBedDestroyed(Player owner, string fallbackOwnerName)
+    {
+        var clientConfig = ModContent.GetInstance<ClientConfig>();
+        if (!clientConfig.ShowTeleportPlayerMessages)
+            return;
+        if (owner?.active != true)
+            return;
+        string name = !string.IsNullOrWhiteSpace(fallbackOwnerName) ? fallbackOwnerName : owner.name;
+        SendSystemTeamMessage(owner, $"{name}'s bed has been destroyed!", Color.Yellow);
+    }
+
+    public static void AnnounceBedSet(Player player)
+    {
+        var clientConfig = ModContent.GetInstance<ClientConfig>();
+
+        if (!clientConfig.ShowTeleportPlayerMessages)
+            return;
+
+        if (player?.active != true)
+            return;
+
+        string biome = BiomeHelper.GetBiomeDisplayName(player);
+
+        SendSystemTeamMessage(player, $"{player.name} has set their bed in {biome}", Color.Yellow);
+    }
+
     private static string GetDestination(Player player, TravelType type, int targetIdx)
     {
         return type switch

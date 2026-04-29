@@ -41,8 +41,6 @@ internal sealed class UITravelPlayerCard : UIPanel
             this.player.whoAmI == Main.myPlayer ? Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToMyBed") : Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToTeammatesBed", this.player.name),
             unitWidth,
             destinationHeight,
-            bedTarget.WorldPosition,
-            backgroundZonePlayer: null,
             null,
             0.8f
         );
@@ -56,8 +54,6 @@ internal sealed class UITravelPlayerCard : UIPanel
             this.player.whoAmI == Main.myPlayer ? Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToMyPortal") : Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToTeammatesPortal", this.player.name),
             unitWidth,
             destinationHeight,
-            portalTarget.WorldPosition,
-            null,
             null,
             1.18f
         );

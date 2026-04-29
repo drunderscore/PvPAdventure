@@ -34,47 +34,34 @@ internal class BiomeBackgroundDrawer
         texture = null;
         color = Color.White;
 
-        // Convert world position to tile coords
         int tileX = (int)(worldPosition.X / 16f);
         int tileY = (int)(worldPosition.Y / 16f);
-        if (tileX < 0 || tileX >= Main.maxTilesX || tileY < 0 || tileY >= Main.maxTilesY)
+
+        if (!WorldGen.InWorld(tileX, tileY, 10))
             return false;
 
-        Tile tile = Main.tile[tileX, tileY];
-        if (tile == null)
-            return false;
-
+        Tile tile = Framing.GetTileSafely(tileX, tileY);
         int wall = tile.WallType;
-        int bgIndex = -1;
+        float tileYf = worldPosition.Y / 16f;
 
-        // Simulate a dummy player at this position to set zone flags
-        Player dummy = new Player();
-        dummy.Center = worldPosition;
-        dummy.UpdateBiomes();  // now dummy.ZoneJungle, ZoneHallow, etc. are set as if standing here
+        BiomeSample sample = SampleBiomeTiles(tileX, tileY);
+        bool underground = worldPosition.Y > Main.worldSurface * 16.0;
+        bool ocean = tileYf < Main.worldSurface + 10.0 && (tileX < 380 || tileX > Main.maxTilesX - 380);
+        int bgIndex;
 
-        float worldY = worldPosition.Y;
-        float tileYf = worldY / 16f;
-
-        // 1) Hell layer (underworld)
-        if (worldY > (Main.maxTilesY - 232) * 16f)
+        if (worldPosition.Y > (Main.maxTilesY - 232) * 16f)
         {
             bgIndex = 2;
         }
-        // 2) Dungeon (or dungeon walls)
-        else if (dummy.ZoneDungeon ||
-                 wall == WallID.BlueDungeonUnsafe ||
-                 wall == WallID.GreenDungeonUnsafe ||
-                 wall == WallID.PinkDungeonUnsafe)
+        else if (wall is WallID.BlueDungeonUnsafe or WallID.GreenDungeonUnsafe or WallID.PinkDungeonUnsafe)
         {
             bgIndex = 4;
         }
-        // 3) Spider Cavern (jungle temple wall)
         else if (wall == 87)
         {
             bgIndex = 13;
         }
-        // 4) Underground/Cavern layers
-        else if (worldY > Main.worldSurface * 16.0)
+        else if (underground)
         {
             bgIndex = wall switch
             {
@@ -82,84 +69,73 @@ internal class BiomeBackgroundDrawer
                 180 or 184 => 16,
                 178 or 183 => 17,
                 62 or 263 => 18,
-                _ when dummy.ZoneGlowshroom => 20,
-                _ when dummy.ZoneCorrupt && dummy.ZoneDesert => 39,
-                _ when dummy.ZoneCorrupt && dummy.ZoneSnow => 33,
-                _ when dummy.ZoneCorrupt => 22,
-                _ when dummy.ZoneCrimson && dummy.ZoneDesert => 40,
-                _ when dummy.ZoneCrimson && dummy.ZoneSnow => 34,
-                _ when dummy.ZoneCrimson => 23,
-                _ when dummy.ZoneHallow && dummy.ZoneDesert => 41,
-                _ when dummy.ZoneHallow && dummy.ZoneSnow => 35,
-                _ when dummy.ZoneHallow => 21,
-                _ when dummy.ZoneSnow => 3,
-                _ when dummy.ZoneJungle => 12,
-                _ when dummy.ZoneDesert => 14,
-                _ when dummy.ZoneRockLayerHeight => 31,
+                _ when sample.Mushroom => 20,
+                _ when sample.Corrupt && sample.Desert => 39,
+                _ when sample.Corrupt && sample.Snow => 33,
+                _ when sample.Corrupt => 22,
+                _ when sample.Crimson && sample.Desert => 40,
+                _ when sample.Crimson && sample.Snow => 34,
+                _ when sample.Crimson => 23,
+                _ when sample.Hallow && sample.Desert => 41,
+                _ when sample.Hallow && sample.Snow => 35,
+                _ when sample.Hallow => 21,
+                _ when sample.Snow => 3,
+                _ when sample.Jungle => 12,
+                _ when sample.Desert => 14,
                 _ => tileYf > Main.rockLayer ? 31 : 1
             };
         }
-        // 5) Surface Glowing Mushroom biome
-        else if (dummy.ZoneGlowshroom)
+        else if (sample.Mushroom)
         {
             bgIndex = 19;
         }
-        // 6) Surface/sky and other biomes
+        else if (tileYf < Main.worldSurface * 0.45f)
+        {
+            bgIndex = 32;
+        }
+        else if (sample.Corrupt)
+        {
+            bgIndex = sample.Desert ? 36 : 5;
+        }
+        else if (sample.Crimson)
+        {
+            bgIndex = sample.Desert ? 37 : 6;
+        }
+        else if (sample.Hallow)
+        {
+            bgIndex = sample.Desert ? 38 : 7;
+        }
+        else if (ocean)
+        {
+            bgIndex = 10;
+        }
+        else if (sample.Snow)
+        {
+            bgIndex = 11;
+        }
+        else if (sample.Jungle)
+        {
+            bgIndex = 8;
+        }
+        else if (sample.Desert)
+        {
+            bgIndex = 9;
+        }
+        else if (Main.bloodMoon)
+        {
+            bgIndex = 25;
+            color *= 2f;
+        }
+        else if (sample.Graveyard)
+        {
+            bgIndex = 26;
+        }
         else
         {
-            // If this position would be “dead” (not likely for a fake player, but we check)
-            if (dummy.dead)
-                color = new Color(50, 50, 50, 255);
-
-            if (dummy.ZoneSkyHeight)
-            {
-                bgIndex = 32;
-            }
-            else if (dummy.ZoneCorrupt)
-            {
-                bgIndex = dummy.ZoneDesert ? 36 : 5;
-            }
-            else if (dummy.ZoneCrimson)
-            {
-                bgIndex = dummy.ZoneDesert ? 37 : 6;
-            }
-            else if (dummy.ZoneHallow)
-            {
-                bgIndex = dummy.ZoneDesert ? 38 : 7;
-            }
-            else if (tileYf < Main.worldSurface + 10.0 && (tileX < 380 || tileX > Main.maxTilesX - 380))
-            {
-                bgIndex = 10;  // ocean-ish sky edge
-            }
-            else if (dummy.ZoneSnow)
-            {
-                bgIndex = 11;
-            }
-            else if (dummy.ZoneJungle)
-            {
-                bgIndex = 8;
-            }
-            else if (dummy.ZoneDesert)
-            {
-                bgIndex = 9;
-            }
-            else if (Main.bloodMoon)
-            {
-                bgIndex = 25;
-                color *= 2f;
-            }
-            else if (dummy.ZoneGraveyard)
-            {
-                bgIndex = 26;
-            }
-            else
-            {
-                bgIndex = 0; // default surface
-            }
+            bgIndex = 0;
         }
 
-        // Fetch the texture for the chosen background index
-        int safeIndex = (bgIndex >= 0 && bgIndex < Ass.MapBG.Length) ? bgIndex : 0;
+        int safeIndex = bgIndex >= 0 && bgIndex < Ass.MapBG.Length ? bgIndex : 0;
         texture = Ass.MapBG[safeIndex]?.Value;
         return texture != null;
     }
@@ -186,108 +162,6 @@ internal class BiomeBackgroundDrawer
         DrawZoomed(sb, texture, rect, overrideColor ?? Color.White, fadePixels);
     }
 
-
-    //private static bool TryGetMapBG(Vector2 worldPosition, Player zonePlayer, out Texture2D texture, out Color color)
-    //{
-    //    texture = null;
-    //    color = Color.White;
-
-    //    int tileX = (int)(worldPosition.X / 16f);
-    //    int tileY = (int)(worldPosition.Y / 16f);
-
-    //    if (tileX < 0 || tileX >= Main.maxTilesX || tileY < 0 || tileY >= Main.maxTilesY)
-    //        return false;
-
-    //    Tile tile = Main.tile[tileX, tileY];
-
-    //    if (tile == null)
-    //        return false;
-
-    //    int wall = tile.WallType;
-    //    int bgIndex = -1;
-
-    //    float worldY = worldPosition.Y;
-    //    float tileYFloat = worldY / 16f;
-    //    bool useZones = zonePlayer?.active == true;
-
-    //    if (worldY > (Main.maxTilesY - 232) * 16f)
-    //    {
-    //        bgIndex = 2;
-    //    }
-    //    else if (useZones && zonePlayer.ZoneDungeon || wall == WallID.BlueDungeonUnsafe || wall == WallID.GreenDungeonUnsafe || wall == WallID.PinkDungeonUnsafe)
-    //    {
-    //        bgIndex = 4;
-    //    }
-    //    else if (wall == 87)
-    //    {
-    //        bgIndex = 13;
-    //    }
-    //    else if (worldY > Main.worldSurface * 16.0)
-    //    {
-    //        bgIndex = wall switch
-    //        {
-    //            86 or 108 => 15,
-    //            180 or 184 => 16,
-    //            178 or 183 => 17,
-    //            62 or 263 => 18,
-    //            _ when useZones && zonePlayer.ZoneGlowshroom => 20,
-    //            _ when useZones && zonePlayer.ZoneCorrupt && zonePlayer.ZoneDesert => 39,
-    //            _ when useZones && zonePlayer.ZoneCorrupt && zonePlayer.ZoneSnow => 33,
-    //            _ when useZones && zonePlayer.ZoneCorrupt => 22,
-    //            _ when useZones && zonePlayer.ZoneCrimson && zonePlayer.ZoneDesert => 40,
-    //            _ when useZones && zonePlayer.ZoneCrimson && zonePlayer.ZoneSnow => 34,
-    //            _ when useZones && zonePlayer.ZoneCrimson => 23,
-    //            _ when useZones && zonePlayer.ZoneHallow && zonePlayer.ZoneDesert => 41,
-    //            _ when useZones && zonePlayer.ZoneHallow && zonePlayer.ZoneSnow => 35,
-    //            _ when useZones && zonePlayer.ZoneHallow => 21,
-    //            _ when useZones && zonePlayer.ZoneSnow => 3,
-    //            _ when useZones && zonePlayer.ZoneJungle => 12,
-    //            _ when useZones && zonePlayer.ZoneDesert => 14,
-    //            _ when useZones && zonePlayer.ZoneRockLayerHeight => 31,
-    //            _ => tileYFloat > Main.rockLayer ? 31 : 1
-    //        };
-    //    }
-    //    else if (useZones && zonePlayer.ZoneGlowshroom)
-    //    {
-    //        bgIndex = 19;
-    //    }
-    //    else
-    //    {
-    //        if (useZones && zonePlayer.dead)
-    //            color = new Color(50, 50, 50, 255);
-
-    //        if (useZones && zonePlayer.ZoneSkyHeight)
-    //            bgIndex = 32;
-    //        else if (useZones && zonePlayer.ZoneCorrupt)
-    //            bgIndex = zonePlayer.ZoneDesert ? 36 : 5;
-    //        else if (useZones && zonePlayer.ZoneCrimson)
-    //            bgIndex = zonePlayer.ZoneDesert ? 37 : 6;
-    //        else if (useZones && zonePlayer.ZoneHallow)
-    //            bgIndex = zonePlayer.ZoneDesert ? 38 : 7;
-    //        else if (tileYFloat < Main.worldSurface + 10.0 && (tileX < 380 || tileX > Main.maxTilesX - 380))
-    //            bgIndex = 10;
-    //        else if (useZones && zonePlayer.ZoneSnow)
-    //            bgIndex = 11;
-    //        else if (useZones && zonePlayer.ZoneJungle)
-    //            bgIndex = 8;
-    //        else if (useZones && zonePlayer.ZoneDesert)
-    //            bgIndex = 9;
-    //        else if (Main.bloodMoon)
-    //        {
-    //            bgIndex = 25;
-    //            color *= 2f;
-    //        }
-    //        else if (useZones && zonePlayer.ZoneGraveyard)
-    //            bgIndex = 26;
-    //        else
-    //            bgIndex = 0;
-    //    }
-
-    //    int safeIndex = bgIndex >= 0 && bgIndex < Ass.MapBG.Length ? bgIndex : 0;
-    //    texture = Ass.MapBG[safeIndex]?.Value;
-
-    //    return texture != null;
-    //}
 
     public static void DrawFadedFill(SpriteBatch sb, Rectangle rect, Color color, int fadePixels = 0)
     {
@@ -376,134 +250,91 @@ internal class BiomeBackgroundDrawer
         return MathHelper.SmoothStep(0.9f, 1f, (progress - 0.8f) / 0.2f);
     }
 
-    /// <summary>
-    /// Draws the MapBG "biome" texture the player is currently in.
-    /// </summary>
-    //public static void DrawMapFullscreenBackground(SpriteBatch sb, Rectangle rect, Player player, int topFadePixels = 0)
-    //{ 
-    //    if (player == null || !player.active)
-    //        return;
+    private readonly struct BiomeSample
+    {
+        public readonly bool Snow;
+        public readonly bool Desert;
+        public readonly bool Jungle;
+        public readonly bool Corrupt;
+        public readonly bool Crimson;
+        public readonly bool Hallow;
+        public readonly bool Mushroom;
+        public readonly bool Graveyard;
 
-    //    // Player tile coordinates
-    //    int tileX = (int)(player.Center.X / 16f);
-    //    int tileY = (int)(player.Center.Y / 16f);
+        public BiomeSample(bool snow, bool desert, bool jungle, bool corrupt, bool crimson, bool hallow, bool mushroom, bool graveyard)
+        {
+            Snow = snow;
+            Desert = desert;
+            Jungle = jungle;
+            Corrupt = corrupt;
+            Crimson = crimson;
+            Hallow = hallow;
+            Mushroom = mushroom;
+            Graveyard = graveyard;
+        }
+    }
 
-    //    Tile tile = Main.tile[tileX, tileY];
-    //    if (tile == null)
-    //        return;
+    private static BiomeSample SampleBiomeTiles(int tileX, int tileY)
+    {
+        bool snow = false;
+        bool desert = false;
+        bool jungle = false;
+        bool corrupt = false;
+        bool crimson = false;
+        bool hallow = false;
+        bool mushroom = false;
+        bool graveyard = false;
 
-    //    int wall = tile.WallType;
-    //    int bgIndex = -1;
-    //    Color color = Color.White;
+        for (int y = -8; y <= 8; y++)
+        {
+            for (int x = -8; x <= 8; x++)
+            {
+                int sampleX = tileX + x;
+                int sampleY = tileY + y;
 
-    //    // Use player Y position to determine underground/cavern/hell layers
-    //    float playerYWorld = player.Center.Y;
-    //    float playerYTiles = playerYWorld / 16f;
+                if (!WorldGen.InWorld(sampleX, sampleY, 1))
+                    continue;
 
-    //    // Hell layer
-    //    if (playerYWorld > (Main.maxTilesY - 232) * 16)
-    //    {
-    //        bgIndex = 2;
-    //    }
-    //    // Dungeon
-    //    else if (player.ZoneDungeon)
-    //    {
-    //        bgIndex = 4;
-    //    }
-    //    // Spider cave (?) wall
-    //    else if (wall == 87)
-    //    {
-    //        bgIndex = 13;
-    //    }
-    //    // Underground / cavern backgrounds
-    //    else if (playerYWorld > Main.worldSurface * 16.0)
-    //    {
-    //        bgIndex = wall switch
-    //        {
-    //            86 or 108 => 15,
-    //            180 or 184 => 16,
-    //            178 or 183 => 17,
-    //            62 or 263 => 18,
-    //            _ => player.ZoneGlowshroom ? 20 :
-    //                 player.ZoneCorrupt ? player.ZoneDesert ? 39 : player.ZoneSnow ? 33 : 22 :
-    //                 player.ZoneCrimson ? player.ZoneDesert ? 40 : player.ZoneSnow ? 34 : 23 :
-    //                 player.ZoneHallow ? player.ZoneDesert ? 41 : player.ZoneSnow ? 35 : 21 :
-    //                 player.ZoneSnow ? 3 :
-    //                 player.ZoneJungle ? 12 :
-    //                 player.ZoneDesert ? 14 :
-    //                 player.ZoneRockLayerHeight ? 31 : 1
-    //        };
-    //    }
-    //    // Surface mushroom biome
-    //    else if (player.ZoneGlowshroom)
-    //    {
-    //        bgIndex = 19;
-    //    }
-    //    else
-    //    {
-    //        color = Color.White;
+                Tile tile = Framing.GetTileSafely(sampleX, sampleY);
 
-    //        if (player.dead)
-    //            color = new Color(50, 50, 50, 255);
+                if (tile.HasTile)
+                {
+                    int type = tile.TileType;
 
-    //        int midTileX = tileX;
+                    snow |= IsSnowTile(type);
+                    desert |= IsDesertTile(type);
+                    jungle |= IsJungleTile(type);
+                    corrupt |= IsCorruptTile(type);
+                    crimson |= IsCrimsonTile(type);
+                    hallow |= IsHallowTile(type);
+                    mushroom |= type is TileID.MushroomGrass or TileID.MushroomPlants;
+                    graveyard |= type == TileID.Tombstones;
+                }
 
-    //        if (player.ZoneSkyHeight)
-    //            bgIndex = 32;
-    //        else if (player.ZoneCorrupt)
-    //            bgIndex = player.ZoneDesert ? 36 : 5;
-    //        else if (player.ZoneCrimson)
-    //            bgIndex = player.ZoneDesert ? 37 : 6;
-    //        else if (player.ZoneHallow)
-    //            bgIndex = player.ZoneDesert ? 38 : 7;
+                //graveyard |= tile.WallType == WallID.GraveyardEcho;
+            }
+        }
 
-    //        // "Ocean" style edges
-    //        else if (playerYTiles < Main.worldSurface + 10.0 &&
-    //                 (midTileX < 380 || midTileX > Main.maxTilesX - 380))
-    //            bgIndex = 10;
-    //        else if (player.ZoneSnow)
-    //            bgIndex = 11;
-    //        else if (player.ZoneJungle)
-    //            bgIndex = 8;
-    //        else if (player.ZoneDesert)
-    //            bgIndex = 9;
-    //        else if (Main.bloodMoon)
-    //        {
-    //            bgIndex = 25;
-    //            color *= 2f;
-    //        }
-    //        else if (player.ZoneGraveyard)
-    //            bgIndex = 26;
-    //    }
+        return new BiomeSample(snow, desert, jungle, corrupt, crimson, hallow, mushroom, graveyard);
+    }
 
-    //    int safeIndex = bgIndex >= 0 && bgIndex < Ass.MapBG.Length ? bgIndex : 0;
-    //    var asset = Ass.MapBG[safeIndex];
+    private static bool IsSnowTile(int tileType) =>
+        tileType is TileID.SnowBlock or TileID.IceBlock or TileID.CorruptIce or TileID.FleshIce or TileID.HallowedIce;
 
-    //    int shrinkPadding = 5;
-    //    rect.X += shrinkPadding;
-    //    rect.Y += shrinkPadding;
-    //    rect.Width -= shrinkPadding * 2;
-    //    rect.Height -= shrinkPadding * 2;
+    private static bool IsDesertTile(int tileType) =>
+        tileType is TileID.Sand or TileID.HardenedSand or TileID.Sandstone or TileID.Ebonsand or TileID.Crimsand or TileID.Pearlsand;
 
-    //    if (asset == null || asset.Value == null)
-    //        return;
+    private static bool IsJungleTile(int tileType) =>
+        tileType is TileID.JungleGrass or TileID.Mud or TileID.JunglePlants or TileID.JungleThorns or TileID.Hive;
 
-    //    //sb.Draw(asset.Value, rect, color);
+    private static bool IsCorruptTile(int tileType) =>
+        tileType is TileID.CorruptGrass or TileID.Ebonstone or TileID.Ebonsand or TileID.CorruptJungleGrass;
 
-    //    //Texture2D tex = asset.Value;
+    private static bool IsCrimsonTile(int tileType) =>
+        tileType is TileID.CrimsonGrass or TileID.Crimstone or TileID.Crimsand or TileID.CrimsonJungleGrass;
 
-    //    //float scaleX = (float)rect.Width / tex.Width;
-    //    //float scaleY = (float)rect.Height / tex.Height;
-    //    //float scale = MathHelper.Max(scaleX, scaleY); // Max = fill, Min = fit
+    private static bool IsHallowTile(int tileType) =>
+        tileType is TileID.HallowedGrass or TileID.Pearlstone or TileID.Pearlsand;
 
-    //    //int srcW = (int)(rect.Width / scale);
-    //    //int srcH = (int)(rect.Height / scale);
-    //    //int srcX = (tex.Width - srcW) / 2;
-    //    //int srcY = (tex.Height - srcH) / 2;
 
-    //    //Rectangle srcRect = new(srcX, srcY, srcW, srcH);
-    //    //sb.Draw(tex, rect, srcRect, color);
-
-    //    DrawZoomed(sb, asset.Value, rect, color, topFadePixels);
-    //}
 }
