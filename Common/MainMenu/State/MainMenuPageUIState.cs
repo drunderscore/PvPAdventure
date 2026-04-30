@@ -67,14 +67,14 @@ public abstract class MainMenuPageUIState : UIState
     {
         base.Update(gameTime);
 
-        if (KeyboardHelper.JustPressed(Keys.Escape))
+        if (KeyboardHelper.Pressed(Keys.Escape))
             GoBack();
 
         UpdateScreenMetrics();
         UILinkPointNavigator.Shortcuts.BackButtonCommand = 7;
 
 #if DEBUG
-        if (KeyboardHelper.JustPressed(Keys.F5))
+        if (KeyboardHelper.Pressed(Keys.F5))
             pendingRebuild = true;
 
         if (pendingRebuild)

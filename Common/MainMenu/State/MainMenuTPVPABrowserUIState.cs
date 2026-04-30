@@ -42,10 +42,10 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
     {
         base.Update(gameTime);
 
-        if (KeyboardHelper.JustPressed(Keys.Escape))
+        if (KeyboardHelper.Pressed(Keys.Escape))
             GoBackToMainMenu();
 #if DEBUG
-        if (KeyboardHelper.JustPressed(Keys.F5))
+        if (KeyboardHelper.Pressed(Keys.F5))
             pendingRebuild = true;
 
         if (pendingRebuild)

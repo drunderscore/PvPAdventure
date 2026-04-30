@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Spectator.Drawers.Inventory;
 using PvPAdventure.Common.Spectator.SpectatorMode;
 using Terraria;
 using Terraria.UI;
@@ -8,34 +9,26 @@ namespace PvPAdventure.Common.Spectator.UI;
 
 internal sealed class SpectatorUIState : UIState
 {
-    private SpectatorControls spectatorControlsElement;
-    private SpectatorPanel spectatePanel;
+    private SpectatorControlsPanel spectatorControlsElement;
 
     public override void OnActivate()
     {
         RemoveAllChildren();
     }
 
-    internal bool IsSpectatePanelOpen() => spectatePanel?.Parent != null;
-
-    internal void ToggleSpectatePanel()
+    public void RebuildSpectatorControlsPanel()
     {
-        if (IsSpectatePanelOpen())
+        spectatorControlsElement?.Rebuild();
+    }
+
+    internal void EnsureSpectatorHUDStaysOpen()
+    {
+        if (spectatorControlsElement?.Parent is not null)
         {
-            spectatePanel.Remove();
             return;
         }
 
-        spectatePanel ??= new SpectatorPanel();
-        Append(spectatePanel);
-    }
-
-    internal void EnsurePlayerSpectatorControlsOpen()
-    {
-        if (spectatorControlsElement?.Parent is not null)
-            return;
-
-        spectatorControlsElement ??= new SpectatorControls();
+        spectatorControlsElement ??= new SpectatorControlsPanel();
         Append(spectatorControlsElement);
     }
 
@@ -48,11 +41,14 @@ internal sealed class SpectatorUIState : UIState
             return;
 
         if (SpectatorModeSystem.IsInSpectateMode(local))
-            EnsurePlayerSpectatorControlsOpen();
+        {
+            EnsureSpectatorHUDStaysOpen();
+            InventoryOverlay.Update();
+        }
         else
         {
             spectatorControlsElement?.Remove();
-            spectatePanel?.Remove();
+            InventoryOverlay.Clear();
         }
 
         spectatorControlsElement?.UpdateTarget();
@@ -70,6 +66,7 @@ internal sealed class SpectatorUIState : UIState
         if (!SpectatorModeSystem.IsInSpectateMode(local))
             return;
 
-        SpectatorInventoryOverlay.Draw(sb);
+        // Draw spectated player's inventory
+        InventoryOverlay.Draw(sb);
     }
 }

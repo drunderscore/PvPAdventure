@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.Spectator;
+using PvPAdventure.Common.Spectator.Drawers.Inventory;
 using PvPAdventure.Common.Spectator.SpectatorMode;
-using PvPAdventure.Common.Spectator.UI;
+using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.GameInput;
 using Terraria.ModLoader;
@@ -27,10 +29,34 @@ internal class InventoryWhileDeadSystem : ModSystem
 
     private void ModifyIngameOptionsInput(On_Player.orig_TryOpeningInGameOptionsBasedOnInput orig, Player self)
     {
+        // Spectator special case
         if (SpectatorModeSystem.IsInSpectateMode(Main.LocalPlayer) || self.ghost)
         {
-            //if (Main.playerInventory)
-                //Main.playerInventory = false;
+            CloseOwnInventory();
+            if (!Main.ingameOptionsWindow)
+            {
+                return;
+            }
+        }
+
+        // Press escape special case
+        if (KeyboardHelper.Pressed(Keys.Escape))
+        {
+            Player target = SpectatorTargetSystem.GetPlayerTarget();
+
+            if (target?.active == true)
+            {
+                Log.Chat("Toggle spectated player's inventory for " + target.name);
+                InventoryOverlay.Toggle(target.whoAmI);
+            }
+            else
+            {
+                // TODO
+                // This never reaches because it's handled in InventoryOverlay.Update.
+                // ...So this is redundant, but keep it just in-case.
+                //Main.NewText("Inventory is disabled as a spectator unless you are spectating another player.", Color.Yellow);
+            }
+
             return;
         }
 
@@ -79,10 +105,9 @@ internal class InventoryWhileDeadSystem : ModSystem
 
     private void ModifyInterfaceLogic(On_Main.orig_DrawInterface_26_InterfaceLogic3 orig)
     {
-        if (SpectatorModeSystem.IsInSpectateMode(Main.LocalPlayer) && !Main.ingameOptionsWindow && Main.keyState.IsKeyDown(Keys.Escape) && !Main.oldKeyState.IsKeyDown(Keys.Escape))
+        if (SpectatorModeSystem.IsInSpectateMode(Main.LocalPlayer) || Main.LocalPlayer.ghost)
         {
-            SpectatorUISystem.EnsurePlayerSpectatorControlsOpen();
-            SpectatorUISystem.ToggleSpectatePanel();
+            CloseOwnInventory();
             return;
         }
 
@@ -102,5 +127,14 @@ internal class InventoryWhileDeadSystem : ModSystem
             }
         }
         Main.hoverItemName = "";
+    }
+
+    private static void CloseOwnInventory()
+    {
+        //Log.Chat("Closing ghost/spectator inventory");
+        Main.playerInventory = false;
+        Main.LocalPlayer.chest = -1;
+        Main.InGuideCraftMenu = false;
+        Main.InReforgeMenu = false;
     }
 }

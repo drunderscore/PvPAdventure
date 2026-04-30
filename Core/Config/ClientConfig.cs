@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using PvPAdventure.Common.Spectator.UI;
 using PvPAdventure.Common.Travel.UI;
 using PvPAdventure.Core.Utilities;
 using System;
@@ -14,13 +15,13 @@ public class ClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
-    public enum TravelUIPosition
+    public enum AdventureUIPosition
     {
         Top,
         Bottom,
     }
 
-    public enum TravelUISize
+    public enum AdventureUISize
     {
         VerySmall,
         Small,
@@ -45,24 +46,39 @@ public class ClientConfig : ModConfig
     [DefaultValue(false)] 
     public bool ShowVanityVisuals = false;
 
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)]
-    public bool DrawSpectators = true;
-
     [Header("Movement")]
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] public bool IsVanillaDashEnabled;
 
     [Header("PortalTravel")]
     [BackgroundColor(30, 150, 150)]
-    [DefaultValue(TravelUIPosition.Top)]
+    [DefaultValue(AdventureUIPosition.Top)]
     [JsonConverter(typeof(StringEnumConverter))]
-    public TravelUIPosition travelUIPosition;
+    public AdventureUIPosition travelUIPosition;
 
     [BackgroundColor(30, 150, 150)]
-    [DefaultValue(TravelUISize.Big)]
+    [DefaultValue(AdventureUISize.Big)]
     [JsonConverter(typeof(StringEnumConverter))]
-    public TravelUISize travelUISize;
+    public AdventureUISize travelUISize;
+
+    [Header("Spectating")]
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)]
+    public bool ShowCameraFade = true;
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(AdventureUISize.Medium)]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public AdventureUISize spectateUISize;
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(AdventureUIPosition.Top)]
+    [JsonConverter(typeof(StringEnumConverter))]
+    public AdventureUIPosition spectateUIPosition;
+
+    [BackgroundColor(30, 150, 150)]
+    [DefaultValue(true)]
+    public bool DrawSpectators = true;
 
     [Header("Sound")]
     [Expand(false, false)]
@@ -191,11 +207,16 @@ public class ClientConfig : ModConfig
         base.OnChanged();
         Log.Chat("Client config changed");
 
+        // Rebuild travel UI
         var travelUISystem = ModContent.GetInstance<TravelUISystem>();
         if (travelUISystem != null)
         {
             travelUISystem?.travelUIState?.ForceRebuildNextUpdate();
         }
+
+        // Rebuild spectate UI
+        var spectateUISystem = ModContent.GetInstance<SpectatorUISystem>();
+        spectateUISystem?.RebuildUI();
     }
     #endregion
 }

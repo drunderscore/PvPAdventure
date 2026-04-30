@@ -1,12 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Spectator.Visualization;
+using PvPAdventure.Common.Spectator.Hooks;
 using PvPAdventure.Common.Visualization;
+using PvPAdventure.Core.Config;
 using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.Graphics;
 using Terraria.ID;
+using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Spectator.Drawers;
 
@@ -29,7 +31,7 @@ public static class EntityDrawer
 
     public static void DrawEntityBackground(SpriteBatch sb, Rectangle area)
     {
-        DrawPlayerBackgroundSlice(sb, EntityBackground, area, Color.White);
+        DrawPlayerBackgroundSlice(sb, EntityBackground, area, Color.White*1f);
     }
 
     private static void DrawPlayerBackgroundSlice(SpriteBatch sb, Texture2D texture, Rectangle area, Color color)
@@ -70,24 +72,69 @@ public static class EntityDrawer
     #endregion
 
     #region Player
+    public static void DrawPlayerCardPreview(SpriteBatch sb, Player player, Rectangle area)
+    {
+        switch (SpectatorClientSettings.DrawPlayers)
+        {
+            case SpectatorPlayerDrawMode.FullPlayer:
+                DrawPlayerPreview(sb, player, area);
+                break;
+            case SpectatorPlayerDrawMode.PlayerHeads:
+                DrawPlayerHead(sb, player, area.Center.ToVector2(), Math.Min(area.Width, area.Height) / 42f);
+                break;
+        }
+    }
+
     public static void DrawPlayerPreview(SpriteBatch sb, Player player, Rectangle area)
     {
-        const float bottomPadding = 5f;
-
         if (area.Width <= 0 || area.Height <= 0)
             return;
 
         Player drawPlayer = CreateFullDrawPlayer(player);
 
-        float scale = Math.Min(area.Width / (drawPlayer.width + 4f), (area.Height - bottomPadding) / drawPlayer.height);
-        scale = BoostSmallPreviewScale(scale, 1.3f);
+        //float scale = Math.Min(area.Width / (drawPlayer.width + 4f), area.Height / drawPlayer.height);
+        float scale = GetPlayerScale();
 
-        Vector2 feet = new(area.Center.X, area.Bottom - bottomPadding);
+        Vector2 drawSize = new(drawPlayer.width * scale, drawPlayer.height * scale);
         Vector2 drawPos = new(
-            (int)MathF.Round(feet.X - drawPlayer.width * scale * 0.5f),
-            (int)MathF.Round(feet.Y - drawPlayer.height * scale + drawPlayer.gfxOffY * scale));
+            (int)MathF.Round(area.Center.X - drawSize.X * 0.5f),
+            (int)MathF.Round(area.Center.Y - drawSize.Y * 0.5f + drawPlayer.gfxOffY * scale));
+
+        drawPos.Y += GetPlayerScaleVerticalOffset();
 
         DrawFullPlayer(sb, player, drawPos, scale);
+    }
+
+    private static float GetPlayerScale()
+    {
+        ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
+
+        float scale = clientConfig.spectateUISize switch
+        {
+            ClientConfig.AdventureUISize.VerySmall => 0.8f,
+            ClientConfig.AdventureUISize.Small => 1.0f,
+            ClientConfig.AdventureUISize.Medium => 1.25f,
+            ClientConfig.AdventureUISize.Big => 1.5f,
+            _ => 1f
+        };
+
+        return scale;
+    }
+
+    private static float GetPlayerScaleVerticalOffset()
+    {
+        ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
+
+        float scale = clientConfig.spectateUISize switch
+        {
+            ClientConfig.AdventureUISize.VerySmall => -7f,
+            ClientConfig.AdventureUISize.Small => 5f,
+            ClientConfig.AdventureUISize.Medium => 10f,
+            ClientConfig.AdventureUISize.Big => 20,
+            _ => 1f
+        };
+
+        return scale;
     }
 
     public static void DrawFullPlayer(SpriteBatch sb, Player player, Vector2 position, float scale = 1f)
@@ -124,46 +171,18 @@ public static class EntityDrawer
     public static void DrawPlayerHead(SpriteBatch sb, Player player, Vector2 position, float scale = 1f)
     {
         Player drawPlayer = CreateHeadDrawPlayer(player);
+        Color borderColor = player.team > 0 ? Main.teamColor[player.team] : Color.Black;
 
         FullBrightPlayerDrawer.ForceFullBrightOnce = true;
 
         try
         {
-            Main.PlayerRenderer.DrawPlayerHead(Main.Camera, drawPlayer, position, 1f, scale, Color.Transparent);
+            Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, drawPlayer, position, scale: scale, borderColor: borderColor);
         }
         finally
         {
             FullBrightPlayerDrawer.ForceFullBrightOnce = false;
         }
-    }
-
-    public static string DrawPlayerHeadStat(SpriteBatch sb, Rectangle area, Player player)
-    {
-        Rectangle textArea = new(area.X + 30, area.Y + 3, area.Width - 30, area.Height - 8);
-        string text = StatDrawer.Truncate(FontAssets.MouseText.Value, player.name, textArea.Width, 0.8f);
-
-        if (text == "..")
-            text = "";
-
-        if (text.Length > 0)
-            StatDrawer.DrawBack(sb, area);
-
-        Rectangle oldScissor = sb.GraphicsDevice.ScissorRectangle;
-        RasterizerState oldRasterizer = sb.GraphicsDevice.RasterizerState;
-
-        sb.End();
-        sb.GraphicsDevice.ScissorRectangle = oldScissor;
-        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, ClippedCullCounterClockwise, null, Main.UIScaleMatrix);
-
-        Rectangle headBox = new(area.X + 2, area.Y - 2, 16, 16);
-        DrawPlayerHead(sb, player, new Vector2(headBox.X + headBox.Width * 0.5f, headBox.Y + headBox.Height * 0.5f), 0.85f);
-
-        sb.End();
-        sb.GraphicsDevice.ScissorRectangle = oldScissor;
-        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.None, oldRasterizer, null, Main.UIScaleMatrix);
-
-        Utils.DrawBorderString(sb, text, new Vector2(textArea.X, textArea.Y), Color.White, 1f);
-        return area.Contains(Main.MouseScreen.ToPoint()) ? $"Player: {player.name}" : null;
     }
 
     private static Player CreateFullDrawPlayer(Player player)
@@ -246,7 +265,7 @@ public static class EntityDrawer
         Rectangle source = npc.frame.Width > 0 && npc.frame.Height > 0 ? npc.frame : texture.Frame();
 
         float scale = Math.Min((area.Width - 4f) / source.Width, (area.Height - bottomPadding) / source.Height);
-        scale = BoostSmallPreviewScale(scale, 1.45f);
+        //scale = BoostSmallPreviewScale(scale, 1.45f);
 
         Vector2 position = new(area.Center.X, area.Bottom - bottomPadding - source.Height * scale * 0.5f);
         SpriteEffects effects = npc.spriteDirection >= 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
@@ -270,31 +289,6 @@ public static class EntityDrawer
         float scale = Math.Min(area.Width / (float)source.Width, area.Height / (float)source.Height);
 
         sb.Draw(texture, area.Center.ToVector2(), source, Color.White, 0f, source.Size() * 0.5f, scale, npc.spriteDirection >= 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0f);
-    }
-
-    public static string DrawNPCHeadStat(SpriteBatch sb, Rectangle area, NPC npc)
-    {
-        Rectangle textArea = new(area.X + 30, area.Y + 3, area.Width - 30, area.Height - 8);
-        string text = StatDrawer.Truncate(FontAssets.MouseText.Value, npc.FullName, textArea.Width, 0.8f);
-
-        if (text == "..")
-            text = "";
-
-        if (text.Length > 0)
-            StatDrawer.DrawBack(sb, area);
-
-        DrawNPCHead(sb, npc, new Rectangle(area.X + 3, area.Y + 3, 18, 18));
-        Utils.DrawBorderString(sb, text, new Vector2(textArea.X, textArea.Y), Color.White, 1f);
-
-        return area.Contains(Main.MouseScreen.ToPoint()) ? $"NPC: {npc.FullName}" : null;
-    }
-    #endregion
-
-    #region Helpers
-    private static float BoostSmallPreviewScale(float scale, float maxScale)
-    {
-        float boost = MathHelper.Lerp(2f, 1f, MathHelper.Clamp(scale, 0f, 1f));
-        return MathHelper.Clamp(scale * boost, 0.15f, maxScale);
     }
     #endregion
 }

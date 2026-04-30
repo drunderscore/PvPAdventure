@@ -1,31 +1,40 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Spectator;
-using PvPAdventure.Common.Spectator.Drawers;
-using PvPAdventure.Common.Spectator.UI.Tabs.NPCs;
-using PvPAdventure.Common.Spectator.UI.Tabs.Players;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using ReLogic.Graphics;
 using System;
 using Terraria;
 using Terraria.GameContent;
-using Terraria.GameContent.UI.Elements;
-using Terraria.Graphics;
 using Terraria.ID;
+using Terraria.ModLoader.UI;
 using Terraria.UI;
 
-internal static class StatDrawer
+namespace PvPAdventure.Common.Spectator.Drawers;
+
+public static class StatDrawer
 {
+    public static void DrawPlayerStat(SpriteBatch spriteBatch, Rectangle area, in PlayerStatSnapshot stat, float scale = 1f)
+    {
+        DrawStat(spriteBatch, area, stat.Icon.Value, stat.IconFrame, stat.Text, scale);
+    }
+
+    internal static void DrawNPCStat(SpriteBatch spriteBatch, Rectangle area, in NPCStatSnapshot stat, float scale = 1f)
+    {
+        DrawStat(spriteBatch, area, stat.Icon.Value, stat.IconFrame, stat.Text, scale);
+    }
+
     #region Shared draw helpers
-    public static void DrawBack(SpriteBatch spriteBatch, Rectangle area)
+    public static void DrawBack(SpriteBatch spriteBatch, Rectangle area, float scale = 1f)
     {
         Color color = Color.White * 0.7f;
 
         Asset<Texture2D> texture = Main.Assets.Request<Texture2D>("Images/UI/InnerPanelBackground");
-        spriteBatch.Draw(texture.Value, new Vector2(area.X, area.Y), new Rectangle(0, 0, 8, texture.Height()), color);
-        spriteBatch.Draw(texture.Value, new Vector2(area.X + 8f, area.Y), new Rectangle(8, 0, 8, texture.Height()), color, 0f, Vector2.Zero, new Vector2((area.Width - 16f) / 8f, 1f), SpriteEffects.None, 0f);
-        spriteBatch.Draw(texture.Value, new Vector2(area.Right - 8f, area.Y), new Rectangle(16, 0, 8, texture.Height()), color);
+        int slice = Math.Max(1, (int)MathF.Round(8f * scale));
+
+        spriteBatch.Draw(texture.Value, new Rectangle(area.X, area.Y, slice, area.Height), new Rectangle(0, 0, 8, texture.Height()), color);
+        spriteBatch.Draw(texture.Value, new Rectangle(area.X + slice, area.Y, Math.Max(0, area.Width - slice * 2), area.Height), new Rectangle(8, 0, 8, texture.Height()), color);
+        spriteBatch.Draw(texture.Value, new Rectangle(area.Right - slice, area.Y, slice, area.Height), new Rectangle(16, 0, 8, texture.Height()), color);
     }
 
     public static string Truncate(DynamicSpriteFont font, string text, float maxWidth, float scale)
@@ -49,183 +58,72 @@ internal static class StatDrawer
         return ellipsis;
     }
 
-    public static int GetResponsiveColumns(int width)
+    private static void DrawStat(SpriteBatch spriteBatch, Rectangle area, Texture2D texture, Rectangle? frame, string text, float scale=1f)
     {
-        return Math.Clamp(width / 112, 1, 5);
-    }
+        DrawBack(spriteBatch, area, scale);
 
-    private static int GetListColumns(int width, int statCount, int rows)
-    {
-        int columnsByWidth = GetResponsiveColumns(width);
-        int columnsByContent = Math.Max(1, (int)Math.Ceiling(statCount / (float)Math.Max(1, rows)));
+        int iconPaddingX = (int)MathF.Round(5f * scale);
+        int iconPaddingY = (int)MathF.Round(4f * scale);
+        int iconSize = Math.Max(1, (int)MathF.Round(18f * scale));
 
-        return Math.Min(columnsByWidth, columnsByContent);
-    }
-
-    public static int GetGridColumns(Rectangle area)
-    {
-        return GetResponsiveColumns(area.Width);
-    }
-
-    private static int GetVisibleListRows(int height, int statSpacing)
-    {
-        return Math.Max(1, (height + statSpacing) / (FixedListStatHeight + statSpacing));
-    }
-
-    private static void DrawStat(SpriteBatch spriteBatch, Rectangle area, Texture2D texture, Rectangle? frame, string text)
-    {
-        DrawBack(spriteBatch, area);
-
-        Rectangle iconArea = new(area.X + 6, area.Y + 5, 16, 16);
+        Rectangle iconArea = new(area.X + iconPaddingX, area.Y + iconPaddingY, iconSize, iconSize);
         Rectangle source = frame ?? texture.Bounds;
 
         if (source.Width > 0 && source.Height > 0)
         {
-            float scale = Math.Min(iconArea.Width / (float)source.Width, iconArea.Height / (float)source.Height);
-            int width = Math.Max(1, (int)Math.Round(source.Width * scale));
-            int height = Math.Max(1, (int)Math.Round(source.Height * scale));
+            float iconScale = Math.Min(iconArea.Width / (float)source.Width, iconArea.Height / (float)source.Height);
+            int width = Math.Max(1, (int)Math.Round(source.Width * iconScale));
+            int height = Math.Max(1, (int)Math.Round(source.Height * iconScale));
 
             spriteBatch.Draw(texture, new Rectangle(iconArea.X, iconArea.Y + (iconArea.Height - height) / 2, width, height), source, Color.White);
         }
 
-        Rectangle textArea = new(area.X + 26, area.Y + 4, area.Width - 30, area.Height - 8);
-        Utils.DrawBorderString(spriteBatch, Truncate(FontAssets.MouseText.Value, text, textArea.Width, 0.8f), new Vector2(textArea.X, textArea.Y), Color.White, 0.8f);
-    }
+        float textScale = 0.9f * scale;
+        int textLeft = area.X + (int)MathF.Round(28f * scale);
+        int textTop = area.Y + (int)MathF.Round(3f * scale);
+        Rectangle textArea = new(textLeft, textTop, area.Right - textLeft - (int)MathF.Round(4f * scale), area.Height);
 
-    private static void DrawTextureIcon(SpriteBatch spriteBatch, Texture2D texture, Rectangle iconBox, int iconSize, Color color)
-    {
-        if (texture is null)
-            return;
+        string truncatedText = Truncate(FontAssets.MouseText.Value, text, textArea.Width, textScale);
 
-        float scale = Math.Min(iconSize / (float)texture.Width, iconSize / (float)texture.Height);
-        spriteBatch.Draw(texture, iconBox.Center.ToVector2(), null, color, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
-    }
-    #endregion
+        Utils.DrawBorderString(spriteBatch, truncatedText, new Vector2(textArea.X, textArea.Y), Color.White, textScale);
 
-    #region Player stats
-    private const int FixedListStatHeight = 27;
-    public static string DrawPlayerListStats(SpriteBatch spriteBatch, Rectangle area, PlayerStatSnapshot[] stats)
-    {
-        const int statSpacing = 4;
-
-        int rows = GetVisibleListRows(area.Height, statSpacing);
-        int columns = GetListColumns(area.Width, stats.Length, rows);
-
-        return DrawPlayerStatGrid(spriteBatch, area, stats, columns, rows, FixedListStatHeight, statSpacing);
-    }
-
-    public static void DrawPlayerStat(SpriteBatch spriteBatch, Rectangle area, in PlayerStatSnapshot stat)
-    {
-        DrawStat(spriteBatch, area, stat.Icon.Value, stat.IconFrame, stat.Text);
-    }
-
-    public static string DrawPlayerStatGrid(SpriteBatch spriteBatch, Rectangle area, PlayerStatSnapshot[] stats, int columns, int rows, int statHeight, int statSpacing)
-    {
-        if (rows <= 0 || columns <= 0 || stats.Length == 0)
-            return null;
-
-        int panelWidth = (area.Width - statSpacing * (columns - 1)) / columns;
-        int count = Math.Min(stats.Length, columns * rows);
-        Point mouse = Main.MouseScreen.ToPoint();
-        string hovered = null;
-
-        for (int i = 0; i < count; i++)
+        // Show tooltip if text is truncated
+        if (truncatedText != text && area.Contains(Main.mouseX, Main.mouseY))
         {
-            int column = i % columns;
-            int row = i / columns;
-            Rectangle panel = new(area.X + column * (panelWidth + statSpacing), area.Y + row * (statHeight + statSpacing), panelWidth, statHeight);
+            UICommon.TooltipMouseText(text);
+        }
+    }
 
-            DrawPlayerStat(spriteBatch, panel, stats[i]);
+    public static void DrawWorldStatPanel(SpriteBatch spriteBatch, Rectangle area, Texture2D texture, string text, string hoverText, int iconSize = 22, Color? textColor = null, float scale = 1f)
+    {
+        DrawBack(spriteBatch, area, scale);
 
-            if (panel.Contains(mouse))
-                hovered = stats[i].HoverText;
+        int iconPaddingX = (int)MathF.Round(3f * scale);
+        int iconPaddingY = (int)MathF.Round(3f * scale);
+        Rectangle iconArea = new(area.X + iconPaddingX, area.Y + iconPaddingY, Math.Max(1, (int)MathF.Round(iconSize * scale)), Math.Max(1, (int)MathF.Round(iconSize * scale)));
+
+        if (texture != null)
+        {
+            Rectangle source = texture.Bounds;
+            float iconScale = Math.Min(iconArea.Width / (float)source.Width, iconArea.Height / (float)source.Height);
+            int width = Math.Max(1, (int)Math.Round(source.Width * iconScale));
+            int height = Math.Max(1, (int)Math.Round(source.Height * iconScale));
+
+            spriteBatch.Draw(texture, new Rectangle(iconArea.X, iconArea.Y + (iconArea.Height - height) / 2, width, height), source, Color.White);
         }
 
-        return hovered;
-    }
-    #endregion
-
-    #region NPC stats
-    public static string DrawNPCListStats(SpriteBatch spriteBatch, Rectangle area, NPCStatSnapshot[] stats)
-    {
-        const int statSpacing = 4;
-
-        int rows = GetVisibleListRows(area.Height, statSpacing);
-        int columns = GetListColumns(area.Width, stats.Length, rows);
-
-        return DrawNPCStatGrid(spriteBatch, area, stats, columns, rows, FixedListStatHeight, statSpacing);
-    }
-
-    public static void DrawNPCStat(SpriteBatch spriteBatch, Rectangle area, in NPCStatSnapshot stat)
-    {
-        DrawStat(spriteBatch, area, stat.Icon.Value, stat.IconFrame, stat.Text);
-    }
-
-    public static string DrawNPCStatGrid(SpriteBatch spriteBatch, Rectangle area, NPCStatSnapshot[] stats, int columns, int rows, int statHeight, int statSpacing)
-    {
-        if (rows <= 0 || columns <= 0 || stats.Length == 0)
-            return null;
-
-        int panelWidth = (area.Width - statSpacing * (columns - 1)) / columns;
-        int count = Math.Min(stats.Length, columns * rows);
-        Point mouse = Main.MouseScreen.ToPoint();
-        string hovered = null;
-
-        for (int i = 0; i < count; i++)
-        {
-            int column = i % columns;
-            int row = i / columns;
-            Rectangle panel = new(area.X + column * (panelWidth + statSpacing), area.Y + row * (statHeight + statSpacing), panelWidth, statHeight);
-
-            DrawNPCStat(spriteBatch, panel, stats[i]);
-
-            if (panel.Contains(mouse))
-                hovered = stats[i].HoverText;
-        }
-
-        return hovered;
-    }
-    #endregion
-
-    #region World stat panels
-    public static void DrawWorldStatPanel(SpriteBatch spriteBatch, Rectangle area, int itemId, string text, string hoverText, int iconSize = 25, Color? textColor = null)
-    {
-        DrawWorldStatPanel(spriteBatch, area, text, hoverText, textColor ?? Color.White, iconBox =>
-        {
-            if (itemId <= 0)
-            {
-                DrawTextureIcon(spriteBatch, Ass.Icon_World.Value, iconBox, iconSize + 2, Color.White * 0.75f);
-                return;
-            }
-
-            Item item = new(itemId);
-            ItemSlot.DrawItemIcon(item, ItemSlot.Context.InventoryItem, spriteBatch, iconBox.Center.ToVector2(), 0.9f, iconSize, Color.White);
-        });
-    }
-
-    public static void DrawWorldStatPanel(SpriteBatch spriteBatch, Rectangle area, Texture2D icon, string text, string hoverText, int iconSize = 30, Color? textColor = null)
-    {
-        DrawWorldStatPanel(spriteBatch, area, text, hoverText, textColor ?? Color.White, iconBox => DrawTextureIcon(spriteBatch, icon, iconBox, iconSize, Color.White));
-    }
-
-    private static void DrawWorldStatPanel(SpriteBatch spriteBatch, Rectangle area, string text, string hoverText, Color textColor, Action<Rectangle> drawIcon)
-    {
-        const float textScale = 0.78f;
-
-        DrawBack(spriteBatch, area);
-
-        Rectangle iconBox = new(area.X + 3, area.Y + 0, area.Height - 2, area.Height - 2);
-        Rectangle textArea = new(iconBox.Right + 6, area.Y + 6, area.Width - iconBox.Width - 13, area.Height - 8);
-
-        drawIcon(iconBox);
-
+        float textScale = 0.75f * scale;
+        int textLeft = area.X + (int)MathF.Round((iconSize + 9f) * scale);
+        int textTop = area.Y + (int)MathF.Round(5f * scale);
+        Rectangle textArea = new(textLeft, textTop, area.Right - textLeft - (int)MathF.Round(4f * scale), area.Height);
         string displayText = Truncate(FontAssets.MouseText.Value, text, textArea.Width, textScale);
-        Utils.DrawBorderString(spriteBatch, displayText, new Vector2(textArea.X, textArea.Y), textColor, textScale);
 
-        if (area.Contains(Main.MouseScreen.ToPoint()) && !string.IsNullOrWhiteSpace(hoverText))
+        Utils.DrawBorderString(spriteBatch, displayText, new Vector2(textArea.X, textArea.Y), textColor ?? Color.White, textScale);
+
+        if (area.Contains(Main.MouseScreen.ToPoint()))
         {
             Main.LocalPlayer.mouseInterface = true;
-            Main.instance.MouseText(hoverText);
+            UICommon.TooltipMouseText(hoverText);
         }
     }
     #endregion

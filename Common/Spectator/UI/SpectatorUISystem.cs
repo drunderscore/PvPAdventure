@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Core.Config;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.Config.UI;
 using Terraria.UI;
 
 namespace PvPAdventure.Common.Spectator.UI;
@@ -13,79 +15,89 @@ namespace PvPAdventure.Common.Spectator.UI;
 [Autoload(Side = ModSide.Client)]
 public class SpectatorUISystem : ModSystem
 {
-    private static UserInterface spectatorInterface;
-    private static SpectatorUIState spectatorState;
+    private UserInterface spectatorInterface;
+    private SpectatorUIState spectatorState;
+    private UserInterface spectatorSettingsInterface;
+    private SpectatorSettingsPanelUIState spectatorSettingsPanelState;
+    private SpectatorSettingsEyeUIState spectatorSettingsEyeState;
+    private bool spectatorSettingsExpanded = true;
 
     public override void OnWorldLoad()
     {
         spectatorInterface = new();
         spectatorState = new();
+        spectatorSettingsInterface = new();
+        spectatorSettingsPanelState = new();
+        spectatorSettingsEyeState = new();
     }
 
-    private static void EnsureInitialized()
+    public void RebuildUI()
     {
-        spectatorInterface ??= new();
-        spectatorState ??= new();
+        spectatorState?.RebuildSpectatorControlsPanel();
+        spectatorSettingsPanelState?.Rebuild();
     }
 
-    public static void ToggleSpectatePanel()
+    public void ToggleSpectatorSettingsPanel()
     {
-        EnsureInitialized();
-
-        bool wasOpen = spectatorState?.IsSpectatePanelOpen() == true;
-        spectatorState?.ToggleSpectatePanel();
-        bool isOpen = spectatorState?.IsSpectatePanelOpen() == true;
-
-        PlayToggleSound(wasOpen, isOpen);
+        spectatorSettingsExpanded = !spectatorSettingsExpanded;
+        RefreshSpectatorSettingsState();
     }
 
-    public static void OnLocalModeAccepted(PlayerMode mode)
+    public void OnLocalModeAccepted(PlayerMode mode)
     {
         if (mode == PlayerMode.Spectator)
         {
             Main.playerInventory = false;
-            Main.NewText("You are now a spectator. Use free camera or select a player to spectate.", Color.Yellow);
-            EnsurePlayerSpectatorControlsOpen();
+            Main.NewText("You are now a spectator.", Color.Yellow);
+            EnsureSpectatorHUDStaysOpen();
             return;
         }
 
         Main.NewText("You are now a player.", Color.Yellow);
     }
 
-    private static void PlayToggleSound(bool wasOpen, bool isOpen)
+    public void EnsureSpectatorHUDStaysOpen()
     {
-        if (wasOpen == isOpen)
-            return;
-
-        SoundEngine.PlaySound(isOpen ? SoundID.MenuOpen : SoundID.MenuClose);
+        spectatorState?.EnsureSpectatorHUDStaysOpen();
     }
-
-    public static void EnsurePlayerSpectatorControlsOpen()
-    {
-        spectatorState?.EnsurePlayerSpectatorControlsOpen();
-    }
-
-    
 
     public override void UpdateUI(GameTime gameTime)
     {
         if (ShouldShowSpectateUI())
         {
             if (spectatorInterface?.CurrentState == null)
+            {
                 spectatorInterface?.SetState(spectatorState);
+                SoundEngine.PlaySound(SoundID.MenuOpen);
+            }
+
+            RefreshSpectatorSettingsState();
         }
         else
         {
             if (spectatorInterface?.CurrentState != null)
+            {
                 spectatorInterface?.SetState(null);
+                SoundEngine.PlaySound(SoundID.MenuClose);
+            }
+
+            if (spectatorSettingsInterface?.CurrentState != null)
+                spectatorSettingsInterface?.SetState(null);
         }
 
         spectatorInterface?.Update(gameTime);
+        spectatorSettingsInterface?.Update(gameTime);
     }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
-        int index = layers.FindIndex(l => l.Name == "Vanilla: Mouse Text");
+        int index = layers.FindIndex(l => l.Name == "Vanilla: Death Text");
+
+        // TESTME: Draw the UI below the config?
+        // Update: Seems to work!
+        if (IsAnyConfigUIOpen())
+            index = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
+
         if (index == -1)
             return;
 
@@ -100,6 +112,29 @@ public class SpectatorUISystem : ModSystem
                 },
                 InterfaceScaleType.UI));
         }
+
+        if (spectatorSettingsInterface?.CurrentState != null)
+        {
+            layers.Insert(index, new LegacyGameInterfaceLayer(
+                "PvPAdventure: Spectator Settings UI",
+                () =>
+                {
+                    spectatorSettingsInterface.Draw(Main.spriteBatch, new GameTime());
+                    return true;
+                },
+                InterfaceScaleType.UI));
+        }
+    }
+
+    private void RefreshSpectatorSettingsState()
+    {
+        if (spectatorSettingsInterface is null)
+            return;
+
+        UIState desiredState = spectatorSettingsExpanded ? spectatorSettingsPanelState : spectatorSettingsEyeState;
+
+        if (spectatorSettingsInterface.CurrentState != desiredState)
+            spectatorSettingsInterface.SetState(desiredState);
     }
 
     private static bool ShouldShowSpectateUI()
@@ -107,16 +142,16 @@ public class SpectatorUISystem : ModSystem
         if (Main.gameMenu)
             return false;
 
-        // Always Show the UI in debug mode for testing purposes.
-//#if !DEBUG
-//        if (Main.netMode == NetmodeID.SinglePlayer)
-//            return false;
-//#endif
-
         Player local = Main.LocalPlayer;
         if (local is null || !local.active)
             return false;
 
         return SpectatorModeSystem.IsInSpectateMode(local);
+    }
+
+    private static bool IsAnyConfigUIOpen()
+    {
+        UIState s = Main.InGameUI?._currentState;
+        return Main.ingameOptionsWindow || s is UIModConfig or UIModConfigList;
     }
 }

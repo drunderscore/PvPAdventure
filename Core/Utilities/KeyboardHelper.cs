@@ -10,5 +10,5 @@ namespace PvPAdventure.Core.Utilities;
 
 public static class KeyboardHelper
 {
-    public static bool JustPressed(Keys key) => Main.keyState.IsKeyDown(key) && Main.oldKeyState.IsKeyUp(key);
+    public static bool Pressed(Keys key) => Main.keyState.IsKeyDown(key) && Main.oldKeyState.IsKeyUp(key);
 }

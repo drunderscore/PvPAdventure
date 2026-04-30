@@ -53,10 +53,11 @@ internal static class DebugDrawer
         int spacing = 6;
         int totalWidth = buttons.Length * (back.Width + spacing) - spacing;
         float startX = Main.screenWidth - totalWidth - 20f;
+        int startY = 280;
 
         for (int i = 0; i < buttons.Length; i++)
         {
-            Rectangle rect = new((int)startX + i * (back.Width + spacing), 350, back.Width, back.Height);
+            Rectangle rect = new((int)startX + i * (back.Width + spacing), startY, back.Width, back.Height);
             bool hovered = rect.Contains(Main.MouseScreen.ToPoint());
 
             if (hovered)
@@ -100,7 +101,7 @@ internal static class DebugDrawer
             $"World: {Main.worldName} (ID {Main.worldID}, seed {WorldGen.currentWorldSeed})",
             $"Hardmode: {Main.hardMode} | Expert: {Main.expertMode} | Master: {Main.masterMode}",
             $"Halloween: {Main.halloween}",
-            $"Hot Reload available: {MetadataUpdater.IsSupported}",
+            $"MetadataUpdater.IsSupported: {MetadataUpdater.IsSupported}",
         ];
 
         // Calculate width of the longest line to right-align the column

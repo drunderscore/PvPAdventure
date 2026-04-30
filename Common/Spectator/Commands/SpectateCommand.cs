@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Core.Config;
 using System;
@@ -17,43 +18,15 @@ internal class SpectateCommand : ModCommand
 
     public override void Action(CommandCaller caller, string input, string[] args)
     {
-        SpectateCommandHelper.TryToggleSpectate();
-    }
-}
-
-#if DEBUG
-internal class DebugSpectateCommand : ModCommand
-{
-    public override CommandType Type => CommandType.Chat;
-    public override string Command => "s";
-    public override string Description => "Toggle spectate mode (debug).";
-
-    public override void Action(CommandCaller caller, string input, string[] args)
-    {
-        SpectateCommandHelper.TryToggleSpectate();
-    }
-}
-
-internal class DebugGhostCommand : ModCommand
-{
-    public override string Command => "g";
-    public override string Description => "Toggle ghost mode (debug).";
-    public override CommandType Type => CommandType.Chat;
-
-    public override void Action(CommandCaller caller, string input, string[] args)
-    {
-        Main.LocalPlayer.ghost = !Main.LocalPlayer.ghost;
-    }
-}
-#endif
-
-internal static class SpectateCommandHelper
-{
-    public static void TryToggleSpectate()
-    {
         Player player = Main.LocalPlayer;
 
-        if (LooksLikeDragonLensAdmin(player))
+        if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
+        {
+            SpectatorModeSystem.ToggleSpectateMode(player.whoAmI);
+            return;
+        }
+
+        if (SpectateCommandHelper.LooksLikeDragonLensAdmin(player))
         {
             SpectatorModeSystem.ToggleSpectateMode(player.whoAmI);
             return;
@@ -75,8 +48,11 @@ internal static class SpectateCommandHelper
 
         SpectatorModeSystem.ToggleSpectateMode(player.whoAmI);
     }
+}
 
-    private static bool LooksLikeDragonLensAdmin(Player player)
+internal static class SpectateCommandHelper
+{
+    public static bool LooksLikeDragonLensAdmin(Player player)
     {
         try
         {

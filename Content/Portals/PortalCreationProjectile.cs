@@ -158,7 +158,7 @@ public sealed class PortalCreationProjectile : ModProjectile
         int owner = Projectile.owner;
 
         Projectile.Kill();
-        Log.Chat("Portal projectile killed");
+        Log.Chat("Portal temp creation projectile killed");
 
         if (Main.netMode == NetmodeID.Server)
             NetMessage.SendData(MessageID.KillProjectile, -1, -1, null, identity, owner);

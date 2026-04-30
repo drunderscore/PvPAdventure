@@ -39,8 +39,8 @@ public class TravelTeleportHooks : ModSystem
     private static bool ForceUnityPotion(On_Player.orig_HasUnityPotion orig, Player self)
     {
         // Spectators/ghosts can always teleport
-        if (self.whoAmI == Main.myPlayer && SpectatorModeSystem.IsInSpectateMode(self))
-            return true;
+        //if (self.whoAmI == Main.myPlayer && SpectatorModeSystem.IsInSpectateMode(self))
+            //return true;
 
         // Spawn selector UI is open and player can teleport, allow teleportation
         //if (SpawnSystem.IsUiOpen && SpawnSystem.CanTeleport)

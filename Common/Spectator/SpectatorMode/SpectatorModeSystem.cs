@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Spectator.Map;
 using PvPAdventure.Common.Spectator.Net;
 using PvPAdventure.Common.Spectator.UI;
 using PvPAdventure.Common.SSC;
@@ -34,6 +33,28 @@ internal sealed class SpectatorModeSystem : ModSystem
     public static bool IsInSpectateMode(Player player) => player?.active == true && GetMode(player.whoAmI) == PlayerMode.Spectator;
 
     public static bool IsInPlayerMode(Player player) => player?.active == true && GetMode(player.whoAmI) == PlayerMode.Player;
+
+    public static int GetPlayersOnlineCount()
+    {
+        int count = 0;
+
+        for (int i = 0; i < Main.maxPlayers; i++)
+            if (Main.player[i]?.active == true)
+                count++;
+
+        return count;
+    }
+
+    public static int GetSpectatorCount()
+    {
+        int count = 0;
+
+        for (int i = 0; i < Main.maxPlayers; i++)
+            if (Main.player[i]?.active == true && GetMode(i) == PlayerMode.Spectator)
+                count++;
+
+        return count;
+    }
 
     internal static PlayerMode GetJoinDefaultMode() => ModContent.GetInstance<SpectatorConfig>().ForceSpectating ? PlayerMode.Spectator : PlayerMode.Player;
 
@@ -101,7 +122,17 @@ internal sealed class SpectatorModeSystem : ModSystem
         Log.Chat($"Player {playerId} received mode: {mode}, player ghost now set to: {Main.LocalPlayer.ghost}");
 
         if (playerId == Main.myPlayer && oldMode != mode && Main.netMode != NetmodeID.Server)
-            SpectatorUISystem.OnLocalModeAccepted(mode);
+        {
+            var specSystem = ModContent.GetInstance<SpectatorUISystem>();
+            if (specSystem != null)
+            {
+                specSystem.OnLocalModeAccepted(mode);
+            }
+            else
+            {
+                Log.Warn("SpectatorUISystem is null when trying to call OnLocalModeAccepted");
+            }
+        }
 
         if (mode == PlayerMode.Spectator)
             Main.playerInventory = false;

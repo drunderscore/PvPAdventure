@@ -469,7 +469,9 @@ Mods: {
 					Movement: "[i:HermesBoots] Movement"
 					Chat: "[i:PvPAdventure/ChatConfigItem] Chat"
 					Visualization: Visualization
+					UI: UI
 					PortalTravel: Portal Travel
+					Spectating: Spectating
 				}
 
 				IsVanillaDashEnabled: {
@@ -564,6 +566,21 @@ Mods: {
 				travelUISize: {
 					Label: Portal Travel UI Size
 					Tooltip: ""
+				}
+
+				spectateUISize: {
+					Label: Spectate UI Size
+					Tooltip: ""
+				}
+
+				spectateUIPosition: {
+					Label: Spectate UI Position
+					Tooltip: ""
+				}
+
+				ShowCameraFade: {
+					Label: Show Camera Fade
+					Tooltip: Fades to black when switching camera position to allow for a smoother effect
 				}
 			}
 
@@ -732,7 +749,7 @@ Mods: {
 					Gameplay: "[i:GPS] Gameplay"
 					WorldGen: "[i:WorldGlobe] World Generation"
 					Security: "[i:PvPAdventure/SecurityConfigItem] Security"
-					TravelSystem: Portal Travel
+					TravelSystem: "[i:Bed] Travel System"
 				}
 
 				Points: {
@@ -877,12 +894,12 @@ Mods: {
 
 				IsTravelSystemEnabled: {
 					Label: Is Travel System Enabled
-					Tooltip: Whether portal creator will spawn the portal and whether the UI will be drawn
+					Tooltip: Toggle the entire travel system
 				}
 
 				TravelRegionRadiusTiles: {
 					Label: Travel Region Tiles
-					Tooltip: The distance in tiles to beds and portals where the UI will be opened
+					Tooltip: The distance in tiles to beds and portals where you can access travel
 				}
 
 				TravelPortalCreationTimeSeconds: {
@@ -901,17 +918,17 @@ Mods: {
 				}
 
 				IsWorldSpawnTeleportEnabled: {
-					Label: Is World Spawn Teleport Enabled
+					Label: Is World Spawn Option Enabled
 					Tooltip: ""
 				}
 
 				IsTeammateSpawnTeleportEnabled: {
-					Label: Is Teammate Spawn Teleport Enabled
+					Label: Is Teammate Teleport Option Enabled
 					Tooltip: ""
 				}
 
 				IsRandomTeleportEnabled: {
-					Label: Is Random Teleport Enabled
+					Label: Is Random Teleport Option Enabled
 					Tooltip: ""
 				}
 			}
@@ -1958,7 +1975,7 @@ Mods: {
 				}
 			}
 
-			TravelUIPosition: {
+			AdventureUIPosition: {
 				Tooltip: ""
 
 				Top: {
@@ -1972,27 +1989,27 @@ Mods: {
 				}
 			}
 
-			TravelUISize: {
+			AdventureUISize: {
 				Tooltip: ""
 
 				VerySmall: {
 					Label: Very Small
-					Tooltip: ""
+					Tooltip: "0.8"
 				}
 
 				Small: {
 					Label: Small
-					Tooltip: ""
+					Tooltip: "0.9"
 				}
 
 				Medium: {
 					Label: Medium
-					Tooltip: ""
+					Tooltip: "1.0"
 				}
 
 				Big: {
 					Label: Big
-					Tooltip: ""
+					Tooltip: "1.15"
 				}
 			}
 		}

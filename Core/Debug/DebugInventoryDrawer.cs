@@ -16,6 +16,7 @@ using Terraria.UI.Gamepad;
 
 namespace PvPAdventure.Core.Debug;
 
+#if DEBUG
 internal class DebugInventoryDrawer : ModSystem
 {
     public override void Load()
@@ -28,7 +29,9 @@ internal class DebugInventoryDrawer : ModSystem
 
     private void OnMainDrawInventory(On_Main.orig_DrawInventory orig, Main self)
     {
-        //orig(self);
+        orig(self);
+        return;
+
         Recipe.GetThroughDelayedFindRecipes();
         if (Main.ShouldPVPDraw)
         {
@@ -46,7 +49,12 @@ internal class DebugInventoryDrawer : ModSystem
         Main.DrawBestiaryIcon(num, num2);
         Main.DrawEmoteBubblesButton(num, num2);
         Main.DrawTrashItemSlot(num, num2);
+
+
         Main.spriteBatch.DrawString(FontAssets.MouseText.Value, Lang.inter[4].Value, new Vector2(40f, 0f) + vector, new Color(Main.mouseTextColor, Main.mouseTextColor, Main.mouseTextColor, Main.mouseTextColor), 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+
+
+
         Main.inventoryScale = 0.85f;
         if (Main.mouseX > 20 && Main.mouseX < (int)(20f + 560f * Main.inventoryScale) && Main.mouseY > 20 && Main.mouseY < (int)(20f + 280f * Main.inventoryScale) && !PlayerInput.IgnoreMouseInterface)
         {
@@ -82,6 +90,9 @@ internal class DebugInventoryDrawer : ModSystem
                 ItemSlot.Draw(Main.spriteBatch, Main.player[Main.myPlayer].inventory, 0, num9, new Vector2(num7, num8));
             }
         }
+
+
+
         int activeToggles = BuilderToggleLoader.ActiveBuilderToggles();
         bool pushSideToolsUp = activeToggles / 12 != BuilderToggleLoader.BuilderTogglePage || activeToggles % 12 >= 10;
         if (!PlayerInput.UsingGamepad)
@@ -207,6 +218,7 @@ internal class DebugInventoryDrawer : ModSystem
                     break;
             }
         }
+        #region Equips
         if (Main.EquipPage == 2)
         {
             Point value = new Point(Main.mouseX, Main.mouseY);
@@ -601,7 +613,12 @@ internal class DebugInventoryDrawer : ModSystem
             Main.inventoryBack = color;
             Main.inventoryScale = num36;
         }
+        #endregion
+
+        #region Accessories
         LoaderManager.Get<AccessorySlotLoader>().DrawAccSlots(num20);
+        #endregion
+
         int num54 = (Main.screenHeight - 600) / 2;
         int num55 = (int)((float)Main.screenHeight / 600f * 250f);
         if (Main.screenHeight < 700)
@@ -802,8 +819,12 @@ internal class DebugInventoryDrawer : ModSystem
             }
         }
         Main.CreativeMenu.Draw(Main.spriteBatch);
+
+        #region Crafting menu
+
         bool flag10 = Main.CreativeMenu.Enabled && !Main.CreativeMenu.Blocked;
         flag10 |= Main.hidePlayerCraftingMenu;
+
         if (!Main.InReforgeMenu && !Main.LocalPlayer.tileEntityAnchor.InUse && !flag10)
         {
             UILinkPointNavigator.Shortcuts.CRAFT_CurrentRecipeBig = -1;
@@ -999,6 +1020,9 @@ internal class DebugInventoryDrawer : ModSystem
             }
         }
         Main.hidePlayerCraftingMenu = false;
+        #endregion
+
+        #region Big list
         if (Main.recBigList && !flag10)
         {
             UILinkPointNavigator.Shortcuts.CRAFT_CurrentRecipeBig = -1;
@@ -1126,6 +1150,8 @@ internal class DebugInventoryDrawer : ModSystem
                 }
             }
         }
+        #endregion
+        #region Coins & Ammo
         Vector2 vector2 = FontAssets.MouseText.Value.MeasureString("Coins");
         Vector2 vector3 = FontAssets.MouseText.Value.MeasureString(Lang.inter[26].Value);
         float num96 = vector2.X / vector3.X;
@@ -1176,6 +1202,8 @@ internal class DebugInventoryDrawer : ModSystem
             }
             ItemSlot.Draw(Main.spriteBatch, Main.player[Main.myPlayer].inventory, 2, slot2, new Vector2(num102, num103));
         }
+        #endregion
+
         if (Main.npcShop > 0 && (!Main.playerInventory || Main.player[Main.myPlayer].talkNPC == -1))
         {
             Main.SetNPCShopIndex(0);
@@ -1304,3 +1332,4 @@ internal class DebugInventoryDrawer : ModSystem
         orig(spritebatch);
     }
 }
+#endif

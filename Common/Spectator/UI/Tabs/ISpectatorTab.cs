@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 
 namespace PvPAdventure.Common.Spectator.UI.Tabs;
@@ -14,7 +14,6 @@ internal interface ISpectatorTab
 
 internal enum SpectatorTab
 {
-    Player,
-    World,
-    NPCs
+    NPCs,
+    World
 }

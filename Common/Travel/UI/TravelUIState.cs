@@ -79,10 +79,10 @@ internal class TravelUIState : UIState
         // Set scale based on config
         float scale = clientConfig.travelUISize switch
         {
-            ClientConfig.TravelUISize.VerySmall => 0.8f,
-            ClientConfig.TravelUISize.Small => 0.9f,
-            ClientConfig.TravelUISize.Medium => 1.0f,
-            ClientConfig.TravelUISize.Big => 1.15f,
+            ClientConfig.AdventureUISize.VerySmall => 0.8f,
+            ClientConfig.AdventureUISize.Small => 0.9f,
+            ClientConfig.AdventureUISize.Medium => 1.0f,
+            ClientConfig.AdventureUISize.Big => 1.15f,
             _ => 1f
         };
 
@@ -114,7 +114,7 @@ internal class TravelUIState : UIState
         float spacing = 12f * scale;
         float paddingX = 8f * scale;
         float paddingY = 12f * scale;
-        bool bottom = clientConfig.travelUIPosition == ClientConfig.TravelUIPosition.Bottom;
+        bool bottom = clientConfig.travelUIPosition == ClientConfig.AdventureUIPosition.Bottom;
         
         int worldUnits = serverConfig.IsWorldSpawnTeleportEnabled ? 1 : 0;
         int randomUnits = serverConfig.IsRandomTeleportEnabled ? 1 : 0;

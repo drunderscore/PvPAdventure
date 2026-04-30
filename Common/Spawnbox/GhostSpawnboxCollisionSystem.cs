@@ -35,6 +35,9 @@ internal class GhostSpawnboxCollisionSystem : ModSystem
         {
             Vector2 delta = self.position - oldPosition;
             self.position += delta * 3f;
+
+            if (Main.netMode != NetmodeID.SinglePlayer)
+                NetMessage.SendData(MessageID.PlayerControls, -1, -1, null, self.whoAmI);
         }
 
         GameManager gameManager = ModContent.GetInstance<GameManager>();
