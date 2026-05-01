@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Combat;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Content.Portals;
@@ -17,10 +18,14 @@ internal class TravelPlayer : ModPlayer
         if (Player.whoAmI != Main.myPlayer)
             return;
 
-        if (Player.itemTime <= 0 || Player.HeldItem?.ModItem is not PortalCreatorItem)
+        if (!IsUsingPortalCreator())
+            return;
+
+        if (!ShouldCancelPortalUse(info))
             return;
 
         PortalCreatorItem.ResetUseState(Player);
+
         PopupText.NewText(new AdvancedPopupRequest
         {
             Color = Color.Crimson,
@@ -28,6 +33,30 @@ internal class TravelPlayer : ModPlayer
             Velocity = new Vector2(0f, -4f),
             DurationInFrames = 120
         }, Player.Top + new Vector2(0f, -4f));
+    }
+
+    private bool IsUsingPortalCreator()
+    {
+        return Player.itemTime > 0 && Player.HeldItem?.ModItem is PortalCreatorItem;
+    }
+
+    private static bool ShouldCancelPortalUse(Player.HurtInfo info)
+    {
+        if (info.PvP)
+        {
+            Log.Chat("PvP damage while creating portal, cancelling portal use");
+            return true;
+        }
+
+        bool isBossProjectile = info.DamageSource is not null
+            && info.DamageSource.TryGetCausingEntity(out Entity entity)
+            && entity is Projectile projectile
+            && CombatManager.IsBossProjectile(projectile);
+
+        if (isBossProjectile)
+            Log.Chat("Boss projectile while creating portal, cancelling portal use");
+
+        return isBossProjectile;
     }
 
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)

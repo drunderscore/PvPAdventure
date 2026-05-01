@@ -5,6 +5,7 @@ using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
+using Terraria.GameContent.UI.ResourceSets;
 using Terraria.GameContent.UI.States;
 using Terraria.GameInput;
 using Terraria.ID;
@@ -22,9 +23,30 @@ internal class DebugInventoryDrawer : ModSystem
     public override void Load()
     {
         On_Main.DrawInventory += OnMainDrawInventory;
+        On_Main.GUIHotbarDrawInner += OnHotbarDraw;
         On_ChestUI.Draw += OnChestUIDraw;
         On_ChestUI.DrawButtons += OnChestUIDrawButtons;
+        On_Main.DrawInterface_Resources_Buffs += OnDrawInterface_Resources_Buffs;
+        On_PlayerResourceSetsManager.Draw += OnPlayerResourceSetsManagerDraw;
         //On_ItemSlot.Draw
+    }
+
+    private void OnPlayerResourceSetsManagerDraw(On_PlayerResourceSetsManager.orig_Draw orig, PlayerResourceSetsManager self)
+    {
+        orig(self);
+        return;
+    }
+
+    private static void OnDrawInterface_Resources_Buffs(On_Main.orig_DrawInterface_Resources_Buffs orig, Main self)
+    {
+        orig(self);
+        return;
+    }
+
+    private void OnHotbarDraw(On_Main.orig_GUIHotbarDrawInner orig, Main self)
+    {
+        orig(self);
+        return;
     }
 
     private void OnMainDrawInventory(On_Main.orig_DrawInventory orig, Main self)

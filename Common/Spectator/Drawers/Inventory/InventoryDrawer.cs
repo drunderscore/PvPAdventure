@@ -21,6 +21,10 @@ public static class InventoryDrawer
 
     private static bool ownedHoverLastFrame;
     private static bool ownedHoverThisFrame;
+    private static string ownedHoverName = "";
+    private static int ownedHoverItemType;
+    private static int ownedHoverItemPrefix;
+    private static int ownedHoverItemStack;
 
     public static void DrawInventory(SpriteBatch sb, Vector2 start, Player player, Rectangle viewport)
     {
@@ -41,7 +45,8 @@ public static class InventoryDrawer
             DrawCoins(player);
             DrawAmmo(player);
             DrawPageIcons(player);
-            DrawAccSlots(player);
+            if (Main.EquipPage == 0)
+                DrawAccSlots(player);
             DrawTrash(player);
             DrawArmor(player);
             DrawEquips(player);
@@ -65,12 +70,12 @@ public static class InventoryDrawer
 
     public static void ClearOwnedHover()
     {
-        if (!ownedHoverLastFrame)
-            return;
+        if (ownedHoverLastFrame && CurrentHoverMatchesOwned())
+            ClearGlobalHover();
 
-        ClearGlobalHover();
         ownedHoverLastFrame = false;
         ownedHoverThisFrame = false;
+        ClearOwnedHoverSnapshot();
     }
 
     private static void HoverItemSlot(Item[] items, int context, int slot)
@@ -101,11 +106,16 @@ public static class InventoryDrawer
 
     private static void FinishHoverFrame()
     {
-        if (ownedHoverLastFrame && !ownedHoverThisFrame)
+        if (ownedHoverThisFrame)
+            CaptureOwnedHoverSnapshot();
+        else if (ownedHoverLastFrame && CurrentHoverMatchesOwned())
             ClearGlobalHover();
 
         ownedHoverLastFrame = ownedHoverThisFrame;
         ownedHoverThisFrame = false;
+
+        if (!ownedHoverLastFrame)
+            ClearOwnedHoverSnapshot();
     }
 
     private static void ClearGlobalHover()
@@ -114,6 +124,32 @@ public static class InventoryDrawer
         Main.hoverItemName = "";
         Main.mouseText = false;
         Main.armorHide = false;
+    }
+
+    private static void CaptureOwnedHoverSnapshot()
+    {
+        ownedHoverName = Main.hoverItemName ?? "";
+        ownedHoverItemType = Main.HoverItem?.type ?? 0;
+        ownedHoverItemPrefix = Main.HoverItem?.prefix ?? 0;
+        ownedHoverItemStack = Main.HoverItem?.stack ?? 0;
+    }
+
+    private static void ClearOwnedHoverSnapshot()
+    {
+        ownedHoverName = "";
+        ownedHoverItemType = 0;
+        ownedHoverItemPrefix = 0;
+        ownedHoverItemStack = 0;
+    }
+
+    private static bool CurrentHoverMatchesOwned()
+    {
+        Item hoverItem = Main.HoverItem;
+
+        return (Main.hoverItemName ?? "") == ownedHoverName &&
+            (hoverItem?.type ?? 0) == ownedHoverItemType &&
+            (hoverItem?.prefix ?? 0) == ownedHoverItemPrefix &&
+            (hoverItem?.stack ?? 0) == ownedHoverItemStack;
     }
 
     public static void DrawItems(Player player)

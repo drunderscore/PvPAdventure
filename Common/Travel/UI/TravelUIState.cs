@@ -24,6 +24,7 @@ internal class TravelUIState : UIState
     // UI compoenents
     public UIPanel backgroundPanel;
     private UITextPanel<string> chooseYourDestinationPanel;
+    private UIText spectatingText;
 
     public override void OnInitialize()
     {
@@ -173,6 +174,7 @@ internal class TravelUIState : UIState
             backgroundPanel.Append(random);
         }
 
+        UpdateSpectatingTextLayout(fullHeight, scale);
         backgroundPanel.Recalculate();
         backgroundPanel.RecalculateChildren();
 
@@ -190,6 +192,32 @@ internal class TravelUIState : UIState
         Append(chooseYourDestinationPanel);
 
         //Log.Chat($"Travel UI rebuilt with {players.Count} players");
+    }
+
+    private void UpdateSpectatingTextLayout(float fullHeight, float scale)
+    {
+        spectatingText ??= new UIText("", 1f, true)
+        {
+            HAlign = 0.5f,
+            TextColor = Color.White
+        };
+
+        spectatingText.Width.Set(420f * scale, 0f);
+        spectatingText.Height.Set(36f, 0f);
+        spectatingText.Top.Set(fullHeight + 16f * scale, 0f);
+        backgroundPanel.Append(spectatingText);
+    }
+
+    private void UpdateSpectatingText()
+    {
+        if (spectatingText == null)
+            return;
+
+        string text = TravelSpectateSystem.TryGetActivePlayerHudTarget(out Player player)
+            ? $"Spectating {player.name}"
+            : "";
+
+        spectatingText.SetText(text);
     }
 
     private static TravelTarget FindTarget(List<TravelTarget> targets, TravelType type, int playerIndex, TravelTarget fallback)
@@ -232,6 +260,7 @@ internal class TravelUIState : UIState
 
     public override void Draw(SpriteBatch spriteBatch)
     {
+        UpdateSpectatingText();
         base.Draw(spriteBatch);
         DrawPortalCreatorTimer(spriteBatch);
     }

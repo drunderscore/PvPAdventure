@@ -15,7 +15,18 @@ public static class BuffDrawer
 {
     private static bool ownedBuffHover;
 
-    private static void DrawBuffs(SpriteBatch sb, Vector2 start, Player player, Rectangle viewport)
+    public static void ClearOwnedHover()
+    {
+        if (!ownedBuffHover)
+            return;
+
+        Main.HoverItem = new Item();
+        Main.hoverItemName = "";
+        Main.mouseText = false;
+        ownedBuffHover = false;
+    }
+
+    public static void DrawBuffs(SpriteBatch sb, Vector2 start, Player player, Rectangle viewport)
     {
         bool ownsBuffHoverThisFrame = false;
 
@@ -74,7 +85,8 @@ public static class BuffDrawer
                     Vector2 textSize = font.MeasureString(timeText) * timeScale;
                     Vector2 textPos = new(iconRect.Center.X - textSize.X * 0.5f, iconRect.Bottom - 1f);
 
-                    Utils.DrawBorderString(sb, timeText, textPos, Color.White * alpha, timeScale);
+                    // --- Skip time for now, its not netsynced ---
+                    //Utils.DrawBorderString(sb, timeText, textPos, Color.White * alpha, timeScale);
                 }
 
                 if (hover)
@@ -95,11 +107,7 @@ public static class BuffDrawer
         finally
         {
             if (ownedBuffHover && !ownsBuffHoverThisFrame)
-            {
-                Main.HoverItem = new Item();
-                Main.hoverItemName = "";
-                Main.mouseText = false;
-            }
+                ClearOwnedHover();
 
             ownedBuffHover = ownsBuffHoverThisFrame;
         }

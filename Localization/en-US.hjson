@@ -490,7 +490,7 @@ Mods: {
 
 				ShowSavePlayerMessages: {
 					Label: Show Save Messages
-					Tooltip: Sends a local chat message whenever the player file is saved
+					Tooltip: Sends a chat message only to you when the player file is saved on the server
 				}
 
 				AutoSelectLatestSpawnOption: {
@@ -540,7 +540,7 @@ Mods: {
 
 				ShowTeleportPlayerMessages: {
 					Label: Show Teleport Messages
-					Tooltip: Sends a team message when players use the spawn selector to teleport
+					Tooltip: Sends a team message when players use the travel system to teleport
 				}
 
 				ShowChatChannelPrefixes: {
@@ -551,11 +551,6 @@ Mods: {
 				DrawSpectators: {
 					Label: "[i:PvPAdventure/GhostConfigItem] Draw Spectators"
 					Tooltip: Set visibility of spectators (ghosts)
-				}
-
-				spawnSelectorPosition: {
-					Label: Spawn Selector Position
-					Tooltip: ""
 				}
 
 				travelUIPosition: {
@@ -580,7 +575,7 @@ Mods: {
 
 				ShowCameraFade: {
 					Label: Show Camera Fade
-					Tooltip: Fades to black when switching camera position to allow for a smoother effect
+					Tooltip: Fades to black when switching camera position to allow for a smoother visual effect
 				}
 			}
 
@@ -902,9 +897,14 @@ Mods: {
 					Tooltip: The distance in tiles to beds and portals where you can access travel
 				}
 
-				TravelPortalCreationTimeSeconds: {
-					Label: "[i:PvPAdventure/PortalCreatorItem] Portal Creation Use Time"
-					Tooltip: The time in seconds it takes for a portal to be created
+				TravelPortalCreationTimeHardmodeSeconds: {
+					Label: "[i:PvPAdventure/PortalCreatorItem] Portal Creation Time (Hardmode)"
+					Tooltip: The use time in seconds it takes for a portal to be created in Hardmode
+				}
+
+				TravelPortalCreationTimePreHardmodeSeconds: {
+					Label: "[i:PvPAdventure/PortalCreatorItem] Portal Creation Time (Pre-Hardmode)"
+					Tooltip: The use time in seconds it takes for a portal to be created in Pre-Hardmode
 				}
 
 				PortalCreationOffset: {
@@ -1980,12 +1980,12 @@ Mods: {
 
 				Top: {
 					Label: Top
-					Tooltip: ""
+					Tooltip: Top of screen
 				}
 
 				Bottom: {
 					Label: Bottom
-					Tooltip: ""
+					Tooltip: Bottom of screen
 				}
 			}
 

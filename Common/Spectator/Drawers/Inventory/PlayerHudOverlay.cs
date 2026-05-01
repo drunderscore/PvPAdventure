@@ -8,7 +8,7 @@ using Terraria.GameContent;
 
 namespace PvPAdventure.Common.Spectator.Drawers.Inventory;
 
-internal static class InventoryOverlay
+internal static class PlayerHudOverlay
 {
     private static int playerIndex = -1;
     private static bool releaseInventory = true;
@@ -87,6 +87,14 @@ internal static class InventoryOverlay
     public static void Clear()
     {
         playerIndex = -1;
+        ClearOwnedHover();
+    }
+
+    public static void ClearOwnedHover()
+    {
+        InventoryDrawer.ClearOwnedHover();
+        HotbarDrawer.ClearOwnedHover();
+        BuffDrawer.ClearOwnedHover();
     }
 
     public static void Draw(SpriteBatch sb)
@@ -99,17 +107,78 @@ internal static class InventoryOverlay
             return;
         }
 
+        DrawPlayerHud(sb, player, IsOpen(player));
+    }
+
+    public static void DrawPlayerHud(SpriteBatch sb, Player player, bool inventoryOpen)
+    {
+        if (player?.active != true)
+            return;
+
         Rectangle viewport = new(0, 0, Main.screenWidth, Main.screenHeight);
 
-        if (IsOpen(player))
+        if (inventoryOpen)
         {
-            InventoryDrawer.DrawInventory(sb, new Vector2(20f, 20f), player, viewport);
+            HotbarDrawer.ClearOwnedHover();
+            BuffDrawer.ClearOwnedHover();
             DrawResourceBars(sb, player);
+            InventoryDrawer.DrawInventory(sb, new Vector2(20f, 20f), player, viewport);
             return;
         }
 
+        InventoryDrawer.ClearOwnedHover();
+        DrawHotbarHud(sb, player);
+        DrawResourceAndBuffHud(sb, player);
+    }
+
+    public static void DrawInventoryHud(SpriteBatch sb, Player player)
+    {
+        DrawPlayerHud(sb, player, inventoryOpen: true);
+    }
+
+    public static void DrawCompactHud(SpriteBatch sb, Player player)
+    {
+        DrawPlayerHud(sb, player, inventoryOpen: false);
+    }
+
+    public static void DrawHotbarHud(SpriteBatch sb, Player player)
+    {
+        if (player?.active != true)
+            return;
+
+        InventoryDrawer.ClearOwnedHover();
+        BuffDrawer.ClearOwnedHover();
         DrawHotbar(sb, player);
+    }
+
+    public static void DrawResourceAndBuffHud(SpriteBatch sb, Player player)
+    {
+        if (player?.active != true)
+            return;
+
+        InventoryDrawer.ClearOwnedHover();
+        DrawResourceBarsHud(sb, player);
+        DrawBuffHud(sb, player);
+    }
+
+    public static void DrawResourceBarsHud(SpriteBatch sb, Player player)
+    {
+        if (player?.active != true)
+            return;
+
+        InventoryDrawer.ClearOwnedHover();
         DrawResourceBars(sb, player);
+    }
+
+    public static void DrawBuffHud(SpriteBatch sb, Player player)
+    {
+        if (player?.active != true)
+            return;
+
+        Rectangle viewport = new(0, 0, Main.screenWidth, Main.screenHeight);
+
+        InventoryDrawer.ClearOwnedHover();
+        DrawBuffs(sb, player, viewport);
     }
 
     private static Player GetDrawTarget()
@@ -131,9 +200,10 @@ internal static class InventoryOverlay
         HotbarDrawer.DrawHotbar(player);
     }
 
-    private static void DrawBuffs(SpriteBatch spriteBatch, Player player)
+    private static void DrawBuffs(SpriteBatch spriteBatch, Player player, Rectangle viewport)
     {
-
+        Vector2 position = new(20f, 88f);
+        BuffDrawer.DrawBuffs(spriteBatch, position, player, viewport);
     }
 
     private static void DrawResourceBars(SpriteBatch spriteBatch, Player player)

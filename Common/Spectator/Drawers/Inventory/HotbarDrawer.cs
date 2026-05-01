@@ -11,7 +11,22 @@ namespace PvPAdventure.Common.Spectator.Drawers.Inventory;
 
 public static class HotbarDrawer
 {
+    private const int SpectatedHotbarDrawContext = 0;
+
     private static bool ownedHotbarHover;
+
+    public static void ClearOwnedHover()
+    {
+        if (!ownedHotbarHover)
+            return;
+
+        Main.HoverItem = new Item();
+        Main.hoverItemName = "";
+        Main.mouseText = false;
+        Main.rare = 0;
+        ownedHotbarHover = false;
+    }
+
     public static void DrawHotbar(Player player)
     {
         bool ownsHotbarHoverThisFrame = false;
@@ -67,8 +82,8 @@ public static class HotbarDrawer
                 float num4 = Main.inventoryScale;
                 Main.inventoryScale = num2;
                 Main.inventoryBack = i == player.selectedItem ? Color.Yellow : oldInventoryBack;
-                // --- Actual draw call ---
-                ItemSlot.Draw(Main.spriteBatch, player.inventory, 13, i, new Vector2(num, num3), lightColor);
+                // --- Actual hotbar item slot draw ---
+                ItemSlot.Draw(Main.spriteBatch, player.inventory, SpectatedHotbarDrawContext, i, new Vector2(num, num3), lightColor);
                 Main.inventoryBack = oldInventoryBack;
                 Main.inventoryScale = num4;
                 num += (int)((float)TextureAssets.InventoryBack.Width() * Main.hotbarScale[i]) + 4;
@@ -83,7 +98,7 @@ public static class HotbarDrawer
                 float num7 = Main.inventoryScale;
                 Main.inventoryScale = num5;
                 Main.inventoryBack = Color.Yellow;
-                ItemSlot.Draw(Main.spriteBatch, player.inventory, 13, selectedItem, new Vector2(num, num6), lightColor2);
+                ItemSlot.Draw(Main.spriteBatch, player.inventory, SpectatedHotbarDrawContext, selectedItem, new Vector2(num, num6), lightColor2);
                 Main.inventoryBack = oldInventoryBack;
                 Main.inventoryScale = num7;
             }
@@ -93,12 +108,7 @@ public static class HotbarDrawer
             Main.inventoryBack = oldInventoryBack;
 
             if (ownedHotbarHover && !ownsHotbarHoverThisFrame)
-            {
-                Main.HoverItem = new Item();
-                Main.hoverItemName = "";
-                Main.mouseText = false;
-                Main.rare = 0;
-            }
+                ClearOwnedHover();
 
             ownedHotbarHover = ownsHotbarHoverThisFrame;
         }
@@ -110,6 +120,7 @@ public static class HotbarDrawer
         if (Main.playerInventory || player?.active != true)
             return;
 
+        Color oldInventoryBack = Main.inventoryBack;
         string text = Lang.inter[37].Value;
 
         if (!string.IsNullOrEmpty(player.inventory[player.selectedItem].Name))
@@ -144,7 +155,9 @@ public static class HotbarDrawer
             float oldInventoryScale = Main.inventoryScale;
             Main.inventoryScale = slotScale;
 
-            ItemSlot.Draw(Main.spriteBatch, player.inventory, 13, i, new Vector2(x, y), lightColor);
+            Main.inventoryBack = i == player.selectedItem ? Color.Yellow : oldInventoryBack;
+            ItemSlot.Draw(Main.spriteBatch, player.inventory, SpectatedHotbarDrawContext, i, new Vector2(x, y), lightColor);
+            Main.inventoryBack = oldInventoryBack;
 
             Main.inventoryScale = oldInventoryScale;
             x += (int)(TextureAssets.InventoryBack.Width() * slotScale) + 4;
@@ -160,9 +173,11 @@ public static class HotbarDrawer
 
             float oldInventoryScale = Main.inventoryScale;
             Main.inventoryScale = slotScale;
+            Main.inventoryBack = Color.Yellow;
 
-            ItemSlot.Draw(Main.spriteBatch, player.inventory, 13, selectedItem, new Vector2(x, y), lightColor);
+            ItemSlot.Draw(Main.spriteBatch, player.inventory, SpectatedHotbarDrawContext, selectedItem, new Vector2(x, y), lightColor);
 
+            Main.inventoryBack = oldInventoryBack;
             Main.inventoryScale = oldInventoryScale;
         }
     }

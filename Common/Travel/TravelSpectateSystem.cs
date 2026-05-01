@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Spectator;
+using PvPAdventure.Common.Spectator.Drawers.Inventory;
 using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Common.Travel.UI;
@@ -23,10 +24,29 @@ internal sealed class TravelSpectateSystem : ModSystem
 
     private static bool hoveringPlayer;
     private static int hoveredPlayerIndex = -1;
+    private static int hudLockedPlayerIndex = -1;
+    private static ulong lastBuffDrawUpdate = ulong.MaxValue;
+    private static int lastBuffDrawPlayerIndex = -1;
 
     private static bool wasHovering;
     private static bool hasRestorePos;
     private static Vector2 restoreScreenPos;
+
+    public override void Load()
+    {
+        On_Main.DrawInventory += DrawTravelPreviewInventory;
+        On_Main.GUIHotbarDrawInner += DrawTravelPreviewHotbar;
+        On_Main.DrawInterface_25_ResourceBars += DrawTravelPreviewResourceBars;
+        On_Main.DrawInterface_Resources_Buffs += DrawTravelPreviewResourcesAndBuffs;
+    }
+
+    public override void Unload()
+    {
+        On_Main.DrawInventory -= DrawTravelPreviewInventory;
+        On_Main.GUIHotbarDrawInner -= DrawTravelPreviewHotbar;
+        On_Main.DrawInterface_25_ResourceBars -= DrawTravelPreviewResourceBars;
+        On_Main.DrawInterface_Resources_Buffs -= DrawTravelPreviewResourcesAndBuffs;
+    }
 
     public static void TrySetHover(TravelTarget target)
     {
@@ -76,45 +96,169 @@ internal sealed class TravelSpectateSystem : ModSystem
             ClearHover();
     }
 
+    public static bool IsPlayerHudLocked(int playerIndex)
+    {
+        return hudLockedPlayerIndex == playerIndex && IsValidHudPlayer(playerIndex);
+    }
+
+    public static void TogglePlayerHudLock(int playerIndex)
+    {
+        if (IsPlayerHudLocked(playerIndex))
+        {
+            hudLockedPlayerIndex = -1;
+            return;
+        }
+
+        hudLockedPlayerIndex = IsValidHudPlayer(playerIndex) ? playerIndex : -1;
+    }
+
     public override void ModifyScreenPosition()
     {
         Player local = Main.LocalPlayer;
 
         if (local?.active != true)
+        {
             return;
+        }
 
         if (SpectatorModeSystem.IsInSpectateMode(local))
         {
+            hudLockedPlayerIndex = -1;
             Restore();
             return;
         }
 
         if (!TravelTeleportSystem.ShouldShowTravelUI(local))
         {
+            hudLockedPlayerIndex = -1;
             RestoreIfPreviewing(local);
             return;
         }
 
         ValidateHover();
 
-        bool hovering = hasHover || hoveringPlayer;
+        bool lockedPlayer = IsValidHudPlayer(hudLockedPlayerIndex);
+        bool transientHover = hasHover || hoveringPlayer;
 
-        if (hovering && !TravelUISystem.IsMouseHovering)
+        if (transientHover && !TravelUISystem.IsMouseHovering)
         {
-            RestoreToPlayer(local);
+            ClearHover();
+            transientHover = false;
+        }
+
+        bool previewing = lockedPlayer || transientHover;
+
+        HandleHoverTransitions(local, previewing);
+
+        if (previewing)
+            ApplyCamera();
+    }
+
+    private static void DrawTravelPreviewInventory(On_Main.orig_DrawInventory orig, Main self)
+    {
+        if (TryGetPlayerHudTarget(out Player player))
+        {
+            if (Main.playerInventory)
+                PlayerHudOverlay.DrawInventoryHud(Main.spriteBatch, player);
+
             return;
         }
 
-        HandleHoverTransitions(local, hovering);
+        PlayerHudOverlay.ClearOwnedHover();
+        orig(self);
+    }
 
-        if (hovering)
-            ApplyCamera();
+    private static void DrawTravelPreviewHotbar(On_Main.orig_GUIHotbarDrawInner orig, Main self)
+    {
+        if (TryGetPlayerHudTarget(out Player player))
+        {
+            if (!Main.playerInventory)
+                PlayerHudOverlay.DrawHotbarHud(Main.spriteBatch, player);
+
+            return;
+        }
+
+        PlayerHudOverlay.ClearOwnedHover();
+        orig(self);
+    }
+
+    private static void DrawTravelPreviewResourceBars(On_Main.orig_DrawInterface_25_ResourceBars orig, Main self)
+    {
+        if (TryGetPlayerHudTarget(out Player player))
+        {
+            if (!Main.playerInventory)
+            {
+                PlayerHudOverlay.DrawResourceBarsHud(Main.spriteBatch, player);
+                DrawTravelPreviewBuffsOnce(player);
+            }
+
+            return;
+        }
+
+        PlayerHudOverlay.ClearOwnedHover();
+        orig(self);
+    }
+
+    private static void DrawTravelPreviewResourcesAndBuffs(On_Main.orig_DrawInterface_Resources_Buffs orig, Main self)
+    {
+        if (TryGetPlayerHudTarget(out Player player))
+        {
+            if (!Main.playerInventory)
+                DrawTravelPreviewBuffsOnce(player);
+
+            return;
+        }
+
+        PlayerHudOverlay.ClearOwnedHover();
+        orig(self);
+    }
+
+    private static void DrawTravelPreviewBuffsOnce(Player player)
+    {
+        if (player?.active != true)
+            return;
+
+        if (lastBuffDrawUpdate == Main.GameUpdateCount && lastBuffDrawPlayerIndex == player.whoAmI)
+            return;
+
+        PlayerHudOverlay.DrawBuffHud(Main.spriteBatch, player);
+        lastBuffDrawUpdate = Main.GameUpdateCount;
+        lastBuffDrawPlayerIndex = player.whoAmI;
+    }
+
+    private static bool TryGetPlayerHudTarget(out Player player)
+    {
+        player = null;
+
+        Player local = Main.LocalPlayer;
+
+        if (local?.active != true || SpectatorModeSystem.IsInSpectateMode(local) || !TravelTeleportSystem.ShouldShowTravelUI(local))
+            return false;
+
+        int playerIndex =
+            IsValidHudPlayer(hudLockedPlayerIndex) ? hudLockedPlayerIndex :
+            IsValidHudPlayer(hoveredPlayerIndex) ? hoveredPlayerIndex :
+            -1;
+
+        if (playerIndex == -1)
+            return false;
+
+        player = Main.player[playerIndex];
+        return player?.active == true;
+    }
+
+    public static bool TryGetActivePlayerHudTarget(out Player player)
+    {
+        return TryGetPlayerHudTarget(out player);
     }
 
     private static void ValidateHover()
     {
         if (hoveringPlayer && !IsValidFriendlyPlayer(hoveredPlayerIndex))
             ClearHover();
+
+        if (hudLockedPlayerIndex != -1 && !IsValidHudPlayer(hudLockedPlayerIndex))
+            hudLockedPlayerIndex = -1;
 
         if (!hasHover)
             return;
@@ -151,14 +295,22 @@ internal sealed class TravelSpectateSystem : ModSystem
 
     private static void ApplyCamera()
     {
+        if (IsValidHudPlayer(hudLockedPlayerIndex))
+        {
+            SetCameraToPlayer(Main.player[hudLockedPlayerIndex]);
+            return;
+        }
+
         if (hoveringPlayer && IsValidPlayerIndex(hoveredPlayerIndex))
         {
-            SetCameraTo(Main.player[hoveredPlayerIndex].Center);
+            SetCameraToPlayer(Main.player[hoveredPlayerIndex]);
             return;
         }
 
         if (!hasHover)
+        {
             return;
+        }
 
         if (hoveredTarget.Type == TravelType.World)
         {
@@ -173,7 +325,9 @@ internal sealed class TravelSpectateSystem : ModSystem
         }
 
         if (hoveredTarget.Type == TravelType.Portal && TryGetPortalPosition(Main.LocalPlayer, hoveredTarget.PlayerIndex, out Vector2 portalPosition))
+        {
             SetCameraTo(portalPosition);
+        }
     }
 
     private static void Restore()
@@ -223,6 +377,16 @@ internal sealed class TravelSpectateSystem : ModSystem
     private static void SetCameraTo(Vector2 worldPosition)
     {
         SpectateCameraFade.SetScreenPosition(worldPosition - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f);
+    }
+
+    private static void SetCameraToPlayer(Player player)
+    {
+        SetCameraTo(player.Center);
+    }
+
+    private static bool IsValidHudPlayer(int playerIndex)
+    {
+        return playerIndex != Main.myPlayer && IsValidFriendlyPlayer(playerIndex);
     }
 
     private static bool TryGetBedPosition(int playerIndex, out Vector2 position)

@@ -109,15 +109,27 @@ internal sealed class UITravelPlayerCard : UIPanel
         {
             base.LeftClick(evt);
 
-            if (player?.active == true)
-                TravelSpectateSystem.TrySetPlayerHover(player.whoAmI);
+            if (CanLockSpectate())
+                TravelSpectateSystem.TogglePlayerHudLock(player.whoAmI);
         }
 
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
 
-            BorderColor = IsMouseHovering ? Color.Yellow : Color.Black;
+            bool spectated = TravelSpectateSystem.IsPlayerHudLocked(player.whoAmI);
+
+            BackgroundColor = spectated
+                ? new Color(73, 94, 171)
+                : IsMouseHovering
+                    ? new Color(73, 94, 171) * 0.95f
+                    : new Color(63, 82, 151) * 0.82f;
+
+            BorderColor = spectated
+                ? Color.Yellow
+                : IsMouseHovering
+                    ? Color.Yellow
+                    : Color.Black;
 
             if (IsMouseHovering)
             {
@@ -136,11 +148,25 @@ internal sealed class UITravelPlayerCard : UIPanel
 
             Rectangle rect = GetDimensions().ToRectangle();
 
-            if (IsMouseHovering)
+            bool spectated = TravelSpectateSystem.IsPlayerHudLocked(player.whoAmI);
+
+            if (spectated || IsMouseHovering)
             {
                 Rectangle hoverRect = rect;
                 hoverRect.Inflate(-3, -3);
-                BiomeBackgroundDrawer.DrawFadedFill(sb, hoverRect, new Color(73, 92, 161, 150), fadePixels: 6);
+                BiomeBackgroundDrawer.DrawFadedFill(sb, hoverRect, Color.Yellow * (IsMouseHovering ? 0.18f : 0.1f), fadePixels: 6);
+            }
+
+            if (IsMouseHovering)
+            {
+                if (CanLockSpectate())
+                {
+                    string text = TravelSpectateSystem.IsPlayerHudLocked(player.whoAmI)
+                        ? $"Click to stop spectating {player.name}"
+                        : $"Click to spectate {player.name}";
+
+                    Main.instance.MouseText(text);
+                }
             }
 
             DrawPlayerInfo(sb, rect);
@@ -155,10 +181,12 @@ internal sealed class UITravelPlayerCard : UIPanel
 
             float textScale = MathHelper.Clamp(rect.Height / 28f, 0.75f, 1f);
             float headScale = MathHelper.Clamp(rect.Height / 28f, 0.75f, 1f);
-            float padding = 14f;
+            float leftPadding = 14f;
             float gap = 7f;
 
-            Vector2 headPos = new(rect.X + padding + 0f, rect.Y + rect.Height * 0.5f);
+            Vector2 headPos = new(rect.X + leftPadding + 0f, rect.Y + rect.Height * 0.5f);
+            headPos.Y -= 4f;
+
             Vector2 nameSize = FontAssets.MouseText.Value.MeasureString(name) * textScale;
             Vector2 namePos = new(headPos.X + 12f + gap, rect.Y + (rect.Height - nameSize.Y) * 0.5f + 4f);
 
@@ -191,6 +219,11 @@ internal sealed class UITravelPlayerCard : UIPanel
 
             Color borderColor = player.team > 0 ? Main.teamColor[player.team] : Color.Black;
             Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, center, scale: scale, borderColor: borderColor);
+        }
+
+        private bool CanLockSpectate()
+        {
+            return player?.active == true && player.whoAmI != Main.myPlayer;
         }
     }
 }

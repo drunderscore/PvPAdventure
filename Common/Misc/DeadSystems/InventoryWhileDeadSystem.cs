@@ -47,12 +47,12 @@ internal class InventoryWhileDeadSystem : ModSystem
             if (target?.active == true)
             {
                 Log.Chat("Toggle spectated player's inventory for " + target.name);
-                InventoryOverlay.Toggle(target.whoAmI);
+                PlayerHudOverlay.Toggle(target.whoAmI);
             }
             else
             {
                 // TODO
-                // This never reaches because it's handled in InventoryOverlay.Update.
+                // This never reaches because it's handled in PlayerHudOverlay.Update.
                 // ...So this is redundant, but keep it just in-case.
                 //Main.NewText("Inventory is disabled as a spectator unless you are spectating another player.", Color.Yellow);
             }

@@ -43,12 +43,12 @@ internal sealed class SpectatorUIState : UIState
         if (SpectatorModeSystem.IsInSpectateMode(local))
         {
             EnsureSpectatorHUDStaysOpen();
-            InventoryOverlay.Update();
+            PlayerHudOverlay.Update();
         }
         else
         {
             spectatorControlsElement?.Remove();
-            InventoryOverlay.Clear();
+            PlayerHudOverlay.Clear();
         }
 
         spectatorControlsElement?.UpdateTarget();
@@ -67,6 +67,6 @@ internal sealed class SpectatorUIState : UIState
             return;
 
         // Draw spectated player's inventory
-        InventoryOverlay.Draw(sb);
+        PlayerHudOverlay.Draw(sb);
     }
 }

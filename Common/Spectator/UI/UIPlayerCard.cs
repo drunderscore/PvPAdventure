@@ -235,8 +235,8 @@ internal sealed class UIPlayerCard : UIPanel
             Ass.Icon_InventoryOpen,
             "View inventory",
             "Close inventory",
-            InventoryOverlay.Toggle,
-            InventoryOverlay.IsOpen)
+            PlayerHudOverlay.Toggle,
+            PlayerHudOverlay.IsOpen)
         ];
     }
 
@@ -336,17 +336,17 @@ internal sealed class UIPlayerCard : UIPanel
             OnLeftClick += (evt, element) =>
             {
                 if (IsValidPlayer())
-                    InventoryOverlay.Toggle(playerIndex);
+                    PlayerHudOverlay.Toggle(playerIndex);
             };
 
-            OnMouseOver += (evt, element) => owner.SetStatusText(InventoryOverlay.IsOpen(playerIndex) ? "Close inventory" : "View inventory");
+            OnMouseOver += (evt, element) => owner.SetStatusText(PlayerHudOverlay.IsOpen(playerIndex) ? "Close inventory" : "View inventory");
             OnMouseOut += (evt, element) => owner.ResetStatusText();
         }
 
         protected override void DrawSelf(SpriteBatch sb)
         {
             Rectangle box = GetDimensions().ToRectangle();
-            bool isSelected = InventoryOverlay.IsOpen(playerIndex);
+            bool isSelected = PlayerHudOverlay.IsOpen(playerIndex);
 
             Texture2D background = isSelected
                 ? TextureAssets.InventoryBack14.Value
