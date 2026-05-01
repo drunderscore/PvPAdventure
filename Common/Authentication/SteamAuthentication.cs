@@ -31,6 +31,8 @@ public class SteamAuthentication : ModSystem
     public delegate void AuthenticationResponseCallback(ulong id, byte whoAmI, EAuthSessionResponse authSessionResponse,
         bool alreadyOk);
 
+    public static bool ServerAuthenticationAvailable { get; private set; }
+
     private class Authentication(byte who, AuthenticationResponseCallback callback)
     {
         public byte Who { get; init; } = who;
@@ -54,10 +56,18 @@ public class SteamAuthentication : ModSystem
     {
         On_Main.Update += OnMainUpdate;
 
+        ServerAuthenticationAvailable = false;
+
         if (Main.dedServ)
         {
             if (!GameServer.Init(0, 7775, 7774, EServerMode.eServerModeAuthentication, Main.versionNumber))
-                throw new Exception("Failed to initialize Steam for game server");
+            {
+                Log.Warn("[SteamAuthentication] Failed to initialize Steam game server. Steam auth disabled for this server instance.");
+                ServerAuthenticationAvailable = false;
+                return;
+            }
+
+            ServerAuthenticationAvailable = true;
 
             SteamGameServer.SetGameDescription("PvP Adventure");
             SteamGameServer.SetProduct("tModLoader");
@@ -90,7 +100,7 @@ public class SteamAuthentication : ModSystem
 
     private void OnMainUpdate(On_Main.orig_Update orig, Main self, GameTime gameTime)
     {
-        if (Main.dedServ)
+        if (Main.dedServ && ServerAuthenticationAvailable)
         {
             GameServer.RunCallbacks();
         }
@@ -425,26 +435,45 @@ public class SteamAuthentication : ModSystem
             steamServerConnectFailureCallback = null;
         }
 
-        if (Main.dedServ)
+        //        if (Main.dedServ)
+        //        {
+        //            foreach (var (id, info) in authentication)
+        //            {
+        //#if DEBUG
+        //                if (info.DebugBypass || IsDebugSteamId(id))
+        //                    continue;
+        //#endif
+
+        //                SteamGameServer.EndAuthSession(new CSteamID(id));
+        //            }
+
+        //            authentication.Clear();
+
+        //            GameServer.Shutdown();
+        //        }
+        //        else
+        //        {
+        //            Netplay.OnDisconnect -= OnDisconnect;
+        //        }
+
+        if (Main.dedServ && ServerAuthenticationAvailable)
         {
             foreach (var (id, info) in authentication)
             {
 #if DEBUG
-                if (info.DebugBypass || IsDebugSteamId(id))
-                    continue;
+        if (info.DebugBypass || IsDebugSteamId(id))
+            continue;
 #endif
 
                 SteamGameServer.EndAuthSession(new CSteamID(id));
             }
 
             authentication.Clear();
-
             GameServer.Shutdown();
         }
-        else
-        {
-            Netplay.OnDisconnect -= OnDisconnect;
-        }
+
+        if (Main.dedServ)
+            authentication.Clear();
     }
     #endregion
 }

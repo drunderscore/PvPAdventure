@@ -182,6 +182,12 @@ public class AuthenticationManager : ModSystem
             .Emit<MessageBuffer>(OpCodes.Ldfld, "whoAmI")
             .EmitDelegate((byte whoAmI) =>
             {
+                if (!SteamAuthentication.ServerAuthenticationAvailable)
+                {
+                    Log.Debug($"[Authentication] Skipping Steam auth request for {whoAmI}; unavailable on this server instance.");
+                    return;
+                }
+
                 Netplay.Clients[whoAmI].State = -1;
                 NetMessage.SendData(MessageID.RequestPassword, whoAmI);
             });
