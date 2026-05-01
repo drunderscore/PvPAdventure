@@ -57,16 +57,17 @@ internal class TravelUIState : UIState
             return;
 
         List<TravelTarget> targets = TravelTeleportSystem.GetTargets(player);
-        int hash = GetTargetHash(targets);
+        bool bossBarVisible = IsBossBarVisible();
+        int hash = GetTargetHash(targets, bossBarVisible);
 
         if (hash == lastTargetHash)
             return;
 
         lastTargetHash = hash;
-        Rebuild(targets);
+        Rebuild(targets, bossBarVisible);
     }
 
-    private void Rebuild(List<TravelTarget> targets)
+    private void Rebuild(List<TravelTarget> targets, bool bossBarVisible)
     {
         // Clear existing UI elements
         backgroundPanel.RemoveAllChildren();
@@ -124,7 +125,16 @@ internal class TravelUIState : UIState
         float playerCardWidth = unitWidth * 2f + innerSpacing;
         float contentWidth = unitWidth * (worldUnits + randomUnits) + playerCardWidth * playerCards + spacing * Math.Max(0, elementCount - 1);
 
-        backgroundPanel.Top.Set(bottom ? -116f * scale : 82f * scale, 0f);
+        float panelTop = 82f * scale;
+
+        if (bottom)
+        {
+            panelTop = -55f * scale;
+            if (bossBarVisible)
+                panelTop -= 60f * scale;
+        }
+
+        backgroundPanel.Top.Set(panelTop, 0f);
         backgroundPanel.HAlign = 0.5f;
         backgroundPanel.VAlign = bottom ? 1f : 0f;
         backgroundPanel.Width.Set(paddingX * 2f + contentWidth, 0f);
@@ -178,18 +188,22 @@ internal class TravelUIState : UIState
         backgroundPanel.Recalculate();
         backgroundPanel.RecalculateChildren();
 
+        // Header panel
+        float titleHeight = 40f * scale; // broken!!
+        float titleGap = -paddingY/2; // hardcoded!!
+
         chooseYourDestinationPanel = new(Language.GetTextValue("Mods.PvPAdventure.Travel.ChooseYourDestination"), 0.8f * scale, true)
         {
             HAlign = 0.5f,
-            VAlign = backgroundPanel.VAlign,
+            VAlign = 0f,
             Width = { Pixels = 300f * scale },
-            Height = { Pixels = 45 * scale },
-            Top = new StyleDimension(backgroundPanel.Top.Pixels - 44f * scale, 0f),
+            Height = { Pixels = titleHeight },
+            Top = new StyleDimension(-titleGap - titleHeight, 0f),
             BackgroundColor = new Color(73, 94, 171),
-            //BackgroundColor = new Color(33, 43, 79) * 1f,
         };
-        chooseYourDestinationPanel.SetPadding(12f * scale);
-        Append(chooseYourDestinationPanel);
+
+        chooseYourDestinationPanel.SetPadding(8f * scale);
+        backgroundPanel.Append(chooseYourDestinationPanel);
 
         //Log.Chat($"Travel UI rebuilt with {players.Count} players");
     }
@@ -237,9 +251,11 @@ internal class TravelUIState : UIState
     /// </summary>
     /// <param name="targets">The list of travel targets.</param>
     /// <returns>A hash code representing the current state of the travel targets.</returns>
-    private static int GetTargetHash(List<TravelTarget> targets)
+    private static int GetTargetHash(List<TravelTarget> targets, bool bossBarVisible)
     {
         HashCode hash = new();
+
+        hash.Add(bossBarVisible);
 
         foreach (TravelTarget target in targets)
         {
@@ -314,5 +330,21 @@ internal class TravelUIState : UIState
     }
 #endif
     #endregion
+
+    private static bool IsBossBarVisible()
+    {
+        for (int i = 0; i < Main.maxNPCs; i++)
+        {
+            NPC npc = Main.npc[i];
+
+            if (npc?.active != true || npc.life <= 0)
+                continue;
+
+            if (npc.boss || npc.BossBar is not null)
+                return true;
+        }
+
+        return false;
+    }
 
 }
