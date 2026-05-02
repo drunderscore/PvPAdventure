@@ -43,7 +43,7 @@ public class DebugDLClearChatTool : Tool
             {
                 ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(string.Empty), Color.White);
             }
-            Log.Chat("Chat cleared!!");
+            DebugLog.Chat("Chat cleared!!");
         }
     }
     public override void DrawIcon(SpriteBatch sb, Rectangle position)

@@ -91,7 +91,7 @@ public class PvPAdventure : Mod
                 break;
 
             default:
-                Log.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
+                DebugLog.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
                 break;
         }
 

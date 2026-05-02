@@ -92,7 +92,7 @@ internal class KeybindsPlayer : ModPlayer
 
         if (arenasConfig.IsArenasEnabled && keybinds.ArenasMenu.JustPressed)
         {
-            Log.Chat("Arenas menu keybind pressed");
+            DebugLog.Chat("Arenas menu keybind pressed");
             ArenasUISystem.Toggle();
         }
 
@@ -106,7 +106,7 @@ internal class KeybindsPlayer : ModPlayer
         // Toggle spectate mode
         if (keybinds.ToggleSpectateMode.JustPressed)
         {
-            Log.Chat("Toggle spectate mode keybind pressed");
+            DebugLog.Chat("Toggle spectate mode keybind pressed");
             SpectatorModeSystem.ToggleSpectateMode(Main.LocalPlayer.whoAmI);
         }
     }

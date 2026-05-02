@@ -24,7 +24,6 @@ internal class TravelUIState : UIState
     // UI compoenents
     public UIPanel backgroundPanel;
     private UITextPanel<string> chooseYourDestinationPanel;
-    private UIText spectatingText;
 
     public override void OnInitialize()
     {
@@ -46,7 +45,7 @@ internal class TravelUIState : UIState
     public void ForceRebuildNextUpdate()
     {
         lastTargetHash = int.MinValue;
-        Log.Chat("Travel UI hash changed, force rebuilding");
+        DebugLog.Chat("Travel UI hash changed, force rebuilding");
     }
 
     public void RebuildIfNeeded()
@@ -79,7 +78,7 @@ internal class TravelUIState : UIState
         ServerConfig serverConfig = ModContent.GetInstance<ServerConfig>();
 
         // Set scale based on config
-        float scale = clientConfig.travelUISize switch
+        float scale = clientConfig.adventureUISize switch
         {
             ClientConfig.AdventureUISize.VerySmall => 0.8f,
             ClientConfig.AdventureUISize.Small => 0.9f,
@@ -103,12 +102,6 @@ internal class TravelUIState : UIState
                 players.Add(p);
         }
 
-        // Add debug players
-#if DEBUG
-        for (int i = 0; i < debugPlayers; i++)
-            players.Add(local);
-#endif
-
         // Set up layout
         float unitWidth = GetPlayerUnitWidth(players.Count, scale);
         float fullHeight = 76f * scale;
@@ -116,7 +109,7 @@ internal class TravelUIState : UIState
         float spacing = 12f * scale;
         float paddingX = 8f * scale;
         float paddingY = 12f * scale;
-        bool bottom = clientConfig.travelUIPosition == ClientConfig.AdventureUIPosition.Bottom;
+        bool bottom = clientConfig.adventureUIPosition == ClientConfig.AdventureUIPosition.Bottom;
         
         int worldUnits = serverConfig.IsWorldSpawnTeleportEnabled ? 1 : 0;
         int randomUnits = serverConfig.IsRandomTeleportEnabled ? 1 : 0;
@@ -184,7 +177,6 @@ internal class TravelUIState : UIState
             backgroundPanel.Append(random);
         }
 
-        UpdateSpectatingTextLayout(fullHeight, scale);
         backgroundPanel.Recalculate();
         backgroundPanel.RecalculateChildren();
 
@@ -206,32 +198,6 @@ internal class TravelUIState : UIState
         backgroundPanel.Append(chooseYourDestinationPanel);
 
         //Log.Chat($"Travel UI rebuilt with {players.Count} players");
-    }
-
-    private void UpdateSpectatingTextLayout(float fullHeight, float scale)
-    {
-        spectatingText ??= new UIText("", 1f, true)
-        {
-            HAlign = 0.5f,
-            TextColor = Color.White
-        };
-
-        spectatingText.Width.Set(420f * scale, 0f);
-        spectatingText.Height.Set(36f, 0f);
-        spectatingText.Top.Set(fullHeight + 16f * scale, 0f);
-        backgroundPanel.Append(spectatingText);
-    }
-
-    private void UpdateSpectatingText()
-    {
-        if (spectatingText == null)
-            return;
-
-        string text = TravelSpectateSystem.TryGetActivePlayerHudTarget(out Player player)
-            ? $"Spectating {player.name}"
-            : "";
-
-        spectatingText.SetText(text);
     }
 
     private static TravelTarget FindTarget(List<TravelTarget> targets, TravelType type, int playerIndex, TravelTarget fallback)
@@ -267,16 +233,11 @@ internal class TravelUIState : UIState
             hash.Add((int)target.WorldPosition.Y);
         }
 
-#if DEBUG
-        hash.Add(debugPlayers);
-#endif
-
         return hash.ToHashCode();
     }
 
     public override void Draw(SpriteBatch spriteBatch)
     {
-        UpdateSpectatingText();
         base.Draw(spriteBatch);
         DrawPortalCreatorTimer(spriteBatch);
     }
@@ -330,24 +291,9 @@ internal class TravelUIState : UIState
 
     #region Debug
 #if DEBUG
-    private static int debugPlayers; // used for UI testing
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-
-        if (Main.keyState.IsKeyDown(Keys.NumPad1) && !Main.oldKeyState.IsKeyDown(Keys.NumPad1))
-        {
-            debugPlayers++;
-            Log.Chat($"Extra copies: {debugPlayers}. Use Numpad1/2 to adjust.");
-        }
-        else if (Main.keyState.IsKeyDown(Keys.NumPad2) && !Main.oldKeyState.IsKeyDown(Keys.NumPad2))
-        {
-            if (debugPlayers > 0)
-            {
-                debugPlayers--;
-                Log.Chat($"Extra copies: {debugPlayers}. Use Numpad1/2 to adjust.");
-            }
-        }
 
         if (Main.keyState.IsKeyDown(Keys.F5) && !Main.oldKeyState.IsKeyDown(Keys.F5))
         {

@@ -135,7 +135,7 @@ public class ServerListUIState : MainMenuPageUIState
         selectedPort = entry.Port;
 
         serverTable.RefreshRows();
-        Log.Debug($"Selected server={selectedIP}:{selectedPort}");
+        DebugLog.Debug($"Selected server={selectedIP}:{selectedPort}");
     }
 
     private void ClearSelection()
@@ -170,7 +170,7 @@ public class ServerListUIState : MainMenuPageUIState
         string resolvedHost = host?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(resolvedHost) || port <= 0)
         {
-            Log.Debug($"Join aborted host={resolvedHost}:{port}");
+            DebugLog.Debug($"Join aborted host={resolvedHost}:{port}");
             warningPromptTimer = 30;
             return;
         }
@@ -181,7 +181,7 @@ public class ServerListUIState : MainMenuPageUIState
             return;
         }
 
-        Log.Debug($"Joining server {resolvedHost}:{port} with {playerData.Player.name}");
+        DebugLog.Debug($"Joining server {resolvedHost}:{port} with {playerData.Player.name}");
 
         Main.menuMultiplayer = true;
         Main.menuServer = false;
@@ -194,7 +194,7 @@ public class ServerListUIState : MainMenuPageUIState
 
         Netplay.SetRemoteIPAsync(Main.getIP, () =>
         {
-            Log.Debug($"Resolved ip={Main.getIP}");
+            DebugLog.Debug($"Resolved ip={Main.getIP}");
             Main.menuMode = 14;
             Main.statusText = $"Connecting to {resolvedHost}:{port}";
             Netplay.StartTcpClient();
@@ -210,7 +210,7 @@ public class ServerListUIState : MainMenuPageUIState
             .ToList()
             ?? [];
 
-        Log.Debug($"Loaded {players.Count} players");
+        DebugLog.Debug($"Loaded {players.Count} players");
 
         playerData = null;
         if (players.Count == 0)
@@ -224,7 +224,7 @@ public class ServerListUIState : MainMenuPageUIState
         Main.myPlayer = 0;
         playerData.SetAsActive();
 
-        Log.Debug($"Selected player={playerData.Player.name}");
+        DebugLog.Debug($"Selected player={playerData.Player.name}");
         return true;
     }
 

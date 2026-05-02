@@ -25,7 +25,7 @@ public class SpectatorModeJoinPlayer : ModPlayer
         forceSpectatorDelayTicks = 30;
         Main.LocalPlayer.ghost = true;
 
-        Log.Chat($"Force spectating is enabled, will send request to become a spectator in 30 ticks for player id: {Player.whoAmI}");
+        DebugLog.Chat($"Force spectating is enabled, will send request to become a spectator in 30 ticks for player id: {Player.whoAmI}");
     }
 
     public override void PostUpdate()
@@ -40,7 +40,7 @@ public class SpectatorModeJoinPlayer : ModPlayer
         if (forceSpectatorDelayTicks > 0)
             return;
 
-        Log.Chat($"Sending request to become a spectator for player id: {Main.myPlayer}");
+        DebugLog.Chat($"Sending request to become a spectator for player id: {Main.myPlayer}");
         SpectatorModeNetHandler.SendRequestSetMode(Main.myPlayer, PlayerMode.Spectator);
     }
 }

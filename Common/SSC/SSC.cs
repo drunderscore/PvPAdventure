@@ -79,7 +79,7 @@ public class SSC : ModSystem
 
     private static void ClientJoin(BinaryReader reader, int from)
     {
-        Log.Debug("Received ClientJoin packet from ID: " + from);
+        DebugLog.Debug("Received ClientJoin packet from ID: " + from);
 
         if (Main.netMode != NetmodeID.Server)
             return;
@@ -96,7 +96,7 @@ public class SSC : ModSystem
 
         if (!authenticatedSteamId.HasValue)
         {
-            Log.Warn($"Rejected SSC join for player {from}: Steam authentication is missing or pending");
+            DebugLog.Warn($"Rejected SSC join for player {from}: Steam authentication is missing or pending");
 
             ChatHelper.SendChatMessageToClient(
                 NetworkText.FromLiteral("Server has not verified your Steam identity yet. Try rejoining if this persists."),
@@ -108,7 +108,7 @@ public class SSC : ModSystem
 
         string steamId = authenticatedSteamId.Value.ToString();
 
-        Log.Debug($"Server accepted SSC join for authenticated SteamID: {steamId}, player name: {nameFromClient}, skin color: {appearance.SkinColor}");
+        DebugLog.Debug($"Server accepted SSC join for authenticated SteamID: {steamId}, player name: {nameFromClient}, skin color: {appearance.SkinColor}");
 
         byte[] data;
         TagCompound root;
@@ -146,14 +146,14 @@ public class SSC : ModSystem
         TagIO.Write(root, p);
         p.Send(toClient: from);
 
-        Log.Chat("Server sent SSC load for " + nameFromClient + " bytes=" + data.Length);
+        DebugLog.Chat("Server sent SSC load for " + nameFromClient + " bytes=" + data.Length);
     }
 
     
 
     private static void LoadPlayer(BinaryReader reader)
     {
-        Log.Debug("LoadPlayer packet received");
+        DebugLog.Debug("LoadPlayer packet received");
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
@@ -165,14 +165,14 @@ public class SSC : ModSystem
         int len = reader.ReadInt32();
         if (len < 0 || len > MaxPlayerFileBytes)
         {
-            Log.Chat("Client received invalid SSC player length: " + len);
+            DebugLog.Chat("Client received invalid SSC player length: " + len);
             return;
         }
 
         byte[] plrBytes = reader.ReadBytes(len);
         if (plrBytes.Length != len)
         {
-            Log.Chat("Client received truncated SSC player data: " + plrBytes.Length + "/" + len);
+            DebugLog.Chat("Client received truncated SSC player data: " + plrBytes.Length + "/" + len);
             return;
         }
 
@@ -195,7 +195,7 @@ public class SSC : ModSystem
         {
             try
             {
-                Log.Debug($"Client trying to load tempPlayerPath: {tempPlayerPath} with skin color: {appearance.SkinColor}");
+                DebugLog.Debug($"Client trying to load tempPlayerPath: {tempPlayerPath} with skin color: {appearance.SkinColor}");
 
                 var fileData = new PlayerFileData(tempPlayerPath, cloudSave: false)
                 {
@@ -216,7 +216,7 @@ public class SSC : ModSystem
                 NetMessage.SendData(MessageID.SyncPlayer, number: Main.myPlayer);
                 NetMessage.SendData(MessageID.SyncEquipment, number: Main.myPlayer);
 
-                Log.Debug($"Spawning into world as: {fileData.Player.name} with skin color: {appearance.SkinColor}");
+                DebugLog.Debug($"Spawning into world as: {fileData.Player.name} with skin color: {appearance.SkinColor}");
 
                 // Re-Enter the world with SSC character.
                 fileData.Player.Spawn(PlayerSpawnContext.SpawningIntoWorld);
@@ -248,8 +248,8 @@ public class SSC : ModSystem
             }
             catch (Exception e)
             {
-                Log.Chat("Client failed loading SSC player: " + e);
-                Log.Error("Client failed loading SSC player: " + e);
+                DebugLog.Chat("Client failed loading SSC player: " + e);
+                DebugLog.Error("Client failed loading SSC player: " + e);
             }
         });
     }
@@ -280,7 +280,7 @@ public class SSC : ModSystem
         //fileData.MarkAsServerSide();
         Player.InternalSavePlayerFile(fileData);
 
-        Log.Chat("Created and saved new player " + name);
+        DebugLog.Chat("Created and saved new player " + name);
     }
 
     private static void SavePlayer(BinaryReader reader, int from)
@@ -297,7 +297,7 @@ public class SSC : ModSystem
 
         if (len < 0 || len > MaxPlayerFileBytes)
         {
-            Log.Chat("Server received invalid SSC save length: " + len);
+            DebugLog.Chat("Server received invalid SSC save length: " + len);
             return;
         }
 
@@ -305,7 +305,7 @@ public class SSC : ModSystem
 
         if (data.Length != len)
         {
-            Log.Chat("Server received truncated SSC save: " + data.Length + "/" + len);
+            DebugLog.Chat("Server received truncated SSC save: " + data.Length + "/" + len);
             return;
         }
 
@@ -317,8 +317,8 @@ public class SSC : ModSystem
         }
         catch (Exception e)
         {
-            Log.Chat("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
-            Log.Error("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
+            DebugLog.Chat("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
+            DebugLog.Error("Server failed reading SSC tplr data for " + nameFromClient + ", error: " + e);
             return;
         }
 
@@ -328,7 +328,7 @@ public class SSC : ModSystem
             //string steamId = reader.ReadString(); // old code where we sent steamID, keep for legacy's sake
             if (!authenticatedSteamId.HasValue)
             {
-                Log.Warn($"Rejected SSC save for player {from}: Steam authentication is missing or pending");
+                DebugLog.Warn($"Rejected SSC save for player {from}: Steam authentication is missing or pending");
 
                 ChatHelper.SendChatMessageToClient(
                     NetworkText.FromLiteral($"Failed to save {nameFromClient} because Steam authentication is missing."),
@@ -369,11 +369,11 @@ public class SSC : ModSystem
             //        from);
             //}
 
-            Log.Debug($"Server successfully received SSC save for {nameFromClient}, authenticated SteamID: {steamId}, bytes={len}, team={(Terraria.Enums.Team)playerTeam}");
+            DebugLog.Debug($"Server successfully received SSC save for {nameFromClient}, authenticated SteamID: {steamId}, bytes={len}, team={(Terraria.Enums.Team)playerTeam}");
         }
         catch (Exception e)
         {
-            Log.Chat("Server failed saving SSC player with error: " + e);
+            DebugLog.Chat("Server failed saving SSC player with error: " + e);
         }
     }
 

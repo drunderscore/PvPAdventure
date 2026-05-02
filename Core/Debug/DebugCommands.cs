@@ -39,7 +39,7 @@ public class ClearChatCommand : ModCommand
             {
                 ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(string.Empty), Color.White);
             }
-            Log.Chat("Chat cleared!!");
+            DebugLog.Chat("Chat cleared!!");
         }
     }
 }
@@ -54,6 +54,46 @@ public class ChatTimeCommand : ModCommand
         if (args.Length != 1 || !int.TryParse(args[0], out int seconds))
         {
             caller.Reply("Usage: /chattime <seconds>", Color.Red);
+            return;
+        }
+
+        var monitor = Main.chatMonitor as RemadeChatMonitor;
+        if (monitor == null)
+            return;
+
+        // Access _messages
+        var messagesField = typeof(RemadeChatMonitor)
+            .GetField("_messages", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        var messages = (List<ChatMessageContainer>)messagesField.GetValue(monitor);
+        if (messages == null)
+            return;
+
+        // Access ChatMessageContainer._timeLeft
+        var timeLeftField = typeof(ChatMessageContainer)
+            .GetField("_timeLeft", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        int frames = seconds * 60;
+
+        // Apply to all messages
+        foreach (var msg in messages)
+            timeLeftField.SetValue(msg, frames);
+
+        caller.Reply($"Chat message lifetime set to {seconds} seconds.", Color.Green);
+    }
+}
+
+public class DebugLoadoutCommand : ModCommand
+{
+    public override string Command => "loadout";
+    //public override string Description => "Adds a debug loadout with useful items";
+    public override CommandType Type => CommandType.Chat;
+
+    public override void Action(CommandCaller caller, string input, string[] args)
+    {
+        if (args.Length != 1 || !int.TryParse(args[0], out int seconds))
+        {
+            caller.Reply("Usage: /loadout <1/2/3>", Color.Red);
             return;
         }
 

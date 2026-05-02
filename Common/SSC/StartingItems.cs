@@ -28,7 +28,7 @@ public static class StartingItems
 
             player.inventory[slot++] = item;
 
-            Log.Chat("Start item " + itemDef.DisplayName + " added");
+            DebugLog.Chat("Start item " + itemDef.DisplayName + " added");
         }
     }
     public static void ApplyStartLife(Player player)

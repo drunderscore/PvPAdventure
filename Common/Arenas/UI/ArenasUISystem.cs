@@ -26,7 +26,7 @@ public sealed class ArenasUISystem : ModSystem
             var config = ModContent.GetInstance<ArenasConfig>();
             if (config == null)
             {
-                Log.Warn("ServerConfig not loaded – Arenas disabled by default");
+                DebugLog.Warn("ServerConfig not loaded – Arenas disabled by default");
                 return false;
             }
 

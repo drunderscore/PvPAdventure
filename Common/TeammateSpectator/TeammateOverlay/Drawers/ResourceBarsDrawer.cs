@@ -1,7 +1,7 @@
 ﻿using System;
 using Terraria;
 
-namespace PvPAdventure.Common.Spectator.Drawers.Inventory;
+namespace PvPAdventure.Common.TeammateSpectator.TeammateOverlay.Drawers;
 
 public class ResourceBarsDrawer
 {

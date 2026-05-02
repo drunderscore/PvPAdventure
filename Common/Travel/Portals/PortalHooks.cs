@@ -47,7 +47,7 @@ public class PortalHooks : ModSystem
         if (getter != null)
             ignoreMouseHook = new Hook(getter, OverrideIgnoreMouseInterface);
         else
-            Log.Error("PlayerInput.get_IgnoreMouseInterface not found!");
+            DebugLog.Error("PlayerInput.get_IgnoreMouseInterface not found!");
     }
 
     public override void Unload()

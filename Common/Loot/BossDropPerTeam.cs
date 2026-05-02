@@ -249,7 +249,7 @@ internal sealed class BossDropPerTeamSystem : ModSystem
         Team team = GetAwardTeam(npc);
         item.GetGlobalItem<BossDropItem>()._team = team;
 
-        Log.Chat($"{Lang.GetItemNameValue(item.type)}->{team}");
+        DebugLog.Chat($"{Lang.GetItemNameValue(item.type)}->{team}");
         NetMessage.SendData(MessageID.SyncItem, number: idx);
 
         return idx;
@@ -295,7 +295,7 @@ internal sealed class BossDropPerTeamSystem : ModSystem
         Main.item[idx].active = false;
         npc.value = 0f;
 
-        Log.Chat($"{Lang.GetItemNameValue(itemId)}->{team}");
+        DebugLog.Chat($"{Lang.GetItemNameValue(itemId)}->{team}");
     }
 }
 

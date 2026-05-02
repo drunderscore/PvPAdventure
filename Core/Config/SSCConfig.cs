@@ -87,7 +87,7 @@ internal class SSCConfig : ModConfig
 
     public override void HandleAcceptClientChangesReply(bool success, int player, NetworkText message)
     {
-        Log.Chat("Server accepted changes!");
+        DebugLog.Chat("Server accepted changes!");
         base.HandleAcceptClientChangesReply(success, player, message);
     }
 

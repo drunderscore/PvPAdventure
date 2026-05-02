@@ -12,7 +12,7 @@ public static class TravelRules
             ServerConfig config = ModContent.GetInstance<ServerConfig>();
             if (config == null)
             {
-                Log.Warn("ServerConfig is null, defaulting to travel system disabled.");
+                DebugLog.Warn("ServerConfig is null, defaulting to travel system disabled.");
                 return false;
             }
 

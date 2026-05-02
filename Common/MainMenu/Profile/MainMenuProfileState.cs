@@ -72,7 +72,7 @@ internal sealed class MainMenuProfileState
         {
             if (!ProductCatalog.TryGet(prototype, name, out ShopProduct definition))
             {
-                Log.Warn($"[ProfileState] Equipped skin missing from ProductCatalog: {prototype}:{name}");
+                DebugLog.Warn($"[ProfileState] Equipped skin missing from ProductCatalog: {prototype}:{name}");
                 continue;
             }
 
@@ -81,6 +81,6 @@ internal sealed class MainMenuProfileState
 
         HasSyncedFromBackend = true;
         SkinProfileApplierSystem.RequestApply();
-        Log.Info($"[ProfileState] Sync complete. Gems={Gems}, Owned={ownedSkins.Count}, Equipped={equippedSkinsByItemType.Count}");
+        DebugLog.Info($"[ProfileState] Sync complete. Gems={Gems}, Owned={ownedSkins.Count}, Equipped={equippedSkinsByItemType.Count}");
     }
 }

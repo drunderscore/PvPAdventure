@@ -45,7 +45,7 @@ internal sealed class BossDropTeamMouseText : ModSystem
             if (_lastIdx != idx)
             {
                 _lastIdx = idx;
-                Log.Chat($"{item.Name}->{team.Value}");
+                DebugLog.Chat($"{item.Name}->{team.Value}");
             }
         }
 

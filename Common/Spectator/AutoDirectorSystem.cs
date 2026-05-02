@@ -157,7 +157,7 @@ internal sealed class AutoDirectorSystem : ModSystem
         cooldownTicks = ChangeCooldownTicks;
         ticksSinceTargetChange = 0;
         pendingPvpDamager = -1;
-        Log.Chat($"Auto director target: {Main.player[playerIndex].name} ({reason})");
+        DebugLog.Chat($"Auto director target: {Main.player[playerIndex].name} ({reason})");
     }
 
     private static bool IsTargetable(int playerIndex)

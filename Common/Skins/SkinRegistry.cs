@@ -24,7 +24,7 @@ internal static class SkinRegistry
             ProductKey key = new(definition.Prototype, definition.Name);
 
             if (!ByKey.TryAdd(key, definition))
-                Log.Error($"Duplicate skin identity '{definition.Prototype}:{definition.Name}' in ProductCatalog.");
+                DebugLog.Error($"Duplicate skin identity '{definition.Prototype}:{definition.Name}' in ProductCatalog.");
 
             SkinnableItemTypes.Add(definition.ItemType);
         }
@@ -54,7 +54,7 @@ internal static class SkinRegistry
 
         if (!TryGetByKey(data.Key, out definition))
         {
-            Log.Error($"[SkinRegistry] Unknown ProductKey '{data.Key.Prototype}:{data.Key.Name}' on item type={item.type}");
+            DebugLog.Error($"[SkinRegistry] Unknown ProductKey '{data.Key.Prototype}:{data.Key.Name}' on item type={item.type}");
             return false;
         }
 

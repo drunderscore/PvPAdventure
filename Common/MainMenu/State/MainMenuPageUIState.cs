@@ -80,7 +80,7 @@ public abstract class MainMenuPageUIState : UIState
 
         if (pendingRebuild)
         {
-            Log.Debug("F5 pressed, rebuilding state...");
+            DebugLog.Debug("F5 pressed, rebuilding state...");
             pendingRebuild = false;
             Rebuild();
             RefreshContent();

@@ -49,7 +49,7 @@ public class BountyManager : ModSystem
 
         if (team == Team.None)
         {
-            Log.Chat($"{debugKey}: you are Team.None. Join a team first.");
+            DebugLog.Chat($"{debugKey}: you are Team.None. Join a team first.");
             return;
         }
 
@@ -67,7 +67,7 @@ public class BountyManager : ModSystem
 
         if (eligibleBounties.Count == 0)
         {
-            Log.Chat($"{debugKey}: no eligible bounties (check conditions/config).");
+            DebugLog.Chat($"{debugKey}: no eligible bounties (check conditions/config).");
             return;
         }
 
@@ -78,7 +78,7 @@ public class BountyManager : ModSystem
         UiBountyShop?.Invalidate();
         ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
 
-        Log.Chat($"+500 bounty shards to {team}. Shard count now: {pages.Count}");
+        DebugLog.Chat($"+500 bounty shards to {team}. Shard count now: {pages.Count}");
     }
 
     private static IList<Item[]> CloneBounties(IList<Item[]> src)

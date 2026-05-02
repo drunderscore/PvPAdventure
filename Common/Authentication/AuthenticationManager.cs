@@ -35,7 +35,7 @@ public class AuthenticationManager : ModSystem
                 if (!config.WhitelistPlayers.AllowAnyPlayerToJoin &&
                     !config.WhitelistPlayers.AllowedPlayerSteamIds.Contains(id.ToString()))
                 {
-                    Log.Debug($"{id} not whitelisted, booting {whoAmI} without attempting authentication");
+                    DebugLog.Debug($"{id} not whitelisted, booting {whoAmI} without attempting authentication");
                     NetMessage.BootPlayer(whoAmI,
                         NetworkText.FromKey("Mods.PvPAdventure.Authentication.NotWhitelisted"));
                     return false;
@@ -140,7 +140,7 @@ public class AuthenticationManager : ModSystem
 
                             if (!alreadyOk && client.IsActive && client.State == -1)
                             {
-                                Log.Info(
+                                DebugLog.Info(
                                     $"{playerNumber}/{client.Socket.GetRemoteAddress().GetIdentifier()} successfully authenticated as {authedId}");
                                 Netplay.Clients[playerNumber].State = 1;
 
@@ -151,7 +151,7 @@ public class AuthenticationManager : ModSystem
                         {
                             // non-OK response at any point is a disconnect, even after successful authentication
                             var msg = $"Steam invalidated session ticket for {authedId}/{playerNumber}: {response}";
-                            Log.Warn(msg);
+                            DebugLog.Warn(msg);
                             if (Netplay.Clients[playerNumber].IsActive && Netplay.Clients[playerNumber].State == -1)
                                 Console.WriteLine(msg);
 
@@ -162,7 +162,7 @@ public class AuthenticationManager : ModSystem
 
             if (!started)
             {
-                Log.Warn($"Failed to start Steam authentication for {playerNumber} claiming {id}");
+                DebugLog.Warn($"Failed to start Steam authentication for {playerNumber} claiming {id}");
                 NetMessage.BootPlayer(playerNumber, NetworkText.FromLiteral("Failed to start Steam authentication."));
             }
 
@@ -184,7 +184,7 @@ public class AuthenticationManager : ModSystem
             {
                 if (!SteamAuthentication.ServerAuthenticationAvailable)
                 {
-                    Log.Debug($"[Authentication] Skipping Steam auth request for {whoAmI}; unavailable on this server instance.");
+                    DebugLog.Debug($"[Authentication] Skipping Steam auth request for {whoAmI}; unavailable on this server instance.");
                     return;
                 }
 

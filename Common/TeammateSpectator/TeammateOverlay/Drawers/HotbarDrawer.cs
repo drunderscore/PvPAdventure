@@ -7,7 +7,7 @@ using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Spectator.Drawers.Inventory;
+namespace PvPAdventure.Common.TeammateSpectator.TeammateOverlay.Drawers;
 
 public static class HotbarDrawer
 {

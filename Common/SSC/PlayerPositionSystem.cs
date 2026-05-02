@@ -58,7 +58,7 @@ public class PlayerPositionSystem : ModSystem
         if (savedWorldId != Main.worldID || savedWorldName != Main.worldName)
         {
             // Position is from a different world, don't apply it
-            Log.Debug($"SSC position mismatch: saved={savedWorldName}({savedWorldId}), current={Main.worldName}({Main.worldID})");
+            DebugLog.Debug($"SSC position mismatch: saved={savedWorldName}({savedWorldId}), current={Main.worldName}({Main.worldID})");
             return false;
         }
 
@@ -71,7 +71,7 @@ public class PlayerPositionSystem : ModSystem
 
         player.position = new Vector2(posX, posY);
 
-        Log.Chat($"SSC: Restored {player.name}'s position to ({(int)posX / 16}, {(int)posY / 16})");
+        DebugLog.Chat($"SSC: Restored {player.name}'s position to ({(int)posX / 16}, {(int)posY / 16})");
         return true;
     }
 

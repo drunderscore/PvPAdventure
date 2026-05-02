@@ -113,13 +113,13 @@ internal sealed class SpectatorModeSystem : ModSystem
         if (SSCDelayJoinSystem.IsWaitingForSSCLoad && mode != PlayerMode.Spectator)
         {
             Main.LocalPlayer.ghost = true;
-            Log.Chat($"Player {playerId} received mode {mode} while SSC is loading; keeping ghost=true");
+            DebugLog.Chat($"Player {playerId} received mode {mode} while SSC is loading; keeping ghost=true");
         }
         else
         {
             Main.LocalPlayer.ghost = mode == PlayerMode.Spectator;
         }
-        Log.Chat($"Player {playerId} received mode: {mode}, player ghost now set to: {Main.LocalPlayer.ghost}");
+        DebugLog.Chat($"Player {playerId} received mode: {mode}, player ghost now set to: {Main.LocalPlayer.ghost}");
 
         if (playerId == Main.myPlayer && oldMode != mode && Main.netMode != NetmodeID.Server)
         {
@@ -130,7 +130,7 @@ internal sealed class SpectatorModeSystem : ModSystem
             }
             else
             {
-                Log.Warn("SpectatorUISystem is null when trying to call OnLocalModeAccepted");
+                DebugLog.Warn("SpectatorUISystem is null when trying to call OnLocalModeAccepted");
             }
         }
 

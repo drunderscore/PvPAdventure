@@ -1,12 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Spectator;
 using PvPAdventure.Common.Spectator.SpectatorMode;
+using PvPAdventure.Common.TeammateSpectator.TeammateOverlay.Drawers;
 using ReLogic.Graphics;
 using System;
 using Terraria;
 using Terraria.GameContent;
 
-namespace PvPAdventure.Common.Spectator.Drawers.Inventory;
+namespace PvPAdventure.Common.TeammateSpectator.TeammateOverlay;
 
 internal static class PlayerHudOverlay
 {
@@ -14,14 +16,8 @@ internal static class PlayerHudOverlay
     private static bool releaseInventory = true;
     public static bool IsAnyOpen => IsValidPlayerIndex(playerIndex);
 
-    // Hotfix to prevent logging the inventory disabled text if we closed settings menu with escape.
-    //private static bool optionsWindowWasOpen;
-
     public static void Update()
     { 
-        //bool optionsWindowIsOpen = Main.ingameOptionsWindow;
-        //bool optionsWindowWasOpenLastFrame = optionsWindowWasOpen;
-        //optionsWindowWasOpen = optionsWindowIsOpen;
         Player local = Main.LocalPlayer;
 
         if (local?.active != true || !SpectatorModeSystem.IsInSpectateMode(local))
@@ -121,9 +117,12 @@ internal static class PlayerHudOverlay
         if (inventoryOpen)
         {
             HotbarDrawer.ClearOwnedHover();
-            BuffDrawer.ClearOwnedHover();
             DrawResourceBars(sb, player);
-            InventoryDrawer.DrawInventory(sb, new Vector2(20f, 20f), player, viewport);
+
+            Vector2 inventoryPosition = new(20f, 20f);
+            InventoryDrawer.DrawInventory(sb, inventoryPosition, player, viewport);
+            DrawInventoryBuffs(sb, player, viewport, inventoryPosition);
+
             return;
         }
 
@@ -180,6 +179,15 @@ internal static class PlayerHudOverlay
 
         InventoryDrawer.ClearOwnedHover();
         DrawBuffs(sb, player, viewport);
+    }
+
+    private static void DrawInventoryBuffs(SpriteBatch spriteBatch, Player player, Rectangle viewport, Vector2 inventoryPosition)
+    {
+        const float slotSize = 52f;
+        const int inventoryRows = 5;
+
+        Vector2 position = new(inventoryPosition.X, inventoryPosition.Y + inventoryRows * slotSize + 14f);
+        BuffDrawer.DrawBuffs(spriteBatch, position, player, viewport);
     }
 
     private static Player GetDrawTarget()

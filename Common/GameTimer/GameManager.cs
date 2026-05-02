@@ -353,14 +353,14 @@ public class GameManager : ModSystem
 
         OfficialMatchReporter.PostCompletedMatch(startUtc, endUtc);
 
-        Log.Chat("Queued completed match for backend reporting");
-        Log.Debug("Queued completed match for backend reporting");
+        DebugLog.Chat("Queued completed match for backend reporting");
+        DebugLog.Debug("Queued completed match for backend reporting");
     }
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
     private void OnPhaseChange(Phase oldPhase, Phase newPhase)
     {
-        Log.Chat("New GamePhase: " + newPhase + ", (old: " + oldPhase + ")");
+        DebugLog.Chat("New GamePhase: " + newPhase + ", (old: " + oldPhase + ")");
 
         // Only save when a real match ends (Playing → Waiting transition)
         if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)

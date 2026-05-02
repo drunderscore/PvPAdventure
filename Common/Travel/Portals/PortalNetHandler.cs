@@ -25,7 +25,7 @@ public static class PortalNetHandler
                 break;
 
             default:
-                Log.Warn($"[Portal] Unknown packet type={(byte)type}");
+                DebugLog.Warn($"[Portal] Unknown packet type={(byte)type}");
                 break;
         }
     }
@@ -59,7 +59,7 @@ public static class PortalNetHandler
             if (TravelRegionSystem.IsInTravelRegion(player))
                 return;
 
-            Log.Chat("Portal creation request received");
+            DebugLog.Chat("Portal creation request received");
             PortalSystem.StartPortalCreation(player);
             SendPortalCreatorUse(playerId, slot, whoAmI);
             return;

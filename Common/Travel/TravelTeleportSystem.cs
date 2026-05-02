@@ -16,6 +16,7 @@ internal class TravelTeleportSystem : ModSystem
     private static TravelTarget selectedTarget;
     private static bool hasSelection;
     private static bool sentSelection;
+    private static bool wasUsingDeathTravelSelection;
 
     public static bool HasSelection => hasSelection;
 
@@ -131,7 +132,12 @@ internal class TravelTeleportSystem : ModSystem
     {
         Player player = Main.LocalPlayer;
 
-        if (Main.netMode == NetmodeID.Server || player?.active != true || !hasSelection)
+        if (Main.netMode == NetmodeID.Server || player?.active != true)
+            return;
+
+        UpdateDeathTravelSelection(player);
+
+        if (!hasSelection)
             return;
 
         if (player.dead || player.ghost)
@@ -149,6 +155,12 @@ internal class TravelTeleportSystem : ModSystem
         TravelTeleportNetHandler.SendTeleportRequest(current);
         //Log.Chat($"New travel request: {current}");
         ClearSelection();
+    }
+
+    public override void OnWorldUnload()
+    {
+        ClearSelection();
+        wasUsingDeathTravelSelection = false;
     }
 
     public static bool TryGetTarget(Player player, TravelType type, int playerIndex, out TravelTarget target)
@@ -237,6 +249,25 @@ internal class TravelTeleportSystem : ModSystem
     private static bool IsUsingPortalCreator(Player player)
     {
         return player?.active == true && player.itemAnimation > 0 && player.HeldItem?.ModItem is PortalCreatorItem;
+    }
+
+    private static void UpdateDeathTravelSelection(Player player)
+    {
+        bool usingDeathTravelSelection = ShouldUseDeathTravelSelection(player);
+
+        if (usingDeathTravelSelection && !wasUsingDeathTravelSelection)
+            SelectWorldSpawn(player);
+
+        wasUsingDeathTravelSelection = usingDeathTravelSelection;
+    }
+
+    private static void SelectWorldSpawn(Player player)
+    {
+        if (TryGetTarget(player, TravelType.World, -1, out TravelTarget worldSpawn) && worldSpawn.Available)
+        {
+            selectedTarget = worldSpawn;
+            hasSelection = true;
+        }
     }
 
     private static bool TryGetPortalPosition(Player player, int ownerIndex, out Vector2 position)

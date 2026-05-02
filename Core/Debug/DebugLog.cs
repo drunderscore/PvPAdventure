@@ -15,10 +15,10 @@ namespace PvPAdventure.Core.Debug;
 /// A static logging helper for PvPAdventure.
 /// Used to minimize boilerplate 
 /// and improve debugging by providing class names to log messages.
-/// Example usage: Log.Debug("Your debug message.");
+/// Example usage: DebugLog.Debug("Your debug message.");
 /// Output: [YourCallerFile] Your debug message.
 /// </summary>
-public static class Log
+public static class DebugLog
 {
     public static ILog Base
     {

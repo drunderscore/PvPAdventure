@@ -108,38 +108,14 @@ internal sealed class UITravelPlayerCard : UIPanel
         public override void LeftClick(UIMouseEvent evt)
         {
             base.LeftClick(evt);
-
-            if (CanLockSpectate())
-                TravelSpectateSystem.TogglePlayerHudLock(player.whoAmI);
         }
 
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
 
-            bool spectated = TravelSpectateSystem.IsPlayerHudLocked(player.whoAmI);
-
-            BackgroundColor = spectated
-                ? new Color(73, 94, 171)
-                : IsMouseHovering
-                    ? new Color(73, 94, 171) * 0.95f
-                    : new Color(63, 82, 151) * 0.82f;
-
-            BorderColor = spectated
-                ? Color.Yellow
-                : IsMouseHovering
-                    ? Color.Yellow
-                    : Color.Black;
-
             if (IsMouseHovering)
-            {
                 Main.LocalPlayer.mouseInterface = true;
-                TravelSpectateSystem.TrySetPlayerHover(player.whoAmI);
-            }
-            else
-            {
-                TravelSpectateSystem.ClearPlayerHoverIfMatch(player.whoAmI);
-            }
         }
 
         protected override void DrawSelf(SpriteBatch sb)
@@ -148,26 +124,12 @@ internal sealed class UITravelPlayerCard : UIPanel
 
             Rectangle rect = GetDimensions().ToRectangle();
 
-            bool spectated = TravelSpectateSystem.IsPlayerHudLocked(player.whoAmI);
-
-            if (spectated || IsMouseHovering)
-            {
-                Rectangle hoverRect = rect;
-                hoverRect.Inflate(-3, -3);
-                BiomeBackgroundDrawer.DrawFadedFill(sb, hoverRect, Color.Yellow * (IsMouseHovering ? 0.18f : 0.1f), fadePixels: 6);
-            }
-
-            if (IsMouseHovering)
-            {
-                if (CanLockSpectate())
-                {
-                    string text = TravelSpectateSystem.IsPlayerHudLocked(player.whoAmI)
-                        ? $"Click to stop spectating {player.name}"
-                        : $"Click to spectate {player.name}";
-
-                    Main.instance.MouseText(text);
-                }
-            }
+            //if (IsMouseHovering)
+            //{
+            //    Rectangle hoverRect = rect;
+            //    hoverRect.Inflate(-3, -3);
+            //    BiomeBackgroundDrawer.DrawFadedFill(sb, hoverRect, Color.Yellow * 0.18f, fadePixels: 6);
+            //}
 
             DrawPlayerInfo(sb, rect);
         }
@@ -222,9 +184,5 @@ internal sealed class UITravelPlayerCard : UIPanel
             Main.MapPlayerRenderer.DrawPlayerHead(Main.Camera, player, center, scale: scale, borderColor: borderColor);
         }
 
-        private bool CanLockSpectate()
-        {
-            return player?.active == true && player.whoAmI != Main.myPlayer;
-        }
     }
 }

@@ -126,7 +126,7 @@ public sealed class ShopUIState : MainMenuPageUIState
             gemsPanel.RefreshFromProfile();
 
             if (!profileResult.IsSuccess)
-                Log.Warn($"[ShopUI] Failed to refresh profile. {profileResult.ErrorMessage}");
+                DebugLog.Warn($"[ShopUI] Failed to refresh profile. {profileResult.ErrorMessage}");
 
             if (shopResult.IsSuccess)
             {

@@ -553,29 +553,24 @@ Mods: {
 					Tooltip: Set visibility of spectators (ghosts)
 				}
 
-				travelUIPosition: {
-					Label: Portal Travel UI Position
-					Tooltip: ""
-				}
-
-				travelUISize: {
-					Label: Portal Travel UI Size
-					Tooltip: ""
-				}
-
-				spectateUISize: {
-					Label: Spectate UI Size
-					Tooltip: ""
-				}
-
-				spectateUIPosition: {
-					Label: Spectate UI Position
-					Tooltip: ""
-				}
-
 				ShowCameraFade: {
 					Label: Show Camera Fade
 					Tooltip: Fades to black when switching camera position to allow for a smoother visual effect
+				}
+
+				adventureUIPosition: {
+					Label: Adventure UI Position
+					Tooltip: ""
+				}
+
+				adventureUISize: {
+					Label: Adventure UI Size
+					Tooltip: ""
+				}
+
+				ShowTeammatesToSpectate: {
+					Label: Show Teammates To Spectate
+					Tooltip: ""
 				}
 			}
 
@@ -929,6 +924,11 @@ Mods: {
 
 				IsRandomTeleportEnabled: {
 					Label: Is Random Teleport Option Enabled
+					Tooltip: ""
+				}
+
+				IsTeammateSpectatingEnabled: {
+					Label: Is Teammate Spectating Enabled
 					Tooltip: ""
 				}
 			}

@@ -145,6 +145,10 @@ public class ServerConfig : ModConfig
     [DefaultValue(5)]
     public int TeleportCooldownSeconds { get; set; }
 
+    [DefaultValue(true)]
+    [BackgroundColor(30, 150, 150)]
+    public bool IsTeammateSpectatingEnabled { get; set; }
+
     [Header("Gameplay")]
 
     [BackgroundColor(40, 90, 40)]
@@ -687,7 +691,7 @@ public class ServerConfig : ModConfig
 
     public override void HandleAcceptClientChangesReply(bool success, int player, NetworkText message)
     {
-        Log.Chat("Server accepted changes!");
+        DebugLog.Chat("Server accepted changes!");
         base.HandleAcceptClientChangesReply(success, player, message);
     }
     public override void OnChanged()

@@ -174,7 +174,7 @@ internal class AdminManagerPanel : UIDraggablePanel
 
                     UpdateSummaryText();
 
-                    Log.Chat(player.name + " admin: " + (isOn ? "yes" : "no"));
+                    DebugLog.Chat(player.name + " admin: " + (isOn ? "yes" : "no"));
                 })
             {
                 HAlign = 1f,

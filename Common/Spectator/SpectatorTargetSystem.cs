@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Spectator.SpectatorMode;
+using PvPAdventure.Common.TeammateSpectator;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
@@ -28,7 +29,6 @@ public class SpectatorTargetSystem : ModSystem
     private static int netSyncTicks;
     private static bool hasSmoothedFollowCenter;
     private static Vector2 smoothedFollowCenter;
-
     #region Targeting
     private static bool CanTarget(int playerId)
     {
@@ -53,9 +53,6 @@ public class SpectatorTargetSystem : ModSystem
 
         int next = CanTarget(slot) ? slot : -1;
 
-        if (target != next)
-            Log.Chat($"target {target}->{next}");
-
         target = next;
         npcTarget = -1;
         ResetFollowState();
@@ -70,9 +67,6 @@ public class SpectatorTargetSystem : ModSystem
             AutoDirectorSystem.Enabled = false;
 
         int next = CanTargetNPC(slot) ? slot : -1;
-
-        if (npcTarget != next)
-            Log.Chat($"npc target {npcTarget}->{next}");
 
         npcTarget = next;
         target = -1;
@@ -133,12 +127,6 @@ public class SpectatorTargetSystem : ModSystem
 
         if (target == -1 && npcTarget == -1)
             return;
-
-        if (target != -1)
-            Log.Chat($"clear {target}");
-
-        if (npcTarget != -1)
-            Log.Chat($"clear npc {npcTarget}");
 
         bool previewStillOwnsCamera = CanTarget(previewTarget);
 
@@ -443,5 +431,6 @@ public class SpectatorTargetSystem : ModSystem
 
         return screenPosition;
     }
+
     #endregion
 }

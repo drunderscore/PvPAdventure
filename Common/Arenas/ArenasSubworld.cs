@@ -52,18 +52,18 @@ public class ArenasSubworld : Subworld
             byte[] bytes = mod.GetFileBytes(path);
             if (bytes == null || bytes.Length == 0)
             {
-                Log.Error($"Failed to load arena world bytes. Missing mod file: '{path}'. Ensure it's included in the .tmod build output.");
+                DebugLog.Error($"Failed to load arena world bytes. Missing mod file: '{path}'. Ensure it's included in the .tmod build output.");
                 return;
             }
 
             using var ms = new MemoryStream(bytes);
             using var reader = new BinaryReader(ms);
             WorldFile.LoadWorld_Version2(reader);
-            Log.Debug($"[Arenas] maxTilesY={Main.maxTilesY} worldSurface={Main.worldSurface} rockLayer={Main.rockLayer}");
+            DebugLog.Debug($"[Arenas] maxTilesY={Main.maxTilesY} worldSurface={Main.worldSurface} rockLayer={Main.rockLayer}");
         }
         catch (Exception e)
         {
-            Log.Error("Failed to generate PvPArena: " + e);
+            DebugLog.Error("Failed to generate PvPArena: " + e);
         }
     }
 
@@ -71,7 +71,7 @@ public class ArenasSubworld : Subworld
     {
         Main.worldSurface = 599; // Hides the underground layer just out of bounds
         Main.rockLayer = 599; // Hides the cavern layer just out of bounds
-        Log.Debug($"[Arenas] maxTilesY={Main.maxTilesY} worldSurface={Main.worldSurface} rockLayer={Main.rockLayer}");
+        DebugLog.Debug($"[Arenas] maxTilesY={Main.maxTilesY} worldSurface={Main.worldSurface} rockLayer={Main.rockLayer}");
 
         // move spawn pos up
         //Main.spawnTileX += 3;
@@ -99,14 +99,14 @@ public class ArenasSubworld : Subworld
 
         Point16 pos = new(x, y);
 
-        Log.Debug($"Miniworld dims: {dims.X}x{dims.Y}");
-        Log.Debug($"World dims: {Main.maxTilesX}x{Main.maxTilesY}");
-        Log.Debug($"Placing at: {pos.X},{pos.Y}");
+        DebugLog.Debug($"Miniworld dims: {dims.X}x{dims.Y}");
+        DebugLog.Debug($"World dims: {Main.maxTilesX}x{Main.maxTilesY}");
+        DebugLog.Debug($"Placing at: {pos.X},{pos.Y}");
 
         if (!StructureHelper.API.Generator.IsInBounds(path, mod, pos))
         {
-            Log.Error("Miniworld does not fit subworld. Aborting gen.");
-            Log.Chat("Miniworld does not fit subworld. Aborting gen.");
+            DebugLog.Error("Miniworld does not fit subworld. Aborting gen.");
+            DebugLog.Chat("Miniworld does not fit subworld. Aborting gen.");
             return;
         }
 
@@ -132,7 +132,7 @@ public class ArenasSubworld : Subworld
     private static GenPass Pass(string name, Action action, string message = null, float weight = 1f)
     {
         message ??= "Generating " + name;
-        Log.Info("Arenas subworld is " + message);
+        DebugLog.Info("Arenas subworld is " + message);
         //Log.Chat("Arenas subworld is " + message);
         return new PassLegacy(name, (p, _) => { p.Message = message; action(); }, weight);
     }
@@ -175,7 +175,7 @@ public class ArenasSubworld : Subworld
 
     public override void OnEnter()
     {
-        Log.Chat("Entered world with height: " + Main.ActiveWorldFileData.WorldSizeY);
+        DebugLog.Chat("Entered world with height: " + Main.ActiveWorldFileData.WorldSizeY);
         //ArenaPlayerCountNet.Broadcast();
     }
     public override void OnExit()
@@ -200,7 +200,7 @@ public class ArenasSubworld : Subworld
     {
         if (Main.LocalPlayer == null || Main.Map == null)
         {
-            Log.Warn("No player exists, cant reveal map yet");
+            DebugLog.Warn("No player exists, cant reveal map yet");
             return;
         }
 

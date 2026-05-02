@@ -109,7 +109,7 @@ public static class EntityDrawer
     {
         ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
 
-        float scale = clientConfig.travelUISize switch
+        float scale = clientConfig.adventureUISize switch
         {
             ClientConfig.AdventureUISize.VerySmall => 0.8f,
             ClientConfig.AdventureUISize.Small => 1.0f,
@@ -125,7 +125,7 @@ public static class EntityDrawer
     {
         ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
 
-        float scale = clientConfig.travelUISize switch
+        float scale = clientConfig.adventureUISize switch
         {
             ClientConfig.AdventureUISize.VerySmall => -7f,
             ClientConfig.AdventureUISize.Small => 5f,

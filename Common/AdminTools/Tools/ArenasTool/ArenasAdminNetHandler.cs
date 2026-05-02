@@ -27,7 +27,7 @@ internal static class ArenasAdminNetHandler
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
-        Log.Debug("Request: " + type);
+        DebugLog.Debug("Request: " + type);
 
         var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.ArenasAdmin);
@@ -42,7 +42,7 @@ internal static class ArenasAdminNetHandler
         if (Main.netMode == NetmodeID.Server)
         {
             // TODO: add your admin permission check here (steamId list, operator flag, etc.)
-            Log.Debug("Server received: " + type + " from " + fromWho);
+            DebugLog.Debug("Server received: " + type + " from " + fromWho);
 
             var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
             packet.Write((byte)AdventurePacketIdentifier.ArenasAdmin);
@@ -54,7 +54,7 @@ internal static class ArenasAdminNetHandler
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
         {
-            Log.Debug("Client executing: " + type);
+            DebugLog.Debug("Client executing: " + type);
             Execute(type);
         }
     }

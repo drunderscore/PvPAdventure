@@ -62,7 +62,7 @@ public class SteamAuthentication : ModSystem
         {
             if (!GameServer.Init(0, 7775, 7774, EServerMode.eServerModeAuthentication, Main.versionNumber))
             {
-                Log.Warn("[SteamAuthentication] Failed to initialize Steam game server. Steam auth disabled for this server instance.");
+                DebugLog.Warn("[SteamAuthentication] Failed to initialize Steam game server. Steam auth disabled for this server instance.");
                 ServerAuthenticationAvailable = false;
                 return;
             }
@@ -92,7 +92,7 @@ public class SteamAuthentication : ModSystem
                 Callback<SteamServerConnectFailure_t>.Create(OnSteamServerConnectFailure);
 
             webTicketHandle = SteamUser.GetAuthTicketForWebApi(WebTicketIdentity);
-            Log.Debug("Requested Steam web ticket");
+            DebugLog.Debug("Requested Steam web ticket");
 
             Netplay.OnDisconnect += OnDisconnect;
         }
@@ -117,7 +117,7 @@ public class SteamAuthentication : ModSystem
     {
         if (!Main.dedServ)
         {
-            Log.Debug("Attempt to query authentication on the client (wrong side!)");
+            DebugLog.Debug("Attempt to query authentication on the client (wrong side!)");
             return null;
         }
 
@@ -141,25 +141,25 @@ public class SteamAuthentication : ModSystem
         {
             if (param.m_eResult != EResult.k_EResultOK)
             {
-                Log.Error($"Failed to obtain Steam web ticket ({param.m_eResult})");
+                DebugLog.Error($"Failed to obtain Steam web ticket ({param.m_eResult})");
                 return;
             }
 
             WebTicket = Convert.ToHexString(param.m_rgubTicket[..param.m_cubTicket]);
-            Log.Debug("Obtained Steam web ticket");
+            DebugLog.Debug("Obtained Steam web ticket");
         }
     }
 
     private void OnValidateAuthTicketResponse(ValidateAuthTicketResponse_t param)
     {
         ulong steamId = param.m_SteamID.m_SteamID;
-        Log.Debug($"Steam auth callback: steamId={steamId}, response={param.m_eAuthSessionResponse}");
+        DebugLog.Debug($"Steam auth callback: steamId={steamId}, response={param.m_eAuthSessionResponse}");
 
         try
         {
             if (!authentication.TryGetValue(steamId, out var info))
             {
-                Log.Warn($"Steam auth callback ignored: no pending session for steamId={steamId}");
+                DebugLog.Warn($"Steam auth callback ignored: no pending session for steamId={steamId}");
                 return;
             }
 
@@ -169,12 +169,12 @@ public class SteamAuthentication : ModSystem
             if (isOk)
             {
                 info.Ok = true;
-                Log.Info($"Steam auth accepted: steamId={steamId}, whoAmI={info.Who}, alreadyOk={wasAlreadyOk}");
+                DebugLog.Info($"Steam auth accepted: steamId={steamId}, whoAmI={info.Who}, alreadyOk={wasAlreadyOk}");
             }
             else
             {
                 authentication.Remove(steamId);
-                Log.Warn($"Steam auth rejected: steamId={steamId}, whoAmI={info.Who}, response={param.m_eAuthSessionResponse}");
+                DebugLog.Warn($"Steam auth rejected: steamId={steamId}, whoAmI={info.Who}, response={param.m_eAuthSessionResponse}");
             }
 
             info.Callback(steamId, info.Who, param.m_eAuthSessionResponse, wasAlreadyOk);
@@ -200,19 +200,19 @@ public class SteamAuthentication : ModSystem
 
         if (multiplayerTicketHandle == HAuthTicket.Invalid)
         {
-            Log.Error("Steam provided an invalid session ticket!");
+            DebugLog.Error("Steam provided an invalid session ticket!");
             return null;
         }
 
         if (ticketLength == 0)
         {
-            Log.Error("Steam provided a zero-length session ticket?");
+            DebugLog.Error("Steam provided a zero-length session ticket?");
             return null;
         }
 
         Array.Resize(ref ticket, (int)ticketLength);
 
-        Log.Debug("Steam session ticket created");
+        DebugLog.Debug("Steam session ticket created");
 
         return ticket;
     }
@@ -224,7 +224,7 @@ public class SteamAuthentication : ModSystem
 
         if (string.IsNullOrWhiteSpace(ticket))
         {
-            Log.Warn($"Steam auth rejected before BeginAuthSession: empty ticket, whoAmI={whoAmI}, claimedSteamId={id}");
+            DebugLog.Warn($"Steam auth rejected before BeginAuthSession: empty ticket, whoAmI={whoAmI}, claimedSteamId={id}");
             return false;
         }
 
@@ -236,13 +236,13 @@ public class SteamAuthentication : ModSystem
         }
         catch (Exception e)
         {
-            Log.Warn($"Steam auth rejected before BeginAuthSession: invalid hex ticket, whoAmI={whoAmI}, claimedSteamId={id}, error={e.Message}");
+            DebugLog.Warn($"Steam auth rejected before BeginAuthSession: invalid hex ticket, whoAmI={whoAmI}, claimedSteamId={id}, error={e.Message}");
             return false;
         }
 
         string remote = Netplay.Clients[whoAmI].Socket.GetRemoteAddress().GetIdentifier();
 
-        Log.Info($"Steam auth begin: whoAmI={whoAmI}, claimedSteamId={id}, remote={remote}, ticketBytes={ticketData.Length}");
+        DebugLog.Info($"Steam auth begin: whoAmI={whoAmI}, claimedSteamId={id}, remote={remote}, ticketBytes={ticketData.Length}");
 
 #if DEBUG
         if (TryBeginDebugMultiplayerSessionWith(whoAmI, id, callback))
@@ -253,13 +253,13 @@ public class SteamAuthentication : ModSystem
 
         if (result != EBeginAuthSessionResult.k_EBeginAuthSessionResultOK)
         {
-            Log.Warn($"Steam auth BeginAuthSession failed: whoAmI={whoAmI}, claimedSteamId={id}, result={result}");
+            DebugLog.Warn($"Steam auth BeginAuthSession failed: whoAmI={whoAmI}, claimedSteamId={id}, result={result}");
             return false;
         }
 
         authentication[id] = new(whoAmI, callback);
 
-        Log.Debug($"Steam auth pending: whoAmI={whoAmI}, claimedSteamId={id}, remote={remote}");
+        DebugLog.Debug($"Steam auth pending: whoAmI={whoAmI}, claimedSteamId={id}, remote={remote}");
 
         return true;
     }
@@ -282,7 +282,7 @@ public class SteamAuthentication : ModSystem
 
         if (!steamId.HasValue)
         {
-            Log.Debug($"Steam auth end skipped: no session for whoAmI={whoAmI}");
+            DebugLog.Debug($"Steam auth end skipped: no session for whoAmI={whoAmI}");
             return;
         }
 
@@ -296,7 +296,7 @@ public class SteamAuthentication : ModSystem
 
         if (!authentication.TryGetValue(steamId, out var info))
         {
-            Log.Debug($"Steam auth end skipped: no session for steamId={steamId}");
+            DebugLog.Debug($"Steam auth end skipped: no session for steamId={steamId}");
             return;
         }
 
@@ -305,20 +305,20 @@ public class SteamAuthentication : ModSystem
 #if DEBUG
         if (info.DebugBypass || IsDebugSteamId(steamId))
         {
-            Log.Info($"Steam auth ended: steamId={steamId}, debugBypass=true");
+            DebugLog.Info($"Steam auth ended: steamId={steamId}, debugBypass=true");
             return;
         }
 #endif
 
         SteamGameServer.EndAuthSession(new CSteamID(steamId));
-        Log.Info($"Steam auth ended: steamId={steamId}");
+        DebugLog.Info($"Steam auth ended: steamId={steamId}");
     }
 
     private void OnDisconnect()
     {
         if (multiplayerTicketHandle != HAuthTicket.Invalid)
         {
-            Log.Info("Canceling Steam session ticket");
+            DebugLog.Info("Canceling Steam session ticket");
             SteamUser.CancelAuthTicket(multiplayerTicketHandle);
             multiplayerTicketHandle = HAuthTicket.Invalid;
         }
@@ -328,7 +328,7 @@ public class SteamAuthentication : ModSystem
     {
         var msg = $"Failed to connect to Steam ({param.m_eResult}, retrying: {param.m_bStillRetrying})";
 
-        Log.Error(msg);
+        DebugLog.Error(msg);
         if (Main.dedServ)
             Console.WriteLine(msg);
     }
@@ -337,7 +337,7 @@ public class SteamAuthentication : ModSystem
     {
         var msg = $"Lost connection to Steam servers ({param.m_eResult})";
 
-        Log.Error(msg);
+        DebugLog.Error(msg);
         if (Main.dedServ)
             Console.WriteLine(msg);
     }
@@ -346,7 +346,7 @@ public class SteamAuthentication : ModSystem
     {
         const string msg = "Connection to Steam servers established.";
 
-        Log.Info(msg);
+        DebugLog.Info(msg);
         if (Main.dedServ)
             Console.WriteLine(msg);
     }
@@ -381,7 +381,7 @@ public class SteamAuthentication : ModSystem
             DebugBypass = true
         };
 
-        Log.Warn($"DEBUG Steam auth bypass accepted: whoAmI={whoAmI}, realSteamId={id}, debugSteamId={debugId}, remote={remote}");
+        DebugLog.Warn($"DEBUG Steam auth bypass accepted: whoAmI={whoAmI}, realSteamId={id}, debugSteamId={debugId}, remote={remote}");
 
         callback(debugId, whoAmI, EAuthSessionResponse.k_EAuthSessionResponseOK, false);
         return true;

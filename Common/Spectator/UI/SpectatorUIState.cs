@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Spectator.Drawers.Inventory;
 using PvPAdventure.Common.Spectator.SpectatorMode;
+using PvPAdventure.Common.TeammateSpectator.TeammateOverlay;
 using Terraria;
 using Terraria.UI;
 

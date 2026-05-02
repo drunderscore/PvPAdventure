@@ -70,7 +70,7 @@ public class SSCDelayJoinSystem : ModSystem
         {
             if (_delayTicks % 60 == 0)
             {
-                Log.Chat("Joining in ticks: " + _delayTicks);
+                DebugLog.Chat("Joining in ticks: " + _delayTicks);
             }
             _delayTicks--;
             return;
@@ -110,7 +110,7 @@ public class SSCDelayJoinSystem : ModSystem
 
         string steamId = SteamUser.GetSteamID().m_SteamID.ToString();
         Player appearanceSource = SSCGhostJoinSystem.JoinPlayerSnapshot ?? Main.LocalPlayer;
-        Log.Debug($"Player steamID: {steamId}, desiredName: {desiredName}, skin color: {appearanceSource.skinColor}");
+        DebugLog.Debug($"Player steamID: {steamId}, desiredName: {desiredName}, skin color: {appearanceSource.skinColor}");
 
         // Send packet
         var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
@@ -150,7 +150,7 @@ public class SSCDelayJoinSystem : ModSystem
 
         if (Main.LocalPlayer == null)
         {
-            Log.Error("Houston we have a problem: LocalPlayer is null when trying to get desired player name for SSC. This should never happen. Returning default name.");
+            DebugLog.Error("Houston we have a problem: LocalPlayer is null when trying to get desired player name for SSC. This should never happen. Returning default name.");
             return "TPVPAPlayer";
         }
 

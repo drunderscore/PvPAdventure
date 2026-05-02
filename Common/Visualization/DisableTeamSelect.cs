@@ -8,164 +8,202 @@ using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI.Gamepad;
 
 namespace PvPAdventure.Common.Visualization;
 
 /// <summary>
-/// Disables drawing and handling of PvP and team icons (these are drawn next to accessories when inventory is open).
+/// Always draws vanilla PvP/team icons, but blocks player-side PvP/team changes when server rules disallow them.
 /// </summary>
-[Autoload(Side =ModSide.Client)]
-internal class DisableTeamSelect : ModSystem
+[Autoload(Side = ModSide.Client)]
+internal sealed class DisableTeamSelect : ModSystem
 {
     private const int RedTeam = 1;
 
     public override void Load()
     {
-        // Do not draw the PvP or team icons -- the server has full control over your PvP and team.
-        // TODO: In the future, the server should send a packet relaying if the player can toggle hostile and which teams they may join.
-        //       For now, let's just totally disable it.
-
-
-        // Update: We're overriding vanilla manually and disallowing clicks only, we're still allowing players to choose teams.
-        // player.hostile is continually set to true in CombatPlayer.
         On_Main.DrawPVPIcons += ModifyDrawPvPIcons;
     }
 
     public override void PostUpdateEverything()
     {
 #if DEBUG
-        if (Main.netMode == NetmodeID.SinglePlayer && Main.LocalPlayer != null)
+        if (Main.netMode == NetmodeID.SinglePlayer && Main.LocalPlayer is not null)
             Main.LocalPlayer.team = RedTeam;
 #endif
     }
 
-    private bool Enabled()
+    private static bool CanChangeTeam()
     {
 #if DEBUG
         if (Main.netMode == NetmodeID.SinglePlayer)
             return true;
 #endif
 
-        var config = ModContent.GetInstance<ServerConfig>();
-
-        bool allow = true;
+        ServerConfig config = ModContent.GetInstance<ServerConfig>();
 
         if (config.AllowPlayersToChangeTeam == ServerConfig.AllowMode.Never)
-            allow = false;
+            return false;
 
         bool hasGameStarted = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
 
         if (config.AllowPlayersToChangeTeam == ServerConfig.AllowMode.BeforeGameStart && hasGameStarted)
-            allow = false;
-
-        if (!allow)
             return false;
 
         return true;
     }
 
-    private void ModifyDrawPvPIcons(On_Main.orig_DrawPVPIcons orig)
+    public static bool CanChangeTeams()
     {
-        if (!Enabled())
+#if DEBUG
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            return true;
+#endif
+
+        ServerConfig config = ModContent.GetInstance<ServerConfig>();
+
+        if (config.AllowPlayersToChangeTeam == ServerConfig.AllowMode.Never)
+            return false;
+
+        bool hasGameStarted = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+
+        if (config.AllowPlayersToChangeTeam == ServerConfig.AllowMode.BeforeGameStart && hasGameStarted)
+            return false;
+
+        return true;
+    }
+
+    private static bool CanTogglePvp()
+    {
+        return false;
+    }
+
+    private static void ShowTeamChangeBlockedText()
+    {
+        //Main.NewText(Lang.misc[84].Value, Color.Yellow);
+        Main.NewText("You can't change teams while game is playing!", Color.Yellow);
+    }
+
+    private static void ShowPvpChangeBlockedText()
+    {
+        Main.NewText("PvP cannot be changed while game is playing.", Color.Yellow);
+    }
+
+    private static void ModifyDrawPvPIcons(On_Main.orig_DrawPVPIcons orig)
+    {
+        if (!CanChangeTeams())
             return;
 
-        // Full vanilla implementation below,
-        // except the PvP toggle is disabled.
         if (Main.EquipPage == 1)
         {
             if (Main.hidePVPIcons)
-            {
                 return;
-            }
         }
         else
         {
             Main.hidePVPIcons = false;
         }
-        Main.inventoryScale = 0.6f;
-        int num = (int)(52f * Main.inventoryScale);
-        int num2 = 707 - num * 4 + Main.screenWidth - 800;
-        int num3 = 114 + Main.mH + num * 2 + num / 2 - 12;
-        if (Main.EquipPage == 2)
-        {
-            num2 += num + num / 2;
-        }
-        int num4 = (Main.player[Main.myPlayer].hostile ? 2 : 0);
-        if (Main.mouseX > num2 - 7 && Main.mouseX < num2 + 25 && Main.mouseY > num3 - 2 && Main.mouseY < num3 + 37 && !PlayerInput.IgnoreMouseInterface)
-        {
-            Main.player[Main.myPlayer].mouseInterface = true;
-            if (Main.teamCooldown == 0)
-            {
-                num4++;
-            }
 
-            // Disallow toggling PvP.
+        Main.inventoryScale = 0.6f;
+
+        int size = (int)(52f * Main.inventoryScale);
+        int x = 707 - size * 4 + Main.screenWidth - 800;
+        int y = 114 + Main.mH + size * 2 + size / 2 - 12;
+
+        if (Main.EquipPage == 2)
+            x += size + size / 2;
+
+        DrawPvpIcon(x, y);
+        DrawTeamIcons(x - 10, y + 60);
+    }
+
+    private static void DrawPvpIcon(int x, int y)
+    {
+        Player player = Main.LocalPlayer;
+        int frame = player.hostile ? 2 : 0;
+        Rectangle hitbox = new(x - 7, y - 2, 32, 39);
+
+        if (hitbox.Contains(Main.MouseScreen.ToPoint()) && !PlayerInput.IgnoreMouseInterface)
+        {
+            player.mouseInterface = true;
+
+            if (Main.teamCooldown == 0)
+                frame++;
+
             if (Main.mouseLeft && Main.mouseLeftRelease && Main.teamCooldown == 0)
             {
+                Main.mouseLeftRelease = false;
                 Main.teamCooldown = Main.teamCooldownLen;
-                SoundEngine.PlaySound(12);
-                //Main.player[Main.myPlayer].hostile = !Main.player[Main.myPlayer].hostile;
-                //NetMessage.SendData(30, -1, -1, null, Main.myPlayer);
-                bool hasGameStarted = ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
-                if (!hasGameStarted)
+                SoundEngine.PlaySound(SoundID.MenuTick);
+
+                if (!CanTogglePvp())
                 {
-                    Main.NewText("PvP disabled until the game starts.", Color.Yellow);
-                }
-                else
-                {
-                    Main.NewText("PvP enabled!", Color.Yellow);
+                    ShowPvpChangeBlockedText();
+                    return;
                 }
 
+                player.hostile = !player.hostile;
+                NetMessage.SendData(MessageID.TogglePVP, -1, -1, null, Main.myPlayer);
             }
         }
-        Rectangle rectangle = TextureAssets.Pvp[0].Frame(4, 6);
-        rectangle.Location = new Point(rectangle.Width * num4, rectangle.Height * Main.player[Main.myPlayer].team);
-        rectangle.Width -= 2;
-        rectangle.Height--;
-        Main.spriteBatch.Draw(TextureAssets.Pvp[0].Value, new Vector2(num2 - 10, num3), rectangle, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
-        UILinkPointNavigator.SetPosition(1550, new Vector2(num2 - 10, num3) + rectangle.Size() * 0.75f);
-        num3 += 60;
-        num2 -= 10;
-        rectangle = TextureAssets.Pvp[1].Frame(6);
-        Rectangle r = rectangle;
+
+        Rectangle frameRect = TextureAssets.Pvp[0].Frame(4, 6);
+        frameRect.Location = new Point(frameRect.Width * frame, frameRect.Height * player.team);
+        frameRect.Width -= 2;
+        frameRect.Height--;
+
+        Main.spriteBatch.Draw(TextureAssets.Pvp[0].Value, new Vector2(x - 10, y), frameRect, Color.White);
+        UILinkPointNavigator.SetPosition(1550, new Vector2(x - 10, y) + frameRect.Size() * 0.75f);
+    }
+
+    private static void DrawTeamIcons(int x, int y)
+    {
+        Player player = Main.LocalPlayer;
+        Rectangle source = TextureAssets.Pvp[1].Frame(6);
+        Rectangle hitbox = source;
+
         for (int i = 0; i < 6; i++)
         {
-            r.Location = new Point(num2 + i % 2 * 20, num3 + i / 2 * 20);
-            rectangle.X = rectangle.Width * i;
-            bool flag = false;
-            if (r.Contains(Main.MouseScreen.ToPoint()) && !PlayerInput.IgnoreMouseInterface)
+            hitbox.Location = new Point(x + i % 2 * 20, y + i / 2 * 20);
+            source.X = source.Width * i;
+
+            bool hovered = hitbox.Contains(Main.MouseScreen.ToPoint()) && !PlayerInput.IgnoreMouseInterface;
+            bool highlight = hovered && Main.teamCooldown == 0;
+
+            if (hovered)
             {
-                Main.player[Main.myPlayer].mouseInterface = true;
-                if (Main.teamCooldown == 0)
+                player.mouseInterface = true;
+
+                if (Main.mouseLeft && Main.mouseLeftRelease && player.team != i && Main.teamCooldown == 0)
                 {
-                    flag = true;
-                }
-                if (Main.mouseLeft && Main.mouseLeftRelease && Main.player[Main.myPlayer].team != i && Main.teamCooldown == 0)
-                {
-                    if (!Main.player[Main.myPlayer].TeamChangeAllowed())
+                    Main.mouseLeftRelease = false;
+                    Main.teamCooldown = Main.teamCooldownLen;
+                    SoundEngine.PlaySound(SoundID.MenuTick);
+
+                    if (!CanChangeTeams() || !player.TeamChangeAllowed())
                     {
-                        Main.NewText(Lang.misc[84].Value, byte.MaxValue, 240, 20);
+                        ShowTeamChangeBlockedText();
                     }
                     else
                     {
-                        Main.teamCooldown = Main.teamCooldownLen;
-                        SoundEngine.PlaySound(12);
-                        Main.player[Main.myPlayer].team = i;
+                        player.team = i;
                         NetMessage.SendData(MessageID.PlayerTeam, -1, -1, null, Main.myPlayer);
                     }
                 }
             }
-            r.Width = rectangle.Width - 2;
-            if (flag)
-            {
-                Main.spriteBatch.Draw(TextureAssets.Pvp[2].Value, r.Location.ToVector2() + new Vector2(-2f), Color.White);
-            }
-            Rectangle value = rectangle;
-            value.Width -= 2;
-            Main.spriteBatch.Draw(TextureAssets.Pvp[1].Value, r.Location.ToVector2(), value, Color.White);
-            UILinkPointNavigator.SetPosition(1550 + i + 1, r.Location.ToVector2() + r.Size() * 0.75f);
+
+            hitbox.Width = source.Width - 2;
+
+            if (highlight)
+                Main.spriteBatch.Draw(TextureAssets.Pvp[2].Value, hitbox.Location.ToVector2() + new Vector2(-2f), Color.White);
+
+            Rectangle drawSource = source;
+            drawSource.Width -= 2;
+
+            Main.spriteBatch.Draw(TextureAssets.Pvp[1].Value, hitbox.Location.ToVector2(), drawSource, Color.White);
+            UILinkPointNavigator.SetPosition(1550 + i + 1, hitbox.Location.ToVector2() + hitbox.Size() * 0.75f);
         }
     }
 

@@ -89,7 +89,7 @@ internal sealed class ShopUICard : UIElement
         }
         catch (Exception ex)
         {
-            Log.Error($"[SkinUICard] Unexpected error while handling click for '{def.Prototype}:{def.Name}': {ex}");
+            DebugLog.Error($"[SkinUICard] Unexpected error while handling click for '{def.Prototype}:{def.Name}': {ex}");
         }
         finally
         {
@@ -124,14 +124,14 @@ internal sealed class ShopUICard : UIElement
             ApiResult<PurchaseResult> purchaseResult = await ShopApi.PurchaseProductAsync(def.Prototype, def.Name).ConfigureAwait(false);
             if (!purchaseResult.IsSuccess)
             {
-                Log.Error($"[SkinUICard] Purchase failed for '{def.Prototype}:{def.Name}'. Status={(int)purchaseResult.Status}, Error={purchaseResult.ErrorMessage}");
+                DebugLog.Error($"[SkinUICard] Purchase failed for '{def.Prototype}:{def.Name}'. Status={(int)purchaseResult.Status}, Error={purchaseResult.ErrorMessage}");
                 await RefreshProfileStateSafeAsync().ConfigureAwait(false);
                 return;
             }
 
             ApiResult<bool> equipResult = await ProfileApi.UpdateEquipmentAsync(def.Prototype, def.Name).ConfigureAwait(false);
             if (!equipResult.IsSuccess)
-                Log.Error($"[SkinUICard] Failed to equip '{def.Prototype}:{def.Name}' after purchase. Status={(int)equipResult.Status}, Error={equipResult.ErrorMessage}");
+                DebugLog.Error($"[SkinUICard] Failed to equip '{def.Prototype}:{def.Name}' after purchase. Status={(int)equipResult.Status}, Error={equipResult.ErrorMessage}");
 
             await RefreshProfileStateSafeAsync().ConfigureAwait(false);
             return;
@@ -142,7 +142,7 @@ internal sealed class ShopUICard : UIElement
         string nextName = equipped ? "" : def.Name;
         ApiResult<bool> toggleResult = await ProfileApi.UpdateEquipmentAsync(def.Prototype, nextName).ConfigureAwait(false);
         if (!toggleResult.IsSuccess)
-            Log.Error($"[SkinUICard] Failed to update equip state for '{def.Prototype}:{def.Name}'. Status={(int)toggleResult.Status}, Error={toggleResult.ErrorMessage}");
+            DebugLog.Error($"[SkinUICard] Failed to update equip state for '{def.Prototype}:{def.Name}'. Status={(int)toggleResult.Status}, Error={toggleResult.ErrorMessage}");
 
         await RefreshProfileStateSafeAsync().ConfigureAwait(false);
     }
@@ -151,7 +151,7 @@ internal sealed class ShopUICard : UIElement
     {
         ApiResult<bool> result = await ProfileApi.RefreshProfileStateAsync().ConfigureAwait(false);
         if (!result.IsSuccess)
-            Log.Error($"[SkinUICard] Failed to refresh profile state. Status={(int)result.Status}, Error={result.ErrorMessage}");
+            DebugLog.Error($"[SkinUICard] Failed to refresh profile state. Status={(int)result.Status}, Error={result.ErrorMessage}");
     }
 
     public override void Draw(SpriteBatch sb)

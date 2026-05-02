@@ -63,7 +63,7 @@ internal static class ApiClient
             string responseText = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             string requestSummary = $"{method} {requestUrl} -> {(int)response.StatusCode} {response.StatusCode}";
 
-            Log.Debug($"[ApiClient] Raw response body for {method} {requestUrl}: {responseText}");
+            DebugLog.Debug($"[ApiClient] Raw response body for {method} {requestUrl}: {responseText}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -78,11 +78,11 @@ internal static class ApiClient
                     error = $"Failed to build error message: {ex.Message}";
                 }
 
-                Log.Warn($"{requestSummary}. {error}");
+                DebugLog.Warn($"{requestSummary}. {error}");
                 return ApiResult<string>.Error(response.StatusCode, error, requestSummary);
             }
 
-            Log.Info(requestSummary);
+            DebugLog.Info(requestSummary);
             return ApiResult<string>.Success(responseText, response.StatusCode, requestSummary);
         }
         catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
@@ -186,7 +186,7 @@ internal static class ApiClient
         }
         catch (Exception ex)
         {
-            Log.Error($"Failed to load official identity certificates: {ex}");
+            DebugLog.Error($"Failed to load official identity certificates: {ex}");
         }
         return certificates;
     }

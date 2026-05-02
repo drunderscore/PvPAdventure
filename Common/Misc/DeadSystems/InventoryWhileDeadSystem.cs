@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Spectator;
-using PvPAdventure.Common.Spectator.Drawers.Inventory;
 using PvPAdventure.Common.Spectator.SpectatorMode;
+using PvPAdventure.Common.TeammateSpectator.TeammateOverlay;
 using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.GameInput;
@@ -46,7 +46,7 @@ internal class InventoryWhileDeadSystem : ModSystem
 
             if (target?.active == true)
             {
-                Log.Chat("Toggle spectated player's inventory for " + target.name);
+                DebugLog.Chat("Toggle spectated player's inventory for " + target.name);
                 PlayerHudOverlay.Toggle(target.whoAmI);
             }
             else

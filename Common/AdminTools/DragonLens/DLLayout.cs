@@ -48,7 +48,7 @@ public class DLLayout : ModSystem
         MethodInfo populateGridMethod = typeof(LayoutPresetBrowser).GetMethod("PopulateGrid");
         if (populateGridMethod == null)
         {
-            Log.Error("PopulateGrid not found in class LayoutPresetBrowser");
+            DebugLog.Error("PopulateGrid not found in class LayoutPresetBrowser");
             return;
         }
         MonoModHooks.Add(populateGridMethod, OnPopulateGrid);
@@ -185,11 +185,11 @@ public class DLLayout : ModSystem
             string layoutPath = Path.Combine(Main.SavePath, "DragonLensLayouts", layoutName);
             Directory.CreateDirectory(Path.GetDirectoryName(layoutPath));
             ToolbarHandler.ExportToFile(layoutPath);
-            Log.Info($"Successfully exported layout: {layoutName}");
+            DebugLog.Info($"Successfully exported layout: {layoutName}");
         }
         catch (Exception ex)
         {
-            Log.Error($"Failed to export layout {layoutName}: {ex.Message}");
+            DebugLog.Error($"Failed to export layout {layoutName}: {ex.Message}");
         }
     }
 }

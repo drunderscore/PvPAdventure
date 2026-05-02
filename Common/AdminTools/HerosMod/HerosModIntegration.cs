@@ -152,14 +152,14 @@ public sealed class HerosModIntegration : ModSystem
         if (!hasPerm)
         {
             //Main.NewText($"⛔ You lost permission to use the {permissionName} button!", Color.Red);
-            Log.Info($"You lost permission for {permissionName} button. You cannot use it anymore.");
-            Log.Chat($"You lost permission for {permissionName} button. You cannot use it anymore.");
+            DebugLog.Info($"You lost permission for {permissionName} button. You cannot use it anymore.");
+            DebugLog.Chat($"You lost permission for {permissionName} button. You cannot use it anymore.");
         }
         else
         {
             //Main.NewText($"✅ You regained permission to use the {permissionName} button!", Color.Green);
-            Log.Info($"You regained permission for {permissionName} button. You can use it again.");
-            Log.Chat($"You regained permission for {permissionName} button. You can use it again.");
+            DebugLog.Info($"You regained permission for {permissionName} button. You can use it again.");
+            DebugLog.Chat($"You regained permission for {permissionName} button. You can use it again.");
         }
     }
 }

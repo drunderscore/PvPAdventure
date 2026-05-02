@@ -15,7 +15,7 @@ public static class _TrackerStatus
             var spectatorConfig = ModContent.GetInstance<SpectatorConfig>();
             if (spectatorConfig == null)
             {
-                Log.Warn("Giga error, spectatorConfig is null when checking if spectator stats are enabled. Returning false.");
+                DebugLog.Warn("Giga error, spectatorConfig is null when checking if spectator stats are enabled. Returning false.");
                 return false;
             }
 

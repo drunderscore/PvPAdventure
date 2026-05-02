@@ -30,7 +30,7 @@ internal sealed class AutoAdminSystem : ModSystem
             count = config.AutoAdmins.SteamIds.Count;
         }
 
-        Log.Debug($"[AutoAdmins] WorldLoad Enabled={config?.AutoAdmins?.Enabled ?? false} Count={count}");
+        DebugLog.Debug($"[AutoAdmins] WorldLoad Enabled={config?.AutoAdmins?.Enabled ?? false} Count={count}");
     }
 }
 
@@ -92,7 +92,7 @@ internal sealed class AutoAdminPlayer : ModPlayer
             if (!loggedMissingSteam)
             {
                 loggedMissingSteam = true;
-                Log.Debug($"[AutoAdmins] ({source}) '{Player.name}' has no steam id?");
+                DebugLog.Debug($"[AutoAdmins] ({source}) '{Player.name}' has no steam id?");
             }
 
             return;
@@ -109,7 +109,7 @@ internal sealed class AutoAdminPlayer : ModPlayer
             if (!loggedWaitingForDlId)
             {
                 loggedWaitingForDlId = true;
-                Log.Debug($"[AutoAdmins] ({source}) Matched SteamID64={steamId64} for '{Player.name}', waiting for DL ID.");
+                DebugLog.Debug($"[AutoAdmins] ({source}) Matched SteamID64={steamId64} for '{Player.name}', waiting for DL ID.");
             }
 
             return;
@@ -118,17 +118,17 @@ internal sealed class AutoAdminPlayer : ModPlayer
         if (PermissionHandler.admins != null && PermissionHandler.admins.Contains(dl.currentServerID))
         {
             granted = true;
-            Log.Debug($"[AutoAdmins] ({source}) '{Player.name}' already DL admin. SteamID64={steamId64}");
+            DebugLog.Debug($"[AutoAdmins] ({source}) '{Player.name}' already DL admin. SteamID64={steamId64}");
             return;
         }
 
-        Log.Debug($"[AutoAdmins] ({source}) Granting DL admin to '{Player.name}'. SteamID64={steamId64}");
+        DebugLog.Debug($"[AutoAdmins] ({source}) Granting DL admin to '{Player.name}'. SteamID64={steamId64}");
 
         PermissionHandler.AddAdmin(Player);
 
         granted = true;
 
-        Log.Debug($"[AutoAdmins] ({source}) Granted DL admin to '{Player.name}'.");
+        DebugLog.Debug($"[AutoAdmins] ({source}) Granted DL admin to '{Player.name}'.");
     }
 
     private static bool IsWhitelisted(System.Collections.Generic.List<string> steamIds, string steamId64)

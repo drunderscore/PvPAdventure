@@ -93,7 +93,7 @@ public class DiscordSocialManager : ModSystem
 
             if (client == nint.Zero)
             {
-                Log.Error("Failed to create Discord Social SDK client");
+                DebugLog.Error("Failed to create Discord Social SDK client");
                 return;
             }
 
@@ -153,33 +153,33 @@ public class DiscordSocialManager : ModSystem
             http.DefaultRequestHeaders.Authorization = new("Bearer", accessToken);
 
             CurrentUser = await http.GetFromJsonAsync<User>("https://discord.com/api/v10/users/@me");
-            Log.Debug(CurrentUser);
+            DebugLog.Debug(CurrentUser);
         }
         catch (HttpRequestException e)
         {
-            Log.Warn($"Unsuccessful in requesting Discord user {e}");
+            DebugLog.Warn($"Unsuccessful in requesting Discord user {e}");
         }
         catch (Exception e)
         {
-            Log.Error($"Unexpected error using Discord token {e}");
+            DebugLog.Error($"Unexpected error using Discord token {e}");
         }
     }
 
     private static void OnLog(DiscordString message, LoggingSeverity sev, nint userData)
     {
-        Log.Debug($"Discord/{sev}: {message}");
+        DebugLog.Debug($"Discord/{sev}: {message}");
     }
 
     private static void OnStatusChanged(ClientStatus status, int error, int errorDetail, nint userData)
     {
-        Log.Debug($"Discord client status changed: {status} (error {error}, detail {errorDetail})");
+        DebugLog.Debug($"Discord client status changed: {status} (error {error}, detail {errorDetail})");
     }
 
     private static void OnAuthorization(ref nint result, DiscordString code, DiscordString redirectUri,
         ref nint userData)
     {
         var success = Discord_ClientResult_Successful(ref result);
-        Log.Debug($"Authorization result successful: {success}");
+        DebugLog.Debug($"Authorization result successful: {success}");
 
         if (success)
         {
@@ -205,7 +205,7 @@ public class DiscordSocialManager : ModSystem
         AuthorizationTokenType tokenType, int expiresIn, DiscordString scopes, nint userData)
     {
         var success = Discord_ClientResult_Successful(ref result);
-        Log.Debug($"Token exchange result successful: {success}");
+        DebugLog.Debug($"Token exchange result successful: {success}");
 
         if (success)
             ModContent.GetInstance<DiscordSocialManager>().CacheLocalFromToken(accessToken.ToString());

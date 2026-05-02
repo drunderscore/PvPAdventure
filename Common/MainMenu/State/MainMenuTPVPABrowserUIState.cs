@@ -336,7 +336,7 @@ internal sealed class MainMenuTPVPABrowserUIState : UIState
             RefreshGemsPanel();
 
             if (!result.IsSuccess)
-                Log.Warn($"[MainMenu] Failed to refresh profile. {result.ErrorMessage}");
+                DebugLog.Warn($"[MainMenu] Failed to refresh profile. {result.ErrorMessage}");
         });
     }
 

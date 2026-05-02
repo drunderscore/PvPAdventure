@@ -36,8 +36,8 @@ public sealed class TeamBossBar : GlobalBossBar
             // Debug print once every 20 seconds
             if (Main.GameUpdateCount % (60*20) == 0)
             {
-                Log.Chat($"Boss ({npc.TypeName}) {team} damage: {npc.lifeMax - life}");
-                Log.Debug($"Boss ({npc.TypeName}) {team} damage: {npc.lifeMax - life}");
+                DebugLog.Chat($"Boss ({npc.TypeName}) {team} damage: {npc.lifeMax - life}");
+                DebugLog.Debug($"Boss ({npc.TypeName}) {team} damage: {npc.lifeMax - life}");
             }
 
             // Shouldn't be possible, but be sure not to draw this.

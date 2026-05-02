@@ -1,7 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Spectator;
-using PvPAdventure.Common.Spectator.Drawers.Inventory;
+using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Spectator.SpectatorMode;
+using PvPAdventure.Common.TeammateSpectator;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Common.Travel.UI;
 using PvPAdventure.Content.Portals;
@@ -11,7 +10,7 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.Travel;
 
 /// <summary>
-/// Allows players to spectate travel points (<see cref="TravelType"/> in the world (currently beds, portals and world spawn).
+/// Handles camera previewing for travel destinations owned by players, currently beds and portals.
 /// </summary>
 [Autoload(Side = ModSide.Client)]
 internal sealed class TravelSpectateSystem : ModSystem
@@ -22,35 +21,13 @@ internal sealed class TravelSpectateSystem : ModSystem
     public static bool HasTargetHover => hasHover;
     private static TravelTarget hoveredTarget;
 
-    private static bool hoveringPlayer;
-    private static int hoveredPlayerIndex = -1;
-    private static int hudLockedPlayerIndex = -1;
-    private static ulong lastBuffDrawUpdate = ulong.MaxValue;
-    private static int lastBuffDrawPlayerIndex = -1;
-
     private static bool wasHovering;
     private static bool hasRestorePos;
     private static Vector2 restoreScreenPos;
 
-    public override void Load()
-    {
-        On_Main.DrawInventory += DrawTravelPreviewInventory;
-        On_Main.GUIHotbarDrawInner += DrawTravelPreviewHotbar;
-        On_Main.DrawInterface_25_ResourceBars += DrawTravelPreviewResourceBars;
-        On_Main.DrawInterface_Resources_Buffs += DrawTravelPreviewResourcesAndBuffs;
-    }
-
-    public override void Unload()
-    {
-        On_Main.DrawInventory -= DrawTravelPreviewInventory;
-        On_Main.GUIHotbarDrawInner -= DrawTravelPreviewHotbar;
-        On_Main.DrawInterface_25_ResourceBars -= DrawTravelPreviewResourceBars;
-        On_Main.DrawInterface_Resources_Buffs -= DrawTravelPreviewResourcesAndBuffs;
-    }
-
     public static void TrySetHover(TravelTarget target)
     {
-        if (!target.Available || target.Type == TravelType.Random)
+        if (!CanPreview(target))
         {
             ClearHoverIfMatch(target);
             return;
@@ -58,30 +35,12 @@ internal sealed class TravelSpectateSystem : ModSystem
 
         hoveredTarget = target;
         hasHover = true;
-        hoveringPlayer = false;
-        hoveredPlayerIndex = -1;
-    }
-
-    public static void TrySetPlayerHover(int playerIndex)
-    {
-        if (!IsValidFriendlyPlayer(playerIndex))
-        {
-            ClearPlayerHoverIfMatch(playerIndex);
-            return;
-        }
-
-        hoveredPlayerIndex = playerIndex;
-        hoveringPlayer = true;
-        hasHover = false;
-        hoveredTarget = default;
     }
 
     public static void ClearHover()
     {
         hasHover = false;
         hoveredTarget = default;
-        hoveringPlayer = false;
-        hoveredPlayerIndex = -1;
     }
 
     public static void ClearHoverIfMatch(TravelTarget target)
@@ -90,187 +49,68 @@ internal sealed class TravelSpectateSystem : ModSystem
             ClearHover();
     }
 
-    public static void ClearPlayerHoverIfMatch(int playerIndex)
-    {
-        if (hoveringPlayer && hoveredPlayerIndex == playerIndex)
-            ClearHover();
-    }
-
-    public static bool IsPlayerHudLocked(int playerIndex)
-    {
-        return hudLockedPlayerIndex == playerIndex && IsValidHudPlayer(playerIndex);
-    }
-
-    public static void TogglePlayerHudLock(int playerIndex)
-    {
-        if (IsPlayerHudLocked(playerIndex))
-        {
-            hudLockedPlayerIndex = -1;
-            return;
-        }
-
-        hudLockedPlayerIndex = IsValidHudPlayer(playerIndex) ? playerIndex : -1;
-    }
-
     public override void ModifyScreenPosition()
     {
         Player local = Main.LocalPlayer;
 
         if (local?.active != true)
-        {
             return;
-        }
 
         if (SpectatorModeSystem.IsInSpectateMode(local))
         {
-            hudLockedPlayerIndex = -1;
             Restore();
             return;
         }
 
         if (!TravelTeleportSystem.ShouldShowTravelUI(local))
         {
-            hudLockedPlayerIndex = -1;
             RestoreIfPreviewing(local);
             return;
         }
 
         ValidateHover();
 
-        bool lockedPlayer = IsValidHudPlayer(hudLockedPlayerIndex);
-        bool transientHover = hasHover || hoveringPlayer;
-
-        if (transientHover && !TravelUISystem.IsMouseHovering)
-        {
+        if (hasHover && !TravelUISystem.IsMouseHovering)
             ClearHover();
-            transientHover = false;
-        }
 
-        bool previewing = lockedPlayer || transientHover;
-
+        bool previewing = hasHover;
         HandleHoverTransitions(local, previewing);
 
         if (previewing)
             ApplyCamera();
     }
 
-    private static void DrawTravelPreviewInventory(On_Main.orig_DrawInventory orig, Main self)
-    {
-        if (TryGetPlayerHudTarget(out Player player))
-        {
-            if (Main.playerInventory)
-                PlayerHudOverlay.DrawInventoryHud(Main.spriteBatch, player);
-
-            return;
-        }
-
-        PlayerHudOverlay.ClearOwnedHover();
-        orig(self);
-    }
-
-    private static void DrawTravelPreviewHotbar(On_Main.orig_GUIHotbarDrawInner orig, Main self)
-    {
-        if (TryGetPlayerHudTarget(out Player player))
-        {
-            if (!Main.playerInventory)
-                PlayerHudOverlay.DrawHotbarHud(Main.spriteBatch, player);
-
-            return;
-        }
-
-        PlayerHudOverlay.ClearOwnedHover();
-        orig(self);
-    }
-
-    private static void DrawTravelPreviewResourceBars(On_Main.orig_DrawInterface_25_ResourceBars orig, Main self)
-    {
-        if (TryGetPlayerHudTarget(out Player player))
-        {
-            if (!Main.playerInventory)
-            {
-                PlayerHudOverlay.DrawResourceBarsHud(Main.spriteBatch, player);
-                DrawTravelPreviewBuffsOnce(player);
-            }
-
-            return;
-        }
-
-        PlayerHudOverlay.ClearOwnedHover();
-        orig(self);
-    }
-
-    private static void DrawTravelPreviewResourcesAndBuffs(On_Main.orig_DrawInterface_Resources_Buffs orig, Main self)
-    {
-        if (TryGetPlayerHudTarget(out Player player))
-        {
-            if (!Main.playerInventory)
-                DrawTravelPreviewBuffsOnce(player);
-
-            return;
-        }
-
-        PlayerHudOverlay.ClearOwnedHover();
-        orig(self);
-    }
-
-    private static void DrawTravelPreviewBuffsOnce(Player player)
-    {
-        if (player?.active != true)
-            return;
-
-        if (lastBuffDrawUpdate == Main.GameUpdateCount && lastBuffDrawPlayerIndex == player.whoAmI)
-            return;
-
-        PlayerHudOverlay.DrawBuffHud(Main.spriteBatch, player);
-        lastBuffDrawUpdate = Main.GameUpdateCount;
-        lastBuffDrawPlayerIndex = player.whoAmI;
-    }
-
-    private static bool TryGetPlayerHudTarget(out Player player)
-    {
-        player = null;
-
-        Player local = Main.LocalPlayer;
-
-        if (local?.active != true || SpectatorModeSystem.IsInSpectateMode(local) || !TravelTeleportSystem.ShouldShowTravelUI(local))
-            return false;
-
-        int playerIndex =
-            IsValidHudPlayer(hudLockedPlayerIndex) ? hudLockedPlayerIndex :
-            IsValidHudPlayer(hoveredPlayerIndex) ? hoveredPlayerIndex :
-            -1;
-
-        if (playerIndex == -1)
-            return false;
-
-        player = Main.player[playerIndex];
-        return player?.active == true;
-    }
-
-    public static bool TryGetActivePlayerHudTarget(out Player player)
-    {
-        return TryGetPlayerHudTarget(out player);
-    }
-
     private static void ValidateHover()
     {
-        if (hoveringPlayer && !IsValidFriendlyPlayer(hoveredPlayerIndex))
-            ClearHover();
-
-        if (hudLockedPlayerIndex != -1 && !IsValidHudPlayer(hudLockedPlayerIndex))
-            hudLockedPlayerIndex = -1;
-
         if (!hasHover)
             return;
 
-        if (hoveredTarget.Type == TravelType.World)
+        if (!CanPreview(hoveredTarget))
+        {
+            ClearHover();
             return;
+        }
 
         if (hoveredTarget.Type == TravelType.Bed && !TryGetBedPosition(hoveredTarget.PlayerIndex, out _))
             ClearHover();
 
         if (hoveredTarget.Type == TravelType.Portal && !TryGetPortalPosition(Main.LocalPlayer, hoveredTarget.PlayerIndex, out _))
             ClearHover();
+    }
+
+    private static void ApplyCamera()
+    {
+        if (!hasHover)
+            return;
+
+        if (hoveredTarget.Type == TravelType.Bed && TryGetBedPosition(hoveredTarget.PlayerIndex, out Vector2 bedPosition))
+        {
+            SetCameraTo(bedPosition);
+            return;
+        }
+
+        if (hoveredTarget.Type == TravelType.Portal && TryGetPortalPosition(Main.LocalPlayer, hoveredTarget.PlayerIndex, out Vector2 portalPosition))
+            SetCameraTo(portalPosition);
     }
 
     private static void HandleHoverTransitions(Player local, bool hovering)
@@ -293,43 +133,6 @@ internal sealed class TravelSpectateSystem : ModSystem
         wasHovering = hovering;
     }
 
-    private static void ApplyCamera()
-    {
-        if (IsValidHudPlayer(hudLockedPlayerIndex))
-        {
-            SetCameraToPlayer(Main.player[hudLockedPlayerIndex]);
-            return;
-        }
-
-        if (hoveringPlayer && IsValidPlayerIndex(hoveredPlayerIndex))
-        {
-            SetCameraToPlayer(Main.player[hoveredPlayerIndex]);
-            return;
-        }
-
-        if (!hasHover)
-        {
-            return;
-        }
-
-        if (hoveredTarget.Type == TravelType.World)
-        {
-            SetCameraTo(new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates());
-            return;
-        }
-
-        if (hoveredTarget.Type == TravelType.Bed && TryGetBedPosition(hoveredTarget.PlayerIndex, out Vector2 bedPosition))
-        {
-            SetCameraTo(bedPosition);
-            return;
-        }
-
-        if (hoveredTarget.Type == TravelType.Portal && TryGetPortalPosition(Main.LocalPlayer, hoveredTarget.PlayerIndex, out Vector2 portalPosition))
-        {
-            SetCameraTo(portalPosition);
-        }
-    }
-
     private static void Restore()
     {
         if (MapRestore)
@@ -350,7 +153,7 @@ internal sealed class TravelSpectateSystem : ModSystem
 
     private static void RestoreIfPreviewing(Player player)
     {
-        if (!wasHovering && !hasHover && !hoveringPlayer && !hasRestorePos && !MapRestore)
+        if (!wasHovering && !hasHover && !hasRestorePos && !MapRestore)
             return;
 
         RestoreToPlayer(player);
@@ -379,14 +182,9 @@ internal sealed class TravelSpectateSystem : ModSystem
         SpectateCameraFade.SetScreenPosition(worldPosition - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f, allowFade: true);
     }
 
-    private static void SetCameraToPlayer(Player player)
+    private static bool CanPreview(TravelTarget target)
     {
-        SetCameraTo(player.Center);
-    }
-
-    private static bool IsValidHudPlayer(int playerIndex)
-    {
-        return playerIndex != Main.myPlayer && IsValidFriendlyPlayer(playerIndex);
+        return target.Available && target.Type is TravelType.Bed or TravelType.Portal;
     }
 
     private static bool TryGetBedPosition(int playerIndex, out Vector2 position)
@@ -444,5 +242,4 @@ internal sealed class TravelSpectateSystem : ModSystem
     {
         return a.Type == b.Type && a.PlayerIndex == b.PlayerIndex;
     }
-
 }

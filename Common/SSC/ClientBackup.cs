@@ -32,11 +32,11 @@ internal static class ClientBackup
             WriteAllBytesWithBak(plrPath, plr);
             WriteTagWithBak(tplrPath, tplr);
 
-            Log.Debug("Client created SSC backup for " + safeName);
+            DebugLog.Debug("Client created SSC backup for " + safeName);
         }
         catch (Exception e)
         {
-            Log.Debug("Client failed creating SSC backup");
+            DebugLog.Debug("Client failed creating SSC backup");
             ModContent.GetInstance<PvPAdventure>().Logger.Error(e);
         }
     }

@@ -52,7 +52,7 @@ internal class SSCSaveSystem : ModSystem
     // Do not save SSC player files locally; send to server instead.
     private void OverrideSavePlayerFile(On_Player.orig_InternalSavePlayerFile orig, PlayerFileData fileData)
     {
-        Log.Debug("Vanilla save player file was called");
+        DebugLog.Debug("Vanilla save player file was called");
 
         if (Main.LocalPlayer.ghost)
             return;
@@ -106,7 +106,7 @@ internal class SSCSaveSystem : ModSystem
             TagIO.Write(tplr, packet);
             packet.Send();
 
-            Log.Debug($"Client sent packet to server to save: {fileData.Player.name}, k/d: {stats.Kills}/{stats.Deaths}, itemPickups: {stats.ItemPickups.ToArray()}, team: {(Terraria.Enums.Team)fileData.Player.team}");
+            DebugLog.Debug($"Client sent packet to server to save: {fileData.Player.name}, k/d: {stats.Kills}/{stats.Deaths}, itemPickups: {stats.ItemPickups.ToArray()}, team: {(Terraria.Enums.Team)fileData.Player.team}");
 
             var config = ModContent.GetInstance<ClientConfig>();
 
@@ -122,7 +122,7 @@ internal class SSCSaveSystem : ModSystem
         catch (Exception e)
         {
             Mod.Logger.Error(e);
-            Log.Chat(e);
+            DebugLog.Chat(e);
         }
 
     }

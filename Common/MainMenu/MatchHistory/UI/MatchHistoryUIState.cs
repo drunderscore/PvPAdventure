@@ -172,7 +172,7 @@ public sealed class MatchHistoryUIState : MainMenuPageUIState
             gemsPanel.RefreshFromProfile();
 
             if (!result.IsSuccess)
-                Log.Warn($"[MatchHistoryUI] Failed to refresh profile. {result.ErrorMessage}");
+                DebugLog.Warn($"[MatchHistoryUI] Failed to refresh profile. {result.ErrorMessage}");
         });
     }
 

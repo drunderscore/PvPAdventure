@@ -32,7 +32,7 @@ public static class MapHoldingNetHandler
                         // Update ModPlayer's map holding state.
                         Main.player[playerIndex].GetModPlayer<MapHoldingPlayer>().HoldingMap = holding;
 
-                        Log.Debug($"[HoldingMap] Server set state: {senderName} holding={holding}. Broadcasting...");
+                        DebugLog.Debug($"[HoldingMap] Server set state: {senderName} holding={holding}. Broadcasting...");
 
                         // Send packet to all clients except the sender connection.
                         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();

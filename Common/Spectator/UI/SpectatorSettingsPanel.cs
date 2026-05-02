@@ -1,9 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Spectator.Drawers.Inventory;
 using PvPAdventure.Common.Spectator.UI.Tabs;
 using PvPAdventure.Common.Spectator.UI.Tabs.NPCs;
 using PvPAdventure.Common.Spectator.UI.Tabs.World;
+using PvPAdventure.Common.TeammateSpectator.TeammateOverlay;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;

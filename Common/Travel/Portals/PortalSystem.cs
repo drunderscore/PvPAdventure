@@ -62,7 +62,7 @@ public static class PortalSystem
             return false;
 
         portal.Initialize(owner, worldPos);
-        Log.Chat($"Portal created at {(int)worldPos.X}, {(int)worldPos.Y}");
+        DebugLog.Chat($"Portal created at {(int)worldPos.X}, {(int)worldPos.Y}");
         TeleportChat.AnnouncePortalOpened(owner);
 
         if (Main.netMode == NetmodeID.Server)

@@ -36,7 +36,7 @@ public static class TravelTeleportNetHandler
                 break;
 
             default:
-                Log.Warn($"[TravelTeleport] Unknown packet type={(byte)type}");
+                DebugLog.Warn($"[TravelTeleport] Unknown packet type={(byte)type}");
                 break;
         }
     }

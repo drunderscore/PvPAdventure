@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Common.Travel;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
@@ -185,10 +184,6 @@ internal sealed class SpectatorControlsPanel : UIPanel
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-
-#if DEBUG
-        UpdateDebugPlayers();
-#endif
 
         RebuildIfNeeded();
         RebuildIfCardCountChanged();
@@ -454,7 +449,7 @@ internal sealed class SpectatorControlsPanel : UIPanel
 #if DEBUG
         if (KeyboardHelper.Pressed(Keys.F5))
         {
-            Log.Chat("F5 pressed, rebuilding. Last player hash: " + shownPlayerListHash);
+            DebugLog.Chat("F5 pressed, rebuilding. Last player hash: " + shownPlayerListHash);
             Rebuild();
         }
 #endif
@@ -500,7 +495,7 @@ internal sealed class SpectatorControlsPanel : UIPanel
     {
         ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
 
-        if (clientConfig.travelUIPosition == ClientConfig.AdventureUIPosition.Top)
+        if (clientConfig.adventureUIPosition == ClientConfig.AdventureUIPosition.Top)
         {
             element.VAlign = 0f;
             element.Top.Set(40f * scale, 0f);
@@ -515,7 +510,7 @@ internal sealed class SpectatorControlsPanel : UIPanel
     {
         ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
 
-        float scale = clientConfig.travelUISize switch
+        float scale = clientConfig.adventureUISize switch
         {
             ClientConfig.AdventureUISize.VerySmall => 0.7f,
             ClientConfig.AdventureUISize.Small => 0.8f,
@@ -616,113 +611,6 @@ internal sealed class SpectatorControlsPanel : UIPanel
 
         playersPanel.Append(nextButton);
     }
-    #endregion
-
-    #region Debug players used for UI testing
-#if DEBUG
-    private static readonly List<int> debugPlayers = [];
-    private void UpdateDebugPlayers()
-    {
-        if (KeyboardHelper.Pressed(Keys.NumPad1))
-        {
-            AddDebugPlayer();
-            Rebuild();
-        }
-
-        if (KeyboardHelper.Pressed(Keys.NumPad2))
-        {
-            RemoveDebugPlayer();
-            Rebuild();
-        }
-    }
-
-    private static string GetNextDebugPlayerName()
-    {
-        for (int number = 1; number <= Main.maxPlayers; number++)
-        {
-            string name = $"Player{number}";
-
-            bool duplicate = false;
-            for (int i = 0; i < Main.maxPlayers; i++)
-            {
-                Player player = Main.player[i];
-
-                if (player?.active == true && player.name == name)
-                {
-                    duplicate = true;
-                    break;
-                }
-            }
-
-            if (!duplicate)
-                return name;
-        }
-
-        return "Player";
-    }
-
-    private static void AddDebugPlayer()
-    {
-        int slot = -1;
-
-        for (int i = 0; i < Main.maxPlayers; i++)
-        {
-            if (i != Main.myPlayer && Main.player[i]?.active != true)
-            {
-                slot = i;
-                break;
-            }
-        }
-
-        if (slot < 0)
-        {
-            Log.Chat("No free player slots for debug spectate player.");
-            return;
-        }
-
-        Player player = Main.LocalPlayer.SerializedClone();
-
-        player.whoAmI = slot;
-        player.name = GetNextDebugPlayerName();
-        player.active = true;
-        player.dead = false;
-        player.ghost = false;
-        player.team = Main.LocalPlayer.team;
-        player.statLife = Math.Max(1, player.statLife);
-        player.Center = new Vector2(Main.rand.Next(100, Math.Max(101, Main.maxTilesX - 100)), Main.rand.Next(100, Math.Max(101, Main.maxTilesY - 100))) * 16f;
-
-        Main.player[slot] = player;
-        SpectatorModeSystem.Modes[slot] = PlayerMode.Player;
-        debugPlayers.Add(slot);
-
-        Log.Chat($"Added debug spectate {player.name} at slot {slot}.");
-    }
-
-    private void RemoveDebugPlayer()
-    {
-        if (debugPlayers.Count == 0)
-            return;
-
-        int slot = debugPlayers[^1];
-        debugPlayers.RemoveAt(debugPlayers.Count - 1);
-
-        if (hovered == slot)
-            hovered = -1;
-
-        if (locked == slot)
-            locked = -1;
-
-        Main.player[slot] = new Player { whoAmI = slot };
-        SpectatorModeSystem.Modes.Remove(slot);
-
-        if (IsTargetValid(locked))
-            SpectatorTargetSystem.SetPlayerTarget(locked);
-        else
-            SpectatorTargetSystem.ClearTarget();
-
-        Log.Chat($"Removed debug spectate from slot {slot}.");
-    }
-#endif
     #endregion
 
 }

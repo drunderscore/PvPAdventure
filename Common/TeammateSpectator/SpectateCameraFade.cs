@@ -6,7 +6,7 @@ using Terraria.GameContent;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.Spectator;
+namespace PvPAdventure.Common.TeammateSpectator;
 
 /// <summary>
 /// Visual fade-in effect when the camera is moved a large distance in spectate mode. This is to prevent motion sickness/lag from sudden camera jumps.
@@ -21,20 +21,16 @@ internal sealed class SpectateCameraFade : ModSystem
     private static int fadeTicksLeft;
     private static bool hasLastPosition;
     private static Vector2 lastPosition;
-
     public static void SetScreenPosition(Vector2 position, bool allowFade = false)
     {
         Vector2 comparePosition = hasLastPosition ? lastPosition : Main.screenPosition;
 
-        if (allowFade && Vector2.DistanceSquared(comparePosition, position) >= FadeDistancePixelsSq)
+        if (allowFade && fadeTicksLeft <= 0 && Vector2.DistanceSquared(comparePosition, position) >= FadeDistancePixelsSq)
         {
             if (ModContent.GetInstance<ClientConfig>().ShowCameraFade)
             {
                 fadeTicksLeft = FadeTicks;
             }
-
-            // Log only when the fade is activated
-            //Log.Chat("Fade Activated! SetNewScreenPosition: " + position);
         }
 
         hasLastPosition = true;
@@ -76,4 +72,5 @@ internal sealed class SpectateCameraFade : ModSystem
         Main.spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.Black * alpha);
         return true;
     }
+
 }

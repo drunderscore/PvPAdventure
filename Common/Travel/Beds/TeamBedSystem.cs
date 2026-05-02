@@ -120,7 +120,7 @@ internal sealed class TeamBedSystem : ModSystem
 
         if (hadOwner && !sameOwner && !sameTeamOwner)
         {
-            Log.Chat($"New bed claim pos=({origin.X},{origin.Y}) previousOwner={Main.player[previousOwnerId].name} newOwner={player.name}");
+            DebugLog.Chat($"New bed claim pos=({origin.X},{origin.Y}) previousOwner={Main.player[previousOwnerId].name} newOwner={player.name}");
             DestroyPreviousOwnerBed(origin, previousOwnerId);
         }
 
@@ -149,7 +149,7 @@ internal sealed class TeamBedSystem : ModSystem
         if (!PlayerOwnsOrigin(owner, origin))
             return;
 
-        Log.Chat($"Destroy previous owner bed pos=({origin.X},{origin.Y}) ownerId={ownerId}");
+        DebugLog.Chat($"Destroy previous owner bed pos=({origin.X},{origin.Y}) ownerId={ownerId}");
 
         owner.SpawnX = -1;
         owner.SpawnY = -1;

@@ -14,7 +14,7 @@ internal sealed class DisableSocialAccessoriesEyeToggle : ModSystem
 
         if (method == null)
         {
-            Log.Warn("AccessorySlotLoader.DrawVisibility not found. Eye toggle hook not installed.");
+            DebugLog.Warn("AccessorySlotLoader.DrawVisibility not found. Eye toggle hook not installed.");
             return;
         }
 

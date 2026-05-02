@@ -51,7 +51,7 @@ internal class ClientModHandler
         // Safety: Ensure we have at least 4 bytes to read the Int32 'num'
         if (reader.BaseStream.Length - reader.BaseStream.Position < 4)
         {
-            Log.Warn($"[ClientModCheck] Malformed packet from {from}. Not enough data to read count.");
+            DebugLog.Warn($"[ClientModCheck] Malformed packet from {from}. Not enough data to read count.");
             return;
         }
 
@@ -61,7 +61,7 @@ internal class ClientModHandler
         long remainingBytes = reader.BaseStream.Length - reader.BaseStream.Position;
         if (num < 0 || num > 500) // No one has 500 client mods
         {
-            Log.Warn($"[ClientModCheck] Invalid mod count ({num}) from {from}. Skipping.");
+            DebugLog.Warn($"[ClientModCheck] Invalid mod count ({num}) from {from}. Skipping.");
             return;
         }
 
@@ -93,7 +93,7 @@ internal class ClientModHandler
         if (unallowedClientMods.Count > 0)
         {
             string names = string.Join(", ", unallowedClientMods);
-            Log.Debug($"Player id {from} has {unallowedClientMods.Count} unallowed client mods: {names}");
+            DebugLog.Debug($"Player id {from} has {unallowedClientMods.Count} unallowed client mods: {names}");
             NetMessage.BootPlayer(
                 from,
                 NetworkText.FromLiteral($"Unallowed client mods: {names}")

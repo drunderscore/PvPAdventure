@@ -41,7 +41,7 @@ internal class MapIOHooks : ModSystem
         bool isCloudSave = Main.ActivePlayerFileData?.IsCloudSave ?? false;
 
         // Debug print player
-        Log.Debug($"Load player: '{plrPath}'");
+        DebugLog.Debug($"Load player: '{plrPath}'");
 
         /// Continue with vanilla loading logic, but using our computed map path
         string text = plrPath.Substring(0, plrPath.Length - 4) + Path.DirectorySeparatorChar;
@@ -59,7 +59,7 @@ internal class MapIOHooks : ModSystem
             string mapPath = text;
             bool exists = FileUtilities.Exists(mapPath, isCloudSave);
             long bytes = (!isCloudSave && exists) ? new FileInfo(mapPath).Length : -1;
-            Log.Debug($"Load map: '{mapPath}' exists={exists} bytes={bytes}");
+            DebugLog.Debug($"Load map: '{mapPath}' exists={exists} bytes={bytes}");
         }
         else
         {
@@ -130,7 +130,7 @@ internal class MapIOHooks : ModSystem
         string plrPath = Main.ActivePlayerFileData.Path; // <steamId>.SSC
         string text = plrPath.Substring(0, plrPath.Length - 4);
 
-        Log.Debug($"Save player: '{Main.ActivePlayerFileData.Path}'");
+        DebugLog.Debug($"Save player: '{Main.ActivePlayerFileData.Path}'");
 
         if (!isCloudSave)
         {
@@ -438,7 +438,7 @@ internal class MapIOHooks : ModSystem
                 FileUtilities.WriteAllBytes(text, memoryStream.ToArray(), isCloudSave);
 
                 // Debug print
-                Log.Debug($"Save map: {text}, bytes: {memoryStream.Length}");
+                DebugLog.Debug($"Save map: {text}, bytes: {memoryStream.Length}");
 
                 MapIO.WriteModFile(text, isCloudSave);
             }

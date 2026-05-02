@@ -50,31 +50,25 @@ public class ClientConfig : ModConfig
     [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] public bool IsVanillaDashEnabled;
 
-    [Header("PortalTravel")]
+    [Header("UI")]
     [BackgroundColor(30, 150, 150)]
     [DefaultValue(AdventureUIPosition.Top)]
     [JsonConverter(typeof(StringEnumConverter))]
-    public AdventureUIPosition travelUIPosition;
+    public AdventureUIPosition adventureUIPosition;
 
     [BackgroundColor(30, 150, 150)]
-    [DefaultValue(AdventureUISize.Big)]
+    [DefaultValue(AdventureUISize.Small)]
     [JsonConverter(typeof(StringEnumConverter))]
-    public AdventureUISize travelUISize;
+    public AdventureUISize adventureUISize;
 
     [Header("Spectating")]
     [BackgroundColor(30, 150, 30)]
     [DefaultValue(true)]
+    public bool ShowTeammatesToSpectate = true;
+
+    [BackgroundColor(30, 150, 30)]
+    [DefaultValue(true)]
     public bool ShowCameraFade = true;
-
-    //[BackgroundColor(30, 150, 150)]
-    //[DefaultValue(AdventureUISize.Medium)]
-    //[JsonConverter(typeof(StringEnumConverter))]
-    //public AdventureUISize spectateUISize;
-
-    //[BackgroundColor(30, 150, 150)]
-    //[DefaultValue(AdventureUIPosition.Top)]
-    //[JsonConverter(typeof(StringEnumConverter))]
-    //public AdventureUIPosition spectateUIPosition;
 
     [BackgroundColor(30, 150, 30)]
     [DefaultValue(true)]
@@ -205,7 +199,7 @@ public class ClientConfig : ModConfig
     public override void OnChanged()
     {
         base.OnChanged();
-        Log.Chat("Client config changed");
+        DebugLog.Chat("Client config changed");
 
         // Rebuild travel UI
         var travelUISystem = ModContent.GetInstance<TravelUISystem>();

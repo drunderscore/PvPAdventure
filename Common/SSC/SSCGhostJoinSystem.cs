@@ -65,17 +65,17 @@ internal class SSCGhostJoinSystem : ModSystem
 
             if (JoinPlayerSnapshot == null)
             {
-                Log.Chat("Join player snapshot is null!");
+                DebugLog.Chat("Join player snapshot is null!");
                 return;
             }
 
             if (!JoinPlayerSnapshot.active)
-                Log.Chat("Join player isnt active");
+                DebugLog.Chat("Join player isnt active");
 
             if (string.IsNullOrWhiteSpace(JoinPlayerSnapshot.name))
-                Log.Chat("Join player's name is NULL!");
+                DebugLog.Chat("Join player's name is NULL!");
 
-            Log.Chat($"Intercepted join player {JoinPlayerSnapshot.name} with skin color {JoinPlayerSnapshot.skinColor}");
+            DebugLog.Chat($"Intercepted join player {JoinPlayerSnapshot.name} with skin color {JoinPlayerSnapshot.skinColor}");
 
             CreateGhostPlayerWithSteamID();
         });

@@ -70,7 +70,7 @@ internal sealed class ArenasDragonLensAdminBridgeSystem : ModSystem, ICopyWorldD
         string copiedWorldId = SubworldSystem.ReadCopiedWorldData<string>(WorldIdKey);
         string[] copiedAdmins = SubworldSystem.ReadCopiedWorldData<string[]>(AdminsKey) ?? [];
 
-        Log.Debug($"[Arenas/DL] Applying copied admin state to subserver. worldID={copiedWorldId} admins={copiedAdmins.Length}");
+        DebugLog.Debug($"[Arenas/DL] Applying copied admin state to subserver. worldID={copiedWorldId} admins={copiedAdmins.Length}");
 
         PermissionHandler.worldID = copiedWorldId;
 
@@ -156,7 +156,7 @@ internal sealed class ArenasDragonLensAdminBridgeSystem : ModSystem, ICopyWorldD
                 adminAckSent[i] = true;
                 anyNewAck = true;
 
-                Log.Debug($"[Arenas/DL] Admin ack -> '{player.name}' slot={i} id={mp.currentServerID}");
+                DebugLog.Debug($"[Arenas/DL] Admin ack -> '{player.name}' slot={i} id={mp.currentServerID}");
             }
         }
 
@@ -173,7 +173,7 @@ internal sealed class ArenasDragonLensAdminBridgeSystem : ModSystem, ICopyWorldD
 
         BroadcastVisualAdmins(dragonLens, newVisualAdmins);
 
-        Log.Debug($"[Arenas/DL] Visual admin sync -> {newVisualAdmins.Count} admins");
+        DebugLog.Debug($"[Arenas/DL] Visual admin sync -> {newVisualAdmins.Count} admins");
     }
 
     private static void SendAdminGrantedToClient(Mod dragonLens, int toClient)
@@ -242,6 +242,6 @@ internal sealed class ArenasDragonLensAdminBridgeSystem : ModSystem, ICopyWorldD
         string nameList = names.Count == 0 ? "(no active admin players matched)" : string.Join(", ", names);
 
         // Matches your requested "before subworld" style, but with useful real values.
-        Log.Debug($"DL Admin count {phase}: {adminSet.Count} {nameList} (worldID={worldId})");
+        DebugLog.Debug($"DL Admin count {phase}: {adminSet.Count} {nameList} (worldID={worldId})");
     }
 }

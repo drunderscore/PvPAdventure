@@ -44,7 +44,7 @@ internal class TravelPlayer : ModPlayer
     {
         if (info.PvP)
         {
-            Log.Chat("PvP damage while creating portal, cancelling portal use");
+            DebugLog.Chat("PvP damage while creating portal, cancelling portal use");
             return true;
         }
 
@@ -54,7 +54,7 @@ internal class TravelPlayer : ModPlayer
             && CombatManager.IsBossProjectile(projectile);
 
         if (isBossProjectile)
-            Log.Chat("Boss projectile while creating portal, cancelling portal use");
+            DebugLog.Chat("Boss projectile while creating portal, cancelling portal use");
 
         return isBossProjectile;
     }

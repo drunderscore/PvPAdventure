@@ -61,7 +61,7 @@ public class TeleportMapSystem : ModSystem
             }
             else
             {
-                Log.Chat("Error: outside world bounds when trying to teleport");
+                DebugLog.Chat("Error: outside world bounds when trying to teleport");
             }
         }
     }

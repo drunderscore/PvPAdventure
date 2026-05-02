@@ -31,21 +31,21 @@ internal static class OfficialMatchReporter
 
             if (!result.IsSuccess)
             {
-                Log.Error($"[OfficialMatchReporter] Failed to post match. Status={(int)result.Status}, Error={result.ErrorMessage}");
+                DebugLog.Error($"[OfficialMatchReporter] Failed to post match. Status={(int)result.Status}, Error={result.ErrorMessage}");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(result.Data))
             {
-                Log.Info("[OfficialMatchReporter] Posted match successfully.");
+                DebugLog.Info("[OfficialMatchReporter] Posted match successfully.");
                 return;
             }
 
-            Log.Info($"[OfficialMatchReporter] Posted match successfully. MatchId={result.Data}");
+            DebugLog.Info($"[OfficialMatchReporter] Posted match successfully. MatchId={result.Data}");
         }
         catch (Exception ex)
         {
-            Log.Error($"[OfficialMatchReporter] Unexpected error while posting match: {ex}");
+            DebugLog.Error($"[OfficialMatchReporter] Unexpected error while posting match: {ex}");
         }
     }
 
@@ -119,10 +119,10 @@ internal static class OfficialMatchReporter
 
     private static void LogMatchResult(MatchResult match)
     {
-        Log.Info($"Match ended! Start={match.Start:yyyy-MM-dd HH:mm:ss}, End={match.End:yyyy-MM-dd HH:mm:ss}, Win={match.Win}, LocalSteamId={match.LocalSteamId}");
+        DebugLog.Info($"Match ended! Start={match.Start:yyyy-MM-dd HH:mm:ss}, End={match.End:yyyy-MM-dd HH:mm:ss}, Win={match.Win}, LocalSteamId={match.LocalSteamId}");
 
         foreach (TeamPoints tp in match.TeamPoints)
-            Log.Info($"{tp.Team}: {tp.Points} points");
+            DebugLog.Info($"{tp.Team}: {tp.Points} points");
     }
 
     private static bool TryGetPlayerSteamId(Player player, out ulong steamId)

@@ -68,7 +68,7 @@ internal class ModifyChlorophyteGrowth : ModSystem
         }
         else
         {
-            Log.Warn("Couldn't find ldc.i4 40 in WorldGen.Chlorophyte. Skipping that replacement.");
+            DebugLog.Warn("Couldn't find ldc.i4 40 in WorldGen.Chlorophyte. Skipping that replacement.");
         }
 
         cursor.Index = 0;
