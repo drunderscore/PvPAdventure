@@ -62,21 +62,21 @@ public class ClientConfig : ModConfig
     public AdventureUISize travelUISize;
 
     [Header("Spectating")]
-    [BackgroundColor(30, 150, 150)]
+    [BackgroundColor(30, 150, 30)]
     [DefaultValue(true)]
     public bool ShowCameraFade = true;
 
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(AdventureUISize.Medium)]
-    [JsonConverter(typeof(StringEnumConverter))]
-    public AdventureUISize spectateUISize;
+    //[BackgroundColor(30, 150, 150)]
+    //[DefaultValue(AdventureUISize.Medium)]
+    //[JsonConverter(typeof(StringEnumConverter))]
+    //public AdventureUISize spectateUISize;
 
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(AdventureUIPosition.Top)]
-    [JsonConverter(typeof(StringEnumConverter))]
-    public AdventureUIPosition spectateUIPosition;
+    //[BackgroundColor(30, 150, 150)]
+    //[DefaultValue(AdventureUIPosition.Top)]
+    //[JsonConverter(typeof(StringEnumConverter))]
+    //public AdventureUIPosition spectateUIPosition;
 
-    [BackgroundColor(30, 150, 150)]
+    [BackgroundColor(30, 150, 30)]
     [DefaultValue(true)]
     public bool DrawSpectators = true;
 

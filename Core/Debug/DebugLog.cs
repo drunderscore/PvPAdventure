@@ -35,7 +35,7 @@ public static class Log
     public static void Chat(object message, [CallerFilePath] string file = "")
     {
         // Always send the message to the log (client.log/server.log)
-        Debug(message);
+        Debug(message, file);
 
         // Check if debug messages are enabled in config
         var config = ModContent.GetInstance<ClientConfig>();

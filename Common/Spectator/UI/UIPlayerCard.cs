@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Misc.DeadSystems;
 using PvPAdventure.Common.Spectator.Drawers;
 using PvPAdventure.Common.Spectator.Drawers.Inventory;
 using PvPAdventure.Common.Travel.UI;
@@ -11,7 +10,6 @@ using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
 
 namespace PvPAdventure.Common.Spectator.UI;
@@ -24,24 +22,16 @@ internal sealed class UIPlayerCard : UIPanel
     public int PlayerIndex { get; }
     public int ListIndex { get; }
 
-    private readonly SpectatorControlsPanel owner;
     private readonly float scale;
 
     public UIPlayerCard(int playerIndex, int listIndex, SpectatorControlsPanel owner, float scale = 1f)
     {
         PlayerIndex = playerIndex;
         ListIndex = listIndex;
-        this.owner = owner;
         this.scale = scale;
 
         SetPadding(0f);
-
-        float buttonSize = 32f * scale;
-        float buttonGap = 2f * scale;
-        float buttonTop = CardHeight * scale - 5f * scale - buttonSize;
-        float buttonLeft = 5f * scale;
-
-        AddActionButtons(GetPlayerCardActions());
+        AddActionButtons(owner, GetPlayerCardActions());
     }
 
     protected override void DrawSelf(SpriteBatch sb)
@@ -122,7 +112,6 @@ internal sealed class UIPlayerCard : UIPanel
         EntityDrawer.DrawPlayerCardPreview(sb, player, playerPreviewRect);
 
         // Draw player info to the right of the preview
-        Rectangle healthRect = new(infoRect.X, nameRect.Bottom + (int)MathF.Round(2f * scale), infoRect.Width, (int)MathF.Round(27f * scale));
 
         // Draw name
         string name = PlayerIndex == Main.myPlayer ? "You" : player.name;
@@ -149,41 +138,13 @@ internal sealed class UIPlayerCard : UIPanel
         Rectangle stat3Rect = new(infoRect.X, stat2Rect.Bottom + statG, infoRect.Width, statH);
         StatDrawer.DrawPlayerStat(sb, stat3Rect, PlayerStats.Biome.Build(player), scale);
 
-        // Draw health stat
-        //StatDrawer.DrawBack(sb, healthRect);
-
-        //string hp = $"{player.statLife}/{player.statLifeMax2}";
-        //Texture2D heart = TextureAssets.Heart.Value;
-        //Rectangle heartFrame = heart.Frame();
-        //Rectangle heartArea = new(healthRect.X + 6, healthRect.Y + 5, 16, 16);
-
-        //float heartScale = Math.Min(heartArea.Width / (float)heartFrame.Width, heartArea.Height / (float)heartFrame.Height);
-        //Vector2 heartPosition = heartArea.Center.ToVector2();
-
-        //sb.Draw(heart, heartPosition, heartFrame, Color.White, 0f, heartFrame.Size() * 0.5f, heartScale, SpriteEffects.None, 0f);
-
-        //Rectangle hpTextArea = new(healthRect.X + 26, healthRect.Y + 4, healthRect.Width - 30, healthRect.Height - 8);
-        //string displayHp = StatDrawer.Truncate(FontAssets.MouseText.Value, hp, hpTextArea.Width, 0.8f);
-
-        //Utils.DrawBorderString(sb, displayHp, new Vector2(hpTextArea.X, hpTextArea.Y), Color.White, 0.8f);
-
         // Debug draw rectangles
         //DebugDrawer.DrawRectangle(playerPreviewRect, drawSize: true);
         //DebugDrawer.DrawRectangle(nameRect, drawSize: true);
         //DebugDrawer.DrawRectangle(stat1Rect, drawSize: true);
     }
 
-    private void AddInventoryButton(float left, float top, float size)
-    {
-        InventoryButton button = new(PlayerIndex, owner);
-        button.Left.Set(left, 0f);
-        button.Top.Set(top, 0f);
-        button.Width.Set(size, 0f);
-        button.Height.Set(size, 0f);
-        Append(button);
-    }
-
-    public static void TeleportToPlayer(int playerIndex)
+    private static void TeleportToPlayer(int playerIndex)
     {
         if (playerIndex < 0 || playerIndex >= Main.maxPlayers)
             return;
@@ -199,7 +160,7 @@ internal sealed class UIPlayerCard : UIPanel
         if (Main.netMode == NetmodeID.SinglePlayer)
             local.Teleport(teleportPosition, TeleportationStyleID.RodOfDiscord);
         else if (Main.netMode == NetmodeID.MultiplayerClient)
-            NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 2, local.whoAmI, teleportPosition.X, teleportPosition.Y, TeleportationStyleID.PotionOfReturn);
+            NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, local.whoAmI, teleportPosition.X, teleportPosition.Y, TeleportationStyleID.PotionOfReturn);
     }
 
     #region Action buttons
@@ -222,25 +183,25 @@ internal sealed class UIPlayerCard : UIPanel
                 "Teleport to player",
                 TeleportToPlayer,
                 static _ => false),
-        new PlayerCardAction(
-            Ass.Icon_Eye,
-            Ass.Icon_Eye,
-            "Spectate player",
-            "Stop spectating",
-            SpectatorTargetSystem.TogglePlayerTarget,
-            static playerIndex => Main.player[playerIndex]?.active == true && SpectatorTargetSystem.IsLockedTargeting(Main.player[playerIndex])),
+            new PlayerCardAction(
+                Ass.Icon_Eye,
+                Ass.Icon_Eye,
+                "Follow player",
+                "Stop following",
+                SpectatorTargetSystem.TogglePlayerTarget,
+                static playerIndex => Main.player[playerIndex]?.active == true && SpectatorTargetSystem.IsLockedTargeting(Main.player[playerIndex])),
 
-        new PlayerCardAction(
-            Ass.Icon_InventoryClosed,
-            Ass.Icon_InventoryOpen,
-            "View inventory",
-            "Close inventory",
-            PlayerHudOverlay.Toggle,
-            PlayerHudOverlay.IsOpen)
-        ];
+            new PlayerCardAction(
+                Ass.Icon_InventoryClosed,
+                Ass.Icon_InventoryOpen,
+                "View inventory",
+                "Close inventory",
+                PlayerHudOverlay.Toggle,
+                PlayerHudOverlay.IsOpen)
+            ];
     }
 
-    private void AddActionButtons(PlayerCardAction[] actions)
+    private void AddActionButtons(SpectatorControlsPanel owner, PlayerCardAction[] actions)
     {
         float buttonSize = 32f * scale;
         float buttonGap = 2f * scale;
@@ -249,12 +210,12 @@ internal sealed class UIPlayerCard : UIPanel
 
         for (int i = 0; i < actions.Length; i++)
         {
-            AddActionButton(actions[i], buttonLeft, buttonTop, buttonSize);
+            AddActionButton(owner, actions[i], buttonLeft, buttonTop, buttonSize);
             buttonLeft += buttonSize + buttonGap;
         }
     }
 
-    private void AddActionButton(PlayerCardAction action, float left, float top, float size)
+    private void AddActionButton(SpectatorControlsPanel owner, PlayerCardAction action, float left, float top, float size)
     {
         PlayerCardActionButton button = new(PlayerIndex, owner, action);
         button.Left.Set(left, 0f);
@@ -267,22 +228,28 @@ internal sealed class UIPlayerCard : UIPanel
     private sealed class PlayerCardActionButton : UIElement
     {
         private readonly int playerIndex;
-        private readonly SpectatorControlsPanel owner;
         private readonly PlayerCardAction action;
 
         public PlayerCardActionButton(int playerIndex, SpectatorControlsPanel owner, PlayerCardAction action)
         {
             this.playerIndex = playerIndex;
-            this.owner = owner;
             this.action = action;
+
+            void UpdateHoverText()
+            {
+                owner.SetStatusText(IsSelected() ? action.SelectedHoverText : action.HoverText);
+            }
 
             OnLeftClick += (evt, element) =>
             {
-                if (IsValidPlayer())
-                    action.Click(playerIndex);
+                if (!IsValidPlayer())
+                    return;
+
+                action.Click(playerIndex);
+                UpdateHoverText();
             };
 
-            OnMouseOver += (evt, element) => owner.SetStatusText(IsSelected() ? action.SelectedHoverText : action.HoverText);
+            OnMouseOver += (evt, element) => UpdateHoverText();
             OnMouseOut += (evt, element) => owner.ResetStatusText();
         }
 
@@ -322,51 +289,4 @@ internal sealed class UIPlayerCard : UIPanel
     }
 
     #endregion
-
-    private sealed class InventoryButton : UIElement
-    {
-        private readonly int playerIndex;
-        private readonly SpectatorControlsPanel owner;
-
-        public InventoryButton(int playerIndex, SpectatorControlsPanel owner)
-        {
-            this.playerIndex = playerIndex;
-            this.owner = owner;
-
-            OnLeftClick += (evt, element) =>
-            {
-                if (IsValidPlayer())
-                    PlayerHudOverlay.Toggle(playerIndex);
-            };
-
-            OnMouseOver += (evt, element) => owner.SetStatusText(PlayerHudOverlay.IsOpen(playerIndex) ? "Close inventory" : "View inventory");
-            OnMouseOut += (evt, element) => owner.ResetStatusText();
-        }
-
-        protected override void DrawSelf(SpriteBatch sb)
-        {
-            Rectangle box = GetDimensions().ToRectangle();
-            bool isSelected = PlayerHudOverlay.IsOpen(playerIndex);
-
-            Texture2D background = isSelected
-                ? TextureAssets.InventoryBack14.Value
-                : IsMouseHovering
-                    ? TextureAssets.InventoryBack7.Value
-                    : TextureAssets.InventoryBack.Value;
-
-            Asset<Texture2D> iconAsset = isSelected ? Ass.Icon_InventoryOpen : Ass.Icon_InventoryClosed;
-            Texture2D icon = iconAsset.Value;
-
-            float scale = Math.Min((box.Width - 10f) / icon.Width, (box.Height - 4f) / icon.Height);
-            Color color = isSelected || IsMouseHovering ? Color.White : Color.White * 0.8f;
-
-            sb.Draw(background, box, Color.White * 0.85f);
-            sb.Draw(icon, box.Center.ToVector2(), null, color, 0f, icon.Size() * 0.5f, Math.Min(1f, scale), SpriteEffects.None, 0f);
-        }
-
-        private bool IsValidPlayer()
-        {
-            return playerIndex >= 0 && playerIndex < Main.maxPlayers && Main.player[playerIndex]?.active == true;
-        }
-    }
 }

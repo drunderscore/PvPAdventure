@@ -12,9 +12,10 @@ internal static class PlayerHudOverlay
 {
     private static int playerIndex = -1;
     private static bool releaseInventory = true;
+    public static bool IsAnyOpen => IsValidPlayerIndex(playerIndex);
 
     // Hotfix to prevent logging the inventory disabled text if we closed settings menu with escape.
-    private static bool optionsWindowWasOpen;
+    //private static bool optionsWindowWasOpen;
 
     public static void Update()
     { 

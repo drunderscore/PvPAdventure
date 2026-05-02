@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Spectator.Drawers.Inventory;
 using PvPAdventure.Common.Spectator.UI.Tabs;
 using PvPAdventure.Common.Spectator.UI.Tabs.NPCs;
 using PvPAdventure.Common.Spectator.UI.Tabs.World;
@@ -25,6 +26,7 @@ internal sealed class SpectatorSettingsPanel : UIElement
     internal const float RightOffset = 4f;
 
     private const float TabHeight = 36f;
+    private const float PlayerHudOpenOffset = 200f;
 
     public UIPanel TitlePanel;
     public UIPanel ContentPanel;
@@ -34,11 +36,12 @@ internal sealed class SpectatorSettingsPanel : UIElement
     private readonly List<SpectatorTabButton> tabButtons = [];
     private ISpectatorTab currentTab;
     private UIPanel tabPanel;
+    private bool isShiftedForPlayerHud;
 
     public SpectatorSettingsPanel()
     {
         HAlign = 1f;
-        Left.Set(-RightOffset, 0f);
+        SetPanelLeft(PlayerHudOverlay.IsAnyOpen);
         Top.Set(TopOffset, 0f);
         Width.Set(PanelWidth, 0f);
 
@@ -83,10 +86,28 @@ internal sealed class SpectatorSettingsPanel : UIElement
 
     public override void Update(GameTime gameTime)
     {
+        UpdatePanelPosition();
         base.Update(gameTime);
 
         if (ContainsPoint(Main.MouseScreen))
             Main.LocalPlayer.mouseInterface = true;
+    }
+
+    private void UpdatePanelPosition()
+    {
+        bool shouldShift = PlayerHudOverlay.IsAnyOpen;
+
+        if (shouldShift == isShiftedForPlayerHud)
+            return;
+
+        SetPanelLeft(shouldShift);
+        Recalculate();
+    }
+
+    private void SetPanelLeft(bool shiftedForPlayerHud)
+    {
+        isShiftedForPlayerHud = shiftedForPlayerHud;
+        Left.Set(-RightOffset - (shiftedForPlayerHud ? PlayerHudOpenOffset : 0f), 0f);
     }
 
     private void BuildTitlePanel()

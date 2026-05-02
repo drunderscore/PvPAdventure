@@ -29,14 +29,14 @@ public class SaveCommand : ModCommand
         // Send save request to server
         ModContent.GetInstance<SSCSaveSystem>().SendPacketToSavePlayerFile();
 
-        var config = ModContent.GetInstance<ClientConfig>();
+        //var config = ModContent.GetInstance<ClientConfig>();
 
-        if (config.ShowSavePlayerMessages)
-        {
-            string time = DateTime.Now.ToString("HH:mm:ss");
-            string playtime = PlayerPositionSystem.FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime());
+        //if (config.ShowSavePlayerMessages)
+        //{
+        //    string time = DateTime.Now.ToString("HH:mm:ss");
+        //    string playtime = PlayerPositionSystem.FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime());
 
-            Main.NewText($"Saved {Main.LocalPlayer.name} at {time} — Playtime: {playtime}",  Color.MediumPurple);
-        }
+        //    Main.NewText($"Saving {Main.LocalPlayer.name}... — Playtime: {playtime}",  Color.MediumPurple);
+        //}
     }
 }

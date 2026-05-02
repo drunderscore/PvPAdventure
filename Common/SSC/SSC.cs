@@ -331,7 +331,7 @@ public class SSC : ModSystem
                 Log.Warn($"Rejected SSC save for player {from}: Steam authentication is missing or pending");
 
                 ChatHelper.SendChatMessageToClient(
-                    NetworkText.FromLiteral($"{nameFromClient} Server FAILED to save because Steam ID authentication failed or is missing."),
+                    NetworkText.FromLiteral($"Failed to save {nameFromClient} because Steam authentication is missing."),
                     Color.OrangeRed,
                     from);
 
@@ -359,6 +359,15 @@ public class SSC : ModSystem
                         playerTeam = ssc.GetInt("team");
                 }
             }
+
+            //var config = ModContent.GetInstance<ClientConfig>();
+            //if (config.ShowSavePlayerMessages)
+            //{
+            //    ChatHelper.SendChatMessageToClient(
+            //        NetworkText.FromLiteral($"Server saved {nameFromClient}"),
+            //        Color.MediumPurple,
+            //        from);
+            //}
 
             Log.Debug($"Server successfully received SSC save for {nameFromClient}, authenticated SteamID: {steamId}, bytes={len}, team={(Terraria.Enums.Team)playerTeam}");
         }

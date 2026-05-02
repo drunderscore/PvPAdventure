@@ -115,7 +115,8 @@ internal class SSCSaveSystem : ModSystem
                 string time = DateTime.Now.ToString("HH:mm:ss");
                 string playtime = PlayerPositionSystem.FormatPlayTime(Main.ActivePlayerFileData.GetPlayTime());
 
-                Main.NewText($"Saved {Main.LocalPlayer.name} at {time} — Playtime: {playtime}", Color.MediumPurple);
+                Main.NewText($"Saved {Main.LocalPlayer.name} — Playtime: {playtime}", Color.MediumPurple);
+                //Main.NewText($"Saved {Main.LocalPlayer.name} at {time} — Playtime: {playtime}", Color.MediumPurple);
             }
         }
         catch (Exception e)

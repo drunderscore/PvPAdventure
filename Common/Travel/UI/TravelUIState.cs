@@ -110,7 +110,7 @@ internal class TravelUIState : UIState
 #endif
 
         // Set up layout
-        float unitWidth = 115f * scale;
+        float unitWidth = GetPlayerUnitWidth(players.Count, scale);
         float fullHeight = 76f * scale;
         float innerSpacing = 0f * scale;
         float spacing = 12f * scale;
@@ -154,7 +154,7 @@ internal class TravelUIState : UIState
             x += unitWidth + spacing;
         }
 
-        // Add player cards for teammates
+        // Add player cards for myself and teammates
         if (serverConfig.IsTeammateSpawnTeleportEnabled)
         {
             foreach (Player player in players)
@@ -301,6 +301,32 @@ internal class TravelUIState : UIState
         Utils.DrawBorderStringBig(sb, text, pos, Color.White);
     }
 
+    private static bool IsBossBarVisible()
+    {
+        for (int i = 0; i < Main.maxNPCs; i++)
+        {
+            NPC npc = Main.npc[i];
+
+            if (npc?.active != true || npc.life <= 0)
+                continue;
+
+            if (npc.boss || npc.BossBar is not null)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static float GetPlayerUnitWidth(int playerCount, float scale)
+    {
+        float width = 75f;
+
+        if (playerCount > 4)
+            width -= (playerCount - 4) * 5f;
+
+        return MathHelper.Clamp(width, 52f, 75f) * scale;
+    }
+
 
     #region Debug
 #if DEBUG
@@ -330,21 +356,5 @@ internal class TravelUIState : UIState
     }
 #endif
     #endregion
-
-    private static bool IsBossBarVisible()
-    {
-        for (int i = 0; i < Main.maxNPCs; i++)
-        {
-            NPC npc = Main.npc[i];
-
-            if (npc?.active != true || npc.life <= 0)
-                continue;
-
-            if (npc.boss || npc.BossBar is not null)
-                return true;
-        }
-
-        return false;
-    }
 
 }

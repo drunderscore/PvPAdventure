@@ -193,23 +193,24 @@ internal sealed class UITravelPlayerCard : UIPanel
             DrawPlayerHead(player, headPos, headScale);
             Utils.DrawBorderString(sb, name, namePos, Color.White, textScale);
 
-            Texture2D heart = TextureAssets.Heart.Value;
-            Rectangle heartFrame = heart.Frame();
-            float heartScale = MathHelper.Clamp(rect.Height / 34f, 0.65f, 0.9f);
-            float rightPadding = 6f;
-            float heartGap = 2f;
-            if (name.Length >= 14)
-            {
-                rightPadding = 2f;
-                heartGap = 0f;
-            }
+            // Draw health
+            //Texture2D heart = TextureAssets.Heart.Value;
+            //Rectangle heartFrame = heart.Frame();
+            //float heartScale = MathHelper.Clamp(rect.Height / 34f, 0.65f, 0.9f);
+            //float rightPadding = 6f;
+            //float heartGap = 2f;
+            //if (name.Length >= 14)
+            //{
+            //    rightPadding = 2f;
+            //    heartGap = 0f;
+            //}
 
-            Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hp) * textScale;
-            Vector2 hpPos = new(rect.Right - rightPadding - hpSize.X, rect.Y + (rect.Height - hpSize.Y) * 0.5f + 4f);
-            Vector2 heartPos = new(hpPos.X - heartGap - heartFrame.Width * heartScale * 0.5f, rect.Y + rect.Height * 0.5f + 1f);
+            //Vector2 hpSize = FontAssets.MouseText.Value.MeasureString(hp) * textScale;
+            //Vector2 hpPos = new(rect.Right - rightPadding - hpSize.X, rect.Y + (rect.Height - hpSize.Y) * 0.5f + 4f);
+            //Vector2 heartPos = new(hpPos.X - heartGap - heartFrame.Width * heartScale * 0.5f, rect.Y + rect.Height * 0.5f + 1f);
 
-            sb.Draw(heart, heartPos, heartFrame, Color.White, 0f, heartFrame.Size() * 0.5f, heartScale, SpriteEffects.None, 0f);
-            Utils.DrawBorderString(sb, hp, hpPos, Color.White, textScale);
+            //sb.Draw(heart, heartPos, heartFrame, Color.White, 0f, heartFrame.Size() * 0.5f, heartScale, SpriteEffects.None, 0f);
+            //Utils.DrawBorderString(sb, hp, hpPos, Color.White, textScale);
         }
 
         private void DrawPlayerHead(Player player, Vector2 center, float scale)

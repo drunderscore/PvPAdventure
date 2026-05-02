@@ -109,7 +109,7 @@ public static class EntityDrawer
     {
         ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
 
-        float scale = clientConfig.spectateUISize switch
+        float scale = clientConfig.travelUISize switch
         {
             ClientConfig.AdventureUISize.VerySmall => 0.8f,
             ClientConfig.AdventureUISize.Small => 1.0f,
@@ -125,7 +125,7 @@ public static class EntityDrawer
     {
         ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
 
-        float scale = clientConfig.spectateUISize switch
+        float scale = clientConfig.travelUISize switch
         {
             ClientConfig.AdventureUISize.VerySmall => -7f,
             ClientConfig.AdventureUISize.Small => 5f,
@@ -188,6 +188,7 @@ public static class EntityDrawer
     private static Player CreateFullDrawPlayer(Player player)
     {
         Player drawPlayer = player.SerializedClone();
+        CopyPlayerDrawAppearance(player, drawPlayer);
         drawPlayer.position = player.position;
         drawPlayer.velocity = player.velocity;
         drawPlayer.direction = player.direction;
@@ -218,6 +219,45 @@ public static class EntityDrawer
         drawPlayer.isDisplayDollOrInanimate = false;
 
         return drawPlayer;
+    }
+
+    private static void CopyPlayerDrawAppearance(Player from, Player to)
+    {
+        to.head = from.head;
+        to.body = from.body;
+        to.legs = from.legs;
+
+        to.cHead = from.cHead;
+        to.cBody = from.cBody;
+        to.cLegs = from.cLegs;
+
+        to.face = from.face;
+        to.neck = from.neck;
+        to.front = from.front;
+        to.back = from.back;
+        to.waist = from.waist;
+        to.shield = from.shield;
+        to.shoe = from.shoe;
+        to.balloon = from.balloon;
+        to.beard = from.beard;
+
+        to.handon = from.handon;
+        to.handoff = from.handoff;
+
+        to.wings = from.wings;
+        to.wingsLogic = from.wingsLogic;
+        to.wingFrame = from.wingFrame;
+        to.wingFrameCounter = from.wingFrameCounter;
+
+        to.carpet = from.carpet;
+        to.carpetFrame = from.carpetFrame;
+
+        to.shieldRaised = from.shieldRaised;
+        to.shieldParryTimeLeft = from.shieldParryTimeLeft;
+
+        to.invis = from.invis;
+        to.headcovered = from.headcovered;
+        to.head = from.head;
     }
 
     private static Player CreateHeadDrawPlayer(Player player)

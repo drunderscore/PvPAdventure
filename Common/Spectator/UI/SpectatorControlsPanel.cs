@@ -500,7 +500,7 @@ internal sealed class SpectatorControlsPanel : UIPanel
     {
         ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
 
-        if (clientConfig.spectateUIPosition == ClientConfig.AdventureUIPosition.Top)
+        if (clientConfig.travelUIPosition == ClientConfig.AdventureUIPosition.Top)
         {
             element.VAlign = 0f;
             element.Top.Set(40f * scale, 0f);
@@ -515,7 +515,7 @@ internal sealed class SpectatorControlsPanel : UIPanel
     {
         ClientConfig clientConfig = ModContent.GetInstance<ClientConfig>();
 
-        float scale = clientConfig.spectateUISize switch
+        float scale = clientConfig.travelUISize switch
         {
             ClientConfig.AdventureUISize.VerySmall => 0.7f,
             ClientConfig.AdventureUISize.Small => 0.8f,
@@ -615,55 +615,6 @@ internal sealed class SpectatorControlsPanel : UIPanel
         };
 
         playersPanel.Append(nextButton);
-    }
-
-    private void AddMinusButton(UIPanel topRow, float topRowHeight)
-    {
-        UIAutoScaleTextTextPanel<string> minusButton = new("-");
-        minusButton.SetPadding(0f);
-        minusButton.HAlign = 1f;
-        minusButton.Left.Set(-topRowHeight, 0f);
-        minusButton.Width.Set(topRowHeight, 0f);
-        minusButton.Height.Set(topRowHeight, 0f);
-        minusButton.BackgroundColor = new Color(92, 45, 45) * 0.9f;
-        minusButton.BorderColor = new Color(220, 105, 105) * 0.9f;
-        minusButton.OnLeftClick += (evt, element) => ChangeShownPlayerCards(-1);
-        minusButton.OnMouseOver += (evt, element) =>
-        {
-            minusButton.BorderColor = Color.Yellow;
-            statusText?.SetText("Show fewer players");
-        };
-        minusButton.OnMouseOut += (evt, element) =>
-        {
-            minusButton.BorderColor = new Color(220, 105, 105) * 0.9f;
-            UpdateStatusText();
-        };
-
-        topRow.Append(minusButton);
-    }
-
-    private void AddPlusButton(UIPanel topRow, float topRowHeight)
-    {
-        UIAutoScaleTextTextPanel<string> plusButton = new("+");
-        plusButton.SetPadding(0f);
-        plusButton.HAlign = 1f;
-        plusButton.Width.Set(topRowHeight, 0f);
-        plusButton.Height.Set(topRowHeight, 0f);
-        plusButton.BackgroundColor = new Color(45, 80, 52) * 0.9f;
-        plusButton.BorderColor = new Color(120, 220, 140) * 0.9f;
-        plusButton.OnLeftClick += (evt, element) => ChangeShownPlayerCards(1);
-        plusButton.OnMouseOver += (evt, element) =>
-        {
-            plusButton.BorderColor = Color.Yellow;
-            statusText?.SetText("Show more players");
-        };
-        plusButton.OnMouseOut += (evt, element) =>
-        {
-            plusButton.BorderColor = new Color(120, 220, 140) * 0.9f;
-            UpdateStatusText();
-        };
-
-        topRow.Append(plusButton);
     }
     #endregion
 
