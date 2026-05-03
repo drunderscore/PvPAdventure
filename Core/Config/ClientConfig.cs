@@ -1,6 +1,5 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using PvPAdventure.Common.Spectator.UI;
 using PvPAdventure.Common.Travel.UI;
 using PvPAdventure.Core.Utilities;
 using System;
@@ -207,10 +206,6 @@ public class ClientConfig : ModConfig
         {
             travelUISystem?.travelUIState?.ForceRebuildNextUpdate();
         }
-
-        // Rebuild spectate UI
-        var spectateUISystem = ModContent.GetInstance<SpectatorUISystem>();
-        spectateUISystem?.RebuildUI();
     }
     #endregion
 }

@@ -15,8 +15,6 @@ public enum AdventurePacketIdentifier : byte
     ClientModCheck, // check for client mods when joining
     ArenasAdmin, // admin for arenas (send players to arenas, etc)
     Skins, // sync who has skins for all players
-    Spectator, // sync spectator mode for all players
-    SessionTracker, // sync session time for all players
     TravelTeleport, // teleport between beds/portals/world spawn, play sound/vfx, etc
     UsePortal, // use portal creator item to create a portal, sync to everyone
 }

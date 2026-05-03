@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Common.TeammateSpectator;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Common.Travel.UI;
@@ -55,12 +54,6 @@ internal sealed class TravelSpectateSystem : ModSystem
 
         if (local?.active != true)
             return;
-
-        if (SpectatorModeSystem.IsInSpectateMode(local))
-        {
-            Restore();
-            return;
-        }
 
         if (!TravelTeleportSystem.ShouldShowTravelUI(local))
         {

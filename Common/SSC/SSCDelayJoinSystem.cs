@@ -1,5 +1,4 @@
 ﻿using PvPAdventure.Common.Discord;
-using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
 using Steamworks;
@@ -129,15 +128,6 @@ public class SSCDelayJoinSystem : ModSystem
             return;
 
         _sscLoaded = true;
-
-        var spectatorConfig = ModContent.GetInstance<SpectatorConfig>();
-
-        if (spectatorConfig.ForceSpectating)
-        {
-            Main.LocalPlayer.ghost = true;
-            Main.LocalPlayer.GetModPlayer<SpectatorModeJoinPlayer>().ScheduleForceSpectating();
-            return;
-        }
 
         Main.LocalPlayer.ghost = false;
     }

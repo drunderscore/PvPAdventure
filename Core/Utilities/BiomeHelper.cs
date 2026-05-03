@@ -1,7 +1,6 @@
 using AssGen;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
 using System.Reflection;
@@ -12,7 +11,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Biomes = Terraria.GameContent.Bestiary.BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes;
 
-namespace PvPAdventure.Common.Spectator.Drawers;
+namespace PvPAdventure.Core.Utilities;
 
 internal static class BiomeHelper
 {

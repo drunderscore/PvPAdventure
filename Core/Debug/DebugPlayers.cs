@@ -1,7 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.Spectator.SpectatorMode;
-using PvPAdventure.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -180,7 +178,6 @@ internal sealed class DebugPlayers : ModSystem
         PlaceNearLocalPlayer(player, slot);
 
         Main.player[slot] = player;
-        SpectatorModeSystem.Modes[slot] = PlayerMode.Player;
         debugPlayers[slot] = CreateState(player, maxLife, maxMana, defense);
 
         DebugLog.Chat($"Added {player.name}, player count: {GetActivePlayerCount()}");
@@ -202,7 +199,6 @@ internal sealed class DebugPlayers : ModSystem
         string name = Main.player[slot]?.name ?? $"DebugPlayer{slot}";
         debugPlayers.Remove(slot);
         Main.player[slot] = new Player { whoAmI = slot };
-        SpectatorModeSystem.Modes.Remove(slot);
 
         DebugLog.Chat($"Removed {name}, player count: {GetActivePlayerCount()}");
     }
@@ -214,7 +210,6 @@ internal sealed class DebugPlayers : ModSystem
             if (slot >= 0 && slot < Main.maxPlayers)
             {
                 Main.player[slot] = new Player { whoAmI = slot };
-                SpectatorModeSystem.Modes.Remove(slot);
             }
         }
 
@@ -374,7 +369,6 @@ internal sealed class DebugPlayers : ModSystem
         foreach (int slot in remove)
         {
             debugPlayers.Remove(slot);
-            SpectatorModeSystem.Modes.Remove(slot);
         }
     }
 

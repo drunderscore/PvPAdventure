@@ -1,8 +1,7 @@
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Spectator.Drawers;
-using PvPAdventure.Common.Teams;
 using PvPAdventure.Common.Travel;
 using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Utilities;
 using System;
 using Terraria;
 using Terraria.Chat;

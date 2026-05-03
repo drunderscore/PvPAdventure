@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Arenas.UI;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Chat;
-using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.Portals;
 using PvPAdventure.Core.Config;
@@ -21,7 +20,6 @@ public class Keybinds : ModSystem
     public ModKeybind AllChat { get; private set; }
     public ModKeybind Dash { get; private set; }
     public ModKeybind ArenasMenu { get; private set; }
-    public ModKeybind ToggleSpectateMode { get; private set; }
     public ModKeybind UsePortalCreator { get; private set; }
 
     #region Portal creator label
@@ -50,7 +48,6 @@ public class Keybinds : ModSystem
         Dash = KeybindLoader.RegisterKeybind(Mod, "Dash", Keys.F);
         ArenasMenu = KeybindLoader.RegisterKeybind(Mod, "ArenasMenu", Keys.F1);
         UsePortalCreator = KeybindLoader.RegisterKeybind(Mod, "UsePortalCreator", Keys.G);
-        ToggleSpectateMode = KeybindLoader.RegisterKeybind(Mod, "ToggleSpectateMode", Keys.NumPad0);
     }
 }
 
@@ -101,13 +98,6 @@ internal class KeybindsPlayer : ModPlayer
         {
             //Log.Chat("Portal creator item keybind pressed");
             PortalCreatorItem.TryUse(Player);
-        }
-
-        // Toggle spectate mode
-        if (keybinds.ToggleSpectateMode.JustPressed)
-        {
-            DebugLog.Chat("Toggle spectate mode keybind pressed");
-            SpectatorModeSystem.ToggleSpectateMode(Main.LocalPlayer.whoAmI);
         }
     }
 }

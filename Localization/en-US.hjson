@@ -548,11 +548,6 @@ Mods: {
 					Tooltip: Shows (TEAM) or (ALL) chat channel indicators before chat messages
 				}
 
-				DrawSpectators: {
-					Label: "[i:PvPAdventure/GhostConfigItem] Draw Spectators"
-					Tooltip: Set visibility of spectators (ghosts)
-				}
-
 				ShowCameraFade: {
 					Label: Show Camera Fade
 					Tooltip: Fades to black when switching camera position to allow for a smoother visual effect
@@ -1914,25 +1909,6 @@ Mods: {
 				PvPKnockbackMultiplier: {
 					Label: PvP Knockback Multiplier
 					Tooltip: ""
-				}
-			}
-
-			SpectatorConfig: {
-				DisplayName: Spectator Config
-				Headers.Spectate: Spectate
-
-				AllowSpectating: {
-					Label: "[i:PvPAdventure/AllowSpectatingConfigItem] Allow Spectating"
-					Tooltip:
-						'''
-						Allows players to use /spectate to toggle spectator mode themselves during the game
-						Tip: Admins can use the Player Manager tool in DragonLens to toggle spectator mode for other players
-						'''
-				}
-
-				ForceSpectating: {
-					Label: "[i:PvPAdventure/ForceSpectatingConfigItem] Force Spectating"
-					Tooltip: Players automatically enter as spectators when joining the server
 				}
 			}
 

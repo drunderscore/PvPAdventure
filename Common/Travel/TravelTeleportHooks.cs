@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Spectator.SpectatorMode;
 using PvPAdventure.Common.Travel.UI;
 using ReLogic.Graphics;
 using Terraria;

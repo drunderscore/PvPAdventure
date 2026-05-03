@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Arenas;
-using PvPAdventure.Common.Spectator.UI;
 using PvPAdventure.Common.SSC;
 using PvPAdventure.Core.Utilities;
 using PvPAdventure.UI;

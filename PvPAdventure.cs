@@ -12,6 +12,8 @@ public class PvPAdventure : Mod
     /// </summary>
     public override void HandlePacket(BinaryReader reader, int whoAmI)
     {
+        base.HandlePacket(reader, whoAmI);
+
         // This causes read underflow and bogus logs, dont do it!
         //long packetStart = reader.BaseStream.Position;
         //long packetLength = reader.BaseStream.Length;
@@ -72,14 +74,6 @@ public class PvPAdventure : Mod
 
             case AdventurePacketIdentifier.Skins:
                 Common.Skins.SkinNetHandler.HandlePacket(reader, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.Spectator:
-                Common.Spectator.Net.SpectatorModeNetHandler.Receive(reader, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.SessionTracker:
-                Common.Spectator._Deprecated.Trackers.SessionTrackerNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.TravelTeleport:
