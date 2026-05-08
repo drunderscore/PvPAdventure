@@ -163,6 +163,7 @@ public sealed class TeamBossNPC : GlobalNPC
         bool noPlayerInteraction)
     {
         NPC owner = GetOwner(self);
+        //NRE?
         var boss = owner.GetGlobalNPC<TeamBossNPC>();
 
         Team strikeTeam = boss._lastStrikeTeam;

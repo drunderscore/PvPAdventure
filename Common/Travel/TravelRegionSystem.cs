@@ -26,6 +26,8 @@ internal static class TravelRegionSystem
             (IsNearWorldSpawn(player) || IsNearOwnBed(player) || IsNearTeamBed(player) || IsNearFriendlyPortal(player));
     }
 
+    public static bool IsInWorldSpawn(Player player) => IsValidPlayer(player) && IsNearWorldSpawn(player);
+
     private static bool IsValidPlayer(Player player)
     {
         return player?.active == true && !player.dead && !player.ghost;

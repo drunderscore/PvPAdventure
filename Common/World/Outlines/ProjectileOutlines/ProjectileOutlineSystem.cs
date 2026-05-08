@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Content.Portals;
 using PvPAdventure.Core.Config;
 using System;
 using System.Collections.Generic;
@@ -16,21 +17,63 @@ internal sealed class TeamProjectileOutlines : GlobalProjectile
 {
     public override bool PreDraw(Projectile projectile, ref Color lightColor)
     {
-        if (!ModContent.GetInstance<ClientConfig>().ProjectileOutlines || !TryGetTeam(projectile, out Team team))
+        if (projectile.ModProjectile is PortalCreationProjectile || !ModContent.GetInstance<ClientConfig>().ProjectileOutlines || !TryGetTeam(projectile, out Team team))
             return true;
 
         Color border = Main.teamColor[(int)team];
         border.A = 255;
 
-        if (!ModContent.GetInstance<ProjectileOutlineSystem>().TryGet(projectile, border, out RenderTarget2D target, out Vector2 origin))
+        if (!ProjectileOutlineRenderTarget.TryGetFrame(projectile, out Rectangle frame))
+            return true;
+
+        Vector2 drawOrigin = GetProjectileDrawOrigin(projectile, frame);
+
+        if (!ModContent.GetInstance<ProjectileOutlineSystem>().TryGet(projectile, frame, drawOrigin, border, out RenderTarget2D target, out Vector2 targetOrigin))
             return true;
 
         Color drawColor = lightColor * projectile.Opacity;
         drawColor.A = (byte)(255f * projectile.Opacity);
-        SpriteEffects effects = projectile.spriteDirection == -1 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 
-        Main.spriteBatch.Draw(target, projectile.Center - Main.screenPosition + new Vector2(0f, projectile.gfxOffY), null, drawColor, projectile.rotation, origin, projectile.scale, effects, 0f);
+        SpriteEffects effects = projectile.spriteDirection == -1
+            ? SpriteEffects.FlipHorizontally
+            : SpriteEffects.None;
+
+        Main.spriteBatch.Draw(
+            target,
+            GetProjectileDrawPosition(projectile),
+            null,
+            drawColor,
+            projectile.rotation,
+            targetOrigin,
+            projectile.scale,
+            effects,
+            0f);
+
         return true;
+    }
+
+    private static Vector2 GetProjectileDrawPosition(Projectile projectile)
+    {
+        Vector2 position = projectile.Center - Main.screenPosition;
+        position.Y += projectile.gfxOffY;
+
+        if (projectile.ModProjectile != null)
+            position.X += projectile.ModProjectile.DrawOffsetX;
+
+        return position;
+    }
+
+    private static Vector2 GetProjectileDrawOrigin(Projectile projectile, Rectangle frame)
+    {
+        Vector2 origin = frame.Size() * 0.5f;
+
+        if (projectile.ModProjectile != null)
+        {
+            origin.X += projectile.ModProjectile.DrawOriginOffsetX;
+            origin.Y += projectile.ModProjectile.DrawOriginOffsetY;
+        }
+
+        return origin;
     }
 
     private static bool TryGetTeam(Projectile projectile, out Team team)
@@ -50,17 +93,18 @@ internal sealed class ProjectileOutlineSystem : ModSystem
 {
     private readonly Dictionary<Key, ProjectileOutlineRenderTarget> cache = [];
 
-    public bool TryGet(Projectile projectile, Color border, out RenderTarget2D target, out Vector2 origin)
+    public bool TryGet(Projectile projectile, Rectangle frame, Vector2 drawOrigin, Color border, out RenderTarget2D target, out Vector2 origin)
     {
         target = null;
         origin = Vector2.Zero;
 
-        if (!ProjectileOutlineRenderTarget.TryGetFrame(projectile, out Rectangle frame))
-            return false;
+        int w = Math.Max(32, frame.Width + ProjectileOutlineRenderTarget.Padding * 2);
+        int h = Math.Max(32, frame.Height + ProjectileOutlineRenderTarget.Padding * 2);
 
-        int w = Math.Max(32, frame.Width + 32);
-        int h = Math.Max(32, frame.Height + 32);
-        Key key = new(projectile.type, frame.X, frame.Y, frame.Width, frame.Height, border.PackedValue);
+        int originX2 = (int)MathF.Round(drawOrigin.X * 2f);
+        int originY2 = (int)MathF.Round(drawOrigin.Y * 2f);
+
+        Key key = new(projectile.type, frame.X, frame.Y, frame.Width, frame.Height, originX2, originY2, border.PackedValue);
 
         if (!cache.TryGetValue(key, out ProjectileOutlineRenderTarget rt))
         {
@@ -69,41 +113,47 @@ internal sealed class ProjectileOutlineSystem : ModSystem
             Main.ContentThatNeedsRenderTargets.Add(rt);
         }
 
-        rt.UseProjectile(projectile.type, frame, w, h, border);
+        rt.UseProjectile(projectile.type, frame, drawOrigin, w, h, border);
+
         target = rt.GetOutlineTarget();
 
         if (target == null)
             return false;
 
-        origin = new(target.Width * 0.5f, target.Height * 0.5f);
+        origin = rt.GetTargetOrigin();
         return true;
     }
 
     public override void Unload()
     {
         if (!Main.dedServ)
+        {
             foreach (ProjectileOutlineRenderTarget rt in cache.Values)
                 Main.ContentThatNeedsRenderTargets.Remove(rt);
+        }
 
         cache.Clear();
     }
 
-    private readonly record struct Key(int Type, int FrameX, int FrameY, int FrameW, int FrameH, uint Color);
+    private readonly record struct Key(int Type, int FrameX, int FrameY, int FrameW, int FrameH, int OriginX2, int OriginY2, uint Color);
 }
 
 internal sealed class ProjectileOutlineRenderTarget : ARenderTargetContentByRequest
 {
+    public const int Padding = 16;
+
     private int type;
     private int width;
     private int height;
     private Rectangle frame;
+    private Vector2 drawOrigin;
     private Color border;
     private RenderTarget2D helperTarget;
     private EffectPass colorOnlyPass;
 
-    public void UseProjectile(int type, Rectangle frame, int width, int height, Color border)
+    public void UseProjectile(int type, Rectangle frame, Vector2 drawOrigin, int width, int height, Color border)
     {
-        if (this.type == type && this.frame == frame && this.width == width && this.height == height && this.border.PackedValue == border.PackedValue)
+        if (this.type == type && this.frame == frame && this.drawOrigin == drawOrigin && this.width == width && this.height == height && this.border.PackedValue == border.PackedValue)
         {
             if (!IsReady)
                 Request();
@@ -113,23 +163,29 @@ internal sealed class ProjectileOutlineRenderTarget : ARenderTargetContentByRequ
 
         this.type = type;
         this.frame = frame;
+        this.drawOrigin = drawOrigin;
         this.width = width;
         this.height = height;
         this.border = border;
+
         Request();
     }
 
     public RenderTarget2D GetOutlineTarget() => _target;
 
+    public Vector2 GetTargetOrigin() => new(Padding + drawOrigin.X, Padding + drawOrigin.Y);
+
     public static bool TryGetFrame(Projectile projectile, out Rectangle frame)
     {
         frame = default;
+
         if (projectile.type <= ProjectileID.None || projectile.type >= TextureAssets.Projectile.Length)
             return false;
 
         Texture2D texture = TextureAssets.Projectile[projectile.type].Value;
         int frames = Math.Max(1, Main.projFrames[projectile.type]);
         int frameIndex = Math.Clamp(projectile.frame, 0, frames - 1);
+
         frame = texture.Frame(1, frames, 0, frameIndex);
 
         return frame.Width > 0 && frame.Height > 0;
@@ -145,6 +201,7 @@ internal sealed class ProjectileOutlineRenderTarget : ARenderTargetContentByRequ
 
         device.SetRenderTarget(helperTarget);
         device.Clear(Color.Transparent);
+
         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise);
         colorOnlyPass.Apply();
         DrawMask(spriteBatch);
@@ -153,6 +210,7 @@ internal sealed class ProjectileOutlineRenderTarget : ARenderTargetContentByRequ
 
         device.SetRenderTarget(_target);
         device.Clear(Color.Transparent);
+
         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise);
         DrawOutline(spriteBatch);
         spriteBatch.End();
@@ -164,7 +222,17 @@ internal sealed class ProjectileOutlineRenderTarget : ARenderTargetContentByRequ
     private void DrawMask(SpriteBatch spriteBatch)
     {
         Texture2D texture = TextureAssets.Projectile[type].Value;
-        spriteBatch.Draw(texture, new Vector2(width * 0.5f, height * 0.5f), frame, Color.White, 0f, frame.Size() * 0.5f, 1f, SpriteEffects.None, 0f);
+
+        spriteBatch.Draw(
+            texture,
+            GetTargetOrigin(),
+            frame,
+            Color.White,
+            0f,
+            drawOrigin,
+            1f,
+            SpriteEffects.None,
+            0f);
     }
 
     private void DrawOutline(SpriteBatch spriteBatch)
@@ -179,9 +247,14 @@ internal sealed class ProjectileOutlineRenderTarget : ARenderTargetContentByRequ
     private void DrawRing(SpriteBatch spriteBatch, int distance, Color color)
     {
         const int step = 2;
+
         for (int x = -distance; x <= distance; x += step)
+        {
             for (int y = -distance; y <= distance; y += step)
+            {
                 if (Math.Abs(x) + Math.Abs(y) == distance)
                     spriteBatch.Draw(helperTarget, new Vector2(x, y), color);
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.World.Outlines.ItemOutlines;
 using PvPAdventure.Common.World.Outlines.TileOutlines;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
@@ -105,7 +106,11 @@ internal sealed class TeamItemSystem : ModSystem
         return p == Point16.NegativeOne ? new Point(i, j) : new Point(p.X, p.Y);
     }
 
-    public static bool IsTeamItem(int type) => type is TileID.Campfire or TileID.Heart or TileID.WaterCandle or TileID.Sunflower or TileID.CatBast or TileID.Banners;
+    public static bool IsTeamItem(int type) => type is TileID.Campfire or TileID.HangingLanterns or TileID.WaterCandle or TileID.Sunflower or TileID.CatBast or TileID.Banners;
+
+    public static bool IsTeamItem(Tile tile) => IsTeamItem(tile.TileType) && (tile.TileType != TileID.HangingLanterns || tile.TileFrameY is >= 324 and <= 358);
+
+    public static bool IsTeamItem(Item item) => item.type == ItemID.HeartLantern || item.createTile is TileID.Campfire or TileID.WaterCandle or TileID.Sunflower or TileID.CatBast or TileID.Banners;
 
     public static int Buff(int type) => type switch
     {
@@ -126,17 +131,17 @@ internal sealed class TeamItemTile : GlobalTile
             return true;
 
         Point origin = TeamItemSystem.Origin(i, j);
-        if (i != origin.X || j != origin.Y || !ModContent.GetInstance<TeamItemSystem>().TryGetTeam(origin, out TTeam team) || team == TTeam.None)
+        Tile tile = Main.tile[i, j];
+        if (i != origin.X || j != origin.Y || !TeamItemSystem.IsTeamItem(tile) || !ModContent.GetInstance<TeamItemSystem>().TryGetTeam(origin, out TTeam team) || team == TTeam.None)
             return true;
 
-        Tile tile = Main.tile[i, j];
         TileObjectData data = TileObjectData.GetTileData(tile);
         Color border = Main.teamColor[(int)team];
         border.A = 255;
 
         int w = data?.Width ?? 1;
         int h = data?.Height ?? 1;
-        if (ModContent.GetInstance<TileOutlineSystem>().TryGet(type, tile.TileFrameX, tile.TileFrameY, w, h, border, out RenderTarget2D target, out Vector2 targetOrigin))
+        if (ModContent.GetInstance<TileOutlineSystem>().TryGet(type, origin, w, h, border, out RenderTarget2D target, out Vector2 targetOrigin))
             sb.Draw(target, new Vector2(origin.X * 16 + w * 8, origin.Y * 16 + h * 8) - Main.screenPosition + (Main.drawToScreen ? Vector2.Zero : new Vector2(Main.offScreenRange)), null, Color.White, 0f, targetOrigin, 1f, SpriteEffects.None, 0f);
 
         return true;
@@ -144,7 +149,7 @@ internal sealed class TeamItemTile : GlobalTile
 
     public override void PlaceInWorld(int i, int j, int type, Item item)
     {
-        if (TeamItemSystem.IsTeamItem(type))
+        if (TeamItemSystem.IsTeamItem(item))
         {
             DebugLog.Chat("Team item placed: " + item.Name + ", team: " + (Terraria.Enums.Team)Main.LocalPlayer.team);
             ModContent.GetInstance<TeamItemSystem>().Claim(TeamItemSystem.Origin(i, j), (TTeam)Main.LocalPlayer.team);
@@ -153,13 +158,13 @@ internal sealed class TeamItemTile : GlobalTile
 
     public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
     {
-        if (!fail && !effectOnly && TeamItemSystem.IsTeamItem(type))
+        if (!fail && !effectOnly && TeamItemSystem.IsTeamItem(Main.tile[i, j]))
             ModContent.GetInstance<TeamItemSystem>().Clear(TeamItemSystem.Origin(i, j));
     }
 
     public override void NearbyEffects(int i, int j, int type, bool closer)
     {
-        if (closer || !TeamItemSystem.IsTeamItem(type))
+        if (closer || !TeamItemSystem.IsTeamItem(Main.tile[i, j]))
             return;
 
         TeamItemPlayer p = Main.LocalPlayer.GetModPlayer<TeamItemPlayer>();
@@ -170,6 +175,27 @@ internal sealed class TeamItemTile : GlobalTile
             p.RecordBanner(TileObjectData.GetTileStyle(Main.tile[i, j]), own);
         else
             p.RecordBuff(TeamItemSystem.Buff(type), own);
+    }
+}
+
+internal sealed class TeamItemInventory : GlobalItem
+{
+    public override bool PreDrawInInventory(Item item, SpriteBatch sb, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
+    {
+        if (!ModContent.GetInstance<ClientConfig>().TeamItemOutlines || !TeamItemSystem.IsTeamItem(item))
+            return true;
+
+        TTeam team = (TTeam)Main.LocalPlayer.team;
+        if (team == TTeam.None)
+            return true;
+
+        Color border = Main.teamColor[(int)team];
+        border.A = 255;
+
+        if (ModContent.GetInstance<ItemOutlineSystem>().TryGet(item.type, frame.Width, frame.Height, border, out RenderTarget2D target, out Vector2 targetOrigin))
+            sb.Draw(target, position, null, Color.White, 0f, targetOrigin, scale, SpriteEffects.None, 0f);
+
+        return true;
     }
 }
 

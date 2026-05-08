@@ -10,18 +10,22 @@ namespace PvPAdventure.Common.World.Outlines.TileOutlines;
 internal sealed class TileOutlineRenderTarget : ARenderTargetContentByRequest
 {
     private int _tileType;
-    private int _frameX;
-    private int _frameY;
     private int _tileW;
     private int _tileH;
+    private int _coordinateWidth;
+    private int _drawYOffset;
+    private int _frameHash;
+    private int[] _frameXs;
+    private int[] _frameYs;
+    private int[] _heights;
     private Color _borderColor;
 
     private RenderTarget2D _helperTarget;
     private EffectPass _colorOnlyPass;
 
-    public void UseTile(int tileType, int frameX, int frameY, int tileW, int tileH, Color borderColor)
+    public void UseTile(int tileType, int tileW, int tileH, int coordinateWidth, int drawYOffset, int frameHash, int[] frameXs, int[] frameYs, int[] heights, Color borderColor)
     {
-        if (_tileType == tileType && _frameX == frameX && _frameY == frameY && _tileW == tileW && _tileH == tileH && _borderColor.PackedValue == borderColor.PackedValue)
+        if (_tileType == tileType && _tileW == tileW && _tileH == tileH && _coordinateWidth == coordinateWidth && _drawYOffset == drawYOffset && _frameHash == frameHash && _borderColor.PackedValue == borderColor.PackedValue)
         {
             if (!IsReady)
                 Request();
@@ -30,10 +34,14 @@ internal sealed class TileOutlineRenderTarget : ARenderTargetContentByRequest
         }
 
         _tileType = tileType;
-        _frameX = frameX;
-        _frameY = frameY;
         _tileW = tileW;
         _tileH = tileH;
+        _coordinateWidth = coordinateWidth;
+        _drawYOffset = drawYOffset;
+        _frameHash = frameHash;
+        _frameXs = frameXs;
+        _frameYs = frameYs;
+        _heights = heights;
         _borderColor = borderColor;
 
         Request();
@@ -48,8 +56,8 @@ internal sealed class TileOutlineRenderTarget : ARenderTargetContentByRequest
 
         int contentW = _tileW * 16;
         int contentH = _tileH * 16;
-        int w = Math.Max(32, contentW + 32);
-        int h = Math.Max(32, contentH + 32);
+        int w = Math.Max(32, contentW + 32 + Math.Max(0, _coordinateWidth - 16) * 2);
+        int h = Math.Max(32, contentH + 32 + (Math.Abs(_drawYOffset) + Math.Max(0, MaxHeight() - 16)) * 2);
 
         PrepareARenderTarget_AndListenToEvents(ref _target, device, w, h, RenderTargetUsage.PreserveContents);
         PrepareARenderTarget_WithoutListeningToEvents(ref _helperTarget, device, w, h, RenderTargetUsage.DiscardContents);
@@ -82,17 +90,28 @@ internal sealed class TileOutlineRenderTarget : ARenderTargetContentByRequest
         int contentH = _tileH * 16;
         Vector2 topLeft = new Vector2((w - contentW) * 0.5f, (h - contentH) * 0.5f);
 
-        const int stride = 18; // tilesheet cell stride
-
         for (int x = 0; x < _tileW; x++)
         {
             for (int y = 0; y < _tileH; y++)
             {
-                Rectangle src = new(_frameX + x * stride, _frameY + y * stride, 16, 16);
-                Vector2 dst = topLeft + new Vector2(x * 16, y * 16);
+                int index = y * _tileW + x;
+                Rectangle src = new(_frameXs[index], _frameYs[index], _coordinateWidth, Height(y));
+                Vector2 dst = topLeft + new Vector2(x * 16, y * 16 + _drawYOffset);
                 sb.Draw(tex, dst, src, Color.White);
             }
         }
+    }
+
+    private int Height(int y) => _heights != null && y < _heights.Length ? _heights[y] : 16;
+
+    private int MaxHeight()
+    {
+        int max = 16;
+        if (_heights != null)
+            foreach (int height in _heights)
+                max = Math.Max(max, height);
+
+        return max;
     }
 
     private void DrawOutline(SpriteBatch sb)
