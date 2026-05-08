@@ -68,6 +68,10 @@ public class PvPAdventure : Mod
                 Common.Travel.Portals.PortalNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
+            case AdventurePacketIdentifier.TeamItem:
+                Common.Teams.TeamItemSystem.HandlePacket(reader, whoAmI);
+                break;
+
             default:
                 DebugLog.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
                 break;

@@ -38,6 +38,10 @@ public class ClientConfig : ModConfig
     public bool BedOutlines = true;
 
     [BackgroundColor(50, 70, 120)]
+    [DefaultValue(true)]
+    public bool TeamItemOutlines = true;
+
+    [BackgroundColor(50, 70, 120)]
     [DefaultValue(true)] 
     public bool LootOutlines = true;
 
