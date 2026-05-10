@@ -69,17 +69,10 @@ public class ClientConfig : ModConfig
     public AdventureUISize adventureUISize;
 
     [Header("Spectating")]
-    [BackgroundColor(30, 150, 30)]
-    [DefaultValue(true)]
-    public bool ShowTeammatesToSpectate = true;
 
     [BackgroundColor(30, 150, 30)]
     [DefaultValue(true)]
     public bool ShowCameraFade = true;
-
-    [BackgroundColor(30, 150, 30)]
-    [DefaultValue(true)]
-    public bool DrawSpectators = true;
 
     [Header("Sound")]
     [Expand(false, false)]
@@ -87,7 +80,6 @@ public class ClientConfig : ModConfig
     public SoundEffectConfig SoundEffect = new();
 
     [Header("Chat")]
-    [DefaultValue(true)] public bool ShowChatChannelPrefixes;
     [DefaultValue(true)] public bool ShowSavePlayerMessages;
     [DefaultValue(true)] public bool ShowTeleportPlayerMessages;
     [DefaultValue(false)] public bool ShowDebugMessages;

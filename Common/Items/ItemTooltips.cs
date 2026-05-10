@@ -10,7 +10,6 @@ using Terraria.ModLoader.Config;
 
 namespace PvPAdventure.Common.Items;
 // - Adds PvP damage multiplier tooltip based on config.
-// - Adds "Disabled" tooltip when item is prevented.
 // - Adds summon restriction tooltips for Empress Butterfly and Queen Slime Crystal.
 public class ItemTooltips : GlobalItem
 {
@@ -39,16 +38,6 @@ public class ItemTooltips : GlobalItem
                 IsModifierBad = false
             });
         }
-
-#if !DEBUG
-        if (adventureConfig.PreventUse.Contains(itemDefinition))
-        {
-            tooltips.Add(new TooltipLine(Mod, "Disabled", Language.GetTextValue("Mods.PvPAdventure.Item.Disabled"))
-            {
-                OverrideColor = Color.Red
-            });
-        }
-#endif
         else
         {
             var isUnderground = Main.LocalPlayer.position.Y > Main.worldSurface * 16;

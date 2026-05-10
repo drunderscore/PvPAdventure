@@ -90,9 +90,7 @@ public class DLLayout : ModSystem
             .AddTool<DLStartGameTool>()
             .AddTool<DLEndGameTool>()
             .AddTool<DLPauseTool>()
-            .AddTool<DLTeamAssignerTool>()
-            .AddTool<DLPointsSetterTool>()
-            .AddTool<DLAdminManagerTool>();
+            .AddTool<DLPointsSetterTool>();
 
 #if DEBUG
             leftToolbar.AddTool<DebugDLLeaveTool>();
@@ -134,9 +132,7 @@ public class DLLayout : ModSystem
                .AddTool<DLStartGameTool>()
                .AddTool<DLEndGameTool>()
                .AddTool<DLPauseTool>()
-               .AddTool<DLTeamAssignerTool>()
                .AddTool<DLPointsSetterTool>()
-               .AddTool<DLAdminManagerTool>()
                .AddTool<DLOpenConfigTool>()
            );
 

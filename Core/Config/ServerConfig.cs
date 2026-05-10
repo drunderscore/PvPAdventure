@@ -48,18 +48,10 @@ public class ServerConfig : ModConfig
 
     [Header("Items")]
     [BackgroundColor(40, 60, 110)]
-    [Expand(false, false)]
-    public List<ItemDefinition> PreventUse { get; set; } = [];
-
-    [BackgroundColor(40, 60, 110)]
     [ReloadRequired]
     [Expand(false, false)]
     [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
     public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = [];
-
-    [BackgroundColor(40, 60, 110)]
-    [Expand(false, false)]
-    public List<ItemDefinition> PreventAutoReuse { get; set; } = [];
 
     [BackgroundColor(40, 60, 110)]
     [Expand(false, false)]
@@ -159,11 +151,6 @@ public class ServerConfig : ModConfig
     [BackgroundColor(40, 90, 40)]
     [Range(0, 600)]
     public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
-
-    [BackgroundColor(40, 90, 40)]
-    [DefaultValue(AllowMode.BeforeGameStart)]
-    [JsonConverter(typeof(StringEnumConverter))]
-    public AllowMode AllowPlayersToChangeTeam { get; set; } = AllowMode.BeforeGameStart;
 
     [Header("WorldGen")]
     [BackgroundColor(90, 70, 40)]
@@ -425,15 +412,6 @@ public class ServerConfig : ModConfig
         public float TeamLifeShare { get; set; } = 0.5f;
     }
 
-    public class ClientModsConfig
-    {
-        [DefaultValue(false)]
-        public bool AllowAnyClientMods { get; set; }
-
-        [Expand(false, false)]
-        public List<string> AllowedClientMods { get; set; } = [];
-    }
-
     public class WorldGenerationConfig
     {
         [DefaultValue(2)] public int LifeFruitChanceDenominator { get; set; } = 2;
@@ -463,12 +441,6 @@ public class ServerConfig : ModConfig
     public class InvasionSizeValue
     {
         [Range(0, 1000)] public int Value { get; set; }
-    }
-    public enum AllowMode
-    {
-        Always,
-        BeforeGameStart,
-        Never
     }
     #endregion
 

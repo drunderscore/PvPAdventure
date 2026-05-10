@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.AdminTools.Tools.AdminManagerTool;
 using PvPAdventure.Common.AdminTools.Tools.StartGameTool;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Core.Debug;
@@ -19,7 +18,6 @@ public sealed class HerosModIntegration : ModSystem
     // Permission keys
     private const string PauseGamePermissionKey = "PauseGame";
     private const string PlayGamePermissionKey = "PlayGame";
-    private const string TeamAssignerPermissionKey = "TeamAssigner";
 
     public override void PostSetupContent()
     {
@@ -28,12 +26,10 @@ public sealed class HerosModIntegration : ModSystem
             // Add permissions
             herosMod.Call("AddPermission",PauseGamePermissionKey,"Pause / resume game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)));
             herosMod.Call("AddPermission",PlayGamePermissionKey,"Start / end game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PlayGamePermissionKey)));
-            herosMod.Call("AddPermission",TeamAssignerPermissionKey,"Open team assigner",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamAssignerPermissionKey)));
 
             // Add buttons
             AddPauseButton(herosMod);
             AddPlayButton(herosMod);
-            AddTeamAssignerButton(herosMod);
         }
     }
 
@@ -117,33 +113,7 @@ public sealed class HerosModIntegration : ModSystem
             })
         );
     }
-    private void AddTeamAssignerButton(Mod herosMod)
-    {
-        herosMod.Call("AddSimpleButton",
-            TeamAssignerPermissionKey,
-            Ass.Icon_TeamAssigner,
-            () =>
-            {
-                // Toggle active state of team selector
-                var tas = ModContent.GetInstance<AdminManagerSystem>();
-                tas.ToggleActive();
-            },
-            (Action<bool>)(hasPerm => PermissionChanged(hasPerm, TeamAssignerPermissionKey)),
-            () =>
-            {
-                // Update text depending on state
-                var tas = ModContent.GetInstance<AdminManagerSystem>();
-                if (!tas.IsActive())
-                {
-                    return "Open team assigner";
-                }
-                else
-                {
-                    return "Close team assigner";
-                }
-            }
-        );
-    }
+
     /// <summary>
     /// Called when the player's permission changes
     /// </summary>

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Chat;
 using PvPAdventure.Content.Portals;
 using System.Collections.Generic;
 using Terraria;

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Net;
+using PvPAdventure.Core.Utilities;
 using PvPAdventure.UI;
 using ReLogic.Graphics;
 using System;
@@ -142,10 +142,10 @@ internal class PointsSetterPanel : UIDraggablePanel
             BorderColor = Color.Black;
 
             int t = (int)team;
-            if (t < 0 || t >= TeamAssignerPanel.TeamColors.Length)
+            if (t < 0 || t >= ColorHelper.TeamColors.Length)
                 t = 0;
 
-            BackgroundColor = TeamAssignerPanel.TeamColors[t];
+            BackgroundColor = ColorHelper.TeamColors[t];
 
             const float leftPad = 10f;
             const float iconBox = 32f;

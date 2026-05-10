@@ -1,9 +1,7 @@
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Bounties;
-using PvPAdventure.Common.Chat;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.Portals;
-using PvPAdventure.Core.Config;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameInput;
@@ -77,9 +75,6 @@ internal class KeybindsPlayer : ModPlayer
             else
                 Main.InGameUI.SetState(bountyShop);
         }
-        // All Chat
-        if (keybinds.AllChat.JustPressed)
-            ModContent.GetInstance<TeamChatManager>().OpenAllChat();
 
         // UsePortalCreator keybind
         if (keybinds.UsePortalCreator.JustPressed)

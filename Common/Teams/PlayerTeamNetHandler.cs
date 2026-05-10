@@ -1,5 +1,4 @@
-﻿using PvPAdventure.Common.AdminTools.Tools.TeamAssigner;
-using PvPAdventure.Common.Statistics;
+﻿using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel.Beds;
 using PvPAdventure.Core.Net;
 using System.IO;
@@ -57,17 +56,5 @@ public static class PlayerTeamNetHandler
             ModContent.GetInstance<PointsManager>().UiScoreboard?.Invalidate();
         }
 
-        var ts = ModContent.GetInstance<TeamAssignerSystem>();
-        if (ts?.teamAssignerState != null)
-        {
-            foreach (var child in ts.teamAssignerState.Children)
-            {
-                if (child is TeamAssignerPanel panel)
-                {
-                    panel.needsRebuild = true;
-                    break;
-                }
-            }
-        }
     }
 }

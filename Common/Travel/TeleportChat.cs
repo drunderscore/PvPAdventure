@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Travel;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using System;
@@ -9,7 +8,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Chat;
+namespace PvPAdventure.Common.Travel;
 
 /// <summary>
 /// Helper class for sending chat messages when players teleport.

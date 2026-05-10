@@ -563,16 +563,6 @@ Mods: {
 					Tooltip: ""
 				}
 
-				ShowTeammatesToSpectate: {
-					Label: Show Teammates To Spectate
-					Tooltip: ""
-				}
-
-				DrawSpectators: {
-					Label: Draw Spectators
-					Tooltip: ""
-				}
-
 				TeamItemOutlines: {
 					Label: Team Item Outlines
 					Tooltip: ""

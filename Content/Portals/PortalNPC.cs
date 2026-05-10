@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Chat;
+using PvPAdventure.Common.Travel;
 using PvPAdventure.Common.Travel.Portals;
 using System;
 using System.IO;

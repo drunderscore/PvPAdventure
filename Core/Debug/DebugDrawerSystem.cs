@@ -13,15 +13,12 @@ internal sealed class DebugDrawerSystem : ModSystem
 {
     private UserInterface debugInterface;
     private UIState debugState;
-    private DebugContentPanel debugPanel;
 
     public override void OnWorldLoad()
     {
         debugInterface = new UserInterface();
         debugState = new UIState();
 
-        debugPanel = new DebugContentPanel();
-        debugState.Append(debugPanel);
         debugState.Activate();
 
         debugInterface.SetState(debugState);
@@ -29,16 +26,12 @@ internal sealed class DebugDrawerSystem : ModSystem
 
     public override void OnWorldUnload()
     {
-        debugPanel = null;
         debugState = null;
         debugInterface = null;
     }
 
     public override void UpdateUI(GameTime gameTime)
     {
-        if (Main.keyState.IsKeyDown(Keys.NumPad5) && !Main.oldKeyState.IsKeyDown(Keys.NumPad5))
-            debugPanel?.ToggleActiveAndRebuild();
-
         debugInterface?.Update(gameTime);
     }
 
@@ -55,9 +48,9 @@ internal sealed class DebugDrawerSystem : ModSystem
             {
                 debugInterface?.Draw(Main.spriteBatch, new GameTime());
 
-                DebugDrawer.DrawButtons();
-                DebugDrawer.DrawDebugInfo();
-                DebugDrawer.Flush(Main.spriteBatch);
+                //DebugDrawer.DrawButtons();
+                //DebugDrawer.DrawDebugInfo();
+                //DebugDrawer.Flush(Main.spriteBatch);
 
                 return true;
             },

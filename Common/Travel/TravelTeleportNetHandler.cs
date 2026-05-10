@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Chat;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Content.Portals;
 using PvPAdventure.Core.Config;
