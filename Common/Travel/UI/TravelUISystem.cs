@@ -22,7 +22,7 @@ internal class TravelUISystem : ModSystem
             return;
 
         Player local = Main.LocalPlayer;
-        bool show = TravelTeleportSystem.ShouldShowTravelUI(local);
+        bool show = Main.mapFullscreen && TravelTeleportSystem.ShouldShowTravelUI(local);
 
         if (!show)
         {
@@ -77,28 +77,6 @@ internal class TravelUISystem : ModSystem
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
-        int idx = layers.FindIndex(l => l.Name == "Vanilla: Death Text");
-
-        // TESTME: Draw the UI below the config?
-        if (IsAnyConfigUIOpen())
-            idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
-
-        if (idx == -1)
-            return;
-
-        layers.Insert(idx, new LegacyGameInterfaceLayer(
-            "PvPAdventure: TravelUISystem",
-            delegate
-            {
-                if (Main.mapFullscreen || travelUI?.CurrentState == null)
-                    return true;
-
-                SpriteBatch sb = Main.spriteBatch;
-                travelUI.Draw(sb, Main._drawInterfaceGameTime);
-                return true;
-            },
-            InterfaceScaleType.UI
-        ));
     }
     #endregion
 

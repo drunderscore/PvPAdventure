@@ -79,12 +79,18 @@ public sealed class PortalCreationProjectile : ModProjectile
         var config = ModContent.GetInstance<ServerConfig>();
 
         Projectile.velocity = Vector2.Zero;
+        bool firstFrame = ElapsedFrames <= 0f;
 
         if (ElapsedFrames < CreationFrames)
             ElapsedFrames++;
 
         if (config.ShowPortalCreationProjectile && Main.netMode != NetmodeID.Server)
+        {
+            if (firstFrame)
+                PortalDrawer.SpawnPortalFadeInDust(Projectile.Bottom, OwnerTeam);
+
             PortalDrawer.SpawnPortalDust(Projectile.Bottom, Progress);
+        }
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;

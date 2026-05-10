@@ -140,10 +140,10 @@ public class ServerConfig : ModConfig
     [DefaultValue(30)]
     public int PortalCreationOffset { get; set; }
 
-    //[BackgroundColor(30, 150, 150)]
-    //[Range(0, 60)]
-    //[DefaultValue(5)]
-    //public int TeleportCooldownSeconds { get; set; }
+    [BackgroundColor(30, 150, 150)]
+    [Range(0, 60)]
+    [DefaultValue(5)]
+    public int TeleportCooldownSeconds { get; set; }
 
     [Header("Gameplay")]
 

@@ -13,6 +13,14 @@ namespace PvPAdventure.Common.Travel;
 
 internal class TravelPlayer : ModPlayer
 {
+    public int TeleportCooldownFrames;
+
+    public override void PostUpdate()
+    {
+        if (TeleportCooldownFrames > 0)
+            TeleportCooldownFrames--;
+    }
+
     public override void OnHurt(Player.HurtInfo info)
     {
         if (Player.whoAmI != Main.myPlayer)

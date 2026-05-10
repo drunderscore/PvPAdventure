@@ -73,11 +73,8 @@ public class PortalCreatorItem : ModItem
         if (player?.whoAmI != Main.myPlayer)
             return true;
 
-        if (!TravelRules.Enabled)
-        {
-            Warning(player, "Mods.PvPAdventure.PortalCreator.TravelDisabledInConfig");
+        if (!CanCreatePortal(player, true))
             return false;
-        }
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
             PortalNetHandler.SendPortalCreatorUse(player.selectedItem);
@@ -213,31 +210,39 @@ public class PortalCreatorItem : ModItem
     #region Popup text
     public override bool CanUseItem(Player player)
     {
+        SetPortalCreationTime(Item);
+        return CanCreatePortal(player, true);
+    }
+
+    public static bool CanCreatePortal(Player player, bool warn)
+    {
+        if (player?.active != true)
+            return false;
+
         if (!TravelRules.Enabled)
         {
-            Warning(player, "Mods.PvPAdventure.PortalCreator.TravelDisabledInConfig");
+            if (warn) Warning(player, "Mods.PvPAdventure.PortalCreator.TravelDisabledInConfig");
             return false;
         }
-
-        SetPortalCreationTime(Item);
 
         if (player.dead || player.ghost)
             return false;
 
         if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
         {
-            Warning(player, "Mods.PvPAdventure.PortalCreator.GameNotStarted");
+            if (warn) Warning(player, "Mods.PvPAdventure.PortalCreator.GameNotStarted");
             return false;
         }
-        if (TravelRegionSystem.IsInTravelRegion(player))
+
+        if (TravelRegionSystem.IsInWorldSpawn(player))
         {
-            Warning(player, "Mods.PvPAdventure.PortalCreator.CannotUseInSpawn");
+            if (warn) Warning(player, "Mods.PvPAdventure.PortalCreator.CannotUseInSpawn");
             return false;
         }
 
         if (player.velocity.LengthSquared() > 0f)
         {
-            Warning(player, "Mods.PvPAdventure.PortalCreator.CannotUseWhileMoving");
+            if (warn) Warning(player, "Mods.PvPAdventure.PortalCreator.CannotUseWhileMoving");
             return false;
         }
 

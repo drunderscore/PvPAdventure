@@ -229,6 +229,7 @@ internal class TravelUIState : UIState
             hash.Add(target.PlayerIndex);
             hash.Add(target.Name);
             hash.Add(target.Available);
+            hash.Add(target.DisabledReason);
             hash.Add((int)target.WorldPosition.X);
             hash.Add((int)target.WorldPosition.Y);
         }

@@ -72,6 +72,22 @@ public static class PortalDrawer
         }
     }
 
+    public static void SpawnPortalFadeInDust(Vector2 worldPos, int team)
+    {
+        Color color = team > 0 && team < Main.teamColor.Length
+            ? Main.teamColor[team]
+            : Color.White;
+
+        for (int i = 0; i < 32; i++)
+        {
+            Vector2 direction = Main.rand.NextFloat(MathHelper.TwoPi).ToRotationVector2();
+            Vector2 position = worldPos + direction * Main.rand.NextFloat(36f, 68f);
+            Dust dust = Dust.NewDustPerfect(position, DustID.FireworksRGB, -direction * Main.rand.NextFloat(2f, 5.5f), 90, color, Main.rand.NextFloat(1.1f, 1.8f));
+            dust.noGravity = true;
+            dust.fadeIn = Main.rand.NextFloat(0.4f, 1f);
+        }
+    }
+
     public static void SpawnPortalCreationBurst(Vector2 worldPos, int team)
     {
         Color color = team > 0 && team < Main.teamColor.Length

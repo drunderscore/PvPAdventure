@@ -113,6 +113,7 @@ internal sealed class TeamBedSystem : ModSystem
         bool hadOwner = bedOwners.TryGetValue(origin, out int previousOwnerId);
         bool sameOwner = hadOwner && previousOwnerId == playerId;
         bool sameTeamOwner = hadOwner && IsSameTeam(previousOwnerId, team);
+        bool ownerAlreadyHere = sameOwner;
         bool alreadyClaimed = bedTeams.TryGetValue(origin, out Team oldTeam) && oldTeam == team && sameOwner;
 
         if (alreadyClaimed)
@@ -130,7 +131,8 @@ internal sealed class TeamBedSystem : ModSystem
             bedOwners[origin] = playerId;
 
         SendBedUpdate(origin, team);
-        TeleportChat.AnnounceBedSet(player);
+        if (!ownerAlreadyHere)
+            TeleportChat.AnnounceBedSet(player);
     }
 
     private static bool IsSameTeam(int playerId, Team team)

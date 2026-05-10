@@ -178,6 +178,9 @@ public class TravelMapLayer : ModSystem
 
     private static string GetMapHoverText(Player local, TravelTarget target, string teleportText)
     {
-        return CanExecuteMapTeleport(local, target) ? teleportText : target.Name;
+        if (CanExecuteMapTeleport(local, target))
+            return teleportText;
+
+        return TravelTeleportSystem.TeleportCooldownSecondsLeft(local) > 0 ? TravelTeleportSystem.TeleportCooldownText(local) : target.Name;
     }
 }

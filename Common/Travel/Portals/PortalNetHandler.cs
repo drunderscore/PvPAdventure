@@ -56,7 +56,7 @@ public static class PortalNetHandler
             if (playerId != whoAmI || !TryGetPortalCreator(playerId, slot, out Player player, out _))
                 return;
 
-            if (TravelRegionSystem.IsInTravelRegion(player))
+            if (!PortalCreatorItem.CanCreatePortal(player, false))
                 return;
 
             DebugLog.Chat("Portal creation request received");

@@ -2,6 +2,7 @@
 using PvPAdventure.Common.GameTimer;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Content.Portals;
+using PvPAdventure.Core.Config;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -27,7 +28,7 @@ internal class TravelTeleportSystem : ModSystem
         if (player?.active != true)
             return targets;
 
-        targets.Add(new TravelTarget(TravelType.World, -1, GetPlayerTopLeftAtTile(player, Main.spawnTileX, Main.spawnTileY), "World Spawn", "World", true));
+        targets.Add(WithCooldown(player, new TravelTarget(TravelType.World, -1, GetPlayerTopLeftAtTile(player, Main.spawnTileX, Main.spawnTileY), "World Spawn", "World", true)));
 
         for (int i = 0; i < Main.maxPlayers; i++)
         {
@@ -37,7 +38,7 @@ internal class TravelTeleportSystem : ModSystem
                 continue;
 
             bool hasBed = targetPlayer.SpawnX >= 0 && targetPlayer.SpawnY >= 0 && Player.CheckSpawn(targetPlayer.SpawnX, targetPlayer.SpawnY);
-            targets.Add(new TravelTarget(
+            targets.Add(WithCooldown(player, new TravelTarget(
                 TravelType.Bed,
                 i,
                 hasBed ? GetPlayerTopLeftAtTile(player, targetPlayer.SpawnX, targetPlayer.SpawnY) : Vector2.Zero,
@@ -45,10 +46,10 @@ internal class TravelTeleportSystem : ModSystem
                 "Bed",
                 hasBed,
                 i == player.whoAmI ? "You have no bed set" : $"{targetPlayer.name} has no bed set"
-            ));
+            )));
 
             bool hasPortal = TryGetPortalPosition(player, i, out Vector2 portalPos);
-            targets.Add(new TravelTarget(
+            targets.Add(WithCooldown(player, new TravelTarget(
                 TravelType.Portal,
                 i,
                 hasPortal ? portalPos : Vector2.Zero,
@@ -56,10 +57,10 @@ internal class TravelTeleportSystem : ModSystem
                 "Portal",
                 hasPortal,
                 i == player.whoAmI ? "You have no portal" : $"{targetPlayer.name} has no portal"
-            ));
+            )));
         }
 
-        targets.Add(new TravelTarget(TravelType.Random, -1, Vector2.Zero, "Random", "Random", true));
+        targets.Add(WithCooldown(player, new TravelTarget(TravelType.Random, -1, Vector2.Zero, "Random", "Random", true)));
         return targets;
     }
 
@@ -200,6 +201,12 @@ internal class TravelTeleportSystem : ModSystem
             return false;
         }
 
+        if (TeleportCooldownSecondsLeft(player) > 0)
+        {
+            reason = TeleportCooldownText(player);
+            return false;
+        }
+
         if (target.Type is TravelType.World or TravelType.Bed or TravelType.Portal or TravelType.Random)
             return true;
 
@@ -217,6 +224,7 @@ internal class TravelTeleportSystem : ModSystem
             player.velocity = Vector2.Zero;
             player.TeleportationPotion();
             player.fallStart = (int)(player.position.Y / 16f);
+            StartTeleportCooldown(player);
             //Log.Chat($"[TravelTeleport] Singleplayer random teleport pos={player.position}");
             return true;
         }
@@ -224,7 +232,31 @@ internal class TravelTeleportSystem : ModSystem
         player.velocity = Vector2.Zero;
         player.Teleport(target.WorldPosition, TeleportationStyleID.RodOfDiscord);
         player.fallStart = (int)(target.WorldPosition.Y / 16f);
+        StartTeleportCooldown(player);
         return true;
+    }
+
+    public static int TeleportCooldownFramesLeft(Player player)
+    {
+        return player?.active == true ? player.GetModPlayer<TravelPlayer>().TeleportCooldownFrames : 0;
+    }
+
+    public static int TeleportCooldownSecondsLeft(Player player)
+    {
+        int frames = TeleportCooldownFramesLeft(player);
+        return frames <= 0 ? 0 : (frames + 59) / 60;
+    }
+
+    public static string TeleportCooldownText(Player player)
+    {
+        int seconds = TeleportCooldownSecondsLeft(player);
+        return $"Teleport cooldown: {seconds} second{(seconds == 1 ? "" : "s")} remaining";
+    }
+
+    public static void StartTeleportCooldown(Player player)
+    {
+        if (player?.active == true)
+            player.GetModPlayer<TravelPlayer>().TeleportCooldownFrames = Math.Max(0, ModContent.GetInstance<ServerConfig>().TeleportCooldownSeconds * 60);
     }
 
     public static int PortalCreatorFramesLeft(Player player)
@@ -249,6 +281,14 @@ internal class TravelTeleportSystem : ModSystem
     private static bool IsUsingPortalCreator(Player player)
     {
         return player?.active == true && player.itemAnimation > 0 && player.HeldItem?.ModItem is PortalCreatorItem;
+    }
+
+    private static TravelTarget WithCooldown(Player player, TravelTarget target)
+    {
+        if (TeleportCooldownSecondsLeft(player) <= 0)
+            return target;
+
+        return new TravelTarget(target.Type, target.PlayerIndex, target.WorldPosition, target.Name, target.BiomeName, false, TeleportCooldownText(player));
     }
 
     private static void UpdateDeathTravelSelection(Player player)

@@ -63,12 +63,22 @@ public static class TravelTeleportNetHandler
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
+        if (!TravelTeleportSystem.CanTeleport(Main.LocalPlayer, target, out string blockedReason))
+        {
+            if (!string.IsNullOrWhiteSpace(blockedReason))
+                Main.NewText(blockedReason);
+
+            return;
+        }
+
         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.TravelTeleport);
         packet.Write((byte)TravelTeleportPacketType.Teleport);
         packet.Write((byte)target.Type);
         packet.Write((short)target.PlayerIndex);
         packet.Send();
+
+        TravelTeleportSystem.StartTeleportCooldown(Main.LocalPlayer);
     }
 
     private static void ReceiveTeleport(BinaryReader reader, int whoAmI)
@@ -82,6 +92,9 @@ public static class TravelTeleportNetHandler
         if (whoAmI < 0 || whoAmI >= Main.maxPlayers || Main.player[whoAmI] is not { active: true } player)
             return;
 
+        if (TravelTeleportSystem.TeleportCooldownFramesLeft(player) > 0)
+            return;
+
         //Log.Chat($"[TravelTeleport] Request player={player.name} type={type} target={targetPlayerIndex}");
 
         if (type == TravelType.Random)
@@ -93,6 +106,7 @@ public static class TravelTeleportNetHandler
             NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, player.whoAmI, player.position.X, player.position.Y, TeleportationStyleID.TeleportationPotion);
             NetMessage.SendData(MessageID.SyncPlayer, -1, -1, null, player.whoAmI);
             SendTeleportSound(player.Center);
+            TravelTeleportSystem.StartTeleportCooldown(player);
 
             //Log.Chat($"[TravelTeleport] Random teleported {player.name} pos={player.position}");
             return;
@@ -111,6 +125,7 @@ public static class TravelTeleportNetHandler
         NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, player.whoAmI, position.X, position.Y, TeleportationStyleID.RodOfDiscord);
         NetMessage.SendData(MessageID.SyncPlayer, -1, -1, null, player.whoAmI);
         SendTeleportSound(player.Center);
+        TravelTeleportSystem.StartTeleportCooldown(player);
 
         if (ModContent.GetInstance<ClientConfig>().ShowTeleportPlayerMessages)
         {
