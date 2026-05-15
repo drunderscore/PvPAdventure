@@ -20,23 +20,34 @@ namespace PvPAdventure.Common.Combat.EJ;
 /// - Hellhex is a special debuff, because instead of making players take more damage, it makes the next hit create an explosion that does 2.75X the damage of the original hit
 /// </summary>
 
-// Check if a player has Tiki Armor equipped, because it increases debuff duration
-public class TikiArmorPlayer : ModPlayer
+// Check if a player has Summoner Armor equipped, because it increases debuff duration
+public class SummonerArmorPlayer : ModPlayer
 {
-    public bool hasTikiSet = false;
+    public bool hasSummonSet = false;
 
     public override void PostUpdateEquips()
     {
-        if (Player.armor[0].type == ItemID.TikiMask &&
-            Player.armor[1].type == ItemID.TikiShirt &&
-            Player.armor[2].type == ItemID.TikiPants)
-        {
-            hasTikiSet = true;
-        }
-        else
-        {
-            hasTikiSet = false;
-        }
+        int head = Player.armor[0].type;
+        int chest = Player.armor[1].type;
+        int legs = Player.armor[2].type;
+
+        bool isTiki = head == ItemID.TikiMask &&
+                      chest == ItemID.TikiShirt &&
+                      legs == ItemID.TikiPants;
+
+        bool isSpider = head == ItemID.SpiderMask &&
+                        chest == ItemID.SpiderBreastplate &&
+                        legs == ItemID.SpiderGreaves;
+
+        bool isBee = head == ItemID.BeeHeadgear &&
+                     chest == ItemID.BeeBreastplate &&
+                     legs == ItemID.BeeGreaves;
+
+        bool isHallowedSummoner = head == ItemID.HallowedHood &&
+                                  chest == ItemID.HallowedPlateMail &&
+                                  legs == ItemID.HallowedGreaves;
+
+        hasSummonSet = isTiki || isSpider || isBee || isHallowedSummoner;
     }
 }
 public abstract class WhipDebuffPlayer : ModPlayer
@@ -62,10 +73,10 @@ public abstract class WhipDebuffPlayer : ModPlayer
                 Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
                 if (attacker != null && attacker.active)
                 {
-                    TikiArmorPlayer tikiPlayer = attacker.GetModPlayer<TikiArmorPlayer>();
-                    if (tikiPlayer.hasTikiSet)
+                    SummonerArmorPlayer summonerPlayer = attacker.GetModPlayer<SummonerArmorPlayer>();
+                    if (summonerPlayer.hasSummonSet)
                     {
-                        duration = (int)(duration * 3.5f);
+                        duration = (int)(duration * 2f);
                     }
                     newApplierIndex = info.DamageSource.SourcePlayerIndex;
                 }
