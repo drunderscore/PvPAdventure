@@ -66,7 +66,7 @@ public class UnifiedRecipeGroupSystem : ModSystem
         new RecipeGroupData("AnyHallowedMimicPrimary", "Any Hallowed Mimic Primary", ItemID.Fake_HallowedChest, 2,
             ItemID.Fake_HallowedChest, ItemID.DaedalusStormbow, ItemID.CrystalVileShard, ItemID.FlyingKnife),
 
-        new RecipeGroupData("AnyMimicPrimary", "Any Mimic Primary", ItemID.MimicBanner, 3,
+        new RecipeGroupData("AnyMimicPrimary", "Any Mimic Primary", ItemID.MimicBanner, 2,
             ItemID.MimicBanner, ItemID.TitanGlove, ItemID.CrossNecklace, ItemID.StarCloak, ItemID.PhilosophersStone, ItemID.MagicDagger, ItemID.DualHook),
         
         // Dungeon

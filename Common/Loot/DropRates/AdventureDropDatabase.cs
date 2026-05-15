@@ -92,7 +92,6 @@ public static class AdventureDropDatabase
             case NPCID.Harpy:
                 foreach (var drop in drops)
                 {
-                    ModifyDropRate(drop, ItemID.GiantHarpyFeather, 1, 20);
                     ModifyDropRate(drop, ItemID.Feather, 1, 1);
                 }
                 break;
@@ -403,6 +402,13 @@ public static class AdventureDropDatabase
             case NPCID.WalkingAntlion:
             case NPCID.FlyingAntlion:
                 npcLoot.Add(ItemDropRule.Common(ItemID.FossilOre, 1, 1, 1));
+                break;
+
+            case NPCID.AngryBones:
+            case NPCID.DarkCaster:
+            case NPCID.CursedSkull:
+            case NPCID.SkeletronHand:
+                npcLoot.Add(ItemDropRule.Common(ItemID.Bone, 1, 1, 3));
                 break;
 
             case NPCID.QueenBee:
