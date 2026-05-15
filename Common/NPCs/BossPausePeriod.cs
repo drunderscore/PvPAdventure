@@ -16,8 +16,8 @@ internal class BossPausePeriod : GlobalNPC
     private static readonly Dictionary<int, int> PauseDurations = new()
     {
         { NPCID.Plantera,          30 * 60 }, 
-        { NPCID.CultistBoss,       30 * 60 },
-        { NPCID.SkeletronHead,       30 * 60 },
+        { NPCID.CultistBoss,       60 * 60 },
+        { NPCID.SkeletronHead,       60 * 60 },
     };
 
     private int _pauseTimer;  
