@@ -21,7 +21,13 @@ public class DisableNPCs : GlobalNPC
             npc.life = 0;
 
         }
-        if (npc.type == NPCID.TruffleWorm && !NPC.downedPlantBoss) // doesn't spawn until plantera has been defeated
+        if (npc.type == NPCID.TruffleWorm && !NPC.downedGolemBoss) // doesn't spawn until golem has been defeated
+        {
+            npc.active = false;
+            npc.life = 0;
+
+        }
+        if (npc.type == NPCID.EmpressButterfly && !NPC.downedGolemBoss) // doesn't spawn until golem has been defeated
         {
             npc.active = false;
             npc.life = 0;

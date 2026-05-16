@@ -160,6 +160,30 @@ public class RecipeManager : ModSystem
             .AddIngredient(ItemID.SoulofFlight, 20)
             .AddTile(TileID.MythrilAnvil)
             .Register();
+        // Recipe for Anvil Statue
+        Recipe.Create(ItemID.AnvilStatue, 1)
+            .AddIngredient(ItemID.IronAnvil, 5)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+        // Recipe for Boot Statue
+        Recipe.Create(ItemID.BootStatue, 1)
+            .AddIngredient(ItemID.HermesBoots, 5)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+        // Recipe for Skull Statue
+        Recipe.Create(ItemID.GloomStatue, 1)
+            .AddIngredient(ItemID.Skull, 5)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+        // Recipe for Sunflower Statue
+        Recipe.Create(ItemID.SunflowerStatue, 1)
+            .AddIngredient(ItemID.Sunflower, 5)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
         //temp sudo terrablade (no longer used)
         //Recipe.Create(ItemID.TrueNightsEdge)
         //    .AddIngredient(ItemID.SoulofFright, 20)
