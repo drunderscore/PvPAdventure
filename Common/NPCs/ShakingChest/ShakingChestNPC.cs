@@ -3,7 +3,6 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
-using PvPAdventure.Content.Portals;
 
 namespace PvPAdventure.Common.NPCs;
 
@@ -50,21 +49,10 @@ public class ShakingChestNPC : GlobalNPC
         .Add(new Item(ItemID.Rope) { shopCustomPrice = Item.buyPrice(copper: 50) })
         .Add(new Item(ItemID.WaterWalkingBoots) { shopCustomPrice = Item.buyPrice(silver: 150) })
         .Add(new Item(ItemID.MoonLordLegs) { shopCustomPrice = Item.buyPrice(silver: 1000) })
-        .Add(new Item(ItemID.Bomb) { shopCustomPrice = Item.buyPrice(silver: 25) })
         .Add(new Item(ItemID.Worm) { shopCustomPrice = Item.buyPrice(silver: 15) })
         .Add(new Item(ItemID.EnchantedNightcrawler) { shopCustomPrice = Item.buyPrice(silver: 50) })
         .Add(new Item(ItemID.GoldWorm) { shopCustomPrice = Item.buyPrice(silver: 1000) })
-        .Add(new Item(ItemID.Glowstick) { shopCustomPrice = Item.buyPrice(silver: 10) })
-        .Add(new Item(ItemID.Dynamite) { shopCustomPrice = Item.buyPrice(silver: 300) })
-        .Add(new Item(ItemID.GillsPotion) { shopCustomPrice = Item.buyPrice(silver: 100) })
-        .Add(new Item(ItemID.TrapsightPotion) { shopCustomPrice = Item.buyPrice(silver: 100) })
-        .Add(new Item(ItemID.FlipperPotion) { shopCustomPrice = Item.buyPrice(silver: 30) })
-        .Add(new Item(ItemID.Dynamite) { shopCustomPrice = Item.buyPrice(silver: 300) })
-        .Add(new Item(ItemID.WhoopieCushion) { shopCustomPrice = Item.buyPrice(silver: 400) })
-        .Add(new Item(ItemID.Radar) { shopCustomPrice = Item.buyPrice(silver: 100) })
-        .Add(new Item(ItemID.FlareGun) { shopCustomPrice = Item.buyPrice(silver: 200) })
-        .Add(new Item(ItemID.BlueFlare) { shopCustomPrice = Item.buyPrice(silver: 8) })
-        .Add(new Item(ItemID.FloatingTube) { shopCustomPrice = Item.buyPrice(silver: 100) });
+        .Add(new Item(ItemID.Bomb) { shopCustomPrice = Item.buyPrice(silver: 25) });
 
     public override void SetStaticDefaults()
     {
@@ -99,66 +87,26 @@ public class ShakingChestNPC : GlobalNPC
     {
         if (npc.type != TargetType) return;
 
+        Main.playerInventory = true;
+        Main.stackSplit = 9999;
+        Main.npcChatText = "";
+        Main.SetNPCShopIndex(1);
+
+        var tempItems = new Item[Shop.Entries.Count];
+        Shop.FillShop(tempItems, npc, out _);
+
         if (firstButton)
         {
-            Main.playerInventory = true;
-            Main.stackSplit = 9999;
-            Main.npcChatText = "";
-            Main.SetNPCShopIndex(1);
-
-            var tempItems = new Item[Shop.Entries.Count + 1];
-            Shop.FillShop(tempItems, npc, out _);
-
             ShopPager.Reset();
             ShopPager.OpenShop(tempItems, npc);
-
-            Main.LocalPlayer.currentShoppingSettings.PriceAdjustment = 1.0;
-            SoundEngine.PlaySound(SoundID.MenuTick);
         }
         else
         {
-            RefundPlayer(Main.LocalPlayer);
-            SoundEngine.PlaySound(SoundID.MenuTick);
-        }
-    }
-
-    public static void RefundPlayer(Player player)
-    {
-        for (int i = 0; i < player.inventory.Length; i++)
-            player.inventory[i] = new Item();
-
-        for (int i = 0; i < player.armor.Length; i++)
-            player.armor[i] = new Item();
-
-        for (int i = 0; i < player.dye.Length; i++)
-            player.dye[i] = new Item();
-
-        for (int i = 0; i < player.miscEquips.Length; i++)
-            player.miscEquips[i] = new Item();
-
-        for (int i = 0; i < player.miscDyes.Length; i++)
-            player.miscDyes[i] = new Item();
-
-        player.trashItem = new Item();
-        Main.mouseItem = new Item();
-
-        // Clear all buffs
-        for (int i = 0; i < Player.MaxBuffs; i++)
-        {
-            player.buffType[i] = 0;
-            player.buffTime[i] = 0;
+            ShopPager.NextPage(tempItems, npc);
         }
 
-        player.inventory[0] = new Item(ItemID.CopperShortsword);
-        player.inventory[1] = new Item(ItemID.CopperPickaxe);
-        player.inventory[2] = new Item(ItemID.CopperAxe);
-
-        Item coins = new Item(ItemID.GoldCoin);
-        coins.stack = 10;
-        player.inventory[3] = coins;
-
-        player.inventory[4] = new Item(ItemID.Bed);
-        player.inventory[5] = new Item(ModContent.ItemType<PortalCreatorItem>());
+        Main.LocalPlayer.currentShoppingSettings.PriceAdjustment = 1.0;
+        SoundEngine.PlaySound(SoundID.MenuTick);
     }
 
     public override void ModifyActiveShop(NPC npc, string shopName, Item[] items)
