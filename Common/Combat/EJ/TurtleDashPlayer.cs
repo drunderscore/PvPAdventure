@@ -5,9 +5,9 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Combat;
 
-public class TurtleDashPlayer : ModPlayer
+public class HeavyArmorPlayer : ModPlayer
 {
-    private bool isWearingFullTurtleArmor = false;
+    private bool isWearingFullHeavyarmor = false;
     private int dashingTimer = 0;
 
     // Detect if player is in a dash state
@@ -15,14 +15,23 @@ public class TurtleDashPlayer : ModPlayer
 
     public override void PostUpdateEquips()
     {
+        bool wearingTurtle = Player.armor[0].type == ItemID.TurtleHelmet &&
+                             Player.armor[1].type == ItemID.TurtleScaleMail &&
+                             Player.armor[2].type == ItemID.TurtleLeggings;
 
-        isWearingFullTurtleArmor = Player.armor[0].type == ItemID.TurtleHelmet &&
-                                   Player.armor[1].type == ItemID.TurtleScaleMail &&
-                                   Player.armor[2].type == ItemID.TurtleLeggings;
+        bool wearingBeetleShell = Player.armor[0].type == ItemID.BeetleHelmet &&
+                                  Player.armor[1].type == ItemID.BeetleShell &&
+                                  Player.armor[2].type == ItemID.BeetleLeggings;
 
-        if (isWearingFullTurtleArmor)
+        isWearingFullHeavyarmor = wearingTurtle || wearingBeetleShell;
+
+        if (isWearingFullHeavyarmor)
         {
             Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
+
+            Player.GetDamage(DamageClass.Ranged) *= 0.5f;
+            Player.GetDamage(DamageClass.Magic) *= 0.5f;
+            Player.GetDamage(DamageClass.Summon) *= 0.5f;
         }
     }
 
@@ -41,14 +50,8 @@ public class TurtleDashPlayer : ModPlayer
         // Apply dash speed reduction if player has the debuff and is dashing
         if (Player.HasBuff(ModContent.BuffType<BROISACHOJ>()) && IsInADashState)
         {
-            float dashSpeedReduction = Player.velocity.X * 0.05f;
+            float dashSpeedReduction = Player.velocity.X * 0.022f;
             Player.velocity.X -= dashSpeedReduction;
-        }
-        if (Player.HasBuff(BuffID.BabyEater) && IsInADashState)
-        {
-            float dashSpeedReduction = Player.velocity.X * -0.03f;
-            Player.velocity.X -= dashSpeedReduction;
-            //Dont think I didnt notice this.
         }
         //thanks mr fargo
     }
