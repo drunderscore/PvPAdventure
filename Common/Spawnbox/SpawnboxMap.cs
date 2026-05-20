@@ -102,21 +102,22 @@ public class SpawnboxMap : ModMapLayer
         );
         textPos.Y -= 50*scale;
 
+        // Keep this commented out in case we wanna use it.
         // Helper to draw text
-        void drawSpawnText(Vector2 offset, Color c)
-        {
-            Main.spriteBatch.DrawString(
-                font,
-                "SPAWN",
-                textPos + offset,
-                c,
-                0f,
-                Vector2.Zero,
-                scale,
-                SpriteEffects.None,
-                0f
-            );
-        }
+        //void drawSpawnText(Vector2 offset, Color c)
+        //{
+        //    Main.spriteBatch.DrawString(
+        //        font,
+        //        "SPAWN",
+        //        textPos + offset,
+        //        c,
+        //        0f,
+        //        Vector2.Zero,
+        //        scale,
+        //        SpriteEffects.None,
+        //        0f
+        //    );
+        //}
 
         //drawSpawnText(new Vector2(2, 2) * scale, Color.Black * 0.75f);
         //drawSpawnText(Vector2.Zero, Color.White);

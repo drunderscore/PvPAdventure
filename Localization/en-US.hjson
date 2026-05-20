@@ -1,13 +1,5 @@
 Mods: {
 	PvPAdventure: {
-		Authentication: {
-			WaitingForServer: Waiting for server to authenticate...
-			SteamInvalidTicket: Your client was unable to provide a Steam session ticket. Is Steam running?
-			ServerDidntRequestAuthentication: The server did not request authentication as required.
-			NotWhitelisted: You are not whitelisted on this server.
-			SteamTicketResponseFailure: Steam authentication failure
-		}
-
 		Biomes: {
 			Forest: Forest
 			Shimmer: Shimmer
@@ -16,17 +8,13 @@ Mods: {
 		Keybinds: {
 			Scoreboard.DisplayName: Scoreboard
 			BountyShop.DisplayName: Bounty Shop
-			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
-			DLAdminManagerTool.DisplayName: DL Admin Manager Tool
 			DLEndGameTool.DisplayName: DL End Game Tool
 			DLEndGameToolRightClick.DisplayName: DL End Game Tool Right Click
 			DLPauseTool.DisplayName: DL Pause Tool
 			DLPointsSetterTool.DisplayName: DL Points Setter Tool
 			DLStartGameTool.DisplayName: DL Start Game Tool
 			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
-			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
-			DLOpenConfigTool.DisplayName: DL Open Config Tool
 			UsePortalCreator.DisplayName: Use Portal Creator
 		}
 
@@ -60,12 +48,6 @@ Mods: {
 				RightClickName: DLEndGameTool Right Click
 			}
 
-			DLTeamAssignerTool: {
-				DisplayName: Team Assigner
-				AssignTeams: Assign Teams
-				Description: Assign teams for the game
-			}
-
 			DLPauseTool: {
 				DisplayName: {
 					True: Resume
@@ -78,40 +60,6 @@ Mods: {
 			DLPointsSetterTool: {
 				DisplayName: Points Setter
 				SetPoints: Set Points
-				Description: The tool has no description! Add one in .hjson files!
-			}
-
-			DLAdminManagerTool: {
-				DisplayName: Admin Manager
-				Description: Allows you to manage admin status of all players in the lobby.
-				CannotRemoveYourOwnAdminPermissions: Cannot remove your own admin permissions!
-			}
-
-			DLOpenConfigTool: {
-				DisplayName: Open config
-				Description: Opens Adventure Server Config
-			}
-
-			DLArenasAdminTool: {
-				DisplayName: Arenas Control
-				Description: Full control over Arenas
-				Title: Arenas Control
-				SendAllToMainWorld: Send all players to main world
-				SendAllToArenas: Send all players to arenas
-			}
-
-			DLLeaveTool: {
-				DisplayName: DLLeaveTool
-				Description: The tool has no description! Add one in .hjson files!
-			}
-
-			DebugDLLeaveTool: {
-				DisplayName: DebugDLLeaveTool
-				Description: The tool has no description! Add one in .hjson files!
-			}
-
-			DebugDLClearChatTool: {
-				DisplayName: DebugDLClearChatTool
 				Description: The tool has no description! Add one in .hjson files!
 			}
 		}
@@ -177,11 +125,6 @@ Mods: {
 				Description: Shiny Stone is charging up!
 			}
 
-			UncouthandBoring: {
-				DisplayName: Uncouth and Boring
-				Description: You are not yet a charming and mythical philosopher!
-			}
-
 			UncoutHandboring: {
 				DisplayName: Uncout Handboring
 				Description: Mods.PvPAdventure.Buffs.UncoutHandboring.Description
@@ -189,16 +132,6 @@ Mods: {
 		}
 
 		Items: {
-			AdventureBag: {
-				DisplayName: Adventure Bag
-				Tooltip: Everything you need to start your PvP adventure!
-			}
-
-			BlightFruit: {
-				DisplayName: Blight Fruit
-				Tooltip: ""
-			}
-
 			CorruptionKeyMold: {
 				DisplayName: Corruption Key Mold
 				Tooltip: Used for crafting a Corruption Key
@@ -226,21 +159,6 @@ Mods: {
 
 			ServerConfigItem: {
 				DisplayName: Server Config Item
-				Tooltip: ""
-			}
-
-			AdminManagerConfigItem: {
-				DisplayName: Admin Manager Config Item
-				Tooltip: ""
-			}
-
-			ForbiddenIconConfigItem: {
-				DisplayName: Forbidden Icon Config Item
-				Tooltip: ""
-			}
-
-			ArenasConfig: {
-				DisplayName: Arenas Config
 				Tooltip: ""
 			}
 
@@ -329,11 +247,6 @@ Mods: {
 				Tooltip: ""
 			}
 
-			DebugBossSpawnerItem: {
-				DisplayName: Debug Boss Spawner Item
-				Tooltip: ""
-			}
-
 			BedOutlinesConfigItem: {
 				DisplayName: Bed Outlines Config Item
 				Tooltip: ""
@@ -361,16 +274,6 @@ Mods: {
 
 			CombatConfigItemSmall: {
 				DisplayName: Combat Config Item Small
-				Tooltip: ""
-			}
-
-			PinkSniperRifle: {
-				DisplayName: Pink Sniper Rifle
-				Tooltip: ""
-			}
-
-			RedSniperRifle: {
-				DisplayName: Red Sniper Rifle
 				Tooltip: ""
 			}
 
@@ -440,7 +343,6 @@ Mods: {
 				Demolitionist.DisplayName: Bound. Demolitionist
 			}
 
-			Target.DisplayName: Target
 			PortalNPC.DisplayName: Portal
 
 			AdventureSantaNPC: {
@@ -457,8 +359,6 @@ Mods: {
 					Princess_LovesNPC: I like {NPCName}.
 				}
 			}
-
-			DebugBoss.DisplayName: Debug Boss
 		}
 
 		Configs: {
@@ -466,14 +366,12 @@ Mods: {
 				DisplayName: Adventure Client Config
 
 				Headers: {
-					SpawnAndRespawn: "[i:PvPAdventure/MapSpawnConfigItem] Spawn And Respawn"
 					Sound: "[i:FairyBell] Sound"
 					Movement: "[i:HermesBoots] Movement"
 					Chat: "[i:PvPAdventure/ChatConfigItem] Chat"
 					Visualization: Visualization
 					UI: UI
 					Spectating: Spectating
-					PortalTravel: Portal Travel
 					Vanity: Vanity
 				}
 
@@ -489,21 +387,6 @@ Mods: {
 						Sends lots of chat messages useful for development flow and debugging.
 						Recommended to keep Off for players, On for testers and developers.
 						'''
-				}
-
-				ShowSavePlayerMessages: {
-					Label: Show Save Messages
-					Tooltip: Sends a chat message only to you when the player file is saved on the server
-				}
-
-				AutoSelectLatestSpawnOption: {
-					Label: Auto Select Latest
-					Tooltip: Automatically selects the last spawn option used
-				}
-
-				ShowChooseYourSpawnText: {
-					Label: Show Header
-					Tooltip: Shows the 'Choose Your Spawn' header
 				}
 
 				SoundEffect: {
@@ -536,19 +419,9 @@ Mods: {
 						'''
 				}
 
-				TabToSwitchChannel: {
-					Label: Show Press Tab to Switch
-					Tooltip: Shows the toolltip that allows you to press [Tab] to switch between (ALL) and (TEAM) chat
-				}
-
 				ShowTeleportPlayerMessages: {
-					Label: Show Teleport Messages
+					Label: Show Travel Teleport Messages
 					Tooltip: Sends a team message when players use the travel system to teleport
-				}
-
-				ShowChatChannelPrefixes: {
-					Label: Show Chat Channel Prefixes
-					Tooltip: Shows (TEAM) or (ALL) chat channel indicators before chat messages
 				}
 
 				ShowCameraFade: {
@@ -568,12 +441,12 @@ Mods: {
 
 				ProjectileOutlines: {
 					Label: "[i:PvPAdventure/ProjectileOutlinesConfigItem] Projectile Outlines"
-					Tooltip: "Show team outlines around team projectiles by the team shooting the projectiles"
+					Tooltip: Show team outlines around team projectiles by the team shooting the projectiles
 				}
 
 				TownNPCOutlines: {
 					Label: "[i:PvPAdventure/TownNPCOutlinesConfigItem] NPC Outlines"
-					Tooltip: "Show team outlines around Town NPCs first encountered by a team"
+					Tooltip: Show team outlines around Town NPCs first encountered by a team
 				}
 			}
 
@@ -722,7 +595,6 @@ Mods: {
 					NPCs: "[i:267] NPCs"
 					Gameplay: "[i:GPS] Gameplay"
 					WorldGen: "[i:WorldGlobe] World Generation"
-					Security: "[i:PvPAdventure/SecurityConfigItem] Security"
 					TravelSystem: "[i:Bed] Travel System"
 				}
 
@@ -751,19 +623,9 @@ Mods: {
 					Tooltip: ""
 				}
 
-				PreventUse: {
-					Label: Prevent Use
-					Tooltip: ""
-				}
-
 				ItemStatistics: {
 					Label: Item Statistics
 					Tooltip: ""
-				}
-
-				PreventAutoReuse: {
-					Label: Prevent Auto Reuse
-					Tooltip: Overrides the client setting for autofire
 				}
 
 				ChestItemReplacements: {
@@ -831,11 +693,6 @@ Mods: {
 					Tooltip: Shows the npc has Awoken! text
 				}
 
-				AllowPlayersToChangeTeam: {
-					Label: "[i:PvPAdventure/TeamConfigItem] Allow Players To Change Teams"
-					Tooltip: Shows the UI that lets players pick a team
-				}
-
 				Immunity: {
 					Label: Immunity
 					Tooltip: ""
@@ -893,7 +750,6 @@ Mods: {
 			}
 
 			Bounty: {
-				CollectedAllMechanicalBossSouls: "[c/32FF82:Cries of tortured souls emanate from the Bounty Shop...]"
 				Tooltip: ""
 
 				Items: {
@@ -1011,11 +867,6 @@ Mods: {
 					Label: Knockback
 					Tooltip: ""
 				}
-
-				PvPKnockbackMultiplier: {
-					Label: Pv P Knockback Multiplier
-					Tooltip: ""
-				}
 			}
 
 			DamageConfig: {
@@ -1079,35 +930,11 @@ Mods: {
 				}
 			}
 
-			ImmunityFramesConfig: {
-				Tooltip: ""
-
-				TrueMelee: {
-					Label: True Melee
-					Tooltip: ""
-				}
-
-				PerPlayerGlobal: {
-					Label: Per Player Global
-					Tooltip: ""
-				}
-
-				RecentDamagePreservationFrames: {
-					Label: Recent Damage Preservation Frames
-					Tooltip: ""
-				}
-			}
-
 			OtherConfig: {
 				Tooltip: ""
 
 				SpectreHealing: {
 					Label: Spectre Healing
-					Tooltip: ""
-				}
-
-				BeetleEnergyMultiplier: {
-					Label: Beetle Energy Multiplier
 					Tooltip: ""
 				}
 
@@ -1280,90 +1107,6 @@ Mods: {
 				}
 			}
 
-			CannotModify: You are not permitted to modify this config.
-
-			PlayerDamageBalanceConfig: {
-				Tooltip: ""
-
-				ItemDamageMultipliers: {
-					Label: Item Damage Multipliers
-					Tooltip: ""
-				}
-
-				ProjectileDamageMultipliers: {
-					Label: Projectile Damage Multipliers
-					Tooltip: ""
-				}
-
-				ItemArmorPenetration: {
-					Label: Item Armor Penetration
-					Tooltip: ""
-				}
-
-				ProjectileArmorPenetration: {
-					Label: Projectile Armor Penetration
-					Tooltip: ""
-				}
-
-				ItemFalloff: {
-					Label: Item Falloff
-					Tooltip: ""
-				}
-
-				ProjectileFalloff: {
-					Label: Projectile Falloff
-					Tooltip: ""
-				}
-
-				DefaultFalloff: {
-					Label: Default Falloff
-					Tooltip: ""
-				}
-			}
-
-			TeamLifeConfig: {
-				Tooltip: ""
-
-				Share: {
-					Label: Share
-					Tooltip: ""
-				}
-			}
-
-			ImmunityGroup: {
-				Tooltip: ""
-
-				Id: {
-					Label: Id
-					Tooltip: ""
-				}
-
-				Frames: {
-					Label: Frames
-					Tooltip: ""
-				}
-			}
-
-			FloatStatistic: {
-				Tooltip: ""
-
-				Value: {
-					Label: Value
-					Tooltip: ""
-				}
-			}
-
-			RespawnConfig.Tooltip: ""
-
-			ItemStackValue: {
-				Tooltip: ""
-
-				Stack: {
-					Label: Stack
-					Tooltip: ""
-				}
-			}
-
 			ProjectileImmunityGroup: {
 				Tooltip: ""
 
@@ -1529,11 +1272,6 @@ Mods: {
 					Label: Tier3 Threshold
 					Tooltip: ""
 				}
-
-				BeetleEnergyMultiplier: {
-					Label: Beetle Energy Multiplier
-					Tooltip: ""
-				}
 			}
 
 			AdventureUIPosition: {
@@ -1573,25 +1311,6 @@ Mods: {
 					Tooltip: "1.15"
 				}
 			}
-
-			AllowMode: {
-				Tooltip: ""
-
-				Always: {
-					Label: Always
-					Tooltip: ""
-				}
-
-				BeforeGameStart: {
-					Label: Before Game Start
-					Tooltip: ""
-				}
-
-				Never: {
-					Label: Never
-					Tooltip: ""
-				}
-			}
 		}
 
 		Tiles.LockedLihzahrdChest.MapEntry: Mods.PvPAdventure.Tiles.LockedLihzahrdChest.MapEntry
@@ -1602,14 +1321,11 @@ Mods: {
 			GameNotStarted: wait until game starts!
 			CannotUseInSpawn: cannot use in spawn region!
 			CannotUseWhileMoving: cannot use while moving!
-			CannotDrop: cannot drop!
 			CannotUnfavorite: cannot unfavorite!
 			CannotTrash: cannot trash!
 			CannotSell: cannot sell!
 			CannotStore: cannot store!
 			Cancelled: cancelled!
-			PortalCreated: portal created!
-			TeamPortalCreated: "{0} team portal created!"
 		}
 
 		Travel: {
@@ -1618,27 +1334,13 @@ Mods: {
 			TeleportToWorldSpawn: Teleport to world spawn
 			TeammatesBed: "{0}'s Bed"
 			TeleportToTeammatesBed: Teleport to {0}'s bed
-			SelectRandomSpawn: Select random spawn
-			CancelRandomSpawn: Cancel random spawn
-			SelectWorldSpawn: Select world spawn
-			CancelWorldSpawn: Cancel world spawn
-			SelectTeammatesBed: Select {0}'s bed
-			CancelTeammatesBed: Cancel {0}'s bed
-			SelectMyBed: Select my bed
-			CancelMyBed: Cancel my bed
-			CancelMyPortal: Cancel my portal
-			SelectMyPortal: Select my portal
 			TeleportToMyPortal: Teleport to my portal
 			TeleportToMyBed: Teleport to my bed
 			TeleportToTeammatesPortal: Teleport to {0}'s portal
-			SelectTeammatesPortal: Select {0}'s portal
-			CancelTeammatesPortal: Cancel {0}'s portal
 			TeammatesPortal: "{0}'s Portal"
-			SpectatingPlayer: Spectating {0}
 		}
 
 		Item: {
-			Disabled: Cannot be used in this gamemode
 			NoUndergroundEmpressButterfly: Cannot be released here underground
 			NoUndergroundQueenSlimeCrystal: Cannot be summoned here underground
 		}
@@ -1651,11 +1353,6 @@ Mods: {
 
 		Sandstorm: "[c/FFC864:Desert winds are picking up...]"
 		Rain: "[c/6496FF:A storm is brewing overhead...]"
-		ArmorSetBonus.BeetleDamage:
-			'''
-			Gain Beetles from player kills
-			Beetles increase your melee damage and attack speed
-			'''
 
 		Projectiles: {
 			PowerBombProjectile.DisplayName: Power Bomb Projectile

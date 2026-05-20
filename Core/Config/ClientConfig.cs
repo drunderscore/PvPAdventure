@@ -82,7 +82,6 @@ public class ClientConfig : ModConfig
     public SoundEffectConfig SoundEffect = new();
 
     [Header("Chat")]
-    [DefaultValue(true)] public bool ShowSavePlayerMessages;
     [DefaultValue(true)] public bool ShowTeleportPlayerMessages;
     [DefaultValue(false)] public bool ShowDebugMessages;
 
