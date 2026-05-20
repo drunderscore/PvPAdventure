@@ -28,6 +28,12 @@ internal class PvPBeetleArmorPlayer : ModPlayer
         IL_Player.UpdateArmorSets += EditPlayerUpdateArmorSets;
     }
 
+    public override void Unload()
+    {
+        IL_Player.UpdateBuffs -= EditPlayerUpdateBuffs;
+        IL_Player.UpdateArmorSets -= EditPlayerUpdateArmorSets;
+    }
+
     public override void SetStaticDefaults()
     {
         // Beetle Might buffs last forever until death.

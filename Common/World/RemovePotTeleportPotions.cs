@@ -5,6 +5,8 @@ using System.Reflection;
 using Terraria;
 using Terraria.ModLoader;
 
+#nullable enable
+
 namespace PvPAdventure.Common.World;
 
 /// <summary>

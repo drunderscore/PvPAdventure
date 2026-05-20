@@ -14,6 +14,11 @@ public class ShadowKeyWorldGen : ModSystem
         IL_WorldGen.AddBuriedChest_int_int_int_bool_int_bool_ushort += AddBuriedChest_IL;
     }
 
+    public override void Unload()
+    {
+        IL_WorldGen.AddBuriedChest_int_int_int_bool_int_bool_ushort -= AddBuriedChest_IL;
+    }
+
     private void AddBuriedChest_IL(ILContext il)
     {
         var cursor = new ILCursor(il);

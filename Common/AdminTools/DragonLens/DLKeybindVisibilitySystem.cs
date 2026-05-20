@@ -1,6 +1,7 @@
 using DragonLens.Core.Systems;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +43,8 @@ internal sealed class DLKeybindVisibilitySystem : ModSystem
     private static readonly MethodInfo VisibleKeybindsGetterMethod =
         typeof(DLKeybindVisibilitySystem).GetMethod(nameof(GetVisibleKeybinds), BindingFlags.Static | BindingFlags.NonPublic);
 
+    private static ILHook keybindVisibilityHook;
+
     private bool? lastVisible;
 
     public override void Load()
@@ -55,15 +58,14 @@ internal sealed class DLKeybindVisibilitySystem : ModSystem
             return;
         }
 
-        MonoModHooks.Modify(OnAssembleBindPanelsMethod, FilterPvPAdventureDragonLensKeybinds);
+        keybindVisibilityHook = new ILHook(OnAssembleBindPanelsMethod, FilterPvPAdventureDragonLensKeybinds);
     }
 
     public override void Unload()
     {
         lastVisible = null;
-
-        if (!Main.dedServ)
-            MonoModHooks.RemoveAll(Mod);
+        keybindVisibilityHook?.Dispose();
+        keybindVisibilityHook = null;
     }
 
     public override void PostUpdateEverything()

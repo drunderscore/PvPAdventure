@@ -20,7 +20,6 @@ public sealed class PortalNPC : ModNPC
     public const int PortalWidth = 36;
     public const int PortalHeight = 46;
     private string ownerName = string.Empty;
-    private bool creationBurstPending;
 
     public override string Texture => "PvPAdventure/Assets/Portals/Portal_NoTeam";
     public override LocalizedText DisplayName => base.DisplayName;
@@ -88,7 +87,6 @@ public sealed class PortalNPC : ModNPC
         NPC.life = NPC.lifeMax;
         NPC.position = worldPos - new Vector2(NPC.width * 0.5f, NPC.height);
         NPC.velocity = Vector2.Zero;
-        creationBurstPending = true;
         NPC.netUpdate = true;
     }
 
@@ -124,8 +122,6 @@ public sealed class PortalNPC : ModNPC
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
-
-        creationBurstPending = false;
 
         if (!TryGetOwner(out Player owner))
         {

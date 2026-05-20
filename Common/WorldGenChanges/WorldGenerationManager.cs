@@ -14,6 +14,12 @@ public class WorldGenerationManager : ModSystem
         IL_WorldGen.AddBuriedChest_int_int_int_bool_int_bool_ushort += EditWorldGenAddBuriedChest;
     }
 
+    public override void Unload()
+    {
+        IL_WorldGen.UpdateWorld_GrassGrowth -= EditWorldGenUpdateWorld_GrassGrowth;
+        IL_WorldGen.AddBuriedChest_int_int_int_bool_int_bool_ushort -= EditWorldGenAddBuriedChest;
+    }
+
     private void EditWorldGenUpdateWorld_GrassGrowth(ILContext il)
     {
         var cursor = new ILCursor(il);

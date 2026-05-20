@@ -28,6 +28,12 @@ public class PlayerOutlines : ModSystem
         On_PlayerDrawLayers.DrawPlayer_RenderAllLayers += OnPlayerDrawLayersDrawPlayer_RenderAllLayers;
     }
 
+    public override void Unload()
+    {
+        On_PlayerDrawLayers.DrawPlayer_RenderAllLayers -= OnPlayerDrawLayersDrawPlayer_RenderAllLayers;
+        _createOutlines = null;
+    }
+
     public override void PostUpdateEverything()
     {
         if (++_secCounter < 60)

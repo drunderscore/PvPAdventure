@@ -23,6 +23,16 @@ internal class SpawnboxPlayer : ModPlayer
         On_Player.ItemCheck_CutTiles += OnPlayerItemCheck_CutTiles;
     }
 
+    public override void Unload()
+    {
+        On_Player.PlaceThing_Tiles -= OnPlayerPlaceThing_Tiles;
+        On_Player.PlaceThing_Walls -= OnPlayerPlaceThing_Walls;
+        On_Player.ItemCheck_UseMiningTools -= OnPlayerItemCheck_UseMiningTools;
+        On_Player.ItemCheck_UseTeleportRod -= OnPlayerItemCheck_UseTeleportRod;
+        On_Player.ItemCheck_UseWiringTools -= OnPlayerItemCheck_UseWiringTools;
+        On_Player.ItemCheck_CutTiles -= OnPlayerItemCheck_CutTiles;
+    }
+
     public override void PostUpdateMiscEffects()
     {
         // Apply player in spawn buff.

@@ -67,8 +67,7 @@ public class CombatManager : ModSystem
         On_Main.DamageVar_float_int_float += OnMainDamageVar;
         // Stub this method, as our previous Player.Hurt hook does the job of this (part of our ModPlayer.ModifyHurt PvP
         // fixes).
-        On_NetMessage.SendPlayerHurt_int_PlayerDeathReason_int_int_bool_bool_int_int_int +=
-            (_, _, _, _, _, _, _, _, _, _) => { };
+        On_NetMessage.SendPlayerHurt_int_PlayerDeathReason_int_int_bool_bool_int_int_int += SuppressSendPlayerHurt;
 
         // Override the cooldown counter/immunity cooldown ID and "proceed" flag for PvP damage.
         IL_Player.Hurt_PlayerDeathReason_int_int_refHurtInfo_bool_bool_int_bool_float_float_float += EditPlayerHurt2;
@@ -87,6 +86,34 @@ public class CombatManager : ModSystem
         IL_Player.TeammateHasPalidinShieldAndCanTakeDamage += EditPlayerTeammateHasPalidinShieldAndCanTakeDamage;
         // Don't network player stealth.
         IL_Player.OnHurt_Part1 += EditPlayerOnHurt_Part1;
+    }
+
+    public override void Unload()
+    {
+        On_Player.Hurt_HurtInfo_bool -= OnPlayerHurt;
+        On_Main.DamageVar_float_int_float -= OnMainDamageVar;
+        On_NetMessage.SendPlayerHurt_int_PlayerDeathReason_int_int_bool_bool_int_int_int -= SuppressSendPlayerHurt;
+        IL_Player.Hurt_PlayerDeathReason_int_int_refHurtInfo_bool_bool_int_bool_float_float_float -= EditPlayerHurt2;
+        IL_Projectile.Damage -= EditProjectileDamage;
+        IL_Player.ItemCheck_MeleeHitPVP -= EditPlayerItemCheck_MeleeHitPVP;
+        IL_Player.ApplyVanillaHurtEffectModifiers -= EditPlayerApplyVanillaHurtEffectModifiers;
+        IL_Player.OnHurt_Part2 -= EditPlayerOnHurt_Part2;
+        IL_Player.TeammateHasPalidinShieldAndCanTakeDamage -= EditPlayerTeammateHasPalidinShieldAndCanTakeDamage;
+        IL_Player.OnHurt_Part1 -= EditPlayerOnHurt_Part1;
+    }
+
+    private static void SuppressSendPlayerHurt(
+        On_NetMessage.orig_SendPlayerHurt_int_PlayerDeathReason_int_int_bool_bool_int_int_int orig,
+        int playerTargetIndex,
+        PlayerDeathReason reason,
+        int damage,
+        int direction,
+        bool critical,
+        bool pvp,
+        int hitContext,
+        int remoteClient,
+        int ignoreClient)
+    {
     }
 
     public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)

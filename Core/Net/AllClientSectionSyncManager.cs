@@ -15,6 +15,11 @@ public class AllClientSectionSyncManager : ModSystem
         On_NetMessage.SendSection += OnNetMessageSendSection;
     }
 
+    public override void Unload()
+    {
+        On_NetMessage.SendSection -= OnNetMessageSendSection;
+    }
+
     private void OnNetMessageSendSection(On_NetMessage.orig_SendSection orig, int whoami, int sectionx, int sectiony)
     {
         if (!_broadcasting)

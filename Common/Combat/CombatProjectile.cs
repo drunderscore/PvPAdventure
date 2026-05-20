@@ -31,6 +31,15 @@ public class CombatProjectile : GlobalProjectile
         On_Projectile.LightDisc_Bounce += OnProjectileLightDisc_Bounce;
     }
 
+    public override void Unload()
+    {
+        On_Projectile.ghostHeal -= OnProjectileghostHeal;
+        IL_Projectile.Damage -= EditProjectileDamage;
+        IL_Projectile.ghostHeal -= EditProjectileghostHeal;
+        IL_Projectile.HandleMovement -= EditProjectileHandleMovement;
+        On_Projectile.LightDisc_Bounce -= OnProjectileLightDisc_Bounce;
+    }
+
     public override bool OnTileCollide(Projectile projectile, Vector2 oldVelocity)
     {
         if (projectile.type == ProjectileID.RainbowRodBullet)

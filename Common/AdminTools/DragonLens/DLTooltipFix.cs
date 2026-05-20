@@ -3,6 +3,7 @@ using DragonLens.Content.GUI;
 using DragonLens.Core.Loaders.UILoading;
 using DragonLens.Core.Systems;
 using Microsoft.Xna.Framework;
+using MonoMod.RuntimeDetour;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -17,14 +18,22 @@ public sealed class DLTooltipConfigCompat : ModSystem
 {
     private delegate void orig_TooltipReset(Tooltip tooltip, On_Main.orig_Update orig, Main self, GameTime gameTime);
 
+    private static Hook tooltipResetHook;
+
     public override void PostSetupContent()
     {
         // Hook the private instance method Tooltip.Reset(On_Main.orig_Update, Main, GameTime)
         MethodInfo resetMethod = typeof(Tooltip).GetMethod("Reset", BindingFlags.Instance | BindingFlags.NonPublic);
         if (resetMethod != null)
         {
-            MonoModHooks.Add(resetMethod, OnTooltipReset);
+            tooltipResetHook = new Hook(resetMethod, OnTooltipReset);
         }
+    }
+
+    public override void Unload()
+    {
+        tooltipResetHook?.Dispose();
+        tooltipResetHook = null;
     }
 
     private static void OnTooltipReset(

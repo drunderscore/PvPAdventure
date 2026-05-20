@@ -19,6 +19,12 @@ internal class WorldChatMessages : ModSystem
         On_Sandstorm.StartSandstorm += OnSandstormStartSandstorm;
     }
 
+    public override void Unload()
+    {
+        On_Main.StartRain -= OnMainStartRain;
+        On_Sandstorm.StartSandstorm -= OnSandstormStartSandstorm;
+    }
+
     private void OnSandstormStartSandstorm(On_Sandstorm.orig_StartSandstorm orig)
     {
         orig();

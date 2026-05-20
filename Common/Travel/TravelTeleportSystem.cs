@@ -16,7 +16,6 @@ internal class TravelTeleportSystem : ModSystem
 {
     private static TravelTarget selectedTarget;
     private static bool hasSelection;
-    private static bool sentSelection;
     private static bool wasUsingDeathTravelSelection;
 
     public static bool HasSelection => hasSelection;

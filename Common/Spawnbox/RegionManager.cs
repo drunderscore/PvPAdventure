@@ -35,6 +35,11 @@ public class RegionManager : ModSystem
         On_Collision.TileCollision += OnCollisionTileCollision;
     }
 
+    public override void Unload()
+    {
+        On_Collision.TileCollision -= OnCollisionTileCollision;
+    }
+
     private Vector2 OnCollisionTileCollision(On_Collision.orig_TileCollision orig, 
         Vector2 position,Vector2 velocity,int width,int height,bool fallthrough,bool fall2,int gravdir)
     {

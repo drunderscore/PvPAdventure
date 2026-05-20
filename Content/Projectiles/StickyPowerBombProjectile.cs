@@ -222,7 +222,7 @@ internal class StickyPowerBombProjectile : ModProjectile
                 if (tile.HasTile && !IsImmuneToExplosion(tile, allMechBossesDefeated))
                     WorldGen.KillTile(x, y, false, false, false);
 
-                if (tile.WallType > 0 && !IsWallImmuneToExplosion(tile))
+                if (tile.WallType > WallID.None && !IsWallImmuneToExplosion(tile))
                     WorldGen.KillWall(x, y, false);
             }
         }

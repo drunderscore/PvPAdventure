@@ -21,6 +21,11 @@ internal class HitMarkerSounds : ModPlayer
         IL_Player.Hurt_HurtInfo_bool += EditPlayerHurt;
     }
 
+    public override void Unload()
+    {
+        IL_Player.Hurt_HurtInfo_bool -= EditPlayerHurt;
+    }
+
     public override void OnHurt(Player.HurtInfo info)
     {
         if (!info.PvP)

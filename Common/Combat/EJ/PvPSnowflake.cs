@@ -1,11 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Combat.EJ;
 using PvPAdventure.Content.Buffs;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Projectiles;
+#nullable enable
+
+namespace PvPAdventure.Common.Combat.EJ;
 
 /// <summary>
 /// AI changes for the coolwhip snowflake that allow it to target players in PvP, as well as letting it spawn in PvP like how it it spawns in PvE
@@ -25,7 +26,7 @@ public class PvPSnowflake : GlobalProjectile
 
     public override void PostAI(Projectile projectile)
     {
-        if (!projectile.TryGetOwner(out Player owner))
+        if (!projectile.TryGetOwner(out Player? owner) || owner is null)
             return;
         if (owner.whoAmI != Main.myPlayer)
             return;

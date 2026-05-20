@@ -11,6 +11,12 @@ internal class ModifyInvasionSizes : ModSystem
     {
         On_Main.StartInvasion += OnMainStartInvasion;
     }
+
+    public override void Unload()
+    {
+        On_Main.StartInvasion -= OnMainStartInvasion;
+    }
+
     private void OnMainStartInvasion(On_Main.orig_StartInvasion orig, int type)
     {
         orig(type);

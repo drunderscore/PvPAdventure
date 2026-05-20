@@ -48,7 +48,7 @@ public class JungleShrineModifier : ModSystem
 
                     // Use Framing.GetTileSafely for reading
                     Tile tile = Framing.GetTileSafely(num, num2);
-                    if (tile.HasTile && tile.TileType == 60)
+                    if (tile.HasTile && tile.TileType == TileID.JungleGrass)
                     {
                         int num7 = 30;
                         flag = false;
@@ -57,11 +57,11 @@ public class JungleShrineModifier : ModSystem
                             for (int k = num2 - num7; k < num2 + num7; k += 3)
                             {
                                 Tile checkTile = Framing.GetTileSafely(j, k);
-                                if (checkTile.HasTile && (checkTile.TileType == 225 || checkTile.TileType == 229 || checkTile.TileType == 226 || checkTile.TileType == 119 || checkTile.TileType == 120))
+                                if (checkTile.HasTile && (checkTile.TileType == TileID.Hive || checkTile.TileType == TileID.HoneyBlock || checkTile.TileType == TileID.LihzahrdBrick || checkTile.TileType == TileID.IridescentBrick || checkTile.TileType == TileID.Mudstone))
                                 {
                                     flag = true;
                                 }
-                                if (checkTile.WallType == 86 || checkTile.WallType == 87)
+                                if (checkTile.WallType == WallID.HiveUnsafe || checkTile.WallType == WallID.LihzahrdBrickUnsafe)
                                 {
                                     flag = true;
                                 }
@@ -135,7 +135,7 @@ public class JungleShrineModifier : ModSystem
                             int num10 = WorldGen.genRand.Next(num - i, num + i + 1);
                             int num11 = WorldGen.genRand.Next(num2 - num6, num2 + num6 - 2);
                             WorldGen.PlaceTile(num10, num11, 4, true, false, -1, 3);
-                            if (Framing.GetTileSafely(num10, num11).TileType == 4)
+                            if (Framing.GetTileSafely(num10, num11).TileType == TileID.Torches)
                             {
                                 flag2 = true;
                             }
