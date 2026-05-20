@@ -63,33 +63,45 @@ public sealed class TeamOwnedTownNPC : GlobalNPC
 
     public override bool? CanChat(NPC npc)
     {
-        if (IsLockedForLocalPlayer())
-            return false;
+        // Always allow.
+        return true;
 
-        return null;
+        // Keep this commented out. Uncomment this if we ever wanna gate town NPCs on teams again.
+        //if (IsLockedForLocalPlayer())
+        //    return false;
+
+        //return null;
     }
 
     public override bool PreHoverInteract(NPC npc, bool mouseIntersects)
     {
-        if (!IsLockedForLocalPlayer())
-            return true;
+        // Always allow.
+        return true;
 
-        if (Main.mouseRight && Main.mouseRightRelease)
-        {
-            ShowDeniedInteractionText();
-            Main.mouseRightRelease = false;
-        }
+        // Keep this commented out. Uncomment this if we ever wanna gate town NPCs on teams again.
+        //if (!IsLockedForLocalPlayer())
+        //    return true;
 
-        return false;
+        //if (Main.mouseRight && Main.mouseRightRelease)
+        //{
+        //    ShowDeniedInteractionText();
+        //    Main.mouseRightRelease = false;
+        //}
+
+        //return false;
     }
 
     public override bool PreChatButtonClicked(NPC npc, bool firstButton)
     {
-        if (!IsLockedForLocalPlayer())
-            return true;
+        // Always allow.
+        return true;
 
-        ShowDeniedInteractionText();
-        return false;
+        // Keep this commented out. Uncomment this if we ever wanna gate town NPCs on teams again.
+        //if (!IsLockedForLocalPlayer())
+        //    return true;
+
+        //ShowDeniedInteractionText();
+        //return false;
     }
 
     private bool IsLockedForLocalPlayer()

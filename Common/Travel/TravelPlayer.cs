@@ -85,7 +85,7 @@ internal class TravelPlayer : ModPlayer
             return;
         }
 
-        // 
+        // Uhh
         if (!TravelTeleportSystem.ShouldUseDeathTravelSelection(Player))
         {
             base.UpdateDead();
@@ -107,7 +107,4 @@ internal class TravelPlayer : ModPlayer
 
         base.UpdateDead();
     }
-
-    // -- Beds -> TeamBedPlayer later
-
 }

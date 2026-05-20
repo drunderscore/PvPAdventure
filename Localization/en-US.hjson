@@ -18,9 +18,6 @@ Mods: {
 			BountyShop.DisplayName: Bounty Shop
 			AllChat.DisplayName: All Chat
 			Dash.DisplayName: Dash
-			OpenLoadoutMenu.DisplayName: Open Loadout Menu
-			ArenasMenu.DisplayName: Arenas Menu
-			UseAdventureMirror.DisplayName: Use Adventure Mirror
 			DLAdminManagerTool.DisplayName: DL Admin Manager Tool
 			DLEndGameTool.DisplayName: DL End Game Tool
 			DLEndGameToolRightClick.DisplayName: DL End Game Tool Right Click
@@ -30,11 +27,6 @@ Mods: {
 			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
 			DLTeamAssignerTool.DisplayName: DL Team Assigner Tool
 			DLOpenConfigTool.DisplayName: DL Open Config Tool
-			DLArenasAdminTool.DisplayName: Arenas Admin Tool
-			DebugDLLeaveTool.DisplayName: DL Debug Leave Tool
-			DebugDLClearChatTool.DisplayName: DL Debug Clear Chat Tool
-			SpectateMenu.DisplayName: Spectate Menu
-			ToggleSpectateMode.DisplayName: Toggle Spectate Mode
 			UsePortalCreator.DisplayName: Use Portal Creator
 		}
 
@@ -411,6 +403,16 @@ Mods: {
 				DisplayName: Portal Creator
 				Tooltip: ""
 			}
+
+			ProjectileOutlinesConfigItem: {
+				DisplayName: Projectile Outlines Config Item
+				Tooltip: ""
+			}
+
+			TownNPCOutlinesConfigItem: {
+				DisplayName: Town N P C Outlines Config Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
@@ -470,8 +472,9 @@ Mods: {
 					Chat: "[i:PvPAdventure/ChatConfigItem] Chat"
 					Visualization: Visualization
 					UI: UI
-					PortalTravel: Portal Travel
 					Spectating: Spectating
+					PortalTravel: Portal Travel
+					Vanity: Vanity
 				}
 
 				IsVanillaDashEnabled: {
@@ -515,12 +518,12 @@ Mods: {
 
 				BedOutlines: {
 					Label: "[i:PvPAdventure/BedOutlinesConfigItem] Bed Outlines"
-					Tooltip: Show outlines around team beds
+					Tooltip: Show outlines around team beds belonging to a team
 				}
 
 				LootOutlines: {
 					Label: "[i:PvPAdventure/TreasureBagOutlinesConfigItem] Loot Outlines"
-					Tooltip: Show outlines around team boss loot
+					Tooltip: Show outlines around team boss loot by the team that killed the boss
 				}
 
 				ShowVanityVisuals: {
@@ -563,33 +566,14 @@ Mods: {
 					Tooltip: ""
 				}
 
-				TeamItemOutlines: {
-					Label: Team Item Outlines
-					Tooltip: ""
-				}
-
 				ProjectileOutlines: {
-					Label: Projectile Outlines
-					Tooltip: ""
-				}
-			}
-
-			OutlinesConfig: {
-				Tooltip: ""
-
-				Players: {
-					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Players"
-					Tooltip: Show outlines around team players
+					Label: "[i:PvPAdventure/ProjectileOutlinesConfigItem] Projectile Outlines"
+					Tooltip: "Show team outlines around team projectiles by the team shooting the projectiles"
 				}
 
-				Beds: {
-					Label: "[i:PvPAdventure/BedOutlinesConfigItem] Beds"
-					Tooltip: Show outlines around team beds
-				}
-
-				Loot: {
-					Label: "[i:PvPAdventure/TreasureBagOutlinesConfigItem] Loot"
-					Tooltip: Show outlines around team boss loot
+				TownNPCOutlines: {
+					Label: "[i:PvPAdventure/TownNPCOutlinesConfigItem] NPC Outlines"
+					Tooltip: "Show team outlines around Town NPCs first encountered by a team"
 				}
 			}
 

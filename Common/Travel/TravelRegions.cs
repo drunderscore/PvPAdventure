@@ -11,7 +11,7 @@ using Team = Terraria.Enums.Team;
 
 namespace PvPAdventure.Common.Travel;
 
-internal static class TravelRegionSystem
+internal static class TravelRegions
 {
     private static float RegionRadiusWorld => ModContent.GetInstance<ServerConfig>().TravelRegionRadiusTiles * 16f;
 

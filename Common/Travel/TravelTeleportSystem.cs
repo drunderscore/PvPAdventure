@@ -72,7 +72,7 @@ internal class TravelTeleportSystem : ModSystem
         if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Waiting)
             return false;
 
-        return player.dead || TravelRegionSystem.CanUseTravelUI(player) || IsUsingPortalCreator(player);
+        return player.dead || TravelRegions.CanUseTravelUI(player) || IsUsingPortalCreator(player);
     }
 
     public static bool ShouldUseDeathTravelSelection(Player player)

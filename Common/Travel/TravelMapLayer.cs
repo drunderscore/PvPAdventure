@@ -166,7 +166,7 @@ public class TravelMapLayer : ModSystem
 
     private static bool CanExecuteMapTeleport(Player local, TravelTarget target)
     {
-        return TravelRegionSystem.IsInTravelRegion(local) &&
+        return TravelRegions.IsInTravelRegion(local) &&
             !TravelTeleportSystem.IsWaitingForPortalCreator(local) &&
             TravelTeleportSystem.CanTeleport(local, target, out _);
     }
