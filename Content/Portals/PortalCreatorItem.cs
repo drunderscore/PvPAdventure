@@ -96,6 +96,23 @@ public class PortalCreatorItem : ModItem
         player.reuseDelay = 0;
     }
 
+    public static bool IsPortalCreationInterrupted(Player player)
+    {
+        if (player?.active != true)
+            return true;
+
+        return player.controlLeft
+            || player.controlRight
+            || player.controlJump
+            || player.controlUp
+            || player.controlDown
+            || player.controlHook
+            || player.controlMount
+            || player.dashDelay == -1
+            || player.eocDash > 0
+            || player.solarDashing;
+    }
+
     public override bool CanRightClick() => true;
     public override bool AltFunctionUse(Player player) => false;
     public override void RightClick(Player player) => TryUse(player);
@@ -169,8 +186,7 @@ public class PortalCreatorItem : ModItem
         Vector2 offset = new(player.direction * -9f, -9f);
         player.itemLocation += offset;
 
-        //if (player.velocity.LengthSquared() > 0f)
-        if (player.controlLeft || player.controlRight || player.controlJump || player.controlUp || player.controlDown || player.controlHook || player.controlMount)
+        if (IsPortalCreationInterrupted(player))
         {
             if (player.whoAmI == Main.myPlayer)
             {
@@ -234,7 +250,7 @@ public class PortalCreatorItem : ModItem
             return false;
         }
 
-        if (TravelRegionSystem.IsInWorldSpawn(player))
+        if (TravelRegions.IsInWorldSpawn(player))
         {
             if (warn) Warning(player, "Mods.PvPAdventure.PortalCreator.CannotUseInSpawn");
             return false;

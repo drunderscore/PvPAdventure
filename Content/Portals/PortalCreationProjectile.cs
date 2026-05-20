@@ -96,7 +96,7 @@ public sealed class PortalCreationProjectile : ModProjectile
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
 
-        if (!TryGetOwner(out Player owner) || owner.dead || owner.ghost || (owner.controlLeft || owner.controlRight || owner.controlJump || owner.controlUp || owner.controlDown || owner.controlHook || owner.controlMount))
+        if (!TryGetOwner(out Player owner) || owner.dead || owner.ghost || PortalCreatorItem.IsPortalCreationInterrupted(owner))
         {
             KillAndSync();
             return;
