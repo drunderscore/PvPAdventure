@@ -43,6 +43,19 @@ public class NPCRules : GlobalNPC
         On_ItemDropDatabase.RegisterToGlobal += AdventureDropDatabase.OnItemDropDatabaseRegisterToGlobal;
     }
 
+    public override void Unload()
+    {
+        On_NPC.TargetClosest -= OnNPCTargetClosest;
+        On_NPC.ShouldEmpressBeEnraged -= OnNPCShouldEmpressBeEnraged;
+        IL_NPC.Collision_WaterCollision -= EditNPCCollision_WaterCollision;
+        On_NPC.Transform -= OnNPCTransform;
+        On_NPC.ScaleStats -= OnNPCScaleStats;
+        IL_NPC.CheckActive -= EditNPCCheckActive;
+        IL_NPC.SpawnNPC -= EditNPCSpawnNPC;
+        On_Item.CheckLavaDeath -= OnItemCheckLavaDeath;
+        On_ItemDropDatabase.RegisterToGlobal -= AdventureDropDatabase.OnItemDropDatabaseRegisterToGlobal;
+    }
+
     private void OnNPCScaleStats(On_NPC.orig_ScaleStats orig, NPC self, int? activeplayerscount,
         GameModeData gamemodedata, float? strengthoverride)
     {
@@ -123,7 +136,7 @@ public class NPCRules : GlobalNPC
                     // ...so now it must go.
                     worldNpc.life = 0;
                     worldNpc.netSkip = -1;
-                    NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
+                    NetMessage.SendData(MessageID.SyncNPC, number: worldNpc.whoAmI);
                 }
             }
         }
