@@ -345,10 +345,9 @@ public class GameManager : ModSystem
         DateTime startUtc = DateTime.SpecifyKind(gameManager.MatchStartTime.Value, DateTimeKind.Utc);
         DateTime endUtc = DateTime.UtcNow;
 
-        //OfficialMatchReporter.PostCompletedMatch(startUtc, endUtc);
+        OfficialMatchReporter.PostCompletedMatch(startUtc, endUtc);
 
         Log.Chat("Queued completed match for backend reporting");
-        Log.Debug("Queued completed match for backend reporting");
     }
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
