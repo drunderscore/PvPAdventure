@@ -16,6 +16,17 @@ public class AdventureItem : GlobalItem
         ItemID.Sets.Factory.CreateBoolSet(ItemID.MagicMirror, ItemID.CellPhone, ItemID.IceMirror, ItemID.Shellphone,
             ItemID.ShellphoneSpawn);
 
+    public class PickaxeAdjustments : GlobalItem
+    {
+        public override void SetDefaults(Item item)
+        {
+            if (item.type == ItemID.SpectrePickaxe || item.type == ItemID.ShroomiteDiggingClaw)
+            {
+                item.pick = 210;
+            }
+        }
+    }
+
     public override void SetDefaults(Item item)
     {
         var adventureConfig = ModContent.GetInstance<AdventureConfig>();
