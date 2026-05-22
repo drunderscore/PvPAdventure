@@ -69,9 +69,8 @@ public class ShakingChestSystem : ModSystem
 
         if (npc.type != NPCID.BoundTownSlimeOld) return;
 
-        button = Language.GetTextValue("LegacyInterface.28");
-        if (ShopPager.TotalPages > 1)
-            button2 = $"Next Page ({ShopPager.CurrentPage + 1}/{ShopPager.TotalPages})";
+        button = Language.GetTextValue("LegacyInterface.28"); // "Shop"
+        button2 = "Refund Purchases";
     }
 
     private static bool OnTryFreeingElderSlime(On_Main.orig_TryFreeingElderSlime orig, int npcIndex)
@@ -121,6 +120,19 @@ public class ShakingChestSystem : ModSystem
         {
             _respawnCheckTimer = 0;
             return;
+        }
+
+        // Continuously delete all ground items
+        for (int i = 0; i < Main.maxItems; i++)
+        {
+            if (Main.item[i].active)
+            {
+                Main.item[i].active = false;
+                Main.item[i] = new Item();
+
+                if (Main.netMode == NetmodeID.Server)
+                    NetMessage.SendData(MessageID.SyncItem, number: i);
+            }
         }
 
         if (++_respawnCheckTimer < RespawnCheckInterval) return;
