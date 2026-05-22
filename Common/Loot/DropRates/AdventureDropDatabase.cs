@@ -501,7 +501,7 @@ public static class AdventureDropDatabase
 
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
                 npcLoot.Add(
-                    new OneFromRulesRule(1,
+                    new FewFromRulesRule(2, 1,
                         ItemDropRule.Common(ItemID.BubbleGun),
                         ItemDropRule.Common(ItemID.Tsunami),
                         ItemDropRule.Common(ItemID.RazorbladeTyphoon),
@@ -513,11 +513,20 @@ public static class AdventureDropDatabase
                     ModifyDropRate(drop, ItemID.FishronWings, 0, 1);
                 }
                 break;
-
-
             case NPCID.HallowBoss:
+                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
+                npcLoot.Add(
+                    new FewFromRulesRule(2, 1,
+                        ItemDropRule.Common(ItemID.PiercingStarlight),
+                        ItemDropRule.Common(ItemID.FairyQueenMagicItem),
+                        ItemDropRule.Common(ItemID.FairyQueenRangedItem),
+                        ItemDropRule.Common(ItemID.RainbowWhip)
+                    )
+                );
                 foreach (var drop in drops)
+                {
                     ModifyDropRate(drop, ItemID.RainbowWings, 0, 1);
+                }
                 break;
 
             case NPCID.TheDestroyer:

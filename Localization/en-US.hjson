@@ -171,6 +171,21 @@ Mods: {
 				DisplayName: Portal Creator
 				Tooltip: ""
 			}
+
+			RefundPurchasesItem: {
+				DisplayName: Refund Purchases Item
+				Tooltip: ""
+			}
+
+			NextPageItem: {
+				DisplayName: Next Page Item
+				Tooltip: ""
+			}
+
+			PrevPageItem: {
+				DisplayName: Prev Page Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {

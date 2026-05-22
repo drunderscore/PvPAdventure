@@ -51,7 +51,7 @@ public class UnifiedRecipeGroupSystem : ModSystem
             ItemID.DukeFishronMasterTrophy, ItemID.RazorbladeTyphoon, ItemID.BubbleGun, ItemID.Flairon, ItemID.Tsunami, ItemID.TempestStaff),
 
         new RecipeGroupData("AnyEmpressPrimary", "Any Empress Primary", ItemID.FairyQueenMasterTrophy, 2,
-            ItemID.FairyQueenMasterTrophy, ItemID.FairyQueenMagicItem, ItemID.FairyQueenRangedItem, ItemID.PiercingStarlight, ItemID.RainbowWhip, ItemID.EmpressBlade),
+            ItemID.FairyQueenMasterTrophy, ItemID.FairyQueenMagicItem, ItemID.FairyQueenRangedItem, ItemID.PiercingStarlight, ItemID.RainbowWhip),
 
         new RecipeGroupData("AnyWallPrimary", "Any Wall of Flesh Primary", ItemID.WallofFleshMasterTrophy, 2,
             ItemID.WallofFleshMasterTrophy, ItemID.FireWhip, ItemID.ClockworkAssaultRifle, ItemID.BreakerBlade, ItemID.LaserRifle),
