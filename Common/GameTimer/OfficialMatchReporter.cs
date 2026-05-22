@@ -3,6 +3,7 @@ using PvPHub.Common.Authentication;
 using PvPHub.Common.MainMenu.API.MatchHistory;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.Enums;
@@ -67,13 +68,35 @@ internal static class OfficialMatchReporter
         var teams = BuildTeamsList(pointsManager);
         var metrics = new Dictionary<string, string>(); // empty for now
 
-        return new MatchApi.MatchPayload(
-            Start: DateTime.SpecifyKind(startUtc, DateTimeKind.Utc),
-            End: DateTime.SpecifyKind(endUtc, DateTimeKind.Utc),
-            Players: players,
-            Metrics: metrics,
-            Teams: teams
-        );
+        DateTime start = DateTime.SpecifyKind(startUtc, DateTimeKind.Utc);
+        DateTime end = DateTime.SpecifyKind(endUtc, DateTimeKind.Utc);
+
+        ConstructorInfo payloadConstructor = GetMatchPayloadConstructor(6);
+        if (payloadConstructor != null)
+        {
+            return (MatchApi.MatchPayload)payloadConstructor.Invoke([start, end, "PvPAdventure", players, metrics, teams]);
+        }
+
+        payloadConstructor = GetMatchPayloadConstructor(5);
+        if (payloadConstructor != null)
+        {
+            return (MatchApi.MatchPayload)payloadConstructor.Invoke([start, end, players, metrics, teams]);
+        }
+
+        throw new MissingMethodException(typeof(MatchApi.MatchPayload).FullName, ".ctor");
+    }
+
+    private static ConstructorInfo GetMatchPayloadConstructor(int parameterCount)
+    {
+        foreach (ConstructorInfo constructor in typeof(MatchApi.MatchPayload).GetConstructors())
+        {
+            if (constructor.GetParameters().Length == parameterCount)
+            {
+                return constructor;
+            }
+        }
+
+        return null;
     }
 
     private static Dictionary<ulong, MatchApi.MatchPlayerPayload> BuildPlayersDictionary()
