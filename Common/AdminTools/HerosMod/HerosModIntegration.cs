@@ -37,7 +37,7 @@ public sealed class HerosModIntegration : ModSystem
         // Pause game
         herosMod.Call("AddSimpleButton",
             PauseGamePermissionKey,
-            Ass.Icon_PauseGame,
+            Ass.IconPauseGame,
             (Action)(() =>
             {
                 var pm = ModContent.GetInstance<PauseManager>();
@@ -57,7 +57,7 @@ public sealed class HerosModIntegration : ModSystem
     {
         herosMod.Call("AddSimpleButton",
             PlayGamePermissionKey,
-            Ass.Icon_StartGame,
+            Ass.IconStartGame,
             (Action)(() =>
             {
                 var gm = ModContent.GetInstance<GameManager>();

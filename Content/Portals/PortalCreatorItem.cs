@@ -24,7 +24,7 @@ public class PortalCreatorItem : ModItem
 
     public static int GetCreationTimeFrames()
     {
-        ServerConfig config = ModContent.GetInstance<ServerConfig>();
+        ServerConfig.TravelSystemConfig config = ModContent.GetInstance<ServerConfig>().TravelSystem;
         int seconds = config.TravelPortalCreationTimePreHardmodeSeconds;
 
         if (Main.hardMode)
@@ -62,7 +62,7 @@ public class PortalCreatorItem : ModItem
 
     public static Vector2 GetPortalWorldPosition(Player player)
     {
-        float distance = ModContent.GetInstance<ServerConfig>().PortalCreationOffset;
+        float distance = ModContent.GetInstance<ServerConfig>().TravelSystem.PortalCreationOffset;
         return player.Bottom + new Vector2(player.direction * distance, 0f);
     }
 

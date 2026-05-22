@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
@@ -27,10 +26,7 @@ internal sealed class SpectateCameraFade : ModSystem
 
         if (allowFade && fadeTicksLeft <= 0 && Vector2.DistanceSquared(comparePosition, position) >= FadeDistancePixelsSq)
         {
-            if (ModContent.GetInstance<ClientConfig>().ShowCameraFade)
-            {
-                fadeTicksLeft = FadeTicks;
-            }
+            fadeTicksLeft = FadeTicks;
         }
 
         hasLastPosition = true;

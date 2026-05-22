@@ -73,7 +73,7 @@ public class UIResizeButton : UIImageButton
 
         // Draw custom 20x20 (WxH) as defined in the constructor
         var rect = GetDimensions().ToRectangle();
-        sb.Draw(Ass.Icon_Resize.Value, rect, Color.White);
+        sb.Draw(Ass.IconResize.Value, rect, Color.White);
 
         if (IsMouseHovering)
             Main.instance.MouseText("Resize");

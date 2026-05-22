@@ -54,7 +54,7 @@ public class PlayerOutlines : ModSystem
                 return;
 
             var config = ModContent.GetInstance<ClientConfig>();
-            if (!config.PlayerOutlines)
+            if (!config.Outlines.DrawOutlines || !config.Outlines.PlayerOutlines)
                 return; // <-- disables ALL outline drawing on THIS client
 
             Player p = drawinfo.drawPlayer;

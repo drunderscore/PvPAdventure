@@ -157,126 +157,6 @@ Mods: {
 				Tooltip: Used for crafting a Jungle Key
 			}
 
-			ServerConfigItem: {
-				DisplayName: Server Config Item
-				Tooltip: ""
-			}
-
-			PointsConfigItem: {
-				DisplayName: Points Config Item
-				Tooltip: ""
-			}
-
-			TeamConfigItem: {
-				DisplayName: Team Config Item
-				Tooltip: ""
-			}
-
-			ArenasConfigItem: {
-				DisplayName: Arenas Config Item
-				Tooltip: ""
-			}
-
-			BoundArmsDealerConfigItem: {
-				DisplayName: Bound Arms Dealer Config Item
-				Tooltip: ""
-			}
-
-			ForbiddenConfigItem: {
-				DisplayName: Forbidden Config Item
-				Tooltip: ""
-			}
-
-			MapSpawnConfigItem: {
-				DisplayName: Map Spawn Config Item
-				Tooltip: ""
-			}
-
-			MatteConfigItem: {
-				DisplayName: Matte Config Item
-				Tooltip: ""
-			}
-
-			PlanterasBulbConfigItem: {
-				DisplayName: Planteras Bulb Config Item
-				Tooltip: ""
-			}
-
-			PlayerOutlinesConfigItem: {
-				DisplayName: Player Outlines Config Item
-				Tooltip: ""
-			}
-
-			SSCConfigItem: {
-				DisplayName: SSC Config Item
-				Tooltip: ""
-			}
-
-			ChatConfigItem: {
-				DisplayName: Chat Config Item
-				Tooltip: ""
-			}
-
-			DeadConfigItem: {
-				DisplayName: Dead Config Item
-				Tooltip: ""
-			}
-
-			OffConfigItem: {
-				DisplayName: Off Config Item
-				Tooltip: ""
-			}
-
-			OnConfigItem: {
-				DisplayName: On Config Item
-				Tooltip: ""
-			}
-
-			QuestionConfigItem: {
-				DisplayName: Question Config Item
-				Tooltip: ""
-			}
-
-			DashConfigItem: {
-				DisplayName: Dash Config Item
-				Tooltip: ""
-			}
-
-			PvPConfigItem: {
-				DisplayName: Pv P Config Item
-				Tooltip: ""
-			}
-
-			BedOutlinesConfigItem: {
-				DisplayName: Bed Outlines Config Item
-				Tooltip: ""
-			}
-
-			TreasureBagOutlinesConfigItem: {
-				DisplayName: Treasure Bag Outlines Config Item
-				Tooltip: ""
-			}
-
-			TabKeyConfigItem: {
-				DisplayName: Tab Key Config Item
-				Tooltip: ""
-			}
-
-			SecurityConfigItem: {
-				DisplayName: Security Config Item
-				Tooltip: ""
-			}
-
-			CombatConfigItemBig: {
-				DisplayName: Combat Config Item Big
-				Tooltip: ""
-			}
-
-			CombatConfigItemSmall: {
-				DisplayName: Combat Config Item Small
-				Tooltip: ""
-			}
-
 			PowerBomb: {
 				DisplayName: Power Bomb
 				Tooltip: ""
@@ -287,33 +167,8 @@ Mods: {
 				Tooltip: ""
 			}
 
-			GhostConfigItem: {
-				DisplayName: Ghost Config Item
-				Tooltip: ""
-			}
-
-			AllowSpectatingConfigItem: {
-				DisplayName: Allow Spectating Config Item
-				Tooltip: ""
-			}
-
-			ForceSpectatingConfigItem: {
-				DisplayName: Force Spectating Config Item
-				Tooltip: ""
-			}
-
 			PortalCreatorItem: {
 				DisplayName: Portal Creator
-				Tooltip: ""
-			}
-
-			ProjectileOutlinesConfigItem: {
-				DisplayName: Projectile Outlines Config Item
-				Tooltip: ""
-			}
-
-			TownNPCOutlinesConfigItem: {
-				DisplayName: Town N P C Outlines Config Item
 				Tooltip: ""
 			}
 		}
@@ -366,18 +221,51 @@ Mods: {
 				DisplayName: Adventure Client Config
 
 				Headers: {
-					Sound: "[i:FairyBell] Sound"
-					Movement: "[i:HermesBoots] Movement"
-					Chat: "[i:PvPAdventure/ChatConfigItem] Chat"
 					Visualization: Visualization
-					UI: UI
-					Spectating: Spectating
-					Vanity: Vanity
+					Movement: Movement
+					UI: Portal Travel UI
+					Sound: Sound
+					Chat: Chat
+				}
+
+				Outlines: {
+					Label: Outlines
+					Tooltip: ""
+				}
+
+				ShowVanityVisuals: {
+					Label: Show Vanity
+					Tooltip:
+						'''
+						By default, all your vanity is invisible.
+						Turn this on to see your vanity.
+						For other players, your armor and accessories is always visible.
+						'''
 				}
 
 				IsVanillaDashEnabled: {
-					Label: "[i:PvPAdventure/DashConfigItem] Enable Vanilla Dash"
+					Label: Enable Vanilla Dash
 					Tooltip: Whether double tapping a movement direction will cause a dash
+				}
+
+				PortalTravelUIPosition: {
+					Label: Portal Travel UI Position
+					Tooltip: ""
+				}
+
+				PortalTravelUISize: {
+					Label: Portal Travel UI Size
+					Tooltip: ""
+				}
+
+				SoundEffect: {
+					Label: Sound Effect
+					Tooltip: ""
+				}
+
+				ShowTeleportPlayerMessages: {
+					Label: Show Travel Teleport Messages
+					Tooltip: Shows portal travel messages, including creation, destruction and teleportation.
 				}
 
 				ShowDebugMessages: {
@@ -387,66 +275,6 @@ Mods: {
 						Sends lots of chat messages useful for development flow and debugging.
 						Recommended to keep Off for players, On for testers and developers.
 						'''
-				}
-
-				SoundEffect: {
-					Label: Sound Effect
-					Tooltip: ""
-				}
-
-				PlayerOutlines: {
-					Label: "[i:PvPAdventure/PlayerOutlinesConfigItem] Player Outlines"
-					Tooltip: Show outlines around team players
-				}
-
-				BedOutlines: {
-					Label: "[i:PvPAdventure/BedOutlinesConfigItem] Bed Outlines"
-					Tooltip: Show outlines around team beds belonging to a team
-				}
-
-				LootOutlines: {
-					Label: "[i:PvPAdventure/TreasureBagOutlinesConfigItem] Loot Outlines"
-					Tooltip: Show outlines around team boss loot by the team that killed the boss
-				}
-
-				ShowVanityVisuals: {
-					Label: "[i:245] Show Vanity"
-					Tooltip:
-						'''
-						By default, all your vanity is invisible.
-						Turn this on to see your vanity.
-						For other players, your armor and accessories is always visible.
-						'''
-				}
-
-				ShowTeleportPlayerMessages: {
-					Label: Show Travel Teleport Messages
-					Tooltip: Sends a team message when players use the travel system to teleport
-				}
-
-				ShowCameraFade: {
-					Label: Show Camera Fade
-					Tooltip: Fades to black when switching camera position to allow for a smoother visual effect
-				}
-
-				adventureUIPosition: {
-					Label: Adventure UI Position
-					Tooltip: ""
-				}
-
-				adventureUISize: {
-					Label: Adventure UI Size
-					Tooltip: ""
-				}
-
-				ProjectileOutlines: {
-					Label: "[i:PvPAdventure/ProjectileOutlinesConfigItem] Projectile Outlines"
-					Tooltip: Show team outlines around team projectiles by the team shooting the projectiles
-				}
-
-				TownNPCOutlines: {
-					Label: "[i:PvPAdventure/TownNPCOutlinesConfigItem] NPC Outlines"
-					Tooltip: Show team outlines around Town NPCs first encountered by a team
 				}
 			}
 
@@ -588,14 +416,14 @@ Mods: {
 				DisplayName: Adventure Server Config
 
 				Headers: {
-					Points: "[i:PvPAdventure/PointsConfigItem] Points"
-					Combat: "[i:273] Combat"
-					Items: "[i:Chest] Items"
-					Bosses: "[i:2112] Bosses"
-					NPCs: "[i:267] NPCs"
-					Gameplay: "[i:GPS] Gameplay"
-					WorldGen: "[i:WorldGlobe] World Generation"
-					TravelSystem: "[i:Bed] Travel System"
+					Points: Points
+					Combat: Combat
+					Items: Items
+					Bosses: Bosses
+					NPCs: NPCs
+					Gameplay: Gameplay
+					WorldGen: World Generation
+					World: World
 				}
 
 				Points: {
@@ -608,13 +436,13 @@ Mods: {
 					Tooltip: ""
 				}
 
-				InvasionSizes: {
-					Label: Invasion Sizes
+				WeaponBalance: {
+					Label: Weapon Balance
 					Tooltip: ""
 				}
 
-				WeaponBalance: {
-					Label: Weapon Balance
+				Immunity: {
+					Label: Immunity
 					Tooltip: ""
 				}
 
@@ -643,6 +471,11 @@ Mods: {
 					Tooltip: Max life, damage and team life
 				}
 
+				BossSpawnAnnouncements: {
+					Label: Boss Spawn Announcements
+					Tooltip: Shows the npc has Awoken! text
+				}
+
 				BossOrder: {
 					Label: Boss Order
 					Tooltip: The order bosses appear in the scoreboard
@@ -653,11 +486,6 @@ Mods: {
 					Tooltip: Bosses take 0 damage from these
 				}
 
-				BoundSpawnChance: {
-					Label: "[i:PvPAdventure/BoundArmsDealerConfigItem] Bound Spawn Chance"
-					Tooltip: Percent chance that our bound NPCs spawn
-				}
-
 				NoMechanicalBossSummonDrops: {
 					Label: No Mechanical Boss Summon Drops
 					Tooltip: ""
@@ -665,6 +493,16 @@ Mods: {
 
 				OnlyDisplayWorldEvilBoss: {
 					Label: Only Display World Evil Boss
+					Tooltip: ""
+				}
+
+				BoundSpawnChance: {
+					Label: Bound Spawn Chance
+					Tooltip: Percent chance that our bound NPCs spawn
+				}
+
+				TravelSystem: {
+					Label: Travel System
 					Tooltip: ""
 				}
 
@@ -688,64 +526,34 @@ Mods: {
 					Tooltip: ""
 				}
 
-				BossSpawnAnnouncements: {
-					Label: Boss Spawn Announcements
-					Tooltip: Shows the npc has Awoken! text
+				InvasionSizes: {
+					Label: Invasion Sizes
+					Tooltip: Number of enemies needed for invasions to end
 				}
 
-				Immunity: {
-					Label: Immunity
-					Tooltip: ""
+				DisableTombstones: {
+					Label: Disable Tombstones
+					Tooltip: Prevent players from dropping tombstones when they die
 				}
 
-				TeleportCooldownSeconds: {
-					Label: Teleport Cooldown Seconds
-					Tooltip: The time after a teleport has been completed before a new one can be tried again
+				IncreaseRainFrequency: {
+					Label: Increased Rain
+					Tooltip: Starts rain more often during normal world conditions
 				}
 
-				IsTravelSystemEnabled: {
-					Label: Is Travel System Enabled
-					Tooltip: Toggle the entire travel system
+				DisableLunarApocalypse: {
+					Label: Disable Lunar Apocalypse
+					Tooltip: Prevents the cultist kill from starting the Lunar Events and pillars
 				}
 
-				TravelRegionRadiusTiles: {
-					Label: Travel Region Tiles
-					Tooltip: The distance in tiles to beds and portals where you can access travel
+				StartHardmodeGoblinInvasion: {
+					Label: Hardmode Goblin Invasion
+					Tooltip: Starts a Goblin Army on the second dawn after Wall of Flesh if goblins have not been defeated
 				}
 
-				TravelPortalCreationTimeHardmodeSeconds: {
-					Label: "[i:PvPAdventure/PortalCreatorItem] Portal Creation Time (Hardmode)"
-					Tooltip: The use time in seconds it takes for a portal to be created in Hardmode
-				}
-
-				TravelPortalCreationTimePreHardmodeSeconds: {
-					Label: "[i:PvPAdventure/PortalCreatorItem] Portal Creation Time (Pre-Hardmode)"
-					Tooltip: The use time in seconds it takes for a portal to be created in Pre-Hardmode
-				}
-
-				PortalCreationOffset: {
-					Label: Portal Creation Offset
-					Tooltip: ""
-				}
-
-				ShowPortalCreationProjectile: {
-					Label: Show Portal Creation Projectile
-					Tooltip: ""
-				}
-
-				IsWorldSpawnTeleportEnabled: {
-					Label: Is World Spawn Option Enabled
-					Tooltip: ""
-				}
-
-				IsTeammateSpawnTeleportEnabled: {
-					Label: Is Teammate Teleport Option Enabled
-					Tooltip: ""
-				}
-
-				IsRandomTeleportEnabled: {
-					Label: Is Random Teleport Option Enabled
-					Tooltip: ""
+				BroadcastWeatherMessages: {
+					Label: Broadcast Weather Messages
+					Tooltip: Sends chat messages when rain or sandstorms start
 				}
 			}
 
@@ -761,6 +569,8 @@ Mods: {
 					Label: Conditions
 					Tooltip: ""
 				}
+
+				CollectedAllMechanicalBossSouls: Collected All Mechanical Boss Souls
 			}
 
 			Condition: {
@@ -853,6 +663,11 @@ Mods: {
 					Tooltip: ""
 				}
 
+				Knockback: {
+					Label: Knockback
+					Tooltip: ""
+				}
+
 				ProjectileBounceDamageReduction: {
 					Label: Projectile Bounce Damage Reduction
 					Tooltip: ""
@@ -860,11 +675,6 @@ Mods: {
 
 				ProjectileLineOfSightDamageReduction: {
 					Label: Projectile Line Of Sight Damage Reduction
-					Tooltip: ""
-				}
-
-				Knockback: {
-					Label: Knockback
 					Tooltip: ""
 				}
 			}
@@ -1072,37 +882,37 @@ Mods: {
 				Tooltip: ""
 
 				LifeFruitChanceDenominator: {
-					Label: "[i:LifeFruit] Life Fruit Chance Denominator"
+					Label: Life Fruit Chance Denominator
 					Tooltip: Lower means more
 				}
 
 				LifeFruitExpertChanceDenominator: {
-					Label: "[i:LifeFruit] Life Fruit Expert Chance Denominator"
+					Label: Life Fruit Expert Chance Denominator
 					Tooltip: Lower means more
 				}
 
 				LifeFruitMinimumDistanceBetween: {
-					Label: "[i:LifeFruit] Life Fruit Minimum Distance Between"
+					Label: Life Fruit Minimum Distance Between
 					Tooltip: Lower means closer together
 				}
 
 				PlanteraBulbChanceDenominator: {
-					Label: "[i:PvPAdventure/PlanterasBulbConfigItem] Plantera Bulb Chance Denominator"
+					Label: Plantera Bulb Chance Denominator
 					Tooltip: Lower means more
 				}
 
 				ChlorophyteSpreadChanceModifier: {
-					Label: "[i:ChlorophyteOre] Chlorophyte Spread Chance Modifier"
+					Label: Chlorophyte Spread Chance Modifier
 					Tooltip: % chance of spreading each check (higher means more)
 				}
 
 				ChlorophyteGrowChanceModifier: {
-					Label: "[i:ChlorophyteOre] Chlorophyte Grow Chance Modifier"
+					Label: Chlorophyte Grow Chance Modifier
 					Tooltip: Chance of new Chlorophyte veins spreading each check (lower means more)
 				}
 
 				ChlorophyteGrowLimitModifier: {
-					Label: "[i:ChlorophyteOre] Chlorophyte Grow Limit Modifier"
+					Label: Chlorophyte Grow Limit Modifier
 					Tooltip: Maximum Chlorophyte per 1000 block area
 				}
 			}
@@ -1202,6 +1012,60 @@ Mods: {
 				}
 			}
 
+			TravelSystemConfig: {
+				Tooltip: ""
+
+				IsTravelSystemEnabled: {
+					Label: Is Travel System Enabled
+					Tooltip: Toggle the entire travel system
+				}
+
+				IsWorldSpawnTeleportEnabled: {
+					Label: Is World Spawn Option Enabled
+					Tooltip: ""
+				}
+
+				IsTeammateSpawnTeleportEnabled: {
+					Label: Is Teammate Teleport Option Enabled
+					Tooltip: ""
+				}
+
+				IsRandomTeleportEnabled: {
+					Label: Is Random Teleport Option Enabled
+					Tooltip: ""
+				}
+
+				TravelPortalCreationTimePreHardmodeSeconds: {
+					Label: Portal Creation Time (Pre-Hardmode)
+					Tooltip: The use time in seconds it takes for a portal to be created in Pre-Hardmode
+				}
+
+				TravelPortalCreationTimeHardmodeSeconds: {
+					Label: Portal Creation Time (Hardmode)
+					Tooltip: The use time in seconds it takes for a portal to be created in Hardmode
+				}
+
+				TravelRegionRadiusTiles: {
+					Label: Travel Region Tiles
+					Tooltip: The distance in tiles to beds and portals where you can access travel
+				}
+
+				ShowPortalCreationProjectile: {
+					Label: Show Portal Creation Projectile
+					Tooltip: ""
+				}
+
+				PortalCreationOffset: {
+					Label: Portal Creation Offset
+					Tooltip: ""
+				}
+
+				TeleportCooldownSeconds: {
+					Label: Teleport Cooldown Seconds
+					Tooltip: The time after a teleport has been completed before a new one can be tried again
+				}
+			}
+
 			ConfigItem: {
 				Tooltip: ""
 
@@ -1241,12 +1105,12 @@ Mods: {
 			}
 
 			BeetleScaleMailConfig: {
+				Tooltip: ""
+
 				EnergyMultiplier: {
 					Label: Energy Multiplier
 					Tooltip: ""
 				}
-
-				Tooltip: ""
 
 				EnergyDecayPerTick: {
 					Label: Energy Decay Per Tick
@@ -1274,7 +1138,7 @@ Mods: {
 				}
 			}
 
-			AdventureUIPosition: {
+			TravelUIPosition: {
 				Tooltip: ""
 
 				Top: {
@@ -1288,7 +1152,7 @@ Mods: {
 				}
 			}
 
-			AdventureUISize: {
+			TravelUISize: {
 				Tooltip: ""
 
 				VerySmall: {
@@ -1309,6 +1173,40 @@ Mods: {
 				Big: {
 					Label: Big
 					Tooltip: "1.15"
+				}
+			}
+
+			OutlinesConfig: {
+				Tooltip: ""
+
+				DrawOutlines: {
+					Label: Draw Outlines
+					Tooltip: Whether to draw any outlines or not
+				}
+
+				PlayerOutlines: {
+					Label: Player Outlines
+					Tooltip: Show outlines around team players
+				}
+
+				TownNPCOutlines: {
+					Label: Town NPC Outlines
+					Tooltip: Show team outlines around Town NPCs first encountered by a team
+				}
+
+				BedOutlines: {
+					Label: Bed Outlines
+					Tooltip: Show outlines around team beds belonging to a team
+				}
+
+				TreasureBagOutlines: {
+					Label: Treasure Bag Outlines
+					Tooltip: Show outlines around team boss treasure bags by the team that killed the boss
+				}
+
+				ProjectileOutlines: {
+					Label: Projectile Outlines
+					Tooltip: Show team outlines around team projectiles by the team shooting the projectiles
 				}
 			}
 		}

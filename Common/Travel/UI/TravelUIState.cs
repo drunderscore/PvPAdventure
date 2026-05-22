@@ -78,12 +78,12 @@ internal class TravelUIState : UIState
         ServerConfig serverConfig = ModContent.GetInstance<ServerConfig>();
 
         // Set scale based on config
-        float scale = clientConfig.adventureUISize switch
+        float scale = clientConfig.PortalTravelUISize switch
         {
-            ClientConfig.AdventureUISize.VerySmall => 0.8f,
-            ClientConfig.AdventureUISize.Small => 0.9f,
-            ClientConfig.AdventureUISize.Medium => 1.0f,
-            ClientConfig.AdventureUISize.Big => 1.15f,
+            ClientConfig.TravelUISize.VerySmall => 0.8f,
+            ClientConfig.TravelUISize.Small => 0.9f,
+            ClientConfig.TravelUISize.Medium => 1.0f,
+            ClientConfig.TravelUISize.Big => 1.15f,
             _ => 1f
         };
 
@@ -109,11 +109,12 @@ internal class TravelUIState : UIState
         float spacing = 12f * scale;
         float paddingX = 8f * scale;
         float paddingY = 12f * scale;
-        bool bottom = clientConfig.adventureUIPosition == ClientConfig.AdventureUIPosition.Bottom;
+        bool bottom = clientConfig.PortalTravelUIPosition == ClientConfig.TravelUIPosition.Bottom;
         
-        int worldUnits = serverConfig.IsWorldSpawnTeleportEnabled ? 1 : 0;
-        int randomUnits = serverConfig.IsRandomTeleportEnabled ? 1 : 0;
-        int playerCards = serverConfig.IsTeammateSpawnTeleportEnabled ? players.Count : 0;
+        ServerConfig.TravelSystemConfig travelConfig = serverConfig.TravelSystem;
+        int worldUnits = travelConfig.IsWorldSpawnTeleportEnabled ? 1 : 0;
+        int randomUnits = travelConfig.IsRandomTeleportEnabled ? 1 : 0;
+        int playerCards = travelConfig.IsTeammateSpawnTeleportEnabled ? players.Count : 0;
         int elementCount = worldUnits + randomUnits + playerCards;
         float playerCardWidth = unitWidth * 2f + innerSpacing;
         float contentWidth = unitWidth * (worldUnits + randomUnits) + playerCardWidth * playerCards + spacing * Math.Max(0, elementCount - 1);
@@ -137,7 +138,7 @@ internal class TravelUIState : UIState
         float x = paddingX;
 
         // Add world button
-        if (serverConfig.IsWorldSpawnTeleportEnabled)
+        if (travelConfig.IsWorldSpawnTeleportEnabled)
         {
             TravelTarget worldTarget = FindTarget(targets, TravelType.World, -1, new TravelTarget(TravelType.World, -1, Vector2.Zero, "World Spawn", "World", true));
             UITravelIconButton world = new(worldTarget, () => TextureAssets.SpawnPoint.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.TeleportToWorldSpawn"), unitWidth, fullHeight, null, 0.9f);
@@ -148,7 +149,7 @@ internal class TravelUIState : UIState
         }
 
         // Add player cards for myself and teammates
-        if (serverConfig.IsTeammateSpawnTeleportEnabled)
+        if (travelConfig.IsTeammateSpawnTeleportEnabled)
         {
             foreach (Player player in players)
             {
@@ -168,10 +169,10 @@ internal class TravelUIState : UIState
         }
 
         // Add random button
-        if (serverConfig.IsRandomTeleportEnabled)
+        if (travelConfig.IsRandomTeleportEnabled)
         {
             TravelTarget randomTarget = FindTarget(targets, TravelType.Random, -1, new TravelTarget(TravelType.Random, -1, Vector2.Zero, "Random", "Random", true));
-            UITravelIconButton random = new(randomTarget, () => Ass.Icon_Question_Mark.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.Random"), unitWidth, fullHeight, forcedMapBgIndex: 7, iconScaleMultiplier: 1.1f);
+            UITravelIconButton random = new(randomTarget, () => Ass.IconQuestionMark.Value, Language.GetTextValue("Mods.PvPAdventure.Travel.Random"), unitWidth, fullHeight, forcedMapBgIndex: 7, iconScaleMultiplier: 1.1f);
             random.Left.Set(x, 0f);
             random.Top.Set(paddingY, 0f);
             backgroundPanel.Append(random);

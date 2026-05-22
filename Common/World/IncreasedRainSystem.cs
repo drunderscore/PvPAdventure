@@ -1,6 +1,7 @@
 ﻿using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using PvPAdventure.Core.Config;
 
 namespace PvPAdventure.Common.World;
 
@@ -17,7 +18,7 @@ public class IncreasedRainSystem : ModSystem
 
     public override void PostUpdateWorld()
     {
-        if (Main.netMode == NetmodeID.MultiplayerClient)
+        if (Main.netMode == NetmodeID.MultiplayerClient || !ModContent.GetInstance<ServerConfig>().IncreaseRainFrequency)
             return;
 
         rainCheckTimer++;

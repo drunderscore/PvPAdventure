@@ -27,4 +27,7 @@
 		<Publicize Include="DragonLens" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
 		<Publicize Include="PvPHub" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Assets\Effects\" />
+	</ItemGroup>
 </Project>

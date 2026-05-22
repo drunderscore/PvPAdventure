@@ -52,10 +52,10 @@ internal sealed class DLToolIcons : ModSystem
             if (provider == null || provider.icons == null)
                 continue;
 
-            provider.icons[StartGameKey] = Ass.Icon_StartGame.Value;
-            provider.icons[EndGameKey] = Ass.Icon_EndGame.Value;
-            provider.icons[PauseKey] = Ass.Icon_PauseGame.Value;
-            provider.icons[PointsSetterKey] = Ass.Icon_PointsSetter.Value;
+            provider.icons[StartGameKey] = Ass.IconStartGame.Value;
+            provider.icons[EndGameKey] = Ass.IconEndGame.Value;
+            provider.icons[PauseKey] = Ass.IconPauseGame.Value;
+            provider.icons[PointsSetterKey] = Ass.IconPointsSetter.Value;
         }
 
         ModContent.GetInstance<ToolbarHandler>().OnModLoad();

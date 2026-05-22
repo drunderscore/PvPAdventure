@@ -76,7 +76,7 @@ internal sealed class UITravelPlayerCard : UIPanel
 
     private void DrawRespawnTimerAndDeadIcon(SpriteBatch sb, int respawnTimer, Rectangle rect)
     {
-        Texture2D texture = Ass.Icon_Dead.Value;
+        Texture2D texture = Ass.IconDead.Value;
         Vector2 skullCenter = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
 
         sb.Draw(texture, skullCenter, null, Color.White * 0.5f, 0f, texture.Size() * 0.5f, 1.44f, SpriteEffects.None, 0f);

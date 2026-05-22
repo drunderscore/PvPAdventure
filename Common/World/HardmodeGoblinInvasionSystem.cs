@@ -2,6 +2,7 @@
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
+using PvPAdventure.Core.Config;
 
 namespace PvPAdventure.Common.World;
 /// <summary>
@@ -18,6 +19,9 @@ public class HardmodeGoblinInvasionSystem : ModSystem
 
     public override void PostUpdateWorld()
     {
+        if (!ModContent.GetInstance<ServerConfig>().StartHardmodeGoblinInvasion)
+            return;
+
         if (Main.hardMode && !wasHardmode)
         {
             if (!NPC.downedGoblins)

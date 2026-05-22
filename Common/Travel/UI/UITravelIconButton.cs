@@ -132,7 +132,7 @@ internal sealed class UITravelIconButton : UIPanel
         if (target.Available)
             return;
 
-        Texture2D forbidden = Ass.Icon_Forbidden.Value;
+        Texture2D forbidden = Ass.IconForbidden.Value;
         Vector2 position = new(rect.X + rect.Width * 0.5f, rect.Y + rect.Height * 0.5f);
 
         sb.Draw(forbidden, position, null, Color.PaleVioletRed, 0f, forbidden.Size() * 0.5f, 1.45f, SpriteEffects.None, 0f);

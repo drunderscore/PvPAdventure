@@ -1,3 +1,4 @@
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -18,5 +19,9 @@ internal class DisableLunarApocalypse : ModSystem
 
     private static void SuppressLunarApocalypse(On_WorldGen.orig_TriggerLunarApocalypse orig)
     {
+        if (!ModContent.GetInstance<ServerConfig>().DisableLunarApocalypse)
+        {
+            orig();
+        }
     }
 }

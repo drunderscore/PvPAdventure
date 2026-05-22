@@ -1,11 +1,8 @@
-using Newtonsoft.Json.Converters;
 using PvPAdventure.Common.Combat;
 using PvPAdventure.Core.Config.ConfigElements;
-using PvPAdventure.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.Json.Serialization;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -21,142 +18,130 @@ public class ServerConfig : ModConfig
     #region Members
 
     [Header("Points")]
-    [BackgroundColor(140, 100, 20)]
+    [HeaderIcon(nameof(Ass.IconPointsSetter))]
+    [BackgroundColor(150, 104, 38)]
     [Expand(false, false)]
-    public PointsConfig Points { get; set; } = new();
+    public PointsConfig Points = new();
 
-    [BackgroundColor(140, 100, 20)]
+    [BackgroundColor(150, 104, 38)]
     [Expand(false, false)]
-    public BountiesConfig Bounties { get; set; } = new();
-
-    [BackgroundColor(140, 100, 20)]
-    [Expand(false, false)]
-    [CustomModConfigItem(typeof(InvasionDictionaryElement))]
-    public Dictionary<int, InvasionSizeValue> InvasionSizes { get; set; } = [];
+    public BountiesConfig Bounties = new();
 
     [Header("Combat")]
-    [BackgroundColor(40, 90, 40)]
+    [HeaderIcon(nameof(Ass.ConfigPvP))]
+    [BackgroundColor(142, 54, 50)]
     [Expand(false, false)]
-    public WeaponBalanceConfig WeaponBalance { get; set; } = new();
+    public WeaponBalanceConfig WeaponBalance = new();
 
-    [BackgroundColor(40, 90, 40)]
+    [BackgroundColor(142, 54, 50)]
     [Expand(false, false)]
-    public ImmunityConfig Immunity { get; set; } = new();
+    public ImmunityConfig Immunity = new();
 
-    [BackgroundColor(40, 90, 40)]
+    [BackgroundColor(142, 54, 50)]
     [Expand(false, false)]
-    public OtherConfig Other { get; set; } = new();
+    public OtherConfig Other = new();
 
     [Header("Items")]
-    [BackgroundColor(40, 60, 110)]
+    [HeaderIcon(ItemID.Chest)]
+    [BackgroundColor(54, 86, 132)]
     [ReloadRequired]
     [Expand(false, false)]
     [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-    public Dictionary<ItemDefinition, Statistics> ItemStatistics { get; set; } = [];
+    public Dictionary<ItemDefinition, Statistics> ItemStatistics = [];
 
-    [BackgroundColor(40, 60, 110)]
+    [BackgroundColor(54, 86, 132)]
     [Expand(false, false)]
     [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-    public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements { get; set; } = [];
+    public Dictionary<ItemDefinition, ChestItemReplacement> ChestItemReplacements = [];
 
-    [BackgroundColor(40, 60, 110)]
-    public bool RemovePrefixes { get; set; }
+    [BackgroundColor(54, 86, 132)]
+    public bool RemovePrefixes;
 
     [Header("Bosses")]
+    [HeaderIcon(2112)]
 
-    [BackgroundColor(90, 40, 110)]
+    [BackgroundColor(104, 58, 140)]
     [Expand(false, false)]
     [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-    public Dictionary<NPCDefinition, BossBalanceEntry> BossBalance { get; set; } = [];
+    public Dictionary<NPCDefinition, BossBalanceEntry> BossBalance = [];
 
-    [BackgroundColor(90, 40, 110)]
+    [BackgroundColor(104, 58, 140)]
     [Expand(false, false)]
-    public List<NPCDefinition> BossSpawnAnnouncements { get; set; } = [new(NPCID.CultistBoss)];
+    public List<NPCDefinition> BossSpawnAnnouncements = [new(NPCID.CultistBoss)];
 
-    [BackgroundColor(90, 40, 110)]
+    [BackgroundColor(104, 58, 140)]
     [Expand(false, false)]
-    public List<NPCDefinition> BossOrder { get; set; } = [];
+    public List<NPCDefinition> BossOrder = [];
 
-    [BackgroundColor(90, 40, 110)]
+    [BackgroundColor(104, 58, 140)]
     [Expand(false, false)]
-    public List<ProjectileDefinition> BossInvulnerableProjectiles { get; set; } = [new(ProjectileID.Dynamite)];
+    public List<ProjectileDefinition> BossInvulnerableProjectiles = [new(ProjectileID.Dynamite)];
 
-    [BackgroundColor(90, 40, 110)]
-    [DefaultValue(true)] public bool NoMechanicalBossSummonDrops { get; set; }
+    [BackgroundColor(104, 58, 140)]
+    [DefaultValue(true)] public bool NoMechanicalBossSummonDrops = true;
 
-    [BackgroundColor(90, 40, 110)]
-    [DefaultValue(true)] public bool OnlyDisplayWorldEvilBoss { get; set; }
+    [BackgroundColor(104, 58, 140)]
+    [DefaultValue(true)] public bool OnlyDisplayWorldEvilBoss = true;
 
     [Header("NPCs")]
-    [BackgroundColor(90, 40, 110)]
+    [HeaderIcon(267)]
+    [ConfigIcon(nameof(Ass.ConfigBoundNPC))]
+    [BackgroundColor(58, 108, 72)]
     [DefaultValue(0.25f)]
-    public float BoundSpawnChance { get; set; }
-
-    [Header("TravelSystem")]
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(true)]
-    public bool IsTravelSystemEnabled { get; set; }
-
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(true)]
-    public bool IsWorldSpawnTeleportEnabled { get; set; }
-
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(true)]
-    public bool IsTeammateSpawnTeleportEnabled { get; set; }
-
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(true)]
-    public bool IsRandomTeleportEnabled { get; set; }
-
-    [BackgroundColor(30, 150, 150)]
-    [Range(0, 60)]
-    [DefaultValue(5)]
-    public int TravelPortalCreationTimePreHardmodeSeconds { get; set; }
-
-    [BackgroundColor(30, 150, 150)]
-    [Range(0, 60)]
-    [DefaultValue(10)]
-    public int TravelPortalCreationTimeHardmodeSeconds { get; set; }
-
-    [BackgroundColor(30, 150, 150)]
-    [Range(0, 60)]
-    [DefaultValue(8)]
-    public int TravelRegionRadiusTiles { get; set; }
-
-    [DefaultValue(true)]
-    [BackgroundColor(30, 150, 150)]
-    public bool ShowPortalCreationProjectile { get; set; }
-
-    [BackgroundColor(30, 150, 150)]
-    [Range(-60, 60)]
-    [DefaultValue(30)]
-    public int PortalCreationOffset { get; set; }
-
-    [BackgroundColor(30, 150, 150)]
-    [Range(0, 60)]
-    [DefaultValue(5)]
-    public int TeleportCooldownSeconds { get; set; }
+    public float BoundSpawnChance = 0.25f;
 
     [Header("Gameplay")]
+    [HeaderIcon(ItemID.GPS)]
 
-    [BackgroundColor(40, 90, 40)]
+    [BackgroundColor(36, 108, 116)]
+    [Expand(false, false)]
+    public TravelSystemConfig TravelSystem = new();
+
+    [BackgroundColor(36, 108, 116)]
     [Range(0, 30 * 60)]
-    [DefaultValue(1.5 * 60)]
-    public int SpawnImmuneFrames { get; set; }
+    [DefaultValue(90)]
+    public int SpawnImmuneFrames = 90;
 
-    [BackgroundColor(40, 90, 40)]
+    [BackgroundColor(36, 108, 116)]
     [Range(0, 600)]
-    public int MinimumDamageReceivedByPlayers { get; set; }
+    public int MinimumDamageReceivedByPlayers;
 
-    [BackgroundColor(40, 90, 40)]
+    [BackgroundColor(36, 108, 116)]
     [Range(0, 600)]
-    public int MinimumDamageReceivedByPlayersFromPlayer { get; set; }
+    public int MinimumDamageReceivedByPlayersFromPlayer;
 
     [Header("WorldGen")]
-    [BackgroundColor(90, 70, 40)]
+    [HeaderIcon(ItemID.WorldGlobe)]
+    [BackgroundColor(114, 90, 46)]
     [Expand(false, false)]
-    public WorldGenerationConfig WorldGeneration { get; set; } = new();
+    public WorldGenerationConfig WorldGeneration = new();
+
+    [Header("World")]
+    [HeaderIcon(ItemID.WorldGlobe)]
+    [BackgroundColor(72, 104, 72)]
+    [Expand(false, false)]
+    [CustomModConfigItem(typeof(InvasionDictionaryElement))]
+    public Dictionary<int, InvasionSizeValue> InvasionSizes = [];
+
+    [BackgroundColor(72, 104, 72)]
+    [DefaultValue(true)]
+    public bool DisableTombstones = true;
+
+    [BackgroundColor(72, 104, 72)]
+    [DefaultValue(true)]
+    public bool IncreaseRainFrequency = true;
+
+    [BackgroundColor(72, 104, 72)]
+    [DefaultValue(true)]
+    public bool DisableLunarApocalypse = true;
+
+    [BackgroundColor(72, 104, 72)]
+    [DefaultValue(true)]
+    public bool StartHardmodeGoblinInvasion = true;
+
+    [BackgroundColor(72, 104, 72)]
+    [DefaultValue(true)]
+    public bool BroadcastWeatherMessages = true;
     #endregion
 
     #region NestedConfigTypes
@@ -165,72 +150,123 @@ public class ServerConfig : ModConfig
         // Points per boss
         [Expand(false, false)]
         [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-        public Dictionary<NPCDefinition, NpcPoints> Npc { get; set; } = [];
+        public Dictionary<NPCDefinition, NpcPoints> Npc = [];
 
         [Expand(false, false)]
-        public NpcPoints Boss { get; set; } = new()
+        public NpcPoints Boss = new()
         {
             First = 2,
             Additional = 1
         };
 
-        public int PlayerKill { get; set; } = 1;
+        public int PlayerKill = 1;
 
         public class NpcPoints
         {
-            public int First { get; set; }
-            public int Additional { get; set; }
-            public bool Repeatable { get; set; }
+            public int First;
+            public int Additional;
+            public bool Repeatable;
         }
 
         [DefaultValue(5)]
-        public int TeamStartingPoints { get; set; } = 5;
+        public int TeamStartingPoints = 5;
     }
     
     public class BountiesConfig
     {
         [Expand(false, false)]
-        public List<Bounty> ClaimableItems { get; set; } = [];
+        public List<Bounty> ClaimableItems = [];
 
         [DefaultValue(false)]
-        public bool AwardBountyEveryKill { get; set; }
+        public bool AwardBountyEveryKill = false;
         public class Bounty
         {
-            public List<ConfigItem> Items { get; set; } = [];
-            public Condition Conditions { get; set; } = new();
+            public List<ConfigItem> Items = [];
+            public Condition Conditions = new();
         }
+    }
+
+    public class TravelSystemConfig
+    {
+        [ConfigIcon(nameof(Ass.IconCheckGreen), nameof(Ass.IconXGray), grayWhenOff: true)]
+        [DefaultValue(true)]
+        public bool IsTravelSystemEnabled = true;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [ConfigIcon(nameof(Ass.ConfigMapWorldSpawn))]
+        [DefaultValue(true)]
+        public bool IsWorldSpawnTeleportEnabled = true;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [ConfigIcon(nameof(Ass.ConfigPlayerHead))]
+        [DefaultValue(true)]
+        public bool IsTeammateSpawnTeleportEnabled = true;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [ConfigIcon(nameof(Ass.IconQuestionMark))]
+        [DefaultValue(true)]
+        public bool IsRandomTeleportEnabled = true;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [Range(0, 60)]
+        [DefaultValue(5)]
+        public int TravelPortalCreationTimePreHardmodeSeconds = 5;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [Range(0, 60)]
+        [DefaultValue(10)]
+        public int TravelPortalCreationTimeHardmodeSeconds = 10;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [Range(0, 60)]
+        [DefaultValue(8)]
+        public int TravelRegionRadiusTiles = 8;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [DefaultValue(true)]
+        public bool ShowPortalCreationProjectile = true;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [Range(-60, 60)]
+        [DefaultValue(30)]
+        public int PortalCreationOffset = 30;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
+        [Range(0, 60)]
+        [DefaultValue(5)]
+        public int TeleportCooldownSeconds = 5;
     }
 
     public class WeaponBalanceConfig
     {
         [Expand(false, false)]
-        public DamageConfig Damage { get; set; } = new();
+        public DamageConfig Damage = new();
 
         [Expand(false, false)]
-        public ArmorPenetrationConfig ArmorPenetration { get; set; } = new();
+        public ArmorPenetrationConfig ArmorPenetration = new();
 
         [Expand(false, false)]
-        public FalloffConfig Falloff { get; set; } = new();
+        public FalloffConfig Falloff = new();
 
         [Expand(false, false)]
-        public KnockbackConfig Knockback { get; set; } = new();
+        public KnockbackConfig Knockback = new();
 
         [Range(0.0f, 1.0f)]
         [DefaultValue(0.0f)]
-        public float ProjectileBounceDamageReduction { get; set; } = 0.0f;
+        public float ProjectileBounceDamageReduction = 0.0f;
 
         [Expand(false, false)]
-        public Dictionary<ProjectileDefinition, float> ProjectileLineOfSightDamageReduction { get; set; } = [];
+        public Dictionary<ProjectileDefinition, float> ProjectileLineOfSightDamageReduction = [];
 
         public class DamageConfig
         {
             [Expand(false, false)]
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-            public Dictionary<ItemDefinition, float> ItemDamage { get; set; } = [];
+            public Dictionary<ItemDefinition, float> ItemDamage = [];
 
             [Expand(false, false)]
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-            public Dictionary<ProjectileDefinition, float> ProjectileDamage { get; set; } = [];
+            public Dictionary<ProjectileDefinition, float> ProjectileDamage = [];
         }
 
         public class ArmorPenetrationConfig
@@ -239,13 +275,13 @@ public class ServerConfig : ModConfig
             [Range(0.0f, 1.0f)]
             [Expand(false, false)]
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-            public Dictionary<ItemDefinition, float> ItemAP { get; set; } = [];
+            public Dictionary<ItemDefinition, float> ItemAP = [];
 
             [Increment(0.01f)]
             [Range(0.0f, 1.0f)]
             [Expand(false, false)]
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-            public Dictionary<ProjectileDefinition, float> ProjectileAP { get; set; } = [];
+            public Dictionary<ProjectileDefinition, float> ProjectileAP = [];
         }
         public class KnockbackConfig
         {
@@ -254,20 +290,20 @@ public class ServerConfig : ModConfig
             [Range(0f, 2f)]
             [Increment(0.01f)]
             [Slider]
-            public Dictionary<ItemDefinition, float> ItemKnockback { get; set; } = [];
+            public Dictionary<ItemDefinition, float> ItemKnockback = [];
 
             [Expand(false, false)]
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
             [Range(0f, 2f)]
             [Increment(0.01f)]
             [Slider]
-            public Dictionary<ProjectileDefinition, float> ProjectileKnockback { get; set; } = [];
+            public Dictionary<ProjectileDefinition, float> ProjectileKnockback = [];
 
             [Range(0f, 1f)]
             [DefaultValue(0.5f)]
             [Increment(0.01f)]
             [Slider]
-            public float PvPKnockbackMultiplier { get; set; } = 0.8f;
+            public float PvPKnockbackMultiplier = 0.8f;
         }
 
         public class FalloffConfig
@@ -276,11 +312,11 @@ public class ServerConfig : ModConfig
             {
                 [Increment(0.0001f)]
                 [Range(0.0f, 5.0f)]
-                public float Coefficient { get; set; }
+                public float Coefficient;
 
                 [Increment(0.05f)]
                 [Range(0.0f, 100.0f)]
-                public float Forward { get; set; }
+                public float Forward;
 
                 public float CalculateMultiplier(float tileDistance) =>
                     (float)Math.Min(Math.Pow(Math.E, -(Coefficient * (tileDistance - Forward) / 100.0)), 1.0);
@@ -288,25 +324,25 @@ public class ServerConfig : ModConfig
 
             [DefaultValue(null)]
             [NullAllowed]
-            public Falloff Default { get; set; }
+            public Falloff Default;
 
             [Expand(false, false)]
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-            public Dictionary<ItemDefinition, Falloff> PerItem { get; set; } = [];
+            public Dictionary<ItemDefinition, Falloff> PerItem = [];
 
             [Expand(false, false)]
             [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-            public Dictionary<ProjectileDefinition, Falloff> PerProjectile { get; set; } = [];
+            public Dictionary<ProjectileDefinition, Falloff> PerProjectile = [];
         }
     }
 
     public class OtherConfig
     {
         [Expand(false, false)]
-        public SpectreHealingConfig SpectreHealing { get; set; } = new();
+        public SpectreHealingConfig SpectreHealing = new();
 
         [Expand(false, false)]
-        public BeetleScaleMailConfig BeetleScaleMail { get; set; } = new();
+        public BeetleScaleMailConfig BeetleScaleMail = new();
 
         public class BeetleScaleMailConfig
         {
@@ -314,59 +350,59 @@ public class ServerConfig : ModConfig
             [Range(0f, 10f)]
             [DefaultValue(1f)]
             [Slider]
-            public float EnergyMultiplier { get; set; } = 1f;
+            public float EnergyMultiplier = 1f;
 
             [Increment(0.5f)]
             [Range(0f, 10f)]
             [DefaultValue(1f)]
             [Slider]
-            public float EnergyDecayPerTick { get; set; } = 1f;
+            public float EnergyDecayPerTick = 1f;
 
             [Increment(100f)]
             [Range(0f, 54000f)]
             [DefaultValue(5400f)]
             [Slider]
-            public float EnergyMax { get; set; } = 5400f;
+            public float EnergyMax = 5400f;
 
             [Increment(100f)]
             [Range(0f, 54000f)]
             [DefaultValue(900f)]
             [Slider]
-            public float Tier1Threshold { get; set; } = 900f;
+            public float Tier1Threshold = 900f;
 
             [Increment(100f)]
             [Range(0f, 54000f)]
             [DefaultValue(2160f)]
             [Slider]
-            public float Tier2Threshold { get; set; } = 2160f;
+            public float Tier2Threshold = 2160f;
 
             [Increment(100f)]
             [Range(0f, 54000f)]
             [DefaultValue(4860f)]
             [Slider]
-            public float Tier3Threshold { get; set; } = 4860f;
+            public float Tier3Threshold = 4860f;
 
         }
         public class SpectreHealingConfig
         {
             [DefaultValue(0.2f)]
-            public float PvPHealMultiplier { get; set; }
+            public float PvPHealMultiplier = 0.2f;
 
             [DefaultValue(1.0f)]
-            public float PvPSelfHealMultiplier { get; set; }
+            public float PvPSelfHealMultiplier = 1.0f;
 
             [Range(0.0f, 3000.0f)]
             [DefaultValue(3000.0f)]
-            public float PvPHealRange { get; set; }
+            public float PvPHealRange = 3000.0f;
 
             [Range(0.0f, 3000.0f)]
             [DefaultValue(3000.0f)]
-            public float PvEHealRange { get; set; }
+            public float PvEHealRange = 3000.0f;
 
             [Increment(0.01f)]
             [Range(0.0f, 1.0f)]
             [DefaultValue(0.5f)]
-            public float HealerArmorPenetration { get; set; }
+            public float HealerArmorPenetration = 0.5f;
         }
     }
 
@@ -374,62 +410,69 @@ public class ServerConfig : ModConfig
     {
         [Range(0, 5 * 60)]
         [DefaultValue(8)]
-        public int TrueMelee { get; set; } = 8;
+        public int TrueMelee = 8;
 
         [Range(0, 5 * 60)]
         [DefaultValue(8)]
-        public int PerPlayerGlobal { get; set; } = 8;
+        public int PerPlayerGlobal = 8;
 
         [Range(0, 60 * 2 * 60)]
         [DefaultValue(15 * 60)]
-        public int RecentDamagePreservationFrames { get; set; } = 15 * 60;
+        public int RecentDamagePreservationFrames = 15 * 60;
 
         [Expand(false, false)]
         [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-        public Dictionary<ProjectileDefinition, ProjectileImmunityGroup> ProjectileDamageImmunityGroup { get; set; } = [];
+        public Dictionary<ProjectileDefinition, ProjectileImmunityGroup> ProjectileDamageImmunityGroup = [];
     }
 
     public class ProjectileImmunityGroup
     {
         [Range(0, CombatManager.MaximumNumberOfGroupCooldownId - 1)]
-        public int Id { get; set; }
+        public int Id;
 
         [DefaultValue(8)]
-        public int Frames { get; set; } = 8;
+        public int Frames = 8;
     }
 
     public class BossBalanceEntry
     {
         [Range(0f, 5f)]
         [DefaultValue(1f)]
-        public float LifeMaxMultiplier { get; set; } = 1f;
+        public float LifeMaxMultiplier = 1f;
 
         [Range(0f, 5f)]
         [DefaultValue(1f)]
-        public float DamageMultiplier { get; set; } = 1f;
+        public float DamageMultiplier = 1f;
 
         [Range(0f, 1f)]
         [DefaultValue(0.5f)]
-        public float TeamLifeShare { get; set; } = 0.5f;
+        public float TeamLifeShare = 0.5f;
     }
 
     public class WorldGenerationConfig
     {
-        [DefaultValue(2)] public int LifeFruitChanceDenominator { get; set; } = 2;
+        [ConfigIcon(ItemID.LifeFruit)]
+        [DefaultValue(2)] public int LifeFruitChanceDenominator = 2;
 
-        [DefaultValue(2)] public int LifeFruitExpertChanceDenominator { get; set; } = 2;
+        [ConfigIcon(ItemID.LifeFruit)]
+        [DefaultValue(2)] public int LifeFruitExpertChanceDenominator = 2;
 
-        [DefaultValue(2)] public int LifeFruitMinimumDistanceBetween { get; set; } = 2;
+        [ConfigIcon(ItemID.LifeFruit)]
+        [DefaultValue(2)] public int LifeFruitMinimumDistanceBetween = 2;
 
-        [DefaultValue(30)] public int PlanteraBulbChanceDenominator { get; set; } = 30;
+        [ConfigIcon(nameof(Ass.ConfigPlanterasBulb))]
+        [DefaultValue(30)] public int PlanteraBulbChanceDenominator = 30;
 
-        [DefaultValue(8)] public int ChlorophyteSpreadChanceModifier { get; set; } = 8;
+        [ConfigIcon(ItemID.ChlorophyteOre)]
+        [DefaultValue(8)] public int ChlorophyteSpreadChanceModifier = 8;
 
+        [ConfigIcon(ItemID.ChlorophyteOre)]
         [Range(1, 1000)]
-        [DefaultValue(300)] public int ChlorophyteGrowChanceModifier { get; set; } = 300;
+        [DefaultValue(300)] public int ChlorophyteGrowChanceModifier = 300;
 
+        [ConfigIcon(ItemID.ChlorophyteOre)]
         [Range(1, 999999)]
-        [DefaultValue(300)] public int ChlorophyteGrowLimitModifier { get; set; } = 300;
+        [DefaultValue(300)] public int ChlorophyteGrowLimitModifier = 300;
     }
 
     #endregion
@@ -437,19 +480,19 @@ public class ServerConfig : ModConfig
     #region Small helpers
     public class ChestItemReplacement
     {
-        public List<ConfigItem> Items { get; set; } = [];
+        public List<ConfigItem> Items = [];
     }
     public class InvasionSizeValue
     {
-        [Range(0, 1000)] public int Value { get; set; }
+        [Range(0, 1000)] public int Value;
     }
     #endregion
 
     #region Helpers
     public class ConfigItem
     {
-        public ItemDefinition Item { get; set; } = new();
-        public PrefixDefinition Prefix { get; set; } = new();
+        public ItemDefinition Item = new();
+        public PrefixDefinition Prefix = new();
         private int _stack = 1;
 
         // NOTE: Just for QOL. Can be screwed with by changing the above item after setting this.
@@ -469,14 +512,14 @@ public class ServerConfig : ModConfig
             Hardmode
         }
 
-        public WorldProgressionState WorldProgression { get; set; }
-        public bool SkeletronPrimeDefeated { get; set; }
-        public bool TwinsDefeated { get; set; }
-        public bool DestroyerDefeated { get; set; }
-        public bool PlanteraDefeated { get; set; }
-        public bool GolemDefeated { get; set; }
-        public bool SkeletronDefeated { get; set; }
-        public bool CollectedAllMechanicalBossSouls { get; set; }
+        public WorldProgressionState WorldProgression;
+        public bool SkeletronPrimeDefeated;
+        public bool TwinsDefeated;
+        public bool DestroyerDefeated;
+        public bool PlanteraDefeated;
+        public bool GolemDefeated;
+        public bool SkeletronDefeated;
+        public bool CollectedAllMechanicalBossSouls;
     }
 
     public class Statistics : IEquatable<Statistics>
@@ -499,7 +542,7 @@ public class ServerConfig : ModConfig
 
         public class OptionalInt : IEquatable<OptionalInt>
         {
-            [Range(0, 1000000)] public int Value { get; set; }
+            [Range(0, 1000000)] public int Value;
 
             public bool Equals(OptionalInt other)
             {
@@ -522,7 +565,7 @@ public class ServerConfig : ModConfig
         {
             [Increment(0.05f)]
             [Range(0.0f, 100.0f)]
-            public float Value { get; set; }
+            public float Value;
 
             public bool Equals(OptionalFloat other)
             {
@@ -541,15 +584,15 @@ public class ServerConfig : ModConfig
             public override int GetHashCode() => Value.GetHashCode();
         }
 
-        [DefaultValue(null)][NullAllowed] public OptionalInt Damage { get; set; }
-        [DefaultValue(null)][NullAllowed] public OptionalInt UseTime { get; set; }
-        [DefaultValue(null)][NullAllowed] public OptionalInt UseAnimation { get; set; }
-        [DefaultValue(null)][NullAllowed] public OptionalFloat ShootSpeed { get; set; }
-        [DefaultValue(null)][NullAllowed] public OptionalInt Crit { get; set; }
-        [DefaultValue(null)][NullAllowed] public OptionalInt Mana { get; set; }
-        [DefaultValue(null)][NullAllowed] public OptionalFloat Scale { get; set; }
-        [DefaultValue(null)][NullAllowed] public OptionalFloat Knockback { get; set; }
-        [DefaultValue(null)][NullAllowed] public OptionalInt Value { get; set; }
+        [DefaultValue(null)][NullAllowed] public OptionalInt Damage;
+        [DefaultValue(null)][NullAllowed] public OptionalInt UseTime;
+        [DefaultValue(null)][NullAllowed] public OptionalInt UseAnimation;
+        [DefaultValue(null)][NullAllowed] public OptionalFloat ShootSpeed;
+        [DefaultValue(null)][NullAllowed] public OptionalInt Crit;
+        [DefaultValue(null)][NullAllowed] public OptionalInt Mana;
+        [DefaultValue(null)][NullAllowed] public OptionalFloat Scale;
+        [DefaultValue(null)][NullAllowed] public OptionalFloat Knockback;
+        [DefaultValue(null)][NullAllowed] public OptionalInt Value;
 
         public bool Equals(Statistics other)
         {
@@ -591,6 +634,7 @@ public class ServerConfig : ModConfig
         base.OnLoaded();
 
         BossOrder ??= [];
+        TravelSystem ??= new();
         if (BossOrder.Count == 0)
             BossOrder = CreateDefaultBossOrder();
     }
@@ -644,22 +688,22 @@ public class ServerConfig : ModConfig
         return
         [
             new(NPCID.KingSlime),
-        new(NPCID.EyeofCthulhu),
-        new(NPCID.EaterofWorldsHead),
-        new(NPCID.BrainofCthulhu),
-        new(NPCID.QueenBee),
-        new(NPCID.SkeletronHead),
-        new(NPCID.Deerclops),
-        new(NPCID.WallofFlesh),
-        new(NPCID.QueenSlimeBoss),
-        new(NPCID.Retinazer),
-        new(NPCID.TheDestroyer),
-        new(NPCID.SkeletronPrime),
-        new(NPCID.Plantera),
-        new(NPCID.Golem),
-        new(NPCID.DukeFishron),
-        new(NPCID.HallowBoss),
-        new(NPCID.CultistBoss)
+            new(NPCID.EyeofCthulhu),
+            new(NPCID.EaterofWorldsHead),
+            new(NPCID.BrainofCthulhu),
+            new(NPCID.QueenBee),
+            new(NPCID.SkeletronHead),
+            new(NPCID.Deerclops),
+            new(NPCID.WallofFlesh),
+            new(NPCID.QueenSlimeBoss),
+            new(NPCID.Retinazer),
+            new(NPCID.TheDestroyer),
+            new(NPCID.SkeletronPrime),
+            new(NPCID.Plantera),
+            new(NPCID.Golem),
+            new(NPCID.DukeFishron),
+            new(NPCID.HallowBoss),
+            new(NPCID.CultistBoss)
         ];
     }
     #endregion

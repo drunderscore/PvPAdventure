@@ -1,10 +1,11 @@
+using PvPAdventure.Core.Config.ConfigElements;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using PvPAdventure.Common.Travel.UI;
-using PvPAdventure.Core.Utilities;
 using System;
 using System.ComponentModel;
 using Terraria.Audio;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 
@@ -14,13 +15,13 @@ public class ClientConfig : ModConfig
 {
     public override ConfigScope Mode => ConfigScope.ClientSide;
 
-    public enum AdventureUIPosition
+    public enum TravelUIPosition
     {
         Top,
         Bottom,
     }
 
-    public enum AdventureUISize
+    public enum TravelUISize
     {
         VerySmall,
         Small,
@@ -29,63 +30,90 @@ public class ClientConfig : ModConfig
     }
 
     [Header("Visualization")]
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] 
-    public bool PlayerOutlines = true;
+    [HeaderIcon(nameof(Ass.ConfigPlayerOutline))]
 
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)]
-    public bool TownNPCOutlines = true;
+    [BackgroundColor(126, 62, 88)]
+    [Expand(false, false)]
+    public OutlinesConfig Outlines = new();
 
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] 
-    public bool BedOutlines = true;
-
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] 
-    public bool LootOutlines = true;
-
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)]
-    public bool ProjectileOutlines = true;
-
-    [Header("Vanity")]
-
-    [BackgroundColor(50, 70, 120)]
+    [BackgroundColor(126, 62, 88)]
     [DefaultValue(false)] 
+    [ConfigIcon(ItemID.PlumbersShirt)]
     public bool ShowVanityVisuals = false;
 
     [Header("Movement")]
-    [BackgroundColor(50, 70, 120)]
-    [DefaultValue(true)] public bool IsVanillaDashEnabled;
+    [HeaderIcon(ItemID.HermesBoots)]
+    [ConfigIcon(nameof(Ass.ConfigDash))]
+    [BackgroundColor(72, 108, 74)]
+    [DefaultValue(true)] public bool IsVanillaDashEnabled = true;
 
     [Header("UI")]
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(AdventureUIPosition.Top)]
+    [BackgroundColor(36, 104, 118)]
+    [DefaultValue(TravelUIPosition.Top)]
     [JsonConverter(typeof(StringEnumConverter))]
-    public AdventureUIPosition adventureUIPosition;
+    public TravelUIPosition PortalTravelUIPosition = TravelUIPosition.Top;
 
-    [BackgroundColor(30, 150, 150)]
-    [DefaultValue(AdventureUISize.Small)]
+    [BackgroundColor(36, 104, 118)]
+    [DefaultValue(TravelUISize.Small)]
     [JsonConverter(typeof(StringEnumConverter))]
-    public AdventureUISize adventureUISize;
-
-    [Header("Spectating")]
-
-    [BackgroundColor(30, 150, 30)]
-    [DefaultValue(true)]
-    public bool ShowCameraFade = true;
+    public TravelUISize PortalTravelUISize = TravelUISize.Small;
 
     [Header("Sound")]
+    [HeaderIcon(ItemID.FairyBell)]
     [Expand(false, false)]
-    [BackgroundColor(200, 80, 150)]
+    [BackgroundColor(138, 70, 126)]
     public SoundEffectConfig SoundEffect = new();
 
     [Header("Chat")]
-    [DefaultValue(true)] public bool ShowTeleportPlayerMessages;
-    [DefaultValue(false)] public bool ShowDebugMessages;
+    [HeaderIcon(nameof(Ass.ConfigChat))]
+
+    [BackgroundColor(70, 92, 126)]
+    [DefaultValue(true)]
+    public bool ShowTeleportPlayerMessages = true;
+
+    [BackgroundColor(70, 92, 126)]
+    [DefaultValue(false)]
+    public bool ShowDebugMessages = false;
 
     #region NestedConfigTypes
+    public class OutlinesConfig
+    {
+        [ConfigIcon(nameof(Ass.IconCheckGreen), nameof(Ass.IconXGray), grayWhenOff: true)]
+        [BackgroundColor(126, 62, 88)]
+        [DefaultValue(true)]
+        public bool DrawOutlines = true;
+
+        [RequiresField(nameof(DrawOutlines))]
+        [ConfigIcon(nameof(Ass.ConfigPlayerOutline), nameof(Ass.ConfigPlayerHead))]
+        [BackgroundColor(126, 62, 88)]
+        [DefaultValue(true)]
+        public bool PlayerOutlines = true;
+
+        [RequiresField(nameof(DrawOutlines))]
+        [ConfigIcon(nameof(Ass.ConfigBoundNPCOutline), nameof(Ass.ConfigBoundNPC))]
+        [BackgroundColor(126, 62, 88)]
+        [DefaultValue(true)]
+        public bool TownNPCOutlines = true;
+
+        [RequiresField(nameof(DrawOutlines))]
+        [ConfigIcon(nameof(Ass.ConfigBedOutline), nameof(Ass.ConfigBed))]
+        [BackgroundColor(126, 62, 88)]
+        [DefaultValue(true)]
+        public bool BedOutlines = true;
+
+        [RequiresField(nameof(DrawOutlines))]
+        [ConfigIcon(nameof(Ass.ConfigTreasureBagOutline), nameof(Ass.ConfigTreasureBag))]
+        [BackgroundColor(126, 62, 88)]
+        [DefaultValue(true)]
+        public bool TreasureBagOutlines = true;
+
+        [RequiresField(nameof(DrawOutlines))]
+        [ConfigIcon(nameof(Ass.ConfigProjectileOutline), nameof(Ass.ConfigProjectile))]
+        [BackgroundColor(126, 62, 88)]
+        [DefaultValue(true)]
+        public bool ProjectileOutlines = true;
+    }
+
     public class SoundEffectConfig
     {
         public abstract class MarkerConfig<TEnum>
@@ -95,19 +123,19 @@ public class ClientConfig : ModConfig
 
             public TEnum Sound;
 
-            [DefaultValue(1.0f)] public float Volume;
+            [DefaultValue(1.0f)] public float Volume = 1.0f;
 
             // FIXME: Description number should come from constant
             [Description("Desired pitch when dealing minimum damage (<=10)")]
             [Range(-1.0f, 1.0f)]
             [DefaultValue(0.75f)]
-            public float PitchMinimum;
+            public float PitchMinimum = 0.75f;
 
             // FIXME: Description number should come from constant
             [Description("Desired pitch when dealing maximum damage (>=200)")]
             [Range(-1.0f, 1.0f)]
             [DefaultValue(-0.75f)]
-            public float PitchMaximum;
+            public float PitchMaximum = -0.75f;
 
             [JsonIgnore] public abstract string SoundPath { get; }
 

@@ -144,7 +144,7 @@ public abstract class UIDraggablePanel : UIElement
             RefreshPanel.OnMouseOut += (_, _) => RefreshPanel.BorderColor = Color.Black;
             RefreshPanel.SetPadding(0);
 
-            RefreshPanel.Append(new UIImage(Ass.Icon_Reset.Value)
+            RefreshPanel.Append(new UIImage(Ass.IconReset.Value)
             {
                 HAlign = 0.5f,
                 VAlign = 0.5f
@@ -156,7 +156,7 @@ public abstract class UIDraggablePanel : UIElement
         // Resize
         if (ShowResizeButton)
         {
-            ResizeButton = new(Ass.Icon_Resize);
+            ResizeButton = new(Ass.IconResize);
 
             ResizeButton.OnDragX += dx =>
             {

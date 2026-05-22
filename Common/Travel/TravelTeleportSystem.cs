@@ -255,7 +255,7 @@ internal class TravelTeleportSystem : ModSystem
     public static void StartTeleportCooldown(Player player)
     {
         if (player?.active == true)
-            player.GetModPlayer<TravelPlayer>().TeleportCooldownFrames = Math.Max(0, ModContent.GetInstance<ServerConfig>().TeleportCooldownSeconds * 60);
+            player.GetModPlayer<TravelPlayer>().TeleportCooldownFrames = Math.Max(0, ModContent.GetInstance<ServerConfig>().TravelSystem.TeleportCooldownSeconds * 60);
     }
 
     public static int PortalCreatorFramesLeft(Player player)

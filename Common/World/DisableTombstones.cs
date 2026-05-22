@@ -1,3 +1,4 @@
+using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -24,5 +25,9 @@ internal class DisableTombstones : ModSystem
         NetworkText deathText,
         int hitDirection)
     {
+        if (!ModContent.GetInstance<ServerConfig>().DisableTombstones)
+        {
+            orig(self, coinsOwned, deathText, hitDirection);
+        }
     }
 }

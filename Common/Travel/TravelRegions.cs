@@ -13,7 +13,7 @@ namespace PvPAdventure.Common.Travel;
 
 internal static class TravelRegions
 {
-    private static float RegionRadiusWorld => ModContent.GetInstance<ServerConfig>().TravelRegionRadiusTiles * 16f;
+    private static float RegionRadiusWorld => ModContent.GetInstance<ServerConfig>().TravelSystem.TravelRegionRadiusTiles * 16f;
 
     public static bool CanUseTravelUI(Player player)
     {

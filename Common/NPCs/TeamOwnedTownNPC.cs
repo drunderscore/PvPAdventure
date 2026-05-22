@@ -134,7 +134,7 @@ public sealed class TeamOwnedTownNPC : GlobalNPC
 
         var config = ModContent.GetInstance<ClientConfig>();
 
-        if (!config.PlayerOutlines)
+        if (!config.Outlines.DrawOutlines || !config.Outlines.TownNPCOutlines)
             return true;
 
         Rectangle screenBounds = new(

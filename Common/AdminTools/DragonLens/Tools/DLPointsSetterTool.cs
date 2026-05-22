@@ -74,7 +74,7 @@ public class DLPointsSetterTool : Tool
         base.DrawIcon(spriteBatch, position);
 
         // We have to manually draw it for some reason
-        spriteBatch.Draw(Ass.Icon_PointsSetter.Value, position, Color.White);
+        spriteBatch.Draw(Ass.IconPointsSetter.Value, position, Color.White);
 
         var pss = ModContent.GetInstance<PointsSetterSystem>();
 

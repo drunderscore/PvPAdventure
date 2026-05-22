@@ -17,7 +17,8 @@ internal sealed class TeamProjectileOutlines : GlobalProjectile
 {
     public override bool PreDraw(Projectile projectile, ref Color lightColor)
     {
-        if (projectile.ModProjectile is PortalCreationProjectile || !ModContent.GetInstance<ClientConfig>().ProjectileOutlines || !TryGetTeam(projectile, out Team team))
+        var outlines = ModContent.GetInstance<ClientConfig>().Outlines;
+        if (projectile.ModProjectile is PortalCreationProjectile || !outlines.DrawOutlines || !outlines.ProjectileOutlines || !TryGetTeam(projectile, out Team team))
             return true;
 
         Color border = Main.teamColor[(int)team];

@@ -77,7 +77,7 @@ public sealed class PortalCreationProjectile : ModProjectile
 
     public override void AI()
     {
-        var config = ModContent.GetInstance<ServerConfig>();
+        var config = ModContent.GetInstance<ServerConfig>().TravelSystem;
 
         Projectile.velocity = Vector2.Zero;
         bool firstFrame = ElapsedFrames <= 0f;
@@ -116,7 +116,7 @@ public sealed class PortalCreationProjectile : ModProjectile
 
     public override bool PreDraw(ref Color lightColor)
     {
-        var config = ModContent.GetInstance<ServerConfig>();
+        var config = ModContent.GetInstance<ServerConfig>().TravelSystem;
         if (!config.ShowPortalCreationProjectile)
             return false;
 

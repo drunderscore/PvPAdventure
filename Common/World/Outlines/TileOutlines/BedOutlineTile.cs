@@ -16,7 +16,7 @@ internal sealed class BedOutlineTile : GlobalTile
     public override bool PreDraw(int i, int j, int type, SpriteBatch sb)
     {
         var config = ModContent.GetInstance<ClientConfig>();
-        if (!config.BedOutlines || type != TileID.Beds)
+        if (!config.Outlines.DrawOutlines || !config.Outlines.BedOutlines || type != TileID.Beds)
             return true;
 
         const int w = 4;

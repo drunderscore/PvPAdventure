@@ -2,6 +2,7 @@
 using ReLogic.Content;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Terraria;
 using Terraria.ModLoader;
@@ -20,162 +21,47 @@ public static class Ass
 
     // Spawn selector assets
     public static Asset<Texture2D> CustomPlayerBackground;
-    public static Asset<Texture2D> Icon_Dead; // 32x32
-    public static Asset<Texture2D> Icon_Forbidden;
-    public static Asset<Texture2D> Icon_Question_Mark;
+    public static Asset<Texture2D> IconXGray;
+    public static Asset<Texture2D> IconCheckGreen;
+    public static Asset<Texture2D> IconDead; // 32x32
+    public static Asset<Texture2D> IconForbidden;
+    public static Asset<Texture2D> IconLock;
+    public static Asset<Texture2D> IconQuestionMark;
     public static Asset<Texture2D> Spawnbox;
+    public static Asset<Texture2D> Shimmer;
 
     // Admin tools assets
-    public static Asset<Texture2D> Icon_Reset;
-    public static Asset<Texture2D> Icon_Refresh;
-    public static Asset<Texture2D> Icon_Resize;
+    public static Asset<Texture2D> IconReset;
+    public static Asset<Texture2D> IconRefresh;
+    public static Asset<Texture2D> IconResize;
     public static Asset<Texture2D> Slider;
     public static Asset<Texture2D> SliderHighlight;
     public static Asset<Texture2D> SliderGradient;
 
+    // Config icons
+    public static Asset<Texture2D> ConfigBed;
+    public static Asset<Texture2D> ConfigBedOutline;
+    public static Asset<Texture2D> ConfigBoundNPC;
+    public static Asset<Texture2D> ConfigBoundNPCOutline;
+    public static Asset<Texture2D> ConfigChat;
+    public static Asset<Texture2D> ConfigDash;
+    public static Asset<Texture2D> ConfigMapWorldSpawn;
+    public static Asset<Texture2D> ConfigPlanterasBulb;
+    public static Asset<Texture2D> ConfigPlayerHead;
+    public static Asset<Texture2D> ConfigPlayerOutline;
+    public static Asset<Texture2D> ConfigProjectile;
+    public static Asset<Texture2D> ConfigProjectileOutline;
+    public static Asset<Texture2D> ConfigPvP;
+    public static Asset<Texture2D> ConfigTreasureBag;
+    public static Asset<Texture2D> ConfigTreasureBagOutline;
+
     // Admin tool icons
-    public static Asset<Texture2D> Icon_StartGame;
-    public static Asset<Texture2D> Icon_PauseGame;
-    public static Asset<Texture2D> Icon_EndGame;
-    public static Asset<Texture2D> Icon_TeamAssigner;
-    public static Asset<Texture2D> Icon_PointsSetter;
-    public static Asset<Texture2D> Icon_AdminManager;
-    public static Asset<Texture2D> Icon_ConfigOpen;
-    public static Asset<Texture2D> Icon_ConfigClose;
+    public static Asset<Texture2D> IconStartGame;
+    public static Asset<Texture2D> IconPauseGame;
+    public static Asset<Texture2D> IconEndGame;
+    public static Asset<Texture2D> IconPointsSetter;
 
-    // On/off icons for admin manager
-    public static Asset<Texture2D> Icon_On;
-    public static Asset<Texture2D> Icon_On_Hover;
-    public static Asset<Texture2D> Icon_Off;
-    public static Asset<Texture2D> Icon_Off_Hover;
-
-    // Arenas
-    public static Asset<Texture2D> Icon_Arenas; // 50x48
-    public static Asset<Texture2D> Icon_Arenas_Highlighted; // 54 x 52
-
-    // Spectate
-    public static Asset<Texture2D> BG_Shimmer; 
-    public static Asset<Texture2D> BG_Biome;
-    public static Asset<Texture2D> Shimmer; // 32x32
-    public static Asset<Texture2D> Biome; // 32x32
-    public static Asset<Texture2D> CollapseDown; // 32x32
-    public static Asset<Texture2D> CollapseUp; // 32x32
-    public static Asset<Texture2D> Ghost; // 18x18. for use in map
-    public static Asset<Texture2D> GhostLeft; // 18x18. for use in map
-    public static Asset<Texture2D> Icon_GhostTeleport; // 32x32. player action button.
-
-    public static Asset<Texture2D> HeldItem; // 32x32
-    public static Asset<Texture2D> ButtonTeleport; // 32x32
-    public static Asset<Texture2D> ButtonEye; // 32x32
-    public static Asset<Texture2D> Icon_Player; // 32x32
-    public static Asset<Texture2D> Icon_PlayerHead; // 32x32
-    public static Asset<Texture2D> Icon_World; // 32x32
-    public static Asset<Texture2D> Icon_Eye; // 32x32
-    public static Asset<Texture2D> Icon_NPC; // 32x32
-    public static Asset<Texture2D> Icon_Inventory; // 32x32
-    public static Asset<Texture2D> Icon_InventoryOpen; // 32x32
-    public static Asset<Texture2D> Icon_InventoryClosed; // 32x32
-    public static Asset<Texture2D> Icon_Warning; // 32x32
-    public static Asset<Texture2D> List; // 32x32
-    public static Asset<Texture2D> GoTo; // 32x32
-    public static Asset<Texture2D> Grid; // 32x32
-    public static Asset<Texture2D> Sort; // 32x32
-    public static Asset<Texture2D> MinionCount; // 32x32
-    public static Asset<Texture2D> Distance; // 32x32
-    public static Asset<Texture2D> Ping; // 32x32
-    public static Asset<Texture2D> Time; // 32x32
-    public static Asset<Texture2D> PvE; // 32x32
-    public static Asset<Texture2D> PvP; // 32x32
-    public static Asset<Texture2D> BossDamage; // 32x32
-    public static Asset<Texture2D> InventoryCount; // 32x32
-
-    // Match history
-    public static Asset<Texture2D> Icon_Trophy; // 48x48
-    public static Asset<Texture2D> Icon_TeamBoss; // 54x54
-    public static Asset<Texture2D> Icon_Attack; // 26x27
-    public static Asset<Texture2D> Icon_Medal1; // 46x60
-    public static Asset<Texture2D> Icon_Medal2; // 46x60
-    public static Asset<Texture2D> Icon_Medal3; // 46x60
-
-    // Achievements
-    public static Asset<Texture2D> Achievements; /// Spritesheet, that includes ALL vanilla and TPVPA achievements.
-
-    // Shop
-    public static Asset<Texture2D> Icon_Gem;
-
-    // Main menu TPVPA state assets
-    public static Asset<Texture2D> MenuIconBackground; 
-    public static Asset<Texture2D> Icon_PlayMenu;
-    public static Asset<Texture2D> Icon_Achievements;
-    public static Asset<Texture2D> Icon_Leaderboards;
-    public static Asset<Texture2D> Icon_MatchHistory;
-    public static Asset<Texture2D> Icon_More;
-    public static Asset<Texture2D> Icon_Shop;
-    public static Asset<Texture2D> Icon_Stats;
-
-    // Main menu shop
-    public static Asset<Texture2D> Icon_CheckmarkGreen; // for collecting achievements rewards
-    public static Asset<Texture2D> Icon_CheckmarkGray;
-    public static Asset<Texture2D> Icon_CheckmarkGrayBox;
-    public static Asset<Texture2D> Icon_CheckmarkGreenBox;
-
-    // PvP players crossing swords assets
-    public static Asset<Texture2D> Icon_PvPBalancing;
-    public static Asset<Texture2D> Icon_PvPBalancingv2;
-
-    // --- Skins --- (sorted alphabetically)
-    public static Asset<Texture2D> BrutalistBreakerBlade;
-    public static Asset<Texture2D> CrimeraScourgeOfTheCorruptor;
-    public static Asset<Texture2D> DarkMatterPsychoKnife;
-    public static Asset<Texture2D> DefiledChainGuillotines;
-    public static Asset<Texture2D> FallenStarfury;
-    public static Asset<Texture2D> GrotesqueCursedFlames;
-    public static Asset<Texture2D> HologramMorningStar;
-    public static Asset<Texture2D> InfernalMeteorStaff;
-    public static Asset<Texture2D> InfluxWaverCyberblade;
-    public static Asset<Texture2D> LightDisc;
-    public static Asset<Texture2D> SculkTsunami;
-    public static Asset<Texture2D> SniperRifleBlue;
-    public static Asset<Texture2D> SniperRifleGreen;
-    public static Asset<Texture2D> SniperRiflePink;
-    public static Asset<Texture2D> SniperRifleRed;
-    public static Asset<Texture2D> SniperRifleYellow;
-    public static Asset<Texture2D> StaffOfEarthAvalancheStaff;
-    public static Asset<Texture2D> TeslaPaladinsHammer;
-    public static Asset<Texture2D> ToxicHeatray;
-    public static Asset<Texture2D> TrophyExcalibur;
-    public static Asset<Texture2D> ValkyrieDaedalus;
-    public static Asset<Texture2D> VolcanoMolten;
-    public static Asset<Texture2D> WatergunXenopopper;
-
-    // --- Projectiles for skins --- (sorted alphabetically)
-    public static Asset<Texture2D> InfluxWaverCyberbladeProjectile;
-    public static Asset<Texture2D> StaffOfEarthAvalancheStaffProjectile;
-    public static Asset<Texture2D> WatergunXenopopperProjectile;
-
-    // Main menu server list
-    public static Asset<Texture2D> Button;
-    public static Asset<Texture2D> Button_Border;
-    public static Asset<Texture2D> Button_Small_Border;
-    public static Asset<Texture2D> Button_Small;
-
-    // Unused
-    public static Asset<Texture2D> DaedalusStormbowMolten;
-    public static Asset<Texture2D> DartRifleMolten;
-    public static Asset<Texture2D> FlamelashCryolash;
-    public static Asset<Texture2D> HeatRayGammaRay;
-    public static Asset<Texture2D> LaserMachineGunMolten;
-    public static Asset<Texture2D> LightDiscMolten;
-    public static Asset<Texture2D> PaladinsHammerHallowed;
-    public static Asset<Texture2D> RainbowRodMolten;
-    public static Asset<Texture2D> ShadowbeamStaffMolten;
-    public static Asset<Texture2D> ShadowJoustingLanceMoltenJoustingLance;
-    public static Asset<Texture2D> StarfuryMolten;
-    public static Asset<Texture2D> StyngerMolten;
-    public static Asset<Texture2D> ThornChakramMolten;
-    public static Asset<Texture2D> TrueExcaliburMolten;
-
-    /// --- Special Initialization flag, do not touch ---
+     // Flag
     public static bool Initialized { get; set; }
 
     /// <summary>
@@ -190,33 +76,52 @@ public static class Ass
             return;
         }
 
-        // Initialize Assets/Custom/MapBGs
+        const string ModName = "PvPAdventure";
+
+        // Custom initialize MapBGs
         MapBG = new Asset<Texture2D>[42];
         for (int i = 1; i <= 42; i++)
-            MapBG[i - 1] = ModContent.Request<Texture2D>($"PvPAdventure/Assets/Custom/MapBGs/MapBG{i}", AssetRequestMode.AsyncLoad);
+            MapBG[i - 1] = ModContent.Request<Texture2D>($"{ModName}/Assets/Custom/MapBGs/MapBG{i}", AssetRequestMode.AsyncLoad);
 
-        // Initialize Assets/Custom and Assets/Shop
-        var fields = typeof(Ass).GetFields(BindingFlags.Public | BindingFlags.Static);
-        foreach (FieldInfo f in fields)
+
+        // Use a tuple to store both the field name and the path we searched for
+        List<(string AssetName, string Path)> missingAssets = [];
+
+        FieldInfo[] fields = typeof(Ass).GetFields(BindingFlags.Public | BindingFlags.Static);
+
+        foreach (FieldInfo field in fields)
         {
-            if (f.FieldType != typeof(Asset<Texture2D>))
+            if (field.FieldType != typeof(Asset<Texture2D>))
                 continue;
 
-            string[] folders = ["Custom", "Shop"];
-            foreach (string folder in folders)
-            {
-                string path = $"PvPAdventure/Assets/{folder}/{f.Name}";
-                if (ModContent.HasAsset(path))
-                {
-                    f.SetValue(null, ModContent.Request<Texture2D>(path, AssetRequestMode.AsyncLoad));
-                    break;
-                }
-            }
+            field.SetValue(null, RequestTexture(field.Name, $"{ModName}/Assets/Custom/{field.Name}", missingAssets));
         }
 
-        Icon_Refresh ??= Icon_Reset;
+        // Check if any assets failed to load
+        if (missingAssets.Count > 0)
+        {
+            // Try to get all valid asset paths in the mod to use for Levenshtein comparison
+            string[] validKeys = [];
+            if (ModLoader.TryGetMod(ModName, out Mod myMod))
+            {
+                validKeys = myMod.GetFileNames().ToArray();
+            }
+
+            throw new MissingAssetException(missingAssets, validKeys);
+        }
 
         Initialized = true;
+    }
+
+    private static Asset<Texture2D> RequestTexture(string assetName, string path, List<(string, string)> missingAssets)
+    {
+        if (!ModContent.HasAsset(path))
+        {
+            missingAssets.Add((assetName, path));
+            return null; // Return null temporarily, we will crash shortly
+        }
+
+        return ModContent.Request<Texture2D>(path, AssetRequestMode.AsyncLoad);
     }
 }
 
@@ -226,4 +131,243 @@ public static class Ass
 public class AssetLoader : ModSystem
 {
     public override void Load() => _ = Ass.Initialized;
+}
+
+internal sealed class MissingAssetException : Exception
+{
+    public override string HelpLink => "https://github.com/tModLoader/tModLoader/wiki/Basic-tModLoader-Modding-FAQ#terrariamodloadermodgettexturestring-name-error";
+
+    public MissingAssetException(List<(string AssetName, string Path)> missingAssets, ICollection<string> validKeys)
+        : base(BuildErrorMessage(missingAssets, validKeys))
+    {
+    }
+
+    private static string BuildErrorMessage(List<(string AssetName, string Path)> missingAssets, ICollection<string> validKeys)
+    {
+        string message = $"MOD CRASH! Missing {missingAssets.Count} texture asset(s):\n";
+
+        foreach (var missing in missingAssets)
+        {
+            message += $"Failed to load Ass.{missing.AssetName}: \"{missing.Path}\"\n";
+
+            if (validKeys != null && validKeys.Count > 0)
+            {
+                string closestMatch = LevenshteinDistance.FolderAwareEditDistance(missing.Path, validKeys.ToArray());
+                if (!string.IsNullOrEmpty(closestMatch))
+                {
+                    (string a, string b) = LevenshteinDistance.ComputeColorTaggedString(missing.Path, closestMatch);
+                    message += $"Did you mean \"{closestMatch}\"?\n";
+                    message += $"{a}\n{b}\n";
+                }
+            }
+            message += "\n"; // Space between missing items
+        }
+
+        message += "--------------\n";
+        message += "Tip: The most common reason for this error is a malformed .png file or a typo in the path. Make sure you are saving textures in the .png format and are not just renaming the file extension of your texture files to .png, that does not work.";
+
+        return message;
+    }
+}
+
+static class LevenshteinDistance
+{
+    enum Edits
+    {
+        Keep, Delete, Insert, Substitute, Blank
+    }
+
+    internal static string FolderAwareEditDistance(string source, string[] targets)
+    {
+        if (targets.Length == 0) return null;
+        var separator = '/';
+        var sourceParts = source.Split(separator);
+
+        var sourceFolders = Enumerable.Reverse(sourceParts).Skip(1).ToList();
+        var sourceFile = sourceParts.Last();
+
+        int missingFolderPenalty = 4;
+        int extraFolderPenalty = 3;
+
+        var scores = targets.Select(target => {
+            var targetParts = target.Split(separator);
+
+            var targetFolders = Enumerable.Reverse(targetParts).Skip(1).ToList();
+            var targetFile = targetParts.Last();
+
+            var commonFolders = sourceFolders.Where(x => targetFolders.Contains(x));
+            var reducedSourceFolders = sourceFolders.Except(commonFolders).ToList();
+            var reducedTargetFolders = targetFolders.Except(commonFolders).ToList();
+
+            int score = 0;
+            int folderDiff = reducedSourceFolders.Count - reducedTargetFolders.Count;
+            if (folderDiff > 0)
+                score += folderDiff * missingFolderPenalty;
+            else if (folderDiff < 0)
+                score += -folderDiff * extraFolderPenalty;
+
+            if (reducedSourceFolders.Count > 0 && reducedSourceFolders.Count >= reducedTargetFolders.Count)
+            {
+                foreach (var item in reducedTargetFolders)
+                {
+                    int min = Int32.MaxValue;
+                    foreach (var item2 in reducedSourceFolders)
+                    {
+                        min = Math.Min(min, LevenshteinDistance.Compute(item, item2));
+                    }
+                    score += min;
+                }
+            }
+            else if (reducedSourceFolders.Count > 0)
+            {
+                foreach (var item in reducedSourceFolders)
+                {
+                    int min = Int32.MaxValue;
+                    foreach (var item2 in reducedTargetFolders)
+                    {
+                        min = Math.Min(min, LevenshteinDistance.Compute(item, item2));
+                    }
+                    score += min;
+                }
+            }
+            score += LevenshteinDistance.Compute(targetFile, sourceFile);
+
+            return new
+            {
+                Target = target,
+                Score = score
+            };
+        });
+        return scores.OrderBy(x => x.Score).First().Target;
+    }
+
+    public static int Compute(string s, string t)
+    {
+        int n = s.Length;
+        int m = t.Length;
+        int[,] d = new int[n + 1, m + 1];
+
+        if (n == 0) return m;
+        if (m == 0) return n;
+
+        for (int i = 0; i <= n; d[i, 0] = i++) { }
+        for (int j = 0; j <= m; d[0, j] = j++) { }
+
+        for (int i = 1; i <= n; i++)
+        {
+            for (int j = 1; j <= m; j++)
+            {
+                int cost = (t[j - 1] == s[i - 1]) ? 0 : 2;
+                d[i, j] = Math.Min(
+                    Math.Min(d[i - 1, j] + 2, d[i, j - 1] + 2),
+                    d[i - 1, j - 1] + cost);
+            }
+        }
+        return d[n, m];
+    }
+
+    public static (string, string) ComputeColorTaggedString(string s, string t)
+    {
+        int n = s.Length;
+        int m = t.Length;
+        int[,] d = new int[n + 1, m + 1];
+
+        if (n == 0) return ("", "");
+        if (m == 0) return ("", "");
+
+        for (int i = 0; i <= n; d[i, 0] = i++) { }
+        for (int j = 0; j <= m; d[0, j] = j++) { }
+
+        for (int i = 1; i <= n; i++)
+        {
+            for (int j = 1; j <= m; j++)
+            {
+                int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                d[i, j] = Math.Min(
+                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                    d[i - 1, j - 1] + cost);
+            }
+        }
+
+        var x = n;
+        var y = m;
+        var editsFromStoT = new Stack<(Edits, char)>();
+        var editsFromTtoS = new Stack<(Edits, char)>();
+
+        while (x != 0 || y != 0)
+        {
+            var cost = d[x, y];
+            if (y - 1 < 0)
+            {
+                editsFromStoT.Push((Edits.Delete, s[x - 1]));
+                editsFromTtoS.Push((Edits.Blank, ' '));
+                x--;
+                continue;
+            }
+
+            if (x - 1 < 0)
+            {
+                editsFromStoT.Push((Edits.Insert, t[y - 1]));
+                editsFromTtoS.Push((Edits.Blank, ' '));
+                y--;
+                continue;
+            }
+
+            var costLeft = d[x, y - 1];
+            var costUp = d[x - 1, y];
+            var costDiagonal = d[x - 1, y - 1];
+
+            if (costDiagonal <= costLeft && costDiagonal <= costUp && (costDiagonal == cost - 1 || costDiagonal == cost))
+            {
+                if (costDiagonal == cost - 1)
+                {
+                    editsFromStoT.Push((Edits.Substitute, s[x - 1]));
+                    editsFromTtoS.Push((Edits.Substitute, t[y - 1]));
+                    x--; y--;
+                }
+                else
+                {
+                    editsFromStoT.Push((Edits.Keep, s[x - 1]));
+                    editsFromTtoS.Push((Edits.Keep, t[y - 1]));
+                    x--; y--;
+                }
+            }
+            else if (costLeft <= costDiagonal && costLeft == cost - 1)
+            {
+                editsFromStoT.Push((Edits.Insert, t[y - 1]));
+                editsFromTtoS.Push((Edits.Blank, ' '));
+                y--;
+            }
+            else
+            {
+                editsFromStoT.Push((Edits.Delete, s[x - 1]));
+                editsFromTtoS.Push((Edits.Blank, ' '));
+                x--;
+            }
+        }
+
+        string FinalizeText(Stack<(Edits, char)> results)
+        {
+            string result = "";
+            Edits editCurrent = Edits.Keep;
+            while (results.Count > 0)
+            {
+                var entry = results.Pop();
+                Edits nextEdit = entry.Item1;
+                if (editCurrent != nextEdit)
+                {
+                    if (editCurrent != Edits.Keep && editCurrent != Edits.Blank) result += "]";
+                    if (nextEdit == Edits.Delete) result += "[c/ff0000:";
+                    else if (nextEdit == Edits.Insert) result += "[c/00ff00:";
+                    else if (nextEdit == Edits.Substitute) result += "[c/ffff00:";
+                }
+                result += entry.Item2;
+                editCurrent = nextEdit;
+            }
+            if (editCurrent != Edits.Keep && editCurrent != Edits.Blank) result += "]";
+            return result;
+        }
+
+        return (FinalizeText(editsFromStoT), FinalizeText(editsFromTtoS));
+    }
 }

@@ -45,7 +45,7 @@ public sealed class BossDropItem : GlobalItem
     {
         // Disable: world item outline drawing
         var config = ModContent.GetInstance<ClientConfig>();
-        if (!config.LootOutlines)
+        if (!config.Outlines.DrawOutlines || !config.Outlines.TreasureBagOutlines)
             return true;
 
         Team? team = _team;

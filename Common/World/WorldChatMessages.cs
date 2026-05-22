@@ -4,6 +4,7 @@ using Terraria.Chat;
 using Terraria.GameContent.Events;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using PvPAdventure.Core.Config;
 
 
 namespace PvPAdventure.Common.World;
@@ -28,12 +29,18 @@ internal class WorldChatMessages : ModSystem
     private void OnSandstormStartSandstorm(On_Sandstorm.orig_StartSandstorm orig)
     {
         orig();
-        ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Sandstorm"), Color.White);
+        if (ModContent.GetInstance<ServerConfig>().BroadcastWeatherMessages)
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Sandstorm"), Color.White);
+        }
     }
 
     private void OnMainStartRain(On_Main.orig_StartRain orig)
     {
         orig();
-        ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Rain"), Color.White);
+        if (ModContent.GetInstance<ServerConfig>().BroadcastWeatherMessages)
+        {
+            ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.PvPAdventure.Rain"), Color.White);
+        }
     }
 }

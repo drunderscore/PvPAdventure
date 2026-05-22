@@ -17,7 +17,7 @@ public static class TravelRules
                 return false;
             }
 
-            return config.IsTravelSystemEnabled;
+            return config.TravelSystem.IsTravelSystemEnabled;
         }
     }
 }
