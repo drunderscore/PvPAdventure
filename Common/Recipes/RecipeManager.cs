@@ -114,7 +114,7 @@ public class RecipeManager : ModSystem
             .Register();
         // Make Shroomite Bars cheaper
         Recipe.Create(ItemID.ShroomiteBar)
-            .AddIngredient(ItemID.GlowingMushroom, 3)
+            .AddIngredient(ItemID.GlowingMushroom, 1)
             .AddIngredient(ItemID.ChlorophyteBar, 1)
             .AddTile(TileID.Autohammer)
             .Register();

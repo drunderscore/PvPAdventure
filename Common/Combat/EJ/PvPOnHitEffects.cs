@@ -103,8 +103,12 @@ internal class PvPOnHitEffects : ModPlayer
             }
         }
     }
+
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
     {
+        if (!modifiers.PvP)
+            return;
+
         var sourceItem = modifiers.DamageSource.SourceItem;
         if (sourceItem != null && !sourceItem.IsAir)
         {
@@ -112,6 +116,20 @@ internal class PvPOnHitEffects : ModPlayer
             if (sourceItem.type == ItemID.BreakerBlade && Player.statLife >= Player.statLifeMax2 * 0.9f)
             {
                 modifiers.IncomingDamageMultiplier *= 2.5f;
+            }
+        }
+
+        // Striking Moment gives +400% melee damage in PvP
+        int attackerIndex = modifiers.DamageSource.SourcePlayerIndex;
+        if (attackerIndex >= 0 && attackerIndex < Main.maxPlayers)
+        {
+            Player attacker = Main.player[attackerIndex];
+            if (attacker.active && attacker.HasBuff(BuffID.ParryDamageBuff))
+            {
+                modifiers.IncomingDamageMultiplier *= 5f;
+
+                // Remove the buff from the attacker immediately
+                attacker.ClearBuff(BuffID.ParryDamageBuff);
             }
         }
     }
