@@ -98,12 +98,7 @@ internal class TravelPlayer : ModPlayer
             return;
         }
 
-        // Keep stuck until selection
-        if (!TravelTeleportSystem.HasSelection)
-        {
-            Player.respawnTimer = 2;
-            return;
-        }
+        TravelTeleportSystem.EnsureDeathTravelSelection(Player);
 
         base.UpdateDead();
     }

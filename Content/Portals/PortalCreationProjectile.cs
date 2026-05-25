@@ -17,6 +17,7 @@ namespace PvPAdventure.Content.Portals;
 public sealed class PortalCreationProjectile : ModProjectile
 {
     public override string Texture => "PvPAdventure/Assets/Portals/Portal_NoTeam";
+    private float OutlineProgress => MathHelper.Clamp(ElapsedFrames / 30f, 0f, 1f);
 
     private int CreationFrames
     {
@@ -129,6 +130,9 @@ public sealed class PortalCreationProjectile : ModProjectile
         Vector2 origin = frame.Size() * 0.5f;
         Vector2 position = Projectile.Center - Main.screenPosition;
 
+        //Main.spriteBatch.Draw(texture, position, frame, Color.White * Opacity, Projectile.rotation, origin, Projectile.scale, SpriteEffects.None, 0f);
+        float outlineProgress = MathHelper.Clamp(ElapsedFrames / 30f, 0f, 1f);
+        PortalDrawer.DrawPortalOutline(Main.spriteBatch, OwnerTeam, position, frame, Projectile.rotation, origin, Projectile.scale * outlineProgress, outlineProgress);
         Main.spriteBatch.Draw(texture, position, frame, Color.White * Opacity, Projectile.rotation, origin, Projectile.scale, SpriteEffects.None, 0f);
 
         int visibleHealth = Math.Max(1, (int)(PortalNPC.PortalMaxHealth * Progress));

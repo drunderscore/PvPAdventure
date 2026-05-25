@@ -1035,13 +1035,18 @@ Mods: {
 					Tooltip: ""
 				}
 
+				AllowSpectating: {
+					Label: Allow Spectating
+					Tooltip: Spectate travel destinations by hovering them in the UI
+				}
+
 				TravelPortalCreationTimePreHardmodeSeconds: {
-					Label: Portal Creation Time (Pre-Hardmode)
+					Label: "[i:PvPAdventure:PortalCreator] Portal Creation Time (Pre-HM)"
 					Tooltip: The use time in seconds it takes for a portal to be created in Pre-Hardmode
 				}
 
 				TravelPortalCreationTimeHardmodeSeconds: {
-					Label: Portal Creation Time (Hardmode)
+					Label: "[i:PvPAdventure:PortalCreator] Portal Creation Time (HM)"
 					Tooltip: The use time in seconds it takes for a portal to be created in Hardmode
 				}
 

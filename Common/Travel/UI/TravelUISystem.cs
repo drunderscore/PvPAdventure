@@ -22,7 +22,8 @@ internal class TravelUISystem : ModSystem
             return;
 
         Player local = Main.LocalPlayer;
-        bool show = Main.mapFullscreen && TravelTeleportSystem.ShouldShowTravelUI(local);
+        bool show = (Main.mapFullscreen || TravelSpectateSystem.MapRestore || TravelTeleportSystem.ShouldUseDeathTravelSelection(local)) &&
+            TravelTeleportSystem.ShouldShowTravelUI(local);
 
         if (!show)
         {
@@ -31,7 +32,9 @@ internal class TravelUISystem : ModSystem
                 SoundEngine.PlaySound(SoundID.MenuClose);
                 travelUI.SetState(null);
                 travelUIState.ForceRebuildNextUpdate();
-                TravelTeleportSystem.ClearSelection();
+
+                if (!TravelTeleportSystem.ShouldPreserveSelectionWhenTravelUICloses(local))
+                    TravelTeleportSystem.ClearSelection();
             }
 
             return;
@@ -77,15 +80,40 @@ internal class TravelUISystem : ModSystem
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
+        int index = layers.FindIndex(layer => layer.Name == "Vanilla: Mouse Text");
+
+        if (index < 0)
+            return;
+
+        layers.Insert(index, new LegacyGameInterfaceLayer(
+            "PvPAdventure: Travel UI",
+            DrawOnRegularInterfaceLayer,
+            InterfaceScaleType.UI));
+    }
+
+    private bool DrawOnRegularInterfaceLayer()
+    {
+        if (Main.mapFullscreen || travelUI?.CurrentState == null)
+            return true;
+
+        Player local = Main.LocalPlayer;
+        bool drawPreviewUI = TravelSpectateSystem.MapRestore && TravelSpectateSystem.HasTargetHover;
+        bool drawDeathUI = TravelTeleportSystem.ShouldUseDeathTravelSelection(local);
+
+        if (!drawPreviewUI && !drawDeathUI)
+            return true;
+
+        travelUI.Draw(Main.spriteBatch, Main._drawInterfaceGameTime);
+        return true;
     }
     #endregion
 
     #region Helpers
-    private static bool IsAnyConfigUIOpen()
-    {
-        UIState s = Main.InGameUI?._currentState;
-        return Main.ingameOptionsWindow || s is UIModConfig or UIModConfigList;
-    }
+    //private static bool IsAnyConfigUIOpen()
+    //{
+    //    UIState s = Main.InGameUI?._currentState;
+    //    return Main.ingameOptionsWindow || s is UIModConfig or UIModConfigList;
+    //}
     public static bool IsMouseHovering
     {
         get

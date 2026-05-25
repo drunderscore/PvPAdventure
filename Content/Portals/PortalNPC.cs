@@ -282,30 +282,36 @@ public sealed class PortalNPC : ModNPC
     #region Drawing
     public override bool PreDraw(SpriteBatch sb, Vector2 screenPos, Color drawColor)
     {
+        //return true;
         Texture2D texture = PortalAssets.GetPortalTexture(OwnerTeam);
 
         Rectangle frame = NPC.frame;
         Vector2 origin = frame.Size() * 0.5f;
         Vector2 position = NPC.Center - screenPos;
 
+        const float interactionRange = 160; // TODO: Use config value here, similar to beds!
+        const float interactionRangeSquared = interactionRange * interactionRange;
+        bool isMyTeam = Main.LocalPlayer.team == OwnerTeam;
+
+        float distanceSquared = Vector2.DistanceSquared(Main.LocalPlayer.Center, NPC.Center);
+        bool withinRange = distanceSquared < interactionRangeSquared;
+        float opacity = (isMyTeam && !withinRange) ? 0.5f : 1f;
+
         // Draw portal with the team texture. Portals are gameplay markers, so keep them visible in darkness.
-        sb.Draw(texture, position, frame, Color.White, NPC.rotation, origin, NPC.scale, NPC.spriteDirection == -1 ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
+        sb.Draw(texture, position, frame, Color.White * opacity, NPC.rotation, origin, NPC.scale, NPC.spriteDirection == -1 ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
 
         // Draw healthbar
         PortalDrawer.DrawPortalHealthBar(sb, NPC.Center + new Vector2(0f, 24f * NPC.scale), NPC.life, NPC.lifeMax, NPC.scale, 1f);
 
         // Draw hover icon if player is within range
-        if (NPC.Hitbox.Contains(Main.MouseWorld.ToPoint()))
-        {
-            // Define 'in range' (usually around 200 pixels for interaction)
-            float distance = Vector2.Distance(Main.LocalPlayer.Center, NPC.Center);
-            bool inRange = distance < 200f;
+        if (!NPC.Hitbox.Contains(Main.MouseWorld.ToPoint()))
+            return false;
 
-            if (inRange && TryGetOwner(out Player owner))
-            {
-                PortalDrawer.DrawHoverIcon(sb, owner, NPC.Center, Main.teamColor[OwnerTeam], 1f);
-            }
-        }
+        if (!withinRange)
+            return false;
+
+        if (TryGetOwner(out Player owner))
+            PortalDrawer.DrawHoverIcon(sb, owner, NPC.Center, Main.teamColor[OwnerTeam], 1f);
 
         return false;
     }

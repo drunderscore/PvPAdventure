@@ -56,11 +56,7 @@ internal sealed class UITravelIconButton : UIPanel
         if (IsMouseHovering)
         {
             Main.LocalPlayer.mouseInterface = true;
-
-            if (target.Available && !Main.mapFullscreen)
-                TravelSpectateSystem.TrySetHover(target);
-            else if (target.Type is TravelType.Bed or TravelType.Portal)
-                TravelSpectateSystem.ClearHoverIfMatch(target);
+            TravelSpectateSystem.TrySetHover(target);
         }
         else
         {

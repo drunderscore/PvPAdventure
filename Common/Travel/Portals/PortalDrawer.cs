@@ -9,6 +9,13 @@ namespace PvPAdventure.Common.Travel.Portals;
 
 public static class PortalDrawer
 {
+    public static void DrawPortalOutline(SpriteBatch sb, int team, Vector2 position, Rectangle frame, float rotation, Vector2 origin, float scale, float opacity, SpriteEffects effects = SpriteEffects.None)
+    {
+        if (scale <= 0f || opacity <= 0f) return;
+
+        sb.Draw(PortalAssets.GetPortalOutlinesTexture(team), position, frame, Color.White * opacity, rotation, origin, scale, effects, 0f);
+    }
+
     public static void DrawPortalHealthBar(SpriteBatch sb, Vector2 worldPos, int health, int maxHealth, float scale, float alpha)
     {
         if (maxHealth <= 0)
@@ -77,6 +84,8 @@ public static class PortalDrawer
         Color color = team > 0 && team < Main.teamColor.Length
             ? Main.teamColor[team]
             : Color.White;
+
+        worldPos.Y -= 20;
 
         for (int i = 0; i < 32; i++)
         {

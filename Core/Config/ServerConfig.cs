@@ -208,6 +208,10 @@ public class ServerConfig : ModConfig
         public bool IsRandomTeleportEnabled = true;
 
         [RequiresField(nameof(IsTravelSystemEnabled))]
+        [DefaultValue(true)]
+        public bool AllowSpectating = true;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
         [Range(0, 60)]
         [DefaultValue(5)]
         public int TravelPortalCreationTimePreHardmodeSeconds = 5;
