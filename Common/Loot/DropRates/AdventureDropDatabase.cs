@@ -331,6 +331,8 @@ public static class AdventureDropDatabase
                 foreach (var drop in drops)
                     ModifyDropRate(drop, ItemID.Binoculars, 1, 1);
                 npcLoot.Add(ItemDropRule.Common(ItemID.VilePowder, 1, 10, 10));
+                npcLoot.Add(ItemDropRule.Common(ItemID.Lens, 1, 1, 1));
+                npcLoot.Add(ItemDropRule.Common(ItemID.BlackLens, 1, 1, 1));
                 npcLoot.RemoveWhere(drop =>
     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.CorruptSeeds) ||
     drop is LeadingConditionRule);

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-
 namespace PvPAdventure.Common.Misc;
 /// <summary>
 /// Makes the three types of dungeon bricks unable to be blockswapped or mined without the requisite pickaxe power, even on the surface.
@@ -19,16 +18,15 @@ internal class DungeonBrickTileChanges : GlobalTile
             { TileID.GreenDungeonBrick, 100 },
             { TileID.PinkDungeonBrick, 100 }
     };
-
     public override bool CanKillTile(int i, int j, int type, ref bool blockDamaged)
     {
         if (TilePickaxeRequirements.TryGetValue(type, out int requiredPick))
         {
             Player player = Main.LocalPlayer;
+            if (player.HeldItem.hammer > 0)
+                return base.CanKillTile(i, j, type, ref blockDamaged);
             if (player.HeldItem.pick < requiredPick)
-            {
                 return false;
-            }
         }
         return base.CanKillTile(i, j, type, ref blockDamaged);
     }
@@ -41,7 +39,7 @@ internal class DungeonBrickTileChanges : GlobalTile
             if (TilePickaxeRequirements.TryGetValue(existingType, out int requiredPick))
             {
                 Player player = Main.LocalPlayer;
-                    return false;
+                return false;
             }
         }
         return base.CanPlace(i, j, type);
