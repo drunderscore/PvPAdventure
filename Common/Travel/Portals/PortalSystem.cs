@@ -25,7 +25,7 @@ public static class PortalSystem
         int ownerTeam = player.team;
 
         int index = Projectile.NewProjectile(
-            player.GetSource_ItemUse(player.HeldItem),
+            player.GetSource_Misc("PortalCreation"),
             worldPos,
             Vector2.Zero,
             ModContent.ProjectileType<PortalCreationProjectile>(),

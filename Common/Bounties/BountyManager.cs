@@ -459,7 +459,7 @@ public class BountyManager : ModSystem
         {
             CollectedAllMechanicalBossSouls = true;
             ChatHelper.BroadcastChatMessage(
-                NetworkText.FromKey("Mods.PvPAdventure.Bounty.CollectedAllMechanicalBossSouls"), Color.White);
+                NetworkText.FromKey("Mods.PvPAdventure.ServerConfig.Bounty.CollectedAllMechanicalBossSouls"), Color.White);
         }
     }
 

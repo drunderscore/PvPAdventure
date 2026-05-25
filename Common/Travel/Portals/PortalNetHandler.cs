@@ -54,11 +54,23 @@ public static class PortalNetHandler
 
         if (Main.netMode == NetmodeID.Server)
         {
-            if (playerId != whoAmI || !TryGetPortalCreator(playerId, slot, out Player player, out _))
+            if (playerId != whoAmI)
+            {
+                Log.Chat($"Portal creation request rejected: sender mismatch (packet={playerId}, caller={whoAmI})");
                 return;
+            }
+
+            if (!TryGetPortalCreator(playerId, slot, out Player player, out _))
+            {
+                Log.Chat($"Portal creation request rejected: invalid portal creator request (player={playerId}, slot={slot})");
+                return;
+            }
 
             if (!PortalCreatorItem.CanCreatePortal(player, false))
+            {
+                Log.Chat($"Portal creation request rejected: player {playerId} failed portal validation");
                 return;
+            }
 
             Log.Chat("Portal creation request received");
             PortalSystem.StartPortalCreation(player);

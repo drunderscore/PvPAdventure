@@ -1051,12 +1051,12 @@ Mods: {
 				}
 
 				TravelPortalCreationTimePreHardmodeSeconds: {
-					Label: "[i:PvPAdventure:PortalCreator] Portal Creation Time (Pre-HM)"
+					Label: "[i:PvPAdventure:PortalCreatorItem] Portal Creation Time (Pre-HM)"
 					Tooltip: The use time in seconds it takes for a portal to be created in Pre-Hardmode
 				}
 
 				TravelPortalCreationTimeHardmodeSeconds: {
-					Label: "[i:PvPAdventure:PortalCreator] Portal Creation Time (HM)"
+					Label: "[i:PvPAdventure:PortalCreatorItem] Portal Creation Time (HM)"
 					Tooltip: The use time in seconds it takes for a portal to be created in Hardmode
 				}
 
