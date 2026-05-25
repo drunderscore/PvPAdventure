@@ -1,6 +1,6 @@
 displayName = PvP Adventure
 author = resin <hey@amberres.in>
-version = 1.2.4
+version = 1.2.5
 homepage = https://tpvpa.terraria.sh
 weakReferences = DragonLens, PvPHub
 buildIgnore = *.csproj, *.user, *.md, obj\*, bin\*, .vs\*, Assets\Old\*, Assets\Custom\Old\*, *.psd
