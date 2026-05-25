@@ -171,6 +171,16 @@ Mods: {
 				DisplayName: Portal Creator
 				Tooltip: ""
 			}
+
+			NextPageItem: {
+				DisplayName: Next Page Item
+				Tooltip: ""
+			}
+
+			PrevPageItem: {
+				DisplayName: Prev Page Item
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
