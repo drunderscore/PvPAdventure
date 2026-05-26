@@ -17,6 +17,7 @@ internal class UISliderElement : UIElement
     public float Max { get; }
     private readonly float step;
     private readonly Action<float> onValueChangedCallback;
+    public Action<float> OnRelease { get; set; }
     private float appliedValue;
 
     public UISliderElement(string label, float min, float max, float defaultValue, float step = 0.01f, Action<float> onValueChanged = null)
@@ -62,6 +63,13 @@ internal class UISliderElement : UIElement
         appliedValue = MathHelper.Clamp(defaultValue, Min, Max);
         Slider.Ratio = (appliedValue - Min) / (Max - Min);
         Slider.OnDrag += HandleSliderDrag;
+        Slider.OnRelease += ratio =>
+        {
+            float rawValue = Min + ratio * (Max - Min);
+            float snapped = MathHelper.Clamp(
+                (float)Math.Round((rawValue - Min) / step) * step + Min, Min, Max);
+            OnRelease?.Invoke(snapped);
+        };
         UpdateLabelText();
 
         Append(Slider);
@@ -85,12 +93,10 @@ internal class UISliderElement : UIElement
     {
         // Special formatting for time to format as minutes/hours (including negative).
         //bool formatAsTime = step >= 1f && (Math.Abs(Min) >= 60f || Max >= 60f);
-
         if (labelTextKey == "Time")
         {
             int totalMinutes = (int)Math.Round(appliedValue);
             bool isNegative = totalMinutes < 0;
-
             int absMinutes = Math.Abs(totalMinutes);
             int hours = absMinutes / 60;
             int minutes = absMinutes % 60;
@@ -108,6 +114,16 @@ internal class UISliderElement : UIElement
             return;
         }
 
+        //if (labelTextKey == "Countdown")  // format as m:ss
+        //{
+        //    int totalSeconds = (int)Math.Round(appliedValue);
+        //    int m = totalSeconds / 60;
+        //    int s = totalSeconds % 60;
+        //    string formatted = m > 0 ? $"{m}:{s:D2}" : $"{s}s";
+        //    Label.SetText($"{labelTextKey}: {formatted}");
+        //    return;
+        //}
+
         int intVal = (int)Math.Round(appliedValue);
         Label.SetText($"{labelTextKey}: {intVal}");
     }
@@ -115,5 +131,14 @@ internal class UISliderElement : UIElement
     public override void Draw(SpriteBatch spriteBatch)
     {
         base.Draw(spriteBatch);
+    }
+
+    // For live game countdown, we set the slider value directly
+    public void SetValue(float value)
+    {
+        float clamped = MathHelper.Clamp(value, Min, Max);
+        Slider.Ratio = (clamped - Min) / (Max - Min);
+        appliedValue = clamped;
+        UpdateLabelText();
     }
 }

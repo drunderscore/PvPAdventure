@@ -77,15 +77,23 @@ public class GameManager : ModSystem
                             // Every second
                             if (_startGameCountdown % 60 == 0)
                             {
-                                if (_startGameCountdown <= 60 * 3)
+                                int secondsLeft = _startGameCountdown.Value / 60;
+
+                                if (secondsLeft % 10 == 0 && secondsLeft > 0)
                                 {
                                     ChatHelper.BroadcastChatMessage(
-                                        NetworkText.FromLiteral($"{_startGameCountdown / 60}..."),
+                                        NetworkText.FromLiteral($"The game will begin in {secondsLeft} seconds"),
+                                        Color.Green);
+                                }
+                                else if (secondsLeft <= 3 && secondsLeft > 0)
+                                {
+                                    ChatHelper.BroadcastChatMessage(
+                                        NetworkText.FromLiteral($"{secondsLeft}..."),
                                         Color.Crimson);
                                 }
 
                                 if (Main.dedServ)
-                                    NetMessage.SendData(MessageID.WorldData); // sync current countdown
+                                    NetMessage.SendData(MessageID.WorldData);
                             }
                         }
                     }
@@ -160,12 +168,18 @@ public class GameManager : ModSystem
 
         string fromText = FormatHHMMSSFromFrames(oldFrames);
         string toText = FormatHHMMSSFromFrames(TimeRemaining);
-        string deltaText = FormatDeltaMMSSFromFrames(appliedDeltaFrames);
+        
+        string extendedOrShortened = appliedDeltaFrames < 0 ? "shortened" : "extended";
 
+        //string msg = $"Game {extendedOrShortened} from {fromText} to {toText}";
+        //string msg = $"Game {extendedOrShortened} from {fromText} to {toText}";
+
+        string deltaText = FormatDeltaMMSSFromFrames(appliedDeltaFrames);
         string deltaHex = appliedDeltaFrames < 0 ? "FF0000" : (appliedDeltaFrames > 0 ? "00FF00" : "FFFFFF");
         string deltaTagged = $"[c/{deltaHex}:{deltaText}]";
+        //string msg = $"Game {extendedOrShortened} from {fromText} to {toText} ({deltaTagged})";
 
-        string msg = $"Game time adjusted from {fromText} to {toText} ({deltaTagged})";
+        string msg = $"Game {extendedOrShortened} by {deltaTagged}";
 
         if (Main.dedServ)
         {
@@ -176,6 +190,21 @@ public class GameManager : ModSystem
         {
             ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(msg), Color.White);
         }
+    }
+
+    /// <summary>Sets the active countdown to a new value in seconds. Server/SP only.</summary>
+    public void SetCountdown(int newSeconds)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        if (!_startGameCountdown.HasValue)
+            return;
+
+        _startGameCountdown = newSeconds * 60;
+
+        if (Main.dedServ)
+            NetMessage.SendData(MessageID.WorldData);
     }
 
     private static string FormatHHMMSSFromFrames(int frames)

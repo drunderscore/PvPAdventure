@@ -19,6 +19,7 @@ public class UISlider : UIElement
     public bool IsHeld;
     public float Ratio;
     public event Action<float> OnDrag;
+    public event Action<float> OnRelease;
 
     public UISlider()
     {
@@ -44,6 +45,8 @@ public class UISlider : UIElement
     public override void LeftMouseUp(UIMouseEvent evt)
     {
         base.LeftMouseUp(evt);
+        if (IsHeld) 
+            OnRelease?.Invoke(Ratio);
         IsHeld = false;
     }
 

@@ -79,7 +79,8 @@ public class DLStartGameTool : Tool
 
         if (gm._startGameCountdown.HasValue)
         {
-            Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.CannotStart"), Color.Red);
+            gms.ShowStartDialog();
+            //Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.CannotStart"), Color.Red);
             return;
         }
 
@@ -124,11 +125,11 @@ public class DLStartGameTool : Tool
             return;
         }
 
-        if (gm._startGameCountdown.HasValue)
-        {
-            Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.CannotStart"), Color.Red);
-            return;
-        }
+        //if (gm._startGameCountdown.HasValue)
+        //{
+            //Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.CannotStart"), Color.Red);
+            //return;
+        //}
 
         gms.ShowStartDialog();
     }

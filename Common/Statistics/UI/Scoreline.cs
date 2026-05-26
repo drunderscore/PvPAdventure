@@ -69,25 +69,28 @@ public class Scoreline : ModSystem
                 new((Main.screenWidth / 2) - (timerWidth / 2), 0, timerWidth, timerHeight),
                 Main.teamColor[(int)Team.None] * 0.7f * _colorModulate);
 
-            if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing)
-            {
-                var timeRemaining = ModContent.GetInstance<GameManager>().TimeRemaining;
-                var timer = TimeSpan.FromSeconds(timeRemaining / 60.0);
+            var gm = ModContent.GetInstance<GameManager>();
 
-                if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing)
-                {
-                    var text = timer.ToString(@"h\:mm\:ss");
-                    var metrics = ChatManager.GetStringSize(FontAssets.MouseText.Value, text, Vector2.One);
-                    ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch,
-                        FontAssets.MouseText.Value,
-                        text,
-                        new((int)((Main.screenWidth / 2.0f) - (metrics.X / 2.0f)), 10.0f),
-                        Color.White * _colorModulate,
-                        0.0f,
-                        Vector2.Zero,
-                        Vector2.One);
-                }
+            if (gm.CurrentPhase == GameManager.Phase.Playing)
+            {
+                var timer = TimeSpan.FromSeconds(gm.TimeRemaining / 60.0);
+                var text = timer.ToString(@"h\:mm\:ss");
+                var metrics = ChatManager.GetStringSize(FontAssets.MouseText.Value, text, Vector2.One);
+                ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch,
+                    FontAssets.MouseText.Value, text,
+                    new((int)((Main.screenWidth / 2.0f) - (metrics.X / 2.0f)), 10.0f),
+                    Color.White * _colorModulate, 0f, Vector2.Zero, Vector2.One);
             }
+            //else if (gm._startGameCountdown.HasValue)
+            //{
+            //    int secondsLeft = (int)Math.Ceiling(gm._startGameCountdown.Value / 60.0);
+            //    var text = $"{secondsLeft}...";
+            //    var metrics = ChatManager.GetStringSize(FontAssets.MouseText.Value, text, Vector2.One);
+            //    ChatManager.DrawColorCodedStringWithShadow(Main.spriteBatch,
+            //        FontAssets.MouseText.Value, text,
+            //        new((int)((Main.screenWidth / 2.0f) - (metrics.X / 2.0f)), 10.0f),
+            //        Color.Green * _colorModulate, 0f, Vector2.Zero, Vector2.One);
+            //}
 
             // Start from the furthest left
             var offset = -widthOfAllPoints;

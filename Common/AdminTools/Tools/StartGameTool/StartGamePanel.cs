@@ -10,9 +10,6 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.AdminTools.Tools.StartGameTool;
 
-/// <summary>
-/// The main UI element for starting a game (draggable title + content panel)
-/// </summary>
 internal class StartGamePanel : UIDraggablePanel
 {
     private readonly UITextPanel<string> _startButton;
@@ -22,10 +19,15 @@ internal class StartGamePanel : UIDraggablePanel
     private int _countdownTimeInSeconds = 10;
     private int _gameTimeInFrames = 195 * 60 * 60;
 
+    // Tracks whether the user is currently dragging the countdown slider,
+    // so we don't overwrite their input with the live value.
+    private bool _countdownSliderBeingDragged = false;
+
     protected override float MinResizeH => 155f;
     protected override float MinResizeW => 220f;
 
-    public StartGamePanel() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.DisplayName"))
+    public StartGamePanel()
+        : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.DisplayName"))
     {
         Width.Set(360, 0);
         Height.Set(180, 0);
@@ -33,7 +35,7 @@ internal class StartGamePanel : UIDraggablePanel
         VAlign = 0.7f;
         ContentPanel.SetPadding(12);
 
-        _gameTimeSlider = new UI.UISliderElement(
+        _gameTimeSlider = new UISliderElement(
             label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Time"),
             min: 0f,
             max: 195f,
@@ -47,23 +49,52 @@ internal class StartGamePanel : UIDraggablePanel
         );
         ContentPanel.Append(_gameTimeSlider);
 
-        _countdownSlider = new UI.UISliderElement(
+        // Countdown slider: 0–300 seconds (5 minutes)
+        _countdownSlider = new UISliderElement(
             label: Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Countdown"),
             min: 0f,
-            max: 10f,
+            max: 300f,
             defaultValue: 10f,
             step: 1f,
             onValueChanged: value =>
             {
                 _countdownTimeInSeconds = (int)value;
+                _countdownSliderBeingDragged = true; // user is interacting
             }
         )
         {
             Top = { Pixels = 26f }
         };
+
+        // When the user releases the slider during an active countdown, sync to server.
+        _countdownSlider.OnRelease = releasedValue =>
+        {
+            _countdownSliderBeingDragged = false;
+
+            var gm = ModContent.GetInstance<GameManager>();
+            if (!gm._startGameCountdown.HasValue)
+                return; // countdown not running, nothing to sync
+
+            int newSeconds = (int)releasedValue;
+
+            if (Main.netMode == NetmodeID.SinglePlayer)
+            {
+                gm.SetCountdown(newSeconds);
+            }
+            else if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+                packet.Write((byte)AdventurePacketIdentifier.GameTimer);
+                packet.Write((byte)GameTimerNetHandler.GameTimerPacketType.UpdateCountdown);
+                packet.Write(newSeconds);
+                packet.Send();
+            }
+        };
+
         ContentPanel.Append(_countdownSlider);
 
-        _startButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.StartExclamation"))
+        _startButton = new UITextPanel<string>(
+            Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.StartExclamation"))
         {
             Width = { Pixels = 120f },
             Height = { Pixels = 40f },
@@ -71,7 +102,7 @@ internal class StartGamePanel : UIDraggablePanel
             VAlign = 1f
         };
         _startButton.OnMouseOver += (_, _) => _startButton.BorderColor = Color.Yellow;
-        _startButton.OnMouseOut += (_, _) => _startButton.BorderColor = Color.Black;
+        _startButton.OnMouseOut  += (_, _) => _startButton.BorderColor = Color.Black;
         _startButton.OnLeftClick += (_, _) =>
         {
             if (Main.netMode == NetmodeID.SinglePlayer)
@@ -92,6 +123,20 @@ internal class StartGamePanel : UIDraggablePanel
             ModContent.GetInstance<StartGameSystem>().Hide();
         };
         ContentPanel.Append(_startButton);
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        // While a countdown is active and the user isn't dragging, mirror the
+        // live server-side countdown value onto the slider so it counts down visually.
+        var gm = ModContent.GetInstance<GameManager>();
+        if (gm._startGameCountdown.HasValue && !_countdownSliderBeingDragged)
+        {
+            float secondsLeft = gm._startGameCountdown.Value / 60f;
+            _countdownSlider.SetValue(secondsLeft); // clamps to [0, 300] internally
+        }
     }
 
     protected override void OnClosePanelLeftClick()
