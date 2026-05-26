@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Content.Portals;
 using PvPAdventure.Core.Utilities;
 using System.Collections.Generic;
 using Terraria;
@@ -159,6 +160,9 @@ internal sealed class TeamBedSystem : ModSystem
 
         SendPlayerSpawn(ownerId, -1, -1);
         TeleportChat.AnnounceBedDestroyed(owner, owner.name);
+
+        Vector2 bedWorldPos = new Vector2(origin.X * 16f + 8f, origin.Y * 16f + 8f);
+        PortalNPC.PlayPortalFx(bedWorldPos, killed: true, damage: 0);
     }
 
     private void ClearIfOwner(Point origin, int playerId)
