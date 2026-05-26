@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel;
+using PvPAdventure.Common.Travel.Beds;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Core.Config;
 using System;
@@ -177,6 +178,9 @@ public sealed class PortalNPC : ModNPC
 
         PortalSystem.ClearCreationProjectiles(OwnerIndex);
 
+        if (Main.netMode == NetmodeID.Server)
+            TeamBedNetHandler.SendBedDestructionFx(WorldPosition.X, WorldPosition.Y, killed: true);
+
         if (TryGetOwner(out Player owner))
             TeleportChat.AnnouncePortalDestroyed(owner, GetOwnerName());
 
@@ -262,6 +266,7 @@ public sealed class PortalNPC : ModNPC
     {
         if (player != null)
             _lastDamagePlayer = player.whoAmI;
+        PortalNetHandler.SendPortalDamageCredit(NPC.whoAmI);
 
         NPC.immune[player.whoAmI] = MeleeHitCooldown;
         PlayHitFxAndSync(NPC.life <= 0);
@@ -271,6 +276,7 @@ public sealed class PortalNPC : ModNPC
     {
         if (projectile != null)
             _lastDamagePlayer = projectile.owner;
+        PortalNetHandler.SendPortalDamageCredit(NPC.whoAmI);
 
         NPC.immune[projectile.owner] = ProjectileHitCooldown;
         PlayHitFxAndSync(NPC.life <= 0);
@@ -294,6 +300,45 @@ public sealed class PortalNPC : ModNPC
     {
         TriggerHitFlash();
         PlayPortalFx(WorldPosition, killed);
+    }
+
+    public static void PlayPortalFx(Vector2 worldPos, bool killed, int damage = 0)
+    {
+        if (Main.dedServ)
+            return;
+
+        //if (damage > 0)
+        //{
+        //    CombatText.NewText(GetPortalHitbox(worldPos), CombatText.DamagedHostile, damage);
+        //}
+
+        if (!killed)
+        {
+            SoundEngine.PlaySound(SoundID.NPCHit4, worldPos);
+            return;
+        }
+
+        SoundEngine.PlaySound(SoundID.NPCDeath6, worldPos);
+
+        for (int i = 0; i < 42; i++)
+        {
+            Vector2 velocity = Main.rand.NextVector2Circular(3.5f, 3.5f);
+            Dust.NewDustPerfect(worldPos + Main.rand.NextVector2Circular(24f, 36f), DustID.MagicMirror, velocity, 120, Color.White, Main.rand.NextFloat(1.1f, 1.8f));
+        }
+    }
+
+    internal void SetLastDamagePlayerFromNetwork(int playerId)
+    {
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        if (playerId < 0 || playerId >= Main.maxPlayers || Main.player[playerId] is not { active: true } player)
+            return;
+
+        if (IsFriendlyPlayer(player))
+            return;
+
+        _lastDamagePlayer = playerId;
     }
 
     private bool IsFriendlyPlayer(Player player)
@@ -395,35 +440,5 @@ public sealed class PortalNPC : ModNPC
         ownerName = reader.ReadString();
         NPC.GivenName = $"{GetOwnerName()}'s Portal";
     }
-    #endregion
-
-    #region Visual effects and sounds
-    public static void PlayPortalFx(Vector2 worldPos, bool killed, int damage = 0)
-    {
-        if (Main.dedServ)
-            return;
-
-        //if (damage > 0)
-        //{
-        //    CombatText.NewText(GetPortalHitbox(worldPos), CombatText.DamagedHostile, damage);
-        //}
-
-        if (!killed)
-        {
-            SoundEngine.PlaySound(SoundID.NPCHit4, worldPos);
-            return;
-        }
-
-        SoundEngine.PlaySound(SoundID.NPCDeath6, worldPos);
-
-        for (int i = 0; i < 42; i++)
-        {
-            Vector2 velocity = Main.rand.NextVector2Circular(3.5f, 3.5f);
-            Dust.NewDustPerfect(worldPos + Main.rand.NextVector2Circular(24f, 36f), DustID.MagicMirror, velocity, 120, Color.White, Main.rand.NextFloat(1.1f, 1.8f));
-        }
-    }
-
-    public static Rectangle GetPortalHitbox(Vector2 worldPos) =>
-        new((int)worldPos.X - 24, (int)worldPos.Y - 72, 48, 72);
     #endregion
 }

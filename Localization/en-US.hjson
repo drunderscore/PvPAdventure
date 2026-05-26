@@ -1000,12 +1000,12 @@ Mods: {
 
 				BedKill: {
 					Label: Bed Kill
-					Tooltip: ""
+					Tooltip: Points per bed kill
 				}
 
 				PortalKill: {
 					Label: Portal Kill
-					Tooltip: ""
+					Tooltip: Points per portal kill
 				}
 			}
 
