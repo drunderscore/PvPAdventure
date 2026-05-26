@@ -20,4 +20,19 @@ public static class TravelRules
             return config.TravelSystem.IsTravelSystemEnabled;
         }
     }
+
+    public static bool AllowSpectating
+    {
+        get
+        {
+            ServerConfig config = ModContent.GetInstance<ServerConfig>();
+            if (config == null)
+            {
+                Log.Warn("ServerConfig is null, defaulting to travel spectating disabled.");
+                return false;
+            }
+
+            return config.TravelSystem?.IsTravelSystemEnabled == true && config.TravelSystem.AllowSpectating;
+        }
+    }
 }

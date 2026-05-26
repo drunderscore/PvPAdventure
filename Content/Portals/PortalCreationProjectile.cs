@@ -17,6 +17,9 @@ namespace PvPAdventure.Content.Portals;
 public sealed class PortalCreationProjectile : ModProjectile
 {
     public override string Texture => "PvPAdventure/Assets/Portals/Portal_NoTeam";
+    private float OutlineOpacityProgress => MathHelper.Clamp(ElapsedFrames / 12f, 0f, 1f);
+    private float OutlineScaleProgress => MathHelper.Clamp(ElapsedFrames / 22f, 0f, 1f);
+    private float HealthBarOpacity => MathHelper.Clamp(ElapsedFrames / 8f, 0f, 1f);
 
     private int CreationFrames
     {
@@ -85,7 +88,7 @@ public sealed class PortalCreationProjectile : ModProjectile
         if (ElapsedFrames < CreationFrames)
             ElapsedFrames++;
 
-        if (config.ShowPortalCreationProjectile && Main.netMode != NetmodeID.Server)
+        if (Main.netMode != NetmodeID.Server)
         {
             if (firstFrame)
                 PortalDrawer.SpawnPortalFadeInDust(Projectile.Bottom, OwnerTeam);
@@ -116,10 +119,6 @@ public sealed class PortalCreationProjectile : ModProjectile
 
     public override bool PreDraw(ref Color lightColor)
     {
-        var config = ModContent.GetInstance<ServerConfig>().TravelSystem;
-        if (!config.ShowPortalCreationProjectile)
-            return false;
-
         Texture2D texture = PortalAssets.GetPortalTexture(OwnerTeam);
 
         int frameCount = Math.Max(1, Main.npcFrameCount[ModContent.NPCType<PortalNPC>()]);
@@ -129,17 +128,14 @@ public sealed class PortalCreationProjectile : ModProjectile
         Vector2 origin = frame.Size() * 0.5f;
         Vector2 position = Projectile.Center - Main.screenPosition;
 
+        // Draw outline
+        PortalDrawer.DrawPortalOutline(Main.spriteBatch, OwnerTeam, position, frame, Projectile.rotation, origin, Projectile.scale * OutlineScaleProgress, OutlineOpacityProgress);
+        
+        // Draw portal
         Main.spriteBatch.Draw(texture, position, frame, Color.White * Opacity, Projectile.rotation, origin, Projectile.scale, SpriteEffects.None, 0f);
 
         int visibleHealth = Math.Max(1, (int)(PortalNPC.PortalMaxHealth * Progress));
-        PortalDrawer.DrawPortalHealthBar(
-            Main.spriteBatch,
-            Projectile.Center + new Vector2(0f, 24f * Projectile.scale),
-            visibleHealth,
-            PortalNPC.PortalMaxHealth,
-            Projectile.scale,
-            Opacity
-        );
+        PortalDrawer.DrawPortalHealthBar(Main.spriteBatch, Projectile.Center + new Vector2(0f, 24f * Projectile.scale), visibleHealth, PortalNPC.PortalMaxHealth, Projectile.scale, HealthBarOpacity);
 
         return false;
     }
@@ -165,7 +161,7 @@ public sealed class PortalCreationProjectile : ModProjectile
         int owner = Projectile.owner;
 
         Projectile.Kill();
-        Log.Chat("Portal temp creation projectile killed");
+        //Log.Chat("Portal temp creation projectile killed");
 
         if (Main.netMode == NetmodeID.Server)
             NetMessage.SendData(MessageID.KillProjectile, -1, -1, null, identity, owner);

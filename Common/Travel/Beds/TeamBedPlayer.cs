@@ -1,4 +1,5 @@
 ﻿using PvPAdventure.Core.Net;
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -9,6 +10,16 @@ internal sealed class TeamBedPlayer : ModPlayer
 {
     private int lastSpawnX = int.MinValue;
     private int lastSpawnY = int.MinValue;
+
+    public override void Load()
+    {
+        On_Player.ItemCheck_UseMiningTools += OnPlayerItemCheckUseMiningTools;
+    }
+
+    public override void Unload()
+    {
+        On_Player.ItemCheck_UseMiningTools -= OnPlayerItemCheckUseMiningTools;
+    }
 
     public override void PostUpdate()
     {
@@ -23,9 +34,39 @@ internal sealed class TeamBedPlayer : ModPlayer
 
         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
         packet.Write((byte)AdventurePacketIdentifier.TeamBed);
+        packet.Write((byte)TeamBedPacketType.PlayerSpawn);
         packet.Write((byte)Main.myPlayer);
         packet.Write(Player.SpawnX);
         packet.Write(Player.SpawnY);
         packet.Send();
+    }
+
+    private void OnPlayerItemCheckUseMiningTools(On_Player.orig_ItemCheck_UseMiningTools orig, Player self, Item sitem)
+    {
+        RecordDestroyAttemptIfNeeded(self, sitem);
+        orig(self, sitem);
+    }
+
+    private void RecordDestroyAttemptIfNeeded(Player player, Item item)
+    {
+        if (Main.netMode == NetmodeID.Server)
+            return;
+
+        var tbs = ModContent.GetInstance<TeamBedSystem>();
+
+        // Clear first unconditionally, re-set below if targeting a bed
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            tbs.ClearCurrentBedTarget(player.whoAmI);
+
+        if (item == null || item.IsAir || item.pick <= 0 && item.axe <= 0 && item.hammer <= 0)
+            return;
+
+        if (!TeamBedSystem.TryGetBedOriginFromTile(Player.tileTargetX, Player.tileTargetY, out Point origin))
+            return;
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            TeamBedNetHandler.SendDestroyAttempt(origin);
+        else
+            tbs.SetCurrentBedTarget(player.whoAmI, origin);
     }
 }

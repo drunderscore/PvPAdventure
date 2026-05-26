@@ -17,6 +17,7 @@ internal class TravelTeleportSystem : ModSystem
     private static TravelTarget selectedTarget;
     private static bool hasSelection;
     private static bool wasUsingDeathTravelSelection;
+    private static bool pendingDeathTravelSelection;
 
     public static bool HasSelection => hasSelection;
 
@@ -104,6 +105,7 @@ internal class TravelTeleportSystem : ModSystem
         }
 
         TravelTeleportNetHandler.SendTeleportRequest(target);
+        CloseMapForTravelExecution();
         ClearSelection();
     }
 
@@ -120,12 +122,20 @@ internal class TravelTeleportSystem : ModSystem
 
         selectedTarget = target;
         hasSelection = true;
+        pendingDeathTravelSelection = ShouldUseDeathTravelSelection(Main.LocalPlayer);
     }
 
     public static void ClearSelection()
     {
         selectedTarget = default;
         hasSelection = false;
+        pendingDeathTravelSelection = false;
+    }
+
+    public static bool ShouldPreserveSelectionWhenTravelUICloses(Player player)
+    {
+        return pendingDeathTravelSelection ||
+            player?.active == true && (player.dead || player.ghost || IsWaitingForPortalCreator(player));
     }
 
     public override void PostUpdateEverything()
@@ -134,6 +144,8 @@ internal class TravelTeleportSystem : ModSystem
 
         if (Main.netMode == NetmodeID.Server || player?.active != true)
             return;
+
+        bool executeDeathSelection = pendingDeathTravelSelection && !ShouldUseDeathTravelSelection(player);
 
         UpdateDeathTravelSelection(player);
 
@@ -148,11 +160,17 @@ internal class TravelTeleportSystem : ModSystem
 
         if (!TryGetTarget(player, selectedTarget.Type, selectedTarget.PlayerIndex, out TravelTarget current) || !current.Available)
         {
-            ClearSelection();
-            return;
+            if (!executeDeathSelection)
+            {
+                ClearSelection();
+                return;
+            }
+
+            current = CreateWorldSpawnTarget(player);
         }
 
-        TravelTeleportNetHandler.SendTeleportRequest(current);
+        TravelTeleportNetHandler.SendTeleportRequest(current, executeDeathSelection);
+        CloseMapForTravelExecution();
         //Log.Chat($"New travel request: {current}");
         ClearSelection();
     }
@@ -161,6 +179,14 @@ internal class TravelTeleportSystem : ModSystem
     {
         ClearSelection();
         wasUsingDeathTravelSelection = false;
+    }
+
+    public static void EnsureDeathTravelSelection(Player player)
+    {
+        if (!ShouldUseDeathTravelSelection(player) || hasSelection)
+            return;
+
+        SelectWorldSpawn(player);
     }
 
     public static bool TryGetTarget(Player player, TravelType type, int playerIndex, out TravelTarget target)
@@ -178,7 +204,7 @@ internal class TravelTeleportSystem : ModSystem
         return false;
     }
 
-    public static bool CanTeleport(Player player, TravelTarget target, out string reason)
+    public static bool CanTeleport(Player player, TravelTarget target, out string reason, bool ignoreCooldown = false)
     {
         reason = "";
 
@@ -200,7 +226,7 @@ internal class TravelTeleportSystem : ModSystem
             return false;
         }
 
-        if (TeleportCooldownSecondsLeft(player) > 0)
+        if (!ignoreCooldown && TeleportCooldownSecondsLeft(player) > 0)
         {
             reason = TeleportCooldownText(player);
             return false;
@@ -213,9 +239,9 @@ internal class TravelTeleportSystem : ModSystem
         return false;
     }
 
-    public static bool TryTeleport(Player player, TravelTarget target, out string reason)
+    public static bool TryTeleport(Player player, TravelTarget target, out string reason, bool ignoreCooldown = false)
     {
-        if (!CanTeleport(player, target, out reason))
+        if (!CanTeleport(player, target, out reason, ignoreCooldown))
             return false;
 
         if (target.Type == TravelType.Random)
@@ -284,7 +310,7 @@ internal class TravelTeleportSystem : ModSystem
 
     private static TravelTarget WithCooldown(Player player, TravelTarget target)
     {
-        if (TeleportCooldownSecondsLeft(player) <= 0)
+        if (ShouldUseDeathTravelSelection(player) || TeleportCooldownSecondsLeft(player) <= 0)
             return target;
 
         return new TravelTarget(target.Type, target.PlayerIndex, target.WorldPosition, target.Name, target.BiomeName, false, TeleportCooldownText(player));
@@ -302,11 +328,20 @@ internal class TravelTeleportSystem : ModSystem
 
     private static void SelectWorldSpawn(Player player)
     {
-        if (TryGetTarget(player, TravelType.World, -1, out TravelTarget worldSpawn) && worldSpawn.Available)
-        {
-            selectedTarget = worldSpawn;
-            hasSelection = true;
-        }
+        selectedTarget = CreateWorldSpawnTarget(player);
+        hasSelection = true;
+        pendingDeathTravelSelection = true;
+    }
+
+    private static TravelTarget CreateWorldSpawnTarget(Player player)
+    {
+        return new TravelTarget(TravelType.World, -1, GetPlayerTopLeftAtTile(player, Main.spawnTileX, Main.spawnTileY), "World Spawn", "World", true);
+    }
+
+    private static void CloseMapForTravelExecution()
+    {
+        Main.mapFullscreen = false;
+        TravelSpectateSystem.ClearPreviewForTravelExecution();
     }
 
     private static bool TryGetPortalPosition(Player player, int ownerIndex, out Vector2 position)

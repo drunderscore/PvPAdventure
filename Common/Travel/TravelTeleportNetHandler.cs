@@ -41,13 +41,13 @@ public static class TravelTeleportNetHandler
         }
     }
 
-    public static void SendTeleportRequest(TravelTarget target)
+    public static void SendTeleportRequest(TravelTarget target, bool ignoreCooldown = false)
     {
         //Log.Chat($"[TravelTeleport] Send request type={target.Type} targetPlayer={target.PlayerIndex} pos={target.WorldPosition} available={target.Available}");
 
         if (Main.netMode == NetmodeID.SinglePlayer)
         {
-            if (TravelTeleportSystem.TryTeleport(Main.LocalPlayer, target, out string reason))
+            if (TravelTeleportSystem.TryTeleport(Main.LocalPlayer, target, out string reason, ignoreCooldown))
             {
                 PlayTeleportSound(Main.LocalPlayer.Center);
                 TeleportChat.Announce(Main.LocalPlayer, target.Type, target.PlayerIndex);
@@ -63,7 +63,7 @@ public static class TravelTeleportNetHandler
         if (Main.netMode != NetmodeID.MultiplayerClient)
             return;
 
-        if (!TravelTeleportSystem.CanTeleport(Main.LocalPlayer, target, out string blockedReason))
+        if (!TravelTeleportSystem.CanTeleport(Main.LocalPlayer, target, out string blockedReason, ignoreCooldown))
         {
             if (!string.IsNullOrWhiteSpace(blockedReason))
                 Main.NewText(blockedReason);
@@ -76,6 +76,7 @@ public static class TravelTeleportNetHandler
         packet.Write((byte)TravelTeleportPacketType.Teleport);
         packet.Write((byte)target.Type);
         packet.Write((short)target.PlayerIndex);
+        packet.Write(ignoreCooldown);
         packet.Send();
 
         TravelTeleportSystem.StartTeleportCooldown(Main.LocalPlayer);
@@ -85,6 +86,7 @@ public static class TravelTeleportNetHandler
     {
         TravelType type = (TravelType)reader.ReadByte();
         int targetPlayerIndex = reader.ReadInt16();
+        bool ignoreCooldown = reader.ReadBoolean();
 
         if (Main.netMode != NetmodeID.Server)
             return;
@@ -92,7 +94,7 @@ public static class TravelTeleportNetHandler
         if (whoAmI < 0 || whoAmI >= Main.maxPlayers || Main.player[whoAmI] is not { active: true } player)
             return;
 
-        if (TravelTeleportSystem.TeleportCooldownFramesLeft(player) > 0)
+        if (!ignoreCooldown && TravelTeleportSystem.TeleportCooldownFramesLeft(player) > 0)
             return;
 
         //Log.Chat($"[TravelTeleport] Request player={player.name} type={type} target={targetPlayerIndex}");

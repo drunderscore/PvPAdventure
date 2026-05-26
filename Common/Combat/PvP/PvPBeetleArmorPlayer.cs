@@ -1,6 +1,7 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using PvPAdventure.Core.Config;
+using PvPAdventure.Core.Net;
 using System.IO;
 using Terraria;
 using Terraria.DataStructures;
@@ -14,8 +15,6 @@ internal class PvPBeetleArmorPlayer : ModPlayer
 {
     public float BeetleEnergy = 0f;
     private int _lastSentTier = -1;
-
-    public const byte PacketType = 11;
 
     private static ServerConfig.OtherConfig.BeetleScaleMailConfig Cfg =>
         ModContent.GetInstance<ServerConfig>().Other.BeetleScaleMail;
@@ -99,7 +98,7 @@ internal class PvPBeetleArmorPlayer : ModPlayer
             return;
 
         ModPacket packet = Mod.GetPacket();
-        packet.Write(PacketType);
+        packet.Write((byte)AdventurePacketIdentifier.BeetleArmor);
         packet.Write((byte)Player.whoAmI);
         packet.Write((byte)tier);
         packet.Send();
@@ -119,7 +118,7 @@ internal class PvPBeetleArmorPlayer : ModPlayer
         if (Main.netMode == NetmodeID.Server)
         {
             ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            packet.Write(PacketType);
+            packet.Write((byte)AdventurePacketIdentifier.BeetleArmor);
             packet.Write(playerIndex);
             packet.Write(tier);
             packet.Send(ignoreClient: sender);

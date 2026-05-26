@@ -65,6 +65,10 @@ public class PvPAdventure : Mod
                 Common.Travel.Portals.PortalNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
+            case AdventurePacketIdentifier.BeetleArmor:
+                Common.Combat.PvP.PvPBeetleArmorPlayer.ReceivePacket(reader, whoAmI);
+                break;
+
             default:
                 Log.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
                 break;

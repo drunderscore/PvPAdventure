@@ -25,7 +25,7 @@ public static class PortalSystem
         int ownerTeam = player.team;
 
         int index = Projectile.NewProjectile(
-            player.GetSource_ItemUse(player.HeldItem),
+            player.GetSource_Misc("PortalCreation"),
             worldPos,
             Vector2.Zero,
             ModContent.ProjectileType<PortalCreationProjectile>(),
@@ -62,7 +62,8 @@ public static class PortalSystem
             return false;
 
         portal.Initialize(owner, worldPos);
-        Log.Chat($"Portal created at {(int)worldPos.X}, {(int)worldPos.Y}");
+
+        Log.Chat($"Portal created at tile position {(int)worldPos.X / 16}, {(int)worldPos.Y / 16}");
         TeleportChat.AnnouncePortalOpened(owner);
 
         if (Main.netMode == NetmodeID.Server)

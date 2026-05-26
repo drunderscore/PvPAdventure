@@ -8,7 +8,7 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.Travel;
 
 /// <summary>
-/// Handles camera previewing for travel destinations owned by players, currently beds and portals.
+/// Handles camera previewing for travel destinations.
 /// </summary>
 [Autoload(Side = ModSide.Client)]
 internal sealed class TravelSpectateSystem : ModSystem
@@ -27,7 +27,7 @@ internal sealed class TravelSpectateSystem : ModSystem
     {
         if (!CanPreview(target))
         {
-            ClearHoverIfMatch(target);
+            ClearHover();
             return;
         }
 
@@ -45,6 +45,16 @@ internal sealed class TravelSpectateSystem : ModSystem
     {
         if (hasHover && Matches(hoveredTarget, target))
             ClearHover();
+    }
+
+    public static void ClearPreviewForTravelExecution()
+    {
+        MapRestore = false;
+        hasHover = false;
+        hoveredTarget = default;
+        wasHovering = false;
+        hasRestorePos = false;
+        restoreScreenPos = Vector2.Zero;
     }
 
     public override void ModifyScreenPosition()
@@ -72,6 +82,16 @@ internal sealed class TravelSpectateSystem : ModSystem
             ApplyCamera();
     }
 
+    public override void OnWorldUnload()
+    {
+        Reset();
+    }
+
+    public override void Unload()
+    {
+        Reset();
+    }
+
     private static void ValidateHover()
     {
         if (!hasHover)
@@ -83,10 +103,7 @@ internal sealed class TravelSpectateSystem : ModSystem
             return;
         }
 
-        if (hoveredTarget.Type == TravelType.Bed && !TryGetBedPosition(hoveredTarget.PlayerIndex, out _))
-            ClearHover();
-
-        if (hoveredTarget.Type == TravelType.Portal && !TryGetPortalPosition(Main.LocalPlayer, hoveredTarget.PlayerIndex, out _))
+        if (!TryGetPreviewPosition(hoveredTarget, out _))
             ClearHover();
     }
 
@@ -95,14 +112,8 @@ internal sealed class TravelSpectateSystem : ModSystem
         if (!hasHover)
             return;
 
-        if (hoveredTarget.Type == TravelType.Bed && TryGetBedPosition(hoveredTarget.PlayerIndex, out Vector2 bedPosition))
-        {
-            SetCameraTo(bedPosition);
-            return;
-        }
-
-        if (hoveredTarget.Type == TravelType.Portal && TryGetPortalPosition(Main.LocalPlayer, hoveredTarget.PlayerIndex, out Vector2 portalPosition))
-            SetCameraTo(portalPosition);
+        if (TryGetPreviewPosition(hoveredTarget, out Vector2 position))
+            SetCameraTo(position);
     }
 
     private static void HandleHoverTransitions(Player local, bool hovering)
@@ -174,9 +185,49 @@ internal sealed class TravelSpectateSystem : ModSystem
         SpectateCameraFade.SetScreenPosition(worldPosition - new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f, allowFade: true);
     }
 
+    private static void Reset()
+    {
+        if (MapRestore)
+            Main.mapFullscreen = true;
+
+        MapRestore = false;
+        hasHover = false;
+        hoveredTarget = default;
+        wasHovering = false;
+        hasRestorePos = false;
+        restoreScreenPos = Vector2.Zero;
+    }
+
     private static bool CanPreview(TravelTarget target)
     {
-        return target.Available && target.Type is TravelType.Bed or TravelType.Portal;
+        return TravelRules.AllowSpectating && TryGetPreviewPosition(target, out _);
+    }
+
+    private static bool TryGetPreviewPosition(TravelTarget target, out Vector2 position)
+    {
+        position = Vector2.Zero;
+
+        if (target.Type == TravelType.World)
+            return TryGetWorldSpawnPosition(out position);
+
+        if (target.Type == TravelType.Bed)
+            return TryGetBedPosition(target.PlayerIndex, out position);
+
+        if (target.Type == TravelType.Portal)
+            return TryGetPortalPosition(Main.LocalPlayer, target.PlayerIndex, out position);
+
+        return false;
+    }
+
+    private static bool TryGetWorldSpawnPosition(out Vector2 position)
+    {
+        position = Vector2.Zero;
+
+        if (Main.spawnTileX <= 0 || Main.spawnTileY <= 0)
+            return false;
+
+        position = new Vector2(Main.spawnTileX, Main.spawnTileY - 3).ToWorldCoordinates();
+        return true;
     }
 
     private static bool TryGetBedPosition(int playerIndex, out Vector2 position)

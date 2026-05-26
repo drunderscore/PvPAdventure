@@ -177,11 +177,6 @@ Mods: {
 				Tooltip: ""
 			}
 
-			RefundPurchasesItem: {
-				DisplayName: Refund Purchases Item
-				Tooltip: ""
-			}
-
 			NextPageItem: {
 				DisplayName: Next Page Item
 				Tooltip: ""
@@ -189,6 +184,11 @@ Mods: {
 
 			PrevPageItem: {
 				DisplayName: Prev Page Item
+				Tooltip: ""
+			}
+
+			RefundPurchasesItem: {
+				DisplayName: Refund Purchases Item
 				Tooltip: ""
 			}
 		}
@@ -997,6 +997,16 @@ Mods: {
 					Label: Team Starting Points
 					Tooltip: Starting points per team in a new world
 				}
+
+				BedKill: {
+					Label: Bed Kill
+					Tooltip: Points per bed kill
+				}
+
+				PortalKill: {
+					Label: Portal Kill
+					Tooltip: Points per portal kill
+				}
 			}
 
 			NpcPoints: {
@@ -1055,24 +1065,24 @@ Mods: {
 					Tooltip: ""
 				}
 
+				AllowSpectating: {
+					Label: Allow Spectating
+					Tooltip: Spectate beds, portals and world spawn by hovering them in the UI
+				}
+
 				TravelPortalCreationTimePreHardmodeSeconds: {
-					Label: Portal Creation Time (Pre-Hardmode)
+					Label: "[i:PvPAdventure/PortalCreatorItem] Portal Creator Use Time (Pre-HM)"
 					Tooltip: The use time in seconds it takes for a portal to be created in Pre-Hardmode
 				}
 
 				TravelPortalCreationTimeHardmodeSeconds: {
-					Label: Portal Creation Time (Hardmode)
+					Label: "[i:PvPAdventure/PortalCreatorItem] Portal Creator Use Time (HM)"
 					Tooltip: The use time in seconds it takes for a portal to be created in Hardmode
 				}
 
 				TravelRegionRadiusTiles: {
 					Label: Travel Region Tiles
 					Tooltip: The distance in tiles to beds and portals where you can access travel
-				}
-
-				ShowPortalCreationProjectile: {
-					Label: Show Portal Creation Projectile
-					Tooltip: ""
 				}
 
 				PortalCreationOffset: {

@@ -3,6 +3,7 @@ using PvPHub.Common.Authentication;
 using PvPHub.Common.MainMenu.API.MatchHistory;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using Terraria;
@@ -42,22 +43,43 @@ internal static class OfficialMatchReporter
 
             if (!result.IsSuccess)
             {
+                string consoleMessage = result.Status == HttpStatusCode.Unauthorized
+                    ? $"Match post failed: 401 Unauthorized. The backend rejected the match post credentials. Error={result.ErrorMessage}"
+                    : $"Match post failed: Status={(int)result.Status} {result.Status}. Error={result.ErrorMessage}";
+
+                WriteMatchPostConsole(WithRequestSummary(consoleMessage, result.RequestSummary));
                 Log.Error($"[OfficialMatchReporter] Failed to post match. Status={(int)result.Status}, Error={result.ErrorMessage}");
                 return;
             }
 
             if (result.Data == null)
             {
+                WriteMatchPostConsole(WithRequestSummary("Match post succeeded, but the backend returned no match data.", result.RequestSummary));
                 Log.Info("[OfficialMatchReporter] Posted match successfully, but received no data payload back.");
                 return;
             }
 
+            WriteMatchPostConsole(WithRequestSummary($"Match post succeeded. MatchId={result.Data.Id}", result.RequestSummary));
             Log.Info($"[OfficialMatchReporter] Posted match successfully. MatchId={result.Data.Id}");
         }
         catch (Exception ex)
         {
+            WriteMatchPostConsole($"Match post failed with an unexpected error: {ex.GetType().Name}: {ex.Message}");
             Log.Error($"[OfficialMatchReporter] Unexpected error while posting match: {ex}");
         }
+    }
+
+    private static string WithRequestSummary(string message, string requestSummary)
+    {
+        if (string.IsNullOrWhiteSpace(requestSummary))
+            return message;
+
+        return $"{message} ({requestSummary})";
+    }
+
+    private static void WriteMatchPostConsole(string message)
+    {
+        Console.WriteLine($"[PvPAdventure/OfficialMatchReporter] {message}");
     }
 
     private static MatchApi.MatchPayload BuildMatchPayload(DateTime startUtc, DateTime endUtc)

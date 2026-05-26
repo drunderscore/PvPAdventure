@@ -170,6 +170,12 @@ public class ServerConfig : ModConfig
 
         [DefaultValue(5)]
         public int TeamStartingPoints = 5;
+
+        [DefaultValue(0)]
+        public int BedKill = 0;
+
+        [DefaultValue(0)]
+        public int PortalKill = 0;
     }
     
     public class BountiesConfig
@@ -208,6 +214,10 @@ public class ServerConfig : ModConfig
         public bool IsRandomTeleportEnabled = true;
 
         [RequiresField(nameof(IsTravelSystemEnabled))]
+        [DefaultValue(true)]
+        public bool AllowSpectating = true;
+
+        [RequiresField(nameof(IsTravelSystemEnabled))]
         [Range(0, 60)]
         [DefaultValue(5)]
         public int TravelPortalCreationTimePreHardmodeSeconds = 5;
@@ -221,10 +231,6 @@ public class ServerConfig : ModConfig
         [Range(0, 60)]
         [DefaultValue(8)]
         public int TravelRegionRadiusTiles = 8;
-
-        [RequiresField(nameof(IsTravelSystemEnabled))]
-        [DefaultValue(true)]
-        public bool ShowPortalCreationProjectile = true;
 
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [Range(-60, 60)]

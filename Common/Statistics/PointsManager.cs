@@ -64,6 +64,19 @@ public class PointsManager : ModSystem
         }
     }
 
+    public void AwardPointsToTeam(Team team, int points, Vector2 at, string defeated = null)
+    {
+        if (team == Team.None || points == 0) return;
+
+        _points[team] += points;
+        VisualizePointChange(points, team, at, defeated);
+
+        if (Main.dedServ)
+            NetMessage.SendData(MessageID.WorldData);
+        else
+            UiScoreboard?.Invalidate();
+    }
+
     public override void SaveWorldData(TagCompound tag)
     {
         int teamCount = Enum.GetValues<Team>().Length;
