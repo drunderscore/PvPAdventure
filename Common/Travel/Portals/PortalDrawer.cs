@@ -97,7 +97,7 @@ public static class PortalDrawer
         }
     }
 
-    public static void SpawnPortalCreationBurst(Vector2 worldPos, int team)
+    public static void SpawnFinalPortalCreationBurst(Vector2 worldPos, int team)
     {
         Color color = team > 0 && team < Main.teamColor.Length
             ? Main.teamColor[team]
@@ -109,8 +109,14 @@ public static class PortalDrawer
         {
             float angle = MathHelper.TwoPi * i / dustCount + Main.rand.NextFloat(-0.06f, 0.06f);
             Vector2 direction = angle.ToRotationVector2();
-            Vector2 position = worldPos + direction * Main.rand.NextFloat(14f, 32f);
-            Vector2 velocity = direction * Main.rand.NextFloat(3.4f, 7.2f);
+
+            const float minStartRadius = 8f;
+            const float maxStartRadius = 22f;
+            const float minVelocity = 4.2f;
+            const float maxVelocity = 8.2f;
+
+            Vector2 position = worldPos + direction * Main.rand.NextFloat(minStartRadius, maxStartRadius);
+            Vector2 velocity = direction * Main.rand.NextFloat(minVelocity, maxVelocity);
 
             Dust dust = Dust.NewDustPerfect(
                 position,

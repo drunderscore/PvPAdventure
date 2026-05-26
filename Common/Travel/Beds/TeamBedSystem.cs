@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.Portals;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using System.Collections.Generic;
 using Terraria;
@@ -124,6 +126,14 @@ internal sealed class TeamBedSystem : ModSystem
         {
             Log.Chat($"New bed claim pos=({origin.X},{origin.Y}) previousOwner={Main.player[previousOwnerId].name} newOwner={player.name}");
             DestroyPreviousOwnerBed(origin, previousOwnerId);
+        }
+
+        var cfg = ModContent.GetInstance<ServerConfig>();
+        int bedPoints = cfg.Points.BedKill;
+        if (bedPoints != 0 && player?.active == true && (Team)player.team != Team.None)
+        {
+            Vector2 pos = new Vector2(origin.X * 16f + 8f, origin.Y * 16f + 8f);
+            ModContent.GetInstance<PointsManager>().AwardPointsToTeam((Team)player.team, bedPoints, pos, "[c/F58522:Bed]");
         }
 
         bedTeams[origin] = team;

@@ -170,6 +170,12 @@ public class ServerConfig : ModConfig
 
         [DefaultValue(5)]
         public int TeamStartingPoints = 5;
+
+        [DefaultValue(0)]
+        public int BedKill = 0;
+
+        [DefaultValue(0)]
+        public int PortalKill = 0;
     }
     
     public class BountiesConfig

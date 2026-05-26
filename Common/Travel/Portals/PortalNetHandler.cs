@@ -12,7 +12,8 @@ public static class PortalNetHandler
 {
     private enum PortalPacketType : byte
     {
-        PortalCreatorUse
+        PortalCreatorUse,
+        PortalHitFx
     }
 
     public static void HandlePacket(BinaryReader reader, int whoAmI)
@@ -25,10 +26,52 @@ public static class PortalNetHandler
                 ReceivePortalCreatorUse(reader, whoAmI);
                 break;
 
+            case PortalPacketType.PortalHitFx:
+                ReceivePortalHitFx(reader, whoAmI);
+                break;
+
             default:
                 Log.Warn($"[Portal] Unknown packet type={(byte)type}");
                 break;
         }
+    }
+
+    public static void SendPortalHitFx(int npcIndex, bool killed)
+    {
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            return;
+
+        SendPortalHitFx(npcIndex, killed, -1);
+    }
+
+    private static void SendPortalHitFx(int npcIndex, bool killed, int ignoreClient)
+    {
+        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.UsePortal);
+        packet.Write((byte)PortalPacketType.PortalHitFx);
+        packet.Write((short)npcIndex);
+        packet.Write(killed);
+        packet.Send(ignoreClient: ignoreClient);
+    }
+
+    private static void ReceivePortalHitFx(BinaryReader reader, int whoAmI)
+    {
+        int npcIndex = reader.ReadInt16();
+        bool killed = reader.ReadBoolean();
+
+        if (Main.netMode == NetmodeID.Server)
+        {
+            SendPortalHitFx(npcIndex, killed, whoAmI);
+            return;
+        }
+
+        if (npcIndex < 0 || npcIndex >= Main.maxNPCs)
+            return;
+
+        NPC npc = Main.npc[npcIndex];
+
+        if (npc?.active == true && npc.ModNPC is PortalNPC portal)
+            portal.PlayHitFxFromNetwork(killed);
     }
 
     public static void SendPortalCreatorUse(int slot)

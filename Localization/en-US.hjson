@@ -997,6 +997,16 @@ Mods: {
 					Label: Team Starting Points
 					Tooltip: Starting points per team in a new world
 				}
+
+				BedKill: {
+					Label: Bed Kill
+					Tooltip: ""
+				}
+
+				PortalKill: {
+					Label: Portal Kill
+					Tooltip: ""
+				}
 			}
 
 			NpcPoints: {
