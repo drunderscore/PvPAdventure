@@ -1,4 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Statistics;
+using PvPAdventure.Common.Travel.Portals;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using System.Collections.Generic;
 using Terraria;
@@ -15,6 +18,24 @@ internal sealed class TeamBedSystem : ModSystem
     private readonly Dictionary<Point, int> bedOwners = [];
     private readonly Dictionary<int, BedState> lastStates = [];
     private int updateTimer;
+    private readonly Dictionary<int, (Point Origin, ulong Tick)> currentBedTarget = [];
+    private const ulong BedTargetTtlTicks = 45;
+
+    public void SetCurrentBedTarget(int playerId, Point origin)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        currentBedTarget[playerId] = (origin, Main.GameUpdateCount);
+    }
+
+    public void ClearCurrentBedTarget(int playerId)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        currentBedTarget.Remove(playerId);
+    }
 
     public IEnumerable<(Point Origin, Team Team)> ActiveBeds()
     {
@@ -25,17 +46,14 @@ internal sealed class TeamBedSystem : ModSystem
 
     public bool TryGetTeam(Point origin, out Team team) => bedTeams.TryGetValue(origin, out team);
 
-    public override void OnWorldUnload()
-    {
-        bedTeams.Clear();
-        bedOwners.Clear();
-        lastStates.Clear();
-        updateTimer = 0;
-    }
+    
 
     public override void PostUpdatePlayers()
     {
-        if (Main.netMode == NetmodeID.MultiplayerClient || ++updateTimer < 15)
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        if (++updateTimer < 15)
             return;
 
         updateTimer = 0;
@@ -57,6 +75,25 @@ internal sealed class TeamBedSystem : ModSystem
         bedTeams[origin] = team;
     }
 
+    private static bool BedTileExists(Point origin)
+    {
+        for (int x = origin.X; x < origin.X + 4; x++)
+        {
+            for (int y = origin.Y; y < origin.Y + 2; y++)
+            {
+                if ((uint)x >= (uint)Main.maxTilesX || (uint)y >= (uint)Main.maxTilesY)
+                    continue;
+
+                Tile tile = Main.tile[x, y];
+
+                if (tile != null && tile.HasTile && tile.TileType == TileID.Beds)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     public void UpdateFromPlayer(Player player)
     {
         if (Main.netMode == NetmodeID.MultiplayerClient || player?.active != true)
@@ -70,7 +107,17 @@ internal sealed class TeamBedSystem : ModSystem
 
         lastStates[playerId] = current;
 
-        if (previous.HasOrigin && (!current.HasOrigin || previous.Origin != current.Origin))
+        if (previous.HasOrigin && !current.HasOrigin)
+        {
+            if (BedTileExists(previous.Origin))
+                ClearIfOwner(previous.Origin, playerId);
+            else
+                HandleBedTileDestroyed(previous.Origin, playerId);
+
+            return;
+        }
+
+        if (previous.HasOrigin && previous.Origin != current.Origin)
             ClearIfOwner(previous.Origin, playerId);
 
         if (!current.HasOrigin)
@@ -120,10 +167,7 @@ internal sealed class TeamBedSystem : ModSystem
             return;
 
         if (hadOwner && !sameOwner && !sameTeamOwner)
-        {
-            Log.Chat($"New bed claim pos=({origin.X},{origin.Y}) previousOwner={Main.player[previousOwnerId].name} newOwner={player.name}");
-            DestroyPreviousOwnerBed(origin, previousOwnerId);
-        }
+            ClearDestroyedBedOwnerSpawn(origin, previousOwnerId, announceDestroyed: true);
 
         bedTeams[origin] = team;
 
@@ -143,22 +187,16 @@ internal sealed class TeamBedSystem : ModSystem
         return player.team > 0 && (Team)player.team == team;
     }
 
-    private void DestroyPreviousOwnerBed(Point origin, int ownerId)
+    private static void AwardBedKillPoints(Team team, Point origin)
     {
-        if (ownerId < 0 || ownerId >= Main.maxPlayers || Main.player[ownerId] is not { active: true } owner)
+        var cfg = ModContent.GetInstance<ServerConfig>();
+        int bedPoints = cfg.Points.BedKill;
+
+        if (bedPoints == 0 || team == Team.None)
             return;
 
-        if (!PlayerOwnsOrigin(owner, origin))
-            return;
-
-        Log.Chat($"Destroy previous owner bed pos=({origin.X},{origin.Y}) ownerId={ownerId}");
-
-        owner.SpawnX = -1;
-        owner.SpawnY = -1;
-        lastStates[ownerId] = GetState(owner);
-
-        SendPlayerSpawn(ownerId, -1, -1);
-        TeleportChat.AnnounceBedDestroyed(owner, owner.name);
+        Vector2 pos = new(origin.X * 16f + 8f, origin.Y * 16f + 8f);
+        ModContent.GetInstance<PointsManager>().AwardPointsToTeam(team, bedPoints, pos, "[c/F58522:Bed]");
     }
 
     private void ClearIfOwner(Point origin, int playerId)
@@ -173,13 +211,112 @@ internal sealed class TeamBedSystem : ModSystem
             SendBedUpdate(origin, Team.None);
     }
 
-    private static bool PlayerOwnsOrigin(Player player, Point origin)
+    private void ClearDestroyedBedOwnerSpawn(Point origin, int ownerId, bool announceDestroyed)
     {
-        return player.SpawnX >= 0 &&
-            player.SpawnY >= 0 &&
-            Player.CheckSpawn(player.SpawnX, player.SpawnY) &&
-            TryFindBedOrigin(player.SpawnX, player.SpawnY, out Point found) &&
-            found == origin;
+        if (ownerId < 0 || ownerId >= Main.maxPlayers || Main.player[ownerId] is not { active: true } owner)
+            return;
+
+        Log.Chat($"Cleared owner bed spawn pos=({origin.X},{origin.Y}) ownerId={ownerId}, announce={announceDestroyed}");
+
+        owner.SpawnX = -1;
+        owner.SpawnY = -1;
+        lastStates[ownerId] = GetState(owner);
+
+        SendPlayerSpawn(ownerId, -1, -1);
+
+        if (announceDestroyed)
+            TeleportChat.AnnounceBedDestroyed(owner, owner.name);
+    }
+
+    private void HandleBedTileDestroyed(Point origin, int fallbackOwnerId = -1)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        bool hasOwner = bedOwners.TryGetValue(origin, out int ownerId);
+        if (!hasOwner)
+            ownerId = fallbackOwnerId;
+
+        if (ownerId < 0)
+            return;
+
+        Team destroyedTeam = bedTeams.TryGetValue(origin, out Team team) ? team : Team.None;
+        Team destroyerTeam = GetDestroyerTeam(origin, destroyedTeam);
+        bool enemyDestroyed = destroyerTeam != Team.None;
+
+        bool removed = bedTeams.Remove(origin);
+        bedOwners.Remove(origin);
+        ClearTargetsForOrigin(origin);
+
+        if (removed)
+            SendBedUpdate(origin, Team.None);
+
+        ClearDestroyedBedOwnerSpawn(origin, ownerId, announceDestroyed: enemyDestroyed);
+
+        if (!enemyDestroyed)
+            return;
+
+        AwardBedKillPoints(destroyerTeam, origin);
+
+        Vector2 bedWorldPos = new(origin.X * 16f + 8f, origin.Y * 16f + 8f);
+        TeamBedNetHandler.SendBedDestructionFx(bedWorldPos.X, bedWorldPos.Y, killed: true);
+    }
+
+    private void ClearTargetsForOrigin(Point origin)
+    {
+        List<int> stale = [];
+
+        foreach ((int playerId, var target) in currentBedTarget)
+        {
+            if (target.Origin == origin)
+                stale.Add(playerId);
+        }
+
+        foreach (int playerId in stale)
+            currentBedTarget.Remove(playerId);
+    }
+
+    private Team GetDestroyerTeam(Point origin, Team destroyedTeam)
+    {
+        foreach ((int playerId, var target) in currentBedTarget)
+        {
+            if (target.Origin != origin)
+                continue;
+
+            if (Main.GameUpdateCount < target.Tick || Main.GameUpdateCount - target.Tick > BedTargetTtlTicks)
+                continue;
+
+            if (playerId < 0 || playerId >= Main.maxPlayers)
+                continue;
+
+            Player player = Main.player[playerId];
+            if (player?.active != true)
+                continue;
+
+            Team playerTeam = (Team)player.team;
+            if (playerTeam == Team.None || playerTeam == destroyedTeam)
+                continue;
+
+            return playerTeam;
+        }
+
+        return Team.None;
+    }
+
+    internal static bool TryGetBedOriginFromTile(int x, int y, out Point origin)
+    {
+        origin = default;
+
+        if ((uint)x >= (uint)Main.maxTilesX || (uint)y >= (uint)Main.maxTilesY)
+            return false;
+
+        Tile tile = Main.tile[x, y];
+
+        if (tile == null || !tile.HasTile || tile.TileType != TileID.Beds)
+            return false;
+
+        origin = new Point(x - tile.TileFrameX / 18 % 4, y - tile.TileFrameY / 18 % 2);
+        return true;
     }
 
     private static BedState GetState(Player player)
@@ -201,7 +338,7 @@ internal sealed class TeamBedSystem : ModSystem
 
         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
         packet.Write((byte)Core.Net.AdventurePacketIdentifier.TeamBed);
-        packet.Write((byte)255);
+        packet.Write((byte)TeamBedPacketType.BedUpdate);
         packet.Write(origin.X);
         packet.Write(origin.Y);
         packet.Write((byte)team);
@@ -215,6 +352,7 @@ internal sealed class TeamBedSystem : ModSystem
 
         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
         packet.Write((byte)Core.Net.AdventurePacketIdentifier.TeamBed);
+        packet.Write((byte)TeamBedPacketType.PlayerSpawn);
         packet.Write((byte)playerId);
         packet.Write(spawnX);
         packet.Write(spawnY);
@@ -237,12 +375,8 @@ internal sealed class TeamBedSystem : ModSystem
                 if ((uint)x >= (uint)Main.maxTilesX || (uint)y >= (uint)Main.maxTilesY)
                     continue;
 
-                Tile tile = Main.tile[x, y];
-
-                if (tile == null || !tile.HasTile || tile.TileType != TileID.Beds)
+                if (!TryGetBedOriginFromTile(x, y, out Point candidate))
                     continue;
-
-                Point candidate = new(x - tile.TileFrameX / 18 % 4, y - tile.TileFrameY / 18 % 2);
 
                 if (!seen.Add(candidate))
                     continue;
@@ -262,23 +396,26 @@ internal sealed class TeamBedSystem : ModSystem
         return best != int.MaxValue;
     }
 
-    private readonly struct BedState
+    private readonly struct BedState(int spawnX, int spawnY, int team, Point origin, bool hasOrigin)
     {
-        public readonly int SpawnX;
-        public readonly int SpawnY;
-        public readonly int Team;
-        public readonly Point Origin;
-        public readonly bool HasOrigin;
-
-        public BedState(int spawnX, int spawnY, int team, Point origin, bool hasOrigin)
-        {
-            SpawnX = spawnX;
-            SpawnY = spawnY;
-            Team = team;
-            Origin = origin;
-            HasOrigin = hasOrigin;
-        }
+        public readonly int SpawnX = spawnX;
+        public readonly int SpawnY = spawnY;
+        public readonly int Team = team;
+        public readonly Point Origin = origin;
+        public readonly bool HasOrigin = hasOrigin;
 
         public bool Equals(BedState other) => SpawnX == other.SpawnX && SpawnY == other.SpawnY && Team == other.Team && Origin == other.Origin && HasOrigin == other.HasOrigin;
     }
+
+    #region Unload
+    public override void OnWorldUnload()
+    {
+        bedTeams.Clear();
+        bedOwners.Clear();
+        lastStates.Clear();
+        currentBedTarget.Clear();
+        updateTimer = 0;
+    }
+    #endregion
+
 }

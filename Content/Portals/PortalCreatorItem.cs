@@ -256,7 +256,7 @@ public class PortalCreatorItem : ModItem
             return false;
         }
 
-        if (player.velocity.LengthSquared() > 0f)
+        if (player.velocity.LengthSquared() > 0.1f)
         {
             if (warn) Warning(player, "Mods.PvPAdventure.PortalCreator.CannotUseWhileMoving");
             return false;

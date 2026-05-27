@@ -1,11 +1,15 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel;
+using PvPAdventure.Common.Travel.Beds;
 using PvPAdventure.Common.Travel.Portals;
+using PvPAdventure.Core.Config;
 using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
+using Terraria.Enums;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.Localization;
@@ -96,11 +100,14 @@ public sealed class PortalNPC : ModNPC
 
         if (Main.netMode != NetmodeID.Server)
         {
-            if (NPC.localAI[0] == 0f)
+            if (NPC.localAI[0] == 0f) // creation-burst flag
             {
                 NPC.localAI[0] = 1f;
-                PortalDrawer.SpawnPortalCreationBurst(NPC.Center, OwnerTeam);
+                PortalDrawer.SpawnFinalPortalCreationBurst(NPC.Center, OwnerTeam);
             }
+
+            if (NPC.localAI[1] > 0f) // local-only visual timer
+                NPC.localAI[1]--;
 
             PortalDrawer.SpawnPortalDust(NPC.Bottom, 1f);
 
@@ -171,8 +178,26 @@ public sealed class PortalNPC : ModNPC
 
         PortalSystem.ClearCreationProjectiles(OwnerIndex);
 
+        if (Main.netMode == NetmodeID.Server)
+            TeamBedNetHandler.SendBedDestructionFx(WorldPosition.X, WorldPosition.Y, killed: true);
+
         if (TryGetOwner(out Player owner))
             TeleportChat.AnnouncePortalDestroyed(owner, GetOwnerName());
+
+        // Award points
+        if (_lastDamagePlayer >= 0 && _lastDamagePlayer < Main.maxPlayers)
+        {
+            Player last = Main.player[_lastDamagePlayer];
+            if (last != null && last.active && (Team)last.team != Team.None)
+            {
+                var cfg = ModContent.GetInstance<ServerConfig>();
+                int portalPoints = cfg.Points.PortalKill;
+                if (portalPoints != 0)
+                {
+                    ModContent.GetInstance<PointsManager>().AwardPointsToTeam((Team)last.team, portalPoints, NPC.Center, "[c/F58522:Portal]");
+                }
+            }
+        }
     }
 
     private bool TryGetOwner(out Player owner)
@@ -183,9 +208,10 @@ public sealed class PortalNPC : ModNPC
 
     #region Hit / damage from melee & projectiles
     public override bool CanHitPlayer(Player target, ref int cooldownSlot) => false;
-
+    private int _lastDamagePlayer = -1; // the whoAmI of the last player that damaged this portal
     private const int MeleeHitCooldown = 20;
     private const int ProjectileHitCooldown = 10;
+    private const int PortalHitFlashFrames = 6;
 
     private static void NormalizePortalHit(ref NPC.HitModifiers modifiers)
     {
@@ -193,7 +219,7 @@ public sealed class PortalNPC : ModNPC
         modifiers.DamageVariationScale *= 0f;
         modifiers.DisableCrit();
         modifiers.DisableKnockback();
-        modifiers.HideCombatText();
+        //modifiers.HideCombatText();
     }
 
     public override void ModifyHitByItem(Player player, Item item, ref NPC.HitModifiers modifiers)
@@ -238,89 +264,44 @@ public sealed class PortalNPC : ModNPC
 
     public override void OnHitByItem(Player player, Item item, NPC.HitInfo hit, int damageDone)
     {
+        if (player != null)
+            _lastDamagePlayer = player.whoAmI;
+        PortalNetHandler.SendPortalDamageCredit(NPC.whoAmI);
+
         NPC.immune[player.whoAmI] = MeleeHitCooldown;
-        PlayPortalFx(WorldPosition, NPC.life <= 0, hit.Damage);
+        PlayHitFxAndSync(NPC.life <= 0);
     }
 
     public override void OnHitByProjectile(Projectile projectile, NPC.HitInfo hit, int damageDone)
     {
+        if (projectile != null)
+            _lastDamagePlayer = projectile.owner;
+        PortalNetHandler.SendPortalDamageCredit(NPC.whoAmI);
+
         NPC.immune[projectile.owner] = ProjectileHitCooldown;
-        PlayPortalFx(WorldPosition, NPC.life <= 0, hit.Damage);
+        PlayHitFxAndSync(NPC.life <= 0);
     }
 
-    private bool IsFriendlyPlayer(Player player)
+    private void TriggerHitFlash()
     {
-        // Return false to allow testing damage in debug mode, even if the player is friendly.
-//#if DEBUG
-        //return false;
-//#endif
+        if (Main.dedServ || NPC.life <= 0)
+            return;
 
-        if (player?.active != true)
-            return false;
-
-        if (player.whoAmI == OwnerIndex)
-            return true;
-
-        return player.team > 0 && player.team == OwnerTeam;
+        NPC.localAI[1] = PortalHitFlashFrames;
     }
 
-    #endregion
-
-    #region Netcode
-    public override void SendExtraAI(BinaryWriter writer)
+    private void PlayHitFxAndSync(bool killed)
     {
-        writer.Write(ownerName ?? string.Empty);
+        PlayHitFxFromNetwork(killed);
+        PortalNetHandler.SendPortalHitFx(NPC.whoAmI, killed);
     }
 
-    public override void ReceiveExtraAI(BinaryReader reader)
+    internal void PlayHitFxFromNetwork(bool killed)
     {
-        ownerName = reader.ReadString();
-        NPC.GivenName = $"{GetOwnerName()}'s Portal";
-    }
-    #endregion
-
-    #region Drawing
-    public override bool PreDraw(SpriteBatch sb, Vector2 screenPos, Color drawColor)
-    {
-        //return true;
-        Texture2D texture = PortalAssets.GetPortalTexture(OwnerTeam);
-
-        Rectangle frame = NPC.frame;
-        Vector2 origin = frame.Size() * 0.5f;
-        Vector2 position = NPC.Center - screenPos;
-
-        const float interactionRange = 160; // TODO: Use config value here, similar to beds!
-        const float interactionRangeSquared = interactionRange * interactionRange;
-        bool isMyTeam = Main.LocalPlayer.team == OwnerTeam;
-
-        float distanceSquared = Vector2.DistanceSquared(Main.LocalPlayer.Center, NPC.Center);
-        bool withinRange = distanceSquared < interactionRangeSquared;
-        float opacity = (isMyTeam && !withinRange) ? 0.5f : 1f;
-
-        // Draw portal with the team texture. Portals are gameplay markers, so keep them visible in darkness.
-        sb.Draw(texture, position, frame, Color.White * opacity, NPC.rotation, origin, NPC.scale, NPC.spriteDirection == -1 ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0f);
-
-        // Draw healthbar
-        PortalDrawer.DrawPortalHealthBar(sb, NPC.Center + new Vector2(0f, 24f * NPC.scale), NPC.life, NPC.lifeMax, NPC.scale, 1f);
-
-        // Draw hover icon if player is within range
-        if (!NPC.Hitbox.Contains(Main.MouseWorld.ToPoint()))
-            return false;
-
-        if (!withinRange)
-            return false;
-
-        if (TryGetOwner(out Player owner))
-            PortalDrawer.DrawHoverIcon(sb, owner, NPC.Center, Main.teamColor[OwnerTeam], 1f);
-
-        return false;
+        TriggerHitFlash();
+        PlayPortalFx(WorldPosition, killed);
     }
 
-    public override bool? DrawHealthBar(byte hbPosition, ref float scale, ref Vector2 position) => false;
-
-    #endregion
-
-    #region Visual effects and sounds
     public static void PlayPortalFx(Vector2 worldPos, bool killed, int damage = 0)
     {
         if (Main.dedServ)
@@ -346,7 +327,118 @@ public sealed class PortalNPC : ModNPC
         }
     }
 
-    public static Rectangle GetPortalHitbox(Vector2 worldPos) =>
-        new((int)worldPos.X - 24, (int)worldPos.Y - 72, 48, 72);
+    internal void SetLastDamagePlayerFromNetwork(int playerId)
+    {
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        if (playerId < 0 || playerId >= Main.maxPlayers || Main.player[playerId] is not { active: true } player)
+            return;
+
+        if (IsFriendlyPlayer(player))
+            return;
+
+        _lastDamagePlayer = playerId;
+    }
+
+    private bool IsFriendlyPlayer(Player player)
+    {
+        // Return false to allow testing damage in debug mode, even if the player is friendly.
+//#if DEBUG
+        //return false;
+//#endif
+
+        if (player?.active != true)
+            return false;
+
+        if (player.whoAmI == OwnerIndex)
+            return true;
+
+        return player.team > 0 && player.team == OwnerTeam;
+    }
+
+    #endregion
+
+    
+    #region Drawing
+    public override bool PreDraw(SpriteBatch sb, Vector2 screenPos, Color drawColor)
+    {
+        //return true;
+        Texture2D texture = PortalAssets.GetPortalTexture(OwnerTeam);
+
+        Rectangle frame = NPC.frame;
+        Vector2 origin = frame.Size() * 0.5f;
+        Vector2 position = NPC.Center - screenPos;
+
+        var config = ModContent.GetInstance<ServerConfig>();
+        //const float interactionRange = 160; // TODO: Use config value here, similar to beds!
+        float interactionRange = config.TravelSystem.TravelRegionRadiusTiles * 16;
+        float interactionRangeSquared = interactionRange * interactionRange;
+        bool isMyTeam = Main.LocalPlayer.team == OwnerTeam;
+
+        float distanceSquared = Vector2.DistanceSquared(Main.LocalPlayer.Center, NPC.Center);
+        bool withinRange = distanceSquared < interactionRangeSquared;
+        float opacity = (isMyTeam && !withinRange) ? 0.5f : 1f;
+        SpriteEffects effects = NPC.spriteDirection == -1 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+        // Draw portal
+        sb.Draw(texture, position, frame, Color.White * opacity, NPC.rotation, origin, NPC.scale, effects, 0f);
+
+        // Draw hitflash
+        float t = NPC.localAI[1] / PortalHitFlashFrames; // 1 at start, 0 at end
+        float hitFlash;
+        if (t > 0.75f)
+            hitFlash = (1f - t) / 0.25f;        // fade in: 0→1
+        else
+            hitFlash = t / 0.75f;               // fade out: 1→0
+
+        if (hitFlash > 0f)
+        {
+            sb.End();
+            sb.Begin(SpriteSortMode.Immediate, BlendState.Additive, SamplerState.LinearClamp,
+                DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.TransformationMatrix);
+
+            Color flashColor = Color.White * hitFlash;
+
+            sb.Draw(texture, position, frame, flashColor, NPC.rotation, origin, 1, effects, 0f);
+            sb.Draw(texture, position, frame, flashColor, NPC.rotation, origin, 1, effects, 0f);
+            sb.Draw(texture, position, frame, flashColor, NPC.rotation, origin, 1, effects, 0f);
+
+            sb.End();
+            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp,
+                DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.TransformationMatrix);
+        }
+
+        // Draw healthbar
+        PortalDrawer.DrawPortalHealthBar(sb, NPC.Center + new Vector2(0f, 24f * NPC.scale), NPC.life, NPC.lifeMax, NPC.scale, 1f);
+
+        // Draw hover icon if player is within range
+        if (!NPC.Hitbox.Contains(Main.MouseWorld.ToPoint()))
+            return false;
+
+        if (!withinRange)
+            return false;
+
+        if (isMyTeam && TryGetOwner(out Player owner))
+            PortalDrawer.DrawHoverIcon(sb, owner, NPC.Center, Main.teamColor[OwnerTeam], 1f);
+
+        return false;
+    }
+
+    public override bool? DrawHealthBar(byte hbPosition, ref float scale, ref Vector2 position) => false;
+
+    #endregion
+
+    #region Netcode
+    public override void SendExtraAI(BinaryWriter writer)
+    {
+        writer.Write(ownerName ?? string.Empty);
+    }
+
+    public override void ReceiveExtraAI(BinaryReader reader)
+    {
+        ownerName = reader.ReadString();
+        NPC.GivenName = $"{GetOwnerName()}'s Portal";
+    }
     #endregion
 }

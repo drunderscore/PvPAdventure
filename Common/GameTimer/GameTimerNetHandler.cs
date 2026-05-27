@@ -17,6 +17,7 @@ public static class GameTimerNetHandler
         PauseGameRequestClientSave,
         StartGame,
         AdjustGameTime,
+        UpdateCountdown,
         EndGame,
         SetPoints,
     }
@@ -73,6 +74,14 @@ public static class GameTimerNetHandler
 
                     gm.StartGame(time, countdown);
                     return;
+                }
+
+            case GameTimerPacketType.UpdateCountdown:
+                {
+                    int newSeconds = reader.ReadInt32();
+                    var gm = ModContent.GetInstance<GameManager>();
+                    gm.SetCountdown(newSeconds);
+                    break;
                 }
 
             case GameTimerPacketType.AdjustGameTime:
