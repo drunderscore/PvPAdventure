@@ -23,38 +23,14 @@ internal class InventoryWhileDeadSystem : ModSystem
 
     private void ModifyIngameOptionsInput(On_Player.orig_TryOpeningInGameOptionsBasedOnInput orig, Player self)
     {
-        // Spectator special case
-        //if (SpectatorModeSystem.IsInSpectateMode(Main.LocalPlayer) || self.ghost)
-        //{
-        //    CloseOwnInventory();
-        //    if (!Main.ingameOptionsWindow)
-        //    {
-        //        return;
-        //    }
-        //}
-
-        // Press escape special case
-        //if (KeyboardHelper.Pressed(Keys.Escape))
-        //{
-        //    Player target = SpectatorTargetSystem.GetPlayerTarget();
-
-        //    if (target?.active == true)
-        //    {
-        //        DebugLog.Chat("Toggle spectated player's inventory for " + target.name);
-        //        PlayerHudOverlay.Toggle(target.whoAmI);
-        //    }
-        //    else
-        //    {
-        //        // TODO
-        //        // This never reaches because it's handled in PlayerHudOverlay.Update.
-        //        // ...So this is redundant, but keep it just in-case.
-        //        //Main.NewText("Inventory is disabled as a spectator unless you are spectating another player.", Color.Yellow);
-        //    }
-
-        //    return;
-        //}
-
-        //orig(self);
+        // Reese / Ghost Spectating compatibility: prevent opening inventory when spectating
+        if (self.ghost)
+        {
+            Log.Chat("close");
+            CloseOwnInventory();
+            self.releaseInventory = !self.controlInv;
+            return;
+        }
 
         // Override to allow inventory access while dead
         if (self.dead)
@@ -99,12 +75,6 @@ internal class InventoryWhileDeadSystem : ModSystem
 
     private void ModifyInterfaceLogic(On_Main.orig_DrawInterface_26_InterfaceLogic3 orig)
     {
-        //if (SpectatorModeSystem.IsInSpectateMode(Main.LocalPlayer) || Main.LocalPlayer.ghost)
-        //{
-        //    CloseOwnInventory();
-        //    return;
-        //}
-
         bool flag = Main.playerInventory;
         if (Main.player[Main.myPlayer].dead)
         {
