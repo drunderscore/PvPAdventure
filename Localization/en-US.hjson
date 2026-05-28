@@ -134,11 +134,6 @@ Mods: {
 				DisplayName: Summon Tagged
 				Description: Take 4 more damage from enemies
 			}
-
-			Tagged: {
-				DisplayName: Summon Tagged
-				Description: Take 4 more damage from enemies
-			}
 		}
 
 		Items: {
@@ -179,21 +174,6 @@ Mods: {
 
 			PortalCreatorItem: {
 				DisplayName: Portal Creator
-				Tooltip: ""
-			}
-
-			NextPageItem: {
-				DisplayName: Next Page Item
-				Tooltip: ""
-			}
-
-			PrevPageItem: {
-				DisplayName: Prev Page Item
-				Tooltip: ""
-			}
-
-			RefundPurchasesItem: {
-				DisplayName: Refund Purchases Item
 				Tooltip: ""
 			}
 
@@ -587,7 +567,7 @@ Mods: {
 				}
 
 				StartHardmodeGoblinInvasion: {
-					Label: Hardmode Goblin Invasion
+					Label: Goblin Invasion After WoF
 					Tooltip: Starts a Goblin Army on the second dawn after Wall of Flesh if goblins have not been defeated
 				}
 

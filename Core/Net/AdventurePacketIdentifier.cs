@@ -13,4 +13,5 @@ public enum AdventurePacketIdentifier : byte
     TravelTeleport, // teleport between beds/portals/world spawn, play sound/vfx, etc
     UsePortal, // use portal creator item to create a portal, sync to everyone
     BeetleArmor,
+    TeamCombatText,
 }

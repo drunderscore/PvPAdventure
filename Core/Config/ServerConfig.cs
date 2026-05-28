@@ -142,6 +142,11 @@ public class ServerConfig : ModConfig
     [BackgroundColor(72, 104, 72)]
     [DefaultValue(true)]
     public bool BroadcastWeatherMessages = true;
+
+    [Header("Visualization")]
+    [DefaultValue(true)]
+    public bool UseTeamCombatText;
+
     #endregion
 
     #region NestedConfigTypes

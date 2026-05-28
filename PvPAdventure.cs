@@ -1,3 +1,4 @@
+using PvPAdventure.Common.Visualization;
 using PvPAdventure.Core.Net;
 using PvPAdventure.Core.Utilities;
 using System.IO;
@@ -67,6 +68,10 @@ public class PvPAdventure : Mod
 
             case AdventurePacketIdentifier.BeetleArmor:
                 Common.Combat.PvP.PvPBeetleArmorPlayer.ReceivePacket(reader, whoAmI);
+                break;
+
+            case AdventurePacketIdentifier.TeamCombatText:
+                ModContent.GetInstance<TeamCombatText>().HandlePacket(reader, whoAmI);
                 break;
 
             default:
