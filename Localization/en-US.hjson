@@ -444,6 +444,7 @@ Mods: {
 					Gameplay: Gameplay
 					WorldGen: World Generation
 					World: World
+					Visualization: Visualization Header
 				}
 
 				Points: {
@@ -574,6 +575,11 @@ Mods: {
 				BroadcastWeatherMessages: {
 					Label: Broadcast Weather Messages
 					Tooltip: Sends chat messages when rain or sandstorms start
+				}
+
+				UseTeamCombatText: {
+					Label: Use Team Combat Text
+					Tooltip: ""
 				}
 			}
 

@@ -32,6 +32,10 @@ internal static class OfficialMatchReporter
 
         MatchApi.MatchPayload payload = BuildMatchPayload(startUtc, endUtc);
         LogMatchPayload(payload);
+
+        if (!IsValidPayload(payload))
+            return;
+
         _ = PostMatchSafeAsync(payload);
     }
 
@@ -48,24 +52,24 @@ internal static class OfficialMatchReporter
                     : $"Match post failed: Status={(int)result.Status} {result.Status}. Error={result.ErrorMessage}";
 
                 WriteMatchPostConsole(WithRequestSummary(consoleMessage, result.RequestSummary));
-                Log.Error($"[OfficialMatchReporter] Failed to post match. Status={(int)result.Status}, Error={result.ErrorMessage}");
+                Log.Error($"Failed to post match. Status={(int)result.Status}, Error={result.ErrorMessage}");
                 return;
             }
 
             if (result.Data == null)
             {
                 WriteMatchPostConsole(WithRequestSummary("Match post succeeded, but the backend returned no match data.", result.RequestSummary));
-                Log.Info("[OfficialMatchReporter] Posted match successfully, but received no data payload back.");
+                Log.Info("Posted match successfully, but received no data payload back.");
                 return;
             }
 
             WriteMatchPostConsole(WithRequestSummary($"Match post succeeded. MatchId={result.Data.Id}", result.RequestSummary));
-            Log.Info($"[OfficialMatchReporter] Posted match successfully. MatchId={result.Data.Id}");
+            Log.Info($"Posted match successfully. MatchId={result.Data.Id}");
         }
         catch (Exception ex)
         {
             WriteMatchPostConsole($"Match post failed with an unexpected error: {ex.GetType().Name}: {ex.Message}");
-            Log.Error($"[OfficialMatchReporter] Unexpected error while posting match: {ex}");
+            Log.Error($"Unexpected error while posting match: {ex}");
         }
     }
 
@@ -86,7 +90,11 @@ internal static class OfficialMatchReporter
     {
         PointsManager pointsManager = ModContent.GetInstance<PointsManager>();
 
-        var players = BuildPlayersDictionary();
+        var players = BuildPlayersDictionary(pointsManager);
+
+        if (players.Count == 0)
+            Log.Chat("Refusing to post match because payload has no authenticated players.");
+
         var teams = BuildTeamsList(pointsManager);
         var metrics = new Dictionary<string, string>(); // empty for now
 
@@ -96,7 +104,7 @@ internal static class OfficialMatchReporter
         ConstructorInfo payloadConstructor = GetMatchPayloadConstructor(6);
         if (payloadConstructor != null)
         {
-            return (MatchApi.MatchPayload)payloadConstructor.Invoke([start, end, "PvPAdventure", players, metrics, teams]);
+            return (MatchApi.MatchPayload)payloadConstructor.Invoke([start, end, "pvpa", players, metrics, teams]);
         }
 
         payloadConstructor = GetMatchPayloadConstructor(5);
@@ -121,26 +129,38 @@ internal static class OfficialMatchReporter
         return null;
     }
 
-    private static Dictionary<ulong, MatchApi.MatchPlayerPayload> BuildPlayersDictionary()
+    private static Dictionary<ulong, MatchApi.MatchPlayerPayload> BuildPlayersDictionary(PointsManager pointsManager)
     {
-        var result = new Dictionary<ulong, MatchApi.MatchPlayerPayload>();
+        Dictionary<ulong, MatchApi.MatchPlayerPayload> result = [];
 
         foreach (Player player in Main.ActivePlayers)
         {
             StatisticsPlayer statsPlayer = player.GetModPlayer<StatisticsPlayer>();
-            int team = player.team;
 
             // Skip players without a valid SteamID to prevent dictionary key collisions
             if (!TryGetPlayerSteamId(player, out ulong steamId) || steamId == 0)
+            {
+                Log.Chat($"Warning: Skipping player with no valid SteamID when building match payload. PlayerName={player.name}");
                 continue;
+            }
+
+            if (steamId > long.MaxValue)
+            {
+                Log.Chat($"Skipping player with unsupported SteamID for match post. PlayerName={player.name}, SteamId={steamId}");
+                continue;
+            }
+
+            MatchRewardContext rewardContext = MatchRewardCalculator.CreateContext(player, pointsManager);
+            uint reward = MatchRewardCalculator.Calculate(rewardContext);
 
             result[steamId] = new MatchApi.MatchPlayerPayload(
                 Name: player.name,
-                Team: team,
-                Reward: 0, 
+                Team: (uint)rewardContext.Team,
+                Reward: reward,
                 Kills: statsPlayer.Kills,
-                Deaths: statsPlayer.Deaths
-            );
+                Deaths: statsPlayer.Deaths);
+
+            Log.Info($"Reward for {player.name}: Team={rewardContext.Team}, TeamPoints={rewardContext.TeamPoints}, Kills={rewardContext.Kills}, Deaths={rewardContext.Deaths}, Reward={reward}");
         }
 
         return result;
@@ -180,15 +200,14 @@ internal static class OfficialMatchReporter
 
     private static void LogMatchPayload(MatchApi.MatchPayload payload)
     {
-        Log.Info($"Match ended! Start={payload.Start:yyyy-MM-dd HH:mm:ss}, End={payload.End:yyyy-MM-dd HH:mm:ss}");
+        Log.Chat($"Match ended! Start={payload.Start:yyyy-MM-dd HH:mm:ss}, End={payload.End:yyyy-MM-dd HH:mm:ss}");
+        Log.Chat($"Payload players={payload.Players?.Count ?? 0}, teams={payload.Teams?.Count ?? 0}, team0Null={payload.Teams != null && payload.Teams.Count > 0 && payload.Teams[0] == null}");
 
         for (int i = 0; i < payload.Teams.Count; i++)
         {
             var teamInfo = payload.Teams[i];
             if (teamInfo != null)
-            {
                 Log.Info($"Team {i}: {teamInfo.Value.Points} points");
-            }
         }
     }
 
@@ -203,5 +222,22 @@ internal static class OfficialMatchReporter
 
         steamId = 0;
         return false;
+    }
+
+    private static bool IsValidPayload(MatchApi.MatchPayload payload)
+    {
+        if (payload.Players == null || payload.Players.Count == 0)
+        {
+            Log.Chat("Refusing to post malformed match: no players in payload.");
+            return false;
+        }
+
+        if (payload.Teams == null || payload.Teams.Count == 0 || payload.Teams[0] != null)
+        {
+            Log.Chat("Refusing to post malformed match: team 0 must exist and be null.");
+            return false;
+        }
+
+        return true;
     }
 }
