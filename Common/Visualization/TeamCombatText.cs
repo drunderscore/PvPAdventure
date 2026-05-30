@@ -214,7 +214,7 @@ internal sealed class TeamCombatText : ModSystem
                 continue;
 
             Main.combatText[pending.Index].color = Main.teamColor[source.Team];
-            Log.Chat("Applied pending combat text: " + pending.DamageText + " from " + (Terraria.Enums.Team)source.Team);
+            //Log.Chat("Applied pending combat text: " + pending.DamageText + " from " + (Terraria.Enums.Team)source.Team);
             pendingTexts.RemoveAt(i);
         }
     }

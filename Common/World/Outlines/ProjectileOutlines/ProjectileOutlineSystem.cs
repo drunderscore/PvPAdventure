@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Content.Portals;
@@ -18,8 +19,12 @@ internal sealed class TeamProjectileOutlines : GlobalProjectile
     public override bool PreDraw(Projectile projectile, ref Color lightColor)
     {
         var outlines = ModContent.GetInstance<ClientConfig>().Outlines;
-        if (projectile.ModProjectile is PortalCreationProjectile || !outlines.DrawOutlines || !outlines.ProjectileOutlines || !TryGetTeam(projectile, out Team team))
-            return true;
+        if (projectile.ModProjectile is PortalCreationProjectile
+            || !outlines.DrawOutlines
+            || !outlines.ProjectileOutlines
+            || ProjectileOutlineBanlist.IsBanned(projectile)   
+            || !TryGetTeam(projectile, out Team team))
+                    return true;
 
         Color border = Main.teamColor[(int)team];
         border.A = 255;
@@ -39,12 +44,25 @@ internal sealed class TeamProjectileOutlines : GlobalProjectile
             ? SpriteEffects.FlipHorizontally
             : SpriteEffects.None;
 
+        float outlineRotation = projectile.rotation;
+
+        // Custom rotation for shortswords
+        if (projectile.aiStyle == ProjAIStyleID.ShortSword)
+        {
+            outlineRotation -= MathHelper.PiOver4;
+
+            if (projectile.spriteDirection == -1)
+            {
+                outlineRotation += MathHelper.PiOver2;
+            }
+        }
+
         Main.spriteBatch.Draw(
             target,
-            GetProjectileDrawPosition(projectile),
+            GetProjectileDrawPosition(projectile, outlineRotation),
             null,
             drawColor,
-            projectile.rotation,
+            outlineRotation,
             targetOrigin,
             projectile.scale,
             effects,
@@ -53,10 +71,33 @@ internal sealed class TeamProjectileOutlines : GlobalProjectile
         return true;
     }
 
-    private static Vector2 GetProjectileDrawPosition(Projectile projectile)
+    private static Vector2 GetProjectileDrawPosition(Projectile projectile, float rotation)
     {
         Vector2 position = projectile.Center - Main.screenPosition;
         position.Y += projectile.gfxOffY;
+
+        // Jousting lance offset, right I think
+        if (projectile.type is ProjectileID.JoustingLance or ProjectileID.ShadowJoustingLance or ProjectileID.HallowJoustingLance)
+            position -= projectile.velocity.SafeNormalize(Vector2.Zero) * 60f * projectile.scale;
+
+        // Spear offset, right!
+        else if (projectile.aiStyle == ProjAIStyleID.Spear)
+            position -= projectile.velocity.SafeNormalize(Vector2.Zero) * 40f * projectile.scale;
+
+        // Offsets
+        position += GetProjectileOutlineOffset(projectile).RotatedBy(rotation) * projectile.scale;
+
+        // Pygmy, wrong
+        //if (projectile.type == ProjectileID.Pygmy)
+        //    position -= projectile.velocity.SafeNormalize(Vector2.Zero) * 40f * projectile.scale;
+
+        //  Gungnir, wrong
+        if (projectile.type == ProjectileID.Gungnir)
+            position += (Main.GetPlayerArmPosition(projectile) - projectile.Center).SafeNormalize(Vector2.Zero) * 41f * projectile.scale;
+
+        // Boomerang offset, wrong
+        //if (projectile.aiStyle == ProjAIStyleID.Boomerang)
+            //position += new Vector2(0f, 7f).RotatedBy(rotation) * projectile.scale;
 
         if (projectile.ModProjectile != null)
             position.X += projectile.ModProjectile.DrawOffsetX;
@@ -64,9 +105,31 @@ internal sealed class TeamProjectileOutlines : GlobalProjectile
         return position;
     }
 
+    private static Vector2 GetProjectileOutlineOffset(Projectile projectile)
+    {
+        return projectile.type switch
+        {
+            ProjectileID.ScarabBomb => new Vector2(0f, -9f),
+            ProjectileID.Grenade => new Vector2(0f, 3f),
+            ProjectileID.Bomb => new Vector2(0f, -4f),
+            ProjectileID.FlaironBubble => new Vector2(2f, 3f),
+            ProjectileID.Gungnir => new Vector2(-2f, -4f), // slightly wrong
+            ProjectileID.Pygmy => new Vector2(projectile.spriteDirection * -6f, -9f), // slightly wrong
+            ProjectileID.BabySlime => new Vector2(projectile.spriteDirection * 0f, -3f), // looks right, 99% sure
+            ProjectileID.FrostHydra => new Vector2(projectile.spriteDirection * 6f, 3f),
+            ProjectileID.Raven => new Vector2(projectile.spriteDirection * 1f, 1f),
+            ProjectileID.FlyingImp => new Vector2(projectile.spriteDirection * 0f, -1f),
+            ProjectileID.VenomSpider => new Vector2(projectile.spriteDirection * 1f, 2f),
+            _ => Vector2.Zero
+        };
+    }
+
     private static Vector2 GetProjectileDrawOrigin(Projectile projectile, Rectangle frame)
     {
         Vector2 origin = frame.Size() * 0.5f;
+
+        if (projectile.aiStyle == ProjAIStyleID.Boomerang)
+            origin -= new Vector2(0f, 4f);
 
         if (projectile.ModProjectile != null)
         {
@@ -77,7 +140,7 @@ internal sealed class TeamProjectileOutlines : GlobalProjectile
         return origin;
     }
 
-    private static bool TryGetTeam(Projectile projectile, out Team team)
+    public static bool TryGetTeam(Projectile projectile, out Team team)
     {
         team = Team.None;
         if (!projectile.active || projectile.type <= ProjectileID.None || projectile.owner < 0 || projectile.owner >= Main.maxPlayers)
@@ -213,7 +276,10 @@ internal sealed class ProjectileOutlineRenderTarget : ARenderTargetContentByRequ
         device.Clear(Color.Transparent);
 
         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise);
+
+        // --- Actual draw call ---
         DrawOutline(spriteBatch);
+
         spriteBatch.End();
 
         device.SetRenderTarget(null);
