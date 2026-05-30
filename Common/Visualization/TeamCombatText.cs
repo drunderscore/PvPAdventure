@@ -101,7 +101,7 @@ internal sealed class TeamCombatText : ModSystem
         {
             color = Main.teamColor[source.Team];
             int index = orig(location, color, amount, dramatic, dot);
-            Log.Chat("New CombatText integer: " + amount + " from " + (Terraria.Enums.Team)source.Team);
+            //Log.Chat("New CombatText integer: " + amount + " from " + (Terraria.Enums.Team)source.Team);
             return index;
         }
 
@@ -119,7 +119,7 @@ internal sealed class TeamCombatText : ModSystem
         {
             color = Main.teamColor[source.Team];
             int index = orig(location, color, text, dramatic, dot);
-            Log.Chat("New CombatText string: " + text + " from " + (Terraria.Enums.Team)source.Team);
+            //Log.Chat("New CombatText string: " + text + " from " + (Terraria.Enums.Team)source.Team);
             return index;
         }
 
