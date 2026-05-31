@@ -1,5 +1,7 @@
+using PvPAdventure.Common.Travel;
 using PvPAdventure.Content.Portals;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Travel.Portals;
@@ -28,6 +30,28 @@ internal sealed class PortalPlayer : ModPlayer
             return false;
 
         return null;
+    }
+
+    public override void OnHurt(Player.HurtInfo info)
+    {
+        if (!info.PvP || !PortalSystem.IsCreatingPortal(Player))
+            return;
+
+        if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI != Main.myPlayer)
+            return;
+
+        PortalCreatorItem.ResetUseState(Player);
+
+        if (Player.whoAmI == Main.myPlayer)
+        {
+            PortalCreatorItem.Warning(Player, "Mods.PvPAdventure.PortalCreator.Cancelled");
+            TravelTeleportSystem.ClearSelection();
+        }
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            PortalNetHandler.SendPortalCreationCancel();
+        else
+            PortalSystem.ClearCreationProjectiles(Player.whoAmI);
     }
 
     public override void Load()
