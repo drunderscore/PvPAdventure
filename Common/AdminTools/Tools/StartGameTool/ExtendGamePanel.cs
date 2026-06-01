@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Net;
 using PvPAdventure.UI;
 using Steamworks;

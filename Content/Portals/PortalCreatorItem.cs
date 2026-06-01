@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Travel;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Core.Config;

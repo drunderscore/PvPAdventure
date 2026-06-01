@@ -2,7 +2,7 @@
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using System.Reflection;
 using Terraria;
 using Terraria.ID;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.Enums;
 
-namespace PvPAdventure.Common.GameTimer;
+namespace PvPAdventure.Common.Game;
 
 internal readonly record struct MatchRewardContext(
     Team Team,

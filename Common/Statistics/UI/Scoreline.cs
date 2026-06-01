@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using Terraria;
 using Terraria.Enums;
 using Terraria.GameContent;

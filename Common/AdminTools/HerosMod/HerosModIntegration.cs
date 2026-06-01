@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.AdminTools.Tools.StartGameTool;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Utilities;
 using System;
 using Terraria;

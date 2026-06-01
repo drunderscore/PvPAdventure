@@ -4,7 +4,7 @@ using DragonLens.Core.Systems.ToolSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.AdminTools.DragonLens.Tools;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using Terraria;
 using Terraria.ModLoader;
 

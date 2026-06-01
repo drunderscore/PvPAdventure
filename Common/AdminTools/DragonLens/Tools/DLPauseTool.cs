@@ -4,13 +4,13 @@ using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.AdminTools.DragonLens;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-using static PvPAdventure.Common.GameTimer.GameTimerNetHandler;
+using static PvPAdventure.Common.Game.GameTimerNetHandler;
 
 namespace PvPAdventure.Common.AdminTools.DragonLens.Tools;
 

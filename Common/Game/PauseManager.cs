@@ -10,7 +10,7 @@ using Terraria.ModLoader;
 using Terraria.UI;
 using Terraria.UI.Chat;
 
-namespace PvPAdventure.Common.GameTimer;
+namespace PvPAdventure.Common.Game;
 
 // Server-sided pause system.
 public class PauseManager : ModSystem
