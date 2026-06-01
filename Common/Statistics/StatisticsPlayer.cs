@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
@@ -63,17 +64,6 @@ internal class StatisticsPlayer : ModPlayer
             statisticsPlayer.Deaths = Deaths;
         }
 
-    }
-
-    internal void ApplySscOverride(TagCompound tag)
-    {
-        Kills = tag.GetInt("kills");
-        Deaths = tag.GetInt("deaths");
-
-        int[] pickups = tag.Get<int[]>("itemPickups");
-        ItemPickups = pickups != null ? pickups.ToHashSet() : new HashSet<int>();
-
-        Player.team = tag.GetInt("team");
     }
 
     public sealed class ItemPickup : IPacket<ItemPickup>
@@ -195,9 +185,16 @@ internal class StatisticsPlayer : ModPlayer
             if (killer == null || !killer.active || killer.whoAmI == Player.whoAmI)
                 return;
 
+            // Award player kill to team
             ModContent.GetInstance<PointsManager>().AwardPlayerKillToTeam(killer, Player);
-            killer.GetModPlayer<StatisticsPlayer>().Kills += 1;
-            killer.GetModPlayer<StatisticsPlayer>().SyncStatistics();
+
+            // Increment killer's kill count
+            StatisticsPlayer killerStats = killer.GetModPlayer<StatisticsPlayer>();
+            killerStats.Kills += 1;
+            killerStats.SyncStatistics();
+
+            // Report achievement progress for the killer
+            AchievementReporter.OnKillRecorded(killer, killerStats.Kills);
 
             Deaths += 1;
             SyncStatistics();

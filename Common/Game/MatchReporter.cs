@@ -15,7 +15,7 @@ namespace PvPAdventure.Common.Game;
 
 [JITWhenModsEnabled("PvPHub")]
 [ExtendsFromMod("PvPHub")]
-internal static class OfficialMatchReporter
+internal static class MatchReporter
 {
     public static void PostCompletedMatchSafe(DateTime startUtc, DateTime endUtc)
     {

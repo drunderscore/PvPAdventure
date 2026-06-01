@@ -55,7 +55,7 @@ public class PvPAdventure : Mod
                 break;
 
             case AdventurePacketIdentifier.GameTimer:
-                PvPAdventure.Common.Game.GameTimerNetHandler.HandlePacket(reader, whoAmI);
+                Common.Game.GameTimerNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.TravelTeleport:

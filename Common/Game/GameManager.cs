@@ -15,7 +15,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.Net;
 
-namespace PvPAdventure.Common.GameTimer;
+namespace PvPAdventure.Common.Game;
 
 [Autoload(Side = ModSide.Both)]
 public class GameManager : ModSystem
@@ -374,7 +374,7 @@ public class GameManager : ModSystem
         DateTime startUtc = DateTime.SpecifyKind(gameManager.MatchStartTime.Value, DateTimeKind.Utc);
         DateTime endUtc = DateTime.UtcNow;
 
-        OfficialMatchReporter.PostCompletedMatchSafe(startUtc, endUtc);
+        MatchReporter.PostCompletedMatchSafe(startUtc, endUtc);
 
         Log.Chat("Queued completed match for backend reporting");
     }
@@ -388,7 +388,7 @@ public class GameManager : ModSystem
         if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)
         {
             BroadcastEndGameSummary();
-            //BroadcastSaveMatchToClients();
+            ReportMatchAchievements();
             ReportCompletedMatchToBackend();
             ResetMatchState(); // Clear the match start time after broadcasting
         }
@@ -447,6 +447,16 @@ public class GameManager : ModSystem
                 }
         }
     }
+
+    private static void ReportMatchAchievements()
+    {
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        PointsManager pointsManager = ModContent.GetInstance<PointsManager>();
+        AchievementReporter.OnMatchEnded(pointsManager);
+    }
+
     private void UpdateFreezeTime(bool value)
     {
         var freezeTimeModule = CreativePowerManager.Instance.GetPower<CreativePowers.FreezeTime>();

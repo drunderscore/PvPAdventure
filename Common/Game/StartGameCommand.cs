@@ -2,9 +2,9 @@
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static PvPAdventure.Common.GameTimer.GameManager;
+using static PvPAdventure.Common.Game.GameManager;
 
-namespace PvPAdventure.Common.GameTimer;
+namespace PvPAdventure.Common.Game;
 
 public class StartGameCommand : ModCommand
 {
