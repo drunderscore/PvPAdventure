@@ -1,8 +1,10 @@
 ﻿using PvPAdventure.Common.Statistics;
 using PvPHub.Common.Authentication;
+using PvPHub.Common.MainMenu.API;
 using PvPHub.Common.MainMenu.API.MatchHistory;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -23,6 +25,69 @@ internal static class MatchReporter
             return;
 
         ExecutePost(startUtc, endUtc);
+    }
+
+    public static void PostCompletedMatchSafe(DateTime startUtc, DateTime endUtc, string replayFilePath)
+    {
+        if (!PvPHubCompat.IsPvPHubLoaded)
+            return;
+
+        ExecutePostWithReplay(startUtc, endUtc, replayFilePath);
+    }
+
+    private static void ExecutePostWithReplay(DateTime startUtc, DateTime endUtc, string replayFilePath)
+    {
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        if (string.IsNullOrWhiteSpace(replayFilePath) || !File.Exists(replayFilePath))
+        {
+            Log.Chat($"Replay file missing. Falling back to match/v1. Path={replayFilePath}");
+            ExecutePost(startUtc, endUtc);
+            return;
+        }
+
+        MatchApi.MatchPayload payload = BuildMatchPayload(startUtc, endUtc);
+        LogMatchPayload(payload);
+
+        if (!IsValidPayload(payload))
+            return;
+
+        _ = PostMatchV2SafeAsync(payload, replayFilePath);
+    }
+
+    private static async Task PostMatchV2SafeAsync(MatchApi.MatchPayload payload, string replayFilePath)
+    {
+        try
+        {
+            ApiResult<MatchApi.CompletedMatchPayload> result = await MatchApi.PostOfficialMatchV2Async(payload, replayFilePath).ConfigureAwait(false);
+
+            if (!result.IsSuccess)
+            {
+                string consoleMessage = result.Status == HttpStatusCode.Unauthorized
+                    ? $"Match v2 post failed: 401 Unauthorized. The backend rejected the match post credentials. Error={result.ErrorMessage}"
+                    : $"Match v2 post failed: Status={(int)result.Status} {result.Status}. Error={result.ErrorMessage}";
+
+                WriteMatchPostConsole(WithRequestSummary(consoleMessage, result.RequestSummary));
+                Log.Error($"Failed to post match v2. Status={(int)result.Status}, Error={result.ErrorMessage}");
+                return;
+            }
+
+            if (result.Data == null)
+            {
+                WriteMatchPostConsole(WithRequestSummary("Match v2 post succeeded, but the backend returned no match data.", result.RequestSummary));
+                Log.Info("Posted match v2 successfully, but received no data payload back.");
+                return;
+            }
+
+            WriteMatchPostConsole(WithRequestSummary($"Match v2 post succeeded. MatchId={result.Data.Id}", result.RequestSummary));
+            Log.Chat($"Posted match with replay successfully. MatchId={result.Data.Id}, Replay={Path.GetFileName(replayFilePath)}");
+        }
+        catch (Exception ex)
+        {
+            WriteMatchPostConsole($"Match v2 post failed with an unexpected error: {ex.GetType().Name}: {ex.Message}");
+            Log.Error($"Unexpected error while posting match v2: {ex}");
+        }
     }
 
     private static void ExecutePost(DateTime startUtc, DateTime endUtc)
