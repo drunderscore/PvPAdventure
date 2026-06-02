@@ -1,5 +1,4 @@
 ﻿using PvPAdventure.Common.Statistics;
-using PvPHub.Common.Authentication;
 using PvPHub.Common.MainMenu.API;
 using PvPHub.Common.MainMenu.API.MatchHistory;
 using System;
@@ -155,6 +154,8 @@ internal static class MatchReporter
     {
         PointsManager pointsManager = ModContent.GetInstance<PointsManager>();
 
+        PvPHubCompat.LogMatchPostAuthPreflight();
+
         var players = BuildPlayersDictionary(pointsManager);
 
         if (players.Count == 0)
@@ -200,10 +201,12 @@ internal static class MatchReporter
 
         foreach (Player player in Main.ActivePlayers)
         {
+            if (player == null || !player.active)
+                continue;
+
             StatisticsPlayer statsPlayer = player.GetModPlayer<StatisticsPlayer>();
 
-            // Skip players without a valid SteamID to prevent dictionary key collisions
-            if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId) || steamId == 0)
+            if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId))
             {
                 Log.Chat($"Warning: Skipping player with no valid SteamID when building match payload. PlayerName={player.name}");
                 continue;

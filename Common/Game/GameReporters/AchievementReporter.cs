@@ -4,7 +4,6 @@ using PvPHub.Common.MainMenu.API.Achievements;
 using System;
 using System.Threading.Tasks;
 using Terraria;
-using Terraria.Enums;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Game.GameReporters;
@@ -42,31 +41,7 @@ internal static class AchievementReporter
 
     public static void OnMatchEnded(PointsManager pointsManager)
     {
-        if (!ModLoader.TryGetMod("PvPHub", out _))
-            return;
-
-        Team winningTeam = FindWinningTeam(pointsManager);
-        if (winningTeam == Team.None)
-        {
-            Log.Warn("No winning team found at match end — win achievements skipped.");
-            return;
-        }
-
-        foreach (Player player in Main.ActivePlayers)
-        {
-            if ((Team)player.team != winningTeam)
-                continue;
-
-            if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId))
-                continue;
-
-            // Report a single win against every cumulative win counter.
-            // Backend increments each until its respective target is reached.
-            _ = ReportAsync(steamId, "win_1");
-            _ = ReportAsync(steamId, "win_5");
-            _ = ReportAsync(steamId, "win_25");
-            _ = ReportAsync(steamId, "win_50");
-        }
+        // Win achievements are protected by PvPHub and must be derived from official match records.
     }
 
     /// <summary>
@@ -103,21 +78,5 @@ internal static class AchievementReporter
         }
     }
 
-    private static Team FindWinningTeam(PointsManager pointsManager)
-    {
-        Team winner = Team.None;
-        int topPoints = 0;
-
-        foreach ((Team team, int points) in pointsManager.Points)
-        {
-            if (team != Team.None && points > topPoints)
-            {
-                topPoints = points;
-                winner = team;
-            }
-        }
-
-        return winner;
-    }
 }
 
