@@ -1,9 +1,9 @@
-﻿using PvPAdventure.Common.Game;
+﻿using PvPAdventure.Common.Game.GameReporters;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Stats;
+namespace PvPAdventure.Common.Game.StatTrackers;
 
 /// <summary>
 /// Tracks how many distinct players a single Sniper Rifle projectile hits.

@@ -7,10 +7,10 @@ using Terraria;
 using Terraria.Enums;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Game;
+namespace PvPAdventure.Common.Game.GameReporters;
 
 /// <summary>
-/// Bridges PvPAdventure game events to PvPHub's achievement progress API.
+/// Posts PvPAdventure game events to PvPHub's achievement progress API.
 /// </summary>
 [JITWhenModsEnabled("PvPHub")]
 [ExtendsFromMod("PvPHub")]
@@ -24,10 +24,10 @@ internal static class AchievementReporter
     /// </summary>
     public static void OnKillRecorded(Player player, int matchKills)
     {
-        if (!ModLoader.TryGetMod("PvPHub", out _))
+        if (!PvPHubCompat.IsPvPHubLoaded)
             return;
 
-        if (!TryGetSteamId(player, out ulong steamId))
+        if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId))
             return;
 
         if (matchKills == 1)
@@ -57,7 +57,7 @@ internal static class AchievementReporter
             if ((Team)player.team != winningTeam)
                 continue;
 
-            if (!TryGetSteamId(player, out ulong steamId))
+            if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId))
                 continue;
 
             // Report a single win against every cumulative win counter.
@@ -75,10 +75,10 @@ internal static class AchievementReporter
     /// </summary>
     public static void OnSniperDoubleHit(Player shooter)
     {
-        if (!ModLoader.TryGetMod("PvPHub", out _))
+        if (!PvPHubCompat.IsPvPHubLoaded)
             return;
 
-        if (!TryGetSteamId(shooter, out ulong steamId))
+        if (!PvPHubCompat.TryGetSteamId(shooter, out ulong steamId))
             return;
 
         _ = ReportAsync(steamId, "hit_two_one_sniper_shot");
@@ -101,21 +101,6 @@ internal static class AchievementReporter
         {
             Log.Error($"Unexpected error reporting '{achievementName}' for {steamId}: {ex}");
         }
-    }
-
-    // Mirrors OfficialMatchReporter.TryGetPlayerSteamId
-    private static bool TryGetSteamId(Player player, out ulong steamId)
-    {
-        ulong? id = player.GetModPlayer<PvPHub.Common.Authentication.AuthenticatedPlayer>().SteamId;
-
-        if (id.HasValue && id.Value != 0 && id.Value <= (ulong)long.MaxValue)
-        {
-            steamId = id.Value;
-            return true;
-        }
-
-        steamId = 0;
-        return false;
     }
 
     private static Team FindWinningTeam(PointsManager pointsManager)

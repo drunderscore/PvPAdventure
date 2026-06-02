@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Utilities;

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Input;
-using PvPAdventure.Common.Game;
+using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;

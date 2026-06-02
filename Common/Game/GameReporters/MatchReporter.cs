@@ -11,7 +11,7 @@ using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Game;
+namespace PvPAdventure.Common.Game.GameReporters;
 
 [JITWhenModsEnabled("PvPHub")]
 [ExtendsFromMod("PvPHub")]
@@ -19,7 +19,7 @@ internal static class MatchReporter
 {
     public static void PostCompletedMatchSafe(DateTime startUtc, DateTime endUtc)
     {
-        if (!ModLoader.TryGetMod("PvPHub", out Mod _))
+        if (!PvPHubCompat.IsPvPHubLoaded)
             return;
 
         ExecutePost(startUtc, endUtc);
@@ -138,7 +138,7 @@ internal static class MatchReporter
             StatisticsPlayer statsPlayer = player.GetModPlayer<StatisticsPlayer>();
 
             // Skip players without a valid SteamID to prevent dictionary key collisions
-            if (!TryGetPlayerSteamId(player, out ulong steamId) || steamId == 0)
+            if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId) || steamId == 0)
             {
                 Log.Chat($"Warning: Skipping player with no valid SteamID when building match payload. PlayerName={player.name}");
                 continue;
@@ -209,19 +209,6 @@ internal static class MatchReporter
             if (teamInfo != null)
                 Log.Info($"Team {i}: {teamInfo.Value.Points} points");
         }
-    }
-
-    private static bool TryGetPlayerSteamId(Player player, out ulong steamId)
-    {
-        var id = player.GetModPlayer<AuthenticatedPlayer>().SteamId;
-        if (id.HasValue)
-        {
-            steamId = id.Value;
-            return true;
-        }
-
-        steamId = 0;
-        return false;
     }
 
     private static bool IsValidPayload(MatchApi.MatchPayload payload)
