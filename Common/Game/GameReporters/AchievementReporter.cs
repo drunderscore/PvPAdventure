@@ -2,8 +2,12 @@
 using PvPHub.Common.MainMenu.API;
 using PvPHub.Common.MainMenu.API.Achievements;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.Enums;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Game.GameReporters;
@@ -17,6 +21,21 @@ internal static class AchievementReporter
 {
     private const string GameMode = "pvpa";
 
+    private static readonly (string AchievementName, int RequiredMatchKills)[] MatchKillAchievements =
+    [
+        ("kill_1", 1),
+        ("kill_one_match_50", 50),
+        ("kill_one_match_100", 100)
+    ];
+
+    private static readonly string[] WinAchievements =
+    [
+        "win_1",
+        "win_5",
+        "win_25",
+        "win_50"
+    ];
+
     /// <summary>
     /// Call every time a player's per-match kill count increments.
     /// <paramref name="matchKills"/> must already reflect the new value.
@@ -29,19 +48,35 @@ internal static class AchievementReporter
         if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId))
             return;
 
-        if (matchKills == 1)
-            _ = ReportAsync(steamId, "kill_1");
-
-        if (matchKills == 50)
-            _ = ReportAsync(steamId, "kill_one_match_50");
-
-        if (matchKills == 100)
-            _ = ReportAsync(steamId, "kill_one_match_100");
+        foreach ((string achievementName, int requiredMatchKills) in MatchKillAchievements)
+        {
+            if (matchKills == requiredMatchKills)
+                _ = ReportAsync(steamId, achievementName);
+        }
     }
 
+    /// <summary>
+    /// Call once when the match ends. Posts one win tick to every cumulative win achievement
+    /// for each player on the single winning team.
+    /// </summary>
     public static void OnMatchEnded(PointsManager pointsManager)
     {
-        // Win achievements are protected by PvPHub and must be derived from official match records.
+        if (!PvPHubCompat.IsPvPHubLoaded || Main.netMode != NetmodeID.Server)
+            return;
+
+        if (!TryGetSingleWinningTeam(pointsManager, out Team winningTeam))
+            return;
+
+        foreach (Player player in Main.ActivePlayers)
+        {
+            if (player == null || !player.active || (Team)player.team != winningTeam)
+                continue;
+
+            if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId))
+                continue;
+
+            ReportAll(steamId, WinAchievements);
+        }
     }
 
     /// <summary>
@@ -57,6 +92,35 @@ internal static class AchievementReporter
             return;
 
         _ = ReportAsync(steamId, "hit_two_one_sniper_shot");
+    }
+
+    private static bool TryGetSingleWinningTeam(PointsManager pointsManager, out Team winningTeam)
+    {
+        winningTeam = Team.None;
+
+        if (pointsManager == null)
+            return false;
+
+        var leadingTeams = pointsManager.Points
+            .Where(entry => entry.Key != Team.None)
+            .Where(entry => entry.Value > 0)
+            .GroupBy(entry => entry.Value)
+            .OrderByDescending(group => group.Key)
+            .FirstOrDefault()
+            ?.Select(entry => entry.Key)
+            .ToArray();
+
+        if (leadingTeams == null || leadingTeams.Length != 1)
+            return false;
+
+        winningTeam = leadingTeams[0];
+        return true;
+    }
+
+    private static void ReportAll(ulong steamId, IEnumerable<string> achievementNames)
+    {
+        foreach (string achievementName in achievementNames)
+            _ = ReportAsync(steamId, achievementName);
     }
 
     private static async Task ReportAsync(ulong steamId, string achievementName)
@@ -77,6 +141,5 @@ internal static class AchievementReporter
             Log.Error($"Unexpected error reporting '{achievementName}' for {steamId}: {ex}");
         }
     }
-
 }
 
