@@ -4,6 +4,8 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
+#nullable enable
+
 namespace PvPAdventure.Common.Game.MatchReplays;
 
 internal sealed class ReeseReplayControlSystem : ModSystem
@@ -81,12 +83,9 @@ internal sealed class ReeseReplayControlSystem : ModSystem
         if (Main.netMode != NetmodeID.Server)
             return;
 
-        string fileName = Path.GetFileName(filePath);
-
-        Log.Chat($"Reese recording finished: {fileName}");
+        Log.Chat($"Reese recording finished: {Path.GetFileName(filePath)}");
         Log.Info($"Reese recording finished. FilePath={filePath}, World={worldName}, DurationTicks={durationTicks}, Reason={reason}");
 
-        // Later:
-        // ModContent.GetInstance<MatchReplayLinkSystem>().OnReplayFinished(fileName);
+        GameManager.ReportCompletedMatchToBackend(filePath);
     }
 }

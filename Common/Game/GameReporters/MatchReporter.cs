@@ -59,7 +59,7 @@ internal static class MatchReporter
     {
         try
         {
-            ApiResult<MatchApi.CompletedMatchPayload> result = await MatchApi.PostOfficialMatchV2Async(payload, replayFilePath).ConfigureAwait(false);
+            var result = await MatchApi.PostOfficialMatchV2Async(payload, replayFilePath).ConfigureAwait(false);
 
             if (!result.IsSuccess)
             {
