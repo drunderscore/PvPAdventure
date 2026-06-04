@@ -129,7 +129,7 @@ internal static class AchievementReporter
         {
             AchievementRef achievement = new(achievementName, GameMode);
             ApiResult<ApiAchievement> result =
-                await AchievementsApi.ProgressAchievementAsync(steamId, achievement).ConfigureAwait(false);
+                await AchievementsApi.ProgressAchievementAsync(steamId, achievement, delta: 1).ConfigureAwait(false);
 
             if (result.IsSuccess)
                 Log.Info($"'{achievementName}' → {steamId}  progress={result.Data.Progress}/{result.Data.Target}");
