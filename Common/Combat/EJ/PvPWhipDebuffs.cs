@@ -305,8 +305,8 @@ public class AnathemaPlayer : WhipDebuffPlayer
     protected override int WhipProjectileID => ProjectileID.RainbowWhip;
     protected override int DebuffType => ModContent.BuffType<Anathema>();
     protected override int BaseDuration => 300;
-    protected override int FlatDamageBonus => 20;
-    protected override float PercentDamageBonus => 0.1f;
+    protected override int FlatDamageBonus => 15;
+    protected override float PercentDamageBonus => 0.13f;
 
     protected override void UpdateVisualEffects()
     {
@@ -430,7 +430,7 @@ public class HellhexPlayer : WhipDebuffPlayer
             bool isSummon = IsSummonOrWhipDeath(damageSource);
             bool isDebuffApplier = damageSource.SourcePlayerIndex == applierIndex;
 
-            if (!isSummon && !isDebuffApplier && damage >= 30 && !explosionSpawned)
+            if (!isSummon && !isDebuffApplier && damage >= 20 && !explosionSpawned)
             {
                 explosionSpawned = true;
 

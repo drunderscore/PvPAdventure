@@ -1,9 +1,30 @@
 ﻿using PvPAdventure.Content.Buffs;
+using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Combat;
 
+public class PermanentInfoDisplays : GlobalInfoDisplay
+{
+    public override bool? Active(InfoDisplay currentDisplay)
+    {
+        if (currentDisplay == InfoDisplay.Sextant || currentDisplay == InfoDisplay.DPSMeter)
+            return true;
+
+        return null;
+    }
+}
+
+public class PermanentInfoAccessoriesItem : GlobalItem
+{
+    public override void UpdateInventory(Item item, Player player)
+    {
+        player.accWatch = ItemID.GoldWatch;
+        player.accCalendar = true;
+        player.accDreamCatcher = true;
+    }
+}
 internal class PreventHotswapPlayer : ModPlayer
 {
     private bool hadPhilostoneLastFrame;

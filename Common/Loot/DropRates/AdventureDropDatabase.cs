@@ -359,7 +359,7 @@ public static class AdventureDropDatabase
                 stynger.OnSuccess(ItemDropRule.Common(ItemID.StyngerBolt, 1, 60, 99), hideLootReport: true);
 
                 npcLoot.Add(
-                    new FewFromRulesRule(2, 1,
+                    new FewFromRulesRule(1, 1,
                         stynger,
                         ItemDropRule.Common(ItemID.PossessedHatchet),
                         ItemDropRule.Common(ItemID.GolemFist),
@@ -368,7 +368,7 @@ public static class AdventureDropDatabase
                     )
                 );
 
-                npcLoot.Add(ItemDropRule.FewFromOptions(2, 1,
+                npcLoot.Add(ItemDropRule.FewFromOptions(1, 1,
                     ItemID.Picksaw,
                     ItemID.EyeoftheGolem,
                     ItemID.SunStone,
@@ -416,6 +416,7 @@ public static class AdventureDropDatabase
             case NPCID.QueenBee:
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyedGoggles, 1, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HiveWand, 1, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 22, 32));
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HoneyComb) ||
@@ -436,7 +437,6 @@ public static class AdventureDropDatabase
 
             case NPCID.BigMimicHallow:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
-                npcLoot.Add(ItemDropRule.Common(ItemID.IlluminantHook, 4, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
@@ -446,6 +446,10 @@ public static class AdventureDropDatabase
                     ItemID.CrystalVileShard,
                     ItemID.FlyingKnife
                 ));
+                npcLoot.Add(ItemDropRule.OneFromOptionsWithNumerator(5, 2,
+                    ItemID.IlluminantHook,
+                    ItemID.CrystalVileShard
+                ));
                 break;
             case NPCID.BigMimicCorruption:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
@@ -453,12 +457,12 @@ public static class AdventureDropDatabase
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
-                    ItemID.ClingerStaff,
                     ItemID.DartRifle,
                     ItemID.ChainGuillotines
                 ));
-                npcLoot.Add(ItemDropRule.OneFromOptionsWithNumerator(5, 2,
+                npcLoot.Add(ItemDropRule.OneFromOptionsWithNumerator(5, 3,
                     ItemID.PutridScent,
+                    ItemID.ClingerStaff,
                     ItemID.WormHook
                 ));
                 break;
@@ -589,7 +593,7 @@ public static class AdventureDropDatabase
 
             case NPCID.Plantera:
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
-                npcLoot.Add(ItemDropRule.Common(ItemID.TempleKey, 1, 1, 1));
+                npcLoot.Add(ItemDropRule.Common(ItemID.TempleKey, 1, 2, 2));
                 npcLoot.Add(
                     new OneFromRulesRule(1,
                         ItemDropRule.Common(ItemID.Seedler),

@@ -35,10 +35,10 @@ public class UnifiedRecipeGroupSystem : ModSystem
     private static readonly List<RecipeGroupData> AllGroups = new List<RecipeGroupData>
     {
         // Boss drops
-        new RecipeGroupData("AnyGolemPrimary", "Any Golem Primary", ItemID.GolemMasterTrophy, 3,
+        new RecipeGroupData("AnyGolemPrimary", "Any Golem Primary", ItemID.GolemMasterTrophy, 2,
             ItemID.GolemMasterTrophy, ItemID.Stynger, ItemID.PossessedHatchet, ItemID.HeatRay, ItemID.GolemFist, ItemID.StaffofEarth),
 
-        new RecipeGroupData("AnyGolemSecondary", "Any Golem Secondary", ItemID.GolemBossBag, 3,
+        new RecipeGroupData("AnyGolemSecondary", "Any Golem Secondary", ItemID.GolemBossBag, 2,
             ItemID.GolemBossBag, ItemID.SunStone, ItemID.ShinyStone, ItemID.EyeoftheGolem, ItemID.Picksaw),
 
         new RecipeGroupData("AnyQueenSlimePrimary", "Any Queen Slime Primary", ItemID.QueenSlimeMasterTrophy, 2,
@@ -56,15 +56,21 @@ public class UnifiedRecipeGroupSystem : ModSystem
         new RecipeGroupData("AnyWallPrimary", "Any Wall of Flesh Primary", ItemID.WallofFleshMasterTrophy, 2,
             ItemID.WallofFleshMasterTrophy, ItemID.FireWhip, ItemID.ClockworkAssaultRifle, ItemID.BreakerBlade, ItemID.LaserRifle),
 
-        new RecipeGroupData("AnySaucerPrimary", "Any Saucer Primary", ItemID.UFOMasterTrophy, 3,
+        new RecipeGroupData("AnySaucerPrimary", "Any Saucer Primary", ItemID.UFOMasterTrophy, 2,
             ItemID.UFOMasterTrophy, ItemID.XenoStaff, ItemID.LaserMachinegun, ItemID.InfluxWaver, ItemID.ElectrosphereLauncher, ItemID.Xenopopper),
         
         // Mimics
         new RecipeGroupData("AnyCorruptionMimicPrimary", "Any Corrupt Mimic Primary", ItemID.Fake_CorruptionChest, 2,
-            ItemID.Fake_CorruptionChest, ItemID.DartRifle, ItemID.ClingerStaff, ItemID.ChainGuillotines),
+            ItemID.Fake_CorruptionChest, ItemID.DartRifle, ItemID.ChainGuillotines),
 
         new RecipeGroupData("AnyHallowedMimicPrimary", "Any Hallowed Mimic Primary", ItemID.Fake_HallowedChest, 2,
-            ItemID.Fake_HallowedChest, ItemID.DaedalusStormbow, ItemID.CrystalVileShard, ItemID.FlyingKnife),
+            ItemID.Fake_HallowedChest, ItemID.DaedalusStormbow, ItemID.FlyingKnife),
+
+        new RecipeGroupData("AnyCorruptionMimicSecondary", "Any Corrupt Mimic Secondary", ItemID.WormHook, 2,
+            ItemID.ClingerStaff, ItemID.WormHook, ItemID.PutridScent),
+
+        new RecipeGroupData("AnyHallowedMimicSecondary", "Any Hallowed Mimic Secondary", ItemID.IlluminantHook, 2,
+            ItemID.IlluminantHook, ItemID.CrystalVileShard),
 
         new RecipeGroupData("AnyMimicPrimary", "Any Mimic Primary", ItemID.MimicBanner, 2,
             ItemID.MimicBanner, ItemID.TitanGlove, ItemID.CrossNecklace, ItemID.StarCloak, ItemID.PhilosophersStone, ItemID.MagicDagger, ItemID.DualHook),

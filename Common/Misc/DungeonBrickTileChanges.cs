@@ -23,8 +23,8 @@ internal class DungeonBrickTileChanges : GlobalTile
         if (TilePickaxeRequirements.TryGetValue(type, out int requiredPick))
         {
             Player player = Main.LocalPlayer;
-            if (player.HeldItem.hammer > 0)
-                return base.CanKillTile(i, j, type, ref blockDamaged);
+            //if (player.HeldItem.hammer > 0)
+            //    return base.CanKillTile(i, j, type, ref blockDamaged);
             if (player.HeldItem.pick < requiredPick)
                 return false;
         }
