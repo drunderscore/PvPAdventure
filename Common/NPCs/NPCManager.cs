@@ -1,7 +1,7 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using PvPAdventure.Common.Combat.TeamBoss;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Loot.DropRates;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.NPCs;

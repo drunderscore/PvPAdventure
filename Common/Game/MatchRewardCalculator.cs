@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.Enums;
 
-namespace PvPAdventure.Common.GameTimer;
+namespace PvPAdventure.Common.Game;
 
 internal readonly record struct MatchRewardContext(
     Team Team,
@@ -21,6 +21,9 @@ internal readonly record struct MatchRewardContext(
 /// </summary>
 internal static class MatchRewardCalculator
 {
+    private static readonly double Phi = (1 + Math.Sqrt(5)) / 2;
+    private static readonly double InvPhi = 1.0 / Phi;
+
     public static uint Calculate(MatchRewardContext context)
     {
         int reward = context.TeamPoints + CalculateKillDeathReward(context.Kills, context.Deaths);
@@ -48,6 +51,43 @@ internal static class MatchRewardCalculator
     }
 
     /// <summary>
+    /// Returns the number of gems rewarded to the player based on their K/D. 
+    /// 
+    /// K/D Examples:
+    /// 70/60 -> 16.6 gems
+    /// 50/10 -> 59.3 gems
+    /// 10/0  -> 11.5 gems
+    /// 20/10 -> 18.0 gems
+    /// 20/0  -> 27.4 gems
+    /// 25/30 -> 12.1 gems
+    /// 5/30  -> 1.3 gems
+    /// </summary>
+    private static int CalculateKillDeathReward(int kills, int deaths)
+    {
+        int diff = kills - deaths;
+        double k = kills;
+
+        if (diff >= 0)
+        {
+            double dPlus1 = diff + 1;
+            double diffTerm = Math.Pow(dPlus1, Phi);
+            double killLog = Math.Log(k + 2);
+            double product = diffTerm * killLog;
+            double value = Math.Pow(product, InvPhi);
+
+            return (int)Math.Ceiling(InvPhi * value);
+        }
+        else
+        {
+            double killLog = Math.Log(k + 2);
+            double logTerm = Math.Pow(killLog, InvPhi);
+            double expTerm = Math.Exp(diff / 15.0);
+
+            return (int)Math.Ceiling(InvPhi * logTerm * 2.2 * expTerm);
+        }
+    }
+
+    /// <summary>
     /// Formula: 
     /// K/D * 10.
     /// K/D multiplier. 
@@ -70,10 +110,10 @@ internal static class MatchRewardCalculator
     /// Kills minus deaths.
     /// Minimum 0 points.
     /// </summary>
-    private static int CalculateKillDeathReward(int kills, int deaths)
-    {
-        return Math.Max(kills - deaths, 0);
-    }
+    //private static int CalculateKillDeathReward(int kills, int deaths)
+    //{
+    //    return Math.Max(kills - deaths, 0);
+    //}
 
     /// <summary>
     /// EJ's silly formula.

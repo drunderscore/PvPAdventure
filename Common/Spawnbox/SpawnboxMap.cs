@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using ReLogic.Graphics;
 using Terraria;
 using Terraria.GameContent;

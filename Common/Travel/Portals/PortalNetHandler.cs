@@ -14,7 +14,8 @@ public static class PortalNetHandler
     {
         PortalCreatorUse,
         PortalHitFx,
-        PortalDamageCredit
+        PortalDamageCredit,
+        PortalCreationCancel
     }
 
     public static void HandlePacket(BinaryReader reader, int whoAmI)
@@ -35,10 +36,42 @@ public static class PortalNetHandler
                 ReceivePortalDamageCredit(reader, whoAmI);
                 break;
 
+            case PortalPacketType.PortalCreationCancel:
+                ReceivePortalCreationCancel(reader, whoAmI);
+                break;
+
             default:
                 Log.Warn($"[Portal] Unknown packet type={(byte)type}");
                 break;
         }
+    }
+
+    public static void SendPortalCreationCancel()
+    {
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            return;
+
+        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.UsePortal);
+        packet.Write((byte)PortalPacketType.PortalCreationCancel);
+        packet.Write((byte)Main.myPlayer);
+        packet.Send();
+    }
+
+    private static void ReceivePortalCreationCancel(BinaryReader reader, int whoAmI)
+    {
+        byte playerId = reader.ReadByte();
+
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        if (playerId != whoAmI)
+        {
+            Log.Chat($"Portal creation cancel rejected: sender mismatch (packet={playerId}, caller={whoAmI})");
+            return;
+        }
+
+        PortalSystem.ClearCreationProjectiles(playerId);
     }
 
     public static void SendPortalDamageCredit(int npcIndex)

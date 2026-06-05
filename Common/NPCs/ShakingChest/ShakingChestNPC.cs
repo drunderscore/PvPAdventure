@@ -1,9 +1,9 @@
-﻿using PvPAdventure.Common.GameTimer;
-using Terraria;
+﻿using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 using PvPAdventure.Content.Portals;
+using PvPAdventure.Common.Game;
 
 namespace PvPAdventure.Common.NPCs;
 

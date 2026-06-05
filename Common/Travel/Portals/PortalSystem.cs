@@ -111,6 +111,33 @@ public static class PortalSystem
         return player.team > 0 && player.team == portal.OwnerTeam;
     }
 
+    public static bool IsCreatingPortal(Player player)
+    {
+        if (player?.active != true)
+            return false;
+
+        if (player.itemAnimation > 0 && player.HeldItem?.ModItem is PortalCreatorItem)
+            return true;
+
+        return IsCreatingPortal(player.whoAmI);
+    }
+
+    public static bool IsCreatingPortal(int ownerIndex)
+    {
+        if (ownerIndex < 0 || ownerIndex >= Main.maxPlayers)
+            return false;
+
+        for (int i = 0; i < Main.maxProjectiles; i++)
+        {
+            Projectile projectile = Main.projectile[i];
+
+            if (projectile?.active == true && projectile.owner == ownerIndex && projectile.ModProjectile is PortalCreationProjectile)
+                return true;
+        }
+
+        return false;
+    }
+
     private static void RemovePortals(int ownerIndex)
     {
         for (int i = 0; i < Main.maxNPCs; i++)

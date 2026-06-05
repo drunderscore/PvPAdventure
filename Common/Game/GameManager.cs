@@ -1,4 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Game.GameReporters;
+using PvPAdventure.Common.Game.MatchReplays;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Utilities;
@@ -15,7 +17,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.Net;
 
-namespace PvPAdventure.Common.GameTimer;
+namespace PvPAdventure.Common.Game;
 
 [Autoload(Side = ModSide.Both)]
 public class GameManager : ModSystem
@@ -129,6 +131,9 @@ public class GameManager : ModSystem
 
         ChatHelper.BroadcastChatMessage(
             NetworkText.FromLiteral($"The game will begin in {_startGameCountdown / 60} seconds."), Color.Green);
+
+        // Start recording
+        ModContent.GetInstance<ReeseReplayControlSystem>().StartMatchRecording();
     }
     public void EndGame()
     {
@@ -362,7 +367,7 @@ public class GameManager : ModSystem
         }
     }
 
-    private static void ReportCompletedMatchToBackend()
+    private static void ReportCompletedMatchToBackend(string replayFilePath = "")
     {
         if (Main.netMode != NetmodeID.Server)
             return;
@@ -374,9 +379,29 @@ public class GameManager : ModSystem
         DateTime startUtc = DateTime.SpecifyKind(gameManager.MatchStartTime.Value, DateTimeKind.Utc);
         DateTime endUtc = DateTime.UtcNow;
 
-        OfficialMatchReporter.PostCompletedMatchSafe(startUtc, endUtc);
+        if (!string.IsNullOrWhiteSpace(replayFilePath) && File.Exists(replayFilePath))
+        {
+            MatchReporter.PostCompletedMatchSafe(startUtc, endUtc, replayFilePath);
+            Log.Chat($"Queued completed match with replay for backend reporting. Replay={Path.GetFileName(replayFilePath)}");
+            return;
+        }
 
-        Log.Chat("Queued completed match for backend reporting");
+        MatchReporter.PostCompletedMatchSafe(startUtc, endUtc);
+        Log.Chat("Queued completed match without replay for backend reporting");
+    }
+
+    private static string StopRecordingAndGetReplayPath()
+    {
+        if (!ModLoader.TryGetMod("Reese", out Mod reese))
+            return "";
+
+        object result = reese.Call("StopRecordingAndGetFilePath", "PvPAdventure match ended");
+
+        if (result is string filePath && File.Exists(filePath))
+            return filePath;
+
+        Log.Chat($"Failed to get Reese replay file after stopping recording. Result={result}");
+        return "";
     }
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
@@ -388,9 +413,12 @@ public class GameManager : ModSystem
         if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)
         {
             BroadcastEndGameSummary();
-            //BroadcastSaveMatchToClients();
-            ReportCompletedMatchToBackend();
-            ResetMatchState(); // Clear the match start time after broadcasting
+
+            string replayFilePath = StopRecordingAndGetReplayPath();
+
+            ReportMatchAchievements();
+            ReportCompletedMatchToBackend(replayFilePath);
+            ResetMatchState();
         }
 
         switch (newPhase)
@@ -447,6 +475,16 @@ public class GameManager : ModSystem
                 }
         }
     }
+
+    private static void ReportMatchAchievements()
+    {
+        if (Main.netMode != NetmodeID.Server)
+            return;
+
+        PointsManager pointsManager = ModContent.GetInstance<PointsManager>();
+        AchievementReporter.OnMatchEnded(pointsManager);
+    }
+
     private void UpdateFreezeTime(bool value)
     {
         var freezeTimeModule = CreativePowerManager.Instance.GetPower<CreativePowers.FreezeTime>();

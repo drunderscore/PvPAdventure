@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.AdminTools.DragonLens;
 using PvPAdventure.Common.AdminTools.Tools.StartGameTool;
-using PvPAdventure.Common.GameTimer;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Net;
 using Terraria;
 using Terraria.ID;
