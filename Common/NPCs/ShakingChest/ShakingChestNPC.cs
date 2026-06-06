@@ -4,6 +4,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using PvPAdventure.Content.Portals;
 using PvPAdventure.Common.Game;
+using Microsoft.Xna.Framework;
 
 namespace PvPAdventure.Common.NPCs;
 
@@ -179,5 +180,11 @@ public class ShakingChestNPC : GlobalNPC
             if (Main.dedServ)
                 NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
         }
+    }
+
+    public override void ModifyHoverBoundingBox(NPC npc, ref Rectangle boundingBox)
+    {
+        if (npc.type != TargetType) return;
+        boundingBox = npc.Hitbox;
     }
 }
