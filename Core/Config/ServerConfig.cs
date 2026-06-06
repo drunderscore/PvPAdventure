@@ -75,6 +75,11 @@ public class ServerConfig : ModConfig
 
     [BackgroundColor(104, 58, 140)]
     [Expand(false, false)]
+    [CustomModConfigItem(typeof(BossExpertiseDictionaryElement))]
+    public Dictionary<NPCDefinition, BossExpertiseEntry> BossExpertise = [];
+
+    [BackgroundColor(104, 58, 140)]
+    [Expand(false, false)]
     public List<ProjectileDefinition> BossInvulnerableProjectiles = [new(ProjectileID.Dynamite)];
 
     [BackgroundColor(104, 58, 140)]
@@ -82,6 +87,11 @@ public class ServerConfig : ModConfig
 
     [BackgroundColor(104, 58, 140)]
     [DefaultValue(true)] public bool OnlyDisplayWorldEvilBoss = true;
+
+    [BackgroundColor(104, 58, 140)]
+    [ReloadRequired]
+    [DefaultValue(true)]
+    public bool WallOfFleshDropsDemonHeart = true;
 
     [Header("NPCs")]
     [HeaderIcon(267)]
@@ -93,6 +103,7 @@ public class ServerConfig : ModConfig
     [Header("Gameplay")]
     [HeaderIcon(ItemID.GPS)]
 
+    [ConfigIcon(nameof(Ass.ConfigBed), placement: ConfigIconPlacement.Cut)]
     [BackgroundColor(36, 108, 116)]
     [Expand(false, false)]
     public TravelSystemConfig TravelSystem = new();
@@ -143,9 +154,12 @@ public class ServerConfig : ModConfig
     [DefaultValue(true)]
     public bool BroadcastWeatherMessages = true;
 
+    [HeaderIcon(nameof(Ass.ConfigPlayerOutline))]
     [Header("Visualization")]
+
+    [BackgroundColor(126, 62, 88)]
     [DefaultValue(true)]
-    public bool UseTeamCombatText;
+    public bool UseTeamCombatText = true;
 
     #endregion
 
@@ -218,15 +232,18 @@ public class ServerConfig : ModConfig
         [DefaultValue(true)]
         public bool IsRandomTeleportEnabled = true;
 
+        //[ConfigIcon(nameof(Ass.IconEye))]
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [DefaultValue(true)]
         public bool AllowSpectating = true;
 
+        //[ConfigIcon(nameof(Ass.portal))]
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [Range(0, 60)]
         [DefaultValue(5)]
         public int TravelPortalCreationTimePreHardmodeSeconds = 5;
 
+        //[ConfigIcon(nameof(Ass.portal))]
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [Range(0, 60)]
         [DefaultValue(10)]
@@ -460,6 +477,12 @@ public class ServerConfig : ModConfig
         public float TeamLifeShare = 0.5f;
     }
 
+    public class BossExpertiseEntry
+    {
+        [DefaultValue(BossExpertiseMode.Expert)]
+        public BossExpertiseMode Difficulty = BossExpertiseMode.Expert;
+    }
+
     public class WorldGenerationConfig
     {
         [ConfigIcon(ItemID.LifeFruit)]
@@ -489,6 +512,12 @@ public class ServerConfig : ModConfig
     #endregion
 
     #region Small helpers
+    public enum BossExpertiseMode
+    {
+        Classic,
+        Expert,
+        Master
+    }
     public class ChestItemReplacement
     {
         public List<ConfigItem> Items = [];
@@ -645,9 +674,11 @@ public class ServerConfig : ModConfig
         base.OnLoaded();
 
         BossOrder ??= [];
+        BossExpertise ??= [];
         TravelSystem ??= new();
         if (BossOrder.Count == 0)
             BossOrder = CreateDefaultBossOrder();
+        EnsureBossExpertiseDefaults();
     }
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
@@ -694,6 +725,24 @@ public class ServerConfig : ModConfig
     #endregion
 
     #region Default values
+    internal void EnsureBossExpertiseDefaults()
+    {
+        BossExpertise ??= [];
+        if (BossExpertise.Count > 0)
+            return;
+
+        foreach (int type in new[] { NPCID.DD2Betsy, NPCID.PirateShip, NPCID.PirateShipCannon, NPCID.MartianSaucerCore })
+            AddBossExpertiseDefault(type, BossExpertiseMode.Expert);
+    }
+
+    private void AddBossExpertiseDefault(int npcType, BossExpertiseMode difficulty)
+    {
+        BossExpertise.TryAdd(new NPCDefinition(npcType), new BossExpertiseEntry
+        {
+            Difficulty = difficulty
+        });
+    }
+
     private static List<NPCDefinition> CreateDefaultBossOrder()
     {
         return
@@ -717,6 +766,7 @@ public class ServerConfig : ModConfig
             new(NPCID.CultistBoss)
         ];
     }
+
     #endregion
 
 }

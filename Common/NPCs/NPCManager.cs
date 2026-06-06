@@ -332,6 +332,10 @@ public class NPCRules : GlobalNPC
                 case NPCID.SkeletronHead:
                     AddNonExpertBossLoot(ItemID.BoneGlove);
                     break;
+                case NPCID.WallofFlesh:
+                    if (ModContent.GetInstance<ServerConfig>().WallOfFleshDropsDemonHeart)
+                        AddNonExpertBossLoot(ItemID.DemonHeart);
+                    break;
                 case NPCID.QueenSlimeBoss:
                     AddNonExpertBossLoot(ItemID.VolatileGelatin);
                     break;

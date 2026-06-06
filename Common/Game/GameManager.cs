@@ -26,6 +26,7 @@ public class GameManager : ModSystem
     public int? _startGameCountdown = null;
     private Phase _currentPhase;
     public DateTime? MatchStartTime { get; private set; }
+    public DateTime? MatchEndTime { get; private set; }
 
     public Phase CurrentPhase
     {
@@ -118,6 +119,7 @@ public class GameManager : ModSystem
     private void ResetMatchState()
     {
         MatchStartTime = null;
+        MatchEndTime = null;
     }
 
     public void StartGame(int time, int countdownTimeInSeconds = 10)
@@ -367,7 +369,7 @@ public class GameManager : ModSystem
         }
     }
 
-    private static void ReportCompletedMatchToBackend(string replayFilePath = "")
+    internal static void ReportCompletedMatchToBackend(string replayFilePath = "")
     {
         if (Main.netMode != NetmodeID.Server)
             return;
@@ -377,31 +379,20 @@ public class GameManager : ModSystem
             return;
 
         DateTime startUtc = DateTime.SpecifyKind(gameManager.MatchStartTime.Value, DateTimeKind.Utc);
-        DateTime endUtc = DateTime.UtcNow;
+        DateTime endUtc = DateTime.SpecifyKind(gameManager.MatchEndTime ?? DateTime.UtcNow, DateTimeKind.Utc);
 
         if (!string.IsNullOrWhiteSpace(replayFilePath) && File.Exists(replayFilePath))
         {
             MatchReporter.PostCompletedMatchSafe(startUtc, endUtc, replayFilePath);
             Log.Chat($"Queued completed match with replay for backend reporting. Replay={Path.GetFileName(replayFilePath)}");
-            return;
+        }
+        else
+        {
+            MatchReporter.PostCompletedMatchSafe(startUtc, endUtc);
+            Log.Chat("Queued completed match without replay for backend reporting");
         }
 
-        MatchReporter.PostCompletedMatchSafe(startUtc, endUtc);
-        Log.Chat("Queued completed match without replay for backend reporting");
-    }
-
-    private static string StopRecordingAndGetReplayPath()
-    {
-        if (!ModLoader.TryGetMod("Reese", out Mod reese))
-            return "";
-
-        object result = reese.Call("StopRecordingAndGetFilePath", "PvPAdventure match ended");
-
-        if (result is string filePath && File.Exists(filePath))
-            return filePath;
-
-        Log.Chat($"Failed to get Reese replay file after stopping recording. Result={result}");
-        return "";
+        gameManager.ResetMatchState();
     }
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
@@ -414,11 +405,9 @@ public class GameManager : ModSystem
         {
             BroadcastEndGameSummary();
 
-            string replayFilePath = StopRecordingAndGetReplayPath();
-
+            MatchEndTime = DateTime.UtcNow;
             ReportMatchAchievements();
-            ReportCompletedMatchToBackend(replayFilePath);
-            ResetMatchState();
+            ModContent.GetInstance<ReeseReplayControlSystem>().StopMatchRecording();
         }
 
         switch (newPhase)
