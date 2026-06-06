@@ -29,7 +29,7 @@ internal class DefinitionDictionaryElement : DictionaryElement
         base.DataList.Clear();
         int top = 0;
         dataWrapperList = [];
-        Type type = typeof(DictionaryElementWrapper<,>).MakeGenericType(keyType, valueType);
+        Type type = GetDictionaryElementWrapperType();
         if (base.Data == null)
         {
             return;
@@ -89,6 +89,11 @@ internal class DefinitionDictionaryElement : DictionaryElement
             tuple.Item1.Append(uIModConfigHoverImage);
             num++;
         }
+    }
+
+    protected virtual Type GetDictionaryElementWrapperType()
+    {
+        return typeof(DictionaryElementWrapper<,>).MakeGenericType(keyType, valueType);
     }
 
     public override void OnBind()
@@ -182,6 +187,56 @@ internal class DefinitionDictionaryElement : DictionaryElement
 
         return false;
     }
+}
+
+internal sealed class BossExpertiseDictionaryElement : DefinitionDictionaryElement
+{
+    protected override Type GetDictionaryElementWrapperType()
+    {
+        return typeof(BossExpertiseDictionaryElementWrapper<>).MakeGenericType(valueType);
+    }
+}
+
+internal sealed class BossExpertiseDictionaryElementWrapper<TValue> : IDictionaryElementWrapper
+{
+    private readonly IDictionary _dictionary;
+    private NPCDefinition _key;
+    private TValue _value;
+
+    public BossExpertiseDictionaryElementWrapper(NPCDefinition key, TValue value, IDictionary dictionary)
+    {
+        _dictionary = dictionary;
+        _key = key;
+        _value = value;
+    }
+
+    [CustomModConfigItem(typeof(BossNPCDefinitionElement))]
+    public NPCDefinition Key
+    {
+        get => _key;
+        set
+        {
+            if (_dictionary.Contains(value))
+                return;
+
+            _dictionary.Remove(_key);
+            _key = value;
+            _dictionary.Add(_key, _value);
+        }
+    }
+
+    public TValue Value
+    {
+        get => _value;
+        set
+        {
+            _dictionary[Key] = value;
+            _value = value;
+        }
+    }
+
+    object IDictionaryElementWrapper.Key => Key;
+    object IDictionaryElementWrapper.Value => Value;
 }
 
 /// <summary>

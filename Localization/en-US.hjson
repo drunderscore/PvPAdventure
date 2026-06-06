@@ -444,7 +444,7 @@ Mods: {
 					Gameplay: Gameplay
 					WorldGen: World Generation
 					World: World
-					Visualization: Visualization Header
+					Visualization: Visualization
 				}
 
 				Points: {
@@ -578,7 +578,17 @@ Mods: {
 				}
 
 				UseTeamCombatText: {
-					Label: Use Team Combat Text
+					Label: Team Colored Hits
+					Tooltip: All combat hit text will be team colored by the team dealt the hit (affects both PvE and PvP)
+				}
+
+				BossExpertise: {
+					Label: Boss Expertise
+					Tooltip: Boss AI
+				}
+
+				WallOfFleshDropsDemonHeart: {
+					Label: Wall Of Flesh Drops Demon Heart
 					Tooltip: ""
 				}
 			}
@@ -1077,12 +1087,12 @@ Mods: {
 				}
 
 				TravelPortalCreationTimePreHardmodeSeconds: {
-					Label: "[i:PvPAdventure/PortalCreatorItemItem] Portal Creator Use Time (Pre-HM)"
+					Label: Portal Creator Use Time (Pre-HM)
 					Tooltip: The use time in seconds it takes for a portal to be created in Pre-Hardmode
 				}
 
 				TravelPortalCreationTimeHardmodeSeconds: {
-					Label: "[i:PvPAdventure/PortalCreatorItemItem] Portal Creator Use Time (HM)"
+					Label: Portal Creator Use Time (HM)
 					Tooltip: The use time in seconds it takes for a portal to be created in Hardmode
 				}
 
@@ -1243,6 +1253,39 @@ Mods: {
 				ProjectileOutlines: {
 					Label: Projectile Outlines
 					Tooltip: Show team outlines around team projectiles by the team shooting the projectiles
+				}
+			}
+
+			BossExpertiseEntry: {
+				Tooltip: ""
+
+				Difficulty: {
+					Label: Difficulty
+					Tooltip: ""
+				}
+
+				Boss: {
+					Label: Boss
+					Tooltip: ""
+				}
+			}
+
+			BossExpertiseMode: {
+				Tooltip: ""
+
+				Classic: {
+					Label: Classic
+					Tooltip: ""
+				}
+
+				Expert: {
+					Label: Expert
+					Tooltip: ""
+				}
+
+				Master: {
+					Label: Master
+					Tooltip: ""
 				}
 			}
 		}
