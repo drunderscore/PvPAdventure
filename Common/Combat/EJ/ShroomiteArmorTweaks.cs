@@ -8,13 +8,6 @@ namespace PvPAdventure.Common.Combat;
 public class ShroomiteArmorTweaks : ModPlayer
 {
     private float _savedStealth;
-    private bool _shouldRestoreStealth;
-
-    public override void PreUpdate()
-    {
-        _savedStealth = Player.stealth;
-        _shouldRestoreStealth = false;
-    }
 
     public override void OnHurt(Player.HurtInfo info)
     {
@@ -26,18 +19,20 @@ public class ShroomiteArmorTweaks : ModPlayer
             Player.legs == ArmorIDs.Legs.ShroomiteLeggings;
 
         if (hasFullShroomite)
-        {
-            _shouldRestoreStealth = true;
-        }
+            _savedStealth = Player.stealth;
     }
 
-    public override void PostUpdate()
+    public override void PostHurt(Player.HurtInfo info)
     {
-        if (_shouldRestoreStealth)
-        {
+        bool hasFullShroomite =
+            (Player.head == ArmorIDs.Head.ShroomiteHeadgear ||
+             Player.head == ArmorIDs.Head.ShroomiteMask ||
+             Player.head == ArmorIDs.Head.ShroomiteHelmet) &&
+            Player.body == ArmorIDs.Body.ShroomiteBreastplate &&
+            Player.legs == ArmorIDs.Legs.ShroomiteLeggings;
+
+        if (hasFullShroomite)
             Player.stealth = _savedStealth;
-            _shouldRestoreStealth = false;
-        }
     }
 }
 public class ShroomiteAmmoBoost : GlobalItem
@@ -67,7 +62,6 @@ public class ShroomiteAmmoBoost : GlobalItem
         {
             if (item.ammo == AmmoID.Rocket ||
                 item.ammo == AmmoID.Dart ||
-                item.ammo == AmmoID.Gel ||
                 IsSpecialAmmo(item.type))
             {
                 matchesHelmet = true;
@@ -100,6 +94,7 @@ public class ShroomiteAmmoBoost : GlobalItem
         return itemType == ItemID.Stake ||
                itemType == ItemID.Nail ||
                itemType == ItemID.ExplosiveJackOLantern ||
+               itemType == ItemID.StyngerBolt ||
                itemType == ItemID.CandyCorn;
     }
 }

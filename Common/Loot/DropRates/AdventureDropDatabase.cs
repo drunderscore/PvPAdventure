@@ -443,7 +443,6 @@ public static class AdventureDropDatabase
 
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
                     ItemID.DaedalusStormbow,
-                    ItemID.CrystalVileShard,
                     ItemID.FlyingKnife
                 ));
                 npcLoot.Add(ItemDropRule.OneFromOptionsWithNumerator(5, 2,
