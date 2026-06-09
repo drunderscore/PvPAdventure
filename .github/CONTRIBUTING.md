@@ -36,38 +36,38 @@ If you're modifying/expanding existing functionality, here's a quick overview of
 
 #### `Common` (gameplay features)
 - `Common.AdminTools` — game timer, points/team assigner, integration with DragonLens.
-- `Common.Arenas` — subworld world, loadouts.
 - `Common.Bounties` — bounty shop.
 - `Common.Combat` — PvP/PvE changes, i-frames, hit/kill markers, ghost heal/LoS adjustments, etc.
 - `Common.Combat.TeamBoss` — bosses only take damage from the team with the most damage (set in BossBalanceConfig)
-- `Common.GameTimer` — match state, countdown, time remaining.
+- `Common.Game` — match state, countdown, time remaining.
+- `Common.Game.GameReporters` — PvPHub integration for match history, achievement, etc.
+- `Common.Game.MatchReplays` — Reese integration for record/replay, etc.
 - `Common.Items` — item stats, bans, shimmer transforms, prefixes.
 - `Common.Loot` — boss loot and drop rates.
 - `Common.Misc` — miscallaneous code.
 - `Common.Movement` — dash keybind.
 - `Common.NPCs` — town NPCs changes, spawn rules, boss behaviour changes, hitmarker sound.
 - `Common.Recipes` — crafting recipes.
-- `Common.Security` — automatic admin steamIDs, client mods check, whitelist players.
-- `Common.Shop` — TPVPA shop, drawing and registering custom weapon skins.
 - `Common.Spawnbox` — random teleport, movement rules, recall behavior.
-- `Common.SpawnSelector` — adventure mirror, bed/teammate teleports, select spawn when dead, etc.
-- `Common.SSC` — server sided character implementation.
 - `Common.Statistics` — K/D, boss score, team points, item pickups.
 - `Common.Teams` — team chat, team beds.
+- `Common.Travel` — portals, bed/portal teleports, select spawn when dead, etc.
 - `Common.Visualization` — player outlines, modify accessory slots, draw PvP icons, etc.
 - `Common.World` — world-state changes and ongoing world rules (weather, invasions, global timers/state, etc.).
 - `Common.WorldGenChanges` — world generation and worldgen-related IL edits/tiles (e.g. chest/worldgen patches).
 
 #### `Content` (items, NPC, buffs, tiles, etc)
 - `Content.Buffs` — our buffs, mostly combat or spawn related
-- `Content.Items` — adventure mirror
+- `Content.Items` — biome keys
 - `Content.NPCs` — bound NPCs
+- `Content.Portals` — portal creation projectile, item and portal NPC itself.
 
 #### `Core` (infrastructure)
+- `Core.Compat` — integration with other mods.
 - `Core.Config` — client & server config.
 - `Core.Input` — keybinds.
 - `Core.Net` — ping, section sync, spawn sync, packet helpers, etc.
-- `Core.Utilities` — math helpers, asset loaders, etc.
+- `Core.Utilities` — math helpers, asset loaders, general helpers, etc.
 
 ---
 
