@@ -36,6 +36,13 @@ internal sealed class DebugStatsSystem : ModSystem
     private static void QueueText(string text, Vector2 pos, Color color, float scale = 0.8f)
         => _texts.Add((text, pos, color, scale));
 
+    // ── Panel textures ────────────────────────────────────────────────
+    private static Texture2D PanelBg => Main.Assets.Request<Texture2D>("Images/UI/PanelBackground").Value;
+    private static Texture2D PanelBorder => Main.Assets.Request<Texture2D>("Images/UI/PanelBorder").Value;
+
+    // ── Shared layout origin ──────────────────────────────────────────
+    private static int OriginX => Main.screenWidth < 1200 ? Main.screenWidth - 400 : 1100;
+
     // ── Public entry points ───────────────────────────────────────────
     internal static void DrawButtons()
     {
@@ -43,11 +50,9 @@ internal sealed class DebugStatsSystem : ModSystem
         Texture2D border = Main.Assets.Request<Texture2D>("Images/UI/CharCreation/SmallPanelBorder").Value;
 
         const int spacing = 6;
-        const int startX = 10;
-        const int startY = 85;
+        const int startY = 6;
         const float labelScale = 0.68f;
-
-        QueueText("PvPAdventure Debug Stats", new Vector2(startX, 64f), Color.Yellow);
+        int startX = OriginX;
 
         int i = 0;
         foreach (DebugStatGroup group in DebugStats.AllGroups())
@@ -87,7 +92,7 @@ internal sealed class DebugStatsSystem : ModSystem
 
     internal static void DrawStats()
     {
-        Vector2 origin = new(10f, 122f);
+        Vector2 origin = new(OriginX, 6 + 40);
         float nextY = origin.Y;
 
         foreach (DebugStatGroup group in DebugStats.AllGroups())
@@ -116,10 +121,28 @@ internal sealed class DebugStatsSystem : ModSystem
         const float headerGap = 22f;
         const float rowStep = 15f;
         const float columnGap = 8f;
+        const float padding = 8f;
+        const int slice = 10;
 
+        // Measure content so the panel wraps it tightly
+        float labelW = MaxLabelWidth(rows, rowScale);
+        float valueW = MaxValueWidth(rows, rowScale);
+        float headerW = FontAssets.MouseText.Value.MeasureString(header).X * headerScale;
+        float contentW = Math.Max(headerW, labelW + (valueW > 0f ? columnGap + valueW : 0f));
+        float contentH = headerGap + rows.Length * rowStep;
+
+        int px = (int)(origin.X - padding);
+        int py = (int)(origin.Y - padding);
+        int pw = (int)(contentW + padding * 2f);
+        int ph = (int)(contentH + padding * 2f);
+
+        // Vanilla UIPanel: background then border, same slice size
+        Utils.DrawSplicedPanel(Main.spriteBatch, PanelBg, px, py, pw, ph, slice, slice, slice, slice, new Color(44, 57, 105, 210));
+        Utils.DrawSplicedPanel(Main.spriteBatch, PanelBorder, px, py, pw, ph, slice, slice, slice, slice, Color.Black);
+
+        // Text on top
         QueueText(header, origin, headerColor, headerScale);
 
-        float labelW = MaxLabelWidth(rows, rowScale);
         float valueX = origin.X + labelW + columnGap;
 
         for (int i = 0; i < rows.Length; i++)
@@ -154,9 +177,26 @@ internal sealed class DebugStatsSystem : ModSystem
         return w;
     }
 
+    private static float MaxValueWidth(string[] rows, float scale)
+    {
+        float w = 0f;
+        foreach (string row in rows)
+        {
+            int sep = row.IndexOf(':');
+            if (sep < 0)
+            {
+                w = Math.Max(w, FontAssets.MouseText.Value.MeasureString(row).X * scale);
+                continue;
+            }
+            if (sep >= row.Length - 1) continue;
+            w = Math.Max(w, FontAssets.MouseText.Value.MeasureString(row[(sep + 1)..].TrimStart()).X * scale);
+        }
+        return w;
+    }
+
     private static float GroupHeight(int rowCount)
     {
-        const float headerGap = 19f;
+        const float headerGap = 22f;
         const float rowStep = 15f;
         return headerGap + rowCount * rowStep;
     }
@@ -190,7 +230,8 @@ internal sealed class DebugStatsSystem : ModSystem
     private static void SyncBuilderToggle()
     {
         DebugStatsBuilderToggle toggle = ModContent.GetInstance<DebugStatsBuilderToggle>();
-        toggle?.CurrentState = IsVisible ? 0 : 1;
+        if (toggle != null)
+            toggle.CurrentState = IsVisible ? 0 : 1;
     }
 }
 
@@ -200,17 +241,17 @@ internal sealed class DebugStatsSystem : ModSystem
 /// </summary>
 public class DebugStatsBuilderToggle : BuilderToggle
 {
+    public override string Texture => "PvPAdventure/Assets/Custom/ConfigBed";
     public override bool Active() => true;
     public override int NumberOfStates => 2;
 
     public override string DisplayValue()
         => CurrentState == 0 ? "PvPAdventure Debug Stats: On" : "PvPAdventure Debug Stats: Off";
-    public override string Texture => "PvPAdventure/Assets/Custom/ConfigBed"; // arbitrary texture that won't ever be drawn
+
     public override bool OnLeftClick(ref SoundStyle? sound)
     {
         DebugStatsSystem.Toggle();
         sound = DebugStatsSystem.IsVisible ? SoundID.MenuOpen : SoundID.MenuClose;
-        // Returning true auto-flips CurrentState (0 <-> 1), which stays in sync with IsVisible.
         return true;
     }
 
@@ -223,7 +264,7 @@ public class DebugStatsBuilderToggle : BuilderToggle
         spriteBatch.Draw(tex, drawParams.Position, null, drawParams.Color,
             0f, tex.Size() * 0.5f, drawParams.Scale, SpriteEffects.None, 0f);
 
-        return false; // skip default drawing
+        return false;
     }
 }
 
