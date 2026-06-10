@@ -16,6 +16,11 @@ Mods: {
 			DLStartGameTool.DisplayName: DL Start Game Tool
 			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
 			UsePortalCreator.DisplayName: Use Portal Creator
+			ErkySSC_PvPAdventure_Pause_open_game_timer.DisplayName: PvPAdventure : Game Timer
+			ErkySSC_PvPAdventure_Pause_pause_game.DisplayName: PvPAdventure : Pause
+			ErkySSC_PvPAdventure_StartGame_open_game_timer.DisplayName: PvPAdventure : Game Timer
+			ErkySSC_PvPAdventure_StartGame_quick_start_60.DisplayName: PvPAdventure : Quick Start 60m
+			ErkySSC_PvPAdventure_StartGame_adjust_game_time.DisplayName: PvPAdventure : Adjust Time
 		}
 
 		Tools: {

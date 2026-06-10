@@ -19,18 +19,25 @@ internal sealed class ErkySSCStartGameTool : ModSystem
 
     public override void PostSetupContent()
     {
+        // Don't register here — Ass.IconStartGame may be re-assigned by AssetLoader later
+        RegisterErkySSCQuickbarEntries();
+    }
+
+    public override void OnWorldLoad()
+    {
+        // Yep, this works!
         RegisterErkySSCQuickbarEntries();
     }
 
     public override void Unload()
     {
-        ModLoader.GetMod("ErkySSC")?.Call("ClearAdminQuickbarEntries", Owner);
+        if (!ModLoader.TryGetMod("ErkySSC", out Mod erky))
+            return;
     }
 
     private static void RegisterErkySSCQuickbarEntries()
     {
-        Mod erky = ModLoader.GetMod("ErkySSC");
-        if (erky == null)
+        if (!ModLoader.TryGetMod("ErkySSC", out Mod erky))
             return;
 
         Asset<Texture2D> icon = Ass.IconStartGame;
