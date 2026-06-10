@@ -26,6 +26,7 @@ internal static class DebugStats
     {
         yield return new("Chlorophyte", new Color(100, 220, 100), BuildChlorophyte);
         yield return new("Fishing", new Color(100, 180, 240), BuildFishing);
+        yield return new(DebugFishingCatchPanel.GroupHeader, new Color(120, 190, 255), () => []);
     }
 
     // ── ROW BUILDERS — add yours below ───────────────────────────────

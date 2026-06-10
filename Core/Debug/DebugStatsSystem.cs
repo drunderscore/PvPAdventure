@@ -35,6 +35,10 @@ internal sealed class DebugStatsSystem : ModSystem
 
     private static void QueueText(string text, Vector2 pos, Color color, float scale = 0.8f)
         => _texts.Add((text, pos, color, scale));
+    // Fishing panel
+    private static UserInterface fishingUI;
+    private static UIState fishingState;
+    private static DebugFishingCatchPanel fishingPanel;
 
     // ── Panel textures ────────────────────────────────────────────────
     private static Texture2D PanelBg => Main.Assets.Request<Texture2D>("Images/UI/PanelBackground").Value;
@@ -44,6 +48,13 @@ internal sealed class DebugStatsSystem : ModSystem
     private static int OriginX => Main.screenWidth < 1200 ? Main.screenWidth - 400 : 1100;
 
     // ── Public entry points ───────────────────────────────────────────
+    public override void OnWorldLoad()
+    {
+        fishingUI = new();
+        fishingState = new();
+        fishingPanel = new DebugFishingCatchPanel();
+        fishingState.Append(fishingPanel);
+    }
     internal static void DrawButtons()
     {
         Texture2D back = Main.Assets.Request<Texture2D>("Images/UI/CharCreation/SmallPanel").Value;
@@ -92,17 +103,32 @@ internal sealed class DebugStatsSystem : ModSystem
 
     internal static void DrawStats()
     {
-        Vector2 origin = new(OriginX, 6 + 40);
+        Vector2 origin = new(OriginX, 46);
         float nextY = origin.Y;
 
         foreach (DebugStatGroup group in DebugStats.AllGroups())
         {
-            if (!IsGroupEnabled(group.Header)) continue;
+            if (!IsGroupEnabled(group.Header))
+                continue;
+
+            if (group.Header == DebugFishingCatchPanel.GroupHeader)
+            {
+                DrawFishingPanel(new Vector2(origin.X, nextY));
+                nextY += DebugFishingCatchPanel.PanelHeight + 14f;
+                continue;
+            }
 
             string[] rows = group.BuildRows();
             DrawGroup(group.Header, group.Color, rows, new Vector2(origin.X, nextY));
             nextY += GroupHeight(rows.Length) + 14f;
         }
+    }
+    private static void DrawFishingPanel(Vector2 origin)
+    {
+        if (fishingPanel == null)
+            return;
+
+        fishingUI?.Draw(Main.spriteBatch, Main._drawInterfaceGameTime);
     }
 
     internal static void Flush(SpriteBatch sb)
@@ -208,6 +234,51 @@ internal sealed class DebugStatsSystem : ModSystem
             Toggle();
             SyncBuilderToggle();
         }
+
+        bool showFishingPanel = IsVisible && IsGroupEnabled(DebugFishingCatchPanel.GroupHeader);
+        fishingUI?.SetState(showFishingPanel ? fishingState : null);
+
+        if (showFishingPanel)
+            LayoutFishingPanel();
+
+        fishingUI?.Update(gameTime);
+    }
+    private static Vector2 FishingPanelPosition()
+    {
+        Vector2 origin = new(OriginX, 46);
+        float nextY = origin.Y;
+
+        foreach (DebugStatGroup group in DebugStats.AllGroups())
+        {
+            if (!IsGroupEnabled(group.Header))
+                continue;
+
+            if (group.Header == DebugFishingCatchPanel.GroupHeader)
+                return new Vector2(origin.X - 8f, nextY - 8f);
+
+            string[] rows = group.BuildRows();
+            nextY += GroupHeight(rows.Length) + 14f;
+        }
+
+        return new Vector2(OriginX - 8f, 46f - 8f);
+    }
+
+    private static void LayoutFishingPanel()
+    {
+        if (fishingPanel == null)
+            return;
+
+        Vector2 position = FishingPanelPosition();
+        fishingPanel.Left.Set(position.X, 0f);
+        fishingPanel.Top.Set(position.Y, 0f);
+        fishingPanel.Width.Set(DebugFishingCatchPanel.PanelWidth, 0f);
+        fishingPanel.Height.Set(DebugFishingCatchPanel.PanelHeight, 0f);
+        fishingPanel.Recalculate();
+        fishingState?.Recalculate();
+    }
+    public static void RefreshFishingPanelLayout()
+    {
+        LayoutFishingPanel();
     }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
