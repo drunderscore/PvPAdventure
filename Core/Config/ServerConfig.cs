@@ -683,35 +683,71 @@ public class ServerConfig : ModConfig
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
     {
-        // Singleplayer always allowed
         if (Main.netMode == NetmodeID.SinglePlayer)
             return true;
 
-        // If dragonlens isn't loaded, disallow modifying the config.
-        if (!ModLoader.HasMod("DragonLens"))
+        if (!ModLoader.TryGetMod("ErkySSC", out Mod erkySsc))
         {
-            message = NetworkText.FromLiteral("Server config changes require DragonLens admin (DragonLens not loaded).");
+            message = NetworkText.FromLiteral("Server config changes require ErkySSC admin permissions.");
             return false;
         }
 
-        // DragonLens admin check
-        return AcceptClientChanges_DragonLens(whoAmI, ref message);
-    }
+        bool isAdmin = false;
 
-    [JITWhenModsEnabled("DragonLens")]
-    private static bool AcceptClientChanges_DragonLens(int whoAmI, ref NetworkText message)
-    {
-        Player player = Main.player[whoAmI];
-
-        if (!DragonLens.Core.Systems.PermissionHandler.CanUseTools(player))
+        try
         {
-            message = NetworkText.FromLiteral("You must be a DragonLens admin to modify this config.");
+            object result = erkySsc.Call("IsAdmin", whoAmI);
+
+            if (result is bool value)
+                isAdmin = value;
+        }
+        catch (Exception e)
+        {
+            Log.Chat($"Failed to check ErkySSC admin permission for config change. whoAmI={whoAmI}, error={e.Message}");
+        }
+
+        if (!isAdmin)
+        {
+            message = NetworkText.FromLiteral("You must be an ErkySSC admin to modify this config.");
             return false;
         }
+
         message = NetworkText.FromLiteral("Saved!");
-
         return true;
     }
+
+    [Obsolete("DragonLens support is no longer available since ErkySSC, and this method should not be used. Keep it for legacy purposes.")]
+    //public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
+    //{
+    //    // Singleplayer always allowed
+    //    if (Main.netMode == NetmodeID.SinglePlayer)
+    //        return true;
+
+    //    // If dragonlens isn't loaded, disallow modifying the config.
+    //    if (!ModLoader.HasMod("DragonLens"))
+    //    {
+    //        message = NetworkText.FromLiteral("Server config changes require DragonLens admin (DragonLens not loaded).");
+    //        return false;
+    //    }
+
+    //    // DragonLens admin check
+    //    return AcceptClientChanges_DragonLens(whoAmI, ref message);
+    //}
+
+    //[JITWhenModsEnabled("DragonLens")]
+    //private static bool AcceptClientChanges_DragonLens(int whoAmI, ref NetworkText message)
+    //{
+    //    Player player = Main.player[whoAmI];
+
+    //    if (!DragonLens.Core.Systems.PermissionHandler.CanUseTools(player))
+    //    {
+    //        message = NetworkText.FromLiteral("You must be a DragonLens admin to modify this config.");
+    //        return false;
+    //    }
+    //    message = NetworkText.FromLiteral("Saved!");
+
+    //    return true;
+    //}
 
     public override void HandleAcceptClientChangesReply(bool success, int player, NetworkText message)
     {

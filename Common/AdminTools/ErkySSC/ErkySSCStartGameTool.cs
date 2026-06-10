@@ -33,7 +33,7 @@ internal sealed class ErkySSCStartGameTool : ModSystem
         if (erky == null)
             return;
 
-        Asset<Texture2D> icon = TextureAssets.Item[ItemID.Stopwatch];
+        Asset<Texture2D> icon = Ass.IconStartGame;
 
         erky.Call(
             "RegisterAdminQuickbarEntry",
