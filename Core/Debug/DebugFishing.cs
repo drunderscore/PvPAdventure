@@ -441,6 +441,7 @@ public static class DebugFishingCatchStats
         catches[id] = count + 1;
     }
 }
+[Autoload(Side = ModSide.Client)]
 public class DebugFishingCatchProjectile : GlobalProjectile
 {
     public override void Load() => On_Projectile.AI_061_FishingBobber_DoASplash += StopSplash;
@@ -512,87 +513,6 @@ public class DebugFishingCatchProjectile : GlobalProjectile
             return;
 
         DebugFishingCatchStats.RecordCatch(type);
-    }
-}
-
-public class AdventureFishingPlayer : ModPlayer
-{
-    public override void CatchFish(FishingAttempt attempt, ref int itemDrop, ref int npcSpawn, ref AdvancedPopupRequest sonar, ref Vector2 sonarPosition)
-    {
-        if (!ShouldUseAdventureFishingRules(attempt))
-            return;
-
-        // --- Change NPC catches here ---
-        // if (TryRollAdventureNpcCatch(attempt, out int npcType))
-        // {
-        //     npcSpawn = npcType;
-        //     itemDrop = -1;
-        //     sonar.Text = Lang.GetNPCNameValue(npcType);
-        //     sonar.Color = Color.LightGreen;
-        //     sonar.Velocity = Vector2.Zero;
-        //     sonar.DurationInFrames = 180;
-        //     sonarPosition = Main.LocalPlayer.Center - new Vector2(0, 64);
-        //     return;
-        // }
-
-        // --- Change item catches here ---
-        // if (TryRollAdventureItemCatch(attempt, out int itemType))
-        // {
-        //     itemDrop = itemType;
-        //     npcSpawn = -1;
-        //     return;
-        // }
-    }
-
-    private static bool ShouldUseAdventureFishingRules(FishingAttempt attempt)
-    {
-        if (Main.LocalPlayer?.active != true)
-            return false;
-
-        if (attempt.inLava || attempt.inHoney)
-            return false;
-
-        return ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
-    }
-
-    private static bool TryRollAdventureNpcCatch(FishingAttempt attempt, out int npcType)
-    {
-        npcType = NPCID.None;
-
-        // --- Change NPC catch availability here ---
-        // Example:
-        // if (!attempt.uncommon && !attempt.rare)
-        //     return false;
-
-        // --- Change NPC catch chance here ---
-        // Example:
-        // if (Main.rand.NextBool(20))
-        // {
-        //     npcType = NPCID.Goldfish;
-        //     return true;
-        // }
-
-        return false;
-    }
-
-    private static bool TryRollAdventureItemCatch(FishingAttempt attempt, out int itemType)
-    {
-        itemType = ItemID.None;
-
-        // --- Change item catch availability here ---
-        // Example:
-        // if (attempt.crate)
-        //     return false;
-
-        // --- Change item catch chance here ---
-        // Example:
-        // if (Main.rand.NextBool(10))
-        // {
-        //     itemType = ItemID.Bass;
-        //     return true;
-        // }
-
-        return false;
     }
 }
 #endif

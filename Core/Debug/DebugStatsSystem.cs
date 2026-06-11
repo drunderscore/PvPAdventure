@@ -14,6 +14,7 @@ using Terraria.UI;
 namespace PvPAdventure.Core.Debug;
 
 #if DEBUG
+[Autoload(Side = ModSide.Client)]
 internal sealed class DebugStatsSystem : ModSystem
 {
     // ── Visibility ────────────────────────────────────────────────────
@@ -50,11 +51,23 @@ internal sealed class DebugStatsSystem : ModSystem
     // ── Public entry points ───────────────────────────────────────────
     public override void OnWorldLoad()
     {
+        if (Main.dedServ)
+            return;
+
         fishingUI = new();
         fishingState = new();
         fishingPanel = new DebugFishingCatchPanel();
         fishingState.Append(fishingPanel);
     }
+
+    public override void OnWorldUnload()
+    {
+        fishingUI?.SetState(null);
+        fishingUI = null;
+        fishingState = null;
+        fishingPanel = null;
+    }
+
     internal static void DrawButtons()
     {
         Texture2D back = Main.Assets.Request<Texture2D>("Images/UI/CharCreation/SmallPanel").Value;
@@ -229,6 +242,9 @@ internal sealed class DebugStatsSystem : ModSystem
 
     public override void UpdateUI(GameTime gameTime)
     {
+        if (Main.dedServ)
+            return;
+
         if (KeyboardHelper.Pressed(Keys.F6))
         {
             Toggle();
@@ -283,6 +299,9 @@ internal sealed class DebugStatsSystem : ModSystem
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
+        if (Main.dedServ)
+            return;
+
         if (!IsVisible)
             return;
 
@@ -310,6 +329,7 @@ internal sealed class DebugStatsSystem : ModSystem
 /// Hotbar builder toggle. Mirrors F6 visibility state.
 /// Uses InventoryTickOn/Off textures — no custom asset required.
 /// </summary>
+[Autoload(Side = ModSide.Client)]
 public class DebugStatsBuilderToggle : BuilderToggle
 {
     public override string Texture => "PvPAdventure/Assets/Custom/ConfigBed";
