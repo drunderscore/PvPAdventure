@@ -1,10 +1,31 @@
-﻿namespace PvPAdventure.Common.Game.StatTrackers;
+using Terraria;
+using Terraria.ModLoader;
+
+namespace PvPAdventure.Common.Game.StatTrackers;
 
 /// <summary>
-/// Keeps track of itemIDs and number of items placed during a match for each player. 
-/// This includes items placed and then removed (e.g. by pickaxes or explosives), 
-/// so it may not be 100% accurate but should give a good estimate of how many of each item was placed by the end of the match.
+/// Keeps track of item IDs and number of blocks/walls placed during a match.
 /// </summary>
-internal class ItemPlacementTracker
+internal sealed class ItemPlacementTileTracker : GlobalTile
 {
+    public override void PlaceInWorld(int i, int j, int type, Item item)
+    {
+        RecordPlacedItem(item);
+    }
+
+    internal static void RecordPlacedItem(Item item)
+    {
+        if (item == null || item.IsAir)
+            return;
+
+        MatchStatsPlayer.RecordLocalItemStat(MatchStatKey.TilesPlaced, item.type);
+    }
+}
+
+internal sealed class ItemPlacementWallTracker : GlobalWall
+{
+    public override void PlaceInWorld(int i, int j, int type, Item item)
+    {
+        ItemPlacementTileTracker.RecordPlacedItem(item);
+    }
 }

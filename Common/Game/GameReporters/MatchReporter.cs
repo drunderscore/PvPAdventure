@@ -198,6 +198,7 @@ internal static class MatchReporter
     private static Dictionary<ulong, MatchApi.MatchPlayerPayload> BuildPlayersDictionary(PointsManager pointsManager)
     {
         Dictionary<ulong, MatchApi.MatchPlayerPayload> result = [];
+        bool hasWinningTeam = TryGetSingleWinningTeam(pointsManager, out Team winningTeam);
 
         foreach (Player player in Main.ActivePlayers)
         {
@@ -220,18 +221,97 @@ internal static class MatchReporter
 
             MatchRewardContext rewardContext = MatchRewardCalculator.CreateContext(player, pointsManager);
             uint reward = MatchRewardCalculator.Calculate(rewardContext);
+            Dictionary<string, uint> stats = StatsReporter.CopyStats(player);
+            Dictionary<string, IDictionary<int, uint>> itemStats = StatsReporter.CopyItemStats(player);
+            bool winner = hasWinningTeam && rewardContext.Team == winningTeam;
 
-            result[steamId] = new MatchApi.MatchPlayerPayload(
-                Name: player.name,
-                Team: (uint)rewardContext.Team,
-                Reward: reward,
-                Kills: statsPlayer.Kills,
-                Deaths: statsPlayer.Deaths);
+            result[steamId] = CreateMatchPlayerPayload(
+                player.name,
+                (uint)rewardContext.Team,
+                reward,
+                statsPlayer.Kills,
+                statsPlayer.Deaths,
+                winner,
+                stats,
+                itemStats);
 
-            Log.Info($"Reward for {player.name}: Team={rewardContext.Team}, TeamPoints={rewardContext.TeamPoints}, Kills={rewardContext.Kills}, Deaths={rewardContext.Deaths}, Reward={reward}");
+            Log.Info($"Reward for {player.name}: Team={rewardContext.Team}, Winner={winner}, TeamPoints={rewardContext.TeamPoints}, Kills={rewardContext.Kills}, Deaths={rewardContext.Deaths}, Reward={reward}, Stats={stats.Count}, ItemStats={itemStats.Count}");
         }
 
         return result;
+    }
+
+    private static MatchApi.MatchPlayerPayload CreateMatchPlayerPayload(
+        string name,
+        uint team,
+        uint reward,
+        int kills,
+        int deaths,
+        bool winner,
+        IDictionary<string, uint> stats,
+        IDictionary<string, IDictionary<int, uint>> itemStats)
+    {
+        ConstructorInfo constructor = GetMatchPlayerPayloadConstructor(8);
+        if (constructor != null)
+        {
+            return (MatchApi.MatchPlayerPayload)constructor.Invoke(
+                [name, team, reward, kills, deaths, winner, stats, itemStats]);
+        }
+
+        constructor = GetMatchPlayerPayloadConstructor(7);
+        if (constructor != null)
+        {
+            return (MatchApi.MatchPlayerPayload)constructor.Invoke(
+                [name, team, reward, kills, deaths, stats, itemStats]);
+        }
+
+        return new MatchApi.MatchPlayerPayload(
+            Name: name,
+            Team: team,
+            Reward: reward,
+            Kills: kills,
+            Deaths: deaths);
+    }
+
+    private static ConstructorInfo GetMatchPlayerPayloadConstructor(int parameterCount)
+    {
+        foreach (ConstructorInfo constructor in typeof(MatchApi.MatchPlayerPayload).GetConstructors())
+        {
+            if (constructor.GetParameters().Length == parameterCount)
+                return constructor;
+        }
+
+        return null;
+    }
+
+    private static bool TryGetSingleWinningTeam(PointsManager pointsManager, out Team winningTeam)
+    {
+        winningTeam = Team.None;
+
+        if (pointsManager == null)
+            return false;
+
+        int winningPoints = int.MinValue;
+        int winningTeamCount = 0;
+
+        foreach ((Team team, int points) in pointsManager.Points)
+        {
+            if (team == Team.None || points <= 0)
+                continue;
+
+            if (points > winningPoints)
+            {
+                winningPoints = points;
+                winningTeam = team;
+                winningTeamCount = 1;
+            }
+            else if (points == winningPoints)
+            {
+                winningTeamCount++;
+            }
+        }
+
+        return winningTeamCount == 1;
     }
 
     private static List<MatchApi.MatchTeamPayload?> BuildTeamsList(PointsManager pointsManager)

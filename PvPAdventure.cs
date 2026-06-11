@@ -72,6 +72,10 @@ public class PvPAdventure : Mod
                 ModContent.GetInstance<Common.Visualization.TeamCombatText>().HandlePacket(reader, whoAmI);
                 break;
 
+            case AdventurePacketIdentifier.MatchStatDelta:
+                Common.Game.StatTrackers.MatchStatsNetHandler.HandlePacket(reader, whoAmI);
+                break;
+
             default:
                 Log.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
                 break;

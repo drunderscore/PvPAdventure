@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.MatchReplays;
+using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Utilities;
@@ -120,6 +121,15 @@ public class GameManager : ModSystem
     {
         MatchStartTime = null;
         MatchEndTime = null;
+    }
+
+    private static void ResetActivePlayerMatchState()
+    {
+        foreach (Player player in Main.ActivePlayers)
+        {
+            player.GetModPlayer<StatisticsPlayer>().ResetMatchStatistics(sync: Main.netMode == NetmodeID.Server);
+            player.GetModPlayer<MatchStatsPlayer>().ResetMatchStats();
+        }
     }
 
     public void StartGame(int time, int countdownTimeInSeconds = 10)
@@ -407,7 +417,9 @@ public class GameManager : ModSystem
 
             MatchEndTime = DateTime.UtcNow;
             ReportMatchAchievements();
-            ModContent.GetInstance<ReeseReplayControlSystem>().StopMatchRecording();
+
+            if (!ModContent.GetInstance<ReeseReplayControlSystem>().StopMatchRecording())
+                ReportCompletedMatchToBackend();
         }
 
         switch (newPhase)
@@ -452,6 +464,8 @@ public class GameManager : ModSystem
                 }
             case Phase.Playing:
                 {
+                    ResetActivePlayerMatchState();
+
                     // NOTE: We currently have one region, which is the spawn region. We'll use this assumption for now.
                     var spawnRegion = ModContent.GetInstance<RegionManager>().Regions[0];
                     spawnRegion.CanRandomTeleport = true;
