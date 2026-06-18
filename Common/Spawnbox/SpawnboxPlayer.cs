@@ -34,28 +34,6 @@ internal class SpawnboxPlayer : ModPlayer
         On_Player.ItemCheck_CutTiles -= OnPlayerItemCheck_CutTiles;
     }
 
-    public override void PostUpdateMiscEffects()
-    {
-        // Apply player in spawn buff.
-        int playerTileX = (int)(Player.position.X / 16f);
-        int playerTileY = (int)(Player.position.Y / 16f);
-
-        int spawnTileX = Main.spawnTileX;
-        int spawnTileY = Main.spawnTileY;
-
-        int distanceX = Math.Abs(playerTileX - spawnTileX);
-        int distanceY = Math.Abs(playerTileY - spawnTileY);
-
-        if (distanceX <= 25 && distanceY <= 25)
-        {
-            Player.AddBuff(ModContent.BuffType<Content.Buffs.PlayerInSpawn>(), 2);
-            Player.AddBuff(BuffID.NoBuilding, 2);
-        }
-        else
-        {
-        }
-    }
-
     public override bool CanHitPvp(Item item, Player target)
     {
         var myRegion = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Player.Hitbox.ToTileRectangle());

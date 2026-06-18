@@ -105,11 +105,6 @@ Mods: {
 				Description: Defense reduced by one third
 			}
 
-			PlayerInSpawn: {
-				DisplayName: Spawn
-				Description: Gain PvP immunity but deal 0 damage
-			}
-
 			PressurePoints: {
 				DisplayName: Summon Tagged
 				Description: Take 6 more damage from enemies
@@ -133,6 +128,11 @@ Mods: {
 			Tagged: {
 				DisplayName: Summon Tagged
 				Description: Take 4 more damage from enemies
+			}
+
+			RacePeriodBuff: {
+				DisplayName: Spirit Animal
+				Description: You are seeing the world through the eyes of your spirit guide
 			}
 		}
 

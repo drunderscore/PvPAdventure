@@ -55,7 +55,7 @@ namespace PvPAdventure.Common.Combat.EJ
                 {
                     bool shouldDetach =
                         !target.active || target.dead || !target.hostile || target.team == owner.team ||
-                        target.HasBuff(ModContent.BuffType<PlayerInSpawn>()) ||
+                        target.HasBuff(ModContent.BuffType<RacePeriodBuff>()) ||
                         !owner.channel || owner.HeldItem.type != ItemID.PiranhaGun ||
                         Vector2.Distance(projectile.Center, owner.Center) > 2000f;
 
@@ -104,7 +104,7 @@ namespace PvPAdventure.Common.Combat.EJ
                         Player target = Main.player[i];
 
                         if (!target.active || target.dead || !target.hostile || target.team == owner.team ||
-                            target.HasBuff(ModContent.BuffType<PlayerInSpawn>()))
+                            target.HasBuff(ModContent.BuffType<RacePeriodBuff>()))
                             continue;
 
                         Rectangle projHitbox = new Rectangle((int)projectile.position.X, (int)projectile.position.Y,
@@ -136,7 +136,7 @@ namespace PvPAdventure.Common.Combat.EJ
             Player owner = Main.player[projectile.owner];
 
             if (!owner.hostile || !target.hostile || owner.team == target.team ||
-                target.HasBuff(ModContent.BuffType<PlayerInSpawn>()))
+                target.HasBuff(ModContent.BuffType<RacePeriodBuff>()))
                 return;
 
             if (!HasPlayerTarget(projectile))
