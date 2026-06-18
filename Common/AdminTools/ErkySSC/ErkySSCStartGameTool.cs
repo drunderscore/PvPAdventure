@@ -53,7 +53,8 @@ internal sealed class ErkySSCStartGameTool : ModSystem
             new Func<string>(MainActionText),
             new Func<Color>(() => Color.White),
             true,
-            20
+            20,
+            "Ctrl+Y"
         );
 
         erky.Call(
@@ -68,20 +69,6 @@ internal sealed class ErkySSCStartGameTool : ModSystem
             new Func<Color>(() => Color.LightGreen),
             false,
             21
-        );
-
-        erky.Call(
-            "RegisterAdminQuickbarEntry",
-            Owner,
-            "adjust_game_time",
-            "PvPAdventure : Adjust Time",
-            "Open the adjust game time dialog",
-            icon,
-            new Action(ShowAdjustTime),
-            new Func<string>(() => "Open"),
-            new Func<Color>(() => Color.LightCyan),
-            false,
-            22
         );
     }
 
