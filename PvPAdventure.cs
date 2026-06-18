@@ -1,6 +1,4 @@
-using PvPAdventure.Common.Visualization;
 using PvPAdventure.Core.Net;
-using PvPAdventure.Core.Utilities;
 using System.IO;
 using Terraria.ModLoader;
 
@@ -71,7 +69,11 @@ public class PvPAdventure : Mod
                 break;
 
             case AdventurePacketIdentifier.TeamCombatText:
-                ModContent.GetInstance<TeamCombatText>().HandlePacket(reader, whoAmI);
+                ModContent.GetInstance<Common.Visualization.TeamCombatText>().HandlePacket(reader, whoAmI);
+                break;
+
+            case AdventurePacketIdentifier.MatchStatDelta:
+                Common.Game.StatTrackers.MatchStatsNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             default:

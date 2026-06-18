@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Game.GameReporters;
+using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
@@ -99,6 +100,16 @@ internal class StatisticsPlayer : ModPlayer
             statisticsPlayer.ItemPickups.UnionWith(Items);
         }
     }
+
+    public void ResetMatchStatistics(bool sync = false)
+    {
+        RecentDamageFromPlayer = null;
+        Kills = 0;
+        Deaths = 0;
+
+        if (sync)
+            SyncStatistics();
+    }
     
 
     #region Hooks
@@ -153,6 +164,8 @@ internal class StatisticsPlayer : ModPlayer
         // Hurting ourselves doesn't change our recent damage
         if (info.DamageSource.SourcePlayerIndex == Player.whoAmI)
             return;
+
+        DamageTracker.RecordPostHurt(Player, info);
 
         RecentDamageFromPlayer = new((byte)damagerPlayer.whoAmI,
             ModContent.GetInstance<ServerConfig>().Immunity.RecentDamagePreservationFrames);

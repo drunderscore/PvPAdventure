@@ -11,6 +11,7 @@ namespace PvPAdventure.Common.Game.MatchReplays;
 internal sealed class ReeseReplayControlSystem : ModSystem
 {
     private Action<string, string, string[], uint, string>? recordingFinishedCallback;
+    private bool isRecordingFinishedCallbackRegistered;
 
     public override void PostSetupContent()
     {
@@ -24,9 +25,14 @@ internal sealed class ReeseReplayControlSystem : ModSystem
 
         object result = reese.Call("RegisterRecordingFinishedCallback", recordingFinishedCallback);
         if (result is true)
+        {
+            isRecordingFinishedCallbackRegistered = true;
             Log.Info("Registered Reese recording finished callback.");
+        }
         else
+        {
             Log.Chat("Failed to register Reese recording finished callback.");
+        }
     }
 
     public override void Unload()
@@ -34,10 +40,11 @@ internal sealed class ReeseReplayControlSystem : ModSystem
         if (recordingFinishedCallback == null)
             return;
 
-        if (ModLoader.TryGetMod("Reese", out Mod reese))
+        if (isRecordingFinishedCallbackRegistered && ModLoader.TryGetMod("Reese", out Mod reese))
             reese.Call("UnregisterRecordingFinishedCallback", recordingFinishedCallback);
 
         recordingFinishedCallback = null;
+        isRecordingFinishedCallbackRegistered = false;
     }
 
     public void StartMatchRecording()
@@ -59,23 +66,29 @@ internal sealed class ReeseReplayControlSystem : ModSystem
             Log.Chat("Failed to start Reese recording.");
     }
 
-    public void StopMatchRecording()
+    public bool StopMatchRecording()
     {
         if (Main.netMode != NetmodeID.Server)
-            return;
+            return false;
 
         if (!ModLoader.TryGetMod("Reese", out Mod reese))
         {
             Log.Chat("Reese is not loaded. No match recording to stop.");
-            return;
+            return false;
         }
 
         object result = reese.Call("StopRecording", "PvPAdventure match ended");
 
         if (result is true)
+        {
             Log.Chat("Stopped Reese recording for PvPAdventure match.");
+            return isRecordingFinishedCallbackRegistered;
+        }
         else
+        {
             Log.Chat("Failed to stop Reese recording.");
+            return false;
+        }
     }
 
     private static void OnRecordingFinished(string filePath, string worldName, string[] modNames, uint durationTicks, string reason)

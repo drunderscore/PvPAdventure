@@ -37,6 +37,9 @@ public static class Log
         // Always send the message to the log (client.log/server.log)
         Debug(message, file);
 
+        if (Main.dedServ)
+            return;
+
         // Check if debug messages are enabled in config
         var config = ModContent.GetInstance<ClientConfig>();
         if (config == null || !config.ShowDebugMessages)
@@ -54,7 +57,7 @@ public static class Log
         if (Main.netMode == NetmodeID.Server)
         {
             text += $"[SERVER/{fileName}]: {message}";
-            ChatHelper.SendChatMessageToClient(NetworkText.FromLiteral(text), color: Color.White, playerId: Main.LocalPlayer.whoAmI);
+            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral(text), Color.White);
         }
         else
         {

@@ -26,7 +26,7 @@ internal class InventoryWhileDeadSystem : ModSystem
         // Reese / Ghost Spectating compatibility: prevent opening inventory when spectating
         if (self.ghost)
         {
-            Log.Chat("close");
+            // Log.Chat("close");
             CloseOwnInventory();
             self.releaseInventory = !self.controlInv;
             return;

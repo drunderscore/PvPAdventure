@@ -1,18 +1,18 @@
-﻿using Terraria;
-using Terraria.ModLoader;
+using Terraria;
 
 namespace PvPAdventure.Common.Game.StatTrackers;
 
 /// <summary>
-/// Keeps track of all players that have dealt damage during a match
-/// Keeps track of weapons and their damage for each player
-/// Posts it to PvPHub at the end of the match for stats and achievement purposes
+/// Keeps track of PvP damage dealt, damage taken, and weapon damage during a match.
 /// </summary>
-internal class DamageTracker : ModPlayer
+internal static class DamageTracker
 {
-    //public override void OnHitByProjectile(Projectile proj, Player.HurtInfo hurtInfo)
-    //{
-        //base.OnHitByProjectile(proj, hurtInfo);
-    //}
-    //override posthu
+    public static void RecordPostHurt(Player victim, Player.HurtInfo info)
+    {
+        if (victim == null || !info.PvP || info.DamageSource.SourcePlayerIndex == -1)
+            return;
+
+        Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+        MatchStatsPlayer.RecordServerDamage(attacker, victim, info);
+    }
 }
