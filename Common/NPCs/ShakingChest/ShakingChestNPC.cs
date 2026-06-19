@@ -67,9 +67,11 @@ public class ShakingChestNPC : GlobalNPC
         .Add(new Item(ItemID.WhoopieCushion) { shopCustomPrice = Item.buyPrice(silver: 200) })
         .Add(new Item(ItemID.Radar) { shopCustomPrice = Item.buyPrice(silver: 20) })
         .Add(new Item(ItemID.Rambutan) { shopCustomPrice = Item.buyPrice(silver: 278) })
-        .Add(new Item(ItemID.Starfruit) { shopCustomPrice = Item.buyPrice(silver: 764) })
+        .Add(new Item(ItemID.Starfruit) { shopCustomPrice = Item.buyPrice(copper: 66666) })
         .Add(new Item(ItemID.Spear) { shopCustomPrice = Item.buyPrice(silver: 20) })
+        .Add(new Item(ItemID.TinBar) { shopCustomPrice = Item.buyPrice(copper: 130) })
         .Add(new Item(ItemID.FloatingTube) { shopCustomPrice = Item.buyPrice(silver: 50) });
+
 
     public override void SetStaticDefaults()
     {

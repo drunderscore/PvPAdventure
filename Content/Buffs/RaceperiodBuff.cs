@@ -1,4 +1,4 @@
-﻿using PvPAdventure.Common.GameTimer;
+﻿using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Players;
 using PvPAdventure.Content.Buffs;
 using PvPAdventure.Content.Mounts;
