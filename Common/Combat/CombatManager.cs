@@ -192,24 +192,24 @@ public class CombatManager : ModSystem
 
                 if (pvp)
                 {
-                    if (damageSource.SourceProjectileType != 0)
-                    {
-                        var adventureConfig = ModContent.GetInstance<ServerConfig>();
-                        if (adventureConfig.Immunity.ProjectileDamageImmunityGroup.TryGetValue(new ProjectileDefinition(
-                                damageSource.SourceProjectileType), out var immunityGroup) &&
-                            adventurePlayer.GroupImmuneTime[immunityGroup.Id] > 0)
-                        {
-                            cooldownCounter = GroupCooldownId - immunityGroup.Id;
-                            flag = false;
-                        }
-                    }
+                    // Overwrite the cooldown counter, so that if the hurt succeeds, no other counter gets modified.
+                    cooldownCounter = PvPImmunityCooldownId;
+                    // Set the flag deciding if this hurt should proceed.
+                    flag = adventurePlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] == 0;
 
                     if (flag)
                     {
-                        // Overwrite the cooldown counter, so that if the hurt succeeds, no other counter gets modified.
-                        cooldownCounter = PvPImmunityCooldownId;
-                        // Set the flag deciding if this hurt should proceed.
-                        flag = adventurePlayer.PvPImmuneTime[damageSource.SourcePlayerIndex] == 0;
+                        if (damageSource.SourceProjectileType != 0)
+                        {
+                            var adventureConfig = ModContent.GetInstance<ServerConfig>();
+                            if (adventureConfig.Immunity.ProjectileDamageImmunityGroup.TryGetValue(
+                                    new ProjectileDefinition(damageSource.SourceProjectileType),
+                                    out var immunityGroup) && adventurePlayer.GroupImmuneTime[immunityGroup.Id] > 0)
+                            {
+                                cooldownCounter = GroupCooldownId - immunityGroup.Id;
+                                flag = false;
+                            }
+                        }
                     }
                 }
             });
