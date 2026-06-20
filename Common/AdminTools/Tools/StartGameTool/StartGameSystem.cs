@@ -11,24 +11,20 @@ internal class StartGameSystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState extendGameUIState;
-    public UIState startGameUIState;
+    public UIState timerUIState;
 
     // State
     public bool IsActive() => ui?.CurrentState != null;
 
-    public void ShowExtendGameDialog() => ui.SetState(extendGameUIState);
-    public void ShowStartDialog() => ui.SetState(startGameUIState);
+    public void ShowExtendGameDialog() => ui.SetState(timerUIState);
+    public void ShowStartDialog() => ui.SetState(timerUIState);
     public void Hide() => ui.SetState(null);
 
     public override void OnWorldLoad()
     {
         ui = new();
-        extendGameUIState = new();
-        extendGameUIState.Append(new ExtendGamePanel());
-
-        startGameUIState = new();
-        startGameUIState.Append(new StartGamePanel());
+        timerUIState = new();
+        timerUIState.Append(new StartGamePanel());
 
         ui.SetState(null);
     }

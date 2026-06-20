@@ -1,7 +1,9 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.UI;
@@ -19,6 +21,21 @@ internal class UISliderElement : UIElement
     private readonly Action<float> onValueChangedCallback;
     public Action<float> OnRelease { get; set; }
     private float appliedValue;
+    private bool enabled = true;
+
+    public bool Enabled
+    {
+        get => enabled;
+        set
+        {
+            enabled = value;
+            Slider.Enabled = value;
+            Label.TextColor = value ? Color.Gray : Color.DimGray;
+        }
+    }
+
+    public bool ShowDisabledLockIcon { get; set; }
+    public string DisabledTooltip { get; set; }
 
     public UISliderElement(string label, float min, float max, float defaultValue, float step = 0.01f, Action<float> onValueChanged = null)
     {
@@ -44,12 +61,15 @@ internal class UISliderElement : UIElement
 
         Label.OnMouseOver += (_, _) =>
         {
+            if (!Enabled)
+                return;
+
             SoundEngine.PlaySound(SoundID.MenuTick);
             Label.TextColor = Color.White;
         };
         Label.OnMouseOut += (_, _) =>
         {
-            Label.TextColor = Color.Gray;
+            Label.TextColor = Enabled ? Color.Gray : Color.DimGray;
         };
 
         Slider = new UISlider
@@ -131,6 +151,28 @@ internal class UISliderElement : UIElement
     public override void Draw(SpriteBatch spriteBatch)
     {
         base.Draw(spriteBatch);
+
+        if (Enabled)
+            return;
+
+        Rectangle rect = GetDimensions().ToRectangle();
+        spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, Color.Black * 0.35f);
+
+        if (!ShowDisabledLockIcon || Ass.IconLock?.Value == null)
+            return;
+
+        Texture2D lockTexture = Ass.IconLock.Value;
+        const int lockSize = 20;
+        Rectangle lockRect = new(rect.Right - lockSize - 4, rect.Center.Y - lockSize / 2, lockSize, lockSize);
+        spriteBatch.Draw(lockTexture, lockRect, Color.White * 0.85f);
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        if (!Enabled && IsMouseHovering && !string.IsNullOrWhiteSpace(DisabledTooltip))
+            Main.instance.MouseText(DisabledTooltip);
     }
 
     // For live game countdown, we set the slider value directly

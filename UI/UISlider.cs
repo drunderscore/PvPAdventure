@@ -16,6 +16,7 @@ public class UISlider : UIElement
 {
     public Asset<Texture2D> InnerTexture;
     public Asset<Texture2D> OuterTexture;
+    public bool Enabled = true;
     public bool IsHeld;
     public float Ratio;
     public event Action<float> OnDrag;
@@ -32,6 +33,9 @@ public class UISlider : UIElement
     public override void LeftMouseDown(UIMouseEvent evt)
     {
         base.LeftMouseDown(evt);
+        if (!Enabled)
+            return;
+
         if (evt.Target == this)
             IsHeld = true;
     }
@@ -39,12 +43,19 @@ public class UISlider : UIElement
     public override void MouseOver(UIMouseEvent evt)
     {
         base.MouseOver(evt);
-        SoundEngine.PlaySound(SoundID.MenuTick);
+        if (Enabled)
+            SoundEngine.PlaySound(SoundID.MenuTick);
     }
 
     public override void LeftMouseUp(UIMouseEvent evt)
     {
         base.LeftMouseUp(evt);
+        if (!Enabled)
+        {
+            IsHeld = false;
+            return;
+        }
+
         if (IsHeld) 
             OnRelease?.Invoke(Ratio);
         IsHeld = false;
@@ -53,6 +64,12 @@ public class UISlider : UIElement
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
+        if (!Enabled)
+        {
+            IsHeld = false;
+            return;
+        }
+
         if (IsHeld)
         {
             var dims = GetDimensions();
@@ -69,16 +86,17 @@ public class UISlider : UIElement
     protected override void DrawSelf(SpriteBatch sb)
     {
         Rectangle rect = GetDimensions().ToRectangle();
-        DrawBar(sb, Ass.Slider.Value, rect, Color.White);
-        if (IsHeld || IsMouseHovering)
+        Color drawColor = Enabled ? Color.White : Color.Gray * 0.65f;
+        DrawBar(sb, Ass.Slider.Value, rect, drawColor);
+        if (Enabled && (IsHeld || IsMouseHovering))
             DrawBar(sb, OuterTexture.Value, rect, Main.OurFavoriteColor);
         Rectangle innerBarArea = rect;
         innerBarArea.Inflate(-4, -4);
-        sb.Draw(InnerTexture.Value, innerBarArea, Color.White);
+        sb.Draw(InnerTexture.Value, innerBarArea, drawColor);
         Texture2D blip = TextureAssets.ColorSlider.Value;
         Vector2 blipOrigin = blip.Size() * 0.5f;
         Vector2 blipPosition = new(innerBarArea.X + Ratio * innerBarArea.Width, innerBarArea.Center.Y);
-        sb.Draw(blip, blipPosition, null, Color.White, 0f, blipOrigin, 1f, SpriteEffects.None, 0f);
+        sb.Draw(blip, blipPosition, null, drawColor, 0f, blipOrigin, 1f, SpriteEffects.None, 0f);
     }
 
     public static void DrawBar(SpriteBatch spriteBatch, Texture2D texture, Rectangle dimensions, Color color)

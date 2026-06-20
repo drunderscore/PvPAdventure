@@ -16,16 +16,18 @@ Mods: {
 			DLStartGameTool.DisplayName: DL Start Game Tool
 			DLStartGameToolRightClick.DisplayName: DL Start Game Tool Right Click
 			UsePortalCreator.DisplayName: Use Portal Creator
-			ErkySSC_PvPAdventure_Pause_open_game_timer.DisplayName: PvPAdventure : Game Timer
+			ErkySSC_PvPAdventure_Pause_open_game_timer.DisplayName: PvPAdventure : Adventure Game Timer
 			ErkySSC_PvPAdventure_Pause_pause_game.DisplayName: PvPAdventure : Pause
-			ErkySSC_PvPAdventure_StartGame_open_game_timer.DisplayName: PvPAdventure : Game Timer
+			ErkySSC_PvPAdventure_StartGame_open_game_timer.DisplayName: PvPAdventure : Adventure Game Timer
 			ErkySSC_PvPAdventure_StartGame_quick_start_60.DisplayName: PvPAdventure : Quick Start 60m
+			ErkySSC_PvPAdventure_StartGame_quick_end_game.DisplayName: PvPAdventure : Quick End Game
 			ErkySSC_PvPAdventure_StartGame_adjust_game_time.DisplayName: PvPAdventure : Adjust Time
 		}
 
 		Tools: {
 			DLStartGameTool: {
 				DisplayName: Start Game
+				AdventureGameTimer: Adventure Game Timer
 				AdjustGameTime: Adjust Game Time
 
 				Description: {
@@ -38,7 +40,15 @@ Mods: {
 				CannotStart: Cannot start the game while a countdown is in progress
 				Time: Time
 				Countdown: Countdown
+				CountdownLocked: Countdown is locked while the game is running
+				CountdownMinusTooltip: Round countdown down 10 seconds
+				CountdownPlusTooltip: Round countdown up 10 seconds
+				SubtractTenMinutesTooltip: Subtract 10 minutes
+				SubtractOneMinuteTooltip: Subtract 1 minute
+				AddOneMinuteTooltip: Add 1 minute
+				AddTenMinutesTooltip: Add 10 minutes
 				StartExclamation: Start!
+				Running: Running
 				Apply: Apply
 			}
 
