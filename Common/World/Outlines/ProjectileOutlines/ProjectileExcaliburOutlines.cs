@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Core.Config;
 using ReLogic.Content;
 using System;
 using Terraria;
@@ -30,10 +31,16 @@ internal sealed class ProjectileExcaliburOutlines : ModSystem
     {
         Projectile proj = Main.projectile[i];
 
-        switch (proj.type)
+        // Only take over the draw when team projectile outlines are enabled; otherwise
+        // let vanilla draw these normally.
+        var outlines = ModContent.GetInstance<ClientConfig>().Outlines;
+        if (outlines.DrawOutlines && outlines.ProjectileOutlines)
         {
-            case ProjectileID.TrueExcalibur: DrawProj_TrueExcalibur(proj); return;
-            case ProjectileID.Excalibur: DrawProj_Excalibur(proj); return;
+            switch (proj.type)
+            {
+                case ProjectileID.TrueExcalibur: DrawProj_TrueExcalibur(proj); return;
+                case ProjectileID.Excalibur: DrawProj_Excalibur(proj); return;
+            }
         }
 
         orig(self, i);
