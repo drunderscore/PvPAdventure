@@ -27,6 +27,13 @@ internal sealed class TeamCombatText : ModSystem
     private const int DotContextTicks = 900;
     private const int PendingTextTicks = 30;
 
+    // Vanilla creates combat text with its location set to the victim's hitbox, so a
+    // popup only belongs to a source if that source's target hitbox closely matches the
+    // popup location. Requiring a high overlap (IoU) prevents an unrelated entity that
+    // merely brushes the popup (e.g. the NPC meleeing you while you take its damage)
+    // from stealing the color.
+    private const float MinLocationOverlap = 0.5f;
+
     private readonly SourceTeamCombatTextSource[] npcSources = new SourceTeamCombatTextSource[Main.maxNPCs];
     private readonly SourceTeamCombatTextSource[] playerSources = new SourceTeamCombatTextSource[Main.maxPlayers];
     private readonly List<PendingSourceTeamCombatText> pendingTexts = [];
@@ -155,11 +162,12 @@ internal sealed class TeamCombatText : ModSystem
     private bool TryGetSource(Rectangle location, bool dot, out SourceTeamCombatTextSource source)
     {
         source = default;
-        int bestDistance = int.MaxValue;
+        bool found = false;
+        float bestOverlap = MinLocationOverlap;
 
         for (int i = 0; i < Main.maxNPCs; i++)
         {
-            if (!IsValidNPC(i) || !Main.npc[i].Hitbox.Intersects(location))
+            if (!IsValidNPC(i))
                 continue;
 
             SourceTeamCombatTextSource candidate = npcSources[i];
@@ -167,18 +175,19 @@ internal sealed class TeamCombatText : ModSystem
             if (!IsActiveSource(candidate, dot))
                 continue;
 
-            int distance = (int)Vector2.DistanceSquared(Main.npc[i].Hitbox.Center.ToVector2(), location.Center.ToVector2());
+            float overlap = HitboxOverlap(Main.npc[i].Hitbox, location);
 
-            if (distance >= bestDistance)
+            if (overlap <= bestOverlap)
                 continue;
 
-            bestDistance = distance;
+            bestOverlap = overlap;
             source = candidate;
+            found = true;
         }
 
         for (int i = 0; i < Main.maxPlayers; i++)
         {
-            if (!IsValidPlayer(i) || !Main.player[i].Hitbox.Intersects(location))
+            if (!IsValidPlayer(i))
                 continue;
 
             SourceTeamCombatTextSource candidate = playerSources[i];
@@ -186,16 +195,17 @@ internal sealed class TeamCombatText : ModSystem
             if (!IsActiveSource(candidate, dot))
                 continue;
 
-            int distance = (int)Vector2.DistanceSquared(Main.player[i].Hitbox.Center.ToVector2(), location.Center.ToVector2());
+            float overlap = HitboxOverlap(Main.player[i].Hitbox, location);
 
-            if (distance >= bestDistance)
+            if (overlap <= bestOverlap)
                 continue;
 
-            bestDistance = distance;
+            bestOverlap = overlap;
             source = candidate;
+            found = true;
         }
 
-        return bestDistance != int.MaxValue;
+        return found;
     }
 
     private void ApplyPendingTexts(Rectangle targetHitbox, SourceTeamCombatTextSource source)
@@ -210,7 +220,7 @@ internal sealed class TeamCombatText : ModSystem
                 continue;
             }
 
-            if (!targetHitbox.Intersects(pending.Location))
+            if (HitboxOverlap(targetHitbox, pending.Location) <= MinLocationOverlap)
                 continue;
 
             Main.combatText[pending.Index].color = Main.teamColor[source.Team];
@@ -249,6 +259,22 @@ internal sealed class TeamCombatText : ModSystem
         packet.Write((byte)sourcePlayer);
         packet.Write((byte)team);
         packet.Send(toClient, ignoreClient);
+    }
+
+    // Intersection-over-union of two rectangles in [0, 1]. Vanilla combat text uses the
+    // victim's hitbox as its location, so the real victim scores ~1 while an entity that
+    // only clips the popup scores well below the threshold.
+    private static float HitboxOverlap(Rectangle hitbox, Rectangle location)
+    {
+        Rectangle intersection = Rectangle.Intersect(hitbox, location);
+
+        if (intersection.Width <= 0 || intersection.Height <= 0)
+            return 0f;
+
+        float intersectionArea = (float)intersection.Width * intersection.Height;
+        float unionArea = (float)hitbox.Width * hitbox.Height + (float)location.Width * location.Height - intersectionArea;
+
+        return unionArea <= 0f ? 0f : intersectionArea / unionArea;
     }
 
     private static bool IsActiveSource(SourceTeamCombatTextSource source, bool dot)

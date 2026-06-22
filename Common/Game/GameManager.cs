@@ -23,6 +23,9 @@ namespace PvPAdventure.Common.Game;
 [Autoload(Side = ModSide.Both)]
 public class GameManager : ModSystem
 {
+    private const int FramesPerSecond = 60;
+    private const int CountdownAnnouncementBufferFrames = 2;
+
     public int TimeRemaining { get; set; }
     public int? _startGameCountdown = null;
     private Phase _currentPhase;
@@ -79,9 +82,9 @@ public class GameManager : ModSystem
                         else
                         {
                             // Every second
-                            if (_startGameCountdown % 60 == 0)
+                            if (_startGameCountdown % FramesPerSecond == 0)
                             {
-                                int secondsLeft = _startGameCountdown.Value / 60;
+                                int secondsLeft = _startGameCountdown.Value / FramesPerSecond;
 
                                 if (secondsLeft % 10 == 0 && secondsLeft > 0)
                                 {
@@ -136,13 +139,13 @@ public class GameManager : ModSystem
     {
         CurrentPhase = Phase.Waiting;
         TimeRemaining = time;
-        _startGameCountdown = 60 * countdownTimeInSeconds;
+        _startGameCountdown = ToCountdownFrames(countdownTimeInSeconds);
 
         if (Main.dedServ)
             NetMessage.SendData(MessageID.WorldData);
 
         ChatHelper.BroadcastChatMessage(
-            NetworkText.FromLiteral($"The game will begin in {_startGameCountdown / 60} seconds."), Color.Green);
+            NetworkText.FromLiteral($"The game will begin in {_startGameCountdown / FramesPerSecond} seconds."), Color.Green);
 
         // Start recording
         ModContent.GetInstance<ReeseReplayControlSystem>().StartMatchRecording();
@@ -161,7 +164,7 @@ public class GameManager : ModSystem
             return;
         }
 
-        if (CurrentPhase != Phase.Playing)
+        if (CurrentPhase != Phase.Playing && !_startGameCountdown.HasValue)
         {
             return;
         }
@@ -178,6 +181,7 @@ public class GameManager : ModSystem
 
         if (TimeRemaining <= 0)
         {
+            _startGameCountdown = null;
             CurrentPhase = Phase.Waiting;
         }
 
@@ -218,10 +222,20 @@ public class GameManager : ModSystem
         if (!_startGameCountdown.HasValue)
             return;
 
-        _startGameCountdown = newSeconds * 60;
+        _startGameCountdown = ToCountdownFrames(newSeconds);
 
         if (Main.dedServ)
             NetMessage.SendData(MessageID.WorldData);
+    }
+
+    private static int ToCountdownFrames(int seconds)
+    {
+        if (seconds <= 0)
+        {
+            return 0;
+        }
+
+        return seconds * FramesPerSecond + CountdownAnnouncementBufferFrames;
     }
 
     private static string FormatHHMMSSFromFrames(int frames)
