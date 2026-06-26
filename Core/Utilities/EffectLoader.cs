@@ -7,7 +7,7 @@ namespace PvPAdventure.Core.Utilities;
 
 public class EffectLoader : ModSystem
 {
-    private const string GrayscalePath = "ErkySSC/Assets/Effects/Grayscale";
+    private const string GrayscalePath = "PvPAdventure/Assets/Effects/Grayscale";
 
     private static readonly Lazy<Effect> GrayscaleEffect = new(LoadGrayscaleEffect);
 
@@ -37,5 +37,30 @@ public class EffectLoader : ModSystem
             Log.Warn($"Failed to load grayscale effect '{GrayscalePath}': {e.Message}");
             return null;
         }
+    }
+
+    private const string LiquidGlassPath = "PvPAdventure/Assets/Effects/LiquidGlass";
+
+    private static Effect liquidGlassEffect;
+
+    public static bool TryGetLiquidGlassEffect(out Effect effect)
+    {
+        try
+        {
+            liquidGlassEffect ??= ModContent.Request<Effect>(LiquidGlassPath, AssetRequestMode.ImmediateLoad).Value;
+            effect = liquidGlassEffect;
+            return effect != null;
+        }
+        catch (Exception e)
+        {
+            Log.Warn($"Failed to load liquid glass effect '{LiquidGlassPath}': {e.Message}");
+            effect = null;
+            return false;
+        }
+    }
+
+    public override void Unload()
+    {
+        liquidGlassEffect = null;
     }
 }
