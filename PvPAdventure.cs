@@ -52,8 +52,8 @@ public class PvPAdventure : Mod
                 Common.Movement.Dash.DashInputSystem.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.GameTimer:
-                Common.Game.GameTimerNetHandler.HandlePacket(reader, whoAmI);
+            case AdventurePacketIdentifier.GameManager:
+                Common.Game.GameManagerNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.TravelTeleport:
@@ -74,6 +74,10 @@ public class PvPAdventure : Mod
 
             case AdventurePacketIdentifier.MatchStatDelta:
                 Common.Game.StatTrackers.MatchStatsNetHandler.HandlePacket(reader, whoAmI);
+                break;
+
+            case AdventurePacketIdentifier.EndScreen:
+                Common.Game.EndScreen.EndScreenNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             default:

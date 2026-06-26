@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Game.EndScreen;
 using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.MatchReplays;
 using PvPAdventure.Common.Game.StatTrackers;
@@ -187,20 +188,12 @@ public class GameManager : ModSystem
 
         int appliedDeltaFrames = TimeRemaining - oldFrames;
 
-        string fromText = FormatHHMMSSFromFrames(oldFrames);
         string toText = FormatHHMMSSFromFrames(TimeRemaining);
-        
-        string extendedOrShortened = appliedDeltaFrames < 0 ? "shortened" : "extended";
-
-        //string msg = $"Game {extendedOrShortened} from {fromText} to {toText}";
-        //string msg = $"Game {extendedOrShortened} from {fromText} to {toText}";
-
+        string actionText = appliedDeltaFrames < 0 ? "shortened" : "extended";
         string deltaText = FormatDeltaMMSSFromFrames(appliedDeltaFrames);
         string deltaHex = appliedDeltaFrames < 0 ? "FF0000" : (appliedDeltaFrames > 0 ? "00FF00" : "FFFFFF");
         string deltaTagged = $"[c/{deltaHex}:{deltaText}]";
-        //string msg = $"Game {extendedOrShortened} from {fromText} to {toText} ({deltaTagged})";
-
-        string msg = $"Game {extendedOrShortened} by {deltaTagged}";
+        string msg = $"Game {actionText} by {deltaTagged}. (New time: {toText})";
 
         if (Main.dedServ)
         {
@@ -428,6 +421,7 @@ public class GameManager : ModSystem
         if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)
         {
             BroadcastEndGameSummary();
+            EndScreenSystem.SendMatchEndSnapshots();
 
             MatchEndTime = DateTime.UtcNow;
             ReportMatchAchievements();
