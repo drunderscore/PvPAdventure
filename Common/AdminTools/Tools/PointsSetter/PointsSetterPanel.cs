@@ -26,7 +26,7 @@ internal class PointsSetterPanel : UIDraggablePanel
     protected override float MinResizeW => 250f;
 
     private readonly List<TeamRow> _rows = [];
-    private UITextPanel<string> applyButton;
+    private UITextActionPanel applyButton;
 
     public PointsSetterPanel() : base(title: Language.GetTextValue("Mods.PvPAdventure.Tools.DLPointsSetterTool.SetPoints"))
     {
@@ -71,25 +71,15 @@ internal class PointsSetterPanel : UIDraggablePanel
             i++;
         }
 
-        applyButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Apply"))
-        {
-            Width = { Pixels = 120f },
-            Height = { Pixels = 40f },
-            HAlign = 0.5f,
-            VAlign = 1f
-        };
-        applyButton.OnMouseOver += (_, _) =>
-        {
-            applyButton.BorderColor = Color.Yellow;
-            //Main.instance.MouseText("Click to end game");
-        };
-        applyButton.OnMouseOut += (_, _) => applyButton.BorderColor = Color.Black;
-        applyButton.OnLeftClick += (_, __) =>
+        applyButton = new UITextActionPanel(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.Apply"), () =>
         {
             for (int r = 0; r < _rows.Count; r++)
-            {
                 _rows[r]?.TryApply();
-            }
+        })
+        {
+            HAlign = 0.5f,
+            VAlign = 1f,
+            Top = { Pixels = -6f } // nudge up from the bottom edge
         };
         ContentPanel.Append(applyButton);
 
@@ -108,8 +98,8 @@ internal class PointsSetterPanel : UIDraggablePanel
         {
             var mod = ModContent.GetInstance<PvPAdventure>();
             var p = mod.GetPacket();
-            p.Write((byte)AdventurePacketIdentifier.GameTimer);
-            p.Write((byte)GameTimerNetHandler.GameTimerPacketType.SetPoints);
+            p.Write((byte)AdventurePacketIdentifier.GameManager);
+            p.Write((byte)GameManagerNetHandler.GameManagerPacketType.SetPoints);
             p.Write((byte)team);
             p.Write(value);
             p.Send();

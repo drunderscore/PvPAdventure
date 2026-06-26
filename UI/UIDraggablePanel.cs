@@ -21,6 +21,13 @@ namespace PvPAdventure.UI;
 /// </summary>
 public abstract class UIDraggablePanel : UIElement
 {
+    private static readonly Color AdminTitleColor = new(104, 58, 140);
+    private static readonly Color AdminBackgroundColor = new(34, 18, 62);
+    private static readonly Color AdminTitleButtonColor = new(92, 47, 132);
+    private static readonly Color AdminTitleButtonHoverColor = new(122, 69, 170);
+    private static readonly Color AdminTitleButtonBorderColor = new(50, 26, 78);
+    private static readonly Color AdminTitleButtonHoverBorderColor = new(184, 139, 230);
+
     // Dragging
     private bool dragging;
     private Vector2 dragOffset;
@@ -84,7 +91,7 @@ public abstract class UIDraggablePanel : UIElement
         TitlePanel.Height.Set(40, 0);
         TitlePanel.Width.Set(0, 1);
         TitlePanel.SetPadding(0);
-        TitlePanel.BackgroundColor = new Color(63, 82, 151) * 1f;
+        TitlePanel.BackgroundColor = AdminTitleColor * 1f;
 
         UIText titleText = new(title, large: true, textScale: 0.7f)
         {
@@ -98,7 +105,7 @@ public abstract class UIDraggablePanel : UIElement
             Top = new StyleDimension(40, 0),
             Width = new StyleDimension(0, 1),
             Height = new StyleDimension(-40, 1),
-            BackgroundColor = new Color(20, 20, 60) * 0.7f,
+            BackgroundColor = AdminBackgroundColor * 0.82f,
             BorderColor = Color.Black
         };
         ContentPanel.SetPadding(0);
@@ -111,18 +118,20 @@ public abstract class UIDraggablePanel : UIElement
             HAlign = 1f,
             VAlign = 0.5f
         };
+        StyleTitleButton(ClosePanel, false);
         ClosePanel.OnLeftClick += (_, _) =>
         {
             SoundEngine.PlaySound(SoundID.MenuClose);
             OnClosePanelLeftClick();
         };
-        ClosePanel.OnMouseOver += (_, _) => ClosePanel.BorderColor = Color.Yellow;
-        ClosePanel.OnMouseOut += (_, _) => ClosePanel.BorderColor = Color.Black;
+        ClosePanel.OnMouseOver += (_, _) => StyleTitleButton(ClosePanel, true);
+        ClosePanel.OnMouseOut += (_, _) => StyleTitleButton(ClosePanel, false);
 
         var closeText = new UIText("X", large: true, textScale: 0.55f)
         {
             HAlign = 0.5f,
-            VAlign = 0.5f
+            VAlign = 0.5f,
+            IgnoresMouseInteraction = true
         };
 
         ClosePanel.Append(closeText);
@@ -138,16 +147,18 @@ public abstract class UIDraggablePanel : UIElement
                 Width = new StyleDimension(40, 0),
                 VAlign = 0.5f
             };
+            StyleTitleButton(RefreshPanel, false);
 
             RefreshPanel.OnLeftClick += (_, _) => OnRefreshPanelLeftClick();
-            RefreshPanel.OnMouseOver += (_, _) => RefreshPanel.BorderColor = Color.Yellow;
-            RefreshPanel.OnMouseOut += (_, _) => RefreshPanel.BorderColor = Color.Black;
+            RefreshPanel.OnMouseOver += (_, _) => StyleTitleButton(RefreshPanel, true);
+            RefreshPanel.OnMouseOut += (_, _) => StyleTitleButton(RefreshPanel, false);
             RefreshPanel.SetPadding(0);
 
             RefreshPanel.Append(new UIImage(Ass.IconReset.Value)
             {
                 HAlign = 0.5f,
-                VAlign = 0.5f
+                VAlign = 0.5f,
+                IgnoresMouseInteraction = true
             });
 
             TitlePanel.Append(RefreshPanel);
@@ -221,6 +232,12 @@ public abstract class UIDraggablePanel : UIElement
             Append(ResizeButton);
         }
         Recalculate();
+    }
+
+    private static void StyleTitleButton(UIPanel panel, bool hover)
+    {
+        panel.BackgroundColor = hover ? AdminTitleButtonHoverColor : AdminTitleButtonColor;
+        panel.BorderColor = hover ? AdminTitleButtonHoverBorderColor : AdminTitleButtonBorderColor;
     }
 
     #region Dragging

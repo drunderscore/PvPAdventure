@@ -34,9 +34,18 @@ public static class Ass
     public static Asset<Texture2D> IconReset;
     public static Asset<Texture2D> IconRefresh;
     public static Asset<Texture2D> IconResize;
+    public static Asset<Texture2D> IconWatch;
+    public static Asset<Texture2D> IconTime;
+    public static Asset<Texture2D> IconStartGame;
+    public static Asset<Texture2D> IconPauseGame;
+    public static Asset<Texture2D> IconEndGame;
+    public static Asset<Texture2D> IconPointsSetter;
     public static Asset<Texture2D> Slider;
+    public static Asset<Texture2D> SliderButton;
+    public static Asset<Texture2D> SliderButtonHighlight;
     public static Asset<Texture2D> SliderHighlight;
     public static Asset<Texture2D> SliderGradient;
+    public static Asset<Texture2D> Stopwatch;
 
     // Config icons
     public static Asset<Texture2D> ConfigBed;
@@ -55,13 +64,10 @@ public static class Ass
     public static Asset<Texture2D> ConfigTreasureBag;
     public static Asset<Texture2D> ConfigTreasureBagOutline;
 
-    // Admin tool icons
-    public static Asset<Texture2D> IconStartGame;
-    public static Asset<Texture2D> IconPauseGame;
-    public static Asset<Texture2D> IconEndGame;
-    public static Asset<Texture2D> IconPointsSetter;
+    // End screen summary
+    public static Asset<Texture2D> IconGem;
 
-     // Flag
+    // Flag
     public static bool Initialized { get; set; }
 
     /// <summary>
