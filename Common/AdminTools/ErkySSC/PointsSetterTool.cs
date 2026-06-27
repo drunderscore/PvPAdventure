@@ -10,7 +10,7 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.AdminTools.ErkySSC;
 
 [Autoload(Side = ModSide.Client)]
-internal sealed class ErkySSCPointsSetterTool : ModSystem
+internal sealed class PointsSetterTool : ModSystem
 {
     private const string Owner = "PvPAdventure.PointsSetter";
 

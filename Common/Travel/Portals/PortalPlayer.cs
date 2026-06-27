@@ -1,5 +1,6 @@
 using PvPAdventure.Common.Travel;
 using PvPAdventure.Content.Portals;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -56,14 +57,70 @@ internal sealed class PortalPlayer : ModPlayer
 
     public override void Load()
     {
+        On_Player.DashMovement += OnPlayerDashMovement;
         On_Player.ApplyDamageToNPC += OnPlayerApplyDamageToNPC;
         On_Player.StrikeNPCDirect += OnPlayerStrikeNPCDirect;
     }
 
     public override void Unload()
     {
+        On_Player.DashMovement -= OnPlayerDashMovement;
         On_Player.ApplyDamageToNPC -= OnPlayerApplyDamageToNPC;
         On_Player.StrikeNPCDirect -= OnPlayerStrikeNPCDirect;
+    }
+
+    private static void OnPlayerDashMovement(On_Player.orig_DashMovement orig, Player self)
+    {
+        List<NPC> ignoredFriendlyPortals = IgnoreFriendlyPortalsForDashCollision(self);
+
+        try
+        {
+            orig(self);
+        }
+        finally
+        {
+            RestoreFriendlyPortalsAfterDashCollision(ignoredFriendlyPortals);
+        }
+    }
+
+    private static List<NPC> IgnoreFriendlyPortalsForDashCollision(Player player)
+    {
+        if (player?.active != true)
+            return null;
+
+        List<NPC> ignoredFriendlyPortals = null;
+
+        for (int i = 0; i < Main.maxNPCs; i++)
+        {
+            NPC npc = Main.npc[i];
+
+            if (npc?.active != true ||
+                npc.dontTakeDamage ||
+                npc.ModNPC is not PortalNPC portal ||
+                !PortalSystem.IsFriendlyPortal(player, portal))
+            {
+                continue;
+            }
+
+            ignoredFriendlyPortals ??= new List<NPC>();
+            ignoredFriendlyPortals.Add(npc);
+            // Vanilla dash impact checks dontTakeDamage before applying the EoC bounceback.
+            npc.dontTakeDamage = true;
+        }
+
+        return ignoredFriendlyPortals;
+    }
+
+    private static void RestoreFriendlyPortalsAfterDashCollision(List<NPC> ignoredFriendlyPortals)
+    {
+        if (ignoredFriendlyPortals == null)
+            return;
+
+        foreach (NPC npc in ignoredFriendlyPortals)
+        {
+            if (npc != null)
+                npc.dontTakeDamage = false;
+        }
     }
 
     private static void OnPlayerApplyDamageToNPC(

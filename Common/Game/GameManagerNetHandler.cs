@@ -9,9 +9,9 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Game;
 
-public static class GameTimerNetHandler
+public static class GameManagerNetHandler
 {
-    public enum GameTimerPacketType : byte
+    public enum GameManagerPacketType : byte
     {
         PauseGame,
         PauseGameRequestClientSave,
@@ -24,11 +24,11 @@ public static class GameTimerNetHandler
 
     public static void HandlePacket(BinaryReader reader, int whoAmI)
     {
-        var subPacket = (GameTimerPacketType)reader.ReadByte();
+        GameManagerPacketType subPacket = (GameManagerPacketType)reader.ReadByte();
 
         switch (subPacket)
         {
-            case GameTimerPacketType.PauseGame:
+            case GameManagerPacketType.PauseGame:
                 {
                     if (Main.netMode != NetmodeID.Server)
                     {
@@ -40,7 +40,7 @@ public static class GameTimerNetHandler
 
                     return;
                 }
-            case GameTimerPacketType.PauseGameRequestClientSave:
+            case GameManagerPacketType.PauseGameRequestClientSave:
                 {
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                         return;
@@ -50,7 +50,7 @@ public static class GameTimerNetHandler
                     return;
                 }
 
-            case GameTimerPacketType.StartGame:
+            case GameManagerPacketType.StartGame:
                 {
                     int time = reader.ReadInt32();
                     int countdown = reader.ReadInt32();
@@ -76,7 +76,7 @@ public static class GameTimerNetHandler
                     return;
                 }
 
-            case GameTimerPacketType.UpdateCountdown:
+            case GameManagerPacketType.UpdateCountdown:
                 {
                     int newSeconds = reader.ReadInt32();
                     var gm = ModContent.GetInstance<GameManager>();
@@ -84,7 +84,7 @@ public static class GameTimerNetHandler
                     break;
                 }
 
-            case GameTimerPacketType.AdjustGameTime:
+            case GameManagerPacketType.AdjustGameTime:
                 {
                     int deltaFrames = reader.ReadInt32();
 
@@ -98,7 +98,7 @@ public static class GameTimerNetHandler
                     return;
                 }
 
-            case GameTimerPacketType.EndGame:
+            case GameManagerPacketType.EndGame:
                 {
                     if (Main.netMode != NetmodeID.Server)
                     {
@@ -110,7 +110,7 @@ public static class GameTimerNetHandler
                     return;
                 }
 
-            case GameTimerPacketType.SetPoints:
+            case GameManagerPacketType.SetPoints:
                 {
                     var team = (Team)reader.ReadByte();
                     int value = reader.ReadInt32();
@@ -140,8 +140,8 @@ public static class GameTimerNetHandler
             return;
 
         ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-        packet.Write((byte)AdventurePacketIdentifier.GameTimer);
-        packet.Write((byte)GameTimerPacketType.PauseGameRequestClientSave);
+        packet.Write((byte)AdventurePacketIdentifier.GameManager);
+        packet.Write((byte)GameManagerPacketType.PauseGameRequestClientSave);
         packet.Send();
     }
 }

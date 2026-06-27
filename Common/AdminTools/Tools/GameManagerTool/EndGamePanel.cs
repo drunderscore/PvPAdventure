@@ -8,7 +8,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Tools.EndGameTool;
+namespace PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
 
 internal class EndGamePanel : UIDraggablePanel
 {
@@ -69,8 +69,8 @@ internal class EndGamePanel : UIDraggablePanel
             else if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-                packet.Write((byte)AdventurePacketIdentifier.GameTimer);
-                packet.Write((byte)GameTimerNetHandler.GameTimerPacketType.EndGame);
+                packet.Write((byte)AdventurePacketIdentifier.GameManager);
+                packet.Write((byte)GameManagerNetHandler.GameManagerPacketType.EndGame);
                 packet.Send();
             }
 

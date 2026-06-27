@@ -1,15 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.AdminTools.Tools.StartGameTool;
 using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Net;
 using ReLogic.Content;
 using System;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static PvPAdventure.Common.Game.GameTimerNetHandler;
 
 namespace PvPAdventure.Common.AdminTools.ErkySSC;
 
@@ -81,8 +78,8 @@ internal sealed class ErkySSCPauseTool : ModSystem
         else if (Main.netMode == NetmodeID.MultiplayerClient)
         {
             var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            packet.Write((byte)AdventurePacketIdentifier.GameTimer);
-            packet.Write((byte)GameTimerPacketType.PauseGame);
+            packet.Write((byte)AdventurePacketIdentifier.GameManager);
+            packet.Write((byte)GameManagerNetHandler.GameManagerPacketType.PauseGame);
             packet.Send();
         }
     }

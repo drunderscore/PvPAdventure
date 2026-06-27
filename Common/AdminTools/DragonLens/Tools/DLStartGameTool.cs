@@ -4,7 +4,7 @@ using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.AdminTools.DragonLens;
-using PvPAdventure.Common.AdminTools.Tools.StartGameTool;
+using PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
 using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Net;
 using Terraria;
@@ -93,8 +93,8 @@ public class DLStartGameTool : Tool
         else if (Main.netMode == NetmodeID.MultiplayerClient)
         {
             var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            packet.Write((byte)AdventurePacketIdentifier.GameTimer);
-            packet.Write((byte)GameTimerNetHandler.GameTimerPacketType.StartGame);
+            packet.Write((byte)AdventurePacketIdentifier.GameManager);
+            packet.Write((byte)GameManagerNetHandler.GameManagerPacketType.StartGame);
             packet.Write(rightClickTimeInFrames);
             packet.Write(0);
             packet.Send();

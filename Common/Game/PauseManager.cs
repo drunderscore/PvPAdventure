@@ -135,7 +135,7 @@ public class PauseManager : ModSystem
             return;
 
         if (Main.netMode == NetmodeID.Server)
-            GameTimerNetHandler.SendRequestPlayerSave();
+            GameManagerNetHandler.SendRequestPlayerSave();
 
         pause._paused = nextPaused;
 

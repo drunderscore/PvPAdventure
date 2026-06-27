@@ -5,7 +5,7 @@ using DragonLens.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.AdminTools.DragonLens;
-using PvPAdventure.Common.AdminTools.Tools.EndGameTool;
+using PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
 using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Net;
 using Terraria;
@@ -36,8 +36,8 @@ public class DLEndGameTool : Tool
             else if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-                packet.Write((byte)AdventurePacketIdentifier.GameTimer);
-                packet.Write((byte)GameTimerNetHandler.GameTimerPacketType.EndGame);
+                packet.Write((byte)AdventurePacketIdentifier.GameManager);
+                packet.Write((byte)GameManagerNetHandler.GameManagerPacketType.EndGame);
                 packet.Send();
             }
         }
