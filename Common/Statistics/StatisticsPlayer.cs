@@ -206,9 +206,6 @@ internal class StatisticsPlayer : ModPlayer
             killerStats.Kills += 1;
             killerStats.SyncStatistics();
 
-            // Report achievement progress for the killer
-            AchievementReporter.OnKillRecorded(killer, killerStats.Kills);
-
             Deaths += 1;
             SyncStatistics();
 

@@ -424,7 +424,6 @@ public class GameManager : ModSystem
             EndScreenSystem.SendMatchEndSnapshots();
 
             MatchEndTime = DateTime.UtcNow;
-            ReportMatchAchievements();
 
             if (!ModContent.GetInstance<ReeseReplayControlSystem>().StopMatchRecording())
                 ReportCompletedMatchToBackend();
@@ -485,15 +484,6 @@ public class GameManager : ModSystem
                     break;
                 }
         }
-    }
-
-    private static void ReportMatchAchievements()
-    {
-        if (Main.netMode != NetmodeID.Server)
-            return;
-
-        PointsManager pointsManager = ModContent.GetInstance<PointsManager>();
-        AchievementReporter.OnMatchEnded(pointsManager);
     }
 
     private void UpdateFreezeTime(bool value)
