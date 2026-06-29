@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel;
 using PvPAdventure.Common.Travel.Beds;
@@ -190,6 +191,8 @@ public sealed class PortalNPC : ModNPC
             Player last = Main.player[_lastDamagePlayer];
             if (last != null && last.active && (Team)last.team != Team.None)
             {
+                MatchStatsPlayer.RecordServerStat(last, MatchStatKey.PortalKills);
+
                 var cfg = ModContent.GetInstance<ServerConfig>();
                 int portalPoints = cfg.Points.PortalKill;
                 if (portalPoints != 0)

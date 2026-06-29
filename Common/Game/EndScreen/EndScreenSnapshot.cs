@@ -86,6 +86,7 @@ public record EndScreenPlayerStats(
     uint LavaDeaths,
     uint FoodEaten,
     uint BossDamageDealt,
+    uint PortalKills,
     uint DifferentWeaponsUsed,
     uint LostHoney,
     string RoleTitle = "",
@@ -98,6 +99,7 @@ public record EndScreenPlayerStats(
             reader.ReadString(),
             reader.ReadInt32(),
             reader.ReadInt32(),
+            reader.ReadUInt32(),
             reader.ReadUInt32(),
             reader.ReadUInt32(),
             reader.ReadUInt32(),
@@ -126,6 +128,7 @@ public record EndScreenPlayerStats(
         writer.Write(LavaDeaths);
         writer.Write(FoodEaten);
         writer.Write(BossDamageDealt);
+        writer.Write(PortalKills);
         writer.Write(DifferentWeaponsUsed);
         writer.Write(LostHoney);
         writer.Write(RoleTitle ?? "");

@@ -12,6 +12,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
+using Terraria.UI.Chat;
 
 namespace PvPAdventure.Common.Game.EndScreen;
 
@@ -81,7 +82,7 @@ public class EndScreenLayer : GameInterfaceLayer
     private const int MaxCardsPerPage = 5;
     private const int PageFrames = 360;
     private const int TitleHeight = 82;
-    private const int ScoreHeight = 58;
+    private const int ScoreHeight = 35;
     private const int TitleScoreGap = 10;
     private const int ScoreCardsGap = 26;
     private const int RewardHeight = 72;
@@ -94,7 +95,6 @@ public class EndScreenLayer : GameInterfaceLayer
     // The big "death" font measures tall (lots of trailing space), so geometric centring sits high;
     // these push the title + scoreline down to read as visually centred.
     private const int TitleYNudge = 14;
-    private const int ScoreYNudge = 8;
 
     private static int ViewW => Main.screenWidth;
     private static int ViewH => Main.screenHeight;
@@ -156,15 +156,13 @@ public class EndScreenLayer : GameInterfaceLayer
         string title = ResultTitle(snapshot.Result);
         Color titleColor = ResultColor(snapshot.Result);
 
-        const float scoreScale = 0.72f;
         Rectangle titleBox = layout.TitleBox;
         Rectangle scoreBox = layout.ScoreBox;
 
         DrawGlassPanel(spriteBatch, titleBox, opacity, TeamStyle(PurpleHeader, snapshot.Team));
-        DrawGlassPanel(spriteBatch, scoreBox, opacity, TeamStyle(PurpleInset, snapshot.Team));
 
         DrawBigText(spriteBatch, title, titleBox, titleColor * opacity, 1.22f, TitleYNudge);
-        DrawScore(spriteBatch, snapshot, scoreBox, opacity, scoreScale); // every team, each in its own colour
+        DrawScore(spriteBatch, snapshot, scoreBox, opacity); // scaled Scoreline-style team point panels
     }
 
     private IReadOnlyList<EndScreenPlayerStats> GetVisiblePlayers(EndScreenSnapshot snapshot)
@@ -530,44 +528,36 @@ public class EndScreenLayer : GameInterfaceLayer
         DrawText(spriteBatch, "MVP", new Vector2(badge.X + 15, badge.Y + 8), Color.White * opacity, 0.86f); // white with black stroke
     }
 
-    private static void DrawScore(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, Rectangle area, float opacity, float scale)
+    private static void DrawScore(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, Rectangle area, float opacity)
     {
         var scores = snapshot.AllScores;
         if (scores.Count == 0)
             return;
 
-        float width = ScorelineWidth(snapshot, scale);
-        float height = FontAssets.DeathText.Value.MeasureString("0").Y * scale;
-        Vector2 position = new(area.Center.X - width / 2f, area.Center.Y - height / 2f + ScoreYNudge);
+        const float basePointWidth = 50f;
+        const float basePointHeight = 30f;
+        const float scale = 1.15f;
+        int pointWidth = (int)(basePointWidth * scale);
+        int pointHeight = (int)(basePointHeight * scale);
+        int x = area.Center.X - scores.Count * pointWidth / 2;
+        int y = area.Center.Y - pointHeight / 2;
 
         for (int i = 0; i < scores.Count; i++)
         {
-            if (i > 0)
-                DrawBigAt(spriteBatch, "  -  ", ref position, Color.White * opacity, scale); // neutral separator
-            DrawBigAt(spriteBatch, scores[i].Score.ToString(), ref position, TeamColor(scores[i].Team) * opacity, scale);
+            Rectangle box = new(x + i * pointWidth, y, pointWidth, pointHeight);
+            Utils.DrawInvBG(spriteBatch, box, TeamColor(scores[i].Team) * (0.7f * opacity));
+
+            string text = scores[i].Score.ToString();
+            Vector2 textScale = Vector2.One * scale;
+            Vector2 size = ChatManager.GetStringSize(FontAssets.MouseText.Value, text, textScale);
+            Vector2 pos = new(box.Center.X - size.X / 2f, box.Y + 6f * scale);
+            ChatManager.DrawColorCodedStringWithShadow(spriteBatch, FontAssets.MouseText.Value, text, pos, Color.White * opacity, 0f, Vector2.Zero, textScale);
         }
     }
 
     private static float ScorelineWidth(EndScreenSnapshot snapshot, float scale)
     {
-        var font = FontAssets.DeathText.Value;
-        var scores = snapshot.AllScores;
-        float width = 0f;
-
-        for (int i = 0; i < scores.Count; i++)
-        {
-            if (i > 0)
-                width += font.MeasureString("  -  ").X * scale;
-            width += font.MeasureString(scores[i].Score.ToString()).X * scale;
-        }
-
-        return width;
-    }
-
-    private static void DrawBigAt(SpriteBatch spriteBatch, string text, ref Vector2 position, Color color, float scale)
-    {
-        Utils.DrawBorderStringBig(spriteBatch, text, position, color, scale);
-        position.X += FontAssets.DeathText.Value.MeasureString(text).X * scale;
+        return snapshot.AllScores.Count * 50f * scale;
     }
 
     internal static void DrawGlassPanel(SpriteBatch spriteBatch, Rectangle rect, float opacity, GlassPanelStyle style, Color? borderOverride = null)
@@ -668,7 +658,7 @@ public class EndScreenLayer : GameInterfaceLayer
 
     private static EndScreenLayout GetLayout(EndScreenSnapshot snapshot, int visiblePlayerCount)
     {
-        const float scoreScale = 0.72f;
+        const float scoreScale = 1.15f;
         int count = Math.Max(1, visiblePlayerCount);
         int cardWidth = GetCardWidth(count);
         int cardHeight = GetCardHeight();

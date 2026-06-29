@@ -141,15 +141,15 @@ public class EndScreenSystem : ModSystem
             .Distinct()
             .ToArray();
 
-        Team[] scoreTeams = System.Enum.GetValues<Team>().Where(t => t != Team.None).ToArray();
+        Team[] resultTeams = System.Enum.GetValues<Team>().Where(t => t != Team.None).ToArray();
 
         foreach (Team team in teamsWithPlayers)
-            SendTeamSnapshot(team, scoreTeams);
+            SendTeamSnapshot(team, teamsWithPlayers, resultTeams);
     }
 
-    private static void SendTeamSnapshot(Team team, Team[] teams)
+    private static void SendTeamSnapshot(Team team, Team[] scoreTeams, Team[] resultTeams)
     {
-        EndScreenSnapshot snapshot = BuildSnapshot(team, teams);
+        EndScreenSnapshot snapshot = BuildSnapshot(team, scoreTeams, resultTeams);
         if (snapshot.Players.Count == 0)
             return;
 
@@ -170,26 +170,26 @@ public class EndScreenSystem : ModSystem
         }
     }
 
-    private static EndScreenSnapshot BuildSnapshot(Team team, Team[] teams)
+    private static EndScreenSnapshot BuildSnapshot(Team team, Team[] scoreTeams, Team[] resultTeams)
     {
         PointsManager pointsManager = ModContent.GetInstance<PointsManager>();
         int TeamScore(Team t) => pointsManager.Points.TryGetValue(t, out int value) ? value : 0;
 
         int teamScore = TeamScore(team);
-        int bestScore = teams.DefaultIfEmpty(team).Max(TeamScore);
-        int opponentScore = teams.Where(t => t != team).DefaultIfEmpty(Team.None).Max(TeamScore);
+        int bestScore = resultTeams.DefaultIfEmpty(team).Max(TeamScore);
+        int opponentScore = resultTeams.Where(t => t != team).DefaultIfEmpty(Team.None).Max(TeamScore);
 
         EndScreenSnapshot snapshot = new()
         {
             Team = team,
             TeamScore = teamScore,
             OpponentScore = opponentScore,
-            Result = GetResult(teamScore, bestScore, teams.Count(t => TeamScore(t) == bestScore))
+            Result = GetResult(teamScore, bestScore, resultTeams.Count(t => TeamScore(t) == bestScore))
         };
 
-        // Every team's points, even teams with no players, in team order (e.g. 7-5-5-5).
+        // Same team filter/order as the small Scoreline: only teams with active players.
         foreach (Team t in System.Enum.GetValues<Team>())
-            if (t != Team.None)
+            if (scoreTeams.Contains(t))
                 snapshot.AllScores.Add(new TeamScoreEntry(t, TeamScore(t)));
 
         snapshot.Players = AssignRoles(GetTeamPlayers(team).ToList());
@@ -243,6 +243,7 @@ public class EndScreenSystem : ModSystem
             Stat(StatsReporter.LavaDeaths),
             Stat(StatsReporter.FoodEaten),
             Stat(StatsReporter.BossDamageDealt),
+            Stat(StatsReporter.PortalKills),
             CountDifferentWeapons(itemStats),
             Stat(StatsReporter.LostHoney));
     }
@@ -252,6 +253,7 @@ public class EndScreenSystem : ModSystem
         Dictionary<byte, (string Title, string Value)> roles = [];
 
         AwardHighest(players, roles, p => p.BossDamageDealt, "Boss Breaker", p => $"{Short(p.BossDamageDealt)} boss dmg");
+        AwardHighest(players, roles, p => p.PortalKills, "Portal Breaker", p => $"{p.PortalKills} {Plural(p.PortalKills, "portal")}");
         AwardHighest(players, roles, p => p.DifferentWeaponsUsed, "The Arsenal", p => $"{p.DifferentWeaponsUsed} {Plural(p.DifferentWeaponsUsed, "weapon")}");
         AwardHighest(players, roles, p => p.LavaDeaths, "Lava Magnet", p => $"{p.LavaDeaths} lava {Plural(p.LavaDeaths, "death")}");
         AwardHighest(players, roles, p => p.FoodEaten, "Feastmaster", p => $"{p.FoodEaten} food eaten");

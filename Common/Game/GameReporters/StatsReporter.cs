@@ -19,6 +19,7 @@ internal static class StatsReporter
     public const string LavaDeaths = "lava_deaths";
     public const string FoodEaten = "food_eaten";
     public const string BossDamageDealt = "boss_damage_dealt";
+    public const string PortalKills = "portal_kills";
     public const string LostHoney = "lost_honey";
 
     private const uint MaxClientDeltaAmount = 1000;
@@ -50,6 +51,7 @@ internal static class StatsReporter
         MatchStatKey.LavaDeaths => LavaDeaths,
         MatchStatKey.FoodEaten => FoodEaten,
         MatchStatKey.BossDamageDealt => BossDamageDealt,
+        MatchStatKey.PortalKills => PortalKills,
         MatchStatKey.LostHoney => LostHoney,
         _ => ""
     };

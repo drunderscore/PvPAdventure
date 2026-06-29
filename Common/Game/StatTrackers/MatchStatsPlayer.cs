@@ -19,6 +19,7 @@ internal enum MatchStatKey : byte
     LavaDeaths,
     FoodEaten,
     BossDamageDealt,
+    PortalKills,
     LostHoney
 }
 
