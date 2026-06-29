@@ -82,7 +82,7 @@ public class EndScreenSystem : ModSystem
         if (!forcedView)
         {
             GameManager gameManager = ModContent.GetInstance<GameManager>();
-            bool matchRestarted = gameManager.CurrentPhase == GameManager.Phase.Playing || gameManager._startGameCountdown.HasValue;
+            bool matchRestarted = gameManager._startGameCountdown.HasValue || (AgeFrames > 60 && gameManager.CurrentPhase == GameManager.Phase.Playing);
             bool wrongTeam = (Team)Main.LocalPlayer.team != CurrentSnapshot.Team;
 
             if (matchRestarted || wrongTeam)
@@ -135,14 +135,16 @@ public class EndScreenSystem : ModSystem
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
 
-        Team[] teams = Main.player
+        Team[] teamsWithPlayers = Main.player
             .Where(p => p?.active == true && (Team)p.team != Team.None)
             .Select(p => (Team)p.team)
             .Distinct()
             .ToArray();
 
-        foreach (Team team in teams)
-            SendTeamSnapshot(team, teams);
+        Team[] scoreTeams = System.Enum.GetValues<Team>().Where(t => t != Team.None).ToArray();
+
+        foreach (Team team in teamsWithPlayers)
+            SendTeamSnapshot(team, scoreTeams);
     }
 
     private static void SendTeamSnapshot(Team team, Team[] teams)
@@ -153,6 +155,7 @@ public class EndScreenSystem : ModSystem
 
         if (Main.netMode == NetmodeID.SinglePlayer)
         {
+            snapshot.LocalPlayerReward = GetPlayerReward(Main.LocalPlayer, ModContent.GetInstance<PointsManager>());
             ModContent.GetInstance<EndScreenSystem>().ShowSnapshot(snapshot);
             return;
         }
@@ -160,7 +163,10 @@ public class EndScreenSystem : ModSystem
         foreach (Player player in Main.player)
         {
             if (player?.active == true && (Team)player.team == team)
+            {
+                snapshot.LocalPlayerReward = GetPlayerReward(player, ModContent.GetInstance<PointsManager>());
                 EndScreenNetHandler.SendSnapshot(snapshot, player.whoAmI);
+            }
         }
     }
 
@@ -186,20 +192,27 @@ public class EndScreenSystem : ModSystem
             if (t != Team.None)
                 snapshot.AllScores.Add(new TeamScoreEntry(t, TeamScore(t)));
 
-        snapshot.Players.AddRange(GetTeamPlayers(team, pointsManager));
+        snapshot.Players = AssignRoles(GetTeamPlayers(team).ToList());
         return snapshot;
     }
 
-    private static IEnumerable<EndScreenPlayerStats> GetTeamPlayers(Team team, PointsManager pointsManager)
+    private static uint GetPlayerReward(Player player, PointsManager pointsManager)
+    {
+        if (player == null || !player.active)
+            return 0u;
+
+        MatchRewardContext rewardContext = MatchRewardCalculator.CreateContext(player, pointsManager);
+        return MatchRewardCalculator.Calculate(rewardContext);
+    }
+
+    private static IEnumerable<EndScreenPlayerStats> GetTeamPlayers(Team team)
     {
         return Main.player
             .Where(p => p?.active == true && (Team)p.team == team)
-            .Select(p => CreatePlayerStats(p, pointsManager))
-            .OrderByDescending(p => p.Reward) // reward decides MVP first
-            .ThenByDescending(p => p.Kills)
+            .Select(CreatePlayerStats)
+            .OrderByDescending(p => p.Kills)
             .ThenBy(p => p.Deaths)
-            .ThenByDescending(p => p.DamageDealt)
-            .Take(5);
+            .ThenByDescending(p => p.DamageDealt);
     }
 
     private static EndScreenResult GetResult(int teamScore, int bestScore, int bestTeamCount)
@@ -210,14 +223,12 @@ public class EndScreenSystem : ModSystem
         return bestTeamCount > 1 ? EndScreenResult.Tie : EndScreenResult.Victory;
     }
 
-    private static EndScreenPlayerStats CreatePlayerStats(Player player, PointsManager pointsManager)
+    private static EndScreenPlayerStats CreatePlayerStats(Player player)
     {
         StatisticsPlayer statistics = player.GetModPlayer<StatisticsPlayer>();
         Dictionary<string, uint> matchStats = StatsReporter.CopyStats(player);
+        Dictionary<string, IDictionary<int, uint>> itemStats = StatsReporter.CopyItemStats(player);
         uint Stat(string key) => matchStats.TryGetValue(key, out uint value) ? value : 0u;
-
-        MatchRewardContext rewardContext = MatchRewardCalculator.CreateContext(player, pointsManager);
-        uint reward = MatchRewardCalculator.Calculate(rewardContext);
 
         return new EndScreenPlayerStats(
             (byte)player.whoAmI,
@@ -229,8 +240,64 @@ public class EndScreenSystem : ModSystem
             Stat(StatsReporter.TilesMined),
             Stat(StatsReporter.TilesPlaced),
             Stat(StatsReporter.ConsumablesUsed),
-            reward);
+            Stat(StatsReporter.LavaDeaths),
+            Stat(StatsReporter.FoodEaten),
+            Stat(StatsReporter.BossDamageDealt),
+            CountDifferentWeapons(itemStats),
+            Stat(StatsReporter.LostHoney));
     }
+
+    private static List<EndScreenPlayerStats> AssignRoles(List<EndScreenPlayerStats> players)
+    {
+        Dictionary<byte, (string Title, string Value)> roles = [];
+
+        AwardHighest(players, roles, p => p.BossDamageDealt, "Boss Breaker", p => $"{Short(p.BossDamageDealt)} boss dmg");
+        AwardHighest(players, roles, p => p.DifferentWeaponsUsed, "The Arsenal", p => $"{p.DifferentWeaponsUsed} {Plural(p.DifferentWeaponsUsed, "weapon")}");
+        AwardHighest(players, roles, p => p.LavaDeaths, "Lava Magnet", p => $"{p.LavaDeaths} lava {Plural(p.LavaDeaths, "death")}");
+        AwardHighest(players, roles, p => p.FoodEaten, "Feastmaster", p => $"{p.FoodEaten} food eaten");
+        AwardHighest(players, roles, p => p.LostHoney, "Honey Spiller", p => $"{p.LostHoney} honey lost");
+        AwardFewestDeaths(players, roles);
+
+        return players
+            .Select(p => roles.TryGetValue(p.PlayerIndex, out var role) ? p with { RoleTitle = role.Title, RoleValue = role.Value } : p with { RoleTitle = "Adventurer", RoleValue = "Ready for more" })
+            .ToList();
+    }
+
+    private static void AwardHighest(List<EndScreenPlayerStats> players, Dictionary<byte, (string Title, string Value)> roles, System.Func<EndScreenPlayerStats, uint> value, string title, System.Func<EndScreenPlayerStats, string> text)
+    {
+        EndScreenPlayerStats winner = players.Where(p => !roles.ContainsKey(p.PlayerIndex) && value(p) > 0).OrderByDescending(value).ThenByDescending(p => p.Kills).ThenBy(p => p.Deaths).FirstOrDefault();
+        if (winner != null)
+            roles[winner.PlayerIndex] = (title, text(winner));
+    }
+
+    private static void AwardFewestDeaths(List<EndScreenPlayerStats> players, Dictionary<byte, (string Title, string Value)> roles)
+    {
+        EndScreenPlayerStats winner = players.Where(p => !roles.ContainsKey(p.PlayerIndex)).OrderBy(p => p.Deaths).ThenByDescending(p => p.Kills).ThenByDescending(p => p.DamageDealt).FirstOrDefault();
+        if (winner != null)
+            roles[winner.PlayerIndex] = ("Survivor", $"{winner.Deaths} {Plural((uint)winner.Deaths, "death")}");
+    }
+
+    private static uint CountDifferentWeapons(Dictionary<string, IDictionary<int, uint>> itemStats)
+    {
+        HashSet<int> weapons = [];
+        AddWeapons(itemStats, StatsReporter.DamageDealt, weapons);
+        AddWeapons(itemStats, StatsReporter.BossDamageDealt, weapons);
+        return (uint)weapons.Count;
+    }
+
+    private static void AddWeapons(Dictionary<string, IDictionary<int, uint>> itemStats, string statKey, HashSet<int> weapons)
+    {
+        if (!itemStats.TryGetValue(statKey, out IDictionary<int, uint> byItem))
+            return;
+
+        foreach ((int itemId, uint amount) in byItem)
+            if (amount > 0 && itemId > ItemID.None && itemId < ItemLoader.ItemCount)
+                weapons.Add(itemId);
+    }
+
+    private static string Short(uint value) => value >= 1000 ? $"{value / 1000f:0.0}k" : value.ToString();
+
+    private static string Plural(uint value, string word) => value == 1 ? word : word + "s";
 }
 
 /// <summary>Freezes local player movement/actions while the end screen is open.</summary>

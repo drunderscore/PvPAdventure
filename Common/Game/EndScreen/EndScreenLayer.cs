@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
@@ -76,6 +78,8 @@ public class EndScreenBackdropLayer : GameInterfaceLayer
 public class EndScreenLayer : GameInterfaceLayer
 {
     private const int CardGap = 20;
+    private const int MaxCardsPerPage = 5;
+    private const int PageFrames = 360;
     private const int TitleHeight = 82;
     private const int ScoreHeight = 58;
     private const int TitleScoreGap = 10;
@@ -136,10 +140,11 @@ public class EndScreenLayer : GameInterfaceLayer
         EndScreenSnapshot snapshot = system.CurrentSnapshot;
         float opacity = system.Opacity;
         SpriteBatch spriteBatch = Main.spriteBatch;
-        EndScreenLayout layout = GetLayout(snapshot);
+        IReadOnlyList<EndScreenPlayerStats> players = GetVisiblePlayers(snapshot);
+        EndScreenLayout layout = GetLayout(snapshot, players.Count);
 
         DrawHeader(spriteBatch, snapshot, opacity, layout);
-        DrawCards(spriteBatch, snapshot, opacity, layout);
+        DrawCards(spriteBatch, snapshot, players, opacity, layout);
         DrawReward(spriteBatch, snapshot, opacity, layout.RewardBox); // reward follows cards
         DrawBackButton(spriteBatch, snapshot, opacity, layout.RewardBox);
 
@@ -162,9 +167,19 @@ public class EndScreenLayer : GameInterfaceLayer
         DrawScore(spriteBatch, snapshot, scoreBox, opacity, scoreScale); // every team, each in its own colour
     }
 
-    private void DrawCards(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, float opacity, EndScreenLayout layout)
+    private IReadOnlyList<EndScreenPlayerStats> GetVisiblePlayers(EndScreenSnapshot snapshot)
     {
-        int count = snapshot.Players.Count;
+        if (snapshot.Players.Count <= MaxCardsPerPage)
+            return snapshot.Players;
+
+        int pageCount = (snapshot.Players.Count + MaxCardsPerPage - 1) / MaxCardsPerPage;
+        int page = (system.AgeFrames / PageFrames) % pageCount;
+        return snapshot.Players.Skip(page * MaxCardsPerPage).Take(MaxCardsPerPage).ToArray();
+    }
+
+    private void DrawCards(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, IReadOnlyList<EndScreenPlayerStats> players, float opacity, EndScreenLayout layout)
+    {
+        int count = players.Count;
         if (count == 0)
             return;
 
@@ -180,7 +195,8 @@ public class EndScreenLayer : GameInterfaceLayer
                 continue;
 
             Rectangle card = new(x + i * (width + CardGap), y + (int)((1f - cardIn) * 24f), width, height);
-            DrawCard(spriteBatch, snapshot, snapshot.Players[i], card, opacity * cardIn, i == 0, i);
+            bool mvp = snapshot.Players.Count > 0 && players[i].PlayerIndex == snapshot.Players[0].PlayerIndex;
+            DrawCard(spriteBatch, snapshot, players[i], card, opacity * cardIn, mvp, i);
         }
     }
 
@@ -194,9 +210,9 @@ public class EndScreenLayer : GameInterfaceLayer
 
         int y = card.Y + 178;
         DrawPlayerName(spriteBatch, snapshot.Team, player.Name, card, y, opacity);
-        DrawGemText(spriteBatch, player.Reward, card, y + 38, opacity);
+        DrawRoleText(spriteBatch, player, card, y + 36, opacity);
 
-        y += 76;
+        y += 82;
         DrawStatRow(spriteBatch, snapshot.Team, card, ref y, "Kills", player.Kills.ToString(), opacity);
         DrawStatRow(spriteBatch, snapshot.Team, card, ref y, "Deaths", player.Deaths.ToString(), opacity);
         DrawStatRow(spriteBatch, snapshot.Team, card, ref y, "Damage", Short(player.DamageDealt), opacity);
@@ -270,13 +286,17 @@ public class EndScreenLayer : GameInterfaceLayer
         DrawText(spriteBatch, fitted, position, TeamColor(team) * opacity, 1f);
     }
 
-    private static void DrawGemText(SpriteBatch spriteBatch, uint reward, Rectangle card, int y, float opacity)
+    private static void DrawRoleText(SpriteBatch spriteBatch, EndScreenPlayerStats player, Rectangle card, int y, float opacity)
     {
-        string text = $"{reward} Gems";
-        Rectangle area = new(card.X, y, card.Width, 26);
-        Color color = new(231, 213, 144);
+        string title = string.IsNullOrWhiteSpace(player.RoleTitle) ? "Adventurer" : player.RoleTitle;
+        string value = string.IsNullOrWhiteSpace(player.RoleValue) ? "Ready for more" : player.RoleValue;
+        Rectangle titleArea = new(card.X + 8, y, card.Width - 16, 22);
+        Rectangle valueArea = new(card.X + 8, y + 21, card.Width - 16, 20);
 
-        DrawText(spriteBatch, text, CenterText(text, area, 0.82f), color * opacity, 0.82f);
+        title = Fit(title, titleArea.Width);
+        value = Fit(value, valueArea.Width);
+        DrawText(spriteBatch, title, CenterText(title, titleArea, 0.76f), new Color(255, 232, 130) * opacity, 0.76f);
+        DrawText(spriteBatch, value, CenterText(value, valueArea, 0.66f), Color.White * opacity, 0.66f);
     }
 
     private static void SpawnGemDust(Rectangle box, Vector2 gemCenter, float opacity, float intensity, int ageFrames)
@@ -646,10 +666,10 @@ public class EndScreenLayer : GameInterfaceLayer
         return new Rectangle((ViewW - width) / 2, y, width, height);
     }
 
-    private static EndScreenLayout GetLayout(EndScreenSnapshot snapshot)
+    private static EndScreenLayout GetLayout(EndScreenSnapshot snapshot, int visiblePlayerCount)
     {
         const float scoreScale = 0.72f;
-        int count = Math.Max(1, snapshot.Players.Count);
+        int count = Math.Max(1, visiblePlayerCount);
         int cardWidth = GetCardWidth(count);
         int cardHeight = GetCardHeight();
         int cardsWidth = cardWidth * count + CardGap * (count - 1);

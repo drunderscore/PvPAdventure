@@ -15,7 +15,11 @@ internal enum MatchStatKey : byte
     ConsumablesUsed,
     TilesPlaced,
     TilesMined,
-    MiningToolsUsed
+    MiningToolsUsed,
+    LavaDeaths,
+    FoodEaten,
+    BossDamageDealt,
+    LostHoney
 }
 
 internal sealed class MatchStatsPlayer : ModPlayer
@@ -73,6 +77,16 @@ internal sealed class MatchStatsPlayer : ModPlayer
 
     public static void RecordLocalItemStat(MatchStatKey statKey, int itemKey, uint amount = 1)
     {
+        RecordLocalDelta(statKey, itemKey, amount);
+    }
+
+    public static void RecordLocalStat(MatchStatKey statKey, uint amount = 1)
+    {
+        RecordLocalDelta(statKey, -1, amount);
+    }
+
+    private static void RecordLocalDelta(MatchStatKey statKey, int itemKey, uint amount)
+    {
         if (Main.dedServ || !IsMatchPlaying() || !StatsReporter.IsValidClientDelta(statKey, itemKey, amount))
             return;
 
@@ -93,6 +107,17 @@ internal sealed class MatchStatsPlayer : ModPlayer
         packet.Write((byte)AdventurePacketIdentifier.MatchStatDelta);
         new StatDelta(statKey, itemKey, amount).Serialize(packet);
         packet.Send();
+    }
+
+    public static void RecordServerStat(Player player, MatchStatKey statKey, uint amount = 1, int itemKey = -1)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient || !IsMatchPlaying())
+            return;
+
+        if (player == null || !player.active || amount == 0)
+            return;
+
+        player.GetModPlayer<MatchStatsPlayer>().ApplyDelta(statKey, itemKey, amount);
     }
 
     public static void RecordServerDamage(Player attacker, Player victim, Player.HurtInfo info)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
@@ -28,6 +29,7 @@ public sealed class TeamBossNPC : GlobalNPC
 
     private Team _pendingStrikeTeam;
     private Team _lastAppliedStrikeTeam;
+    private int _pendingStrikeItem = ItemID.None;
 
     public class DamageInfo(byte who)
     {
@@ -57,8 +59,8 @@ public sealed class TeamBossNPC : GlobalNPC
         if (team == Team.None)
             return;
 
-        // Record attacker team for StrikeNPC (works for items in all modes).
-        RecordHit(npc, player.whoAmI, team);
+        // Record attacker team/item for StrikeNPC (works for items in all modes).
+        RecordHit(npc, player.whoAmI, team, item?.type ?? ItemID.None);
     }
 
     public override void ModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
@@ -78,8 +80,9 @@ public sealed class TeamBossNPC : GlobalNPC
         if (team == Team.None)
             return;
 
-        // Record attacker team for StrikeNPC (works for projectiles in all modes).
-        RecordHit(npc, ownerIndex, team);
+        // Record attacker team/item for StrikeNPC (works for projectiles in all modes).
+        int sourceItem = projectile.GetGlobalProjectile<StatisticsProjectile>().SourceItem?.type ?? ItemID.None;
+        RecordHit(npc, ownerIndex, team, sourceItem);
     }
 
     public override void SetDefaults(NPC entity)
@@ -124,7 +127,7 @@ public sealed class TeamBossNPC : GlobalNPC
         RecordHit(self, player, team);
     }
 
-    private static void RecordHit(NPC npc, int playerIndex, Team team)
+    private static void RecordHit(NPC npc, int playerIndex, Team team, int itemType = ItemID.None)
     {
         if (team == Team.None)
             return;
@@ -144,7 +147,7 @@ public sealed class TeamBossNPC : GlobalNPC
         }
 
         if (IsConfiguredTeamBoss(owner, out _))
-            SetPendingStrikeTeam(npc, owner, team);
+            SetPendingStrikeTeam(npc, owner, team, itemType);
     }
 
     public override void OnKill(NPC npc)
@@ -177,6 +180,7 @@ public sealed class TeamBossNPC : GlobalNPC
         NPC owner = GetOwner(self);
         var boss = owner.GetGlobalNPC<TeamBossNPC>();
         Team strikeTeam = ConsumePendingStrikeTeam(self, owner);
+        int strikeItem = ConsumePendingStrikeItem(self, owner);
         boss._lastAppliedStrikeTeam = Team.None;
 
         int StrikeVanilla()
@@ -210,6 +214,8 @@ public sealed class TeamBossNPC : GlobalNPC
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return StrikeVanilla();
+
+        RecordBossDamage(boss, (uint)Math.Max(0, hit.Damage), strikeItem);
 
         // Only configured bosses participate in TeamLife.
         var teamLife = boss._teamLife;
@@ -426,13 +432,14 @@ public sealed class TeamBossNPC : GlobalNPC
         return ModContent.GetInstance<ServerConfig>().BossBalance.TryGetValue(definition, out balanceEntry);
     }
 
-    private static void SetPendingStrikeTeam(NPC npc, NPC owner, Team team)
+    private static void SetPendingStrikeTeam(NPC npc, NPC owner, Team team, int itemType = ItemID.None)
     {
         if (team == Team.None)
             return;
 
         var ownerBoss = owner.GetGlobalNPC<TeamBossNPC>();
         ownerBoss._pendingStrikeTeam = team;
+        ownerBoss._pendingStrikeItem = itemType;
         ownerBoss._hasBeenHurtByTeam.Add(team);
 
         if (npc.whoAmI == owner.whoAmI)
@@ -440,6 +447,7 @@ public sealed class TeamBossNPC : GlobalNPC
 
         var segmentBoss = npc.GetGlobalNPC<TeamBossNPC>();
         segmentBoss._pendingStrikeTeam = team;
+        segmentBoss._pendingStrikeItem = itemType;
         segmentBoss._hasBeenHurtByTeam.Add(team);
     }
 
@@ -461,12 +469,50 @@ public sealed class TeamBossNPC : GlobalNPC
         return team;
     }
 
+    private static int ConsumePendingStrikeItem(NPC npc, NPC owner)
+    {
+        var ownerBoss = owner.GetGlobalNPC<TeamBossNPC>();
+        int itemType = ownerBoss._pendingStrikeItem;
+        ownerBoss._pendingStrikeItem = ItemID.None;
+
+        if (npc.whoAmI == owner.whoAmI)
+            return itemType;
+
+        var segmentBoss = npc.GetGlobalNPC<TeamBossNPC>();
+
+        if (itemType == ItemID.None)
+            itemType = segmentBoss._pendingStrikeItem;
+
+        segmentBoss._pendingStrikeItem = ItemID.None;
+        return itemType;
+    }
+
     private static void ClearPendingStrikeTeam(NPC npc, NPC owner)
     {
-        owner.GetGlobalNPC<TeamBossNPC>()._pendingStrikeTeam = Team.None;
+        TeamBossNPC ownerBoss = owner.GetGlobalNPC<TeamBossNPC>();
+        ownerBoss._pendingStrikeTeam = Team.None;
+        ownerBoss._pendingStrikeItem = ItemID.None;
 
         if (npc.whoAmI != owner.whoAmI)
-            npc.GetGlobalNPC<TeamBossNPC>()._pendingStrikeTeam = Team.None;
+        {
+            TeamBossNPC segmentBoss = npc.GetGlobalNPC<TeamBossNPC>();
+            segmentBoss._pendingStrikeTeam = Team.None;
+            segmentBoss._pendingStrikeItem = ItemID.None;
+        }
+    }
+
+    private static void RecordBossDamage(TeamBossNPC boss, uint damage, int itemType)
+    {
+        if (damage == 0 || boss.LastDamageFromPlayer == null)
+            return;
+
+        int playerIndex = boss.LastDamageFromPlayer.Who;
+        if (playerIndex < 0 || playerIndex >= Main.maxPlayers)
+            return;
+
+        Player player = Main.player[playerIndex];
+        int itemKey = itemType > ItemID.None && itemType < ItemLoader.ItemCount ? itemType : -1;
+        MatchStatsPlayer.RecordServerStat(player, MatchStatKey.BossDamageDealt, damage, itemKey);
     }
 
     private static bool IsTeamActive(Team team)

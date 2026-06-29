@@ -421,7 +421,14 @@ public class GameManager : ModSystem
         if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)
         {
             BroadcastEndGameSummary();
+
+            // Sync Waiting before the custom end-screen packet. Otherwise clients can receive
+            // the snapshot while still locally in Playing and immediately hide it.
+            if (Main.netMode == NetmodeID.Server)
+                NetMessage.SendData(MessageID.WorldData);
+
             EndScreenSystem.SendMatchEndSnapshots();
+            Log.Info("Match end snapshots sent");
 
             MatchEndTime = DateTime.UtcNow;
 

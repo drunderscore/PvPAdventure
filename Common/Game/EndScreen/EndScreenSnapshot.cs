@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Terraria;
 using Terraria.Enums;
 
@@ -24,12 +23,11 @@ public class EndScreenSnapshot
     public EndScreenResult Result;
     public int TeamScore;
     public int OpponentScore;
+    public uint LocalPlayerReward;
     public List<EndScreenPlayerStats> Players = [];
 
     /// <summary>Every team's points (including teams with no players), in team order — drawn as e.g. 7-5-5-5.</summary>
     public List<TeamScoreEntry> AllScores = [];
-
-    public uint LocalPlayerReward => Players.FirstOrDefault(p => p.PlayerIndex == Main.myPlayer)?.Reward ?? 0;
 
     public static EndScreenSnapshot Deserialize(BinaryReader reader)
     {
@@ -38,7 +36,8 @@ public class EndScreenSnapshot
             Team = (Team)reader.ReadByte(),
             Result = (EndScreenResult)reader.ReadByte(),
             TeamScore = reader.ReadInt32(),
-            OpponentScore = reader.ReadInt32()
+            OpponentScore = reader.ReadInt32(),
+            LocalPlayerReward = reader.ReadUInt32()
         };
 
         int scoreCount = reader.ReadByte();
@@ -58,6 +57,7 @@ public class EndScreenSnapshot
         writer.Write((byte)Result);
         writer.Write(TeamScore);
         writer.Write(OpponentScore);
+        writer.Write(LocalPlayerReward);
 
         writer.Write((byte)AllScores.Count);
         foreach (TeamScoreEntry entry in AllScores)
@@ -83,7 +83,13 @@ public record EndScreenPlayerStats(
     uint TilesMined,
     uint TilesPlaced,
     uint ConsumablesUsed,
-    uint Reward)
+    uint LavaDeaths,
+    uint FoodEaten,
+    uint BossDamageDealt,
+    uint DifferentWeaponsUsed,
+    uint LostHoney,
+    string RoleTitle = "",
+    string RoleValue = "")
 {
     public static EndScreenPlayerStats Deserialize(BinaryReader reader)
     {
@@ -97,7 +103,13 @@ public record EndScreenPlayerStats(
             reader.ReadUInt32(),
             reader.ReadUInt32(),
             reader.ReadUInt32(),
-            reader.ReadUInt32());
+            reader.ReadUInt32(),
+            reader.ReadUInt32(),
+            reader.ReadUInt32(),
+            reader.ReadUInt32(),
+            reader.ReadUInt32(),
+            reader.ReadString(),
+            reader.ReadString());
     }
 
     public void Serialize(BinaryWriter writer)
@@ -111,6 +123,12 @@ public record EndScreenPlayerStats(
         writer.Write(TilesMined);
         writer.Write(TilesPlaced);
         writer.Write(ConsumablesUsed);
-        writer.Write(Reward);
+        writer.Write(LavaDeaths);
+        writer.Write(FoodEaten);
+        writer.Write(BossDamageDealt);
+        writer.Write(DifferentWeaponsUsed);
+        writer.Write(LostHoney);
+        writer.Write(RoleTitle ?? "");
+        writer.Write(RoleValue ?? "");
     }
 }

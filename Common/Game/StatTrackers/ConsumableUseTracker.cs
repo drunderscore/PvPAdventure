@@ -1,4 +1,5 @@
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Game.StatTrackers;
@@ -14,5 +15,10 @@ internal sealed class ConsumableUseTracker : GlobalItem
             return;
 
         MatchStatsPlayer.RecordLocalItemStat(MatchStatKey.ConsumablesUsed, item.type);
+
+        if (IsFood(item))
+            MatchStatsPlayer.RecordLocalItemStat(MatchStatKey.FoodEaten, item.type);
     }
+
+    private static bool IsFood(Item item) => item.buffType is BuffID.WellFed or BuffID.WellFed2 or BuffID.WellFed3;
 }

@@ -9,6 +9,8 @@ internal class StatisticsProjectile : GlobalProjectile
 {
     private Item sourceItem;
 
+    public Item SourceItem => sourceItem;
+
     public override bool InstancePerEntity => true;
 
     public override void Load()

@@ -16,6 +16,10 @@ internal static class StatsReporter
     public const string TilesPlaced = "tiles_placed";
     public const string TilesMined = "tiles_mined";
     public const string MiningToolsUsed = "mining_tools_used";
+    public const string LavaDeaths = "lava_deaths";
+    public const string FoodEaten = "food_eaten";
+    public const string BossDamageDealt = "boss_damage_dealt";
+    public const string LostHoney = "lost_honey";
 
     private const uint MaxClientDeltaAmount = 1000;
 
@@ -43,6 +47,10 @@ internal static class StatsReporter
         MatchStatKey.TilesPlaced => TilesPlaced,
         MatchStatKey.TilesMined => TilesMined,
         MatchStatKey.MiningToolsUsed => MiningToolsUsed,
+        MatchStatKey.LavaDeaths => LavaDeaths,
+        MatchStatKey.FoodEaten => FoodEaten,
+        MatchStatKey.BossDamageDealt => BossDamageDealt,
+        MatchStatKey.LostHoney => LostHoney,
         _ => ""
     };
 
@@ -53,10 +61,12 @@ internal static class StatsReporter
 
         return statKey switch
         {
-            MatchStatKey.ConsumablesUsed or MatchStatKey.TilesPlaced or MatchStatKey.MiningToolsUsed
+            MatchStatKey.ConsumablesUsed or MatchStatKey.TilesPlaced or MatchStatKey.MiningToolsUsed or MatchStatKey.FoodEaten
                 => IsValidItemId(itemKey),
             MatchStatKey.TilesMined
                 => itemKey >= 0 && itemKey < TileLoader.TileCount,
+            MatchStatKey.LostHoney
+                => itemKey < 0,
             _ => false
         };
     }
