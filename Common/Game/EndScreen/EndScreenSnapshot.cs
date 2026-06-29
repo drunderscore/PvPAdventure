@@ -75,6 +75,7 @@ public class EndScreenSnapshot
 /// <summary>Serializable end screen data for one player.</summary>
 public record EndScreenPlayerStats(
     byte PlayerIndex,
+    Team Team,
     string Name,
     int Kills,
     int Deaths,
@@ -96,6 +97,7 @@ public record EndScreenPlayerStats(
     {
         return new EndScreenPlayerStats(
             reader.ReadByte(),
+            (Team)reader.ReadByte(),
             reader.ReadString(),
             reader.ReadInt32(),
             reader.ReadInt32(),
@@ -117,6 +119,7 @@ public record EndScreenPlayerStats(
     public void Serialize(BinaryWriter writer)
     {
         writer.Write(PlayerIndex);
+        writer.Write((byte)Team);
         writer.Write(Name ?? "");
         writer.Write(Kills);
         writer.Write(Deaths);

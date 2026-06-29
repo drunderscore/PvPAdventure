@@ -85,12 +85,12 @@ public class EndScreenLayer : GameInterfaceLayer
     private const int ScoreHeight = 35;
     private const int TitleScoreGap = 10;
     private const int ScoreCardsGap = 26;
-    private const int RewardHeight = 72;
+    private const int RewardHeight = 52;
     private const int RewardGap = 14;
     private const int BackButtonGap = 16;
     private const int LayoutMargin = 28;
     private const int BackButtonWidth = 240;
-    private const int BackButtonHeight = 54;
+    private const int BackButtonHeight = 42;
 
     // The big "death" font measures tall (lots of trailing space), so geometric centring sits high;
     // these push the title + scoreline down to read as visually centred.
@@ -100,6 +100,7 @@ public class EndScreenLayer : GameInterfaceLayer
     private static int ViewH => Main.screenHeight;
     private static Texture2D PanelBackground => Main.Assets.Request<Texture2D>("Images/UI/PanelBackground").Value;
     private static Texture2D PanelBorder => Main.Assets.Request<Texture2D>("Images/UI/PanelBorder").Value;
+    private static readonly RasterizerState ScissorRasterizer = new() { CullMode = CullMode.None, ScissorTestEnable = true };
 
     // --- Synchronized player animation (walk -> jump -> wave, looping) ---
     private const int FrameHeight = 56;     // player body/leg sheet frame height
@@ -117,6 +118,7 @@ public class EndScreenLayer : GameInterfaceLayer
     private readonly EndScreenBackButton backButton;
     private readonly UserInterface backInterface;
     private readonly UIState backState;
+    private Team selectedTeam = Team.None;
 
     public EndScreenLayer(EndScreenSystem system)
         : base("PvPAdventure: End Screen", InterfaceScaleType.None)
@@ -138,6 +140,7 @@ public class EndScreenLayer : GameInterfaceLayer
             return true;
 
         EndScreenSnapshot snapshot = system.CurrentSnapshot;
+        EnsureSelectedTeam(snapshot);
         float opacity = system.Opacity;
         SpriteBatch spriteBatch = Main.spriteBatch;
         IReadOnlyList<EndScreenPlayerStats> players = GetVisiblePlayers(snapshot);
@@ -167,12 +170,14 @@ public class EndScreenLayer : GameInterfaceLayer
 
     private IReadOnlyList<EndScreenPlayerStats> GetVisiblePlayers(EndScreenSnapshot snapshot)
     {
-        if (snapshot.Players.Count <= MaxCardsPerPage)
-            return snapshot.Players;
+        EndScreenPlayerStats[] teamPlayers = snapshot.Players.Where(p => p.Team == selectedTeam).ToArray();
 
-        int pageCount = (snapshot.Players.Count + MaxCardsPerPage - 1) / MaxCardsPerPage;
+        if (teamPlayers.Length <= MaxCardsPerPage)
+            return teamPlayers;
+
+        int pageCount = (teamPlayers.Length + MaxCardsPerPage - 1) / MaxCardsPerPage;
         int page = (system.AgeFrames / PageFrames) % pageCount;
-        return snapshot.Players.Skip(page * MaxCardsPerPage).Take(MaxCardsPerPage).ToArray();
+        return teamPlayers.Skip(page * MaxCardsPerPage).Take(MaxCardsPerPage).ToArray();
     }
 
     private void DrawCards(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, IReadOnlyList<EndScreenPlayerStats> players, float opacity, EndScreenLayout layout)
@@ -193,27 +198,27 @@ public class EndScreenLayer : GameInterfaceLayer
                 continue;
 
             Rectangle card = new(x + i * (width + CardGap), y + (int)((1f - cardIn) * 24f), width, height);
-            bool mvp = snapshot.Players.Count > 0 && players[i].PlayerIndex == snapshot.Players[0].PlayerIndex;
+            bool mvp = players.Count > 0 && players[i].PlayerIndex == snapshot.Players.FirstOrDefault(p => p.Team == selectedTeam)?.PlayerIndex;
             DrawCard(spriteBatch, snapshot, players[i], card, opacity * cardIn, mvp, i);
         }
     }
 
     private void DrawCard(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, EndScreenPlayerStats player, Rectangle card, float opacity, bool mvp, int cardIndex)
     {
-        DrawTeamPanel(spriteBatch, card, TeamColor(snapshot.Team), opacity, 0.72f); // simple team stat card
+        DrawTeamPanel(spriteBatch, card, TeamColor(player.Team), opacity, 0.72f); // simple team stat card
         DrawPlayer(spriteBatch, player.PlayerIndex, new Rectangle(card.X + 12, card.Y + 56, card.Width - 16, 160), system.AgeFrames, cardIndex);
 
         if (mvp)
-            DrawMvpBadge(spriteBatch, card, opacity, snapshot.Team);
+            DrawMvpBadge(spriteBatch, card, opacity, player.Team);
 
         int y = card.Y + 178;
-        DrawPlayerName(spriteBatch, snapshot.Team, player.Name, card, y, opacity);
+        DrawPlayerName(spriteBatch, player.Team, player.Name, card, y, opacity);
         DrawRoleText(spriteBatch, player, card, y + 36, opacity);
 
         y += 82;
-        DrawStatRow(spriteBatch, snapshot.Team, card, ref y, "Kills", player.Kills.ToString(), opacity);
-        DrawStatRow(spriteBatch, snapshot.Team, card, ref y, "Deaths", player.Deaths.ToString(), opacity);
-        DrawStatRow(spriteBatch, snapshot.Team, card, ref y, "Damage", Short(player.DamageDealt), opacity);
+        DrawStatRow(spriteBatch, player.Team, card, ref y, "Kills", player.Kills.ToString(), opacity);
+        DrawStatRow(spriteBatch, player.Team, card, ref y, "Deaths", player.Deaths.ToString(), opacity);
+        DrawStatRow(spriteBatch, player.Team, card, ref y, "Damage", Short(player.DamageDealt), opacity);
     }
 
     private void DrawReward(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, float opacity, Rectangle rewardBox)
@@ -230,11 +235,10 @@ public class EndScreenLayer : GameInterfaceLayer
         Vector2 textSize = FontAssets.MouseText.Value.MeasureString(text) * textScale;
         float blockWidth = iconSize + iconGap + textSize.X; // gem icon + text centered together
         Vector2 iconCenter = new(rewardBox.Center.X - blockWidth / 2f + iconSize / 2f, rewardBox.Center.Y);
-        Vector2 textPosition = new(iconCenter.X + iconSize / 2f + iconGap, rewardBox.Center.Y - textSize.Y / 2f);
+        Vector2 textPosition = new(iconCenter.X + iconSize / 2f + iconGap, rewardBox.Center.Y - textSize.Y / 2f + 4f);
 
         float sparkle = snapshot.LocalPlayerReward > 0 ? progress : 0f;
-        SpawnGemDust(rewardBox, iconCenter, opacity, sparkle, system.AgeFrames); // first 3 seconds: ramp up, then fade
-        DrawGemRewardEffects(spriteBatch, rewardBox, iconCenter, opacity, sparkle); // intense amethyst glow + dust
+        DrawGemRewardEffects(spriteBatch, rewardBox, iconCenter, opacity, sparkle); // clipped UI glow/sparkles above panel
         DrawCenteredTexture(spriteBatch, Ass.IconGem.Value, iconCenter, iconSize, Color.White * opacity);
         DrawText(spriteBatch, text, textPosition, Color.White * opacity, textScale);
     }
@@ -297,34 +301,6 @@ public class EndScreenLayer : GameInterfaceLayer
         DrawText(spriteBatch, value, CenterText(value, valueArea, 0.66f), Color.White * opacity, 0.66f);
     }
 
-    private static void SpawnGemDust(Rectangle box, Vector2 gemCenter, float opacity, float intensity, int ageFrames)
-    {
-        if (opacity <= 0f || intensity <= 0f || ageFrames > 180)
-            return;
-
-        float ramp = Smooth(ageFrames / 120f);
-        float fade = 1f - Smooth((ageFrames - 120) / 60f);
-        float dustPower = opacity * intensity * ramp * fade;
-        if (dustPower <= 0.01f)
-            return;
-
-        int count = Math.Max(1, (int)MathF.Ceiling(9f * ramp * fade));
-
-        for (int i = 0; i < count; i++)
-        {
-            float angle = Main.rand.NextFloat(MathHelper.TwoPi);
-            float radius = Main.rand.NextFloat(9f, 34f);
-            Vector2 jitter = new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * radius;
-            Vector2 world = Main.screenPosition + gemCenter + jitter;
-            Vector2 velocity = jitter.SafeNormalize(Vector2.UnitY) * Main.rand.NextFloat(0.25f, 0.95f) + new Vector2(0f, Main.rand.NextFloat(-0.85f, -0.15f));
-            Dust dust = Dust.NewDustPerfect(world, DustID.PurpleTorch, velocity, 70, new Color(214, 98, 255), Main.rand.NextFloat(0.85f, 1.65f) * dustPower);
-
-            dust.noGravity = true;
-            dust.fadeIn = 1.35f * dustPower;
-            dust.alpha = (int)MathHelper.Lerp(130f, 20f, dustPower);
-        }
-    }
-
     /// <summary>
     /// Intense amethyst reward VFX: a diffuse purple haze, a central bloom, two hero star flares,
     /// a dense twinkling field of <see cref="Main.DrawPrettyStarSparkle"/> crosses plus fine
@@ -336,6 +312,12 @@ public class EndScreenLayer : GameInterfaceLayer
         if (opacity <= 0f || intensity <= 0f)
             return;
 
+        GraphicsDevice device = spriteBatch.GraphicsDevice;
+        Rectangle oldScissor = device.ScissorRectangle;
+        Rectangle clip = Rectangle.Intersect(box, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight));
+        if (clip.Width <= 0 || clip.Height <= 0)
+            return;
+
         float time = Main.GlobalTimeWrappedHourly;
         float a = opacity * intensity;
         Texture2D pixel = TextureAssets.MagicPixel.Value;
@@ -344,7 +326,9 @@ public class EndScreenLayer : GameInterfaceLayer
         Color amethyst = new(178, 96, 255);
         Color magenta = new(226, 104, 255);
 
-        Restart(spriteBatch, BlendState.Additive);
+        spriteBatch.End();
+        device.ScissorRectangle = clip;
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.AnisotropicClamp, DepthStencilState.None, ScissorRasterizer, null, Matrix.Identity);
 
         // 0) Diffuse purple haze lifting the whole bar (wide wash + brighter core band).
         spriteBatch.Draw(pixel, box, new Color(96, 40, 184) * (0.10f * a));
@@ -415,7 +399,9 @@ public class EndScreenLayer : GameInterfaceLayer
             spriteBatch.Draw(star, new Vector2(x, y), null, col, time + i, star.Size() * 0.5f, 0.07f * intensity, SpriteEffects.None, 0f);
         }
 
-        Restart(spriteBatch, BlendState.AlphaBlend);
+        spriteBatch.End();
+        device.ScissorRectangle = oldScissor;
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Identity);
     }
 
     private static float Frac(float value) => value - MathF.Floor(value);
@@ -528,7 +514,7 @@ public class EndScreenLayer : GameInterfaceLayer
         DrawText(spriteBatch, "MVP", new Vector2(badge.X + 15, badge.Y + 8), Color.White * opacity, 0.86f); // white with black stroke
     }
 
-    private static void DrawScore(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, Rectangle area, float opacity)
+    private void DrawScore(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, Rectangle area, float opacity)
     {
         var scores = snapshot.AllScores;
         if (scores.Count == 0)
@@ -541,11 +527,27 @@ public class EndScreenLayer : GameInterfaceLayer
         int pointHeight = (int)(basePointHeight * scale);
         int x = area.Center.X - scores.Count * pointWidth / 2;
         int y = area.Center.Y - pointHeight / 2;
+        float pulse = (MathF.Sin(Main.GlobalTimeWrappedHourly * MathHelper.TwoPi / 1.5f - MathHelper.PiOver2) + 1f) * 0.5f;
 
         for (int i = 0; i < scores.Count; i++)
         {
             Rectangle box = new(x + i * pointWidth, y, pointWidth, pointHeight);
+            Team team = scores[i].Team;
+            Color border = team == selectedTeam ? Color.Yellow : Color.Lerp(Color.Black, Color.Yellow, pulse);
+
+            if (box.Contains(Main.MouseScreen.ToPoint()))
+            {
+                Main.LocalPlayer.mouseInterface = true;
+                if (Main.mouseLeft && Main.mouseLeftRelease)
+                {
+                    selectedTeam = team;
+                    Main.mouseLeftRelease = false;
+                    SoundEngine.PlaySound(SoundID.MenuTick);
+                }
+            }
+
             Utils.DrawInvBG(spriteBatch, box, TeamColor(scores[i].Team) * (0.7f * opacity));
+            Utils.DrawSplicedPanel(spriteBatch, PanelBorder, box.X, box.Y, box.Width, box.Height, 10, 10, 10, 10, border * opacity);
 
             string text = scores[i].Score.ToString();
             Vector2 textScale = Vector2.One * scale;
@@ -553,6 +555,20 @@ public class EndScreenLayer : GameInterfaceLayer
             Vector2 pos = new(box.Center.X - size.X / 2f, box.Y + 6f * scale);
             ChatManager.DrawColorCodedStringWithShadow(spriteBatch, FontAssets.MouseText.Value, text, pos, Color.White * opacity, 0f, Vector2.Zero, textScale);
         }
+    }
+
+    private void EnsureSelectedTeam(EndScreenSnapshot snapshot)
+    {
+        if (system.AgeFrames <= 1)
+        {
+            selectedTeam = snapshot.Team;
+            return;
+        }
+
+        if (selectedTeam != Team.None && snapshot.AllScores.Any(s => s.Team == selectedTeam))
+            return;
+
+        selectedTeam = snapshot.Team;
     }
 
     private static float ScorelineWidth(EndScreenSnapshot snapshot, float scale)

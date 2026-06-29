@@ -192,7 +192,9 @@ public class EndScreenSystem : ModSystem
             if (scoreTeams.Contains(t))
                 snapshot.AllScores.Add(new TeamScoreEntry(t, TeamScore(t)));
 
-        snapshot.Players = AssignRoles(GetTeamPlayers(team).ToList());
+        foreach (Team t in scoreTeams)
+            snapshot.Players.AddRange(AssignRoles(GetTeamPlayers(t).ToList()));
+
         return snapshot;
     }
 
@@ -232,6 +234,7 @@ public class EndScreenSystem : ModSystem
 
         return new EndScreenPlayerStats(
             (byte)player.whoAmI,
+            (Team)player.team,
             player.name,
             statistics.Kills,
             statistics.Deaths,
