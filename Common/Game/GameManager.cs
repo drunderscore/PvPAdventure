@@ -129,9 +129,12 @@ public class GameManager : ModSystem
 
     private static void ResetActivePlayerMatchState()
     {
-        foreach (Player player in Main.ActivePlayers)
+        foreach (Player player in Main.player)
         {
-            player.GetModPlayer<StatisticsPlayer>().ResetMatchStatistics(sync: Main.netMode == NetmodeID.Server);
+            if (player == null)
+                continue;
+
+            player.GetModPlayer<StatisticsPlayer>().ResetMatchStatistics(sync: player.active && Main.netMode == NetmodeID.Server);
             player.GetModPlayer<MatchStatsPlayer>().ResetMatchStats();
         }
     }

@@ -1,4 +1,5 @@
 using Terraria;
+using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -13,6 +14,12 @@ public class HoneyLossTracker : ModPlayer
     {
         if (Main.dedServ || Player.whoAmI != Main.myPlayer)
             return;
+
+        if ((Team)Player.team == Team.None || ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
+        {
+            hadHoney = false;
+            return;
+        }
 
         bool hasHoney = Player.honeyWet || Player.HasBuff(BuffID.Honey);
 

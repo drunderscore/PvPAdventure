@@ -91,10 +91,22 @@ public class EndScreenLayer : GameInterfaceLayer
     private const int LayoutMargin = 28;
     private const int BackButtonWidth = 240;
     private const int BackButtonHeight = 42;
+    private const bool DebugGemRewardLayout = true;
 
     // The big "death" font measures tall (lots of trailing space), so geometric centring sits high;
     // these push the title + scoreline down to read as visually centred.
     private const int TitleYNudge = 14;
+    private const int PlayerTextTopOffset = 172;
+    private const int RoleTopOffset = 39;
+    private const int StatRowCount = 3;
+    private const int StatRowHeight = 38;
+    private const int StatRowGap = 3;
+    private const int StatBlockBottomPadding = 4;
+    private const float PlayerNameScale = 1.12f;
+    private const float RoleTitleScale = 0.84f;
+    private const float RoleValueScale = 0.80f;
+    private const float StatLabelScale = 0.94f;
+    private const float StatValueScale = 0.96f;
 
     private static int ViewW => Main.screenWidth;
     private static int ViewH => Main.screenHeight;
@@ -119,6 +131,8 @@ public class EndScreenLayer : GameInterfaceLayer
     private readonly UserInterface backInterface;
     private readonly UIState backState;
     private Team selectedTeam = Team.None;
+    private int soundPresentationId = -1;
+    private bool playedGemSound;
 
     public EndScreenLayer(EndScreenSystem system)
         : base("PvPAdventure: End Screen", InterfaceScaleType.None)
@@ -141,31 +155,37 @@ public class EndScreenLayer : GameInterfaceLayer
 
         EndScreenSnapshot snapshot = system.CurrentSnapshot;
         EnsureSelectedTeam(snapshot);
+        EnsureSoundState();
         float opacity = system.Opacity;
         SpriteBatch spriteBatch = Main.spriteBatch;
         IReadOnlyList<EndScreenPlayerStats> players = GetVisiblePlayers(snapshot);
-        EndScreenLayout layout = GetLayout(snapshot, players.Count);
+        bool showOwnTeamPanels = IsOwnTeamSelected(snapshot);
+        EndScreenLayout layout = GetLayout(snapshot, players.Count, showOwnTeamPanels);
 
-        DrawHeader(spriteBatch, snapshot, opacity, layout);
-        DrawCards(spriteBatch, snapshot, players, opacity, layout);
-        DrawReward(spriteBatch, snapshot, opacity, layout.RewardBox); // reward follows cards
-        DrawBackButton(spriteBatch, snapshot, opacity, layout.RewardBox);
+        DrawHeader(spriteBatch, snapshot, opacity, layout, showOwnTeamPanels);
+        DrawCards(spriteBatch, players, opacity, layout);
+
+        if (showOwnTeamPanels)
+            DrawReward(spriteBatch, snapshot, opacity, layout.RewardBox, selectedTeam); // reward follows cards
+
+        DrawBackButton(spriteBatch, opacity, layout.BackButtonBox);
 
         return true;
     }
 
-    private void DrawHeader(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, float opacity, EndScreenLayout layout)
+    private void DrawHeader(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, float opacity, EndScreenLayout layout, bool showResultPanel)
     {
-        string title = ResultTitle(snapshot.Result);
-        Color titleColor = ResultColor(snapshot.Result);
+        if (showResultPanel)
+        {
+            string title = ResultTitle(snapshot.Result);
+            Color titleColor = ResultColor(snapshot.Result);
+            Rectangle titleBox = layout.TitleBox;
 
-        Rectangle titleBox = layout.TitleBox;
-        Rectangle scoreBox = layout.ScoreBox;
+            DrawGlassPanel(spriteBatch, titleBox, opacity, TeamStyle(PurpleHeader, snapshot.Team));
+            DrawBigText(spriteBatch, title, titleBox, titleColor * opacity, 1.22f, TitleYNudge);
+        }
 
-        DrawGlassPanel(spriteBatch, titleBox, opacity, TeamStyle(PurpleHeader, snapshot.Team));
-
-        DrawBigText(spriteBatch, title, titleBox, titleColor * opacity, 1.22f, TitleYNudge);
-        DrawScore(spriteBatch, snapshot, scoreBox, opacity); // scaled Scoreline-style team point panels
+        DrawScore(spriteBatch, snapshot, layout.ScoreBox, opacity); // scaled Scoreline-style team point panels
     }
 
     private IReadOnlyList<EndScreenPlayerStats> GetVisiblePlayers(EndScreenSnapshot snapshot)
@@ -180,7 +200,7 @@ public class EndScreenLayer : GameInterfaceLayer
         return teamPlayers.Skip(page * MaxCardsPerPage).Take(MaxCardsPerPage).ToArray();
     }
 
-    private void DrawCards(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, IReadOnlyList<EndScreenPlayerStats> players, float opacity, EndScreenLayout layout)
+    private void DrawCards(SpriteBatch spriteBatch, IReadOnlyList<EndScreenPlayerStats> players, float opacity, EndScreenLayout layout)
     {
         int count = players.Count;
         if (count == 0)
@@ -191,6 +211,8 @@ public class EndScreenLayer : GameInterfaceLayer
         int x = layout.CardsBox.X;
         int y = layout.CardsBox.Y;
 
+        byte mvpIndex = players[0].PlayerIndex;
+
         for (int i = 0; i < count; i++)
         {
             float cardIn = Smooth((system.AgeFrames - 28 - i * 7) / 20f);
@@ -198,12 +220,12 @@ public class EndScreenLayer : GameInterfaceLayer
                 continue;
 
             Rectangle card = new(x + i * (width + CardGap), y + (int)((1f - cardIn) * 24f), width, height);
-            bool mvp = players.Count > 0 && players[i].PlayerIndex == snapshot.Players.FirstOrDefault(p => p.Team == selectedTeam)?.PlayerIndex;
-            DrawCard(spriteBatch, snapshot, players[i], card, opacity * cardIn, mvp, i);
+            bool mvp = players[i].PlayerIndex == mvpIndex;
+            DrawCard(spriteBatch, players[i], card, opacity * cardIn, mvp, i);
         }
     }
 
-    private void DrawCard(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, EndScreenPlayerStats player, Rectangle card, float opacity, bool mvp, int cardIndex)
+    private void DrawCard(SpriteBatch spriteBatch, EndScreenPlayerStats player, Rectangle card, float opacity, bool mvp, int cardIndex)
     {
         DrawTeamPanel(spriteBatch, card, TeamColor(player.Team), opacity, 0.72f); // simple team stat card
         DrawPlayer(spriteBatch, player.PlayerIndex, new Rectangle(card.X + 12, card.Y + 56, card.Width - 16, 160), system.AgeFrames, cardIndex);
@@ -211,22 +233,27 @@ public class EndScreenLayer : GameInterfaceLayer
         if (mvp)
             DrawMvpBadge(spriteBatch, card, opacity, player.Team);
 
-        int y = card.Y + 178;
+        int y = card.Y + PlayerTextTopOffset;
         DrawPlayerName(spriteBatch, player.Team, player.Name, card, y, opacity);
-        DrawRoleText(spriteBatch, player, card, y + 36, opacity);
+        DrawRoleText(spriteBatch, player, card, y + RoleTopOffset, opacity);
 
-        y += 82;
+        y = card.Bottom - StatBlockBottomPadding - (StatRowCount * StatRowHeight + (StatRowCount - 1) * StatRowGap);
         DrawStatRow(spriteBatch, player.Team, card, ref y, "Kills", player.Kills.ToString(), opacity);
         DrawStatRow(spriteBatch, player.Team, card, ref y, "Deaths", player.Deaths.ToString(), opacity);
         DrawStatRow(spriteBatch, player.Team, card, ref y, "Damage", Short(player.DamageDealt), opacity);
     }
 
-    private void DrawReward(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, float opacity, Rectangle rewardBox)
+    private void DrawReward(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, float opacity, Rectangle rewardBox, Team teamTint)
     {
-        DrawGlassPanel(spriteBatch, rewardBox, opacity, TeamStyle(PurpleInset, snapshot.Team));
+        DrawGlassPanel(spriteBatch, rewardBox, opacity, TeamStyle(PurpleInset, teamTint));
 
         float progress = Smooth((system.AgeFrames - 45) / 85f);
         uint gems = (uint)Math.Round(snapshot.LocalPlayerReward * progress);
+        if (!playedGemSound && snapshot.LocalPlayerReward > 0 && progress > 0f)
+        {
+            playedGemSound = true;
+            SoundEngine.PlaySound(SoundID.CoinPickup with { Volume = 0.45f });
+        }
 
         const float textScale = 1.15f;
         string text = $"You earned {gems} Gems!";
@@ -237,26 +264,27 @@ public class EndScreenLayer : GameInterfaceLayer
         Vector2 iconCenter = new(rewardBox.Center.X - blockWidth / 2f + iconSize / 2f, rewardBox.Center.Y);
         Vector2 textPosition = new(iconCenter.X + iconSize / 2f + iconGap, rewardBox.Center.Y - textSize.Y / 2f + 4f);
 
-        float sparkle = snapshot.LocalPlayerReward > 0 ? progress : 0f;
+        float sparkle = progress;
+        // if (DebugGemRewardLayout)
+        //     DrawRewardDebug(spriteBatch, rewardBox, opacity);
         DrawGemRewardEffects(spriteBatch, rewardBox, iconCenter, opacity, sparkle); // clipped UI glow/sparkles above panel
         DrawCenteredTexture(spriteBatch, Ass.IconGem.Value, iconCenter, iconSize, Color.White * opacity);
         DrawText(spriteBatch, text, textPosition, Color.White * opacity, textScale);
     }
 
-    private void DrawBackButton(SpriteBatch spriteBatch, EndScreenSnapshot snapshot, float opacity, Rectangle rewardBox)
+    private void DrawBackButton(SpriteBatch spriteBatch, float opacity, Rectangle button)
     {
         if (system.AgeFrames < EndScreenSystem.BackButtonDelayFrames)
             return;
 
         float buttonOpacity = opacity * Smooth((system.AgeFrames - EndScreenSystem.BackButtonDelayFrames) / 24f);
-        Rectangle button = new((ViewW - BackButtonWidth) / 2, rewardBox.Bottom + BackButtonGap, BackButtonWidth, BackButtonHeight);
         bool hovered = button.Contains(Main.MouseScreen.ToPoint());
 
         if (hovered)
             HandleBackHover(); // consume mouse while hovering
 
         backButton.Hovered = hovered;
-        backButton.TeamTint = TeamColor(snapshot.Team);
+        backButton.TeamTint = TeamColor(selectedTeam);
         backButton.Opacity = buttonOpacity;
         backButton.Left.Set(button.X, 0f);
         backButton.Top.Set(button.Y, 0f);
@@ -279,26 +307,61 @@ public class EndScreenLayer : GameInterfaceLayer
         system.Hide(); // close summary early
     }
 
+    private static void DrawRewardDebug(SpriteBatch spriteBatch, Rectangle box, float opacity)
+    {
+        Rectangle red = box;
+        Rectangle blue = ScaleRect(box, 0.75f);
+        Rectangle green = ScaleRect(box, 0.5f);
+
+        DrawDebugBox(spriteBatch, red, Color.Red * (0.42f * opacity), "1f", 1f, opacity);
+        DrawDebugBox(spriteBatch, blue, Color.Blue * (0.50f * opacity), "0.75f", 0.75f, opacity);
+        DrawDebugBox(spriteBatch, green, Color.Green * (0.58f * opacity), "0.5f", 0.5f, opacity);
+    }
+
+    private static Rectangle ScaleRect(Rectangle rect, float scale)
+    {
+        int width = (int)(rect.Width * scale);
+        int height = (int)(rect.Height * scale);
+        return new Rectangle(rect.Center.X - width / 2, rect.Center.Y - height / 2, width, height);
+    }
+
+    private static void DrawDebugBox(SpriteBatch spriteBatch, Rectangle rect, Color fill, string text, float scale, float opacity)
+    {
+        Texture2D pixel = TextureAssets.MagicPixel.Value;
+        spriteBatch.Draw(pixel, rect, fill);
+        DrawRect(spriteBatch, rect, Color.Black * opacity, 2);
+        DrawText(spriteBatch, text, CenterText(text, rect, scale), Color.White * opacity, scale);
+    }
+
+    private static void DrawRect(SpriteBatch spriteBatch, Rectangle rect, Color color, int thickness)
+    {
+        Texture2D pixel = TextureAssets.MagicPixel.Value;
+        spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, thickness), color);
+        spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - thickness, rect.Width, thickness), color);
+        spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, thickness, rect.Height), color);
+        spriteBatch.Draw(pixel, new Rectangle(rect.Right - thickness, rect.Y, thickness, rect.Height), color);
+    }
+
     private static void DrawPlayerName(SpriteBatch spriteBatch, Team team, string name, Rectangle card, int y, float opacity)
     {
-        string fitted = Fit(name, card.Width - 28);
-        float width = FontAssets.MouseText.Value.MeasureString(fitted).X;
-        Vector2 position = new(card.Center.X - width / 2f, y + 5);
+        string fitted = Fit(name, card.Width - 28, PlayerNameScale);
+        float width = FontAssets.MouseText.Value.MeasureString(fitted).X * PlayerNameScale;
+        Vector2 position = new(card.Center.X - width / 2f, y + 1);
 
-        DrawText(spriteBatch, fitted, position, TeamColor(team) * opacity, 1f);
+        DrawText(spriteBatch, fitted, position, TeamColor(team) * opacity, PlayerNameScale);
     }
 
     private static void DrawRoleText(SpriteBatch spriteBatch, EndScreenPlayerStats player, Rectangle card, int y, float opacity)
     {
         string title = string.IsNullOrWhiteSpace(player.RoleTitle) ? "Adventurer" : player.RoleTitle;
         string value = string.IsNullOrWhiteSpace(player.RoleValue) ? "Ready for more" : player.RoleValue;
-        Rectangle titleArea = new(card.X + 8, y, card.Width - 16, 22);
-        Rectangle valueArea = new(card.X + 8, y + 21, card.Width - 16, 20);
+        Rectangle titleArea = new(card.X + 10, y, card.Width - 20, 23);
+        Rectangle valueArea = new(card.X + 10, y + 19, card.Width - 20, 23);
 
-        title = Fit(title, titleArea.Width);
-        value = Fit(value, valueArea.Width);
-        DrawText(spriteBatch, title, CenterText(title, titleArea, 0.76f), new Color(255, 232, 130) * opacity, 0.76f);
-        DrawText(spriteBatch, value, CenterText(value, valueArea, 0.66f), Color.White * opacity, 0.66f);
+        title = Fit(title, titleArea.Width, RoleTitleScale);
+        value = Fit(value, valueArea.Width, RoleValueScale);
+        DrawText(spriteBatch, title, CenterText(title, titleArea, RoleTitleScale), new Color(255, 232, 130) * opacity, RoleTitleScale);
+        DrawText(spriteBatch, value, CenterText(value, valueArea, RoleValueScale), new Color(255, 244, 188) * opacity, RoleValueScale);
     }
 
     /// <summary>
@@ -314,6 +377,7 @@ public class EndScreenLayer : GameInterfaceLayer
 
         GraphicsDevice device = spriteBatch.GraphicsDevice;
         Rectangle oldScissor = device.ScissorRectangle;
+        RasterizerState oldRasterizer = device.RasterizerState;
         Rectangle clip = Rectangle.Intersect(box, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight));
         if (clip.Width <= 0 || clip.Height <= 0)
             return;
@@ -401,23 +465,26 @@ public class EndScreenLayer : GameInterfaceLayer
 
         spriteBatch.End();
         device.ScissorRectangle = oldScissor;
-        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Identity);
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.None, oldRasterizer, null, Matrix.Identity);
     }
 
     private static float Frac(float value) => value - MathF.Floor(value);
 
     private static void DrawStatRow(SpriteBatch spriteBatch, Team team, Rectangle card, ref int y, string label, string value, float opacity)
     {
-        Rectangle row = new(card.X + 14, y, card.Width - 28, 36);
+        Rectangle row = new(card.X + 12, y, card.Width - 24, StatRowHeight);
         DrawTeamPanel(spriteBatch, row, TeamColor(team), opacity, 0.42f);
 
-        DrawText(spriteBatch, label, new Vector2(row.X + 12, row.Y + 8), Color.White * opacity, 0.88f);
+        const int horizontalPadding = 12;
+        Vector2 labelSize = FontAssets.MouseText.Value.MeasureString(label) * StatLabelScale;
+        Vector2 labelPos = new(row.X + horizontalPadding, row.Center.Y - labelSize.Y / 2f + 1f);
+        DrawText(spriteBatch, label, labelPos, Color.White * opacity, StatLabelScale);
 
-        float valueWidth = FontAssets.MouseText.Value.MeasureString(value).X * 0.9f;
-        Vector2 valuePos = new(row.Right - 12 - valueWidth, row.Y + 8);
-        DrawText(spriteBatch, value, valuePos, Color.White * opacity, 0.9f);
+        Vector2 valueSize = FontAssets.MouseText.Value.MeasureString(value) * StatValueScale;
+        Vector2 valuePos = new(row.Right - horizontalPadding - valueSize.X, row.Center.Y - valueSize.Y / 2f + 1f);
+        DrawText(spriteBatch, value, valuePos, Color.White * opacity, StatValueScale);
 
-        y += 38;
+        y += StatRowHeight + StatRowGap;
     }
 
     private static void DrawPlayer(SpriteBatch spriteBatch, byte id, Rectangle area, int animClock, int cardIndex)
@@ -527,17 +594,20 @@ public class EndScreenLayer : GameInterfaceLayer
         int pointHeight = (int)(basePointHeight * scale);
         int x = area.Center.X - scores.Count * pointWidth / 2;
         int y = area.Center.Y - pointHeight / 2;
-        float pulse = (MathF.Sin(Main.GlobalTimeWrappedHourly * MathHelper.TwoPi / 1.5f - MathHelper.PiOver2) + 1f) * 0.5f;
 
         for (int i = 0; i < scores.Count; i++)
         {
             Rectangle box = new(x + i * pointWidth, y, pointWidth, pointHeight);
             Team team = scores[i].Team;
-            Color border = team == selectedTeam ? Color.Yellow : Color.Lerp(Color.Black, Color.Yellow, pulse);
+            Color border = team == selectedTeam ? Color.Yellow : Color.Black;
 
             if (box.Contains(Main.MouseScreen.ToPoint()))
             {
                 Main.LocalPlayer.mouseInterface = true;
+                Main.instance.MouseText(team == selectedTeam
+                    ? $"Viewing {team} Team results"
+                    : $"Click to view {team} Team results");
+
                 if (Main.mouseLeft && Main.mouseLeftRelease)
                 {
                     selectedTeam = team;
@@ -561,15 +631,48 @@ public class EndScreenLayer : GameInterfaceLayer
     {
         if (system.AgeFrames <= 1)
         {
-            selectedTeam = snapshot.Team;
+            selectedTeam = DefaultSelectedTeam(snapshot);
             return;
         }
 
         if (selectedTeam != Team.None && snapshot.AllScores.Any(s => s.Team == selectedTeam))
             return;
 
-        selectedTeam = snapshot.Team;
+        selectedTeam = DefaultSelectedTeam(snapshot);
     }
+
+    private void EnsureSoundState()
+    {
+        if (soundPresentationId == system.PresentationId)
+            return;
+
+        soundPresentationId = system.PresentationId;
+        playedGemSound = false;
+    }
+
+    private bool IsOwnTeamSelected(EndScreenSnapshot snapshot) => selectedTeam == OwnTeam(snapshot);
+
+    private static Team DefaultSelectedTeam(EndScreenSnapshot snapshot)
+    {
+        Team ownTeam = OwnTeam(snapshot);
+
+        if (HasScoreTeam(snapshot, ownTeam))
+            return ownTeam;
+
+        return snapshot.AllScores.FirstOrDefault().Team;
+    }
+
+    private static Team OwnTeam(EndScreenSnapshot snapshot)
+    {
+        Team localTeam = (Team)Main.LocalPlayer.team;
+
+        if (HasScoreTeam(snapshot, localTeam))
+            return localTeam;
+
+        return snapshot.Team;
+    }
+
+    private static bool HasScoreTeam(EndScreenSnapshot snapshot, Team team) => team != Team.None && snapshot.AllScores.Any(s => s.Team == team);
 
     private static float ScorelineWidth(EndScreenSnapshot snapshot, float scale)
     {
@@ -672,14 +775,16 @@ public class EndScreenLayer : GameInterfaceLayer
         return new Rectangle((ViewW - width) / 2, y, width, height);
     }
 
-    private static EndScreenLayout GetLayout(EndScreenSnapshot snapshot, int visiblePlayerCount)
+    private static EndScreenLayout GetLayout(EndScreenSnapshot snapshot, int visiblePlayerCount, bool showOwnTeamPanels)
     {
         const float scoreScale = 1.15f;
         int count = Math.Max(1, visiblePlayerCount);
         int cardWidth = GetCardWidth(count);
         int cardHeight = GetCardHeight();
         int cardsWidth = cardWidth * count + CardGap * (count - 1);
-        int totalHeight = TitleHeight + TitleScoreGap + ScoreHeight + ScoreCardsGap + cardHeight + RewardGap + RewardHeight + BackButtonGap + BackButtonHeight;
+        int headerHeight = showOwnTeamPanels ? TitleHeight + TitleScoreGap + ScoreHeight : ScoreHeight;
+        int rewardHeight = showOwnTeamPanels ? RewardGap + RewardHeight : 0;
+        int totalHeight = headerHeight + ScoreCardsGap + cardHeight + rewardHeight + BackButtonGap + BackButtonHeight;
         int top = totalHeight <= ViewH - LayoutMargin * 2 ? Math.Max(LayoutMargin, (ViewH - totalHeight) / 2) : LayoutMargin;
 
         int titleWidth = Math.Min(430, Math.Max(280, ViewW - 80));
@@ -687,12 +792,15 @@ public class EndScreenLayer : GameInterfaceLayer
         int scoreWidth = Math.Clamp((int)ScorelineWidth(snapshot, scoreScale) + 64, 255, scoreMaxWidth);
         int rewardWidth = Math.Min(560, Math.Max(260, ViewW - 180));
 
-        Rectangle title = CenteredBox(titleWidth, TitleHeight, top);
-        Rectangle score = CenteredBox(scoreWidth, ScoreHeight, title.Bottom + TitleScoreGap);
+        Rectangle title = showOwnTeamPanels ? CenteredBox(titleWidth, TitleHeight, top) : Rectangle.Empty;
+        int scoreY = showOwnTeamPanels ? title.Bottom + TitleScoreGap : top;
+        Rectangle score = CenteredBox(scoreWidth, ScoreHeight, scoreY);
         Rectangle cards = new((ViewW - cardsWidth) / 2, score.Bottom + ScoreCardsGap, cardsWidth, cardHeight);
-        Rectangle reward = CenteredBox(rewardWidth, RewardHeight, cards.Bottom + RewardGap);
+        Rectangle reward = showOwnTeamPanels ? CenteredBox(rewardWidth, RewardHeight, cards.Bottom + RewardGap) : Rectangle.Empty;
+        int backY = (showOwnTeamPanels ? reward.Bottom : cards.Bottom) + BackButtonGap;
+        Rectangle backButton = CenteredBox(BackButtonWidth, BackButtonHeight, backY);
 
-        return new EndScreenLayout(title, score, cards, reward, cardWidth, cardHeight);
+        return new EndScreenLayout(title, score, cards, reward, backButton, cardWidth, cardHeight);
     }
 
     private static int GetCardWidth(int count)
@@ -708,7 +816,7 @@ public class EndScreenLayer : GameInterfaceLayer
         return Math.Clamp(available, 280, 380);
     }
 
-    private readonly record struct EndScreenLayout(Rectangle TitleBox, Rectangle ScoreBox, Rectangle CardsBox, Rectangle RewardBox, int CardWidth, int CardHeight);
+    private readonly record struct EndScreenLayout(Rectangle TitleBox, Rectangle ScoreBox, Rectangle CardsBox, Rectangle RewardBox, Rectangle BackButtonBox, int CardWidth, int CardHeight);
 
     private static void DrawBigText(SpriteBatch spriteBatch, string text, Rectangle area, Color color, float scale, float yOffset = 0f)
     {
@@ -739,12 +847,12 @@ public class EndScreenLayer : GameInterfaceLayer
         return value >= 1000 ? $"{value / 1000f:0.0}k" : value.ToString();
     }
 
-    private static string Fit(string text, float width)
+    private static string Fit(string text, float width, float scale = 1f)
     {
-        if (FontAssets.MouseText.Value.MeasureString(text).X <= width)
+        if (FontAssets.MouseText.Value.MeasureString(text).X * scale <= width)
             return text;
 
-        while (text.Length > 1 && FontAssets.MouseText.Value.MeasureString(text + "..").X > width)
+        while (text.Length > 1 && FontAssets.MouseText.Value.MeasureString(text + "..").X * scale > width)
             text = text[..^1];
 
         return text + "..";
@@ -781,7 +889,7 @@ public class EndScreenBackButton : UIAutoScaleTextTextPanel<string>
 
     protected override void DrawSelf(SpriteBatch spriteBatch)
     {
-        GlassPanelStyle style = EndScreenLayer.PurpleInset with { Primary = TeamTint };
+        GlassPanelStyle style = EndScreenLayer.PurpleInset with { Primary = TeamTint, Secondary = TeamTint, Border = TeamTint };
         EndScreenLayer.DrawGlassPanel(spriteBatch, GetDimensions().ToRectangle(), Opacity, style, Hovered ? Color.Yellow : Color.Black);
         TextColor = Color.White * Opacity;
         base.DrawSelf(spriteBatch);

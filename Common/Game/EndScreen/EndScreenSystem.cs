@@ -4,6 +4,7 @@ using PvPAdventure.Common.Statistics;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.Audio;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -23,6 +24,7 @@ public class EndScreenSystem : ModSystem
 
     public EndScreenSnapshot CurrentSnapshot;
     public int AgeFrames;
+    public int PresentationId;
 
     // Kept after the screen hides so /gamesummary can bring it back.
     public EndScreenSnapshot LastSnapshot;
@@ -108,7 +110,9 @@ public class EndScreenSystem : ModSystem
         CurrentSnapshot = snapshot;
         LastSnapshot = snapshot;
         AgeFrames = 0;
+        PresentationId++;
         forcedView = false;
+        PlayOpenSound(snapshot);
     }
 
     /// <summary>Re-opens the most recent summary on demand (used by /gamesummary).</summary>
@@ -119,7 +123,9 @@ public class EndScreenSystem : ModSystem
 
         CurrentSnapshot = LastSnapshot;
         AgeFrames = 0;
+        PresentationId++;
         forcedView = true;
+        PlayOpenSound(LastSnapshot);
         return true;
     }
 
@@ -128,6 +134,22 @@ public class EndScreenSystem : ModSystem
         CurrentSnapshot = null;
         AgeFrames = 0;
         forcedView = false;
+    }
+
+    private static void PlayOpenSound(EndScreenSnapshot snapshot)
+    {
+        switch (snapshot.Result)
+        {
+            case EndScreenResult.Victory:
+                SoundEngine.PlaySound(SoundID.DD2_WinScene.WithVolume(0.45f));
+                break;
+            case EndScreenResult.Defeat:
+                SoundEngine.PlaySound(SoundID.DD2_DefeatScene.WithVolume(0.35f));
+                break;
+            default:
+                SoundEngine.PlaySound(SoundID.MenuOpen with { Volume = 0.65f });
+                break;
+        }
     }
 
     public static void SendMatchEndSnapshots()

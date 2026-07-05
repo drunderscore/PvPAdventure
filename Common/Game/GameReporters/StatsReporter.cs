@@ -21,9 +21,6 @@ internal static class StatsReporter
     public const string BossDamageDealt = "boss_damage_dealt";
     public const string PortalKills = "portal_kills";
     public const string LostHoney = "lost_honey";
-
-    private const uint MaxClientDeltaAmount = 1000;
-
     public static Dictionary<string, uint> CopyStats(Player player)
     {
         if (player == null)
@@ -58,7 +55,7 @@ internal static class StatsReporter
 
     internal static bool IsValidClientDelta(MatchStatKey statKey, int itemKey, uint amount)
     {
-        if (amount == 0 || amount > MaxClientDeltaAmount)
+        if (amount != 1)
             return false;
 
         return statKey switch

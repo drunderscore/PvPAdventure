@@ -1,6 +1,7 @@
 using PvPAdventure.Common.Game.GameReporters;
 using System.IO;
 using Terraria;
+using Terraria.Enums;
 using Terraria.ID;
 
 namespace PvPAdventure.Common.Game.StatTrackers;
@@ -26,6 +27,9 @@ internal static class MatchStatsNetHandler
 
         Player player = Main.player[whoAmI];
         if (player == null || !player.active)
+            return;
+
+        if ((Team)player.team == Team.None)
             return;
 
         player.GetModPlayer<MatchStatsPlayer>().ApplyDelta(delta.StatKey, delta.ItemKey, delta.Amount);

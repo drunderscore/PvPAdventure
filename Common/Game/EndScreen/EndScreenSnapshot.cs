@@ -13,7 +13,7 @@ public enum EndScreenResult : byte
     Tie
 }
 
-/// <summary>One team's running score, shown on the end-screen scoreline (every team, players or not).</summary>
+/// <summary>One active team's running score for the clickable end-screen scoreline.</summary>
 public readonly record struct TeamScoreEntry(Team Team, int Score);
 
 /// <summary>Serializable end screen data for one team.</summary>
@@ -40,11 +40,11 @@ public class EndScreenSnapshot
             LocalPlayerReward = reader.ReadUInt32()
         };
 
-        int scoreCount = reader.ReadByte();
+        int scoreCount = reader.ReadInt32();
         for (int i = 0; i < scoreCount; i++)
             snapshot.AllScores.Add(new TeamScoreEntry((Team)reader.ReadByte(), reader.ReadInt32()));
 
-        int playerCount = reader.ReadByte();
+        int playerCount = reader.ReadInt32();
         for (int i = 0; i < playerCount; i++)
             snapshot.Players.Add(EndScreenPlayerStats.Deserialize(reader));
 
@@ -59,14 +59,14 @@ public class EndScreenSnapshot
         writer.Write(OpponentScore);
         writer.Write(LocalPlayerReward);
 
-        writer.Write((byte)AllScores.Count);
+        writer.Write(AllScores.Count);
         foreach (TeamScoreEntry entry in AllScores)
         {
             writer.Write((byte)entry.Team);
             writer.Write(entry.Score);
         }
 
-        writer.Write((byte)Players.Count);
+        writer.Write(Players.Count);
         foreach (EndScreenPlayerStats player in Players)
             player.Serialize(writer);
     }

@@ -3,6 +3,7 @@ using PvPAdventure.Core.Net;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
+using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -95,6 +96,9 @@ internal sealed class MatchStatsPlayer : ModPlayer
         if (player == null || !player.active || player.whoAmI != Main.myPlayer)
             return;
 
+        if ((Team)player.team == Team.None)
+            return;
+
         if (Main.netMode == NetmodeID.SinglePlayer)
         {
             player.GetModPlayer<MatchStatsPlayer>().ApplyDelta(statKey, itemKey, amount);
@@ -115,7 +119,7 @@ internal sealed class MatchStatsPlayer : ModPlayer
         if (Main.netMode == NetmodeID.MultiplayerClient || !IsMatchPlaying())
             return;
 
-        if (player == null || !player.active || amount == 0)
+        if (player == null || !player.active || amount == 0 || (Team)player.team == Team.None)
             return;
 
         player.GetModPlayer<MatchStatsPlayer>().ApplyDelta(statKey, itemKey, amount);
@@ -127,6 +131,9 @@ internal sealed class MatchStatsPlayer : ModPlayer
             return;
 
         if (attacker == null || victim == null || !attacker.active || !victim.active || attacker.whoAmI == victim.whoAmI)
+            return;
+
+        if ((Team)attacker.team == Team.None || (Team)victim.team == Team.None || attacker.team == victim.team)
             return;
 
         if (info.Damage <= 0)
