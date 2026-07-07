@@ -443,16 +443,6 @@ public class GameManager : ModSystem
         {
             case Phase.Waiting:
                 {
-                    var regions = ModContent.GetInstance<RegionManager>().Regions;
-                    if (regions.Count >= 1)
-                    {
-                        // NOTE: We currently have one region, which is the spawn region. We'll use this assumption for now.
-                        var spawnRegion = regions[0];
-                        spawnRegion.CanRandomTeleport = false;
-                        spawnRegion.CanUseWormhole = false;
-                        spawnRegion.CanExit = false;
-                    }
-
                     // Remove everything that is hostile
                     foreach (var npc in Main.ActiveNPCs)
                     {
@@ -482,12 +472,6 @@ public class GameManager : ModSystem
             case Phase.Playing:
                 {
                     ResetActivePlayerMatchState();
-
-                    // NOTE: We currently have one region, which is the spawn region. We'll use this assumption for now.
-                    var spawnRegion = ModContent.GetInstance<RegionManager>().Regions[0];
-                    spawnRegion.CanRandomTeleport = true;
-                    spawnRegion.CanUseWormhole = true;
-                    spawnRegion.CanExit = true;
 
                     UpdateFreezeTime(false);
 

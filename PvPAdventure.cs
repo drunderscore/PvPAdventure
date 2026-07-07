@@ -80,6 +80,10 @@ public class PvPAdventure : Mod
                 Common.Game.EndScreen.EndScreenNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
+            case AdventurePacketIdentifier.SpawnBox:
+                Common.Spawnbox.SpawnBoxNetHandler.HandlePacket(reader, whoAmI);
+                break;
+
             default:
                 Log.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
                 break;

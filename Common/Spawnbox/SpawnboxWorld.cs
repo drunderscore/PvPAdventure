@@ -1,118 +1,117 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Utilities;
-using ReLogic.Content;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.GameContent;
 using Terraria.ModLoader;
 using Terraria.UI;
-using static Terraria.ModLoader.BackupIO;
 
 namespace PvPAdventure.Common.Spawnbox;
 
-/// <summary>
-/// Draws the spawn box rectangle in the world.
-/// </summary>
 [Autoload(Side = ModSide.Client)]
-public class SpawnBoxWorld : ModSystem
+public sealed class SpawnBoxWorld : ModSystem
 {
-    public Asset<Texture2D> _playerBGTexture;
-
-    public override void Load()
-    {
-        if (!Main.dedServ)
-            _playerBGTexture = Ass.CustomPlayerBackground;
-    }
+    private const float TileSize = 16f;
+    private static readonly Color BlockedColor = new(255, 80, 80);
+    private static readonly Color PassableColor = new(70, 226, 158);
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
-        // Insert just after a vanilla UI layer so it's always on top of the world.
-        int idx = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
-        if (idx != -1)
-        {
-            layers.Insert(idx + 1, new SpawnBoxInterfaceLayer());
-        }
+        int index = layers.FindIndex(l => l.Name == "Vanilla: Interface Logic 1");
+        if (index != -1)
+            layers.Insert(index + 1, new SpawnBoxInterfaceLayer());
     }
 
-    private sealed class SpawnBoxInterfaceLayer : GameInterfaceLayer
+    private sealed class SpawnBoxInterfaceLayer() : GameInterfaceLayer("PvPAdventure: SpawnBox", InterfaceScaleType.Game)
     {
-        public SpawnBoxInterfaceLayer()
-            : base("PvPAdventure: SpawnBox", InterfaceScaleType.Game)
-        {
-        }
-
         protected override bool DrawSelf()
         {
             DrawSpawnBox(Main.spriteBatch);
             return true;
         }
 
-        private void DrawSpawnBox(SpriteBatch spriteBatch)
+        private static void DrawSpawnBox(SpriteBatch spriteBatch)
         {
-            if (Main.dedServ)
+            if (Main.dedServ || Main.gameMenu)
                 return;
 
-            // Set the spawnbox size. (duplicate from RegionManager)
-            const int size = 50;
+            SpawnBoxSystem box = ModContent.GetInstance<SpawnBoxSystem>();
+            Rectangle inner = GetScreenRect(box.TileArea);
+            int thickness = box.Thickness * (int)TileSize;
 
-            int leftTile = Main.spawnTileX - size/2;
-            int topTile = Main.spawnTileY - size/2;
-            int rightTile = leftTile + size;
-            int bottomTile = topTile + size;
-
-            // Get world coordinates.
-            Vector2 worldTopLeft = new(leftTile * 16f, topTile * 16f);
-            Vector2 worldBottomRight = new(rightTile * 16f, bottomTile * 16f);
-
-            // Convert world coordinates to screen cordinates.
-            Vector2 screenTopLeft = worldTopLeft - Main.screenPosition;
-            Vector2 screenBottomRight = worldBottomRight - Main.screenPosition;
-
-            int x = (int)Math.Floor(screenTopLeft.X);
-            int y = (int)Math.Floor(screenTopLeft.Y);
-            int w = (int)Math.Round(screenBottomRight.X - screenTopLeft.X);
-            int h = (int)Math.Round(screenBottomRight.Y - screenTopLeft.Y);
-            if (w <= 0 || h <= 0)
+            if (inner.Width <= 0 || inner.Height <= 0 || thickness <= 0)
                 return;
 
-            Rectangle rect = new(x, y, w, h);
-            rect.Inflate(16, 16);
-
-            DrawNineSliceBorder(spriteBatch, rect);
+            if (EffectLoader.TryGetSpawnBoxBorderEffect(out Effect effect))
+                DrawShaderBorder(spriteBatch, inner, thickness, effect);
+            else
+                DrawPixelBorder(spriteBatch, inner, thickness);
         }
 
-        private void DrawNineSliceBorder(SpriteBatch sb, Rectangle rect)
+        private static Rectangle GetScreenRect(Rectangle area)
         {
-            // Set color
-            var gm = ModContent.GetInstance<GameManager>();
-            //var am = Main.LocalPlayer.GetModPlayer<SpawnPlayer>();
-            var region = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(Main.LocalPlayer.Hitbox.ToTileRectangle());
-            bool inSpawn = region != null;
-            bool canPass = gm.CurrentPhase == GameManager.Phase.Playing && inSpawn;
-            Color color = Color.Black * (canPass ? 0.5f : 1f);
+            Vector2 screenTopLeft = new(area.Left * TileSize, area.Top * TileSize);
+            Vector2 screenBottomRight = new(area.Right * TileSize, area.Bottom * TileSize);
 
-            Texture2D tex = Ass.Spawnbox.Value;
-            const int srcCorner = 16;
-            int x = rect.X, y = rect.Y, w = rect.Width, h = rect.Height;
-            int srcEdgeWidth = tex.Width - srcCorner * 2;
-            int srcEdgeHeight = tex.Height - srcCorner * 2;
-            int dstCorner = srcCorner;
+            screenTopLeft -= Main.screenPosition;
+            screenBottomRight -= Main.screenPosition;
 
-            // debug: add extra inner thickness
-            //dstCorner += 16;
+            Rectangle rect = new(
+                (int)Math.Floor(screenTopLeft.X),
+                (int)Math.Floor(screenTopLeft.Y),
+                (int)Math.Round(screenBottomRight.X - screenTopLeft.X),
+                (int)Math.Round(screenBottomRight.Y - screenTopLeft.Y));
 
-            sb.Draw(tex, new Rectangle(x, y, dstCorner, dstCorner), new Rectangle(0, 0, srcCorner, srcCorner), color);
-            sb.Draw(tex, new Rectangle(x + dstCorner, y, w - dstCorner * 2, dstCorner), new Rectangle(srcCorner, 0, srcEdgeWidth, srcCorner), color);
-            sb.Draw(tex, new Rectangle(x + w - dstCorner, y, dstCorner, dstCorner), new Rectangle(tex.Width - srcCorner, 0, srcCorner, srcCorner), color);
+            return rect;
+        }
 
-            sb.Draw(tex, new Rectangle(x, y + dstCorner, dstCorner, h - dstCorner * 2), new Rectangle(0, srcCorner, srcCorner, srcEdgeHeight), color);
-            sb.Draw(tex, new Rectangle(x + w - dstCorner, y + dstCorner, dstCorner, h - dstCorner * 2), new Rectangle(tex.Width - srcCorner, srcCorner, srcCorner, srcEdgeHeight), color);
+        private static bool CanLocalPlayerCross(SpawnBoxSystem box) =>
+            box.CanExit && box.TouchesWorldHitbox(Main.LocalPlayer.Hitbox);
 
-            sb.Draw(tex, new Rectangle(x, y + h - dstCorner, dstCorner, dstCorner), new Rectangle(0, tex.Height - srcCorner, srcCorner, srcCorner), color);
-            sb.Draw(tex, new Rectangle(x + dstCorner, y + h - dstCorner, w - dstCorner * 2, dstCorner), new Rectangle(srcCorner, tex.Height - srcCorner, srcEdgeWidth, srcCorner), color);
-            sb.Draw(tex, new Rectangle(x + w - dstCorner, y + h - dstCorner, dstCorner, dstCorner), new Rectangle(tex.Width - srcCorner, tex.Height - srcCorner, srcCorner, srcCorner), color);
+        private static Color GetDrawColor(SpawnBoxSystem box) => CanLocalPlayerCross(box) ? PassableColor : BlockedColor;
+
+        private static float GetDrawOpacity(SpawnBoxSystem box) => CanLocalPlayerCross(box) ? 0.5f : 0.88f;
+
+        private static void DrawShaderBorder(SpriteBatch sb, Rectangle inner, int thickness, Effect effect)
+        {
+            SpawnBoxSystem box = ModContent.GetInstance<SpawnBoxSystem>();
+            Rectangle outer = inner;
+            outer.Inflate(thickness, thickness);
+
+            if (outer.Width <= 0 || outer.Height <= 0)
+                return;
+
+            effect.Parameters["globalTime"]?.SetValue((float)Main.timeForVisualEffects);
+            effect.Parameters["borderColor"]?.SetValue(GetDrawColor(box).ToVector3());
+            effect.Parameters["opacity"]?.SetValue(GetDrawOpacity(box));
+            effect.Parameters["borderSize"]?.SetValue(new Vector2(thickness / (float)outer.Width, thickness / (float)outer.Height));
+            effect.Parameters["outerEdgeFade"]?.SetValue(0.42f);
+            effect.Parameters["innerEdgeFade"]?.SetValue(0.30f);
+            effect.Parameters["pulseStrength"]?.SetValue(0.12f);
+            effect.Parameters["shimmerStrength"]?.SetValue(0.08f);
+            effect.Parameters["shimmerScale"]?.SetValue(34f);
+            effect.Parameters["shimmerSpeed"]?.SetValue(0.07f);
+
+            sb.End();
+            sb.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, effect, Main.GameViewMatrix.TransformationMatrix);
+            effect.CurrentTechnique.Passes[0].Apply();
+            sb.Draw(TextureAssets.MagicPixel.Value, outer, Color.White);
+            sb.End();
+            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.UIScaleMatrix);
+        }
+
+        private static void DrawPixelBorder(SpriteBatch sb, Rectangle inner, int thickness)
+        {
+            SpawnBoxSystem box = ModContent.GetInstance<SpawnBoxSystem>();
+            Color color = GetDrawColor(box) * GetDrawOpacity(box);
+            Texture2D pixel = TextureAssets.MagicPixel.Value;
+
+            sb.Draw(pixel, new Rectangle(inner.X - thickness, inner.Y - thickness, inner.Width + thickness * 2, thickness), color);
+            sb.Draw(pixel, new Rectangle(inner.X - thickness, inner.Bottom, inner.Width + thickness * 2, thickness), color);
+            sb.Draw(pixel, new Rectangle(inner.X - thickness, inner.Y, thickness, inner.Height), color);
+            sb.Draw(pixel, new Rectangle(inner.Right, inner.Y, thickness, inner.Height), color);
         }
     }
 }

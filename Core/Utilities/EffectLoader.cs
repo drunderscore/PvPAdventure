@@ -40,8 +40,10 @@ public class EffectLoader : ModSystem
     }
 
     private const string LiquidGlassPath = "PvPAdventure/Assets/Effects/LiquidGlass";
+    private const string SpawnBoxBorderPath = "PvPAdventure/Assets/Effects/SpawnBoxBorder";
 
     private static Effect liquidGlassEffect;
+    private static Effect spawnBoxBorderEffect;
 
     public static bool TryGetLiquidGlassEffect(out Effect effect)
     {
@@ -59,8 +61,25 @@ public class EffectLoader : ModSystem
         }
     }
 
+    public static bool TryGetSpawnBoxBorderEffect(out Effect effect)
+    {
+        try
+        {
+            spawnBoxBorderEffect ??= ModContent.Request<Effect>(SpawnBoxBorderPath, AssetRequestMode.ImmediateLoad).Value;
+            effect = spawnBoxBorderEffect;
+            return effect != null;
+        }
+        catch (Exception e)
+        {
+            Log.Warn($"Failed to load spawnbox border effect '{SpawnBoxBorderPath}': {e.Message}");
+            effect = null;
+            return false;
+        }
+    }
+
     public override void Unload()
     {
         liquidGlassEffect = null;
+        spawnBoxBorderEffect = null;
     }
 }

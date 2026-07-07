@@ -40,8 +40,7 @@ internal static class TravelRegions
 
     private static bool IsNearWorldSpawn(Player player)
     {
-        var region = ModContent.GetInstance<RegionManager>().GetRegionIntersecting(player.Hitbox.ToTileRectangle());
-        return region != null && !region.AllowCombat;
+        return ModContent.GetInstance<SpawnBoxSystem>().TouchesWorldHitbox(player.Hitbox);
     }
 
     private static bool IsNearOwnBed(Player player)

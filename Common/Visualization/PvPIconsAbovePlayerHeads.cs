@@ -18,7 +18,7 @@ public class PvPIconDrawerLayer : ModSystem
     public override void PostUpdateEverything()
     {
         var gm = ModContent.GetInstance<GameManager>();
-        var rm = ModContent.GetInstance<RegionManager>();
+        var spawnBox = ModContent.GetInstance<SpawnBoxSystem>();
 
         for (int i = 0; i < Main.maxPlayers; i++)
         {
@@ -35,7 +35,7 @@ public class PvPIconDrawerLayer : ModSystem
                 continue;
             }
 
-            bool inRegion = rm.GetRegionContaining(p.Center.ToTileCoordinates()) != null;
+            bool inRegion = spawnBox.ContainsTile(p.Center.ToTileCoordinates());
 
             bool wasInRegion = mp.ShowPvPIcon;
 

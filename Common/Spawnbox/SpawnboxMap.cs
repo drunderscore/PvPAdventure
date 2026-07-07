@@ -1,125 +1,56 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.Game;
-using ReLogic.Graphics;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.Map;
 using Terraria.ModLoader;
-using static PvPAdventure.Common.Spawnbox.RegionManager;
 
 namespace PvPAdventure.Common.Spawnbox;
 
-/// <summary>
-/// Draws the spawn box rectangle on the fullscreen map and minimap.
-/// </summary>
-public class SpawnboxMap : ModMapLayer
+public sealed class SpawnBoxMap : ModMapLayer
 {
+    private static readonly Color BlockedColor = new(255, 80, 80);
+    private static readonly Color PassableColor = new(70, 226, 158);
+
     public override void Draw(ref MapOverlayDrawContext context, ref string text)
     {
-        var rm = ModContent.GetInstance<RegionManager>();
-        if (rm.Regions.Count == 0)
+        if (Main.mapFullscreenScale < 0.5f)
             return;
 
-        DrawSpawnBoxOnFullscreenMap(ref context);
-    }
-
-    private static void DrawSpawnBoxOnFullscreenMap(ref MapOverlayDrawContext context)
-    {
-
-        if (Main.mapFullscreenScale < 0.5) return;
-
-        // spawn region in tiles
-        //Rectangle area = new(Main.spawnTileX - 25, Main.spawnTileY - 25, 50, 50);
-
-        // Get the spawn region from RegionManager
-        var rm = ModContent.GetInstance<RegionManager>();
-        var bgTexture = ModContent.GetInstance<SpawnBoxWorld>()._playerBGTexture;
-        if (rm.Regions.Count == 0 || bgTexture == null)
-            return;
-
-        Region region = rm.Regions[0];
-        Rectangle area = region.Area;
-
-        // Convert from tiles to map screen
+        SpawnBoxSystem box = ModContent.GetInstance<SpawnBoxSystem>();
+        Rectangle area = box.BorderOuterTileArea;
         Vector2 topLeft = (new Vector2(area.X, area.Y) - context.MapPosition) * context.MapScale + context.MapOffset;
         Vector2 size = new(area.Width * context.MapScale, area.Height * context.MapScale);
+        Rectangle rect = new((int)topLeft.X, (int)topLeft.Y, (int)size.X, (int)size.Y);
 
-        int x = (int)topLeft.X;
-        int y = (int)topLeft.Y;
-        int w = (int)size.X;
-        int h = (int)size.Y;
-
-        // Create rectangle for spawn area
-        Rectangle spawnRect = new(x, y, w, h);
-
-        // For minimap only: clip to minimap bounds
         if (!Main.mapFullscreen && Main.mapStyle == 1)
         {
-            Rectangle minimapRect = new(Main.miniMapX, Main.miniMapY, Main.miniMapWidth, Main.miniMapHeight);
-
-            spawnRect = Rectangle.Intersect(spawnRect, minimapRect);
-
-            // If completely outside, don't draw at all
-            if (spawnRect.Width <= 0 || spawnRect.Height <= 0)
+            rect = Rectangle.Intersect(rect, new Rectangle(Main.miniMapX, Main.miniMapY, Main.miniMapWidth, Main.miniMapHeight));
+            if (rect.Width <= 0 || rect.Height <= 0)
                 return;
-
-            x = spawnRect.X;
-            y = spawnRect.Y;
-            w = spawnRect.Width;
-            h = spawnRect.Height;
         }
 
-        var gm = ModContent.GetInstance<GameManager>();
-        //var am = Main.LocalPlayer.GetModPlayer<SpawnPlayer>();
-        bool canPass = gm.CurrentPhase == GameManager.Phase.Playing && /*am.IsPlayerInSpawnRegion()*/ true;
-        //&& am.IsPlayerInSpawnRegion();
+        DrawBorder(rect, GetDrawColor(box), Main.mapFullscreen ? (int)Main.mapFullscreenScale : 2);
+    }
 
-        // now draw using the (possibly clipped) rect
-        Texture2D pix = TextureAssets.MagicPixel.Value;
-        Color col = Color.Black;
-        if (canPass) col = Color.Black * 0.5f;
-        int thickness = 2; 
+    private static Color GetDrawColor(SpawnBoxSystem box)
+    {
+        bool canCross = box.CanExit && box.TouchesWorldHitbox(Main.LocalPlayer.Hitbox);
+        return (canCross ? PassableColor : BlockedColor) * (canCross ? 0.5f : 0.88f);
+    }
 
-        if (Main.mapFullscreen)
-            thickness = (int)(1 * Main.mapFullscreenScale); // match 1 pixel at scale 1
+    private static void DrawBorder(Rectangle r, Color color, int thickness)
+    {
+        if (thickness < 1)
+            thickness = 1;
 
-        // top, bottom, left, right
-        Main.spriteBatch.Draw(pix,new Rectangle(x + thickness, y, w - thickness * 2, thickness),col);
-        Main.spriteBatch.Draw(pix,new Rectangle(x + thickness, y + h - thickness, w - thickness * 2, thickness),col);
-        Main.spriteBatch.Draw(pix,new Rectangle(x, y, thickness, h),col);
-        Main.spriteBatch.Draw(pix,new Rectangle(x + w - thickness, y, thickness, h),col);
+        if (r.Width <= thickness * 2 || r.Height <= thickness * 2)
+            return;
 
-        var font = FontAssets.DeathText.Value;
-
-        float scale = context.MapScale * context.DrawScale*0.3f;
-
-        Vector2 textSize = font.MeasureString("SPAWN") * scale;
-
-        Vector2 textPos = new Vector2(
-            x + w / 2f - textSize.X / 2f,
-            y + h / 2f - textSize.Y / 2f
-        );
-        textPos.Y -= 50*scale;
-
-        // Keep this commented out in case we wanna use it.
-        // Helper to draw text
-        //void drawSpawnText(Vector2 offset, Color c)
-        //{
-        //    Main.spriteBatch.DrawString(
-        //        font,
-        //        "SPAWN",
-        //        textPos + offset,
-        //        c,
-        //        0f,
-        //        Vector2.Zero,
-        //        scale,
-        //        SpriteEffects.None,
-        //        0f
-        //    );
-        //}
-
-        //drawSpawnText(new Vector2(2, 2) * scale, Color.Black * 0.75f);
-        //drawSpawnText(Vector2.Zero, Color.White);
+        Texture2D pixel = TextureAssets.MagicPixel.Value;
+        Main.spriteBatch.Draw(pixel, new Rectangle(r.X + thickness, r.Y, r.Width - thickness * 2, thickness), color);
+        Main.spriteBatch.Draw(pixel, new Rectangle(r.X + thickness, r.Bottom - thickness, r.Width - thickness * 2, thickness), color);
+        Main.spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, thickness, r.Height), color);
+        Main.spriteBatch.Draw(pixel, new Rectangle(r.Right - thickness, r.Y, thickness, r.Height), color);
     }
 }

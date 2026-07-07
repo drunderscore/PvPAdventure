@@ -16,4 +16,5 @@ public enum AdventurePacketIdentifier : byte
     TeamCombatText,
     MatchStatDelta,
     EndScreen,
+    SpawnBox,
 }

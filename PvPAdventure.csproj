@@ -22,8 +22,11 @@
 
 	<ItemGroup>
 		<AdditionalFiles Remove="Assets\Effects\LiquidGlass.fx" />
+		<AdditionalFiles Remove="Assets\Effects\SpawnBoxBorder.hlsl" />
 		<None Remove="Assets\Effects\LiquidGlass.fxc" />
+		<None Remove="Assets\Effects\SpawnBoxBorder.fxc" />
 		<Content Include="Assets\Effects\LiquidGlass.fxc" />
+		<Content Include="Assets\Effects\SpawnBoxBorder.fxc" />
 	</ItemGroup>
 	
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->

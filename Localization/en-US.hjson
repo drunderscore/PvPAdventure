@@ -20,6 +20,7 @@ Mods: {
 			ErkySSC_PvPAdventure_Pause_pause_game.DisplayName: PvPAdventure : Pause
 			ErkySSC_PvPAdventure_StartGame_open_game_timer.DisplayName: PvPAdventure : Game Manager
 			ErkySSC_PvPAdventure_StartGame_adjust_game_time.DisplayName: PvPAdventure : Adjust Time
+			ErkySSC_PvPAdventure_SpawnBox_spawnbox_tool.DisplayName: PvPAdventure : Spawnbox
 		}
 
 		Tools: {
@@ -76,6 +77,8 @@ Mods: {
 				SetPoints: Set Points
 				Description: The tool has no description! Add one in .hjson files!
 			}
+
+			SpawnBoxTool.DisplayName: Spawnbox
 		}
 
 		Buffs: {

@@ -13,6 +13,25 @@ namespace PvPAdventure.Core.Compat;
 
 public static class ErkySSCCompat
 {
+    public static bool IsAdmin(int whoAmI)
+    {
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            return true;
+
+        if (!ModLoader.TryGetMod("ErkySSC", out Mod erkySsc))
+            return false;
+
+        try
+        {
+            return erkySsc.Call("IsAdmin", whoAmI) is bool isAdmin && isAdmin;
+        }
+        catch (Exception e)
+        {
+            Log.Chat($"Failed to check ErkySSC admin permission. whoAmI={whoAmI}, error={e.Message}");
+            return false;
+        }
+    }
+
     public static void TrySendErkySSCSave()
     {
         if (Main.netMode != NetmodeID.MultiplayerClient)
