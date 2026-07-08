@@ -6,6 +6,7 @@ using PvPAdventure.Core.Utilities;
 using PvPAdventure.UI;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
@@ -26,14 +27,14 @@ internal sealed class SpawnBoxPanel : UIDraggablePanel
     private int _yOffset;
 
     protected override float MinResizeW => 365f;
-    protected override float MinResizeH => 436f;
+    protected override float MinResizeH => 512f;
     protected override bool ShowRefreshButton => false;
 
     public SpawnBoxPanel()
         : base(Language.GetTextValue("Mods.PvPAdventure.Tools.SpawnBoxTool.DisplayName"))
     {
         Width.Set(365f, 0f);
-        Height.Set(436f, 0f);
+        Height.Set(512f, 0f);
         HAlign = 0.5f;
         VAlign = 0.7f;
         ContentPanel.SetPadding(0f);
@@ -48,6 +49,9 @@ internal sealed class SpawnBoxPanel : UIDraggablePanel
         _thicknessSlider = AddSlider(ref top, "Thickness", resize, _thickness, v => _thickness = Round(v), min: SpawnBoxSettings.MinThickness, max: SpawnBoxSettings.MaxThickness);
         _xOffsetSlider = AddSlider(ref top, "X Offset", origin, _xOffset, v => _xOffset = Round(v), min: SpawnBoxSettings.MinOffset, max: SpawnBoxSettings.MaxOffset);
         _yOffsetSlider = AddSlider(ref top, "Y Offset", origin, _yOffset, v => _yOffset = Round(v), min: SpawnBoxSettings.MinOffset, max: SpawnBoxSettings.MaxOffset);
+
+        AddIconLabel(ref top, "Defaults", Ass.IconReset.Value, 0.85f);
+        AddActionRow(ref top, "Reset to Defaults", ResetToDefaults, "Reset spawnbox to the server-configured defaults");
     }
 
     public override void Update(GameTime gameTime)
@@ -81,7 +85,37 @@ internal sealed class SpawnBoxPanel : UIDraggablePanel
         return row.Slider;
     }
 
+    private void AddIconLabel(ref float top, string text, Texture2D icon, float iconScale = 1f)
+    {
+        UIIconLabelRow row = new(text, icon, iconScale: iconScale);
+        row.Top.Set(top, 0f);
+        ContentPanel.Append(row);
+        top += row.Height.Pixels;
+    }
+
+    private void AddActionRow(ref float top, string text, Action onClick, string tooltip)
+    {
+        UITextActionPanel button = new(text, onClick, width: 0f, height: 34f, tooltip: tooltip)
+        {
+            Left = { Pixels = 16f },
+            Top = { Pixels = top },
+            Width = { Pixels = -32f, Percent = 1f }
+        };
+
+        ContentPanel.Append(button);
+        top += 40f;
+    }
+
     private void Commit() => SpawnBoxNetHandler.SendSet(new SpawnBoxSettings(_width, _height, _xOffset, _yOffset, _thickness));
+
+    private void ResetToDefaults()
+    {
+        SpawnBoxSettings defaults = SpawnBoxSystem.DefaultSettings;
+        SpawnBoxNetHandler.SendSet(defaults);
+
+        if (Main.netMode == NetmodeID.SinglePlayer)
+            SetLocalValues(defaults);
+    }
 
     private void SyncFromSystem(bool force)
     {
@@ -89,6 +123,11 @@ internal sealed class SpawnBoxPanel : UIDraggablePanel
         if (!force && settings == new SpawnBoxSettings(_width, _height, _xOffset, _yOffset, _thickness))
             return;
 
+        SetLocalValues(settings);
+    }
+
+    private void SetLocalValues(SpawnBoxSettings settings)
+    {
         _width = settings.Width;
         _height = settings.Height;
         _thickness = settings.Thickness;

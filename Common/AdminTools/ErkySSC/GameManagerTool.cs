@@ -61,15 +61,8 @@ internal sealed class ErkySSCStartGameTool : ModSystem
 
     private static string MainActionText()
     {
-        GameManager gm = ModContent.GetInstance<GameManager>();
-
-        if (gm.CurrentPhase == GameManager.Phase.Playing)
-            return "Open";
-
-        if (gm._startGameCountdown.HasValue)
-            return "Countdown";
-
-        return "Start";
+        StartGameSystem ui = ModContent.GetInstance<StartGameSystem>();
+        return ui?.IsActive() == true ? "Close" : "Open";
     }
 
     private static void ToggleDialog()

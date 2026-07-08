@@ -25,7 +25,7 @@ public sealed class SpawnBoxSystem : ModSystem
     public bool CanEnter => false;
     public bool CanExit => ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
 
-    private static SpawnBoxSettings DefaultSettings =>
+    internal static SpawnBoxSettings DefaultSettings =>
         ModContent.GetInstance<ServerConfig>()?.SpawnBox?.ToSettings() ?? SpawnBoxSettings.Default;
 
     public Rectangle TileArea
