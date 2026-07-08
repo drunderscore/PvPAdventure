@@ -1,4 +1,5 @@
 using PvPAdventure.Common.Combat;
+using PvPAdventure.Common.Spawnbox;
 using PvPAdventure.Core.Config.ConfigElements;
 using System;
 using System.Collections.Generic;
@@ -120,6 +121,13 @@ public class ServerConfig : ModConfig
     [BackgroundColor(36, 108, 116)]
     [Range(0, 600)]
     public int MinimumDamageReceivedByPlayersFromPlayer;
+
+    [Header("Spawnbox")]
+    [HeaderIcon(nameof(Ass.IconSpawnbox))]
+    [ConfigIcon(nameof(Ass.IconSpawnbox))]
+    [BackgroundColor(62, 94, 106)]
+    [Expand(false, false)]
+    public SpawnBoxConfig SpawnBox = new();
 
     [Header("WorldGen")]
     [HeaderIcon(ItemID.WorldGlobe)]
@@ -263,6 +271,42 @@ public class ServerConfig : ModConfig
         [Range(0, 60)]
         [DefaultValue(5)]
         public int TeleportCooldownSeconds = 5;
+    }
+
+    public class SpawnBoxConfig
+    {
+        [ConfigIcon(nameof(Ass.IconResize))]
+        [Range(SpawnBoxSettings.MinSize, SpawnBoxSettings.MaxSize)]
+        [DefaultValue(SpawnBoxSettings.MaxSize)]
+        [Slider]
+        public int DefaultWidth = SpawnBoxSettings.MaxSize;
+
+        [ConfigIcon(nameof(Ass.IconResize))]
+        [Range(SpawnBoxSettings.MinSize, SpawnBoxSettings.MaxSize)]
+        [DefaultValue(SpawnBoxSettings.MaxSize)]
+        [Slider]
+        public int DefaultHeight = SpawnBoxSettings.MaxSize;
+
+        [ConfigIcon(nameof(Ass.ConfigMapWorldSpawn))]
+        [Range(SpawnBoxSettings.MinOffset, SpawnBoxSettings.MaxOffset)]
+        [DefaultValue(SpawnBoxSettings.DefaultOffset)]
+        [Slider]
+        public int DefaultXOffset = SpawnBoxSettings.DefaultOffset;
+
+        [ConfigIcon(nameof(Ass.ConfigMapWorldSpawn))]
+        [Range(SpawnBoxSettings.MinOffset, SpawnBoxSettings.MaxOffset)]
+        [DefaultValue(SpawnBoxSettings.DefaultOffset)]
+        [Slider]
+        public int DefaultYOffset = SpawnBoxSettings.DefaultOffset;
+
+        [ConfigIcon(nameof(Ass.IconResize))]
+        [Range(SpawnBoxSettings.MinThickness, SpawnBoxSettings.MaxThickness)]
+        [DefaultValue(SpawnBoxSettings.DefaultThickness)]
+        [Slider]
+        public int DefaultThickness = SpawnBoxSettings.DefaultThickness;
+
+        internal SpawnBoxSettings ToSettings() =>
+            new SpawnBoxSettings(DefaultWidth, DefaultHeight, DefaultXOffset, DefaultYOffset, DefaultThickness).Clamped();
     }
 
     public class WeaponBalanceConfig
@@ -676,6 +720,7 @@ public class ServerConfig : ModConfig
         BossOrder ??= [];
         BossExpertise ??= [];
         TravelSystem ??= new();
+        SpawnBox ??= new();
         if (BossOrder.Count == 0)
             BossOrder = CreateDefaultBossOrder();
         EnsureBossExpertiseDefaults();

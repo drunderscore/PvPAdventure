@@ -64,7 +64,7 @@ internal sealed class ErkySSCStartGameTool : ModSystem
         GameManager gm = ModContent.GetInstance<GameManager>();
 
         if (gm.CurrentPhase == GameManager.Phase.Playing)
-            return "Adjust";
+            return "Open";
 
         if (gm._startGameCountdown.HasValue)
             return "Countdown";

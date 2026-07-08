@@ -28,7 +28,7 @@ internal sealed class SpawnBoxTool : ModSystem
         if (!ModLoader.TryGetMod("ErkySSC", out Mod erky))
             return;
 
-        Asset<Texture2D> icon = Ass.IconResize;
+        Asset<Texture2D> icon = Ass.IconSpawnbox;
         erky.Call(
             "RegisterAdminQuickbarEntry",
             Owner,
@@ -44,7 +44,7 @@ internal sealed class SpawnBoxTool : ModSystem
     }
 
     private static string MainActionText() =>
-        ModContent.GetInstance<SpawnBoxToolSystem>()?.IsActive() == true ? "Close" : "Edit";
+        ModContent.GetInstance<SpawnBoxToolSystem>()?.IsActive() == true ? "Close" : "Open";
 
     private static void ToggleDialog() => ModContent.GetInstance<SpawnBoxToolSystem>()?.ToggleActive();
 }

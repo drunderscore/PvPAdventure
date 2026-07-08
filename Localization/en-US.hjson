@@ -19,7 +19,7 @@ Mods: {
 			ErkySSC_PvPAdventure_Pause_open_game_timer.DisplayName: PvPAdventure : Game Manager
 			ErkySSC_PvPAdventure_Pause_pause_game.DisplayName: PvPAdventure : Pause
 			ErkySSC_PvPAdventure_StartGame_open_game_timer.DisplayName: PvPAdventure : Game Manager
-			ErkySSC_PvPAdventure_StartGame_adjust_game_time.DisplayName: PvPAdventure : Adjust Time
+			ErkySSC_PvPAdventure_StartGame_adjust_game_time.DisplayName: PvPAdventure : Open Game Manager
 			ErkySSC_PvPAdventure_SpawnBox_spawnbox_tool.DisplayName: PvPAdventure : Spawnbox
 		}
 
@@ -459,6 +459,7 @@ Mods: {
 					Bosses: Bosses
 					NPCs: NPCs
 					Gameplay: Gameplay
+					Spawnbox: Spawnbox
 					WorldGen: World Generation
 					World: World
 					Visualization: Visualization
@@ -557,6 +558,11 @@ Mods: {
 				MinimumDamageReceivedByPlayersFromPlayer: {
 					Label: Minimum Damage Received By Players From Player
 					Tooltip: ""
+				}
+
+				SpawnBox: {
+					Label: Spawnbox Defaults
+					Tooltip: Default spawnbox values used when a world has no saved spawnbox settings
 				}
 
 				WorldGeneration: {
@@ -695,6 +701,35 @@ Mods: {
 				Value: {
 					Label: Value
 					Tooltip: Number of enemies needed for invasions to end
+				}
+			}
+
+			SpawnBoxConfig: {
+				Tooltip: ""
+
+				DefaultWidth: {
+					Label: Default Width
+					Tooltip: ""
+				}
+
+				DefaultHeight: {
+					Label: Default Height
+					Tooltip: ""
+				}
+
+				DefaultXOffset: {
+					Label: Default X Offset
+					Tooltip: ""
+				}
+
+				DefaultYOffset: {
+					Label: Default Y Offset
+					Tooltip: ""
+				}
+
+				DefaultThickness: {
+					Label: Default Thickness
+					Tooltip: ""
 				}
 			}
 

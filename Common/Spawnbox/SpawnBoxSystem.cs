@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Game;
+using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Utilities;
 using System;
 using System.IO;
@@ -23,6 +24,9 @@ public sealed class SpawnBoxSystem : ModSystem
     public SpawnBoxSettings Settings { get; private set; } = SpawnBoxSettings.Default;
     public bool CanEnter => false;
     public bool CanExit => ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+
+    private static SpawnBoxSettings DefaultSettings =>
+        ModContent.GetInstance<ServerConfig>()?.SpawnBox?.ToSettings() ?? SpawnBoxSettings.Default;
 
     public Rectangle TileArea
     {
@@ -110,7 +114,7 @@ public sealed class SpawnBoxSystem : ModSystem
 
     internal void ReceiveSync(SpawnBoxSettings settings) => Settings = settings.Clamped();
 
-    public override void ClearWorld() => Settings = SpawnBoxSettings.Default;
+    public override void ClearWorld() => Settings = DefaultSettings;
 
     public override void SaveWorldData(TagCompound tag)
     {
@@ -130,7 +134,7 @@ public sealed class SpawnBoxSystem : ModSystem
                 tag.GetInt(XOffsetKey),
                 tag.GetInt(YOffsetKey),
                 tag.ContainsKey(ThicknessKey) ? tag.GetInt(ThicknessKey) : SpawnBoxSettings.DefaultThickness).Clamped()
-            : SpawnBoxSettings.Default;
+            : DefaultSettings;
     }
 
     public override void NetSend(BinaryWriter writer) => Settings.Write(writer);

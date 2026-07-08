@@ -40,6 +40,7 @@ public static class Ass
     public static Asset<Texture2D> IconPauseGame;
     public static Asset<Texture2D> IconEndGame;
     public static Asset<Texture2D> IconPointsSetter;
+    public static Asset<Texture2D> IconSpawnbox;
     public static Asset<Texture2D> Slider;
     public static Asset<Texture2D> SliderButton;
     public static Asset<Texture2D> SliderButtonHighlight;

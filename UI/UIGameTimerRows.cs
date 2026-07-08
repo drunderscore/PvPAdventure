@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Graphics;
 using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
@@ -88,6 +89,53 @@ public class UIIconLabelRow : UIElement
         }
 
         Utils.DrawBorderString(spriteBatch, title, new Vector2(x, rect.Y + 10f), Color.White, 0.82f);
+    }
+}
+
+public class UIStatusTextRow : UIElement
+{
+    private const float TextScale = 0.82f;
+    private const float LeftPadding = 16f;
+    private const float TopPadding = 9f;
+    private const string Prefix = "Status: ";
+
+    private readonly List<(string Text, Color Color)> statusSegments = [];
+
+    public UIStatusTextRow(string status = "", Color? statusColor = null)
+    {
+        Width.Set(0f, 1f);
+        Height.Set(36f, 0f);
+        SetStatus(status, statusColor ?? Color.White);
+    }
+
+    public void SetStatus(string value, Color color)
+    {
+        statusSegments.Clear();
+        statusSegments.Add((value ?? "", color));
+    }
+
+    public void SetStatus(params (string Text, Color Color)[] segments)
+    {
+        statusSegments.Clear();
+
+        foreach ((string text, Color color) in segments)
+            statusSegments.Add((text ?? "", color));
+    }
+
+    protected override void DrawSelf(SpriteBatch spriteBatch)
+    {
+        Rectangle rect = GetDimensions().ToRectangle();
+        DynamicSpriteFont font = FontAssets.MouseText.Value;
+        Vector2 position = new(rect.X + LeftPadding, rect.Y + TopPadding);
+
+        Utils.DrawBorderString(spriteBatch, Prefix, position, Color.White, TextScale);
+        position.X += font.MeasureString(Prefix).X * TextScale;
+
+        foreach ((string text, Color color) in statusSegments)
+        {
+            Utils.DrawBorderString(spriteBatch, text, position, color, TextScale);
+            position.X += font.MeasureString(text).X * TextScale;
+        }
     }
 }
 

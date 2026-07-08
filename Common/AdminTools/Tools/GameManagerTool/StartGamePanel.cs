@@ -23,25 +23,28 @@ internal class StartGamePanel : UIDraggablePanel
     private const int CountdownStepSeconds = 10;
     private const int GameTimeStepMinutes = 10;
 
+    private UIStatusTextRow _status;
     private readonly UIGameManagerSlider _countdown;
     private readonly UIGameManagerSlider _time;
 
     private int _countdownTimeInSeconds = 10;
     private int _gameTimeInFrames = MaxGameMinutes * FramesPerMinute;
 
-    protected override float MinResizeH => 344f;
+    protected override float MinResizeH => 380f;
     protected override float MinResizeW => 365f;
 
     public StartGamePanel()
         : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.AdventureGameTimer"))
     {
         Width.Set(365, 0);
-        Height.Set(344, 0);
+        Height.Set(380, 0);
         HAlign = 0.5f;
         VAlign = 0.7f;
         ContentPanel.SetPadding(0);
 
         float top = 0f;
+        _status = AddStatus(ref top);
+        UpdateStatus(ModContent.GetInstance<GameManager>());
 
         _countdown = AddSliderSection(ref top, "Countdown", Ass.IconTime.Value,
             0f,
@@ -86,6 +89,7 @@ internal class StartGamePanel : UIDraggablePanel
         bool isPlaying = gm.CurrentPhase == GameManager.Phase.Playing;
         bool hasCountdown = gm._startGameCountdown.HasValue;
 
+        UpdateStatus(gm);
         _countdown.Enabled = !isPlaying;
 
         base.Update(gameTime);
@@ -107,6 +111,13 @@ internal class StartGamePanel : UIDraggablePanel
     protected override void OnClosePanelLeftClick()
     {
         ModContent.GetInstance<StartGameSystem>().Hide();
+    }
+
+    private UIStatusTextRow AddStatus(ref float top)
+    {
+        UIStatusTextRow row = new();
+        AddElement(row, ref top);
+        return row;
     }
 
     private UIGameManagerSlider AddSliderSection(ref float top, string title, Texture2D icon, float min, float max, float value, float step, Action<float> onChange, Action<float> onRelease, Func<float, string> format, float buttonStep = 0f, float iconScale = 1f)
@@ -142,6 +153,29 @@ internal class StartGamePanel : UIDraggablePanel
         ContentPanel.Append(element);
         top += element.Height.Pixels;
     }
+
+    private void UpdateStatus(GameManager gm)
+    {
+        if (_status == null || gm == null)
+            return;
+
+        if (gm._startGameCountdown.HasValue)
+        {
+            int secondsLeft = Math.Max(0, (int)Math.Ceiling(gm._startGameCountdown.Value / (float)FramesPerSecond));
+            _status.SetStatus($"Countdown ({secondsLeft}s)", Color.Yellow);
+            return;
+        }
+
+        if (gm.CurrentPhase == GameManager.Phase.Playing)
+        {
+            _status.SetStatus("Playing", Color.LimeGreen);
+            return;
+        }
+
+        _status.SetStatus("Waiting", RedTeamColor());
+    }
+
+    private static Color RedTeamColor() => Main.teamColor[(int)Terraria.Enums.Team.Red];
 
     private void SetCountdownSeconds(int seconds, bool syncActiveCountdown)
     {
