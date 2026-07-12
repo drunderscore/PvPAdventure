@@ -8,7 +8,7 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.NPCs;
 public class LacewingSpawnPool : GlobalNPC
 {
-    private const float SpawnWeight = 0.5f;
+    private const float SpawnWeight = 0.05f;
 
     public override void EditSpawnPool(IDictionary<int, float> pool, NPCSpawnInfo spawnInfo)
     {

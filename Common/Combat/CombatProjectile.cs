@@ -248,6 +248,7 @@ public class CombatProjectile : GlobalProjectile
                     ProjectileID.Typhoon => 10,
                     ProjectileID.SporeTrap => 10,
                     ProjectileID.SporeTrap2 => 10,
+                    ProjectileID.SandnadoFriendly => 10,
 
                     _ => 40  // Default for everything else
                 };

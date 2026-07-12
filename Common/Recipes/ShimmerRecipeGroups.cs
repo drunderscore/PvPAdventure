@@ -74,6 +74,10 @@ public class UnifiedRecipeGroupSystem : ModSystem
 
         new RecipeGroupData("AnyMimicPrimary", "Any Mimic Primary", ItemID.MimicBanner, 2,
             ItemID.MimicBanner, ItemID.TitanGlove, ItemID.CrossNecklace, ItemID.StarCloak, ItemID.PhilosophersStone, ItemID.MagicDagger, ItemID.DualHook),
+
+        new RecipeGroupData("AnyGoblinPrimary", "Any Goblin Primary", ItemID.ShadowflameHadesDye, 2,
+            ItemID.ShadowFlameKnife, ItemID.ShadowFlameBow, ItemID.ShadowFlameHexDoll),
+
         
         // Dungeon
         new RecipeGroupData("AnyBrickWall", "Any Brick Wall", ItemID.NecromanticSign, 3,

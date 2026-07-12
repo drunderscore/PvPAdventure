@@ -1,25 +1,22 @@
 using System.Reflection;
 using Microsoft.Xna.Framework;
+using PvPAdventure.Content.Buffs;
 using PvPAdventure.Core.Config;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.Graphics.Renderers;
 using Terraria.ModLoader;
-
 namespace PvPAdventure.Common.Visualization;
-
 [Autoload(Side = ModSide.Client)]
 public class PlayerOutlines : ModSystem
 {
     private delegate void CreateOutlinesDelegate(float alpha, float scale, Color borderColor);
-
     private CreateOutlinesDelegate _createOutlines;
     public static bool ForcePreviewOutline;
-
+    private static readonly Color GodsProtectionColor = new Color(255, 215, 0);
     //private int _outlineCallsThisSecond;
     private int _secCounter;
-
     public override void Load()
     {
         _createOutlines =
@@ -27,23 +24,19 @@ public class PlayerOutlines : ModSystem
                 .CreateDelegate<CreateOutlinesDelegate>(Main.PlayerRenderer);
         On_PlayerDrawLayers.DrawPlayer_RenderAllLayers += OnPlayerDrawLayersDrawPlayer_RenderAllLayers;
     }
-
     public override void Unload()
     {
         On_PlayerDrawLayers.DrawPlayer_RenderAllLayers -= OnPlayerDrawLayersDrawPlayer_RenderAllLayers;
         _createOutlines = null;
     }
-
     public override void PostUpdateEverything()
     {
         if (++_secCounter < 60)
             return;
-
         _secCounter = 0;
         //Log.Chat($"[Perf] PlayerOutlines calls/s={_outlineCallsThisSecond}");
         //_outlineCallsThisSecond = 0;
     }
-
     private void OnPlayerDrawLayersDrawPlayer_RenderAllLayers(
     On_PlayerDrawLayers.orig_DrawPlayer_RenderAllLayers orig,
     ref PlayerDrawSet drawinfo)
@@ -52,35 +45,32 @@ public class PlayerOutlines : ModSystem
         {
             if (drawinfo.shadow != 0.0f || drawinfo.headOnlyRender)
                 return;
-
             var config = ModContent.GetInstance<ClientConfig>();
             if (!config.Outlines.DrawOutlines || !config.Outlines.PlayerOutlines)
                 return; // <-- disables ALL outline drawing on THIS client
-
             Player p = drawinfo.drawPlayer;
-
             if (p.dead)
                 return;
-
+            if (p.HasBuff<GodsProtection>())
+            {
+                _createOutlines(1f, 1f, GodsProtectionColor);
+                return;
+            }
             Team team = (Team)p.team;
             if (team == Team.None)
                 return;
-
             if (ForcePreviewOutline)
             {
                 _createOutlines(1f, 1f, Main.teamColor[(int)team]);
                 return;
             }
-
             var screenBounds = new Rectangle(
                 (int)Main.screenPosition.X,
                 (int)Main.screenPosition.Y,
                 Main.screenWidth,
                 Main.screenHeight);
-
             if (!p.getRect().Intersects(screenBounds))
                 return;
-
             _createOutlines(
                 p.stealth,
                 1.0f,

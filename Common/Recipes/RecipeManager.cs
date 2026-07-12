@@ -184,6 +184,12 @@ public class RecipeManager : ModSystem
             .AddIngredient(ItemID.StoneBlock, 50)
             .AddTile(TileID.HeavyWorkBench)
             .Register();
+        Recipe.Create(ItemID.Hellforge, 1)
+            .AddIngredient(ItemID.Furnace, 1)
+            .AddIngredient(ItemID.Hellstone, 30)
+            .AddTile(TileID.Anvils)
+            .DisableDecraft()
+            .Register();
         //temp sudo terrablade (no longer used)
         //Recipe.Create(ItemID.TrueNightsEdge)
         //    .AddIngredient(ItemID.SoulofFright, 20)

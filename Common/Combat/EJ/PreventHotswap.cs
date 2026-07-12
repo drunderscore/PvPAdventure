@@ -32,29 +32,10 @@ internal class PreventHotswapPlayer : ModPlayer
 
     public override void PostUpdateEquips()
     {
-        // Check if Shiny Stone is equipped
-        bool hasShinyStone = IsShinyStoneEquipped();
-
-        // Apply debuff when first equipped or after respawn
-        if (hasShinyStone && !hadShinyStoneLastFrame)
-        {
-            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 3600); // 60 seconds
-        }
-
-        // Disable Shiny Stone effects while debuffed
         if (Player.HasBuff(ModContent.BuffType<ShinyStoneHotswap>()))
         {
             Player.shinyStone = false;
         }
-        bool hasPhilostone = IsPhilostoneEquipped();
-        hadShinyStoneLastFrame = hasShinyStone;
-
-        if (hasPhilostone && !hadPhilostoneLastFrame)
-        {
-            Player.AddBuff(ModContent.BuffType<UncoutHandboring>(), 3600); // 60 seconds
-        }
-
-        hadPhilostoneLastFrame = hasPhilostone;
 
         if (Player.hasPaladinShield)
         {
@@ -66,19 +47,36 @@ internal class PreventHotswapPlayer : ModPlayer
             Player.buffImmune[BuffID.Confused] = true;
             Player.buffImmune[BuffID.BrokenArmor] = true;
             Player.buffImmune[BuffID.Electrified] = true;
-
+            Player.buffImmune[BuffID.Horrified] = true;
+            Player.buffImmune[BuffID.TheTongue] = true;
         }
     }
+
+    public override void PostUpdate()
+    {
+        bool hasShinyStone = IsShinyStoneEquipped();
+        if (hasShinyStone && !hadShinyStoneLastFrame)
+        {
+            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 3600); // 60 seconds
+        }
+        hadShinyStoneLastFrame = hasShinyStone;
+
+        bool hasPhilostone = IsPhilostoneEquipped();
+        if (hasPhilostone && !hadPhilostoneLastFrame)
+        {
+            Player.AddBuff(ModContent.BuffType<UncoutHandboring>(), 3600); // 60 seconds
+        }
+        hadPhilostoneLastFrame = hasPhilostone;
+    }
+
     private bool IsSpectreSetEquipped()
     {
         int head = Player.armor[0].type;
         int body = Player.armor[1].type;
         int legs = Player.armor[2].type;
-
         bool hasSpectreHead = IsSpectreHead(head);
         bool hasSpectreBody = body == ItemID.SpectreRobe;
         bool hasSpectreLegs = legs == ItemID.SpectrePants;
-
         return hasSpectreHead && hasSpectreBody && hasSpectreLegs;
     }
 
@@ -94,6 +92,7 @@ internal class PreventHotswapPlayer : ModPlayer
         }
         return false;
     }
+
     private bool IsPhilostoneEquipped()
     {
         for (int i = 3; i < 10; i++) // Check all accessory slots
@@ -106,6 +105,7 @@ internal class PreventHotswapPlayer : ModPlayer
         }
         return false;
     }
+
     private bool IsSpectreHead(int headType)
     {
         return headType == ItemID.SpectreHood || headType == ItemID.SpectreMask;

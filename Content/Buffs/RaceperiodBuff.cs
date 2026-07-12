@@ -39,6 +39,9 @@ namespace PvPAdventure.Common.Players
         private bool _mountCancelled;
         public bool MountCancelled => _mountCancelled;
 
+        private bool _wasWaiting = true;
+        private bool _gameHasStarted;
+
         private bool _wasJumpPressed;
         private bool _wasAirborne;
         private int _airJumpCount;
@@ -173,16 +176,18 @@ namespace PvPAdventure.Common.Players
             bool inSpawn = InSpawn();
             bool isMounted = Player.mount.Active && Player.mount.Type == mountType;
             bool hasBuff = Player.HasBuff(buffType);
+            bool isWaiting = IsGameWaiting;
 
-            if (IsGameWaiting)
-                _mountCancelled = false;
+            if (_wasWaiting && !isWaiting)
+                _gameHasStarted = true;
+            _wasWaiting = isWaiting;
 
-            if (!IsGameWaiting && !inSpawn && _wasMounted && !isMounted && !Player.controlHook)
+            if (!isWaiting && !inSpawn && _wasMounted && !isMounted && !Player.controlHook)
                 _mountCancelled = true;
 
             _wasMounted = isMounted;
 
-            if (!IsGameWaiting && isMounted &&
+            if (!isWaiting && isMounted &&
                 (Player.chest != -1 || Player.position.Y / 16f > (float)Main.worldSurface))
                 Player.mount.Dismount(Player);
 
@@ -206,8 +211,7 @@ namespace PvPAdventure.Common.Players
                 }
                 return;
             }
-
-            if (inSpawn)
+            if (inSpawn && isWaiting && !_gameHasStarted)
             {
                 if (!isMounted)
                     Player.mount.SetMount(mountType, Player);
@@ -218,10 +222,9 @@ namespace PvPAdventure.Common.Players
                 else
                     Player.AddBuff(buffType, int.MaxValue);
 
-                if (IsGameWaiting)
-                    Player.AddBuff(BuffID.NoBuilding, 2);
+                Player.AddBuff(BuffID.NoBuilding, 2);
             }
-            else if (IsGameWaiting && isMounted)
+            else if (isWaiting && !inSpawn && isMounted)
             {
                 Player.mount.Dismount(Player);
             }

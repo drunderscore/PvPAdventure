@@ -37,6 +37,8 @@ public class ItemPrefixesAndShimmer : GlobalItem
         AddCircularShimmerTransform(ItemID.Tabi, ItemID.BlackBelt);
         AddCircularShimmerTransform(ItemID.PiggyBank, ItemID.MoneyTrough);
         AddCircularShimmerTransform(ItemID.Lens, ItemID.BlackLens);
+        AddCircularShimmerTransform(ItemID.PutridScent, ItemID.FleshKnuckles);
+        AddCircularShimmerTransform(ItemID.ShoeSpikes, ItemID.ClimbingClaws);
         AddCircularShimmerTransform(ItemID.TitanGlove, ItemID.FeralClaws); //expirimental asf
     }
 
