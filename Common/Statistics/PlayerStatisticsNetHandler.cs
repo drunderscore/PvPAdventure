@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Statistics;
@@ -10,15 +11,16 @@ public static class PlayerStatisticsNetHandler
     {
         var statistics = StatisticsPlayer.Statistics.Deserialize(reader);
 
-        int playerIndex;
-        if (Main.dedServ)
+        // Kills and deaths are calculated by the server. Never accept replacement
+        // totals from a client, otherwise a stale SSC client can reset them.
+        if (Main.netMode == NetmodeID.Server)
         {
-            playerIndex = whoAmI;
+            ModContent.GetInstance<PvPAdventure>().Logger.Warn(
+                $"Ignored client statistics update from slot {whoAmI}: K={statistics.Kills}, D={statistics.Deaths}");
+            return;
         }
-        else
-        {
-            playerIndex = statistics.Player;
-        }
+
+        int playerIndex = statistics.Player;
 
         if (playerIndex < 0 || playerIndex >= Main.maxPlayers)
             return;
@@ -29,17 +31,6 @@ public static class PlayerStatisticsNetHandler
 
         statistics.Apply(player.GetModPlayer<StatisticsPlayer>());
 
-#if DEBUG
-        if (Main.dedServ)
-        {
-            var packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-            packet.Write((byte)Core.Net.AdventurePacketIdentifier.PlayerStatistics);
-            new StatisticsPlayer.Statistics((byte)playerIndex, statistics.Kills, statistics.Deaths).Serialize(packet);
-            packet.Send();
-        }
-#endif
-
-        if (!Main.dedServ)
-            ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
+        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
     }
 }

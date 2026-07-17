@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Teams;
@@ -20,6 +21,9 @@ namespace PvPAdventure.Common.Statistics;
 
 internal class StatisticsPlayer : ModPlayer
 {
+    private const string ErkySscTag = "ErkySSC";
+    private const string StatsTag = "PvPAdventure";
+
     public DamageInfo RecentDamageFromPlayer { get; private set; }
     public int Kills { get; private set; }
     public int Deaths { get; private set; }
@@ -252,6 +256,127 @@ internal class StatisticsPlayer : ModPlayer
         packet.Write((byte)AdventurePacketIdentifier.PlayerItemPickup);
         new ItemPickup(ItemPickups.ToArray()).Serialize(packet);
         packet.Send(to, ignore);
+    }
+
+    internal bool ExportSscStats(string characterKey, TagCompound root)
+    {
+        if (Main.netMode == NetmodeID.MultiplayerClient || root == null)
+            return false;
+
+        TagCompound ssc = root.ContainsKey(ErkySscTag) ? root.GetCompound(ErkySscTag) : [];
+        ssc[StatsTag] = new TagCompound
+        {
+            ["version"] = 1,
+            ["characterKey"] = characterKey ?? "",
+            ["matchToken"] = CurrentMatchToken(),
+            ["kills"] = Kills,
+            ["deaths"] = Deaths,
+            ["itemPickups"] = ItemPickups.ToArray(),
+            ["team"] = Player.team
+        };
+
+        root[ErkySscTag] = ssc;
+        return true;
+    }
+
+    internal bool ImportSscStats(string characterKey, TagCompound root)
+    {
+        if (root == null)
+            return true;
+
+        TagCompound ssc = root.ContainsKey(ErkySscTag) ? root.GetCompound(ErkySscTag) : [];
+        TagCompound saved = null;
+        bool legacy = false;
+
+        if (ssc.ContainsKey(StatsTag))
+        {
+            saved = ssc.GetCompound(StatsTag);
+        }
+        else if (ssc.ContainsKey("kills") || ssc.ContainsKey("deaths"))
+        {
+            // One-time migration of the previous flat ErkySSC statistics format.
+            saved = ssc;
+            legacy = true;
+        }
+        else
+        {
+            // Older files only contain StatisticsPlayer's normal tModLoader data.
+            saved = FindLegacyModPlayerStats(root);
+            legacy = saved != null;
+        }
+
+        bool restore = saved != null;
+
+        if (restore && legacy && Main.netMode != NetmodeID.MultiplayerClient)
+            restore = !string.IsNullOrEmpty(CurrentMatchToken());
+
+        if (restore && !legacy)
+        {
+            string savedCharacter = saved.ContainsKey("characterKey") ? saved.GetString("characterKey") : "";
+            string savedMatch = saved.ContainsKey("matchToken") ? saved.GetString("matchToken") : "";
+            string currentMatch = CurrentMatchToken();
+
+            restore = !string.IsNullOrEmpty(currentMatch) &&
+                (string.IsNullOrEmpty(savedCharacter) || savedCharacter == characterKey) &&
+                savedMatch == currentMatch;
+        }
+
+        // A client receives this root from ErkySSC after the server has normalized
+        // it, so the nested values are safe to apply locally after PlayerIO.LoadData.
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            restore = saved != null && !legacy;
+
+        if (restore)
+            ApplySavedStats(saved);
+
+        if (Main.netMode == NetmodeID.Server)
+        {
+            // Normalize every loaded file to the explicit, tokened format. When a
+            // saved token is stale, this writes the server's current values instead.
+            ExportSscStats(characterKey, root);
+            SyncStatistics();
+            SyncItemPickups();
+        }
+        else
+        {
+            ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
+        }
+
+        return true;
+    }
+
+    private void ApplySavedStats(TagCompound saved)
+    {
+        Kills = System.Math.Clamp(saved.GetInt("kills"), 0, 1_000_000);
+        Deaths = System.Math.Clamp(saved.GetInt("deaths"), 0, 1_000_000);
+        ItemPickups = saved.ContainsKey("itemPickups") ? saved.Get<int[]>("itemPickups").ToHashSet() : [];
+
+        if (saved.ContainsKey("team"))
+            Player.team = saved.GetInt("team");
+    }
+
+    private static TagCompound FindLegacyModPlayerStats(TagCompound root)
+    {
+        if (!root.ContainsKey("modData"))
+            return null;
+
+        foreach (TagCompound entry in root.GetList<TagCompound>("modData"))
+        {
+            if (entry.GetString("mod") == "PvPAdventure" &&
+                entry.GetString("name") == nameof(StatisticsPlayer) &&
+                entry.ContainsKey("data"))
+                return entry.GetCompound("data");
+        }
+
+        return null;
+    }
+
+    private static string CurrentMatchToken()
+    {
+        GameManager game = ModContent.GetInstance<GameManager>();
+        return game.CurrentPhase == GameManager.Phase.Playing && game.MatchStartTime.HasValue
+            ? game.MatchStartTime.Value.ToUniversalTime().Ticks.ToString()
+            : "";
     }
 
     public override void SaveData(TagCompound tag)

@@ -1,11 +1,16 @@
 using PvPAdventure.Core.Net;
 using System.IO;
+using Terraria;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace PvPAdventure;
 
 public class PvPAdventure : Mod
 {
+    private const string ImportSscStatsCall = "ErkySSC.ImportStats";
+    private const string ExportSscStatsCall = "ErkySSC.ExportStats";
+
     /// <summary>
     /// Packet handler for PvP Adventure mod packets.
     /// See <see cref="AdventurePacketIdentifier"/> for packet types.
@@ -96,5 +101,26 @@ public class PvPAdventure : Mod
         //    Log.Warn($"[Packet] Handler left unread bytes: id={(byte)id} ({id}), left={bytesLeft}, total={packetLength - packetStart}");
         //    reader.BaseStream.Position = reader.BaseStream.Length;
         //}
+    }
+
+    public override object Call(params object[] args)
+    {
+        if (args.Length < 4 || args[0] is not string operation ||
+            args[1] is not int whoAmI || args[2] is not string characterKey ||
+            args[3] is not TagCompound root || whoAmI is < 0 or >= Main.maxPlayers)
+            return false;
+
+        Player player = Main.player[whoAmI];
+        if (player == null)
+            return false;
+
+        Common.Statistics.StatisticsPlayer statistics = player.GetModPlayer<Common.Statistics.StatisticsPlayer>();
+
+        return operation switch
+        {
+            ImportSscStatsCall => statistics.ImportSscStats(characterKey, root),
+            ExportSscStatsCall => statistics.ExportSscStats(characterKey, root),
+            _ => false
+        };
     }
 }
