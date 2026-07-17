@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.AdminTools.Tools.SpawnBoxTool;
+using PvPAdventure.Common.Spawnbox.SpawnBoxTool;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;

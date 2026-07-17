@@ -10,9 +10,9 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Tools.SpawnBoxTool;
+namespace PvPAdventure.Common.Spawnbox.SpawnBoxTool;
 
-internal sealed class SpawnBoxPanel : UIDraggablePanel
+public class SpawnBoxPanel : UIDraggablePanel
 {
     private UIStatusTextRow _status;
     private UIGameManagerSlider _widthSlider;

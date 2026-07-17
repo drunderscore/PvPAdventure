@@ -4,10 +4,10 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.Tools.SpawnBoxTool;
+namespace PvPAdventure.Common.Spawnbox.SpawnBoxTool;
 
 [Autoload(Side = ModSide.Client)]
-internal sealed class SpawnBoxToolSystem : ModSystem
+public class SpawnBoxToolSystem : ModSystem
 {
     private UserInterface _ui;
     private UIState _state;
