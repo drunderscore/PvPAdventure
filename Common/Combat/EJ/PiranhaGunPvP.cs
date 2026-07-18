@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Content.Buffs;
+using PvPFramework.Content.Buffs;
 using System.IO;
 using Terraria;
 using Terraria.DataStructures;

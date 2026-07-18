@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.AdminTools.Tools.PointsSetter;
 using PvPAdventure.Common.Bounties;
-using PvPAdventure.Common.Combat.TeamBoss;
+using BossDisplaySettings = PvPFramework.Common.NPCs.BossDisplaySettings;
 using PvPAdventure.Common.NPCs;
 using PvPAdventure.Core.Config;
 using System;
@@ -521,15 +521,13 @@ public class PointsManager : ModSystem
             const int bossHeadTeamIconVisualSeparatorYOffset = 28;
             var teamIconsTexture = TextureAssets.Pvp[1].Value;
 
-            var adventureConfig = ModContent.GetInstance<ServerConfig>();
-            var bosses = adventureConfig.BossOrder
-                .Select(npcDefinition => (short)npcDefinition.Type)
+            var bosses = BossDisplaySettings.Order
                 // Remove invalid/unloaded NPCs
                 .Where(id => id != -1)
                 .ToList();
             var numberOfBosses = bosses.Count;
 
-            var onlyDisplayWorldEvilBoss = ModContent.GetInstance<ServerConfig>().OnlyDisplayWorldEvilBoss &&
+            var onlyDisplayWorldEvilBoss = BossDisplaySettings.OnlyDisplayWorldEvilBoss &&
                                            bosses.Contains(NPCID.EaterofWorldsHead) &&
                                            bosses.Contains(NPCID.BrainofCthulhu);
 

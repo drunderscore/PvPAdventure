@@ -1,6 +1,5 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using PvPAdventure.Common.Combat.TeamBoss;
 using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Loot.DropRates;
 using PvPAdventure.Common.Statistics;
@@ -39,8 +38,6 @@ public class NPCRules : GlobalNPC
         IL_NPC.SpawnNPC += EditNPCSpawnNPC;
         // Make Guide Voodoo Doll spawn Wall of Flesh without the Guide NPC being alive.
         On_Item.CheckLavaDeath += OnItemCheckLavaDeath;
-        // Prevent some global drop rules from being registered.
-        On_ItemDropDatabase.RegisterToGlobal += AdventureDropDatabase.OnItemDropDatabaseRegisterToGlobal;
     }
 
     public override void Unload()
@@ -53,7 +50,6 @@ public class NPCRules : GlobalNPC
         IL_NPC.CheckActive -= EditNPCCheckActive;
         IL_NPC.SpawnNPC -= EditNPCSpawnNPC;
         On_Item.CheckLavaDeath -= OnItemCheckLavaDeath;
-        On_ItemDropDatabase.RegisterToGlobal -= AdventureDropDatabase.OnItemDropDatabaseRegisterToGlobal;
     }
 
     private void OnNPCScaleStats(On_NPC.orig_ScaleStats orig, NPC self, int? activeplayerscount,
@@ -141,16 +137,6 @@ public class NPCRules : GlobalNPC
             }
         }
 
-        var adventureConfig = ModContent.GetInstance<ServerConfig>();
-
-        if (adventureConfig.BossSpawnAnnouncements.Contains(new NPCDefinition(npc.type)))
-        {
-            if (Main.netMode == NetmodeID.SinglePlayer)
-                Main.NewText(Language.GetTextValue("Announcement.HasAwoken", npc.TypeName), 175, 75);
-            else if (Main.netMode == NetmodeID.Server)
-                ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Announcement.HasAwoken", npc.GetTypeNetName()),
-                    new(175, 75, 255));
-        }
     }
 
     private void OnNPCTargetClosest(On_NPC.orig_TargetClosest orig, NPC self, bool facetarget)
@@ -331,10 +317,6 @@ public class NPCRules : GlobalNPC
                     break;
                 case NPCID.SkeletronHead:
                     AddNonExpertBossLoot(ItemID.BoneGlove);
-                    break;
-                case NPCID.WallofFlesh:
-                    if (ModContent.GetInstance<ServerConfig>().WallOfFleshDropsDemonHeart)
-                        AddNonExpertBossLoot(ItemID.DemonHeart);
                     break;
                 case NPCID.QueenSlimeBoss:
                     AddNonExpertBossLoot(ItemID.VolatileGelatin);

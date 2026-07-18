@@ -33,19 +33,9 @@ public class ClientConfig : ModConfig
     [HeaderIcon(nameof(Ass.ConfigPlayerOutline))]
 
     [BackgroundColor(126, 62, 88)]
-    [Expand(false, false)]
-    public OutlinesConfig Outlines = new();
-
-    [BackgroundColor(126, 62, 88)]
     [DefaultValue(false)] 
     [ConfigIcon(ItemID.PlumbersShirt)]
     public bool ShowVanityVisuals = false;
-
-    [Header("Movement")]
-    [HeaderIcon(ItemID.HermesBoots)]
-    [ConfigIcon(nameof(Ass.ConfigDash))]
-    [BackgroundColor(72, 108, 74)]
-    [DefaultValue(true)] public bool IsVanillaDashEnabled = true;
 
     [Header("UI")]
     [BackgroundColor(36, 104, 118)]
@@ -76,44 +66,6 @@ public class ClientConfig : ModConfig
     public bool ShowDebugMessages = false;
 
     #region NestedConfigTypes
-    public class OutlinesConfig
-    {
-        [ConfigIcon(nameof(Ass.IconCheckGreen), nameof(Ass.IconXGray), grayWhenOff: true)]
-        [BackgroundColor(126, 62, 88)]
-        [DefaultValue(true)]
-        public bool DrawOutlines = true;
-
-        [RequiresField(nameof(DrawOutlines))]
-        [ConfigIcon(nameof(Ass.ConfigPlayerOutline), nameof(Ass.ConfigPlayerHead))]
-        [BackgroundColor(126, 62, 88)]
-        [DefaultValue(true)]
-        public bool PlayerOutlines = true;
-
-        [RequiresField(nameof(DrawOutlines))]
-        [ConfigIcon(nameof(Ass.ConfigBoundNPCOutline), nameof(Ass.ConfigBoundNPC))]
-        [BackgroundColor(126, 62, 88)]
-        [DefaultValue(true)]
-        public bool TownNPCOutlines = true;
-
-        [RequiresField(nameof(DrawOutlines))]
-        [ConfigIcon(nameof(Ass.ConfigBedOutline), nameof(Ass.ConfigBed))]
-        [BackgroundColor(126, 62, 88)]
-        [DefaultValue(true)]
-        public bool BedOutlines = true;
-
-        [RequiresField(nameof(DrawOutlines))]
-        [ConfigIcon(nameof(Ass.ConfigTreasureBagOutline), nameof(Ass.ConfigTreasureBag))]
-        [BackgroundColor(126, 62, 88)]
-        [DefaultValue(true)]
-        public bool TreasureBagOutlines = true;
-
-        [RequiresField(nameof(DrawOutlines))]
-        [ConfigIcon(nameof(Ass.ConfigProjectileOutline), nameof(Ass.ConfigProjectile))]
-        [BackgroundColor(126, 62, 88)]
-        [DefaultValue(true)]
-        public bool ProjectileOutlines = true;
-    }
-
     public class SoundEffectConfig
     {
         public abstract class MarkerConfig<TEnum>

@@ -3,7 +3,7 @@ using PvPAdventure.Common.Game.EndScreen;
 using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.MatchReplays;
 using PvPAdventure.Common.Game.StatTrackers;
-using PvPAdventure.Common.Spawnbox;
+using PvPFramework.Common.Spawnbox;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Utilities;
 using System;

@@ -1,10 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+
+using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.World.Outlines.BoundNPCs;
+namespace PvPFramework.Common.World.Outlines.BoundNPCs;
 
 [Autoload(Side=ModSide.Client)]
 internal sealed class BoundNpcOutlineSystem : ModSystem

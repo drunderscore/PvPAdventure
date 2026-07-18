@@ -4,6 +4,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using PvPFramework.Common.NPCs;
 using Team = Terraria.Enums.Team;
 
 namespace PvPAdventure.Content.NPCs;

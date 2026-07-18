@@ -4,6 +4,7 @@ using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Teams;
 using PvPAdventure.Core.Config;
+using PvPFramework.Common.Combat;
 using PvPAdventure.Core.Net;
 using PvPAdventure.Core.Utilities;
 using System.Collections.Generic;
@@ -24,16 +25,9 @@ internal class StatisticsPlayer : ModPlayer
     private const string ErkySscTag = "ErkySSC";
     private const string StatsTag = "PvPAdventure";
 
-    public DamageInfo RecentDamageFromPlayer { get; private set; }
     public int Kills { get; private set; }
     public int Deaths { get; private set; }
     public HashSet<int> ItemPickups { get; private set; } = new();
-
-    public sealed class DamageInfo(byte who, int ticksRemaining)
-    {
-        public byte Who { get; } = who;
-        public int TicksRemaining { get; set; } = ticksRemaining;
-    }
 
     public sealed class Statistics(byte player, int kills, int deaths) : IPacket<Statistics>
     {
@@ -107,7 +101,7 @@ internal class StatisticsPlayer : ModPlayer
 
     public void ResetMatchStatistics(bool sync = false)
     {
-        RecentDamageFromPlayer = null;
+        Player.GetModPlayer<RecentDamagePlayer>().Clear();
         Kills = 0;
         Deaths = 0;
 
@@ -119,12 +113,6 @@ internal class StatisticsPlayer : ModPlayer
     #region Hooks
     public override void PreUpdate()
     {
-        if (RecentDamageFromPlayer != null && --RecentDamageFromPlayer.TicksRemaining <= 0)
-        {
-            Mod.Logger.Info($"Recent damage for {this} expired (was from {RecentDamageFromPlayer.Who})");
-            RecentDamageFromPlayer = null;
-        }
-
 #if DEBUG
         if (Player.whoAmI == Main.myPlayer &&
             !Main.dedServ &&
@@ -171,8 +159,6 @@ internal class StatisticsPlayer : ModPlayer
 
         DamageTracker.RecordPostHurt(Player, info);
 
-        RecentDamageFromPlayer = new((byte)damagerPlayer.whoAmI,
-            ModContent.GetInstance<ServerConfig>().Immunity.RecentDamagePreservationFrames);
     }
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
@@ -194,8 +180,9 @@ internal class StatisticsPlayer : ModPlayer
                 if (pvp && damageSource.SourcePlayerIndex == -1)
                     Mod.Logger.Warn($"PvP kill without a valid SourcePlayerIndex ({this} killed)");
 
-                if (RecentDamageFromPlayer != null)
-                    killer = Main.player[RecentDamageFromPlayer.Who];
+                byte? recentAttacker = Player.GetModPlayer<RecentDamagePlayer>().Attacker;
+                if (recentAttacker.HasValue)
+                    killer = Main.player[recentAttacker.Value];
             }
 
             // Nothing should happen for suicide
@@ -221,7 +208,7 @@ internal class StatisticsPlayer : ModPlayer
         finally
         {
             // PvP or not, reset whom we last took damage from.
-            RecentDamageFromPlayer = null;
+            Player.GetModPlayer<RecentDamagePlayer>().Clear();
 
             // Remove recent damage for ALL players we've attacked after we die.
             // These are indirect post-mortem kills, which we don't want.
@@ -229,9 +216,7 @@ internal class StatisticsPlayer : ModPlayer
             //        recent damage.
             foreach (var player in Main.ActivePlayers)
             {
-                var adventurePlayer = player.GetModPlayer<StatisticsPlayer>();
-                if (adventurePlayer.RecentDamageFromPlayer?.Who == Player.whoAmI)
-                    adventurePlayer.RecentDamageFromPlayer = null;
+                player.GetModPlayer<RecentDamagePlayer>().ClearIfAttacker(Player.whoAmI);
             }
         }
     }

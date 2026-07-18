@@ -14,7 +14,6 @@ public class Keybinds : ModSystem
 {
     public ModKeybind Scoreboard { get; private set; }
     public ModKeybind BountyShop { get; private set; }
-    public ModKeybind Dash { get; private set; }
     public ModKeybind UsePortalCreator { get; private set; }
 
     #region Portal creator label
@@ -39,7 +38,6 @@ public class Keybinds : ModSystem
     {
         Scoreboard = KeybindLoader.RegisterKeybind(Mod, "Scoreboard", Keys.OemTilde);
         BountyShop = KeybindLoader.RegisterKeybind(Mod, "BountyShop", Keys.P);
-        Dash = KeybindLoader.RegisterKeybind(Mod, "Dash", Keys.F);
         UsePortalCreator = KeybindLoader.RegisterKeybind(Mod, "UsePortalCreator", Keys.G);
     }
 }

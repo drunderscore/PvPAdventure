@@ -49,14 +49,6 @@ public class PvPAdventure : Mod
                 Common.Travel.Beds.TeamBedNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.NpcStrikeTeam:
-                Common.Combat.TeamBoss.TeamBossNetHandler.HandlePacket(reader, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.Dash:
-                Common.Movement.Dash.DashInputSystem.HandlePacket(reader, whoAmI);
-                break;
-
             case AdventurePacketIdentifier.GameManager:
                 Common.Game.GameManagerNetHandler.HandlePacket(reader, whoAmI);
                 break;
@@ -69,24 +61,12 @@ public class PvPAdventure : Mod
                 Common.Travel.Portals.PortalNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.BeetleArmor:
-                Common.Combat.PvP.PvPBeetleArmorPlayer.ReceivePacket(reader, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.TeamCombatText:
-                ModContent.GetInstance<Common.Visualization.TeamCombatText>().HandlePacket(reader, whoAmI);
-                break;
-
             case AdventurePacketIdentifier.MatchStatDelta:
                 Common.Game.StatTrackers.MatchStatsNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             case AdventurePacketIdentifier.EndScreen:
                 Common.Game.EndScreen.EndScreenNetHandler.HandlePacket(reader, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.SpawnBox:
-                Common.Spawnbox.SpawnBoxNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             default:

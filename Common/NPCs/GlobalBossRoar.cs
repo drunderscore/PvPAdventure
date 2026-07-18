@@ -4,7 +4,7 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.World;
+namespace PvPAdventure.Common.NPCs;
 
 /// <summary>
 /// Plays boss roar sounds audibly to all players regardless of distance, with some bosses only roaring if they haven't been defeated yet.

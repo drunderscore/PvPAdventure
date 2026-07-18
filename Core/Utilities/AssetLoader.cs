@@ -27,7 +27,6 @@ public static class Ass
     public static Asset<Texture2D> IconForbidden;
     public static Asset<Texture2D> IconLock;
     public static Asset<Texture2D> IconQuestionMark;
-    public static Asset<Texture2D> Spawnbox;
     public static Asset<Texture2D> Shimmer;
 
     // Admin tools assets
@@ -40,7 +39,6 @@ public static class Ass
     public static Asset<Texture2D> IconPauseGame;
     public static Asset<Texture2D> IconEndGame;
     public static Asset<Texture2D> IconPointsSetter;
-    public static Asset<Texture2D> IconSpawnbox;
     public static Asset<Texture2D> Slider;
     public static Asset<Texture2D> SliderButton;
     public static Asset<Texture2D> SliderButtonHighlight;
@@ -54,7 +52,6 @@ public static class Ass
     public static Asset<Texture2D> ConfigBoundNPC;
     public static Asset<Texture2D> ConfigBoundNPCOutline;
     public static Asset<Texture2D> ConfigChat;
-    public static Asset<Texture2D> ConfigDash;
     public static Asset<Texture2D> ConfigMapWorldSpawn;
     public static Asset<Texture2D> ConfigPlanterasBulb;
     public static Asset<Texture2D> ConfigPlayerHead;

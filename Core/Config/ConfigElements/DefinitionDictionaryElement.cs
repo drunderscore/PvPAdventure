@@ -189,56 +189,6 @@ internal class DefinitionDictionaryElement : DictionaryElement
     }
 }
 
-internal sealed class BossExpertiseDictionaryElement : DefinitionDictionaryElement
-{
-    protected override Type GetDictionaryElementWrapperType()
-    {
-        return typeof(BossExpertiseDictionaryElementWrapper<>).MakeGenericType(valueType);
-    }
-}
-
-internal sealed class BossExpertiseDictionaryElementWrapper<TValue> : IDictionaryElementWrapper
-{
-    private readonly IDictionary _dictionary;
-    private NPCDefinition _key;
-    private TValue _value;
-
-    public BossExpertiseDictionaryElementWrapper(NPCDefinition key, TValue value, IDictionary dictionary)
-    {
-        _dictionary = dictionary;
-        _key = key;
-        _value = value;
-    }
-
-    [CustomModConfigItem(typeof(BossNPCDefinitionElement))]
-    public NPCDefinition Key
-    {
-        get => _key;
-        set
-        {
-            if (_dictionary.Contains(value))
-                return;
-
-            _dictionary.Remove(_key);
-            _key = value;
-            _dictionary.Add(_key, _value);
-        }
-    }
-
-    public TValue Value
-    {
-        get => _value;
-        set
-        {
-            _dictionary[Key] = value;
-            _value = value;
-        }
-    }
-
-    object IDictionaryElementWrapper.Key => Key;
-    object IDictionaryElementWrapper.Value => Value;
-}
-
 /// <summary>
 /// Icons of NPC's and projectiles.
 /// Used in <see cref="DefinitionDictionaryElement"/> to display Projectiles and NPC's
