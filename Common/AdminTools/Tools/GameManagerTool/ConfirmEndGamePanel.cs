@@ -10,7 +10,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
 
-internal class EndGamePanel : UIDraggablePanel
+internal class ConfirmEndGamePanel : UIDraggablePanel
 {
     private readonly UITextPanel<string> yesButton;
     private readonly UITextPanel<string> noButton;
@@ -19,10 +19,10 @@ internal class EndGamePanel : UIDraggablePanel
     protected override float MinResizeH => 100f;
     protected override void OnClosePanelLeftClick()
     {
-        ModContent.GetInstance<EndGameSystem>().ToggleActive();
+        ModContent.GetInstance<ConfirmEndGameUISystem>().ToggleActive();
     }
 
-    public EndGamePanel() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.ReallyEndGame"))
+    public ConfirmEndGamePanel() : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.ReallyEndGame"))
     {
         Width.Set(400, 0);
         Height.Set(100, 0);
@@ -44,7 +44,7 @@ internal class EndGamePanel : UIDraggablePanel
             //Main.instance.MouseText("Click to cancel prompt");
         };
         noButton.OnMouseOut += (_, _) => noButton.BorderColor = Color.Black;
-        noButton.OnLeftClick += (_, _) => ModContent.GetInstance<EndGameSystem>().ToggleActive();
+        noButton.OnLeftClick += (_, _) => ModContent.GetInstance<ConfirmEndGameUISystem>().ToggleActive();
 
         // Yes
         yesButton = new UITextPanel<string>(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.Yes"))
@@ -74,7 +74,7 @@ internal class EndGamePanel : UIDraggablePanel
                 packet.Send();
             }
 
-            ModContent.GetInstance<EndGameSystem>().ToggleActive();
+            ModContent.GetInstance<ConfirmEndGameUISystem>().ToggleActive();
         };
 
         ContentPanel.Append(noButton);

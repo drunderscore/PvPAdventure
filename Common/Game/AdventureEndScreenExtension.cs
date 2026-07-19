@@ -55,7 +55,7 @@ internal static class AdventureEndScreenExtension
             core.Kills, core.Deaths, Clamp(core.Damage), Stat(StatsReporter.DamageTaken),
             Stat(StatsReporter.TilesMined), Stat(StatsReporter.TilesPlaced),
             Stat(StatsReporter.ConsumablesUsed), Stat(StatsReporter.LavaDeaths),
-            Stat(StatsReporter.FoodEaten), Clamp(core.BossDamage), Stat(StatsReporter.PortalKills),
+            Stat(StatsReporter.FoodEaten), Stat(StatsReporter.BossDamageDealt), Stat(StatsReporter.PortalKills),
             CountDifferentWeapons(itemStats), Stat(StatsReporter.LostHoney));
     }
 

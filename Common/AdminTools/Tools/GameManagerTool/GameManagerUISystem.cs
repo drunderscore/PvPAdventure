@@ -7,22 +7,24 @@ using Terraria.UI;
 namespace PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
 
 [Autoload(Side = ModSide.Client)]
-internal class EndGameSystem : ModSystem
+internal class GameManagerUISystem : ModSystem
 {
     // Components
     public UserInterface ui;
-    public UIState endGameUIState;
+    public UIState timerUIState;
 
     // State
-    public bool IsActive() => ui?.CurrentState == endGameUIState;
-    public void ToggleActive() => ui.SetState(IsActive() ? null : endGameUIState);
+    public bool IsActive() => ui?.CurrentState != null;
+
+    public void ShowExtendGameDialog() => ui.SetState(timerUIState);
+    public void ShowStartDialog() => ui.SetState(timerUIState);
     public void Hide() => ui.SetState(null);
 
     public override void OnWorldLoad()
     {
         ui = new();
-        endGameUIState = new();
-        endGameUIState.Append(new EndGamePanel());
+        timerUIState = new();
+        timerUIState.Append(new GameManagerPanel());
 
         ui.SetState(null);
     }
@@ -38,7 +40,7 @@ internal class EndGameSystem : ModSystem
         if (index != -1)
         {
             layers.Insert(index, new LegacyGameInterfaceLayer(
-                name: "PvPAdventure: EndGameSystem",
+                name: "PvPAdventure: GameManagerSystem",
                 drawMethod: () =>
                 {
                     if (IsActive())

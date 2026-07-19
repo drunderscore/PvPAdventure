@@ -53,7 +53,7 @@ public class DLEndGameTool : Tool
 
     public override void OnActivate()
     {
-        var endGameSystem = ModContent.GetInstance<EndGameSystem>();
+        var endGameSystem = ModContent.GetInstance<ConfirmEndGameUISystem>();
         if (endGameSystem == null)
         {
             Main.NewText("Failed to open EndGameSystem: System not found.", Color.Red);
@@ -81,7 +81,7 @@ public class DLEndGameTool : Tool
     {
         base.DrawIcon(spriteBatch, position);
 
-        var gms = ModContent.GetInstance<EndGameSystem>();
+        var gms = ModContent.GetInstance<ConfirmEndGameUISystem>();
 
         if (gms.IsActive())
         {

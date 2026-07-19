@@ -103,8 +103,7 @@ public class PvPAdventure : Mod
         if ((!string.IsNullOrEmpty(savedCharacter) && savedCharacter != characterKey) || savedMatch != CurrentMatchToken())
             return true;
 
-        ScoreboardService.SetPlayerStats(player, saved.GetInt("kills"), saved.GetInt("deaths"),
-            saved.Get<long>("damage"), saved.Get<long>("bossDamage"));
+        ScoreboardService.SetPlayerStats(player, saved.GetInt("kills"), saved.GetInt("deaths"), saved.Get<long>("damage"));
         return true;
     }
 
@@ -122,8 +121,7 @@ public class PvPAdventure : Mod
             ["matchToken"] = CurrentMatchToken(),
             ["kills"] = stats.Kills,
             ["deaths"] = stats.Deaths,
-            ["damage"] = stats.Damage,
-            ["bossDamage"] = stats.BossDamage
+            ["damage"] = stats.Damage
         };
         root["ErkySSC"] = ssc;
         return true;

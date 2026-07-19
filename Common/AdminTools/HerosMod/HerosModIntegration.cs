@@ -63,7 +63,7 @@ public sealed class HerosModIntegration : ModSystem
                 var gm = ModContent.GetInstance<GameManager>();
                 if (gm.CurrentPhase == GameManager.Phase.Playing)
                 {
-                    ModContent.GetInstance<StartGameSystem>().ShowExtendGameDialog();
+                    ModContent.GetInstance<GameManagerUISystem>().ShowExtendGameDialog();
                 }
                 else if (gm._startGameCountdown.HasValue && Main.netMode == NetmodeID.SinglePlayer)
                 {
@@ -74,7 +74,7 @@ public sealed class HerosModIntegration : ModSystem
                 }
                 else
                 {
-                    var gms = ModContent.GetInstance<StartGameSystem>();
+                    var gms = ModContent.GetInstance<GameManagerUISystem>();
                     if (gms.IsActive())
                     {
                         gms.Hide();
@@ -99,7 +99,7 @@ public sealed class HerosModIntegration : ModSystem
                 }
                 else
                 {
-                    var gss = ModContent.GetInstance<StartGameSystem>();
+                    var gss = ModContent.GetInstance<GameManagerUISystem>();
                     if (gss.IsActive())
                     {
                         return "Close game starter";

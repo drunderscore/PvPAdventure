@@ -4,6 +4,7 @@ using PvPAdventure.Common.Bounties;
 using BossDisplaySettings = PvPFramework.Common.NPCs.BossDisplaySettings;
 using PvPAdventure.Common.NPCs;
 using PvPAdventure.Core.Config;
+using PvPFramework.Common.Scoreboard;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -168,7 +169,7 @@ public class PointsManager : ModSystem
     {
         if (!layers.Contains(BossCompletion))
         {
-            var layerIndex = layers.FindIndex(layer => layer.Name == "Vanilla: Inventory");
+            var layerIndex = layers.FindIndex(layer => layer.Name == "PvPFramework: Scoreboard");
 
             if (layerIndex != -1)
                 layers.Insert(layerIndex + 1, BossCompletion);
@@ -305,6 +306,7 @@ public class PointsManager : ModSystem
     {
         protected override bool DrawSelf()
         {
+            const int scoreboardPadding = 10;
             const int horizontalSpaceBetweenBossHeads = 50;
             const int verticalSeparationBetweenBossHeadAndTeamIcon = 40;
             const int verticalSpaceBetweenTeamIcons = 35;
@@ -338,7 +340,7 @@ public class PointsManager : ModSystem
 
             // Cast to int so no strange aliasing occurs on anything we render -- we only work with whole numbers in the end.
             var containerPosition = new Vector2((int)((Main.screenWidth / 2.0f) - (containerSize.X / 2.0f)),
-                Main.screenHeight - (1080 - 740));
+                ScoreboardUISystem.Bounds.Bottom + scoreboardPadding);
 
             Utils.DrawInvBG(Main.spriteBatch, containerPosition.X, containerPosition.Y, containerSize.X,
                 containerSize.Y);

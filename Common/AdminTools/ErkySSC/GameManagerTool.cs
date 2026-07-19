@@ -14,9 +14,9 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Common.AdminTools.ErkySSC;
 
 [Autoload(Side = ModSide.Client)]
-internal sealed class ErkySSCStartGameTool : ModSystem
+internal sealed class GameManagerTool : ModSystem
 {
-    private const string Owner = "PvPAdventure.StartGame";
+    private const string Owner = "PvPAdventure.GameManager";
 
     public override void PostSetupContent()
     {
@@ -61,16 +61,16 @@ internal sealed class ErkySSCStartGameTool : ModSystem
 
     private static string MainActionText()
     {
-        StartGameSystem ui = ModContent.GetInstance<StartGameSystem>();
+        GameManagerUISystem ui = ModContent.GetInstance<GameManagerUISystem>();
         return ui?.IsActive() == true ? "Close" : "Open";
     }
 
     private static void ToggleDialog()
     {
-        StartGameSystem ui = ModContent.GetInstance<StartGameSystem>();
+        GameManagerUISystem ui = ModContent.GetInstance<GameManagerUISystem>();
         if (ui == null)
         {
-            Main.NewText("Failed to open StartGameSystem.", Color.Red);
+            Main.NewText("Failed to open GameManagerUISystem.", Color.Red);
             return;
         }
 

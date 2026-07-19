@@ -61,7 +61,7 @@ public class DLStartGameTool : Tool
     public override void OnRightClick()
     {
         var gm = ModContent.GetInstance<GameManager>();
-        var gms = ModContent.GetInstance<StartGameSystem>();
+        var gms = ModContent.GetInstance<GameManagerUISystem>();
 
         if (gm.CurrentPhase == GameManager.Phase.Playing)
         {
@@ -103,7 +103,7 @@ public class DLStartGameTool : Tool
 
     public override void OnActivate()
     {
-        var gms = ModContent.GetInstance<StartGameSystem>();
+        var gms = ModContent.GetInstance<GameManagerUISystem>();
         if (gms == null)
         {
             Main.NewText("Failed to open StartGameSystem: System not found.", Color.Red);
@@ -138,7 +138,7 @@ public class DLStartGameTool : Tool
     {
         base.DrawIcon(spriteBatch, position);
 
-        var gms = ModContent.GetInstance<StartGameSystem>();
+        var gms = ModContent.GetInstance<GameManagerUISystem>();
         if (gms == null)
         {
             return;

@@ -14,14 +14,14 @@ using Terraria.UI;
 
 namespace PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
 
-internal class StartGamePanel : UIDraggablePanel
+internal class GameManagerPanel : UIDraggablePanel
 {
     private const int FramesPerSecond = 60;
     private const int FramesPerMinute = FramesPerSecond * 60;
     private const int MaxGameMinutes = 195;
     private const int MaxCountdownSeconds = 300;
     private const int CountdownStepSeconds = 10;
-    private const int GameTimeStepMinutes = 10;
+    private const int GameTimeStepMinutes = 15;
 
     private UIStatusTextRow _status;
     private readonly UIGameManagerSlider _countdown;
@@ -33,7 +33,7 @@ internal class StartGamePanel : UIDraggablePanel
     protected override float MinResizeH => 380f;
     protected override float MinResizeW => 365f;
 
-    public StartGamePanel()
+    public GameManagerPanel()
         : base(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.AdventureGameTimer"))
     {
         Width.Set(365, 0);
@@ -110,7 +110,7 @@ internal class StartGamePanel : UIDraggablePanel
 
     protected override void OnClosePanelLeftClick()
     {
-        ModContent.GetInstance<StartGameSystem>().Hide();
+        ModContent.GetInstance<GameManagerUISystem>().Hide();
     }
 
     private UIStatusTextRow AddStatus(ref float top)
@@ -278,7 +278,7 @@ internal class StartGamePanel : UIDraggablePanel
 
         if (gm.CurrentPhase == GameManager.Phase.Playing)
         {
-            ModContent.GetInstance<EndGameSystem>().ToggleActive();
+            ModContent.GetInstance<ConfirmEndGameUISystem>().ToggleActive();
         }
         else if (gm._startGameCountdown.HasValue)
         {

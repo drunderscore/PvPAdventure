@@ -462,6 +462,7 @@ Mods: {
 					WorldGen: World Generation
 					World: World
 					Visualization: Visualization
+					Travel: Travel Header
 				}
 
 				Points: {
@@ -628,7 +629,7 @@ Mods: {
 					Tooltip: ""
 				}
 
-				CollectedAllMechanicalBossSouls: Collected All Mechanical Boss Souls
+				CollectedAllMechanicalBossSouls: All Mechanical Bosses Defeated
 			}
 
 			Condition: {
@@ -670,8 +671,8 @@ Mods: {
 				}
 
 				CollectedAllMechanicalBossSouls: {
-					Label: Collected All Mechanical Boss Souls
-					Tooltip: ""
+					Label: All Mechanical Bosses Defeated
+					Tooltip: Require The Destroyer, The Twins, and Skeletron Prime to be defeated
 				}
 			}
 
