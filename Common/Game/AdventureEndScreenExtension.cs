@@ -1,7 +1,7 @@
 using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
-using PvPFramework.Common.Game.EndScreen;
+using PvPFramework.Common.EndScreen;
 using PvPFramework.Common.Scoreboard;
 using System;
 using System.Collections.Generic;

@@ -306,7 +306,7 @@ public class PointsManager : ModSystem
     {
         protected override bool DrawSelf()
         {
-            const int scoreboardPadding = 10;
+            const int scoreboardPadding = 30;
             const int horizontalSpaceBetweenBossHeads = 50;
             const int verticalSeparationBetweenBossHeadAndTeamIcon = 40;
             const int verticalSpaceBetweenTeamIcons = 35;

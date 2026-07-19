@@ -462,7 +462,7 @@ Mods: {
 					WorldGen: World Generation
 					World: World
 					Visualization: Visualization
-					Travel: Travel Header
+					Travel: Travel
 				}
 
 				Points: {

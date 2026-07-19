@@ -4,11 +4,7 @@
 //using Microsoft.Xna.Framework;
 //using Microsoft.Xna.Framework.Graphics;
 //using PvPAdventure.Common.AdminTools.DragonLens;
-//using PvPAdventure.Common.Game;
-//using PvPAdventure.Core.Net;
-//using PvPFramework.Common;
-//using Terraria;
-//using Terraria.ID;
+//using PvPFramework.Common.Pause;
 //using Terraria.Localization;
 //using Terraria.ModLoader;
 
@@ -31,19 +27,7 @@
 
 //    public override void OnActivate()
 //    {
-//        var pm = ModContent.GetInstance<PauseManager>();
-
-//        if (Main.netMode == NetmodeID.SinglePlayer)
-//        {
-//            pm.TogglePause();
-//        }
-//        else if (Main.netMode == NetmodeID.MultiplayerClient)
-//        {
-//            var packet = Mod.GetPacket();
-//            packet.Write((byte)AdventurePacketIdentifier.GameManager);
-//            packet.Write((byte)GameManagerNetHandler.GameManagerPacketType.PauseGame);
-//            packet.Send();
-//        }
+//        ModContent.GetInstance<PauseManager>().TogglePause();
 //    }
 
 //    public override void DrawIcon(SpriteBatch spriteBatch, Rectangle position)
