@@ -1,14 +1,18 @@
 using PvPAdventure.Common.Statistics;
 using PvPFramework.Common.Scoreboard;
+using PvPHub.Common.MainMenu.API;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
+using CompletedMatchPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.CompletedMatchPayload;
+using MatchPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.MatchPayload;
+using MatchPlayerPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.MatchPlayerPayload;
+using MatchTeamPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.MatchTeamPayload;
 
 namespace PvPAdventure.Common.Game.GameReporters;
 
@@ -18,15 +22,11 @@ internal static class MatchReporter
 
     public static void PostCompletedMatchSafe(DateTime startUtc, DateTime endUtc)
     {
-        if (PvPHubCompat.IsPvPHubLoaded)
-            ExecutePost(startUtc, endUtc, null);
+        ExecutePost(startUtc, endUtc, null);
     }
 
     public static void PostCompletedMatchSafe(DateTime startUtc, DateTime endUtc, string replayFilePath)
     {
-        if (!PvPHubCompat.IsPvPHubLoaded)
-            return;
-
         if (string.IsNullOrWhiteSpace(replayFilePath) || !File.Exists(replayFilePath))
         {
             Log.Chat($"Replay file missing. Falling back to match/v1. Path={replayFilePath}");
@@ -47,29 +47,30 @@ internal static class MatchReporter
         if (!IsValidPayload(payload))
             return;
 
-        string payloadJson = JsonSerializer.Serialize(payload, PvPHubCompat.JsonOptions);
-        _ = PostMatchSafeAsync(payloadJson, replayFilePath);
+        _ = PostMatchSafeAsync(payload, replayFilePath);
     }
 
-    private static async Task PostMatchSafeAsync(string payloadJson, string replayFilePath)
+    private static async Task PostMatchSafeAsync(MatchPayload payload, string replayFilePath)
     {
         try
         {
-            PvPHubCallResult result = await PvPHubCompat.PostMatchAsync(payloadJson, replayFilePath)
+            ApiResult<CompletedMatchPayload> result = await PvPHubService.PostMatchAsync(payload, replayFilePath)
                 .ConfigureAwait(false);
             string version = string.IsNullOrWhiteSpace(replayFilePath) ? "v1" : "v2";
 
-            if (!result.Success)
+            if (!result.IsSuccess)
             {
-                string message = result.StatusCode == 401
-                    ? $"Match {version} post failed: 401 Unauthorized. Error={result.Error}"
-                    : $"Match {version} post failed: Status={result.StatusCode}. Error={result.Error}";
+                int statusCode = (int)result.Status;
+                string message = statusCode == 401
+                    ? $"Match {version} post failed: 401 Unauthorized. Error={result.ErrorMessage}"
+                    : $"Match {version} post failed: Status={statusCode}. Error={result.ErrorMessage}";
                 WriteMatchPostConsole(WithRequestSummary(message, result.RequestSummary));
                 Log.Error(message);
                 return;
             }
 
-            if (!result.TryGetDataInt64("id", out long matchId))
+            long matchId = result.Data?.Id ?? 0;
+            if (matchId <= 0)
             {
                 WriteMatchPostConsole(WithRequestSummary(
                     $"Match {version} post succeeded, but the backend returned no match id.", result.RequestSummary));
@@ -90,7 +91,7 @@ internal static class MatchReporter
     private static MatchPayload BuildMatchPayload(DateTime startUtc, DateTime endUtc)
     {
         PointsManager pointsManager = ModContent.GetInstance<PointsManager>();
-        PvPHubCompat.LogMatchPostAuthPreflight();
+        PvPHubService.LogMatchPostAuthPreflight();
 
         Dictionary<ulong, MatchPlayerPayload> players = BuildPlayersDictionary(pointsManager);
         if (players.Count == 0)
@@ -116,7 +117,7 @@ internal static class MatchReporter
                 continue;
 
             ScoreboardEntry statsPlayer = ScoreboardService.GetPlayerStats(player);
-            if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId))
+            if (!PvPHubService.TryGetSteamId(player, out ulong steamId))
             {
                 Log.Chat($"Skipping player with no valid SteamID. PlayerName={player.name}");
                 continue;
@@ -228,24 +229,4 @@ internal static class MatchReporter
 
     private static void WriteMatchPostConsole(string message) =>
         Console.WriteLine($"[PvPAdventure/OfficialMatchReporter] {message}");
-
-    private sealed record MatchPayload(
-        DateTime Start,
-        DateTime End,
-        string GameMode,
-        IDictionary<ulong, MatchPlayerPayload> Players,
-        IDictionary<string, string> Metrics,
-        List<MatchTeamPayload?> Teams);
-
-    private readonly record struct MatchPlayerPayload(
-        string Name,
-        uint Team,
-        uint Reward,
-        int Kills,
-        int Deaths,
-        bool Winner,
-        IDictionary<string, uint> Stats,
-        IDictionary<string, IDictionary<int, uint>> ItemStats);
-
-    private readonly record struct MatchTeamPayload(int Points, IList<short> Bosses);
 }

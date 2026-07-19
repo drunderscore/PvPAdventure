@@ -11,38 +11,62 @@ on:
 jobs:
   dotnet-lint:
     runs-on: windows-latest
+    permissions:
+      contents: read
     env:
       TargetFramework: net8.0
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout PvPAdventure
+        uses: actions/checkout@v6
+        with:
+          path: PvPAdventure
+
+      - name: Checkout PvPFramework
+        uses: actions/checkout@v6
+        with:
+          repository: emyhrberg/PvPFramework
+          ref: 9bbd1a6805cda951f0cbfd71f4268843dc23179e
+          token: ${{ secrets.PVPFRAMEWORK_READ_TOKEN }}
+          path: PvPFramework
+
+      - name: Checkout PvPHub
+        uses: actions/checkout@v6
+        with:
+          repository: emyhrberg/PvPHub
+          ref: e33f312f2669f20a86303321891aeada006faca6
+          token: ${{ secrets.PVPHUB_READ_TOKEN }}
+          path: PvPHub
+
+      - name: Download tModLoader
+        shell: pwsh
+        run: |
+          curl.exe -sSL https://github.com/tModLoader/tModLoader/releases/latest/download/tModLoader.zip -o tModLoader.zip
+
+      - name: Extract tModLoader
+        shell: pwsh
+        run: |
+          Expand-Archive -LiteralPath tModLoader.zip -DestinationPath tModLoader -Force
+          Remove-Item -LiteralPath tModLoader.zip
+
+      - name: Create tModLoader.targets
+        shell: pwsh
+        run: |
+          @'
+          <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+            <Import Project="tModLoader\tMLMod.targets" />
+          </Project>
+          '@ | Set-Content -LiteralPath tModLoader.targets
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
       - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Download tModLoader
-        run: |
-          curl -s -L https://github.com/tModLoader/tModLoader/releases/latest/download/tModLoader.zip -o tModLoader.zip
-
-      - name: Extract tModLoader
-        run: |
-          unzip -q -o tModLoader.zip -d ../tModLoader
-          rm tModLoader.zip
-
-      - name: Create tModLoader.targets
-        shell: bash
-        run: |
-          cat >> ../tModLoader.targets << EOF
-          <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-            <Import Project="tModLoader\tMLMod.targets" />
-          </Project>
-          EOF
+        working-directory: PvPAdventure
+        run: dotnet restore PvPAdventure.sln
 
       - name: Lint
-        run: dotnet format style PvPAdventure.sln --verify-no-changes
+        working-directory: PvPAdventure
+        run: dotnet format style PvPAdventure.sln --verify-no-changes --no-restore

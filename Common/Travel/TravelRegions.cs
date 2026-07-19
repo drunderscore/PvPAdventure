@@ -4,7 +4,6 @@ using PvPAdventure.Common.Travel.Beds;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Content.Portals;
 using PvPAdventure.Core.Config;
-using PvPAdventure.Core.Utilities;
 using Terraria;
 using Terraria.ModLoader;
 using Team = Terraria.Enums.Team;

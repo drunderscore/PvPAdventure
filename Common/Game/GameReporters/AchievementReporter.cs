@@ -1,10 +1,12 @@
+using PvPHub.Common.MainMenu.API;
+using PvPHub.Common.MainMenu.API.Achievements;
 using System;
 using System.Threading.Tasks;
 using Terraria;
 
 namespace PvPAdventure.Common.Game.GameReporters;
 
-/// <summary>Posts PvPAdventure game events through PvPHub's Mod.Call API.</summary>
+/// <summary>Posts PvPAdventure game events through PvPHub's typed achievement API.</summary>
 internal static class AchievementReporter
 {
     private const string GameMode = "pvpa";
@@ -14,7 +16,7 @@ internal static class AchievementReporter
     /// </summary>
     public static void OnSniperDoubleHit(Player shooter)
     {
-        if (!PvPHubCompat.TryGetSteamId(shooter, out ulong steamId))
+        if (!PvPHubService.TryGetSteamId(shooter, out ulong steamId))
             return;
 
         _ = ReportAsync(steamId, "hit_two_one_sniper_shot");
@@ -24,19 +26,17 @@ internal static class AchievementReporter
     {
         try
         {
-            PvPHubCallResult result = await PvPHubCompat
+            ApiResult<ApiAchievement> result = await PvPHubService
                 .ProgressAchievementAsync(steamId, achievementName, GameMode)
                 .ConfigureAwait(false);
 
-            if (result.Success)
+            if (result.IsSuccess)
             {
-                result.TryGetDataUInt32("progress", out uint progress);
-                result.TryGetDataUInt32("target", out uint target);
-                Log.Info($"'{achievementName}' -> {steamId} progress={progress}/{target}");
+                Log.Info($"'{achievementName}' -> {steamId} progress={result.Data.Progress}/{result.Data.Target}");
             }
             else
             {
-                Log.Warn($"'{achievementName}' -> {steamId} failed: {result.Error}");
+                Log.Warn($"'{achievementName}' -> {steamId} failed: {result.ErrorMessage}");
             }
         }
         catch (Exception ex)

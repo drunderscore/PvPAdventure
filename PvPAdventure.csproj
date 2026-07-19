@@ -4,13 +4,16 @@
 	<PropertyGroup>
 		<AssemblyName>PvPAdventure</AssemblyName>
 		<LangVersion>latest</LangVersion>
+		<!-- tModLoader dependency packaging writes shared files and cannot run concurrently. -->
+		<BuildInParallel>false</BuildInParallel>
 		<NoWarn>$(NoWarn);CS0436</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\PvPFramework\PvPFramework.csproj" />
+		<ProjectReference Include="..\PvPHub\PvPHub.csproj" />
 	</ItemGroup>
-	
+
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->
 	<ItemGroup>
 		<PackageReference Include="Krafs.Publicizer" PrivateAssets="true" Version="2.2.1" />

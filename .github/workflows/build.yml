@@ -11,44 +11,69 @@ on:
 jobs:
   build-mod:
     runs-on: windows-latest
+    permissions:
+      contents: read
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout PvPAdventure
+        uses: actions/checkout@v6
+        with:
+          path: PvPAdventure
+
+      - name: Checkout PvPFramework
+        uses: actions/checkout@v6
+        with:
+          repository: emyhrberg/PvPFramework
+          ref: 9bbd1a6805cda951f0cbfd71f4268843dc23179e
+          token: ${{ secrets.PVPFRAMEWORK_READ_TOKEN }}
+          path: PvPFramework
+
+      - name: Checkout PvPHub
+        uses: actions/checkout@v6
+        with:
+          repository: emyhrberg/PvPHub
+          ref: e33f312f2669f20a86303321891aeada006faca6
+          token: ${{ secrets.PVPHUB_READ_TOKEN }}
+          path: PvPHub
 
       - name: Download tModLoader
+        shell: pwsh
         run: |
-          curl -s -L https://github.com/tModLoader/tModLoader/releases/latest/download/tModLoader.zip -o tModLoader.zip
+          curl.exe -sSL https://github.com/tModLoader/tModLoader/releases/latest/download/tModLoader.zip -o tModLoader.zip
 
       - name: Extract tModLoader
+        shell: pwsh
         run: |
-          unzip -q -o tModLoader.zip -d ../tModLoader
-          rm tModLoader.zip
+          Expand-Archive -LiteralPath tModLoader.zip -DestinationPath tModLoader -Force
+          Remove-Item -LiteralPath tModLoader.zip
 
       - name: Create tModLoader.targets
-        shell: bash
+        shell: pwsh
         run: |
-          cat >> ../tModLoader.targets << EOF
+          @'
           <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
             <Import Project="tModLoader\tMLMod.targets" />
           </Project>
-          EOF
+          '@ | Set-Content -LiteralPath tModLoader.targets
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
 
       - name: Restore packages
+        working-directory: PvPAdventure
         run: dotnet restore PvPAdventure.sln
 
       - name: Build solution
-        run: dotnet build PvPAdventure.sln --configuration Release
+        working-directory: PvPAdventure
+        run: dotnet build PvPAdventure.sln --configuration Release --no-restore "-p:ExtraBuildModFlags=-tmlsavedirectory $env:GITHUB_WORKSPACE\tModLoaderSave"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: PvPAdventure-Binaries
           path: |
-            ./bin/**/Release/net8.0/*.dll
-            ./bin/**/Release/net8.0/*.tmod
+            PvPAdventure/bin/Release/net8.0/PvPAdventure.dll
+            PvPAdventure/bin/Release/net8.0/PvPAdventure.pdb
+            tModLoaderSave/Mods/PvPAdventure.tmod
