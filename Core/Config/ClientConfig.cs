@@ -29,14 +29,6 @@ public class ClientConfig : ModConfig
         Big,
     }
 
-    [Header("Visualization")]
-    [HeaderIcon(nameof(Ass.ConfigPlayerOutline))]
-
-    [BackgroundColor(126, 62, 88)]
-    [DefaultValue(false)] 
-    [ConfigIcon(ItemID.PlumbersShirt)]
-    public bool ShowVanityVisuals = false;
-
     [Header("UI")]
     [BackgroundColor(36, 104, 118)]
     [DefaultValue(TravelUIPosition.Top)]

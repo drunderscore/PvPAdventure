@@ -16,7 +16,7 @@ namespace PvPAdventure.Common.AdminTools.HerosMod;
 public sealed class HerosModIntegration : ModSystem
 {
     // Permission keys
-    private const string PauseGamePermissionKey = "PauseGame";
+    //private const string PauseGamePermissionKey = "PauseGame";
     private const string PlayGamePermissionKey = "PlayGame";
 
     public override void PostSetupContent()
@@ -24,36 +24,36 @@ public sealed class HerosModIntegration : ModSystem
         if (ModLoader.TryGetMod("HEROsMod", out Mod herosMod))
         {
             // Add permissions
-            herosMod.Call("AddPermission",PauseGamePermissionKey,"Pause / resume game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)));
+            //herosMod.Call("AddPermission",PauseGamePermissionKey,"Pause / resume game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)));
             herosMod.Call("AddPermission",PlayGamePermissionKey,"Start / end game",(Action<bool>)(hasPerm => PermissionChanged(hasPerm, PlayGamePermissionKey)));
 
             // Add buttons
-            AddPauseButton(herosMod);
+            //AddPauseButton(herosMod);
             AddPlayButton(herosMod);
         }
     }
 
-    private void AddPauseButton(Mod herosMod)
-    {
-        // Pause game
-        herosMod.Call("AddSimpleButton",
-            PauseGamePermissionKey,
-            Ass.IconPauseGame,
-            (Action)(() =>
-            {
-                var pm = ModContent.GetInstance<PauseManager>();
-                pm.TogglePause();
-            }),
-            (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)),
-            (Func<string>)(() =>
-            {
-                var pm = ModContent.GetInstance<PauseManager>();
-                return (pm != null && pm.IsPaused)
-                    ? "Resume"
-                    : "Pause";
-            })
-        );
-    }
+    //private void AddPauseButton(Mod herosMod)
+    //{
+    //    // Pause game
+    //    herosMod.Call("AddSimpleButton",
+    //        PauseGamePermissionKey,
+    //        Ass.IconPauseGame,
+    //        (Action)(() =>
+    //        {
+    //            var pm = ModContent.GetInstance<PauseManager>();
+    //            pm.TogglePause();
+    //        }),
+    //        (Action<bool>)(hasPerm => PermissionChanged(hasPerm, PauseGamePermissionKey)),
+    //        (Func<string>)(() =>
+    //        {
+    //            var pm = ModContent.GetInstance<PauseManager>();
+    //            return (pm != null && pm.IsPaused)
+    //                ? "Resume"
+    //                : "Pause";
+    //        })
+    //    );
+    //}
     private void AddPlayButton(Mod herosMod)
     {
         herosMod.Call("AddSimpleButton",

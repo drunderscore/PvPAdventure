@@ -16,7 +16,7 @@ internal sealed class DLToolIcons : ModSystem
 {
     public static string StartGameKey => "StartGame";
     public static string EndGameKey => "EndGame";
-    public static string PauseKey => "Pause";
+    //public static string PauseKey => "Pause";
     public static string PointsSetterKey => "PointsSetter";
 
     public static Asset<Texture2D>? GlowAlpha { get; private set; }
@@ -54,7 +54,7 @@ internal sealed class DLToolIcons : ModSystem
 
             provider.icons[StartGameKey] = Ass.IconStartGame.Value;
             provider.icons[EndGameKey] = Ass.IconEndGame.Value;
-            provider.icons[PauseKey] = Ass.IconPauseGame.Value;
+            //provider.icons[PauseKey] = Ass.IconPauseGame.Value;
             provider.icons[PointsSetterKey] = Ass.IconPointsSetter.Value;
         }
 

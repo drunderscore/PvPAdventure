@@ -14,8 +14,6 @@ public static class GameManagerNetHandler
 {
     public enum GameManagerPacketType : byte
     {
-        PauseGame,
-        PauseGameRequestClientSave,
         StartGame,
         AdjustGameTime,
         UpdateCountdown,
@@ -29,28 +27,6 @@ public static class GameManagerNetHandler
 
         switch (subPacket)
         {
-            case GameManagerPacketType.PauseGame:
-                {
-                    if (Main.netMode != NetmodeID.Server)
-                    {
-                        return;
-                    }
-
-                    var pm = ModContent.GetInstance<PauseManager>();
-                    pm.TogglePause();
-
-                    return;
-                }
-            case GameManagerPacketType.PauseGameRequestClientSave:
-                {
-                    if (Main.netMode != NetmodeID.MultiplayerClient)
-                        return;
-
-                    //ModContent.GetInstance<SSCSaveSystem>()?.SendPacketToSavePlayerFile();
-                    ErkySSCCompat.TrySendErkySSCSave();
-                    return;
-                }
-
             case GameManagerPacketType.StartGame:
                 {
                     int time = reader.ReadInt32();
@@ -128,16 +104,5 @@ public static class GameManagerNetHandler
                     return;
                 }
         }
-    }
-
-    public static void SendRequestPlayerSave()
-    {
-        if (Main.netMode != NetmodeID.Server)
-            return;
-
-        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
-        packet.Write((byte)AdventurePacketIdentifier.GameManager);
-        packet.Write((byte)GameManagerPacketType.PauseGameRequestClientSave);
-        packet.Send();
     }
 }
