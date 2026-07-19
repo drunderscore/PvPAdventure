@@ -1,10 +1,5 @@
 ﻿using PvPAdventure.Core.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -43,31 +38,14 @@ public static class ErkySSCCompat
             return;
         }
 
-        Type saveSystemType = erkySsc.Code.GetType("ErkySSC.Common.SSC.SSCSaveSystem");
-
-        if (saveSystemType == null)
+        try
         {
-            Log.Warn("[PvPAdventure] Could not find ErkySSC.Common.SSC.SSCSaveSystem.");
-            return;
+            if (erkySsc.Call("RequestClientSave") is not true)
+                Log.Warn("[PvPAdventure] ErkySSC rejected the client save request.");
         }
-
-        MethodInfo getInstanceMethod = typeof(ModContent).GetMethod("GetInstance", BindingFlags.Public | BindingFlags.Static)?.MakeGenericMethod(saveSystemType);
-        object saveSystem = getInstanceMethod?.Invoke(null, []);
-
-        if (saveSystem == null)
+        catch (Exception exception)
         {
-            Log.Warn("[PvPAdventure] Could not get SSCSaveSystem instance.");
-            return;
+            Log.Warn($"[PvPAdventure] Could not request an ErkySSC save: {exception.Message}");
         }
-
-        MethodInfo sendMethod = saveSystemType.GetMethod("SendPacketToSavePlayerFile", BindingFlags.Instance | BindingFlags.Public);
-
-        if (sendMethod == null)
-        {
-            Log.Warn("[PvPAdventure] Could not find SSCSaveSystem.SendPacketToSavePlayerFile().");
-            return;
-        }
-
-        sendMethod.Invoke(saveSystem, []);
     }
 }

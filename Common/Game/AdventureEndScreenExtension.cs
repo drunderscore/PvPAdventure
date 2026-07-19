@@ -62,15 +62,15 @@ internal static class AdventureEndScreenExtension
     private static List<EndScreenPlayerStats> AssignRoles(List<EndScreenPlayerStats> players)
     {
         Dictionary<byte, (string Title, string Value)> roles = [];
-        AwardHighest(players, roles, p => p.BossDamageDealt, "Boss Breaker", p => $"{Short(p.BossDamageDealt)} boss dmg");
-        AwardHighest(players, roles, p => p.PortalKills, "Portal Breaker", p => $"{p.PortalKills} {Plural(p.PortalKills, "portal")}");
-        AwardHighest(players, roles, p => p.DifferentWeaponsUsed, "The Arsenal", p => $"{p.DifferentWeaponsUsed} {Plural(p.DifferentWeaponsUsed, "weapon")}");
-        AwardHighest(players, roles, p => p.LavaDeaths, "Lava Magnet", p => $"{p.LavaDeaths} lava {Plural(p.LavaDeaths, "death")}");
-        AwardHighest(players, roles, p => p.FoodEaten, "Feastmaster", p => $"{p.FoodEaten} food eaten");
-        AwardHighest(players, roles, p => p.LostHoney, "Honey Spiller", p => $"{p.LostHoney} honey lost");
+        AwardHighest(players, roles, player => player.BossDamageDealt, "Boss Breaker", player => $"{Short(player.BossDamageDealt)} boss dmg");
+        AwardHighest(players, roles, player => player.PortalKills, "Portal Breaker", player => $"{player.PortalKills} {Plural(player.PortalKills, "portal")}");
+        AwardHighest(players, roles, player => player.DifferentWeaponsUsed, "The Arsenal", player => $"{player.DifferentWeaponsUsed} {Plural(player.DifferentWeaponsUsed, "weapon")}");
+        AwardHighest(players, roles, player => player.LavaDeaths, "Lava Magnet", player => $"{player.LavaDeaths} lava {Plural(player.LavaDeaths, "death")}");
+        AwardHighest(players, roles, player => player.FoodEaten, "Feastmaster", player => $"{player.FoodEaten} food eaten");
+        AwardHighest(players, roles, player => player.LostHoney, "Honey Spiller", player => $"{player.LostHoney} honey lost");
 
-        EndScreenPlayerStats survivor = players.Where(p => !roles.ContainsKey(p.PlayerIndex))
-            .OrderBy(p => p.Deaths).ThenByDescending(p => p.Kills).FirstOrDefault();
+        EndScreenPlayerStats survivor = players.Where(player => !roles.ContainsKey(player.PlayerIndex))
+            .OrderBy(player => player.Deaths).ThenByDescending(player => player.Kills).FirstOrDefault();
         if (survivor != null)
             roles[survivor.PlayerIndex] = ("Survivor", $"{survivor.Deaths} {Plural((uint)survivor.Deaths, "death")}");
 
@@ -79,12 +79,17 @@ internal static class AdventureEndScreenExtension
             : player with { RoleTitle = "Adventurer", RoleValue = "Ready for more" }).ToList();
     }
 
-    private static void AwardHighest(List<EndScreenPlayerStats> players,
-        Dictionary<byte, (string Title, string Value)> roles, Func<EndScreenPlayerStats, uint> value,
-        string title, Func<EndScreenPlayerStats, string> text)
+    private static void AwardHighest(
+        List<EndScreenPlayerStats> players,
+        Dictionary<byte, (string Title, string Value)> roles,
+        Func<EndScreenPlayerStats, uint> value,
+        string title,
+        Func<EndScreenPlayerStats, string> text)
     {
-        EndScreenPlayerStats winner = players.Where(player => !roles.ContainsKey(player.PlayerIndex) && value(player) > 0)
-            .OrderByDescending(value).ThenByDescending(player => player.Kills).ThenBy(player => player.Deaths).FirstOrDefault();
+        EndScreenPlayerStats winner = players
+            .Where(player => !roles.ContainsKey(player.PlayerIndex) && value(player) > 0)
+            .OrderByDescending(value).ThenByDescending(player => player.Kills).ThenBy(player => player.Deaths)
+            .FirstOrDefault();
         if (winner != null)
             roles[winner.PlayerIndex] = (title, text(winner));
     }

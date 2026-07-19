@@ -1,10 +1,6 @@
 ﻿using PvPAdventure.Common.Statistics;
-using System;
 using PvPFramework.Common.Scoreboard;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 using Terraria;
 using Terraria.Enums;
 

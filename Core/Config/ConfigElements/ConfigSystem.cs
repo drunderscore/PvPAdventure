@@ -163,9 +163,16 @@ public sealed class ConfigSystem : ModSystem
             return Main.Assets.Request<Texture2D>($"Images/Item_{itemId}", AssetRequestMode.ImmediateLoad);
         }
 
-        return string.IsNullOrEmpty(fieldName)
-            ? null
-            : typeof(Ass).GetField(fieldName, BindingFlags.Public | BindingFlags.Static)?.GetValue(null) as Asset<Texture2D>;
+        if (string.IsNullOrEmpty(fieldName))
+            return null;
+
+        Asset<Texture2D> assAsset = typeof(Ass).GetField(fieldName, BindingFlags.Public | BindingFlags.Static)?.GetValue(null) as Asset<Texture2D>;
+        if (assAsset != null)
+            return assAsset;
+
+        return fieldName.Contains('/') && ModContent.HasAsset(fieldName)
+            ? ModContent.Request<Texture2D>(fieldName, AssetRequestMode.ImmediateLoad)
+            : null;
     }
 
     private static int CountChildren(UIElement element) => element.Children.Count();

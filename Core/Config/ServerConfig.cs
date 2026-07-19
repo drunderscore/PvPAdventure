@@ -28,11 +28,11 @@ public sealed class ServerConfig : ModConfig
     [HeaderIcon(267)]
     [ConfigIcon(nameof(Ass.ConfigBoundNPC))]
     [BackgroundColor(58, 108, 72)]
-    [DefaultValue(0.25f)]
-    public float BoundSpawnChance = 0.25f;
+    [DefaultValue(ServerConfigDefaults.BoundSpawnChance)]
+    public float BoundSpawnChance = ServerConfigDefaults.BoundSpawnChance;
 
     [Header("Travel")]
-    [HeaderIcon(ItemID.GPS)]
+    [HeaderIcon("PvPAdventure/Assets/Portals/PortalMinimap_Red")]
     [ConfigIcon(nameof(Ass.ConfigBed), placement: ConfigIconPlacement.Cut)]
     [BackgroundColor(36, 108, 116)]
     [Expand(false, false)]
@@ -49,7 +49,7 @@ public sealed class ServerConfig : ModConfig
     [BackgroundColor(72, 104, 72)]
     [Expand(false, false)]
     [CustomModConfigItem(typeof(InvasionDictionaryElement))]
-    public Dictionary<int, InvasionSizeValue> InvasionSizes = [];
+    public Dictionary<int, InvasionSizeValue> InvasionSizes = ServerConfigDefaults.CreateInvasionSizes();
 
     [BackgroundColor(72, 104, 72)]
     [DefaultValue(true)]
@@ -73,7 +73,13 @@ public sealed class ServerConfig : ModConfig
 
     public override void OnLoaded()
     {
+        Points ??= new();
+        Points.Npc ??= ServerConfigDefaults.CreateNpcPoints();
+        Bounties ??= new();
+        Bounties.ClaimableItems ??= ServerConfigDefaults.CreateClaimableBounties();
         TravelSystem ??= new();
+        WorldGeneration ??= new();
+        InvasionSizes ??= ServerConfigDefaults.CreateInvasionSizes();
     }
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)
@@ -113,7 +119,7 @@ public sealed class ServerConfig : ModConfig
     {
         [Expand(false, false)]
         [CustomModConfigItem(typeof(DefinitionDictionaryElement))]
-        public Dictionary<NPCDefinition, NpcPoints> Npc = [];
+        public Dictionary<NPCDefinition, NpcPoints> Npc = ServerConfigDefaults.CreateNpcPoints();
 
         [Expand(false, false)]
         public NpcPoints Boss = new()
@@ -122,7 +128,8 @@ public sealed class ServerConfig : ModConfig
             Additional = 1
         };
 
-        public int PlayerKill = 1;
+        [DefaultValue(ServerConfigDefaults.PlayerKillPoints)]
+        public int PlayerKill = ServerConfigDefaults.PlayerKillPoints;
 
         public sealed class NpcPoints
         {
@@ -131,8 +138,8 @@ public sealed class ServerConfig : ModConfig
             public bool Repeatable;
         }
 
-        [DefaultValue(5)]
-        public int TeamStartingPoints = 5;
+        [DefaultValue(ServerConfigDefaults.TeamStartingPoints)]
+        public int TeamStartingPoints = ServerConfigDefaults.TeamStartingPoints;
 
         [DefaultValue(0)]
         public int BedKill;
@@ -144,10 +151,10 @@ public sealed class ServerConfig : ModConfig
     public sealed class BountiesConfig
     {
         [Expand(false, false)]
-        public List<Bounty> ClaimableItems = [];
+        public List<Bounty> ClaimableItems = ServerConfigDefaults.CreateClaimableBounties();
 
-        [DefaultValue(false)]
-        public bool AwardBountyEveryKill;
+        [DefaultValue(ServerConfigDefaults.AwardBountyEveryKill)]
+        public bool AwardBountyEveryKill = ServerConfigDefaults.AwardBountyEveryKill;
 
         public sealed class Bounty
         {
@@ -174,8 +181,8 @@ public sealed class ServerConfig : ModConfig
 
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [ConfigIcon(nameof(Ass.IconQuestionMark))]
-        [DefaultValue(true)]
-        public bool IsRandomTeleportEnabled = true;
+        [DefaultValue(ServerConfigDefaults.IsRandomTeleportEnabled)]
+        public bool IsRandomTeleportEnabled = ServerConfigDefaults.IsRandomTeleportEnabled;
 
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [DefaultValue(true)]
@@ -183,8 +190,8 @@ public sealed class ServerConfig : ModConfig
 
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [Range(0, 60)]
-        [DefaultValue(5)]
-        public int TravelPortalCreationTimePreHardmodeSeconds = 5;
+        [DefaultValue(ServerConfigDefaults.TravelPortalCreationTimePreHardmodeSeconds)]
+        public int TravelPortalCreationTimePreHardmodeSeconds = ServerConfigDefaults.TravelPortalCreationTimePreHardmodeSeconds;
 
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [Range(0, 60)]
@@ -203,41 +210,41 @@ public sealed class ServerConfig : ModConfig
 
         [RequiresField(nameof(IsTravelSystemEnabled))]
         [Range(0, 60)]
-        [DefaultValue(5)]
-        public int TeleportCooldownSeconds = 5;
+        [DefaultValue(ServerConfigDefaults.TeleportCooldownSeconds)]
+        public int TeleportCooldownSeconds = ServerConfigDefaults.TeleportCooldownSeconds;
     }
 
     public sealed class WorldGenerationConfig
     {
         [ConfigIcon(ItemID.LifeFruit)]
-        [DefaultValue(2)]
-        public int LifeFruitChanceDenominator = 2;
+        [DefaultValue(ServerConfigDefaults.LifeFruitChanceDenominator)]
+        public int LifeFruitChanceDenominator = ServerConfigDefaults.LifeFruitChanceDenominator;
 
         [ConfigIcon(ItemID.LifeFruit)]
-        [DefaultValue(2)]
-        public int LifeFruitExpertChanceDenominator = 2;
+        [DefaultValue(ServerConfigDefaults.LifeFruitExpertChanceDenominator)]
+        public int LifeFruitExpertChanceDenominator = ServerConfigDefaults.LifeFruitExpertChanceDenominator;
 
         [ConfigIcon(ItemID.LifeFruit)]
-        [DefaultValue(2)]
-        public int LifeFruitMinimumDistanceBetween = 2;
+        [DefaultValue(ServerConfigDefaults.LifeFruitMinimumDistanceBetween)]
+        public int LifeFruitMinimumDistanceBetween = ServerConfigDefaults.LifeFruitMinimumDistanceBetween;
 
         [ConfigIcon(nameof(Ass.ConfigPlanterasBulb))]
-        [DefaultValue(30)]
-        public int PlanteraBulbChanceDenominator = 30;
+        [DefaultValue(ServerConfigDefaults.PlanteraBulbChanceDenominator)]
+        public int PlanteraBulbChanceDenominator = ServerConfigDefaults.PlanteraBulbChanceDenominator;
 
         [ConfigIcon(ItemID.ChlorophyteOre)]
-        [DefaultValue(8)]
-        public int ChlorophyteSpreadChanceModifier = 8;
+        [DefaultValue(ServerConfigDefaults.ChlorophyteSpreadChanceModifier)]
+        public int ChlorophyteSpreadChanceModifier = ServerConfigDefaults.ChlorophyteSpreadChanceModifier;
 
         [ConfigIcon(ItemID.ChlorophyteOre)]
         [Range(1, 1000)]
-        [DefaultValue(300)]
-        public int ChlorophyteGrowChanceModifier = 300;
+        [DefaultValue(ServerConfigDefaults.ChlorophyteGrowChanceModifier)]
+        public int ChlorophyteGrowChanceModifier = ServerConfigDefaults.ChlorophyteGrowChanceModifier;
 
         [ConfigIcon(ItemID.ChlorophyteOre)]
         [Range(1, 999999)]
-        [DefaultValue(300)]
-        public int ChlorophyteGrowLimitModifier = 300;
+        [DefaultValue(ServerConfigDefaults.ChlorophyteGrowLimitModifier)]
+        public int ChlorophyteGrowLimitModifier = ServerConfigDefaults.ChlorophyteGrowLimitModifier;
     }
 
     public sealed class InvasionSizeValue

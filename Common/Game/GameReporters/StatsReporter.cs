@@ -5,9 +5,7 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Game.GameReporters;
 
-/// <summary>
-/// Shared match-stat keys and payload helpers for PvPHub reporting.
-/// </summary>
+/// <summary>Shared match-stat keys and payload helpers for PvPHub reporting.</summary>
 internal static class StatsReporter
 {
     public const string DamageDealt = "damage_dealt";
@@ -21,21 +19,12 @@ internal static class StatsReporter
     public const string BossDamageDealt = "boss_damage_dealt";
     public const string PortalKills = "portal_kills";
     public const string LostHoney = "lost_honey";
-    public static Dictionary<string, uint> CopyStats(Player player)
-    {
-        if (player == null)
-            return [];
 
-        return player.GetModPlayer<MatchStatsPlayer>().CopyStats();
-    }
+    public static Dictionary<string, uint> CopyStats(Player player) =>
+        player == null ? [] : player.GetModPlayer<MatchStatsPlayer>().CopyStats();
 
-    public static Dictionary<string, IDictionary<int, uint>> CopyItemStats(Player player)
-    {
-        if (player == null)
-            return [];
-
-        return player.GetModPlayer<MatchStatsPlayer>().CopyItemStats();
-    }
+    public static Dictionary<string, IDictionary<int, uint>> CopyItemStats(Player player) =>
+        player == null ? [] : player.GetModPlayer<MatchStatsPlayer>().CopyItemStats();
 
     internal static string GetStatKey(MatchStatKey statKey) => statKey switch
     {
@@ -62,10 +51,8 @@ internal static class StatsReporter
         {
             MatchStatKey.ConsumablesUsed or MatchStatKey.TilesPlaced or MatchStatKey.MiningToolsUsed or MatchStatKey.FoodEaten
                 => IsValidItemId(itemKey),
-            MatchStatKey.TilesMined
-                => itemKey >= 0 && itemKey < TileLoader.TileCount,
-            MatchStatKey.LostHoney
-                => itemKey < 0,
+            MatchStatKey.TilesMined => itemKey >= 0 && itemKey < TileLoader.TileCount,
+            MatchStatKey.LostHoney => itemKey < 0,
             _ => false
         };
     }

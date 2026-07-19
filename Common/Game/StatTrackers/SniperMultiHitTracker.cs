@@ -10,10 +10,8 @@ namespace PvPAdventure.Common.Game.StatTrackers;
 /// Fires <see cref="AchievementReporter.OnSniperDoubleHit"/> the moment the second hit lands.
 ///
 /// Requires <c>InstancePerEntity = true</c> so each projectile has its own hit counter.
-/// Only active when PvPHub is loaded.
+/// Reporting safely no-ops when PvPHub is not loaded.
 /// </summary>
-[JITWhenModsEnabled("PvPHub")]
-[ExtendsFromMod("PvPHub")]
 public sealed class SniperMultiHitTracker : GlobalProjectile
 {
     public override bool InstancePerEntity => true;

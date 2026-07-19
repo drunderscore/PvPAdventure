@@ -1,16 +1,15 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.AdminTools.Tools.PointsSetter;
 using PvPAdventure.Core.Utilities;
 using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.ErkySSC;
+namespace PvPAdventure.Common.AdminTools.Tools.PointsSetter;
 
 [Autoload(Side = ModSide.Client)]
-internal sealed class PointsSetterTool : ModSystem
+internal sealed class PointsSetterErkySSCTool : ModSystem
 {
     private const string Owner = "PvPAdventure.PointsSetter";
 

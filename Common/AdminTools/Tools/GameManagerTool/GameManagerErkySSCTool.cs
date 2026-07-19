@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
 using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Net;
 using ReLogic.Content;
@@ -11,10 +10,10 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.ErkySSC;
+namespace PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
 
 [Autoload(Side = ModSide.Client)]
-internal sealed class GameManagerTool : ModSystem
+internal sealed class GameManagerErkySSCTool : ModSystem
 {
     private const string Owner = "PvPAdventure.GameManager";
 
