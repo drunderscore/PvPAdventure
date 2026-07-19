@@ -28,6 +28,11 @@ internal class TravelTeleportSystem : ModSystem
         if (player?.active != true)
             return targets;
 
+        ServerConfig.TravelSystemConfig travelConfig = ModContent.GetInstance<ServerConfig>().TravelSystem;
+
+        if (travelConfig.IsWorldSpawnTeleportEnabled)
+            TravelSectionSyncSystem.RequestPreview(TravelType.World, -1);
+
         targets.Add(WithCooldown(player, new TravelTarget(TravelType.World, -1, GetPlayerTopLeftAtTile(player, Main.spawnTileX, Main.spawnTileY), "World Spawn", "World", true)));
 
         for (int i = 0; i < Main.maxPlayers; i++)
@@ -36,6 +41,9 @@ internal class TravelTeleportSystem : ModSystem
 
             if (targetPlayer?.active != true || i != player.whoAmI && (player.team <= 0 || targetPlayer.team != player.team))
                 continue;
+
+            if (travelConfig.IsTeammateSpawnTeleportEnabled && targetPlayer.SpawnX >= 0 && targetPlayer.SpawnY >= 0)
+                TravelSectionSyncSystem.RequestPreview(TravelType.Bed, i);
 
             bool hasBed = targetPlayer.SpawnX >= 0 && targetPlayer.SpawnY >= 0 && Player.CheckSpawn(targetPlayer.SpawnX, targetPlayer.SpawnY);
             targets.Add(WithCooldown(player, new TravelTarget(
@@ -49,6 +57,9 @@ internal class TravelTeleportSystem : ModSystem
             )));
 
             bool hasPortal = TryGetPortalPosition(player, i, out Vector2 portalPos);
+            if (travelConfig.IsTeammateSpawnTeleportEnabled && hasPortal)
+                TravelSectionSyncSystem.RequestPreview(TravelType.Portal, i);
+
             targets.Add(WithCooldown(player, new TravelTarget(
                 TravelType.Portal,
                 i,

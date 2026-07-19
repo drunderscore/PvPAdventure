@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.AdminTools.DragonLens.Tools;
 using PvPAdventure.Common.Game;
+using PvPFramework.Common;
 using Terraria;
 using Terraria.ModLoader;
 

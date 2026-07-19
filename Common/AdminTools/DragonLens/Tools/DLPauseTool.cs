@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.AdminTools.DragonLens;
 using PvPAdventure.Common.Game;
 using PvPAdventure.Core.Net;
+using PvPFramework.Common;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;

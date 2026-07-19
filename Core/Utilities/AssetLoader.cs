@@ -36,7 +36,6 @@ public static class Ass
     public static Asset<Texture2D> IconWatch;
     public static Asset<Texture2D> IconTime;
     public static Asset<Texture2D> IconStartGame;
-    public static Asset<Texture2D> IconPauseGame;
     public static Asset<Texture2D> IconEndGame;
     public static Asset<Texture2D> IconPointsSetter;
     public static Asset<Texture2D> Slider;

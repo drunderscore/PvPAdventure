@@ -17,8 +17,9 @@ public static class TravelTeleportNetHandler
 {
     private enum TravelTeleportPacketType : byte
     {
-        Teleport,
-        TeleportSound
+        Teleport = 0,
+        TeleportSound = 1,
+        SectionRequest = 2
     }
 
     public static void HandlePacket(BinaryReader reader, int whoAmI)
@@ -35,10 +36,27 @@ public static class TravelTeleportNetHandler
                 ReceiveTeleportSound(reader);
                 break;
 
+            case TravelTeleportPacketType.SectionRequest:
+                TravelSectionSyncSystem.ReceiveRequest(reader, whoAmI);
+                break;
+
             default:
                 Log.Warn($"[TravelTeleport] Unknown packet type={(byte)type}");
                 break;
         }
+    }
+
+    internal static void SendSectionRequest(TravelType type, int targetPlayerIndex)
+    {
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            return;
+
+        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.TravelTeleport);
+        packet.Write((byte)TravelTeleportPacketType.SectionRequest);
+        packet.Write((byte)type);
+        packet.Write((short)targetPlayerIndex);
+        packet.Send();
     }
 
     public static void SendTeleportRequest(TravelTarget target, bool ignoreCooldown = false)
@@ -105,6 +123,7 @@ public static class TravelTeleportNetHandler
             player.TeleportationPotion();
             player.fallStart = (int)(player.position.Y / 16f);
 
+            TravelSectionSyncSystem.PrepareTeleport(whoAmI, player.position);
             NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, player.whoAmI, player.position.X, player.position.Y, TeleportationStyleID.TeleportationPotion);
             NetMessage.SendData(MessageID.SyncPlayer, -1, -1, null, player.whoAmI);
             SendTeleportSound(player.Center);
@@ -120,6 +139,7 @@ public static class TravelTeleportNetHandler
             return;
         }
 
+        TravelSectionSyncSystem.PrepareTeleport(whoAmI, position);
         player.velocity = Vector2.Zero;
         player.Teleport(position, TeleportationStyleID.RodOfDiscord);
         player.fallStart = (int)(position.Y / 16f);

@@ -79,7 +79,10 @@ internal sealed class TravelSpectateSystem : ModSystem
         HandleHoverTransitions(local, previewing);
 
         if (previewing)
+        {
+            TravelSectionSyncSystem.RequestPreview(hoveredTarget);
             ApplyCamera();
+        }
     }
 
     public override void OnWorldUnload()

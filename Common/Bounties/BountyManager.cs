@@ -101,7 +101,6 @@ public class BountyManager : ModSystem
 #endif
 
     public sealed class Transaction(int id, byte team, byte pageIndex, byte bountyIndex)
-        : IPacket<Transaction>
     {
         public int Id { get; } = id;
         public byte Team { get; } = team;

@@ -29,7 +29,7 @@ internal sealed class MatchStatsPlayer : ModPlayer
     private readonly Dictionary<string, uint> stats = [];
     private readonly Dictionary<string, Dictionary<int, uint>> itemStats = [];
 
-    public readonly record struct StatDelta(MatchStatKey StatKey, int ItemKey, uint Amount) : IPacket<StatDelta>
+    public readonly record struct StatDelta(MatchStatKey StatKey, int ItemKey, uint Amount)
     {
         public static StatDelta Deserialize(BinaryReader reader)
         {
