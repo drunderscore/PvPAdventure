@@ -1,6 +1,7 @@
 ﻿using PvPAdventure.Common.Statistics;
 using PvPHub.Common.MainMenu.API;
 using PvPHub.Common.MainMenu.API.MatchHistory;
+using PvPFramework.Common.Scoreboard;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -205,7 +206,7 @@ internal static class MatchReporter
             if (player == null || !player.active)
                 continue;
 
-            StatisticsPlayer statsPlayer = player.GetModPlayer<StatisticsPlayer>();
+            ScoreboardEntry statsPlayer = ScoreboardService.GetPlayerStats(player);
 
             if (!PvPHubCompat.TryGetSteamId(player, out ulong steamId))
             {

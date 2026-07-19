@@ -6,7 +6,6 @@ Mods: {
 		}
 
 		Keybinds: {
-			Scoreboard.DisplayName: Scoreboard
 			BountyShop.DisplayName: Bounty Shop
 			Dash.DisplayName: Dash
 			DLEndGameTool.DisplayName: DL End Game Tool

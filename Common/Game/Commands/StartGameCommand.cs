@@ -4,7 +4,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using static PvPAdventure.Common.Game.GameManager;
 
-namespace PvPAdventure.Common.Game;
+namespace PvPAdventure.Common.Game.Commands;
 
 public class StartGameCommand : ModCommand
 {

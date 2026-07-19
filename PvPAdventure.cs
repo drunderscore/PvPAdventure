@@ -1,4 +1,6 @@
 using PvPAdventure.Core.Net;
+using PvPAdventure.Common.Game;
+using PvPFramework.Common.Scoreboard;
 using System.IO;
 using Terraria;
 using Terraria.ModLoader;
@@ -33,18 +35,6 @@ public class PvPAdventure : Mod
                 Common.Bounties.BountyNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
-            case AdventurePacketIdentifier.PlayerStatistics:
-                Common.Statistics.PlayerStatisticsNetHandler.HandlePacket(reader, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.PlayerItemPickup:
-                Common.Statistics.PlayerItemPickupNetHandler.HandlePacket(reader, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.PlayerTeam:
-                Common.Teams.PlayerTeamNetHandler.HandlePacket(reader, whoAmI);
-                break;
-
             case AdventurePacketIdentifier.TeamBed:
                 Common.Travel.Beds.TeamBedNetHandler.HandlePacket(reader, whoAmI);
                 break;
@@ -63,10 +53,6 @@ public class PvPAdventure : Mod
 
             case AdventurePacketIdentifier.MatchStatDelta:
                 Common.Game.StatTrackers.MatchStatsNetHandler.HandlePacket(reader, whoAmI);
-                break;
-
-            case AdventurePacketIdentifier.EndScreen:
-                Common.Game.EndScreen.EndScreenNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             default:
@@ -94,13 +80,60 @@ public class PvPAdventure : Mod
         if (player == null)
             return false;
 
-        Common.Statistics.StatisticsPlayer statistics = player.GetModPlayer<Common.Statistics.StatisticsPlayer>();
-
         return operation switch
         {
-            ImportSscStatsCall => statistics.ImportSscStats(characterKey, root),
-            ExportSscStatsCall => statistics.ExportSscStats(characterKey, root),
+            ImportSscStatsCall => ImportSscStats(player, characterKey, root),
+            ExportSscStatsCall => ExportSscStats(player, characterKey, root),
             _ => false
         };
+    }
+
+    private static bool ImportSscStats(Player player, string characterKey, TagCompound root)
+    {
+        if (Main.netMode == Terraria.ID.NetmodeID.MultiplayerClient || !root.ContainsKey("ErkySSC"))
+            return true;
+
+        TagCompound ssc = root.GetCompound("ErkySSC");
+        if (!ssc.ContainsKey("PvPAdventure"))
+            return true;
+
+        TagCompound saved = ssc.GetCompound("PvPAdventure");
+        string savedCharacter = saved.ContainsKey("characterKey") ? saved.GetString("characterKey") : "";
+        string savedMatch = saved.ContainsKey("matchToken") ? saved.GetString("matchToken") : "";
+        if ((!string.IsNullOrEmpty(savedCharacter) && savedCharacter != characterKey) || savedMatch != CurrentMatchToken())
+            return true;
+
+        ScoreboardService.SetPlayerStats(player, saved.GetInt("kills"), saved.GetInt("deaths"),
+            saved.Get<long>("damage"), saved.Get<long>("bossDamage"));
+        return true;
+    }
+
+    private static bool ExportSscStats(Player player, string characterKey, TagCompound root)
+    {
+        if (Main.netMode == Terraria.ID.NetmodeID.MultiplayerClient)
+            return true;
+
+        ScoreboardEntry stats = ScoreboardService.GetPlayerStats(player);
+        TagCompound ssc = root.ContainsKey("ErkySSC") ? root.GetCompound("ErkySSC") : [];
+        ssc["PvPAdventure"] = new TagCompound
+        {
+            ["version"] = 1,
+            ["characterKey"] = characterKey ?? "",
+            ["matchToken"] = CurrentMatchToken(),
+            ["kills"] = stats.Kills,
+            ["deaths"] = stats.Deaths,
+            ["damage"] = stats.Damage,
+            ["bossDamage"] = stats.BossDamage
+        };
+        root["ErkySSC"] = ssc;
+        return true;
+    }
+
+    private static string CurrentMatchToken()
+    {
+        GameManager game = ModContent.GetInstance<GameManager>();
+        return game.CurrentPhase == GameManager.Phase.Playing && game.MatchStartTime.HasValue
+            ? game.MatchStartTime.Value.ToUniversalTime().Ticks.ToString()
+            : "";
     }
 }

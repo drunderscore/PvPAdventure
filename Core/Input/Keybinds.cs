@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.Portals;
+using FrameworkKeybinds = PvPFramework.Core.Input.Keybinds;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameInput;
@@ -12,7 +13,6 @@ namespace PvPAdventure.Core.Input;
 [Autoload(Side = ModSide.Client)]
 public class Keybinds : ModSystem
 {
-    public ModKeybind Scoreboard { get; private set; }
     public ModKeybind BountyShop { get; private set; }
     public ModKeybind UsePortalCreator { get; private set; }
 
@@ -36,7 +36,6 @@ public class Keybinds : ModSystem
 
     public override void Load()
     {
-        Scoreboard = KeybindLoader.RegisterKeybind(Mod, "Scoreboard", Keys.OemTilde);
         BountyShop = KeybindLoader.RegisterKeybind(Mod, "BountyShop", Keys.P);
         UsePortalCreator = KeybindLoader.RegisterKeybind(Mod, "UsePortalCreator", Keys.G);
     }
@@ -46,20 +45,14 @@ internal class KeybindsPlayer : ModPlayer
 {
     public override void ProcessTriggers(TriggersSet triggersSet)
     {
-        var pointsManager = ModContent.GetInstance<PointsManager>();
         var keybinds = ModContent.GetInstance<Keybinds>();
 
-        // Scoreboard
-        if (keybinds.Scoreboard.JustPressed)
-        {
-            pointsManager.BossCompletion.Active = true;
-            Main.InGameUI.SetState(pointsManager.UiScoreboard);
-        }
-        else if (keybinds.Scoreboard.JustReleased)
-        {
-            pointsManager.BossCompletion.Active = false;
-            Main.InGameUI.SetState(null);
-        }
+        // PvP Adventure extends PvP Framework's scoreboard with boss completion progress.
+        var scoreboardKey = ModContent.GetInstance<FrameworkKeybinds>().Scoreboard;
+        if (scoreboardKey?.JustPressed == true)
+            ModContent.GetInstance<PointsManager>().BossCompletion.Active = true;
+        else if (scoreboardKey?.JustReleased == true)
+            ModContent.GetInstance<PointsManager>().BossCompletion.Active = false;
 
         // Bounty Shop
         if (keybinds.BountyShop.JustPressed)

@@ -19,12 +19,6 @@
 			<HintPath>lib\PvPHub.dll</HintPath>
 		</Reference>
 	</ItemGroup>
-
-	<ItemGroup>
-		<AdditionalFiles Remove="Assets\Effects\LiquidGlass.fx" />
-		<None Remove="Assets\Effects\LiquidGlass.fxc" />
-		<Content Include="Assets\Effects\LiquidGlass.fxc" />
-	</ItemGroup>
 	
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->
 	<ItemGroup>

@@ -1,5 +1,6 @@
 ﻿using PvPAdventure.Common.Statistics;
 using System;
+using PvPFramework.Common.Scoreboard;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,7 +33,7 @@ internal static class MatchRewardCalculator
 
     public static MatchRewardContext CreateContext(Player player, PointsManager pointsManager)
     {
-        StatisticsPlayer statsPlayer = player.GetModPlayer<StatisticsPlayer>();
+        ScoreboardEntry statsPlayer = ScoreboardService.GetPlayerStats(player);
         Team team = (Team)player.team;
 
         return new MatchRewardContext(

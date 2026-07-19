@@ -39,28 +39,7 @@ public class EffectLoader : ModSystem
         }
     }
 
-    private const string LiquidGlassPath = "PvPAdventure/Assets/Effects/LiquidGlass";
-
-    private static Effect liquidGlassEffect;
-
-    public static bool TryGetLiquidGlassEffect(out Effect effect)
-    {
-        try
-        {
-            liquidGlassEffect ??= ModContent.Request<Effect>(LiquidGlassPath, AssetRequestMode.ImmediateLoad).Value;
-            effect = liquidGlassEffect;
-            return effect != null;
-        }
-        catch (Exception e)
-        {
-            Log.Warn($"Failed to load liquid glass effect '{LiquidGlassPath}': {e.Message}");
-            effect = null;
-            return false;
-        }
-    }
-
     public override void Unload()
     {
-        liquidGlassEffect = null;
     }
 }

@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PvPAdventure.Common.AdminTools.Tools.PointsSetter;
 using PvPAdventure.Common.Bounties;
 using BossDisplaySettings = PvPFramework.Common.NPCs.BossDisplaySettings;
 using PvPAdventure.Common.NPCs;
@@ -13,13 +12,11 @@ using Terraria;
 using Terraria.Chat;
 using Terraria.Enums;
 using Terraria.GameContent;
-using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
 using Terraria.ModLoader.IO;
-using Terraria.ModLoader.UI.Elements;
 using Terraria.UI;
 
 namespace PvPAdventure.Common.Statistics;
@@ -35,13 +32,10 @@ public class PointsManager : ModSystem
     public IReadOnlyDictionary<Team, int> Points => _points;
     public IReadOnlyDictionary<Team, ISet<short>> DownedNpcs => _downedNpcs;
 
-    public UIScoreboard UiScoreboard { get; private set; }
-
     public override void Load()
     {
         if (!Main.dedServ)
         {
-            UiScoreboard = new UIScoreboard(this);
             BossCompletion = new(this) { Active = false };
         }
     }
@@ -73,8 +67,6 @@ public class PointsManager : ModSystem
 
         if (Main.dedServ)
             NetMessage.SendData(MessageID.WorldData);
-        else
-            UiScoreboard?.Invalidate();
     }
 
     public override void SaveWorldData(TagCompound tag)
@@ -170,28 +162,6 @@ public class PointsManager : ModSystem
                 _downedNpcs[team].Add(reader.ReadInt16());
         }
 
-        // FIXME: Not really where this belongs? unsure.
-        UiScoreboard.Invalidate();
-    }
-
-    // FIXME: We could be MUCH smarter.
-    public override bool HijackGetData(ref byte messageType, ref BinaryReader reader, int playerNumber)
-    {
-        if (!Main.dedServ && messageType is MessageID.PlayerTeam or MessageID.PlayerActive)
-            Main.QueueMainThreadAction(() => UiScoreboard.Invalidate());
-
-        return false;
-    }
-
-    // FIXME: We could be MUCH smarter.
-    public override bool HijackSendData(int whoAmI, int msgType, int remoteClient, int ignoreClient, NetworkText text,
-        int number,
-        float number2, float number3, float number4, int number5, int number6, int number7)
-    {
-        if (!Main.dedServ && msgType == MessageID.PlayerTeam)
-            Main.QueueMainThreadAction(() => UiScoreboard.Invalidate());
-
-        return false;
     }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
@@ -285,8 +255,6 @@ public class PointsManager : ModSystem
 
         if (Main.dedServ)
             NetMessage.SendData(MessageID.WorldData);
-        else
-            UiScoreboard.Invalidate();
     }
 
     public void AwardPlayerKillToTeam(Player killer, Player victim)
@@ -315,8 +283,6 @@ public class PointsManager : ModSystem
 
             if (Main.dedServ)
                 NetMessage.SendData(MessageID.WorldData);
-            else
-                UiScoreboard.Invalidate();
         }
 
         if (config.Bounties.AwardBountyEveryKill || victimTeamPoints > killerTeamPints)
@@ -332,180 +298,6 @@ public class PointsManager : ModSystem
         {
             NetMessage.SendData(MessageID.WorldData);
         }
-        else
-        {
-            UiScoreboard?.Invalidate();
-        }
-    }
-
-    public class UIScoreboard(PointsManager pointsManager) : UIState
-    {
-        public override void OnInitialize()
-        {
-            Invalidate();
-        }
-
-        // FIXME: We could be smarter, but is that worth it?
-        public void Invalidate()
-        {
-            RemoveAllChildren();
-
-            var playerTeamsEnumeration = Main.player
-                .Where(player => player.active)
-                .Where(player => (Team)player.team != Team.None)
-                .GroupBy(player => (Team)player.team)
-                .MaxBy(group => group.Count());
-
-            // If this is null, there couldn't possibly be anything to display.
-            if (playerTeamsEnumeration == null)
-                return;
-
-            var root = new UIElement
-            {
-                Top = { Pixels = 280 },
-                Width = { Percent = 1.0f },
-                Height = { Percent = 1.0f }
-            };
-
-            const int paddingBetweenPlayerPanels = 10;
-            var xOffset = 0;
-
-            var numberOfPlayersOnLargestTeam = Math.Min(playerTeamsEnumeration.Count(), 8);
-
-            foreach (var team in Enum.GetValues<Team>())
-            {
-                if (team == Team.None)
-                    continue;
-
-                var players = Main.player
-                    .Where(player => player.active)
-                    .Where(player => (Team)player.team == team)
-                    .ToArray();
-
-                if (players.Length == 0)
-                    continue;
-
-                var element = new UIElement
-                {
-                    // FIXME: not in pixels?
-                    Width = { Pixels = 275 },
-                    // FIXME: not in pixels?
-                    Height = { Pixels = 400 },
-                    Left = { Pixels = xOffset },
-                };
-
-                xOffset += 275 + paddingBetweenPlayerPanels;
-
-                var playersPanel = new UIPanel
-                {
-                    Width = { Percent = 1.0f },
-                    Height = { Percent = 1.0f },
-                    BackgroundColor = Main.teamColor[(int)team] * 0.7f
-                };
-
-                var playersList = new UIList
-                {
-                    Width = { Percent = 1.0f },
-                    Height = { Percent = 1.0f }
-                };
-
-                var points = pointsManager.Points[team];
-                var pointsText = $"{points} point";
-                if (points != 1)
-                    pointsText += 's';
-
-                playersList.Add(new UIText(pointsText, 0.5f, large: true)
-                {
-                    HAlign = 0.5f,
-                    // So we don't get cut off by our parent panel at the top.
-                    PaddingTop = 4.0f,
-                    PaddingBottom = 12.0f,
-                });
-
-                var bountyShards = ModContent.GetInstance<BountyManager>().Bounties[team].Count;
-                var bountyShardsText = $"{bountyShards} bounty shard";
-                if (bountyShards != 1)
-                    bountyShardsText += 's';
-
-                playersList.Add(new UIText(bountyShardsText, 0.5f, large: true)
-                {
-                    HAlign = 0.5f,
-                    PaddingBottom = 12.0f,
-                });
-
-                for (var i = 0; i < numberOfPlayersOnLargestTeam; i++)
-                {
-                    Player player = null;
-                    if (i < players.Length)
-                        player = players[i];
-
-                    var playerContainer = new UIGrid
-                    {
-                        Width = { Percent = 1.0f },
-                        Height = { Pixels = 40 },
-                    };
-
-                    var namePanel = new UIPanel
-                    {
-                        Width = { Percent = 0.6f },
-                        Height = { Percent = 1.0f },
-                        BackgroundColor = Color.Transparent
-                    };
-
-                    if (player != null)
-                        namePanel.Append(new UIText(player.name));
-
-                    playerContainer.Add(namePanel);
-
-                    var kdPanel = new UIPanel
-                    {
-                        Width = { Percent = 0.35f },
-                        Height = { Percent = 1.0f },
-                        BackgroundColor = Color.Transparent
-                    };
-
-                    if (player != null)
-                    {
-                        var adventurePlayer = player.GetModPlayer<StatisticsPlayer>();
-                        var kills = adventurePlayer.Kills;
-                        var deaths = adventurePlayer.Deaths;
-
-                        kdPanel.Append(new UIText($"{kills} / {deaths}")
-                        {
-                            HAlign = 0.5f
-                        });
-                    }
-
-                    playerContainer.Add(kdPanel);
-                    playersList.Add(playerContainer);
-                }
-
-                playersPanel.Append(playersList);
-
-                element.Append(playersPanel);
-                root.Append(element);
-            }
-
-            root.Left = new()
-            {
-                Percent = 0.5f,
-                Pixels = -xOffset + (xOffset / 2.0f),
-            };
-
-            Append(root);
-
-            // Refresh PointsSetterElement
-            var pss = ModContent.GetInstance<PointsSetterSystem>();
-            if (pss != null)
-            {
-                // Note: This is a hotfix to update the setpoints UI when awarding e.g boss points.
-                // FIXME: This causes enumeration collection exception.
-                // Need to make a dirty flag and rebuild during safe update.
-                //pss.pointsSetterElement?.Rebuild();
-            }
-        }
-
-
     }
 
     public class BossCompletionInterfaceLayer(PointsManager pointsManager)
@@ -635,8 +427,6 @@ public class PointsManager : ModSystem
 
             if (Main.dedServ)
                 NetMessage.SendData(MessageID.WorldData);
-            else
-                ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
         }
 
         public override string Command => "setpoints";

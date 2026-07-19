@@ -124,11 +124,6 @@ public static class GameManagerNetHandler
                         return;
                     }
 
-                    if (!Main.dedServ)
-                    {
-                        pointsManager.UiScoreboard?.Invalidate();
-                    }
-
                     return;
                 }
         }

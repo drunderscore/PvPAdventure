@@ -51,10 +51,5 @@ public static class PlayerTeamNetHandler
             }
         }
 
-        if (!Main.dedServ)
-        {
-            ModContent.GetInstance<PointsManager>().UiScoreboard?.Invalidate();
-        }
-
     }
 }

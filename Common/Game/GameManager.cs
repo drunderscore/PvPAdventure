@@ -1,11 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPAdventure.Common.Game.EndScreen;
 using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.MatchReplays;
 using PvPAdventure.Common.Game.StatTrackers;
-using PvPFramework.Common.Spawnbox;
-using PvPAdventure.Common.Statistics;
-using PvPAdventure.Core.Utilities;
+using PvPFramework.Common.Game.EndScreen;
+using PvPFramework.Common.Scoreboard;
 using System;
 using System.IO;
 using System.Linq;
@@ -129,18 +127,15 @@ public class GameManager : ModSystem
 
     private static void ResetActivePlayerMatchState()
     {
+        ScoreboardService.ResetAllPlayers();
         foreach (Player player in Main.player)
-        {
-            if (player == null)
-                continue;
-
-            player.GetModPlayer<StatisticsPlayer>().ResetMatchStatistics(sync: player.active && Main.netMode == NetmodeID.Server);
-            player.GetModPlayer<MatchStatsPlayer>().ResetMatchStats();
-        }
+            if (player != null)
+                player.GetModPlayer<MatchStatsPlayer>().ResetMatchStats();
     }
 
     public void StartGame(int time, int countdownTimeInSeconds = 10)
     {
+        EndScreenService.Hide();
         CurrentPhase = Phase.Waiting;
         TimeRemaining = time;
         _startGameCountdown = ToCountdownFrames(countdownTimeInSeconds);
@@ -270,124 +265,124 @@ public class GameManager : ModSystem
         return $"{sign}{minutes}:{seconds:00}";
     }
 
-    private static void BroadcastEndGameSummary()
-    {
-        // Only the server (or singleplayer) should broadcast.
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            return;
-        }
+    //private static void BroadcastEndGameSummary()
+    //{
+    //    // Only the server (or singleplayer) should broadcast.
+    //    if (Main.netMode == NetmodeID.MultiplayerClient)
+    //    {
+    //        return;
+    //    }
 
-        var pm = ModContent.GetInstance<PointsManager>();
+    //    var pm = ModContent.GetInstance<PointsManager>();
 
-        for (int i = 0; i < 1; i++)
-        {
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("-----------------------------"), Color.White);
-        }
+    //    for (int i = 0; i < 1; i++)
+    //    {
+    //        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("-----------------------------"), Color.White);
+    //    }
 
-        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("The game has ended!"), Color.White);
+    //    ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("The game has ended!"), Color.White);
 
-        var scoredTeams = pm.Points
-            .Where(kvp => kvp.Key != Team.None)
-            .Where(kvp => kvp.Value > 0)
-            .OrderByDescending(kvp => kvp.Value)
-            .ToList();
+    //    var scoredTeams = pm.Points
+    //        .Where(kvp => kvp.Key != Team.None)
+    //        .Where(kvp => kvp.Value > 0)
+    //        .OrderByDescending(kvp => kvp.Value)
+    //        .ToList();
 
-        if (scoredTeams.Count == 0)
-        {
-            ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("No teams scored any points."), Color.White);
-            return;
-        }
+    //    if (scoredTeams.Count == 0)
+    //    {
+    //        ChatHelper.BroadcastChatMessage(NetworkText.FromLiteral("No teams scored any points."), Color.White);
+    //        return;
+    //    }
 
-        var maxPoints = scoredTeams[0].Value;
-        var winningTeams = scoredTeams
-            .Where(kvp => kvp.Value == maxPoints)
-            .Select(kvp => kvp.Key)
-            .ToList();
+    //    var maxPoints = scoredTeams[0].Value;
+    //    var winningTeams = scoredTeams
+    //        .Where(kvp => kvp.Value == maxPoints)
+    //        .Select(kvp => kvp.Key)
+    //        .ToList();
 
-        if (winningTeams.Count == 1)
-        {
-            var team = winningTeams[0];
+    //    if (winningTeams.Count == 1)
+    //    {
+    //        var team = winningTeams[0];
 
-            ChatHelper.BroadcastChatMessage(
-                NetworkText.FromLiteral($"{team} Team wins with {maxPoints} points!"),
-                Main.teamColor[(int)team]);
-        }
-        else
-        {
-            // Multiple winners
-            var winnersText = string.Join(", ", winningTeams.Select(t => $"{t} Team"));
+    //        ChatHelper.BroadcastChatMessage(
+    //            NetworkText.FromLiteral($"{team} Team wins with {maxPoints} points!"),
+    //            Main.teamColor[(int)team]);
+    //    }
+    //    else
+    //    {
+    //        // Multiple winners
+    //        var winnersText = string.Join(", ", winningTeams.Select(t => $"{t} Team"));
 
-            ChatHelper.BroadcastChatMessage(
-                NetworkText.FromLiteral($"Tie! {winnersText} lead with {maxPoints} points."),
-                Color.White);
-        }
+    //        ChatHelper.BroadcastChatMessage(
+    //            NetworkText.FromLiteral($"Tie! {winnersText} lead with {maxPoints} points."),
+    //            Color.White);
+    //    }
 
-        int rank = 1;
+    //    int rank = 1;
 
-        // Print team summary row, containing team points and MVP.
-        foreach (var (team, points) in scoredTeams)
-        {
-            Player bestPlayer = null;
-            var bestKills = -1;
-            var bestDeaths = int.MaxValue;
-            var bestKd = -1f;
+    //    // Print team summary row, containing team points and MVP.
+    //    foreach (var (team, points) in scoredTeams)
+    //    {
+    //        Player bestPlayer = null;
+    //        var bestKills = -1;
+    //        var bestDeaths = int.MaxValue;
+    //        var bestKd = -1f;
 
-            foreach (var player in Main.ActivePlayers)
-            {
-                if ((Team)player.team != team)
-                {
-                    continue;
-                }
+    //        foreach (var player in Main.ActivePlayers)
+    //        {
+    //            if ((Team)player.team != team)
+    //            {
+    //                continue;
+    //            }
 
-                var ap = player.GetModPlayer<StatisticsPlayer>();
-                var kills = ap.Kills;
-                var deaths = ap.Deaths;
+    //            var ap = player.GetModPlayer<StatisticsPlayer>();
+    //            var kills = ap.Kills;
+    //            var deaths = ap.Deaths;
 
-                float kd = deaths <= 0 ? kills : kills / (float)deaths;
+    //            float kd = deaths <= 0 ? kills : kills / (float)deaths;
 
-                var isBetter = false;
+    //            var isBetter = false;
 
-                if (kills > bestKills)
-                {
-                    isBetter = true;
-                }
-                else if (kills == bestKills)
-                {
-                    if (deaths < bestDeaths)
-                    {
-                        isBetter = true;
-                    }
-                    else if (deaths == bestDeaths && kd > bestKd)
-                    {
-                        isBetter = true;
-                    }
-                }
+    //            if (kills > bestKills)
+    //            {
+    //                isBetter = true;
+    //            }
+    //            else if (kills == bestKills)
+    //            {
+    //                if (deaths < bestDeaths)
+    //                {
+    //                    isBetter = true;
+    //                }
+    //                else if (deaths == bestDeaths && kd > bestKd)
+    //                {
+    //                    isBetter = true;
+    //                }
+    //            }
 
-                if (isBetter)
-                {
-                    bestPlayer = player;
-                    bestKills = kills;
-                    bestDeaths = deaths;
-                    bestKd = kd;
-                }
-            }
+    //            if (isBetter)
+    //            {
+    //                bestPlayer = player;
+    //                bestKills = kills;
+    //                bestDeaths = deaths;
+    //                bestKd = kd;
+    //            }
+    //        }
 
-            string teamSummaryRow = $"{rank}. {team} Team: {points} points.";
+    //        string teamSummaryRow = $"{rank}. {team} Team: {points} points.";
 
-            if (bestPlayer != null)
-            {
-                var bestAp = bestPlayer.GetModPlayer<StatisticsPlayer>();
-                teamSummaryRow += $" MVP: {bestPlayer.name} (K/D: {bestAp.Kills}/{bestAp.Deaths})";
-            }
+    //        if (bestPlayer != null)
+    //        {
+    //            var bestAp = bestPlayer.GetModPlayer<StatisticsPlayer>();
+    //            teamSummaryRow += $" MVP: {bestPlayer.name} (K/D: {bestAp.Kills}/{bestAp.Deaths})";
+    //        }
 
-            ChatHelper.BroadcastChatMessage(
-                text: NetworkText.FromLiteral(teamSummaryRow),
-                color: Main.teamColor[(int)team]);
+    //        ChatHelper.BroadcastChatMessage(
+    //            text: NetworkText.FromLiteral(teamSummaryRow),
+    //            color: Main.teamColor[(int)team]);
 
-            rank++;
-        }
-    }
+    //        rank++;
+    //    }
+    //}
 
     internal static void ReportCompletedMatchToBackend(string replayFilePath = "")
     {
@@ -423,15 +418,14 @@ public class GameManager : ModSystem
         // Only save when a real match ends (Playing → Waiting transition)
         if (oldPhase == Phase.Playing && newPhase == Phase.Waiting)
         {
-            BroadcastEndGameSummary();
+            //BroadcastEndGameSummary();
 
             // Sync Waiting before the custom end-screen packet. Otherwise clients can receive
             // the snapshot while still locally in Playing and immediately hide it.
             if (Main.netMode == NetmodeID.Server)
                 NetMessage.SendData(MessageID.WorldData);
 
-            EndScreenSystem.SendMatchEndSnapshots();
-            Log.Info("Match end snapshots sent");
+            EndScreenService.Present(AdventureEndScreenExtension.CreateSummary());
 
             MatchEndTime = DateTime.UtcNow;
 
@@ -472,7 +466,6 @@ public class GameManager : ModSystem
             case Phase.Playing:
                 {
                     ResetActivePlayerMatchState();
-
                     UpdateFreezeTime(false);
 
                     break;

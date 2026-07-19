@@ -27,7 +27,7 @@ public class BountyManager : ModSystem
 {
     // Any interaction with claims will increment this, ensuring the client is interacting with the correct state.
     public int TransactionId { get; private set; }
-    public bool CollectedAllMechanicalBossSouls { get; private set; }
+    public bool CollectedAllMechanicalBossSouls => NPC.downedMechBoss1 && NPC.downedMechBoss2 && NPC.downedMechBoss3;
     private readonly Dictionary<Team, IList<Page>> _bounties = new();
     public IReadOnlyDictionary<Team, IList<Page>> Bounties => _bounties;
 
@@ -77,7 +77,6 @@ public class BountyManager : ModSystem
             pages.Add(new Page(CloneBounties(eligibleBounties)));
 
         UiBountyShop?.Invalidate();
-        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
 
         Log.Chat($"+500 bounty shards to {team}. Shard count now: {pages.Count}");
     }
@@ -290,16 +289,6 @@ public class BountyManager : ModSystem
             UiBountyShop = new UIBountyShop(this);
     }
 
-    public override void LoadWorldData(TagCompound tag)
-    {
-        CollectedAllMechanicalBossSouls = tag.Get<bool>("collectedAllMechanicalBossSouls");
-    }
-
-    public override void SaveWorldData(TagCompound tag)
-    {
-        tag["collectedAllMechanicalBossSouls"] = CollectedAllMechanicalBossSouls;
-    }
-
     public override void ClearWorld()
     {
         foreach (var team in Enum.GetValues<Team>())
@@ -367,7 +356,6 @@ public class BountyManager : ModSystem
         TransactionId = reader.ReadInt32();
 
         UiBountyShop.Invalidate();
-        ModContent.GetInstance<PointsManager>().UiScoreboard.Invalidate();
     }
 
     public void Award(Player killer, Player victim)
@@ -426,41 +414,6 @@ public class BountyManager : ModSystem
             Main.QueueMainThreadAction(() => UiBountyShop.Invalidate());
 
         return false;
-    }
-
-    public void OnPlayerItemPickupsUpdated(Player who, HashSet<int> updated)
-    {
-        // We've already reached our requirements, no need to check anymore.
-        if (CollectedAllMechanicalBossSouls)
-            return;
-
-        // Unteamed players do not get a say in this.
-        if (who.team == (int)Team.None)
-            return;
-
-        // A lot of this is possibly expensive (and nearly always unnecessary!), so we can pre-emptively check if
-        // anything that was updated is actually significant enough for us to re-calculate everything.
-        if (!(updated.Contains(ItemID.SoulofMight) ||
-              updated.Contains(ItemID.SoulofSight) ||
-              updated.Contains(ItemID.SoulofFright)))
-            return;
-
-        // Now, we need a set of all item pickups from all players on the same team.
-        var itemPickupsForThisTeam = new HashSet<int>(Main.player
-            .Where(player => player.active)
-            .Where(player => player.team == who.team)
-            .Select(player => player.GetModPlayer<StatisticsPlayer>())
-            .Select(player => player.ItemPickups)
-            .SelectMany(set => set));
-
-        if (itemPickupsForThisTeam.Contains(ItemID.SoulofMight) &&
-            itemPickupsForThisTeam.Contains(ItemID.SoulofSight) &&
-            itemPickupsForThisTeam.Contains(ItemID.SoulofFright))
-        {
-            CollectedAllMechanicalBossSouls = true;
-            ChatHelper.BroadcastChatMessage(
-                NetworkText.FromKey("Mods.PvPAdventure.ServerConfig.Bounty.CollectedAllMechanicalBossSouls"), Color.White);
-        }
     }
 
     public void IncrementTransactionId() => TransactionId++;

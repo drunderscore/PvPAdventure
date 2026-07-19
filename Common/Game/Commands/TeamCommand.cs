@@ -5,7 +5,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Team = Terraria.Enums.Team;
 
-namespace PvPAdventure.Common.Teams;
+namespace PvPAdventure.Common.Game.Commands;
 
 public class TeamCommand : ModCommand
 {

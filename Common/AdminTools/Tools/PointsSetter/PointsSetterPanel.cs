@@ -184,7 +184,6 @@ internal class PointsSetterPanel : UIDraggablePanel
 
             var pm = ModContent.GetInstance<PointsManager>();
             pm._points[_team] = v;
-            pm.UiScoreboard?.Invalidate();
 
             _commit(_team, v);
 
