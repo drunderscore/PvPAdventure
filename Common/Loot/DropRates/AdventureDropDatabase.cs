@@ -241,7 +241,7 @@ public static class AdventureDropDatabase
                 npcLoot.Add(ItemDropRule.ByCondition(
                     new Conditions.DownedPlantera(),
                     ItemID.LihzahrdPowerCell,
-                    chanceDenominator: 10,
+                    chanceDenominator: 30,
                     chanceNumerator: 1));
                 break;
 

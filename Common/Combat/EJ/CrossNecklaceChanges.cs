@@ -16,7 +16,7 @@ namespace PvPAdventure.Common.Combat.EJ
         {
             if (info.PvP && HasCrossNecklaceOrStarVeil())
             {
-                CrossEnergy += info.Damage;
+                CrossEnergy += info.Damage * 2;
             }
         }
 
@@ -29,7 +29,7 @@ namespace PvPAdventure.Common.Combat.EJ
                     CrossEnergy = 0;
             }
 
-            if (CrossEnergy > 200)
+            if (CrossEnergy > 400)
             {
                 Player.AddBuff(ModContent.BuffType<GodsProtection>(), 2);
             }

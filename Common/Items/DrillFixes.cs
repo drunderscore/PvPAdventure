@@ -22,7 +22,7 @@ public class DrillRework : GlobalItem
     {
         if (!IsDrill(item))
             return;
-        item.useTime = Math.Max(2, item.useTime / 2); // Might have to decrease this icl
+        item.useTime = Math.Max(2, item.useTime); // Might have to increase this icl
     }
 }
 

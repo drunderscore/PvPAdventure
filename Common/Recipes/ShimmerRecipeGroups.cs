@@ -84,10 +84,10 @@ public class UnifiedRecipeGroupSystem : ModSystem
             ItemID.NecromanticSign, ItemID.ShadowbeamStaff, ItemID.RocketLauncher, ItemID.PaladinsHammer),
         
         // Chests
-        new RecipeGroupData("AnyGold", "Any Gold Chest Item", ItemID.GoldBunnyCage, 3,
+        new RecipeGroupData("AnyGold", "Any Gold Chest Item", ItemID.GoldBunnyCage, 2,
             ItemID.CloudinaBottle, ItemID.HermesBoots, ItemID.FlareGun, ItemID.ShoeSpikes, ItemID.BandofRegeneration, ItemID.Mace),
 
-        new RecipeGroupData("AnyJungle", "Any Jungle Chest Item", ItemID.AnkletoftheWind, 3,
+        new RecipeGroupData("AnyJungle", "Any Jungle Chest Item", ItemID.AnkletoftheWind, 2,
             ItemID.AnkletoftheWind, ItemID.Boomstick, ItemID.StaffofRegrowth, ItemID.FlowerBoots, ItemID.FiberglassFishingPole, ItemID.FeralClaws),
 
         new RecipeGroupData("AnyHighDesert", "Any High Desert Chest Item", ItemID.PharaohsMask, 2,
