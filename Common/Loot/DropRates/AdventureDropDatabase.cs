@@ -38,6 +38,15 @@ public static class AdventureDropDatabase
         foreach (var ruleChainAttempt in rule.ChainedRules)
             ModifyDropRate(ruleChainAttempt.RuleToChain, type, numerator, denominator);
     }
+    private static bool RuleDropsItem(IItemDropRule rule, int type)
+    {
+        if (rule is CommonDrop commonDrop && commonDrop.itemId == type)
+            return true;
+        if (rule is DropBasedOnExpertMode dropBasedOnExpertMode)
+            return RuleDropsItem(dropBasedOnExpertMode.ruleForNormalMode, type)
+                || RuleDropsItem(dropBasedOnExpertMode.ruleForExpertMode, type);
+        return rule.ChainedRules.Any(chain => RuleDropsItem(chain.RuleToChain, type));
+    }
 
     public static void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
     {
@@ -75,7 +84,7 @@ public static class AdventureDropDatabase
 
             case NPCID.GiantTortoise:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 3);
+                    ModifyDropRate(drop, ItemID.TurtleShell, 1, 2);
                 break;
             case NPCID.Psycho:
                 foreach (var drop in drops)
@@ -167,7 +176,11 @@ public static class AdventureDropDatabase
             case NPCID.BlackRecluse:
             case NPCID.BlackRecluseWall:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.SpiderFang, 4, 5);
+                {
+                    ModifyDropRate(drop, ItemID.SpiderFang, 5, 5);
+                    ModifyDropRate(drop, ItemID.PoisonStaff, 1, 10);
+
+                }
                 break;
 
             case NPCID.GoblinSummoner:
@@ -223,7 +236,13 @@ public static class AdventureDropDatabase
             case NPCID.LihzahrdCrawler:
             case NPCID.FlyingSnake:
                 foreach (var drop in drops)
-                    ModifyDropRate(drop, ItemID.LihzahrdPowerCell, 1, 75);
+                    ModifyDropRate(drop, ItemID.LihzahrdPowerCell, 1, 1);
+                npcLoot.RemoveWhere(rule => RuleDropsItem(rule, ItemID.LihzahrdPowerCell));
+                npcLoot.Add(ItemDropRule.ByCondition(
+                    new Conditions.DownedPlantera(),
+                    ItemID.LihzahrdPowerCell,
+                    chanceDenominator: 30,
+                    chanceNumerator: 1));
                 break;
 
             case NPCID.MartianEngineer:
@@ -250,8 +269,9 @@ public static class AdventureDropDatabase
             case NPCID.AngryTrapper:
                 foreach (var drop in drops)
                 {
-                    ModifyDropRate(drop, ItemID.Vine, 1, 1);
+                    ModifyDropRate(drop, ItemID.Uzi, 1, 15);
                 }
+                npcLoot.Add(ItemDropRule.Common(ItemID.Vine, 1, 1, 1));
                 break;
 
             case NPCID.ManEater:
@@ -375,7 +395,7 @@ public static class AdventureDropDatabase
                     ItemID.ShinyStone)
                 );
 
-                npcLoot.Add(ItemDropRule.Common(ItemID.BeetleHusk, 1, 6, 8));
+                npcLoot.Add(ItemDropRule.Common(ItemID.BeetleHusk, 1, 12, 16));
                 break;
 
             case NPCID.QueenSlimeBoss:
@@ -412,10 +432,30 @@ public static class AdventureDropDatabase
             case NPCID.SkeletronHand:
                 npcLoot.Add(ItemDropRule.Common(ItemID.Bone, 1, 1, 3));
                 break;
+            case NPCID.Mimic:
+                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
+
+                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                        ItemID.StarCloak,
+                        ItemID.MagicDagger,
+                        ItemID.DualHook
+                    )
+                );
+
+                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                        ItemID.CrossNecklace,
+                        ItemID.PhilosophersStone,
+                        ItemID.TitanGlove
+                    )
+                );
+                npcLoot.Add(ItemDropRule.Common(ItemID.HermesBoots, 1, 1, 1));
+                npcLoot.Add(ItemDropRule.Common(ItemID.CloudinaBottle, 1, 1, 1));
+                break;
 
             case NPCID.QueenBee:
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyedGoggles, 1, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.HoneyComb, 1, 1, 2));
+                npcLoot.Add(ItemDropRule.Common(ItemID.HiveWand, 1, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.Beenade, 1, 22, 32));
                 npcLoot.RemoveWhere(drop =>
                     (drop is CommonDrop commonDrop && commonDrop.itemId == ItemID.HoneyComb) ||
@@ -436,15 +476,17 @@ public static class AdventureDropDatabase
 
             case NPCID.BigMimicHallow:
                 npcLoot.RemoveWhere(drop => true); // Removes all drops
-                npcLoot.Add(ItemDropRule.Common(ItemID.IlluminantHook, 4, 1, 1));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
 
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
                     ItemID.DaedalusStormbow,
-                    ItemID.CrystalVileShard,
                     ItemID.FlyingKnife
+                ));
+                npcLoot.Add(ItemDropRule.OneFromOptionsWithNumerator(5, 5,
+                    ItemID.IlluminantHook,
+                    ItemID.CrystalVileShard
                 ));
                 break;
             case NPCID.BigMimicCorruption:
@@ -453,12 +495,12 @@ public static class AdventureDropDatabase
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterHealingPotion, 1, 1, 2));
                 npcLoot.Add(ItemDropRule.Common(ItemID.GreaterManaPotion, 1, 5, 15));
                 npcLoot.Add(ItemDropRule.OneFromOptions(1,
-                    ItemID.ClingerStaff,
                     ItemID.DartRifle,
                     ItemID.ChainGuillotines
                 ));
-                npcLoot.Add(ItemDropRule.OneFromOptionsWithNumerator(5, 2,
+                npcLoot.Add(ItemDropRule.OneFromOptionsWithNumerator(5, 5,
                     ItemID.PutridScent,
+                    ItemID.ClingerStaff,
                     ItemID.WormHook
                 ));
                 break;
@@ -591,7 +633,7 @@ public static class AdventureDropDatabase
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
                 npcLoot.Add(ItemDropRule.Common(ItemID.TempleKey, 1, 1, 1));
                 npcLoot.Add(
-                    new OneFromRulesRule(1,
+                    new FewFromRulesRule(2, 1,
                         ItemDropRule.Common(ItemID.Seedler),
                         ItemDropRule.Common(ItemID.LeafBlower),
                         ItemDropRule.Common(ItemID.WaspGun),
@@ -601,7 +643,7 @@ public static class AdventureDropDatabase
                 var grenadelauncher = ItemDropRule.Common(ItemID.GrenadeLauncher);
                 grenadelauncher.OnSuccess(ItemDropRule.Common(ItemID.RocketIII, 1, 400, 500), hideLootReport: true);
                 npcLoot.Add(
-                    new OneFromRulesRule(1,
+                    new FewFromRulesRule(2, 1,
                         grenadelauncher,
                         ItemDropRule.Common(ItemID.NettleBurst),
                         ItemDropRule.Common(ItemID.FlowerPow),

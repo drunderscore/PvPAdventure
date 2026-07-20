@@ -61,7 +61,7 @@ public class BiomeKeyDropRateSystem : ModSystem
             {
                 // Replace the 2500 with 250
                 cursor.Remove(); // Remove the ldc.i4 2500 instruction
-                cursor.Emit(OpCodes.Ldc_I4, 250); // Emit ldc.i4 250 instead
+                cursor.Emit(OpCodes.Ldc_I4, 100); // Emit ldc.i4 250 instead
                 replacedCount++;
 
                 //ModContent.GetInstance<PvPAdventure>().Logger.Info($"Replaced biome key drop rate 2500 with 250 (instance {replacedCount})");

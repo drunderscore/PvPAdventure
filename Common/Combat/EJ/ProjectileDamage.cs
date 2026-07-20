@@ -18,6 +18,17 @@ public class CursedDartDestroyer : GlobalProjectile
         }
     }
 }
+public class StarlightCultist : GlobalProjectile
+{
+    public override void ModifyHitNPC(Projectile projectile, NPC target, ref NPC.HitModifiers modifiers)
+    {
+        if (projectile.type == ProjectileID.PiercingStarlight &&
+            (target.type == NPCID.CultistBoss))
+        {
+            modifiers.SourceDamage *= 0.66f;
+        }
+    }
+}
 public class NoMoreDynaWoF : GlobalProjectile
 {
     public override void ModifyHitNPC(Projectile projectile, NPC target, ref NPC.HitModifiers modifiers)

@@ -121,11 +121,6 @@ Mods: {
 				Description: Defense reduced by one third
 			}
 
-			PlayerInSpawn: {
-				DisplayName: Spawn
-				Description: Gain PvP immunity but deal 0 damage
-			}
-
 			PressurePoints: {
 				DisplayName: Summon Tagged
 				Description: Take 6 more damage from enemies
@@ -143,12 +138,22 @@ Mods: {
 
 			UncoutHandboring: {
 				DisplayName: Uncout Handboring
-				Description: Mods.PvPAdventure.Buffs.UncoutHandboring.Description
+				Description: calc
 			}
 
 			Tagged: {
 				DisplayName: Summon Tagged
 				Description: Take 4 more damage from enemies
+			}
+
+			RacePeriodBuff: {
+				DisplayName: Spirit Animal
+				Description: You are seeing the world through the eyes of your spirit guide
+			}
+
+			GodsProtection: {
+				DisplayName: Holy Protection
+				Description: God's left hand is holding your soul tightly
 			}
 		}
 

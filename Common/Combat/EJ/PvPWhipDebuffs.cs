@@ -31,25 +31,16 @@ public class SummonerArmorPlayer : ModPlayer
         int chest = Player.armor[1].type;
         int legs = Player.armor[2].type;
 
-        bool isTiki = head == ItemID.TikiMask &&
-                      chest == ItemID.TikiShirt &&
-                      legs == ItemID.TikiPants;
+        bool isTiki = head == ItemID.TikiMask && chest == ItemID.TikiShirt && legs == ItemID.TikiPants;
+        bool isSpider = head == ItemID.SpiderMask && chest == ItemID.SpiderBreastplate && legs == ItemID.SpiderGreaves;
+        bool isBee = head == ItemID.BeeHeadgear && chest == ItemID.BeeBreastplate && legs == ItemID.BeeGreaves;
+        bool isForbidden = head == ItemID.AncientBattleArmorHat && chest == ItemID.AncientArmorPants && legs == ItemID.AncientArmorShirt;
+        bool isHallowedSummoner = head == ItemID.HallowedHood && chest == ItemID.HallowedPlateMail && legs == ItemID.HallowedGreaves;
 
-        bool isSpider = head == ItemID.SpiderMask &&
-                        chest == ItemID.SpiderBreastplate &&
-                        legs == ItemID.SpiderGreaves;
-
-        bool isBee = head == ItemID.BeeHeadgear &&
-                     chest == ItemID.BeeBreastplate &&
-                     legs == ItemID.BeeGreaves;
-
-        bool isHallowedSummoner = head == ItemID.HallowedHood &&
-                                  chest == ItemID.HallowedPlateMail &&
-                                  legs == ItemID.HallowedGreaves;
-
-        hasSummonSet = isTiki || isSpider || isBee || isHallowedSummoner;
+        hasSummonSet = isTiki || isSpider || isBee || isForbidden || isHallowedSummoner;
     }
 }
+
 public abstract class WhipDebuffPlayer : ModPlayer
 {
     public int applierIndex = -1;
@@ -59,7 +50,7 @@ public abstract class WhipDebuffPlayer : ModPlayer
     protected abstract int BaseDuration { get; }
     protected abstract int FlatDamageBonus { get; }
     protected virtual float PercentDamageBonus => 0f;
-    protected virtual float FairyQueenDamageMultiplier => 0.25f; // Multiplier applied to both flat and percent damage bonuses
+    protected virtual float FairyQueenDamageMultiplier => 0.25f;
 
     public override void PostHurt(Player.HurtInfo info)
     {
@@ -75,9 +66,7 @@ public abstract class WhipDebuffPlayer : ModPlayer
                 {
                     SummonerArmorPlayer summonerPlayer = attacker.GetModPlayer<SummonerArmorPlayer>();
                     if (summonerPlayer.hasSummonSet)
-                    {
-                        duration = (int)(duration * 2f);
-                    }
+                        duration = (int)(duration * 4f);
                     newApplierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
@@ -99,9 +88,7 @@ public abstract class WhipDebuffPlayer : ModPlayer
             {
                 int buffIndex = Player.FindBuffIndex(DebuffType);
                 if (buffIndex >= 0)
-                {
                     Player.buffTime[buffIndex] = 0;
-                }
                 OnApplierRemoved();
                 applierIndex = -1;
                 return;
@@ -114,8 +101,8 @@ public abstract class WhipDebuffPlayer : ModPlayer
         }
         else
         {
-            applierIndex = -1;
             OnDebuffExpired();
+            applierIndex = -1;
         }
     }
 
@@ -144,9 +131,7 @@ public abstract class WhipDebuffPlayer : ModPlayer
                     };
                 }
                 if (PercentDamageBonus > 0f)
-                {
                     modifiers.FinalDamage *= (1f + PercentDamageBonus * multiplier);
-                }
             }
         }
     }
@@ -157,9 +142,7 @@ public abstract class WhipDebuffPlayer : ModPlayer
         {
             Projectile proj = Main.projectile[modifiers.DamageSource.SourceProjectileLocalIndex];
             if (proj != null && proj.active && proj.CountsAsClass(DamageClass.SummonMeleeSpeed))
-            {
                 return true;
-            }
         }
         else if (modifiers.DamageSource.SourceProjectileType > 0)
         {
@@ -169,9 +152,7 @@ public abstract class WhipDebuffPlayer : ModPlayer
                 projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
                 projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
                 projType == ProjectileID.CoolWhip)
-            {
                 return true;
-            }
         }
         return false;
     }
@@ -185,13 +166,8 @@ public abstract class WhipDebuffPlayer : ModPlayer
         {
             float angle = (MathHelper.TwoPi / count) * i + (Main.GameUpdateCount * rotationSpeed);
             float distance = baseDistance * pulseScale;
-
-            Vector2 offset = new Vector2(
-                (float)Math.Cos(angle) * distance,
-                (float)Math.Sin(angle) * distance
-            );
+            Vector2 offset = new Vector2((float)Math.Cos(angle) * distance, (float)Math.Sin(angle) * distance);
             Vector2 dustPosition = Player.Center + offset;
-
             Dust dust = Dust.NewDustPerfect(dustPosition, dustID, Vector2.Zero, 100, color, 1.5f);
             dust.noGravity = true;
             dust.fadeIn = 1f;
@@ -207,13 +183,8 @@ public abstract class WhipDebuffPlayer : ModPlayer
             {
                 float lineAngle = i * MathHelper.PiOver2;
                 float lineDistance = Main.rand.NextFloat(10f, 40f);
-
-                Vector2 lineOffset = new Vector2(
-                    (float)Math.Cos(lineAngle) * lineDistance,
-                    (float)Math.Sin(lineAngle) * lineDistance
-                );
+                Vector2 lineOffset = new Vector2((float)Math.Cos(lineAngle) * lineDistance, (float)Math.Sin(lineAngle) * lineDistance);
                 Vector2 dustPos = Player.Center + lineOffset;
-
                 Dust lineDust = Dust.NewDustPerfect(dustPos, DustID.Torch, Vector2.Zero, 100, color, 1f);
                 lineDust.noGravity = true;
                 lineDust.fadeIn = 0.5f;
@@ -221,24 +192,14 @@ public abstract class WhipDebuffPlayer : ModPlayer
         }
     }
 }
-
 public class BitingEmbracePlayer : WhipDebuffPlayer
 {
     protected override int WhipProjectileID => ProjectileID.CoolWhip;
     protected override int DebuffType => ModContent.BuffType<BitingEmbrace>();
-    protected override int BaseDuration => 300;
+    protected override int BaseDuration => 150;
     protected override int FlatDamageBonus => 7;
-
-    protected override void OnDebuffApplied(Player.HurtInfo info, int duration)
-    {
-        Player.AddBuff(BuffID.Frostburn2, duration);
-    }
-
-    protected override void OnApplierRemoved()
-    {
-        Player.ClearBuff(BuffID.Frostburn2);
-    }
-
+    protected override void OnDebuffApplied(Player.HurtInfo info, int duration) => Player.AddBuff(BuffID.Frostburn2, duration);
+    protected override void OnApplierRemoved() => Player.ClearBuff(BuffID.Frostburn2);
     protected override void UpdateVisualEffects()
     {
         SpawnCircularDust(DustID.IceTorch, Color.Teal, 21f, 0.07f);
@@ -250,35 +211,34 @@ public class PressurePointsPlayer : WhipDebuffPlayer
 {
     protected override int WhipProjectileID => ProjectileID.ThornWhip;
     protected override int DebuffType => ModContent.BuffType<PressurePoints>();
-    protected override int BaseDuration => 300;
+    protected override int BaseDuration => 150;
     protected override int FlatDamageBonus => 6;
-
     protected override void UpdateVisualEffects()
     {
         SpawnCircularDust(DustID.CursedTorch, Color.LimeGreen, 12f, 0.05f);
         SpawnLineDust(Color.LimeGreen);
     }
 }
+
 public class TaggedPlayer : WhipDebuffPlayer
 {
     protected override int WhipProjectileID => ProjectileID.BlandWhip;
     protected override int DebuffType => ModContent.BuffType<Tagged>();
-    protected override int BaseDuration => 300;
+    protected override int BaseDuration => 150;
     protected override int FlatDamageBonus => 4;
-
     protected override void UpdateVisualEffects()
     {
         SpawnCircularDust(DustID.WhiteTorch, Color.White, 8f, 0.15f);
         SpawnLineDust(Color.White);
     }
 }
+
 public class BrittleBonesPlayer : WhipDebuffPlayer
 {
     protected override int WhipProjectileID => ProjectileID.BoneWhip;
     protected override int DebuffType => ModContent.BuffType<BrittleBones>();
-    protected override int BaseDuration => 300;
+    protected override int BaseDuration => 150;
     protected override int FlatDamageBonus => 7;
-
     protected override void UpdateVisualEffects()
     {
         SpawnCircularDust(DustID.BoneTorch, Color.DarkGray, 19f, 0.06f);
@@ -290,9 +250,8 @@ public class MarkedPlayer : WhipDebuffPlayer
 {
     protected override int WhipProjectileID => ProjectileID.SwordWhip;
     protected override int DebuffType => ModContent.BuffType<Marked>();
-    protected override int BaseDuration => 300;
+    protected override int BaseDuration => 150;
     protected override int FlatDamageBonus => 9;
-
     protected override void UpdateVisualEffects()
     {
         SpawnCircularDust(DustID.Blood, Color.Red, 26f, 0.08f);
@@ -304,30 +263,22 @@ public class AnathemaPlayer : WhipDebuffPlayer
 {
     protected override int WhipProjectileID => ProjectileID.RainbowWhip;
     protected override int DebuffType => ModContent.BuffType<Anathema>();
-    protected override int BaseDuration => 300;
-    protected override int FlatDamageBonus => 20;
-    protected override float PercentDamageBonus => 0.1f;
-
+    protected override int BaseDuration => 150;
+    protected override int FlatDamageBonus => 12;
+    protected override float PercentDamageBonus => 0.15f;
     protected override void UpdateVisualEffects()
     {
         for (int i = 0; i < 3; i++)
         {
             float distance = Main.rand.NextFloat(40f, 80f);
             float angle = Main.rand.NextFloat(0f, MathHelper.TwoPi);
-
-            Vector2 spawnOffset = new Vector2(
-                (float)Math.Cos(angle) * distance,
-                (float)Math.Sin(angle) * distance
-            );
+            Vector2 spawnOffset = new Vector2((float)Math.Cos(angle) * distance, (float)Math.Sin(angle) * distance);
             Vector2 dustPosition = Player.Center + spawnOffset;
-
             Vector2 towardPlayer = Player.Center - dustPosition;
             towardPlayer.Normalize();
             Vector2 dustVelocity = towardPlayer * Main.rand.NextFloat(2f, 4f);
-
             int dustType = Main.rand.NextBool() ? DustID.PlatinumCoin : DustID.Smoke;
             Color dustColor = Main.rand.NextBool() ? Color.White : Color.Black;
-
             Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, dustColor, Main.rand.NextFloat(0.6f, 1.2f));
             dust.noGravity = true;
             dust.fadeIn = 0.8f;
@@ -339,19 +290,16 @@ public class ShatteredArmorPlayer : WhipDebuffPlayer
 {
     protected override int WhipProjectileID => ProjectileID.MaceWhip;
     protected override int DebuffType => ModContent.BuffType<ShatteredArmor>();
-    protected override int BaseDuration => 300;
+    protected override int BaseDuration => 150;
     protected override int FlatDamageBonus => 8;
     protected override float PercentDamageBonus => 0.12f;
-
     protected override void UpdateVisualEffects()
     {
         for (int i = 0; i < 1; i++)
         {
-            int dustType = DustID.BatScepter;
             Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
             Vector2 dustVelocity = Player.velocity * 0.3f + new Vector2(Main.rand.NextFloat(-1f, 1f), Main.rand.NextFloat(-1f, 1f));
-
-            Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, Color.Black, Main.rand.NextFloat(0.8f, 1.5f));
+            Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, DustID.BatScepter, dustVelocity.X, dustVelocity.Y, 100, Color.Black, Main.rand.NextFloat(0.8f, 1.5f));
             dust.noGravity = Main.rand.NextBool(2);
             dust.fadeIn = 1.2f;
         }
@@ -366,8 +314,10 @@ public class HellhexPlayer : WhipDebuffPlayer
 
     protected override int WhipProjectileID => ProjectileID.FireWhip;
     protected override int DebuffType => ModContent.BuffType<Hellhex>();
-    protected override int BaseDuration => 450;
+    protected override int BaseDuration => 225;
     protected override int FlatDamageBonus => 0;
+
+    private const int MinExplosionDamage = 50;
 
     private bool IsSummonOrWhipDamage(Player.HurtInfo info)
     {
@@ -375,11 +325,8 @@ public class HellhexPlayer : WhipDebuffPlayer
         {
             Projectile proj = Main.projectile[info.DamageSource.SourceProjectileLocalIndex];
             if (proj != null && proj.active && proj.CountsAsClass(DamageClass.SummonMeleeSpeed))
-            {
                 return true;
-            }
         }
-
         if (info.DamageSource.SourceProjectileType > 0)
         {
             int projType = info.DamageSource.SourceProjectileType;
@@ -388,11 +335,8 @@ public class HellhexPlayer : WhipDebuffPlayer
                 projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
                 projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
                 projType == ProjectileID.CoolWhip)
-            {
                 return true;
-            }
         }
-
         return false;
     }
 
@@ -402,11 +346,8 @@ public class HellhexPlayer : WhipDebuffPlayer
         {
             Projectile proj = Main.projectile[damageSource.SourceProjectileLocalIndex];
             if (proj != null && proj.active && proj.CountsAsClass(DamageClass.SummonMeleeSpeed))
-            {
                 return true;
-            }
         }
-
         if (damageSource.SourceProjectileType > 0)
         {
             int projType = damageSource.SourceProjectileType;
@@ -415,12 +356,38 @@ public class HellhexPlayer : WhipDebuffPlayer
                 projType == ProjectileID.ScytheWhip || projType == ProjectileID.ThornWhip ||
                 projType == ProjectileID.BoneWhip || projType == ProjectileID.RainbowWhip ||
                 projType == ProjectileID.CoolWhip)
-            {
                 return true;
-            }
+        }
+        return false;
+    }
+
+    private void SpawnExplosion(IEntitySource source, Vector2 position, int rawDamage, float scale, int owner)
+    {
+        int damage = Math.Max(MinExplosionDamage, rawDamage);
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            ModPacket packet = Mod.GetPacket();
+            packet.Write((byte)1);
+            packet.Write((byte)Player.whoAmI);
+            packet.Write(position.X);
+            packet.Write(position.Y);
+            packet.Write(damage);
+            packet.Write(scale);
+            packet.Write((sbyte)owner);
+            packet.Send();
+            return;
         }
 
-        return false;
+        int proj = Projectile.NewProjectile(source, position, Vector2.Zero,
+            ProjectileID.FireWhipProj, damage, 0f, owner);
+
+        if (proj >= 0 && proj < Main.maxProjectiles)
+        {
+            Main.projectile[proj].scale = scale;
+            if (Main.netMode == NetmodeID.Server)
+                NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+        }
     }
 
     public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
@@ -430,38 +397,13 @@ public class HellhexPlayer : WhipDebuffPlayer
             bool isSummon = IsSummonOrWhipDeath(damageSource);
             bool isDebuffApplier = damageSource.SourcePlayerIndex == applierIndex;
 
-            if (!isSummon && !isDebuffApplier && damage >= 30 && !explosionSpawned)
+            if (!isSummon && !isDebuffApplier && damage >= 20 && !explosionSpawned)
             {
                 explosionSpawned = true;
-
-                if (Main.netMode != NetmodeID.MultiplayerClient)
-                {
-                    int owner = applierIndex >= 0 && applierIndex < Main.maxPlayers ? applierIndex : -1;
-                    int explosionDamage = (int)(damage * 2.75f);
-
-                    int proj = Projectile.NewProjectile(
-                        Player.GetSource_Death(),
-                        Player.Center,
-                        Vector2.Zero,
-                        ProjectileID.FireWhipProj,
-                        explosionDamage,
-                        0f,
-                        owner,
-                        0f,
-                        0f
-                    );
-
-                    if (proj >= 0 && proj < Main.maxProjectiles)
-                    {
-                        if (Main.netMode == NetmodeID.Server)
-                        {
-                            NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
-                        }
-                    }
-                }
+                int owner = applierIndex >= 0 && applierIndex < Main.maxPlayers ? applierIndex : -1;
+                SpawnExplosion(Player.GetSource_Death(), Player.Center, (int)(damage * 2.75f), 1f, owner);
             }
         }
-
         return true;
     }
 
@@ -479,6 +421,9 @@ public class HellhexPlayer : WhipDebuffPlayer
 
     public override void PostHurt(Player.HurtInfo info)
     {
+        if (info.DamageSource.SourceProjectileType == WhipProjectileID)
+            explosionSpawned = false;
+
         base.PostHurt(info);
 
         if (Player.HasBuff(DebuffType) && !explosionSpawned)
@@ -492,66 +437,30 @@ public class HellhexPlayer : WhipDebuffPlayer
 
                 int buffIndex = Player.FindBuffIndex(DebuffType);
                 if (buffIndex >= 0)
-                {
                     Player.buffTime[buffIndex] = 0;
-                }
 
-                Vector2 spawnPos = Player.Center;
-                float scale = info.Damage / 100f;
                 int owner = applierIndex >= 0 && applierIndex < Main.maxPlayers ? applierIndex : -1;
-                int explosionDamage = (int)(info.Damage * 2.75f);
+                float scale = info.Damage / 100f;
 
                 if (Main.netMode == NetmodeID.SinglePlayer ||
                     (info.DamageSource.SourcePlayerIndex >= 0 && Main.myPlayer == info.DamageSource.SourcePlayerIndex))
-                {
-                    int proj = Projectile.NewProjectile(
-                        Player.GetSource_Buff(buffIndex),
-                        spawnPos,
-                        Vector2.Zero,
-                        ProjectileID.FireWhipProj,
-                        explosionDamage,
-                        0f,
-                        owner
-                    );
-
-                    if (proj >= 0 && proj < Main.maxProjectiles)
-                    {
-                        Main.projectile[proj].scale = scale;
-                    }
-
-                    if (Main.netMode == NetmodeID.MultiplayerClient)
-                    {
-                        ModPacket packet = Mod.GetPacket();
-                        packet.Write((byte)1);
-                        packet.Write((byte)Player.whoAmI);
-                        packet.Write(spawnPos.X);
-                        packet.Write(spawnPos.Y);
-                        packet.Write(explosionDamage);
-                        packet.Write(scale);
-                        packet.Write((sbyte)owner);
-                        packet.Send();
-                    }
-                }
+                    SpawnExplosion(Player.GetSource_Buff(buffIndex), Player.Center, (int)(info.Damage * 2.75f), scale, owner);
                 else if (Main.netMode == NetmodeID.Server)
-                {
-                    int proj = Projectile.NewProjectile(
-                        Player.GetSource_Buff(buffIndex),
-                        spawnPos,
-                        Vector2.Zero,
-                        ProjectileID.FireWhipProj,
-                        explosionDamage,
-                        0f,
-                        owner
-                    );
-
-                    if (proj >= 0 && proj < Main.maxProjectiles)
-                    {
-                        Main.projectile[proj].scale = scale;
-                        NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
-                    }
-                }
+                    SpawnExplosion(Player.GetSource_Buff(buffIndex), Player.Center, (int)(info.Damage * 2.75f), scale, owner);
             }
         }
+    }
+
+    protected override void OnDebuffExpired()
+    {
+        if (!explosionSpawned)
+        {
+            int owner = applierIndex >= 0 && applierIndex < Main.maxPlayers ? applierIndex : -1;
+            SpawnExplosion(Player.GetSource_Death(), Player.Center, MinExplosionDamage, 1f, owner);
+        }
+
+        hellhexTriggered = false;
+        explosionSpawned = true;
     }
 
     public override void ModifyHurt(ref Player.HurtModifiers modifiers)
@@ -561,11 +470,8 @@ public class HellhexPlayer : WhipDebuffPlayer
         if (Player.HasBuff(DebuffType))
         {
             bool isSummon = IsSummonOrWhipDamage(ref modifiers);
-
             if (!isSummon)
-            {
                 hellhexTriggered = true;
-            }
         }
     }
 
@@ -575,32 +481,21 @@ public class HellhexPlayer : WhipDebuffPlayer
         explosionSpawned = false;
     }
 
-    protected override void OnDebuffExpired()
-    {
-        hellhexTriggered = false;
-        explosionSpawned = false;
-    }
-
     protected override void UpdateVisualEffects()
     {
         for (int i = 0; i < 2; i++)
         {
-            int dustType = DustID.Torch;
             Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
             Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-2f, 0f));
-
-            Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, default(Color), Main.rand.NextFloat(1f, 2f));
+            Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, DustID.Torch, dustVelocity.X, dustVelocity.Y, 100, default(Color), Main.rand.NextFloat(1f, 2f));
             dust.noGravity = true;
             dust.fadeIn = 1.3f;
         }
-
         if (Main.rand.NextBool(2))
         {
-            int dustType = DustID.Smoke;
             Vector2 dustPosition = Player.position + new Vector2(Main.rand.Next(Player.width), Main.rand.Next(Player.height));
             Vector2 dustVelocity = new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-1.5f, 0f));
-
-            Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, dustType, dustVelocity.X, dustVelocity.Y, 100, Color.OrangeRed, Main.rand.NextFloat(0.8f, 1.5f));
+            Dust dust = Dust.NewDustDirect(dustPosition, 0, 0, DustID.Smoke, dustVelocity.X, dustVelocity.Y, 100, Color.OrangeRed, Main.rand.NextFloat(0.8f, 1.5f));
             dust.noGravity = true;
         }
     }

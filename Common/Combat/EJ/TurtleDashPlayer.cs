@@ -25,14 +25,14 @@ public class HeavyArmorPlayer : ModPlayer
 
         isWearingFullHeavyarmor = wearingTurtle || wearingBeetleShell;
 
-        if (isWearingFullHeavyarmor)
-        {
-            Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
+        //if (isWearingFullHeavyarmor)
+        //{
+        //    Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
 
-            Player.GetDamage(DamageClass.Ranged) *= 0.5f;
-            Player.GetDamage(DamageClass.Magic) *= 0.5f;
-            Player.GetDamage(DamageClass.Summon) *= 0.5f;
-        }
+        //    Player.GetDamage(DamageClass.Ranged) *= 0.5f;
+        //    Player.GetDamage(DamageClass.Magic) *= 0.5f;
+        //    Player.GetDamage(DamageClass.Summon) *= 0.5f;
+        //}
     }
 
     public override void PostUpdate()

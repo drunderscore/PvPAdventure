@@ -67,18 +67,11 @@ public class TravellingMerchantTweaks : GlobalNPC
         if (Main.hardMode)
         {
             var pool = new List<int>
-            {
-                ItemID.ZapinatorOrange,
-                ItemID.BouncingShield,
-                ItemID.Gatligator,
-            };
-
-            // Pulse Bow enters the pool twice after all three mechanical bosses are defeated,doubling its weight
-            if (NPC.downedMechBoss1 && NPC.downedMechBoss2 && NPC.downedMechBoss3)
-            {
-                pool.Add(ItemID.PulseBow);
-                pool.Add(ItemID.PulseBow);
-            }
+    {
+        ItemID.ZapinatorOrange,
+        ItemID.BouncingShield,
+        ItemID.Gatligator,
+    };
 
             int weapon = pool[Main.rand.Next(pool.Count)];
 
@@ -88,6 +81,19 @@ public class TravellingMerchantTweaks : GlobalNPC
                 {
                     Main.travelShop[i] = weapon;
                     break;
+                }
+            }
+
+            // Pulse Bow is always in the shop once all three mechanical bosses are defeated.
+            if (NPC.downedMechBoss1 && NPC.downedMechBoss2 && NPC.downedMechBoss3)
+            {
+                for (int i = 0; i < Main.travelShop.Length; i++)
+                {
+                    if (Main.travelShop[i] == ItemID.None)
+                    {
+                        Main.travelShop[i] = ItemID.PulseBow;
+                        break;
+                    }
                 }
             }
         }
