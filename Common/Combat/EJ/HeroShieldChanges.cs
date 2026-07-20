@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using PvPAdventure.Common.World.Outlines.ItemOutlines;
+using PvPFramework.Common.World.Outlines.ItemOutlines;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.Enums;
