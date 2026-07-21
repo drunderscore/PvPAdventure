@@ -153,10 +153,10 @@ public class BountyManager : ModSystem
                 (int)dimensions.Width,
                 (int)dimensions.Height);
 
-            Utils.DrawInvBG(
-                spriteBatch,
-                background,
-                new Color(55, 67, 119) * 0.95f);
+            //Utils.DrawInvBG(
+            //    spriteBatch,
+            //    background,
+            //    new Color(55, 67, 119) * 0.95f);
 
             float oldScale = Main.inventoryScale;
 
@@ -193,9 +193,9 @@ public class BountyManager : ModSystem
             _claim = claim;
 
             Width.Set(0f, 1f);
-            Height.Set(82f, 0f);
+            Height.Set(54f, 0f);
 
-            SetPadding(10f);
+            SetPadding(5f);
 
             BountyItemIcon icon = new(items[0])
             {
@@ -215,28 +215,33 @@ public class BountyManager : ModSystem
 
             Append(itemName);
 
-            UITextPanel<string> claimButton = new(
-                "Claim",
-                textScale: 1.15f,
-                large: false)
+            UIKeybindingSimpleListItem claimButton = new(
+    () => "Claim",
+    new Color(73, 94, 171) * 0.9f)
             {
-                Width = { Pixels = 112f },
-                Height = { Pixels = 52f },
+                Width = { Pixels = 78f },
+                Height = { Pixels = 38f },
+
                 HAlign = 1f,
                 VAlign = 0.5f,
-                BackgroundColor = new Color(73, 94, 171) * 0.95f,
-                BorderColor = new Color(20, 28, 70)
+
+                // Creates space between the button and the row/list right edge.
+                Left = { Pixels = -8f }
             };
 
-            claimButton.OnMouseOver += (_, _) =>
-            {
-                claimButton.BackgroundColor = new Color(95, 118, 205);
-            };
+            claimButton.OnLeftClick += (_, _) => _claim();
 
-            claimButton.OnMouseOut += (_, _) =>
-            {
-                claimButton.BackgroundColor = new Color(73, 94, 171) * 0.95f;
-            };
+            Append(claimButton);
+
+            //claimButton.OnMouseOver += (_, _) =>
+            //{
+            //    claimButton.BackgroundColor = new Color(95, 118, 205);
+            //};
+
+            //claimButton.OnMouseOut += (_, _) =>
+            //{
+            //    claimButton.BackgroundColor = new Color(73, 94, 171) * 0.95f;
+            //};
 
             claimButton.OnLeftClick += (_, _) => _claim();
 
@@ -360,10 +365,10 @@ public class BountyManager : ModSystem
 
     public class UIBountyShop(BountyManager bountyManager) : UIState
     {
-        private const float ShopWidth = 620f;
-        private const float ShopHeight = 650f;
-        private const float HeaderHeight = 72f;
-        private const float RowSpacing = 8f;
+        private const float ShopWidth = 470f;
+        private const float ShopHeight = 420f;
+        private const float HeaderHeight = 52f;
+        private const float RowSpacing = 6f;
 
         public override void OnInitialize()
         {
@@ -394,7 +399,7 @@ public class BountyManager : ModSystem
 
             UITextPanel<string> title = new(
                 "Bounty Shop",
-                textScale: 1.15f,
+                textScale: 1.1f,
                 large: true)
             {
                 HAlign = 0.5f,
@@ -444,15 +449,15 @@ public class BountyManager : ModSystem
             UIList bountyList = new()
             {
                 Top = { Pixels = HeaderHeight },
-                Left = { Pixels = 18f },
+                Left = { Pixels = 10f },
                 Width =
             {
-                Pixels = -54f,
+                Pixels = -46f,
                 Percent = 1f
             },
                 Height =
             {
-                Pixels = -HeaderHeight - 18f,
+                Pixels = -HeaderHeight - 10f,
                 Percent = 1f
             },
                 ListPadding = RowSpacing
@@ -460,12 +465,12 @@ public class BountyManager : ModSystem
 
             UIScrollbar scrollbar = new()
             {
-                Top = { Pixels = HeaderHeight + 4f },
-                Left = { Pixels = -28f },
+                Top = { Pixels = HeaderHeight + 2f },
+                Left = { Pixels = -20f },
                 HAlign = 1f,
                 Height =
             {
-                Pixels = -HeaderHeight - 28f,
+                Pixels = -HeaderHeight - 12f,
                 Percent = 1f
             }
             };
