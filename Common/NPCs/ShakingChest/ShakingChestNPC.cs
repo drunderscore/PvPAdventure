@@ -203,7 +203,15 @@ public class ShakingChestNPC : GlobalNPC
 
             if (Main.dedServ)
                 NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
+
+            return;
         }
+
+        // It's a homeless townNPC, so the vanilla town-NPC AI tries to wander it around and it
+        // drifts out of the spawn box. Pin it horizontally to the spawn point (the box anchor)
+        // each tick so it stays put. Gravity still settles it onto the ground vertically.
+        npc.velocity.X = 0f;
+        npc.position.X = Main.spawnTileX * 16f - npc.width / 2f;
     }
 
     public override void ModifyHoverBoundingBox(NPC npc, ref Rectangle boundingBox)

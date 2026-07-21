@@ -42,8 +42,21 @@ public class GameManager : ModSystem
             Phase oldPhase = _currentPhase;
             _currentPhase = value;
 
+            // The phase itself is already committed above. Never let a throwing side effect
+            // (freeze toggle, replay, teleports, end screen...) abort before the sync below,
+            // or clients would freeze on the last countdown value they received ("1s") while
+            // the server silently entered the new phase.
             if (Main.netMode != NetmodeID.MultiplayerClient)
-                OnPhaseChange(oldPhase, value);
+            {
+                try
+                {
+                    OnPhaseChange(oldPhase, value);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"OnPhaseChange({oldPhase} -> {value}) threw; phase still synced. {e}");
+                }
+            }
 
             if (Main.dedServ)
                 NetMessage.SendData(MessageID.WorldData);
