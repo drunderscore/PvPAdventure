@@ -23,6 +23,7 @@ public class ZoomManager : ModSystem
     private void OnDoUpdate(On_Main.orig_DoUpdate orig, Main self, ref GameTime gameTime)
     {
         orig(self, ref gameTime);
-        Main.GameZoomTarget = Math.Max(1.0f, Main.screenHeight / BaselineHeight * 1.0f);
+        // sorry EJ
+        //Main.GameZoomTarget = Math.Max(1.0f, Main.screenHeight / BaselineHeight * 1.0f);
     }
 }
