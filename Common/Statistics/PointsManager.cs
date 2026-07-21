@@ -172,7 +172,7 @@ public class PointsManager : ModSystem
             var layerIndex = layers.FindIndex(layer => layer.Name == "PvPFramework: Scoreboard");
 
             if (layerIndex != -1)
-                layers.Insert(layerIndex + 1, BossCompletion);
+                layers.Insert(layerIndex, BossCompletion);
         }
     }
 
