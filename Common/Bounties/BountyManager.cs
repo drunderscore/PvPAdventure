@@ -13,6 +13,7 @@ using Terraria;
 using Terraria.Chat;
 using Terraria.DataStructures;
 using Terraria.Enums;
+using Terraria.GameContent;
 using Terraria.GameContent.UI.Elements;
 using Terraria.ID;
 using Terraria.Localization;
@@ -130,155 +131,410 @@ public class BountyManager : ModSystem
     {
         public string Context => null;
     }
-
-    private class UIItemSlotScalable : UIItemSlot
+    private class BountyItemIcon : UIElement
     {
-        private readonly Item[] _scaledSlotItems;
-        private readonly int _scaledSlotIndex;
-        private readonly int _scaledSlotContext;
+        private readonly Item _item;
 
-        public UIItemSlotScalable(Item[] itemArray, int itemIndex, int itemSlotContext)
-            : base(itemArray, itemIndex, itemSlotContext)
+        public BountyItemIcon(Item item)
         {
-            _scaledSlotItems = itemArray;
-            _scaledSlotIndex = itemIndex;
-            _scaledSlotContext = itemSlotContext;
-        }
+            _item = item;
 
-        public float InventoryScale { get; set; }
+            Width.Set(58f, 0f);
+            Height.Set(58f, 0f);
+        }
 
         protected override void DrawSelf(SpriteBatch spriteBatch)
         {
-            var previousInventoryScale = Main.inventoryScale;
+            CalculatedStyle dimensions = GetDimensions();
+
+            Rectangle background = new(
+                (int)dimensions.X,
+                (int)dimensions.Y,
+                (int)dimensions.Width,
+                (int)dimensions.Height);
+
+            Utils.DrawInvBG(
+                spriteBatch,
+                background,
+                new Color(55, 67, 119) * 0.95f);
+
+            float oldScale = Main.inventoryScale;
 
             try
             {
-                Main.inventoryScale = InventoryScale;
-                var item = _scaledSlotItems[_scaledSlotIndex];
-                var position = GetDimensions().Center() + new Vector2(52f, 52f) * -0.5f * Main.inventoryScale;
-                ItemSlot.Draw(spriteBatch, ref item, _scaledSlotContext, position);
+                Main.inventoryScale = 0.8f;
+
+                Item item = _item;
+                Vector2 position =
+                    dimensions.Center() -
+                    new Vector2(52f, 52f) * Main.inventoryScale * 0.5f;
+
+                ItemSlot.Draw(
+                    spriteBatch,
+                    ref item,
+                    ItemSlot.Context.ChestItem,
+                    position);
             }
             finally
             {
-                Main.inventoryScale = previousInventoryScale;
+                Main.inventoryScale = oldScale;
+            }
+        }
+    }
+
+    private class BountyRow : UIElement
+    {
+        private readonly Item[] _items;
+        private readonly Action _claim;
+
+        public BountyRow(Item[] items, Action claim)
+        {
+            _items = items;
+            _claim = claim;
+
+            Width.Set(0f, 1f);
+            Height.Set(82f, 0f);
+
+            SetPadding(10f);
+
+            BountyItemIcon icon = new(items[0])
+            {
+                Left = { Pixels = 4f },
+                VAlign = 0.5f
+            };
+
+            Append(icon);
+
+            UIText itemName = new(GetDisplayName(items), 1.05f)
+            {
+                Left = { Pixels = 78f },
+                VAlign = 0.5f,
+                TextOriginX = 0f,
+                IgnoresMouseInteraction = true
+            };
+
+            Append(itemName);
+
+            UITextPanel<string> claimButton = new(
+                "Claim",
+                textScale: 1.15f,
+                large: false)
+            {
+                Width = { Pixels = 112f },
+                Height = { Pixels = 52f },
+                HAlign = 1f,
+                VAlign = 0.5f,
+                BackgroundColor = new Color(73, 94, 171) * 0.95f,
+                BorderColor = new Color(20, 28, 70)
+            };
+
+            claimButton.OnMouseOver += (_, _) =>
+            {
+                claimButton.BackgroundColor = new Color(95, 118, 205);
+            };
+
+            claimButton.OnMouseOut += (_, _) =>
+            {
+                claimButton.BackgroundColor = new Color(73, 94, 171) * 0.95f;
+            };
+
+            claimButton.OnLeftClick += (_, _) => _claim();
+
+            Append(claimButton);
+        }
+
+        protected override void DrawSelf(SpriteBatch spriteBatch)
+        {
+            CalculatedStyle dimensions = GetDimensions();
+
+            Rectangle rectangle = new(
+                (int)dimensions.X,
+                (int)dimensions.Y,
+                (int)dimensions.Width,
+                (int)dimensions.Height);
+
+            Color color = IsMouseHovering
+                ? new Color(82, 99, 164) * 0.95f
+                : new Color(65, 78, 137) * 0.92f;
+
+            Utils.DrawInvBG(spriteBatch, rectangle, color);
+        }
+
+        private static string GetDisplayName(Item[] items)
+        {
+            if (items.Length == 1)
+                return ItemName(items[0]);
+
+            return string.Join(" + ", items.Select(ItemName));
+        }
+
+        private static string ItemName(Item item)
+        {
+            string name = item.Name;
+
+            return item.stack > 1
+                ? $"{name} (x{item.stack})"
+                : name;
+        }
+    }
+
+    private class BountyShardCounter : UIElement
+    {
+        private readonly Func<int> _getShards;
+
+        public BountyShardCounter(Func<int> getShards)
+        {
+            _getShards = getShards;
+
+            Width.Set(120f, 0f);
+            Height.Set(36f, 0f);
+        }
+
+        protected override void DrawSelf(SpriteBatch spriteBatch)
+        {
+            CalculatedStyle dimensions = GetDimensions();
+
+            Texture2D icon =
+               Ass.Shards is { IsLoaded: true } asset
+                    ? asset.Value
+                    : null;
+
+            string value = _getShards().ToString();
+
+            const float iconSize = 24f;
+            const float textScale = 1.05f;
+            const float gap = 7f;
+
+            float textWidth =
+                FontAssets.MouseText.Value.MeasureString(value).X *
+                textScale;
+
+            float groupWidth =
+                (icon != null ? iconSize + gap : 0f) +
+                textWidth;
+
+            float x =
+                dimensions.X +
+                dimensions.Width -
+                groupWidth;
+
+            float centerY = dimensions.Center().Y;
+
+            if (icon != null)
+            {
+                float scale =
+                    iconSize /
+                    Math.Max(icon.Width, icon.Height);
+
+                spriteBatch.Draw(
+                    icon,
+                    new Vector2(x + iconSize / 2f, centerY),
+                    null,
+                    Color.White,
+                    0f,
+                    icon.Size() / 2f,
+                    scale,
+                    SpriteEffects.None,
+                    0f);
+
+                x += iconSize + gap;
+            }
+
+            Utils.DrawBorderString(
+                spriteBatch,
+                value,
+                new Vector2(x, centerY),
+                Color.White,
+                textScale,
+                0f,
+                0.5f);
+
+            if (IsMouseHovering)
+            {
+                Main.LocalPlayer.mouseInterface = true;
+                Main.instance.MouseText(
+                    $"{_getShards()} bounty shards");
             }
         }
     }
 
     public class UIBountyShop(BountyManager bountyManager) : UIState
     {
+        private const float ShopWidth = 620f;
+        private const float ShopHeight = 650f;
+        private const float HeaderHeight = 72f;
+        private const float RowSpacing = 8f;
+
         public override void OnInitialize()
         {
             Invalidate();
         }
 
-        // FIXME: We could be smarter, but is that worth it?
         public void Invalidate()
         {
             RemoveAllChildren();
 
-            var root = new UIElement
+            UIElement root = new()
             {
                 HAlign = 0.5f,
-                Top = { Pixels = 200 },
-                Width = { Percent = 0.35f },
-                Height = { Percent = 0.5f }
+                VAlign = 0.5f,
+                Width = { Pixels = ShopWidth },
+                Height = { Pixels = ShopHeight }
             };
 
-            root.Append(new UIPanel
+            UIPanel background = new()
             {
-                Width = { Percent = 1.0f },
-                Height = { Percent = 1.0f }
-            });
+                Width = { Percent = 1f },
+                Height = { Percent = 1f },
+                BackgroundColor = new Color(27, 35, 72) * 0.98f,
+                BorderColor = new Color(8, 12, 31)
+            };
 
-            root.Append(new UITextPanel<string>("Bounty Shop", large: true)
+            root.Append(background);
+
+            UITextPanel<string> title = new(
+                "Bounty Shop",
+                textScale: 1.15f,
+                large: true)
             {
                 HAlign = 0.5f,
-                PaddingLeft = 15.0f,
-                PaddingRight = 15.0f,
-                PaddingTop = 15.0f,
-                PaddingBottom = 15.0f,
-                Top = { Pixels = -30.0f },
-            });
-
-            var bountyList = new UIList
-            {
-                Width = { Percent = 1.0f },
-                Height = { Percent = 1.0f },
-                PaddingTop = 60.0f, PaddingBottom = 30.0f, PaddingLeft = 30.0f, PaddingRight = 30.0f
+                Top = { Pixels = -35f },
+                PaddingLeft = 24f,
+                PaddingRight = 24f,
+                PaddingTop = 10f,
+                PaddingBottom = 10f,
+                BackgroundColor = new Color(67, 82, 146),
+                BorderColor = new Color(12, 17, 43)
             };
 
-            var scrollbar = new UIScrollbar
+            root.Append(title);
+
+            Team team = (Team)Main.LocalPlayer.team;
+
+            UIText teamText = new(
+                team == Team.None
+                    ? "No Team"
+                    : $"{team} Team",
+                0.95f)
             {
-                Top = { Pixels = -5f },
+                Left = { Pixels = 24f },
+                Top = { Pixels = 24f }
+            };
+
+            root.Append(teamText);
+
+            BountyShardCounter shardCounter = new(() =>
+            {
+                Team currentTeam = (Team)Main.LocalPlayer.team;
+
+                return bountyManager.Bounties.TryGetValue(
+                    currentTeam,
+                    out IList<Page> pages)
+                    ? pages.Count
+                    : 0;
+            })
+            {
+                HAlign = 1f,
+                Top = { Pixels = 14f },
+                Left = { Pixels = -30f }
+            };
+
+            root.Append(shardCounter);
+
+            UIList bountyList = new()
+            {
+                Top = { Pixels = HeaderHeight },
+                Left = { Pixels = 18f },
+                Width =
+            {
+                Pixels = -54f,
+                Percent = 1f
+            },
                 Height =
-                {
-                    Pixels = -20.0f,
-                    Percent = 1.0f
-                },
-                HAlign = 1.0f,
-                VAlign = 1.0f
+            {
+                Pixels = -HeaderHeight - 18f,
+                Percent = 1f
+            },
+                ListPadding = RowSpacing
             };
-            scrollbar.SetView(100.0f, 1000.0f);
+
+            UIScrollbar scrollbar = new()
+            {
+                Top = { Pixels = HeaderHeight + 4f },
+                Left = { Pixels = -28f },
+                HAlign = 1f,
+                Height =
+            {
+                Pixels = -HeaderHeight - 28f,
+                Percent = 1f
+            }
+            };
+
             bountyList.SetScrollbar(scrollbar);
 
             root.Append(bountyList);
+            root.Append(scrollbar);
 
-            // FIXME: indentation cause we append root late
-            if (bountyManager.Bounties.TryGetValue((Team)Main.LocalPlayer.team, out var teamBounties) &&
-                teamBounties.Count > 0)
-            {
-                var page = teamBounties[0];
-
-                var i = 0;
-
-                foreach (var items in page.Bounties)
-                {
-                    var elementForBounty = new UIElement
-                    {
-                        Width = { Pixels = 600.0f },
-                        Height = { Pixels = 50.0f },
-                        Top = { Pixels = i * 50.0f },
-                    };
-                    bountyList.Add(elementForBounty);
-
-                    var button = new UIKeybindingSimpleListItem(() => "Claim", new Color(73, 94, 171, 255) * 0.9f)
-                    {
-                        // FIXME: Not sure why these don't look right as they do in the controls panel, scaling seems odd.
-                        Width = { Pixels = 75.0f },
-                        Height = { Pixels = 35.0f }
-                    };
-
-                    var bountyIndex = (byte)i;
-                    button.OnLeftClick += (evt, element) =>
-                    {
-                        var packet = bountyManager.Mod.GetPacket();
-                        packet.Write((byte)AdventurePacketIdentifier.BountyTransaction);
-                        new Transaction(bountyManager.TransactionId, (byte)Main.LocalPlayer.team, 0, bountyIndex)
-                            .Serialize(packet);
-                        packet.Send();
-                    };
-
-                    elementForBounty.Append(button);
-                    var leftOffset = 0.0f;
-
-                    foreach (var item in items)
-                    {
-                        var itemSlot = new UIItemSlotScalable([item], 0, ItemSlot.Context.ChestItem)
-                        {
-                            Left = { Pixels = button.Width.Pixels + leftOffset },
-                            InventoryScale = 0.8f,
-                        };
-                        elementForBounty.Append(itemSlot);
-
-                        leftOffset += itemSlot.Width.Pixels;
-                    }
-
-                    i++;
-                }
-            }
+            PopulateBounties(bountyList);
 
             Append(root);
+        }
+
+        private void PopulateBounties(UIList bountyList)
+        {
+            Team team = (Team)Main.LocalPlayer.team;
+
+            if (!bountyManager.Bounties.TryGetValue(
+                    team,
+                    out IList<Page> pages) ||
+                pages.Count == 0)
+            {
+                bountyList.Add(new UIText(
+                    "Your team has no bounty shards.",
+                    1f)
+                {
+                    HAlign = 0.5f,
+                    Top = { Pixels = 20f }
+                });
+
+                return;
+            }
+
+            Page page = pages[0];
+
+            for (byte i = 0; i < page.Bounties.Count; i++)
+            {
+                byte bountyIndex = i;
+                Item[] items = page.Bounties[i];
+
+                BountyRow row = new(
+                    items,
+                    () => ClaimBounty(bountyIndex));
+
+                bountyList.Add(row);
+            }
+        }
+
+        private void ClaimBounty(byte bountyIndex)
+        {
+            Team team = (Team)Main.LocalPlayer.team;
+
+            if (team == Team.None)
+                return;
+
+            ModPacket packet = bountyManager.Mod.GetPacket();
+
+            packet.Write(
+                (byte)AdventurePacketIdentifier.BountyTransaction);
+
+            new Transaction(
+                bountyManager.TransactionId,
+                (byte)team,
+                0,
+                bountyIndex)
+                .Serialize(packet);
+
+            packet.Send();
         }
     }
 

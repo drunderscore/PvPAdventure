@@ -50,7 +50,7 @@ public class AdventureScoreboardHeader : ModSystem
     ? pointsAsset.Value
     : null;
 
-        Texture2D shardsIcon = PvPFramework.Core.Utilities.Ass.Defense is { IsLoaded: true } shardsAsset
+        Texture2D shardsIcon = Ass.Shards is { IsLoaded: true } shardsAsset
             ? shardsAsset.Value
             : null;
 

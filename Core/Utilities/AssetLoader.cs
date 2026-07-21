@@ -64,6 +64,8 @@ public static class Ass
     // End screen summary
     public static Asset<Texture2D> IconGem;
 
+    public static Asset<Texture2D> Shards;
+
     // Flag
     public static bool Initialized { get; set; }
 
