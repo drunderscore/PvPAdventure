@@ -345,8 +345,9 @@ public class PointsManager : ModSystem
                     245);
 
             // Cast to int so no strange aliasing occurs on anything we render -- we only work with whole numbers in the end.
+            int hoveredPlayerOffset = ScoreboardUISystem.HoveringAnotherPlayer ? 200 : 0;
             var containerPosition = new Vector2((int)((Main.screenWidth / 2.0f) - (containerSize.X / 2.0f)),
-                ScoreboardUISystem.Bounds.Bottom + scoreboardPadding);
+                ScoreboardUISystem.Bounds.Bottom + scoreboardPadding + hoveredPlayerOffset);
 
             Utils.DrawInvBG(Main.spriteBatch, containerPosition.X, containerPosition.Y, containerSize.X,
                 containerSize.Y);
