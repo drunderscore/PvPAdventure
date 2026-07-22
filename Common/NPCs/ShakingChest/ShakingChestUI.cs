@@ -26,6 +26,12 @@ internal sealed class ShakingChestUI : ModSystem
     private const float MaximumScale = 1f;
     private const string AssetPath = "PvPAdventure/Assets/Custom/";
 
+    private static readonly Color DefaultButtonColor = Color.Gray;
+    private static readonly Color DisabledButtonColor = Color.DarkGray;
+    private static readonly Color RefundButtonColor = new(184, 112, 112);
+    private static readonly Color SavedStatusColor = Color.Silver;
+    private static readonly Color OverwriteStatusColor = new(190, 150, 92);
+
     private static readonly float[] ButtonScale =
         [MinimumScale, MinimumScale, MinimumScale, MinimumScale, MinimumScale];
     private static readonly bool[] ButtonHovered = new bool[ButtonCount];
@@ -148,7 +154,7 @@ internal sealed class ShakingChestUI : ModSystem
 
     private static void DrawMenu()
     {
-        DrawButton(0, _choosingSaveSlot ? "Cancel Save" : "Save Current Loadout", true, Colors.RarityYellow,
+        DrawButton(0, _choosingSaveSlot ? "Cancel Save" : "Save Current Loadout", true, DefaultButtonColor,
             () => _choosingSaveSlot = !_choosingSaveSlot);
 
         for (int slot = 0; slot < ShakingChestLoadouts.SlotCount; slot++)
@@ -159,12 +165,12 @@ internal sealed class ShakingChestUI : ModSystem
             string action = _choosingSaveSlot ? $"Save Loadout #{button}" : $"Load Loadout #{button}";
             string status = _choosingSaveSlot && saved ? "Overwrite" : saved ? "Saved" : "Empty";
             Color statusColor = _choosingSaveSlot && saved
-                ? Colors.RarityOrange
-                : saved ? Colors.RarityGreen : Color.Gray;
+                ? OverwriteStatusColor
+                : saved ? SavedStatusColor : Color.Gray;
             float actionScale = ButtonScale[button];
 
             DrawButton(button, action, _choosingSaveSlot || saved,
-                _choosingSaveSlot ? Colors.RarityYellow : Colors.RarityBlue,
+                DefaultButtonColor,
                 () => UseSlot(selectedSlot));
 
             float statusX = ButtonX + FontAssets.MouseText.Value.MeasureString(action).X * actionScale + StatusPadding;
@@ -172,7 +178,7 @@ internal sealed class ShakingChestUI : ModSystem
                 MinimumScale, statusColor);
         }
 
-        DrawButton(4, "Refund Purchases", true, Colors.RarityRed, () =>
+        DrawButton(4, "Refund Purchases", true, RefundButtonColor, () =>
         {
             _choosingSaveSlot = false;
             ShakingChestNPC.RefundPlayer(Main.LocalPlayer);
@@ -208,7 +214,7 @@ internal sealed class ShakingChestUI : ModSystem
             size.X + (ButtonHovered[id] ? 16f : 0f),
             24f);
 
-        Color color = hovered ? Main.OurFavoriteColor : enabled ? enabledColor : Color.Gray;
+        Color color = hovered ? Main.OurFavoriteColor : enabled ? enabledColor : DisabledButtonColor;
         DrawText(text, centerX, y, scale, color, centered: true);
         UpdateHover(id, hovered);
 

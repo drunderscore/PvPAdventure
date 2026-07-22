@@ -3,6 +3,7 @@ using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel.Beds;
+using PvPAdventure.Content.Mounts;
 using PvPFramework.Common.Visualization.TileOutlines;
 using Terraria;
 using Terraria.DataStructures;
@@ -22,6 +23,9 @@ public class PvPFrameworkIntegration : ModSystem
         PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = () =>
             ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
 
+        PvPFramework.Common.Spawnbox.SpawnBoxSystem.BunnyPlayerProvider = player =>
+            player?.mount.Active == true && player.mount.Type == ModContent.MountType<RacePeriodMount>();
+
         // PvP Framework draws bed outlines; Adventure supplies the synchronized team ownership.
         BedOutlineTile.TeamResolver = ResolveBedTeam;
 
@@ -37,6 +41,7 @@ public class PvPFrameworkIntegration : ModSystem
         BedOutlineTile.TeamResolver = null;
         // Drop our delegate so it doesn't retain a reference to an unloaded GameManager.
         PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = static () => true;
+        PvPFramework.Common.Spawnbox.SpawnBoxSystem.BunnyPlayerProvider = static _ => false;
     }
 
     private static Team? ResolveBedTeam(Point origin) =>
