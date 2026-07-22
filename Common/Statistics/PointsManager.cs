@@ -168,17 +168,34 @@ public class PointsManager : ModSystem
 
     }
 
-    public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
+    public override void ModifyInterfaceLayers(
+    List<GameInterfaceLayer> layers)
     {
-        if (!layers.Contains(BossCompletion))
+        if (BossCompletion == null ||
+            layers.Contains(BossCompletion))
         {
-            var layerIndex = layers.FindIndex(layer => layer.Name == "PvPFramework: Scoreboard");
+            return;
+        }
 
-            // Insert AFTER the scoreboard layer (+1). The scoreboard's Draw is what updates
-            // ScoreboardUISystem.Bounds each frame; drawing this layer first would read last
-            // frame's Bounds (Rectangle.Empty on the frame it opens), flashing at the wrong spot.
-            if (layerIndex != -1)
-                layers.Insert(layerIndex + 1, BossCompletion);
+        int playerInfoIndex = layers.FindIndex(layer => layer.Name == "PvPFramework: Scoreboard Player Info");
+
+        if (playerInfoIndex != -1)
+        {
+            // Scoreboard has already updated Bounds, but player info has
+            // not drawn yet.
+            layers.Insert(
+                playerInfoIndex,
+                BossCompletion);
+
+            return;
+        }
+
+        int scoreboardIndex = layers.FindIndex(layer => layer.Name == "PvPFramework: Scoreboard");
+        if (scoreboardIndex != -1)
+        {
+            layers.Insert(
+                scoreboardIndex + 1,
+                BossCompletion);
         }
     }
 
@@ -345,9 +362,9 @@ public class PointsManager : ModSystem
                     245);
 
             // Cast to int so no strange aliasing occurs on anything we render -- we only work with whole numbers in the end.
-            int hoveredPlayerOffset = ScoreboardUISystem.HoveringAnotherPlayer ? 200 : 0;
+            //int hoveredPlayerOffset = ScoreboardUISystem.HoveringAnotherPlayer ? 200 : 0;
             var containerPosition = new Vector2((int)((Main.screenWidth / 2.0f) - (containerSize.X / 2.0f)),
-                ScoreboardUISystem.Bounds.Bottom + scoreboardPadding + hoveredPlayerOffset);
+                ScoreboardUISystem.Bounds.Bottom + scoreboardPadding);
 
             Utils.DrawInvBG(Main.spriteBatch, containerPosition.X, containerPosition.Y, containerSize.X,
                 containerSize.Y);

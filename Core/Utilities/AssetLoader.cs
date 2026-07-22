@@ -38,7 +38,7 @@ public static class Ass
     //public static Asset<Texture2D> ConfigBedOutline;
     public static Asset<Texture2D> ConfigBoundNPC;
     //public static Asset<Texture2D> ConfigBoundNPCOutline;
-    public static Asset<Texture2D> ConfigChat;
+    //public static Asset<Texture2D> ConfigChat;
     public static Asset<Texture2D> ConfigMapWorldSpawn;
     public static Asset<Texture2D> ConfigPlanterasBulb;
     public static Asset<Texture2D> ConfigPlayerHead;
