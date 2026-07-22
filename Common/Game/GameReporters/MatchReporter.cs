@@ -33,9 +33,11 @@ internal static class MatchReporter
         try
         {
             MatchPayload payload = BuildMatchPayload(completedMatch);
-            LogMatchPayload(payload, completedMatch.Token);
+            LogMatchPayloadDetails(payload, completedMatch.Token);
+            bool isValid = IsValidPayload(payload);
+            LogMatchEndSummary(payload, replayFilePath, isValid);
 
-            if (!IsValidPayload(payload))
+            if (!isValid)
                 return;
 
             // Intentionally no automatic retry: Tavernkeep currently has no idempotency key, so an
@@ -147,15 +149,32 @@ internal static class MatchReporter
         return result;
     }
 
-    private static void LogMatchPayload(MatchPayload payload, string matchToken)
+    private static void LogMatchPayloadDetails(MatchPayload payload, string matchToken)
     {
-        Log.Chat($"Match ended! Token={matchToken}, Start={payload.Start:O}, End={payload.End:O}");
-        Log.Chat($"Payload players={payload.Players.Count}, teams={payload.Teams.Count}, " +
-                 $"team0Null={payload.Teams.Count > 0 && payload.Teams[0] == null}");
+        Log.Info($"Match ended. Token={matchToken}, Start={payload.Start:O}, End={payload.End:O}, " +
+                 $"Players={payload.Players.Count}, Teams={payload.Teams.Count}, " +
+                 $"Team0Null={payload.Teams.Count > 0 && payload.Teams[0] == null}");
 
         for (int i = 0; i < payload.Teams.Count; i++)
             if (payload.Teams[i] is MatchTeamPayload team)
                 Log.Info($"Team {i}: {team.Points} points, {team.Bosses.Count} bosses");
+    }
+
+    private static void LogMatchEndSummary(MatchPayload payload, string replayFilePath, bool willPost)
+    {
+        bool isOfficial = Main.dedServ && global::PvPHub.PvPHub.IsOfficial;
+        bool hasReplay = !string.IsNullOrWhiteSpace(replayFilePath);
+        string endpoint = hasReplay ? "match/v2" : "match/v1";
+        string post = willPost ? endpoint + " queued" : "skipped (invalid payload)";
+        int winners = payload.Players.Values.Count(player => player.Winner);
+        int durationSeconds = Math.Max(0, (int)(payload.End - payload.Start).TotalSeconds);
+        string duration = durationSeconds >= 3600
+            ? $"{durationSeconds / 3600}:{durationSeconds / 60 % 60:00}:{durationSeconds % 60:00}"
+            : $"{durationSeconds / 60}:{durationSeconds % 60:00}";
+
+        Log.Chat($"Match report: official={(isOfficial ? "yes" : "no")}, post={post}, " +
+                 $"players={payload.Players.Count}, winners={winners}, replay={(hasReplay ? "yes" : "no")}, " +
+                 $"duration={duration}");
     }
 
     private static bool IsValidPayload(MatchPayload payload)

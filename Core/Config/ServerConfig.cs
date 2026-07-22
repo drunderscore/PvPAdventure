@@ -193,7 +193,7 @@ public sealed class ServerConfig : ModConfig
 
     public sealed class TravelSystemConfig
     {
-        [ConfigIcon(nameof(Ass.IconCheckGreen), nameof(Ass.IconXGray), grayWhenOff: true)]
+        [ConfigIcon(nameof(PvPFramework.Core.Utilities.Ass.IconCheckGreen), nameof(PvPFramework.Core.Utilities.Ass.IconXGray), grayWhenOff: true)]
         [DefaultValue(true)]
         public bool IsTravelSystemEnabled = true;
 

@@ -72,10 +72,10 @@ public class UIPlusMinusButton : UIElement
             : new Color(86, 86, 96, 155);
         Color textColor = enabled ? Color.White : Color.Gray;
 
-        DrawBar(sb, Ass.SliderButton.Value, rect, bg);
+        DrawBar(sb, PvPFramework.Core.Utilities.Ass.SliderButton.Value, rect, bg);
 
         if (hovered)
-            DrawBar(sb, Ass.SliderButtonHighlight.Value, rect, Color.Yellow);
+            DrawBar(sb, PvPFramework.Core.Utilities.Ass.SliderButtonHighlight.Value, rect, Color.Yellow);
 
         const float scale = 0.75f;
         Vector2 textSize = FontAssets.MouseText.Value.MeasureString(text) * scale;

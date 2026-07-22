@@ -20,51 +20,37 @@ public static class Ass
     public static Asset<Texture2D>[] MapBG;
 
     // Spawn selector assets
-    public static Asset<Texture2D> CustomPlayerBackground;
-    public static Asset<Texture2D> IconXGray;
-    public static Asset<Texture2D> IconCheckGreen;
     public static Asset<Texture2D> IconDead; // 32x32
     public static Asset<Texture2D> IconForbidden;
-    public static Asset<Texture2D> IconLock;
     public static Asset<Texture2D> IconQuestionMark;
     public static Asset<Texture2D> Shimmer;
 
     // Admin tools assets
     public static Asset<Texture2D> IconReset;
-    public static Asset<Texture2D> IconRefresh;
     public static Asset<Texture2D> IconResize;
-    public static Asset<Texture2D> IconWatch;
     public static Asset<Texture2D> IconTime;
     public static Asset<Texture2D> IconStartGame;
     public static Asset<Texture2D> IconEndGame;
-    public static Asset<Texture2D> IconPointsSetter;
-    public static Asset<Texture2D> Slider;
-    public static Asset<Texture2D> SliderButton;
-    public static Asset<Texture2D> SliderButtonHighlight;
-    public static Asset<Texture2D> SliderHighlight;
-    public static Asset<Texture2D> SliderGradient;
     public static Asset<Texture2D> Stopwatch;
 
     // Config icons
     public static Asset<Texture2D> ConfigBed;
-    public static Asset<Texture2D> ConfigBedOutline;
+    //public static Asset<Texture2D> ConfigBedOutline;
     public static Asset<Texture2D> ConfigBoundNPC;
-    public static Asset<Texture2D> ConfigBoundNPCOutline;
+    //public static Asset<Texture2D> ConfigBoundNPCOutline;
     public static Asset<Texture2D> ConfigChat;
     public static Asset<Texture2D> ConfigMapWorldSpawn;
     public static Asset<Texture2D> ConfigPlanterasBulb;
     public static Asset<Texture2D> ConfigPlayerHead;
-    public static Asset<Texture2D> ConfigPlayerOutline;
-    public static Asset<Texture2D> ConfigProjectile;
-    public static Asset<Texture2D> ConfigProjectileOutline;
-    public static Asset<Texture2D> ConfigPvP;
-    public static Asset<Texture2D> ConfigTreasureBag;
-    public static Asset<Texture2D> ConfigTreasureBagOutline;
-    public static Asset<Texture2D> SmallPanelHighlight;
+    //public static Asset<Texture2D> ConfigPlayerOutline;
+    //public static Asset<Texture2D> ConfigProjectile;
+    //public static Asset<Texture2D> ConfigProjectileOutline;
+    //public static Asset<Texture2D> ConfigPvP;
+    //public static Asset<Texture2D> ConfigTreasureBag;
+    //public static Asset<Texture2D> ConfigTreasureBagOutline;
 
-    // End screen summary
-    public static Asset<Texture2D> IconGem;
-
+    // Scoreboard
+    public static Asset<Texture2D> IconPointsSetter;
     public static Asset<Texture2D> Shards;
 
     // Flag
@@ -150,27 +136,31 @@ internal sealed class MissingAssetException : Exception
 
     private static string BuildErrorMessage(List<(string AssetName, string Path)> missingAssets, ICollection<string> validKeys)
     {
-        string message = $"MOD CRASH! Missing {missingAssets.Count} texture asset(s):\n";
+        string message = $"Missing {missingAssets.Count} asset{(missingAssets.Count == 1 ? "" : "s")}:\n";
 
         foreach (var missing in missingAssets)
-        {
             message += $"Failed to load Ass.{missing.AssetName}: \"{missing.Path}\"\n";
 
-            if (validKeys != null && validKeys.Count > 0)
+        List<string> suggestions = [];
+
+        if (validKeys != null && validKeys.Count > 0)
+        {
+            string[] keys = validKeys.ToArray();
+
+            foreach (var missing in missingAssets)
             {
-                string closestMatch = LevenshteinDistance.FolderAwareEditDistance(missing.Path, validKeys.ToArray());
+                string closestMatch = LevenshteinDistance.FolderAwareEditDistance(missing.Path, keys);
                 if (!string.IsNullOrEmpty(closestMatch))
-                {
-                    (string a, string b) = LevenshteinDistance.ComputeColorTaggedString(missing.Path, closestMatch);
-                    message += $"Did you mean \"{closestMatch}\"?\n";
-                    message += $"{a}\n{b}\n";
-                }
+                    suggestions.Add($"Possible misspelling: \"{missing.Path}\" -> \"{closestMatch}\"");
             }
-            message += "\n"; // Space between missing items
         }
 
-        message += "--------------\n";
-        message += "Tip: The most common reason for this error is a malformed .png file or a typo in the path. Make sure you are saving textures in the .png format and are not just renaming the file extension of your texture files to .png, that does not work.";
+        if (suggestions.Count > 0)
+        {
+            message += "-------------------------\n";
+            message += "More info on how you can fix the missing assets:\n";
+            message += string.Join("\n", suggestions);
+        }
 
         return message;
     }
@@ -178,11 +168,6 @@ internal sealed class MissingAssetException : Exception
 
 static class LevenshteinDistance
 {
-    enum Edits
-    {
-        Keep, Delete, Insert, Substitute, Blank
-    }
-
     internal static string FolderAwareEditDistance(string source, string[] targets)
     {
         if (targets.Length == 0) return null;
@@ -270,110 +255,5 @@ static class LevenshteinDistance
             }
         }
         return d[n, m];
-    }
-
-    public static (string, string) ComputeColorTaggedString(string s, string t)
-    {
-        int n = s.Length;
-        int m = t.Length;
-        int[,] d = new int[n + 1, m + 1];
-
-        if (n == 0) return ("", "");
-        if (m == 0) return ("", "");
-
-        for (int i = 0; i <= n; d[i, 0] = i++) { }
-        for (int j = 0; j <= m; d[0, j] = j++) { }
-
-        for (int i = 1; i <= n; i++)
-        {
-            for (int j = 1; j <= m; j++)
-            {
-                int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                d[i, j] = Math.Min(
-                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                    d[i - 1, j - 1] + cost);
-            }
-        }
-
-        var x = n;
-        var y = m;
-        var editsFromStoT = new Stack<(Edits, char)>();
-        var editsFromTtoS = new Stack<(Edits, char)>();
-
-        while (x != 0 || y != 0)
-        {
-            var cost = d[x, y];
-            if (y - 1 < 0)
-            {
-                editsFromStoT.Push((Edits.Delete, s[x - 1]));
-                editsFromTtoS.Push((Edits.Blank, ' '));
-                x--;
-                continue;
-            }
-
-            if (x - 1 < 0)
-            {
-                editsFromStoT.Push((Edits.Insert, t[y - 1]));
-                editsFromTtoS.Push((Edits.Blank, ' '));
-                y--;
-                continue;
-            }
-
-            var costLeft = d[x, y - 1];
-            var costUp = d[x - 1, y];
-            var costDiagonal = d[x - 1, y - 1];
-
-            if (costDiagonal <= costLeft && costDiagonal <= costUp && (costDiagonal == cost - 1 || costDiagonal == cost))
-            {
-                if (costDiagonal == cost - 1)
-                {
-                    editsFromStoT.Push((Edits.Substitute, s[x - 1]));
-                    editsFromTtoS.Push((Edits.Substitute, t[y - 1]));
-                    x--; y--;
-                }
-                else
-                {
-                    editsFromStoT.Push((Edits.Keep, s[x - 1]));
-                    editsFromTtoS.Push((Edits.Keep, t[y - 1]));
-                    x--; y--;
-                }
-            }
-            else if (costLeft <= costDiagonal && costLeft == cost - 1)
-            {
-                editsFromStoT.Push((Edits.Insert, t[y - 1]));
-                editsFromTtoS.Push((Edits.Blank, ' '));
-                y--;
-            }
-            else
-            {
-                editsFromStoT.Push((Edits.Delete, s[x - 1]));
-                editsFromTtoS.Push((Edits.Blank, ' '));
-                x--;
-            }
-        }
-
-        string FinalizeText(Stack<(Edits, char)> results)
-        {
-            string result = "";
-            Edits editCurrent = Edits.Keep;
-            while (results.Count > 0)
-            {
-                var entry = results.Pop();
-                Edits nextEdit = entry.Item1;
-                if (editCurrent != nextEdit)
-                {
-                    if (editCurrent != Edits.Keep && editCurrent != Edits.Blank) result += "]";
-                    if (nextEdit == Edits.Delete) result += "[c/ff0000:";
-                    else if (nextEdit == Edits.Insert) result += "[c/00ff00:";
-                    else if (nextEdit == Edits.Substitute) result += "[c/ffff00:";
-                }
-                result += entry.Item2;
-                editCurrent = nextEdit;
-            }
-            if (editCurrent != Edits.Keep && editCurrent != Edits.Blank) result += "]";
-            return result;
-        }
-
-        return (FinalizeText(editsFromStoT), FinalizeText(editsFromTtoS));
     }
 }

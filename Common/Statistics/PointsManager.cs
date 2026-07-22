@@ -174,8 +174,11 @@ public class PointsManager : ModSystem
         {
             var layerIndex = layers.FindIndex(layer => layer.Name == "PvPFramework: Scoreboard");
 
+            // Insert AFTER the scoreboard layer (+1). The scoreboard's Draw is what updates
+            // ScoreboardUISystem.Bounds each frame; drawing this layer first would read last
+            // frame's Bounds (Rectangle.Empty on the frame it opens), flashing at the wrong spot.
             if (layerIndex != -1)
-                layers.Insert(layerIndex, BossCompletion);
+                layers.Insert(layerIndex + 1, BossCompletion);
         }
     }
 

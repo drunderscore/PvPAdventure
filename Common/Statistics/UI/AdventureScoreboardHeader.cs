@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Enums;
-using Terraria.GameContent;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Statistics.UI;
@@ -58,19 +57,15 @@ public class AdventureScoreboardHeader : ModSystem
             Main.spriteBatch,
             pointsCell,
             pointsIcon,
-            points.ToString());
+            points.ToString(),
+            iconScaleMultiplier: 1.375f);
 
         DrawIconValue(
             Main.spriteBatch,
             shardsCell,
             shardsIcon,
-            shards.ToString());
-
-        // Small divider between the two values.
-        Main.spriteBatch.Draw(
-            TextureAssets.MagicPixel.Value,
-            new Rectangle(corner.Center.X, corner.Y + 3, 1, corner.Height - 6),
-            Color.White * .15f);
+            shards.ToString(),
+            iconScaleMultiplier: 1.8f);
 
         Point mouse = Main.MouseScreen.ToPoint();
 
@@ -90,14 +85,15 @@ public class AdventureScoreboardHeader : ModSystem
         SpriteBatch spriteBatch,
         Rectangle cell,
         Texture2D icon,
-        string value)
+        string value,
+        float iconScaleMultiplier = 1f)
     {
         const float iconSize = 15f;
         const float valueScale = 1.05f;
 
         if (icon != null)
         {
-            float iconScale = iconSize / Math.Max(icon.Width, icon.Height);
+            float iconScale = iconSize / Math.Max(icon.Width, icon.Height) * iconScaleMultiplier;
 
             spriteBatch.Draw(
                 icon,
@@ -114,7 +110,7 @@ public class AdventureScoreboardHeader : ModSystem
         Utils.DrawBorderString(
             spriteBatch,
             value,
-            new Vector2(cell.Center.X, cell.Y + 18f),
+            new Vector2(cell.Center.X, cell.Y + 14f),
             Color.White,
             valueScale,
             .5f,

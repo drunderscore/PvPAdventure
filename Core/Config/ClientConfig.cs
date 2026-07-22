@@ -39,7 +39,7 @@ public class ClientConfig : ModConfig
     }
 
     [Header("UI")]
-    [HeaderIcon(nameof(Ass.SmallPanelHighlight))]
+    [HeaderIcon(nameof(PvPFramework.Core.Utilities.Ass.ConfigUI))]
     [BackgroundColor(36, 104, 118)]
     [DefaultValue(true)]
     public bool TravelUI = true;
