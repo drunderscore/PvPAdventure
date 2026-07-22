@@ -11,8 +11,6 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Statistics.UI;
 
-// Fills the scoreboard header's top-right corner (freed up by PvP Framework's ScoreboardTeamHeader
-// hook) with each team's match score: total points and bounty shards.
 [Autoload(Side = ModSide.Client)]
 public class AdventureScoreboardHeader : ModSystem
 {
@@ -21,51 +19,18 @@ public class AdventureScoreboardHeader : ModSystem
 
     private static void DrawTeamExtra(Rectangle corner, Team team)
     {
-        int points = ModContent.GetInstance<PointsManager>().Points
-            .TryGetValue(team, out int p)
-            ? p
-            : 0;
-
-        int shards = ModContent.GetInstance<BountyManager>().Bounties
-            .TryGetValue(team, out IList<BountyManager.Page> pages)
-            ? pages.Count
-            : 0;
-
+        int points = ModContent.GetInstance<PointsManager>().Points.TryGetValue(team, out int p) ? p : 0;
+        int shards = ModContent.GetInstance<BountyManager>().Bounties.TryGetValue(team, out IList<BountyManager.Page> pages) ? pages.Count : 0;
         int half = corner.Width / 2;
 
-        Rectangle pointsCell = new(
-            corner.X,
-            corner.Y,
-            half,
-            corner.Height);
+        Rectangle pointsCell = new(corner.X, corner.Y, half, corner.Height);
+        Rectangle shardsCell = new(corner.X + half, corner.Y, corner.Width - half, corner.Height);
 
-        Rectangle shardsCell = new(
-            corner.X + half,
-            corner.Y,
-            corner.Width - half,
-            corner.Height);
+        Texture2D pointsIcon = Ass.IconPointsSetter is { IsLoaded: true } pointsAsset ? pointsAsset.Value : null;
+        Texture2D shardsIcon = Ass.Shards is { IsLoaded: true } shardsAsset ? shardsAsset.Value : null;
 
-        Texture2D pointsIcon = Ass.IconPointsSetter is { IsLoaded: true } pointsAsset
-    ? pointsAsset.Value
-    : null;
-
-        Texture2D shardsIcon = Ass.Shards is { IsLoaded: true } shardsAsset
-            ? shardsAsset.Value
-            : null;
-
-        DrawIconValue(
-            Main.spriteBatch,
-            pointsCell,
-            pointsIcon,
-            points.ToString(),
-            iconScaleMultiplier: 1.375f);
-
-        DrawIconValue(
-            Main.spriteBatch,
-            shardsCell,
-            shardsIcon,
-            shards.ToString(),
-            iconScaleMultiplier: 1.8f);
+        DrawIconValue(Main.spriteBatch, pointsCell, pointsIcon, points.ToString(), 1.375f);
+        DrawIconValue(Main.spriteBatch, shardsCell, shardsIcon, shards.ToString(), 1.55f);
 
         Point mouse = ScoreboardTeamHeader.Cursor;
 
@@ -81,39 +46,17 @@ public class AdventureScoreboardHeader : ModSystem
         }
     }
 
-    private static void DrawIconValue(
-        SpriteBatch spriteBatch,
-        Rectangle cell,
-        Texture2D icon,
-        string value,
-        float iconScaleMultiplier = 1f)
+    private static void DrawIconValue(SpriteBatch sb, Rectangle cell, Texture2D icon, string value, float iconScaleMultiplier = 1f)
     {
         const float iconSize = 15f;
         const float valueScale = 1.05f;
 
         if (icon != null)
         {
-            float iconScale = iconSize / Math.Max(icon.Width, icon.Height) * iconScaleMultiplier;
-
-            spriteBatch.Draw(
-                icon,
-                new Vector2(cell.Center.X, cell.Y + 8f),
-                null,
-                Color.White * .75f,
-                0f,
-                icon.Size() / 2f,
-                iconScale,
-                SpriteEffects.None,
-                0f);
+            float scale = iconSize / Math.Max(icon.Width, icon.Height) * iconScaleMultiplier;
+            sb.Draw(icon, new Vector2(cell.Center.X, cell.Y + 8f), null, Color.White * .75f, 0f, icon.Size() / 2f, scale, SpriteEffects.None, 0f);
         }
 
-        Utils.DrawBorderString(
-            spriteBatch,
-            value,
-            new Vector2(cell.Center.X, cell.Y + 14f),
-            Color.White,
-            valueScale,
-            .5f,
-            0f);
+        Utils.DrawBorderString(sb, value, new Vector2(cell.Center.X, cell.Y + 14f), Color.White, valueScale, .5f, 0f);
     }
 }

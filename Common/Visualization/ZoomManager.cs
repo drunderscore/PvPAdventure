@@ -24,6 +24,6 @@ public class ZoomManager : ModSystem
     {
         orig(self, ref gameTime);
         // sorry EJ
-        //Main.GameZoomTarget = Math.Max(1.0f, Main.screenHeight / BaselineHeight * 1.0f);
+        Main.GameZoomTarget = Math.Max(1.0f, Main.screenHeight / BaselineHeight * 1.0f);
     }
 }
