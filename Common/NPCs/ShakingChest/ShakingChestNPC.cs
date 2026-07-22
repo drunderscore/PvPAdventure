@@ -83,9 +83,11 @@ public sealed class ShakingChestNPC : GlobalNPC
         }
 
         if (!ErkySSCCompat.TryApplyStartingItems(player))
+        {
             ApplyFallbackStartingItems(player);
+            AddStartingCoins(player);
+        }
 
-        AddStartingCoins(player);
         Recipe.FindRecipes();
         ShakingChestLoadouts.Sync(player);
     }
