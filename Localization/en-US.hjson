@@ -197,21 +197,6 @@ Mods: {
 				DisplayName: Portal Creator
 				Tooltip: ""
 			}
-
-			NextPageItem: {
-				DisplayName: Next Page Item
-				Tooltip: ""
-			}
-
-			PrevPageItem: {
-				DisplayName: Prev Page Item
-				Tooltip: ""
-			}
-
-			RefundPurchasesItem: {
-				DisplayName: Refund Purchases Item
-				Tooltip: ""
-			}
 		}
 
 		NPCs: {
@@ -543,6 +528,11 @@ Mods: {
 				BoundSpawnChance: {
 					Label: Bound Spawn Chance
 					Tooltip: Percent chance that our bound NPCs spawn
+				}
+
+				ShakingChest: {
+					Label: Shaking Chest
+					Tooltip: Shop and refund settings
 				}
 
 				TravelSystem: {
@@ -1112,6 +1102,34 @@ Mods: {
 				AwardBountyEveryKill: {
 					Label: Award Bounty Every Kill
 					Tooltip: ""
+				}
+			}
+
+			ShakingChestConfig: {
+				Tooltip: Shaking chest settings
+
+				StartingCoins: {
+					Label: Starting Coins
+					Tooltip: Number of gold coins restored by Refund Purchases
+				}
+
+				ShopItems: {
+					Label: Shop Items
+					Tooltip: Items and copper prices sold by the shaking chest
+				}
+			}
+
+			ShopItem: {
+				Tooltip: ""
+
+				Item: {
+					Label: Item
+					Tooltip: ""
+				}
+
+				Price: {
+					Label: Price
+					Tooltip: Price in copper coins
 				}
 			}
 

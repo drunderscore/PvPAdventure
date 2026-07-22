@@ -24,6 +24,12 @@ public sealed class ServerConfig : ModConfig
     [Expand(false, false)]
     public BountiesConfig Bounties = new();
 
+    [Header("Gameplay")]
+    [ConfigIcon(ItemID.GoldChest, placement: ConfigIconPlacement.Cut)]
+    [BackgroundColor(205, 110, 60)]
+    [Expand(false, false)]
+    public ShakingChestConfig ShakingChest = new();
+
     [Header("NPCs")]
     [HeaderIcon(267)]
     [ConfigIcon(nameof(Ass.ConfigBoundNPC))]
@@ -77,9 +83,29 @@ public sealed class ServerConfig : ModConfig
         Points.Npc ??= ServerConfigDefaults.CreateNpcPoints();
         Bounties ??= new();
         Bounties.ClaimableItems ??= ServerConfigDefaults.CreateClaimableBounties();
+        ShakingChest ??= new();
+        ShakingChest.ShopItems ??= ServerConfigDefaults.CreateShopItems();
         TravelSystem ??= new();
         WorldGeneration ??= new();
         InvasionSizes ??= ServerConfigDefaults.CreateInvasionSizes();
+    }
+
+    public sealed class ShakingChestConfig
+    {
+        [Range(0, 9999)]
+        [DefaultValue(ServerConfigDefaults.StartingCoins)]
+        public int StartingCoins = ServerConfigDefaults.StartingCoins;
+
+        [Expand(false, false)]
+        public List<ShopItem> ShopItems = ServerConfigDefaults.CreateShopItems();
+    }
+
+    public sealed class ShopItem
+    {
+        public ItemDefinition Item = new();
+
+        [Range(0, 100000000)]
+        public int Price;
     }
 
     public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref NetworkText message)

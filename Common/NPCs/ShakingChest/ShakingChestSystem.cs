@@ -1,9 +1,9 @@
-﻿using log4net;
+using System.Reflection;
+using log4net;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using PvPAdventure.Common.Game;
-using System.Reflection;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -11,153 +11,127 @@ using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.NPCs;
 
-[Autoload(Side = ModSide.Both)]
-public class ShakingChestSystem : ModSystem
+public sealed class ShakingChestSystem : ModSystem
 {
     private const int RespawnCheckInterval = 300;
-    private int _respawnCheckTimer = 0;
-    private static ILog _logger;
-    private static Hook _setChatButtonsHook;
 
     private delegate void SetChatButtonsDelegate(ref string button, ref string button2);
+
+    private static ILog _logger;
+    private static Hook _chatButtonsHook;
+    private int _respawnTimer;
 
     public override void Load()
     {
         _logger = Mod.Logger;
-
-        var method = typeof(NPCLoader).GetMethod(
+        MethodInfo method = typeof(NPCLoader).GetMethod(
             "SetChatButtons",
             BindingFlags.Public | BindingFlags.Static);
-
-        _setChatButtonsHook = new Hook(method, OnSetChatButtons);
+        _chatButtonsHook = new Hook(method, SetChatButtons);
 
         IL_Main.HoverOverNPCs += PatchBoundSlimeHover;
-        On_Main.TryFreeingElderSlime += OnTryFreeingElderSlime;
-        On_NPC.SetDefaults += OnNPCSetDefaults;
+        On_Main.TryFreeingElderSlime += PreventFreeingTownChest;
     }
 
     public override void Unload()
     {
-        _setChatButtonsHook?.Dispose();
-        _setChatButtonsHook = null;
+        _chatButtonsHook?.Dispose();
+        _chatButtonsHook = null;
         IL_Main.HoverOverNPCs -= PatchBoundSlimeHover;
-        On_Main.TryFreeingElderSlime -= OnTryFreeingElderSlime;
-        On_NPC.SetDefaults -= OnNPCSetDefaults;
+        On_Main.TryFreeingElderSlime -= PreventFreeingTownChest;
         _logger = null;
     }
 
-    private static void OnNPCSetDefaults(On_NPC.orig_SetDefaults orig, NPC self, int type, NPCSpawnParams spawnparams)
-    {
-        orig(self, type, spawnparams);
-
-        if (self.type != NPCID.BoundTownSlimeOld) return;
-
-        self.scale = 4f;
-        self.width = self.width * 4;
-        self.height = self.height * 4;
-    }
-
-    private static void OnSetChatButtons(
+    private static void SetChatButtons(
         SetChatButtonsDelegate orig,
         ref string button,
         ref string button2)
     {
         orig(ref button, ref button2);
 
-        if (Main.LocalPlayer.talkNPC < 0) return;
-        NPC npc = Main.npc[Main.LocalPlayer.talkNPC];
-
-        if (npc.type != NPCID.BoundTownSlimeOld) return;
-
-        button = Language.GetTextValue("LegacyInterface.28"); // "Shop"
-        button2 = "Refund Purchases";
+        int talkNpc = Main.LocalPlayer.talkNPC;
+        if (talkNpc >= 0 && Main.npc[talkNpc].type == ShakingChestNPC.TargetType)
+        {
+            button = Language.GetTextValue("LegacyInterface.28");
+            button2 = "";
+        }
     }
 
-    private static bool OnTryFreeingElderSlime(On_Main.orig_TryFreeingElderSlime orig, int npcIndex)
-    {
-        NPC npc = Main.npc[npcIndex];
-        if (npc.townNPC) return false;
-        return orig(npcIndex);
-    }
+    private static bool PreventFreeingTownChest(
+        On_Main.orig_TryFreeingElderSlime orig,
+        int npcIndex) =>
+        Main.npc[npcIndex].townNPC ? false : orig(npcIndex);
 
     private static void PatchBoundSlimeHover(ILContext il)
     {
-        var c = new ILCursor(il);
-
-        if (!c.TryGotoNext(MoveType.Before,
-            i => i.MatchLdfld<NPC>(nameof(NPC.type)),
-            i => i.MatchLdcI4(NPCID.BoundTownSlimeOld)))
+        ILCursor cursor = new(il);
+        if (!cursor.TryGotoNext(
+            MoveType.Before,
+            instruction => instruction.MatchLdfld<NPC>(nameof(NPC.type)),
+            instruction => instruction.MatchLdcI4(ShakingChestNPC.TargetType)) ||
+            !cursor.TryGotoNext(instruction => instruction.MatchLdcI4(ShakingChestNPC.TargetType)))
         {
-            _logger?.Warn("[ShakingChestPatches] Failed to find BoundTownSlimeOld ldc.i4 in HoverOverNPCs.");
+            _logger?.Warn("Could not patch shaking chest hover behavior.");
             return;
         }
 
-        c.GotoNext(i => i.MatchLdcI4(NPCID.BoundTownSlimeOld));
-        c.Next.Operand = -1;
-
-        _logger?.Info("[ShakingChestPatches] Successfully patched BoundTownSlimeOld branch.");
+        cursor.Next.Operand = -1;
     }
 
     public override void OnWorldLoad()
     {
-        if (Main.netMode == NetmodeID.MultiplayerClient) return;
-
-        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Waiting)
-            EnsureShakingChestExists();
+        if (Main.netMode != NetmodeID.MultiplayerClient &&
+            ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Waiting)
+            EnsureExists();
     }
 
     public override void PostWorldGen()
     {
-        if (Main.netMode == NetmodeID.MultiplayerClient) return;
-        SpawnShakingChest();
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            Spawn();
     }
 
     public override void PostUpdateTime()
     {
-        if (Main.netMode == NetmodeID.MultiplayerClient) return;
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
 
         if (ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Waiting)
         {
-            _respawnCheckTimer = 0;
+            _respawnTimer = 0;
             return;
         }
 
-        // Continuously delete all ground items
+        ClearGroundItems();
+        if (++_respawnTimer >= RespawnCheckInterval)
+        {
+            _respawnTimer = 0;
+            EnsureExists();
+        }
+    }
+
+    private static void ClearGroundItems()
+    {
         for (int i = 0; i < Main.maxItems; i++)
         {
-            if (Main.item[i].active)
-            {
-                Main.item[i].active = false;
-                Main.item[i] = new Item();
+            if (!Main.item[i].active)
+                continue;
 
-                if (Main.netMode == NetmodeID.Server)
-                    NetMessage.SendData(MessageID.SyncItem, number: i);
-            }
+            Main.item[i] = new Item();
+            if (Main.netMode == NetmodeID.Server)
+                NetMessage.SendData(MessageID.SyncItem, number: i);
         }
-
-        if (++_respawnCheckTimer < RespawnCheckInterval) return;
-
-        _respawnCheckTimer = 0;
-        EnsureShakingChestExists();
     }
 
-    private static void EnsureShakingChestExists()
+    private static void EnsureExists()
     {
-        foreach (NPC npc in Main.ActiveNPCs)
-        {
-            if (npc.type == NPCID.BoundTownSlimeOld)
-                return;
-        }
-        SpawnShakingChest();
+        if (!NPC.AnyNPCs(ShakingChestNPC.TargetType))
+            Spawn();
     }
 
-    private static void SpawnShakingChest()
-    {
-        int extraHeightPixels = 18 * 3;
-        NPC.NewNPC(
-            Entity.GetSource_NaturalSpawn(),
-            Main.spawnTileX * 16,
-            (Main.spawnTileY - 3) * 16 - extraHeightPixels,
-            NPCID.BoundTownSlimeOld);
-    }
+    private static void Spawn() => NPC.NewNPC(
+        Entity.GetSource_NaturalSpawn(),
+        Main.spawnTileX * 16,
+        (Main.spawnTileY - 3) * 16 - 54,
+        ShakingChestNPC.TargetType);
 }

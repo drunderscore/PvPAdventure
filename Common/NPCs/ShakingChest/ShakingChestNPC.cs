@@ -1,103 +1,32 @@
-﻿using Terraria;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using PvPAdventure.Common.Game;
+using PvPAdventure.Content.Portals;
+using PvPAdventure.Core.Compat;
+using PvPAdventure.Core.Config;
+using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
-using PvPAdventure.Content.Portals;
-using PvPAdventure.Common.Game;
-using Microsoft.Xna.Framework;
-using PvPAdventure.Content.Items;
 
 namespace PvPAdventure.Common.NPCs;
 
-public class ShakingChestNPC : GlobalNPC
+public sealed class ShakingChestNPC : GlobalNPC
 {
-    private static int TargetType => NPCID.BoundTownSlimeOld;
-    public const string ShopName = "Shop";
+    internal const int TargetType = NPCID.BoundTownSlimeOld;
+    private const string ShopName = "Shop";
 
-    public static readonly NPCShop Shop = new NPCShop(NPCID.BoundTownSlimeOld, ShopName)
-        .Add(new Item(ItemID.Wood) { shopCustomPrice = Item.buyPrice(silver: 2) })
-        .Add(new Item(ItemID.MiningPotion) { shopCustomPrice = Item.buyPrice(silver: 750) })
-        .Add(new Item(ItemID.Torch) { shopCustomPrice = Item.buyPrice(silver: 1) })
-        .Add(new Item(ItemID.WoodenBoomerang) { shopCustomPrice = Item.buyPrice(silver: 350) })
-        .Add(new Item(ItemID.Umbrella) { shopCustomPrice = Item.buyPrice(silver: 159) })
-        .Add(new Item(ItemID.StoneBlock) { shopCustomPrice = Item.buyPrice(copper: 125) })
-        .Add(new Item(ItemID.Blowpipe) { shopCustomPrice = Item.buyPrice(silver: 200) })
-        .Add(new Item(ItemID.Seed) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.BlandWhip) { shopCustomPrice = Item.buyPrice(silver: 500) })
-        .Add(new Item(ItemID.BabyBirdStaff) { shopCustomPrice = Item.buyPrice(silver: 170) })
-        .Add(new Item(ItemID.Shackle) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.ClimbingClaws) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.Flipper) { shopCustomPrice = Item.buyPrice(silver: 60) })
-        .Add(new Item(ItemID.BandofStarpower) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.NaturesGift) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.IronBar) { shopCustomPrice = Item.buyPrice(silver: 75) })
-        .Add(new Item(ItemID.IronskinPotion) { shopCustomPrice = Item.buyPrice(silver: 500) })
-        .Add(new Item(ItemID.ThrowingKnife) { shopCustomPrice = Item.buyPrice(silver: 35) })
-        .Add(new Item(ItemID.Shuriken) { shopCustomPrice = Item.buyPrice(silver: 16) })
-        .Add(new Item(ItemID.LesserHealingPotion) { shopCustomPrice = Item.buyPrice(silver: 300) })
-        .Add(new Item(ItemID.ShinePotion) { shopCustomPrice = Item.buyPrice(silver: 125) })
-        .Add(new Item(ItemID.NightOwlPotion) { shopCustomPrice = Item.buyPrice(silver: 160) })
-        .Add(new Item(ItemID.SwiftnessPotion) { shopCustomPrice = Item.buyPrice(silver: 120) })
-        .Add(new Item(ItemID.HeartreachPotion) { shopCustomPrice = Item.buyPrice(silver: 185) })
-        .Add(new Item(ItemID.CalmingPotion) { shopCustomPrice = Item.buyPrice(silver: 52) })
-        .Add(new Item(ItemID.RegenerationPotion) { shopCustomPrice = Item.buyPrice(silver: 500) })
-        .Add(new Item(ItemID.SpelunkerPotion) { shopCustomPrice = Item.buyPrice(copper: 80000) })
-        .Add(new Item(ItemID.BuilderPotion) { shopCustomPrice = Item.buyPrice(silver: 250) })
-        .Add(new Item(ItemID.Cobweb) { shopCustomPrice = Item.buyPrice(silver: 3) })
-        .Add(new Item(ItemID.Grenade) { shopCustomPrice = Item.buyPrice(silver: 250) })
-        .Add(new Item(ItemID.Aglet) { shopCustomPrice = Item.buyPrice(silver: 70) })
-        .Add(new Item(ItemID.Trident) { shopCustomPrice = Item.buyPrice(silver: 350) })
-        .Add(new Item(ItemID.Toolbox) { shopCustomPrice = Item.buyPrice(silver: 300) })
-        .Add(new Item(ItemID.PortableStool) { shopCustomPrice = Item.buyPrice(silver: 80) })
-        .Add(new Item(ItemID.Bottle) { shopCustomPrice = Item.buyPrice(silver: 10) })
-        .Add(new Item(ItemID.Mushroom) { shopCustomPrice = Item.buyPrice(silver: 17) })
-        .Add(new Item(ItemID.WandofSparking) { shopCustomPrice = Item.buyPrice(silver: 875) })
-        .Add(new Item(ItemID.HunterPotion) { shopCustomPrice = Item.buyPrice(silver: 175) })
-        .Add(new Item(ItemID.Rope) { shopCustomPrice = Item.buyPrice(copper: 50) })
-        .Add(new Item(ItemID.WaterWalkingBoots) { shopCustomPrice = Item.buyPrice(silver: 125) })
-        .Add(new Item(ItemID.MoonLordLegs) { shopCustomPrice = Item.buyPrice(silver: 999) })
-        .Add(new Item(ItemID.Bomb) { shopCustomPrice = Item.buyPrice(silver: 70) })
-        .Add(new Item(ItemID.Worm) { shopCustomPrice = Item.buyPrice(silver: 15) })
-        .Add(new Item(ItemID.EnchantedNightcrawler) { shopCustomPrice = Item.buyPrice(silver: 50) })
-        .Add(new Item(ItemID.GoldWorm) { shopCustomPrice = Item.buyPrice(silver: 1000) })
-        .Add(new Item(ItemID.Glowstick) { shopCustomPrice = Item.buyPrice(silver: 10) })
-        .Add(new Item(ItemID.GillsPotion) { shopCustomPrice = Item.buyPrice(silver: 100) })
-        .Add(new Item(ItemID.TrapsightPotion) { shopCustomPrice = Item.buyPrice(silver: 100) })
-        .Add(new Item(ItemID.FlipperPotion) { shopCustomPrice = Item.buyPrice(silver: 30) })
-        .Add(new Item(ItemID.Dynamite) { shopCustomPrice = Item.buyPrice(silver: 300) })
-        .Add(new Item(ItemID.WhoopieCushion) { shopCustomPrice = Item.buyPrice(silver: 200) })
-        .Add(new Item(ItemID.Radar) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.Rambutan) { shopCustomPrice = Item.buyPrice(silver: 278) })
-        .Add(new Item(ItemID.Spear) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.CopperBar) { shopCustomPrice = Item.buyPrice(copper: 1300) })
-        .Add(new Item(ItemID.TinBar) { shopCustomPrice = Item.buyPrice(copper: 1600) })
-        .Add(new Item(ItemID.BlinkrootSeeds) { shopCustomPrice = Item.buyPrice(silver: 15) })
-        .Add(new Item(ItemID.DaybloomSeeds) { shopCustomPrice = Item.buyPrice(silver: 15) })
-        .Add(new Item(ItemID.DeathweedSeeds) { shopCustomPrice = Item.buyPrice(silver: 15) })
-        .Add(new Item(ItemID.MoonglowSeeds) { shopCustomPrice = Item.buyPrice(silver: 15) })
-        .Add(new Item(ItemID.ShiverthornSeeds) { shopCustomPrice = Item.buyPrice(silver: 15) })
-        .Add(new Item(ItemID.WaterleafSeeds) { shopCustomPrice = Item.buyPrice(silver: 15) })
-        .Add(new Item(ItemID.FireblossomSeeds) { shopCustomPrice = Item.buyPrice(silver: 15) })
-        .Add(new Item(ItemID.Blinkroot) { shopCustomPrice = Item.buyPrice(silver: 200) })
-        .Add(new Item(ItemID.Daybloom) { shopCustomPrice = Item.buyPrice(silver: 100) })
-        .Add(new Item(ItemID.Waterleaf) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.Shiverthorn) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ItemID.Fireblossom) { shopCustomPrice = Item.buyPrice(silver: 500) })
-        .Add(new Item(ItemID.Deathweed) { shopCustomPrice = Item.buyPrice(silver: 500) })
-        .Add(new Item(ItemID.Moonglow) { shopCustomPrice = Item.buyPrice(silver: 300) })
-        .Add(new Item(ItemID.Cactus) { shopCustomPrice = Item.buyPrice(silver: 20) })
-        .Add(new Item(ModContent.ItemType<PowerBomb>()) { shopCustomPrice = Item.buyPrice(silver: 1000) })
-        .Add(new Item(ItemID.FloatingTube) { shopCustomPrice = Item.buyPrice(silver: 50) });
+    private static ServerConfig.ShakingChestConfig Config =>
+        ModContent.GetInstance<ServerConfig>().ShakingChest;
 
-
-    public override void SetStaticDefaults()
-    {
+    public override void SetStaticDefaults() =>
         new NPCShop(TargetType, ShopName).Register();
-    }
 
     public override void SetDefaults(NPC npc)
     {
-        if (npc.type != TargetType) return;
+        if (npc.type != TargetType)
+            return;
 
         npc.townNPC = true;
         npc.friendly = true;
@@ -105,118 +34,123 @@ public class ShakingChestNPC : GlobalNPC
         npc.immortal = true;
         npc.homeless = true;
         npc.aiStyle = NPCAIStyleID.Passive;
+        npc.scale = 4f;
+        npc.width *= 4;
+        npc.height *= 4;
     }
 
-    public override bool? CanChat(NPC npc)
-    {
-        if (npc.type == TargetType) return true;
-        return null;
-    }
+    public override bool? CanChat(NPC npc) => npc.type == TargetType ? true : null;
 
     public override void GetChat(NPC npc, ref string chat)
     {
-        if (npc.type != TargetType) return;
-        chat = "...";
+        if (npc.type == TargetType)
+            chat = "...";
     }
 
     public override void OnChatButtonClicked(NPC npc, bool firstButton)
     {
-        if (npc.type != TargetType) return;
+        if (npc.type != TargetType || !firstButton)
+            return;
 
-        if (firstButton)
-        {
-            Main.playerInventory = true;
-            Main.stackSplit = 9999;
-            Main.npcChatText = "";
-            Main.SetNPCShopIndex(1);
-
-            var tempItems = new Item[Shop.Entries.Count + 1];
-            Shop.FillShop(tempItems, npc, out _);
-
-            ShopPager.Reset();
-            ShopPager.OpenShop(tempItems, npc);
-
-            Main.LocalPlayer.currentShoppingSettings.PriceAdjustment = 1.0;
-            SoundEngine.PlaySound(SoundID.MenuTick);
-        }
-        else
-        {
-            RefundPlayer(Main.LocalPlayer);
-            SoundEngine.PlaySound(SoundID.MenuTick);
-        }
+        Main.playerInventory = true;
+        Main.stackSplit = 9999;
+        Main.npcChatText = "";
+        Main.SetNPCShopIndex(1);
+        ShakingChestUI.Open(CreateShopItems(), npc);
+        Main.LocalPlayer.currentShoppingSettings.PriceAdjustment = 1d;
+        SoundEngine.PlaySound(SoundID.MenuTick);
     }
+
+    private static Item[] CreateShopItems() => Config.ShopItems
+        .Select(entry => CreateItem(entry?.Item, 1, 0, entry?.Price ?? 0))
+        .Where(item => !item.IsAir)
+        .ToArray();
 
     public static void RefundPlayer(Player player)
     {
-        for (int i = 0; i < player.inventory.Length; i++)
-            player.inventory[i] = new Item();
-
-        for (int i = 0; i < player.armor.Length; i++)
-            player.armor[i] = new Item();
-
-        for (int i = 0; i < player.dye.Length; i++)
-            player.dye[i] = new Item();
-
-        for (int i = 0; i < player.miscEquips.Length; i++)
-            player.miscEquips[i] = new Item();
-
-        for (int i = 0; i < player.miscDyes.Length; i++)
-            player.miscDyes[i] = new Item();
-
+        Clear(player.inventory);
+        Clear(player.armor);
+        Clear(player.dye);
+        Clear(player.miscEquips);
+        Clear(player.miscDyes);
         player.trashItem = new Item();
         Main.mouseItem = new Item();
 
-        // Clear all buffs
         for (int i = 0; i < Player.MaxBuffs; i++)
         {
             player.buffType[i] = 0;
             player.buffTime[i] = 0;
         }
 
+        if (!ErkySSCCompat.TryApplyStartingItems(player))
+            ApplyFallbackStartingItems(player);
+
+        AddStartingCoins(player);
+        Recipe.FindRecipes();
+        ShakingChestLoadouts.Sync(player);
+    }
+
+    private static void ApplyFallbackStartingItems(Player player)
+    {
         player.inventory[0] = new Item(ItemID.CopperShortsword);
         player.inventory[1] = new Item(ItemID.CopperPickaxe);
         player.inventory[2] = new Item(ItemID.CopperAxe);
-
-        Item coins = new Item(ItemID.GoldCoin);
-        coins.stack = 10;
-        player.inventory[3] = coins;
-
         player.inventory[4] = new Item(ItemID.Bed);
         player.inventory[5] = new Item(ModContent.ItemType<PortalCreatorItem>());
     }
 
-    public override void ModifyActiveShop(NPC npc, string shopName, Item[] items)
+    private static void AddStartingCoins(Player player)
     {
-        if (npc.type != TargetType || shopName != ShopName) return;
-        Shop.FillShop(items, npc, out _);
+        if (Config.StartingCoins <= 0)
+            return;
+
+        int slot = System.Array.FindIndex(player.inventory, item => item.IsAir);
+        if (slot >= 0)
+            player.inventory[slot] = new Item(ItemID.GoldCoin) { stack = Config.StartingCoins };
+    }
+
+    private static Item CreateItem(
+        Terraria.ModLoader.Config.ItemDefinition definition,
+        int stack,
+        int prefix,
+        int price = 0)
+    {
+        if (definition == null || definition.IsUnloaded || definition.Type <= ItemID.None)
+            return new Item();
+
+        return new Item(definition.Type, stack, prefix)
+        {
+            shopCustomPrice = price
+        };
+    }
+
+    private static void Clear(IEnumerable<Item> items)
+    {
+        foreach (Item item in items)
+            item?.TurnToAir();
     }
 
     public override void PostAI(NPC npc)
     {
-        if (npc.type != TargetType) return;
-        if (Main.netMode == NetmodeID.MultiplayerClient) return;
+        if (npc.type != TargetType || Main.netMode == NetmodeID.MultiplayerClient)
+            return;
 
         if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing)
         {
             npc.active = false;
             npc.life = 0;
-
             if (Main.dedServ)
                 NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
-
             return;
         }
 
-        // It's a homeless townNPC, so the vanilla town-NPC AI tries to wander it around and it
-        // drifts out of the spawn box. Pin it horizontally to the spawn point (the box anchor)
-        // each tick so it stays put. Gravity still settles it onto the ground vertically.
         npc.velocity.X = 0f;
         npc.position.X = Main.spawnTileX * 16f - npc.width / 2f;
     }
 
     public override void ModifyHoverBoundingBox(NPC npc, ref Rectangle boundingBox)
     {
-        if (npc.type != TargetType) return;
-        boundingBox = npc.Hitbox;
+        if (npc.type == TargetType)
+            boundingBox = npc.Hitbox;
     }
 }
