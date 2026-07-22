@@ -69,11 +69,17 @@ public abstract class BoundNPC : ModNPC
     protected virtual void Transform(int whoAmI)
     {
         Team team = GetPlayerTeam(whoAmI);
-        NPC.GetGlobalNPC<TeamOwnedTownNPC>().SetOwnerTeam(NPC, team, sync: false);
+
+        // Use TryGetGlobalNPC: if TeamOwnedTownNPC ever stops applying to bound NPCs, GetGlobalNPC
+        // would throw here and silently abort the whole unlock. The NPC should still be freed even
+        // if team ownership can't be recorded.
+        if (NPC.TryGetGlobalNPC(out TeamOwnedTownNPC owned))
+            owned.SetOwnerTeam(NPC, team, sync: false);
 
         NPC.AI_000_TransformBoundNPC(whoAmI, TransformInto);
 
-        NPC.GetGlobalNPC<TeamOwnedTownNPC>().SetOwnerTeam(NPC, team);
+        if (NPC.TryGetGlobalNPC(out owned))
+            owned.SetOwnerTeam(NPC, team);
     }
 
     private static Team GetPlayerTeam(int whoAmI)
