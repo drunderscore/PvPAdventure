@@ -148,7 +148,7 @@ internal sealed class ShakingChestUI : ModSystem
 
     private static void DrawMenu()
     {
-        DrawButton(0, _choosingSaveSlot ? "Cancel Save" : "Save Current Loadout", true,
+        DrawButton(0, _choosingSaveSlot ? "Cancel Save" : "Save Current Loadout", true, Colors.RarityYellow,
             () => _choosingSaveSlot = !_choosingSaveSlot);
 
         for (int slot = 0; slot < ShakingChestLoadouts.SlotCount; slot++)
@@ -158,17 +158,21 @@ internal sealed class ShakingChestUI : ModSystem
             int button = slot + 1;
             string action = _choosingSaveSlot ? $"Save Loadout #{button}" : $"Load Loadout #{button}";
             string status = _choosingSaveSlot && saved ? "Overwrite" : saved ? "Saved" : "Empty";
-            Color statusColor = _choosingSaveSlot && saved ? Color.Orange : saved ? Color.LightGreen : Color.Gray;
+            Color statusColor = _choosingSaveSlot && saved
+                ? Colors.RarityOrange
+                : saved ? Colors.RarityGreen : Color.Gray;
             float actionScale = ButtonScale[button];
 
-            DrawButton(button, action, _choosingSaveSlot || saved, () => UseSlot(selectedSlot));
+            DrawButton(button, action, _choosingSaveSlot || saved,
+                _choosingSaveSlot ? Colors.RarityYellow : Colors.RarityBlue,
+                () => UseSlot(selectedSlot));
 
             float statusX = ButtonX + FontAssets.MouseText.Value.MeasureString(action).X * actionScale + StatusPadding;
             DrawText(status, statusX, Main.instance.invBottom + ButtonY + button * RowSpacing,
                 MinimumScale, statusColor);
         }
 
-        DrawButton(4, "Refund Purchases", true, () =>
+        DrawButton(4, "Refund Purchases", true, Colors.RarityRed, () =>
         {
             _choosingSaveSlot = false;
             ShakingChestNPC.RefundPlayer(Main.LocalPlayer);
@@ -191,7 +195,7 @@ internal sealed class ShakingChestUI : ModSystem
         }
     }
 
-    private static void DrawButton(int id, string text, bool enabled, Action action)
+    private static void DrawButton(int id, string text, bool enabled, Color enabledColor, Action action)
     {
         int y = Main.instance.invBottom + ButtonY + id * RowSpacing;
         float scale = ButtonScale[id];
@@ -204,7 +208,7 @@ internal sealed class ShakingChestUI : ModSystem
             size.X + (ButtonHovered[id] ? 16f : 0f),
             24f);
 
-        Color color = hovered ? Main.OurFavoriteColor : enabled ? VanillaButtonColor() : Color.Gray;
+        Color color = hovered ? Main.OurFavoriteColor : enabled ? enabledColor : Color.Gray;
         DrawText(text, centerX, y, scale, color, centered: true);
         UpdateHover(id, hovered);
 
@@ -238,13 +242,6 @@ internal sealed class ShakingChestUI : ModSystem
             ButtonScale[i] = MinimumScale;
             ButtonHovered[i] = false;
         }
-    }
-
-    private static Color VanillaButtonColor()
-    {
-        Color color = Color.White * 0.97f * (1f - (255f - Main.mouseTextColor) / 510f);
-        color.A = byte.MaxValue;
-        return color;
     }
 
     private static void DrawText(string text, float x, float y, float scale, Color color, bool centered = false)
