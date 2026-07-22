@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Terraria;
 using Terraria.ID;
@@ -10,44 +10,9 @@ namespace PvPAdventure.Common.Game.MatchReplays;
 
 internal sealed class ReeseReplayControlSystem : ModSystem
 {
-    private Action<string, string, string[], uint, string>? recordingFinishedCallback;
-    private bool isRecordingFinishedCallbackRegistered;
+    private const string StopReasonPrefix = "PvPAdventure match ended:";
 
-    public override void PostSetupContent()
-    {
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-            return;
-
-        if (!ModLoader.TryGetMod("Reese", out Mod reese))
-            return;
-
-        recordingFinishedCallback = OnRecordingFinished;
-
-        object result = reese.Call("RegisterRecordingFinishedCallback", recordingFinishedCallback);
-        if (result is true)
-        {
-            isRecordingFinishedCallbackRegistered = true;
-            Log.Info("Registered Reese recording finished callback.");
-        }
-        else
-        {
-            Log.Chat("Failed to register Reese recording finished callback.");
-        }
-    }
-
-    public override void Unload()
-    {
-        if (recordingFinishedCallback == null)
-            return;
-
-        if (isRecordingFinishedCallbackRegistered && ModLoader.TryGetMod("Reese", out Mod reese))
-            reese.Call("UnregisterRecordingFinishedCallback", recordingFinishedCallback);
-
-        recordingFinishedCallback = null;
-        isRecordingFinishedCallbackRegistered = false;
-    }
-
-    public void StartMatchRecording()
+    public void StartMatchRecording(string matchToken)
     {
         if (Main.netMode != NetmodeID.Server)
             return;
@@ -58,47 +23,52 @@ internal sealed class ReeseReplayControlSystem : ModSystem
             return;
         }
 
-        object result = reese.Call("StartRecording");
-
-        if (result is true)
-            Log.Chat("Started Reese recording for PvPAdventure match.");
-        else
-            Log.Chat("Failed to start Reese recording.");
+        try
+        {
+            object result = reese.Call("StartRecording");
+            if (result is true)
+                Log.Chat($"Started Reese recording. MatchToken={matchToken}");
+            else
+                Log.Warn($"Failed to start Reese recording. MatchToken={matchToken}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Failed to start Reese recording. MatchToken={matchToken}, Error={ex}");
+        }
     }
 
-    public bool StopMatchRecording()
+    /// <summary>
+    /// Reese finishes the file synchronously and returns its exact path. Using that API keeps the
+    /// replay tied to this match and avoids a callback from an older recording reporting a newer one.
+    /// </summary>
+    public string? StopMatchRecording(string matchToken)
     {
         if (Main.netMode != NetmodeID.Server)
-            return false;
+            return null;
 
         if (!ModLoader.TryGetMod("Reese", out Mod reese))
         {
-            Log.Chat("Reese is not loaded. No match recording to stop.");
-            return false;
+            Log.Chat("Reese is not loaded. Match will be reported without a replay.");
+            return null;
         }
 
-        object result = reese.Call("StopRecording", "PvPAdventure match ended");
-
-        if (result is true)
+        try
         {
-            Log.Chat("Stopped Reese recording for PvPAdventure match.");
-            return isRecordingFinishedCallbackRegistered;
+            object result = reese.Call("StopRecordingAndGetFilePath", StopReasonPrefix + matchToken);
+            string? filePath = result as string;
+            if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+            {
+                Log.Chat($"Stopped Reese recording. MatchToken={matchToken}, Replay={Path.GetFileName(filePath)}");
+                return filePath;
+            }
+
+            Log.Warn($"Reese returned no completed replay. MatchToken={matchToken}");
+            return null;
         }
-        else
+        catch (Exception ex)
         {
-            Log.Chat("Failed to stop Reese recording.");
-            return false;
+            Log.Error($"Failed to stop Reese recording. MatchToken={matchToken}, Error={ex}");
+            return null;
         }
-    }
-
-    private static void OnRecordingFinished(string filePath, string worldName, string[] modNames, uint durationTicks, string reason)
-    {
-        if (Main.netMode != NetmodeID.Server)
-            return;
-
-        Log.Chat($"Reese recording finished: {Path.GetFileName(filePath)}");
-        Log.Info($"Reese recording finished. FilePath={filePath}, World={worldName}, DurationTicks={durationTicks}, Reason={reason}");
-
-        GameManager.ReportCompletedMatchToBackend(filePath);
     }
 }

@@ -23,8 +23,14 @@ internal static class MatchRewardCalculator
 
     public static uint Calculate(MatchRewardContext context)
     {
-        int reward = context.TeamPoints + CalculateKillDeathReward(context.Kills, context.Deaths);
-        return reward <= 0 ? 0u : (uint)reward;
+        long reward = (long)context.TeamPoints + CalculateKillDeathReward(
+            Math.Max(0, context.Kills),
+            Math.Max(0, context.Deaths));
+
+        if (reward <= 0)
+            return 0;
+
+        return reward >= uint.MaxValue ? uint.MaxValue : (uint)reward;
     }
 
     public static MatchRewardContext CreateContext(Player player, PointsManager pointsManager)

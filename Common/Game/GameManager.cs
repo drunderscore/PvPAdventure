@@ -2,6 +2,7 @@
 using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.MatchReplays;
 using PvPAdventure.Common.Game.StatTrackers;
+using PvPAdventure.Common.Statistics;
 using PvPFramework.Common.EndScreen;
 using PvPFramework.Common.Scoreboard;
 using System;
@@ -24,12 +25,16 @@ public class GameManager : ModSystem
 {
     private const int FramesPerSecond = 60;
     private const int CountdownAnnouncementBufferFrames = 2;
+    internal const int MaxGameDurationFrames = 195 * 60 * FramesPerSecond;
+    internal const int MaxCountdownSeconds = 300;
 
     public int TimeRemaining { get; set; }
     public int? _startGameCountdown = null;
     private Phase _currentPhase;
+    private AdventureMatchSession _activeMatch;
     public DateTime? MatchStartTime { get; private set; }
     public DateTime? MatchEndTime { get; private set; }
+    internal string CurrentMatchToken => _activeMatch?.Token ?? "";
 
     public Phase CurrentPhase
     {
@@ -85,7 +90,6 @@ public class GameManager : ModSystem
                         if (_startGameCountdown <= 0)
                         {
                             _startGameCountdown = null;
-                            MatchStartTime = DateTime.UtcNow;
                             CurrentPhase = Phase.Playing;
 
                             if (Main.dedServ)
@@ -122,6 +126,12 @@ public class GameManager : ModSystem
 
             case Phase.Playing:
                 {
+                    if (Main.netMode != NetmodeID.MultiplayerClient)
+                    {
+                        bool discoverPlayers = Main.GameUpdateCount % FramesPerSecond == 0;
+                        _activeMatch?.CaptureActivePlayers(discoverPlayers);
+                    }
+
                     if (--TimeRemaining <= 0)
                     {
                         CurrentPhase = Phase.Waiting;
@@ -148,9 +158,13 @@ public class GameManager : ModSystem
 
     public void StartGame(int time, int countdownTimeInSeconds = 10)
     {
+        if (Main.netMode == NetmodeID.MultiplayerClient || CurrentPhase == Phase.Playing ||
+            _startGameCountdown.HasValue)
+            return;
+
         EndScreenService.Hide();
-        CurrentPhase = Phase.Waiting;
-        TimeRemaining = time;
+        TimeRemaining = Math.Clamp(time, 0, MaxGameDurationFrames);
+        countdownTimeInSeconds = Math.Clamp(countdownTimeInSeconds, 0, MaxCountdownSeconds);
         _startGameCountdown = ToCountdownFrames(countdownTimeInSeconds);
 
         if (Main.dedServ)
@@ -158,12 +172,12 @@ public class GameManager : ModSystem
 
         ChatHelper.BroadcastChatMessage(
             NetworkText.FromLiteral($"The game will begin in {_startGameCountdown / FramesPerSecond} seconds."), Color.Green);
-
-        // Start recording
-        ModContent.GetInstance<ReeseReplayControlSystem>().StartMatchRecording();
     }
     public void EndGame()
     {
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
         _startGameCountdown = null;
         TimeRemaining = 0;
         CurrentPhase = Phase.Waiting;
@@ -183,13 +197,8 @@ public class GameManager : ModSystem
 
         int oldFrames = TimeRemaining;
 
-        int newValue = oldFrames + deltaFrames;
-        if (newValue < 0)
-        {
-            newValue = 0;
-        }
-
-        TimeRemaining = newValue;
+        long requestedFrames = (long)oldFrames + deltaFrames;
+        TimeRemaining = (int)Math.Clamp(requestedFrames, 0L, MaxGameDurationFrames);
 
         if (TimeRemaining <= 0)
         {
@@ -226,7 +235,7 @@ public class GameManager : ModSystem
         if (!_startGameCountdown.HasValue)
             return;
 
-        _startGameCountdown = ToCountdownFrames(newSeconds);
+        _startGameCountdown = ToCountdownFrames(Math.Clamp(newSeconds, 0, MaxCountdownSeconds));
 
         if (Main.dedServ)
             NetMessage.SendData(MessageID.WorldData);
@@ -397,30 +406,12 @@ public class GameManager : ModSystem
     //    }
     //}
 
-    internal static void ReportCompletedMatchToBackend(string replayFilePath = "")
+    internal void CaptureDisconnectingPlayer(Player player)
     {
         if (Main.netMode != NetmodeID.Server)
             return;
 
-        GameManager gameManager = ModContent.GetInstance<GameManager>();
-        if (!gameManager.MatchStartTime.HasValue)
-            return;
-
-        DateTime startUtc = DateTime.SpecifyKind(gameManager.MatchStartTime.Value, DateTimeKind.Utc);
-        DateTime endUtc = DateTime.SpecifyKind(gameManager.MatchEndTime ?? DateTime.UtcNow, DateTimeKind.Utc);
-
-        if (!string.IsNullOrWhiteSpace(replayFilePath) && File.Exists(replayFilePath))
-        {
-            MatchReporter.PostCompletedMatchSafe(startUtc, endUtc, replayFilePath);
-            Log.Chat($"Queued completed match with replay for backend reporting. Replay={Path.GetFileName(replayFilePath)}");
-        }
-        else
-        {
-            MatchReporter.PostCompletedMatchSafe(startUtc, endUtc);
-            Log.Chat("Queued completed match without replay for backend reporting");
-        }
-
-        gameManager.ResetMatchState();
+        _activeMatch?.CaptureDisconnectingPlayer(player);
     }
 
     // NOTE: This is not called on multiplayer clients (see CurrentPhase property).
@@ -433,17 +424,31 @@ public class GameManager : ModSystem
         {
             //BroadcastEndGameSummary();
 
+            string completingMatchToken = _activeMatch?.Token;
+            CompletedAdventureMatch completedMatch = CompleteActiveMatch();
+
             // Sync Waiting before the custom end-screen packet. Otherwise clients can receive
             // the snapshot while still locally in Playing and immediately hide it.
             if (Main.netMode == NetmodeID.Server)
                 NetMessage.SendData(MessageID.WorldData);
 
-            EndScreenService.Present(AdventureEndScreenExtension.CreateSummary());
+            try
+            {
+                EndScreenService.Present(AdventureEndScreenExtension.CreateSummary());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to present the match end screen: {ex}");
+            }
 
-            MatchEndTime = DateTime.UtcNow;
+            string replayFilePath = string.IsNullOrWhiteSpace(completingMatchToken)
+                ? null
+                : ModContent.GetInstance<ReeseReplayControlSystem>().StopMatchRecording(completingMatchToken);
 
-            if (!ModContent.GetInstance<ReeseReplayControlSystem>().StopMatchRecording())
-                ReportCompletedMatchToBackend();
+            if (completedMatch != null)
+                MatchReporter.PostCompletedMatchSafe(completedMatch, replayFilePath);
+
+            ResetMatchState();
         }
 
         switch (newPhase)
@@ -478,11 +483,48 @@ public class GameManager : ModSystem
                 }
             case Phase.Playing:
                 {
-                    ResetActivePlayerMatchState();
+                    BeginActiveMatch();
                     UpdateFreezeTime(false);
 
                     break;
                 }
+        }
+    }
+
+    private void BeginActiveMatch()
+    {
+        ResetActivePlayerMatchState();
+        ModContent.GetInstance<PointsManager>().ResetForMatch();
+
+        MatchStartTime = DateTime.UtcNow;
+        MatchEndTime = null;
+        _activeMatch = new AdventureMatchSession(MatchStartTime.Value);
+        _activeMatch.CaptureActivePlayers(discoverPlayers: true);
+
+        ModContent.GetInstance<ReeseReplayControlSystem>().StartMatchRecording(_activeMatch.Token);
+        Log.Info($"Started authoritative match session. MatchToken={_activeMatch.Token}, Start={MatchStartTime:O}");
+    }
+
+    private CompletedAdventureMatch CompleteActiveMatch()
+    {
+        MatchEndTime = DateTime.UtcNow;
+        AdventureMatchSession session = _activeMatch;
+        _activeMatch = null;
+
+        if (session == null)
+        {
+            Log.Error("Match entered the end phase without an active reporting session.");
+            return null;
+        }
+
+        try
+        {
+            return session.Complete(MatchEndTime.Value, ModContent.GetInstance<PointsManager>());
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Failed to freeze completed match state. MatchToken={session.Token}, Error={ex}");
+            return null;
         }
     }
 
@@ -501,20 +543,25 @@ public class GameManager : ModSystem
 
     public override void OnWorldLoad()
     {
-        OnPhaseChange(Phase.Waiting, Phase.Waiting);
+        _currentPhase = Phase.Waiting;
+        _activeMatch = null;
+        _startGameCountdown = null;
+        TimeRemaining = 0;
+        ResetMatchState();
+
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            OnPhaseChange(Phase.Waiting, Phase.Waiting);
     }
 
     public override void ClearWorld()
     {
+        // A world unload/server shutdown is not a completed match. Drop the in-memory session
+        // without entering the normal Playing -> Waiting reporting path.
+        _activeMatch = null;
         _startGameCountdown = null;
         TimeRemaining = 0;
-
-        // Always run the on-change regardless of if it actually changes.
-        if (Main.netMode != NetmodeID.MultiplayerClient && CurrentPhase != Phase.Waiting)
-            OnPhaseChange(Phase.Waiting, Phase.Waiting);
-        CurrentPhase = Phase.Waiting;
-
-        CurrentPhase = Phase.Waiting;
+        _currentPhase = Phase.Waiting;
+        ResetMatchState();
     }
 
     public override void NetSend(BinaryWriter writer)

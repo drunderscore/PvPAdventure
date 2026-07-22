@@ -39,7 +39,7 @@ public class ClientConfig : ModConfig
     }
 
     [Header("UI")]
-    [ConfigIcon(nameof(Ass.SmallPanelHighlight))]
+    [HeaderIcon(nameof(Ass.SmallPanelHighlight))]
     [BackgroundColor(36, 104, 118)]
     [DefaultValue(true)]
     public bool TravelUI = true;

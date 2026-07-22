@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Game;
+using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel.Beds;
 using PvPFramework.Common.Visualization.TileOutlines;
@@ -26,11 +27,13 @@ public class PvPFrameworkIntegration : ModSystem
 
         // Award team points when a team lands the killing blow on a boss/scoring NPC.
         PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer += AwardNpcKill;
+        PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.BossDamageDealt += RecordBossDamage;
     }
 
     public override void Unload()
     {
         PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer -= AwardNpcKill;
+        PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.BossDamageDealt -= RecordBossDamage;
         BedOutlineTile.TeamResolver = null;
         // Drop our delegate so it doesn't retain a reference to an unloaded GameManager.
         PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = static () => true;
@@ -41,6 +44,9 @@ public class PvPFrameworkIntegration : ModSystem
 
     private static void AwardNpcKill(Player player, NPC npc) =>
         ModContent.GetInstance<PointsManager>().AwardNpcKillToTeam((Team)player.team, npc);
+
+    private static void RecordBossDamage(Player player, uint damage, int itemType) =>
+        MatchStatsPlayer.RecordServerStat(player, MatchStatKey.BossDamageDealt, damage, itemType);
 }
 
 // Awards team points for PvP kills that happen during a match.

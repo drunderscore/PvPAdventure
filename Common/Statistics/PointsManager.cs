@@ -41,7 +41,10 @@ public class PointsManager : ModSystem
         }
     }
 
-    public override void ClearWorld()
+    public override void ClearWorld() => ResetForMatch();
+
+    /// <summary>Resets all score and boss-completion state that belongs to one match.</summary>
+    public void ResetForMatch()
     {
         _points.Clear();
         _downedNpcs.Clear();

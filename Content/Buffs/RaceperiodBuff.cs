@@ -7,6 +7,10 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
+#if DEBUG
+using Microsoft.Xna.Framework.Input;
+using PvPAdventure.Core.Utilities;
+#endif
 /// <summary>
 /// This is the buff that gets applied in spawn that controls the Raceperiod System at the start of each game.
 /// </summary>
@@ -35,6 +39,10 @@ namespace PvPAdventure.Common.Players
 {
     public class PlayerInSpawnPlayer : ModPlayer
     {
+#if DEBUG
+        private static bool _bunnyModeEnabled = true;
+#endif
+
         private bool _wasMounted;
         private bool _mountCancelled;
         public bool MountCancelled => _mountCancelled;
@@ -63,11 +71,23 @@ namespace PvPAdventure.Common.Players
         }
 
         private bool EffectsActive =>
-            Player.HasBuff(ModContent.BuffType<RacePeriodBuff>()) && !_mountCancelled;
+            BunnyModeEnabled && Player.HasBuff(ModContent.BuffType<RacePeriodBuff>()) && !_mountCancelled;
+
+        private static bool BunnyModeEnabled
+        {
+            get
+            {
+#if DEBUG
+                return _bunnyModeEnabled;
+#else
+                return true;
+#endif
+            }
+        }
 
         public override void HideDrawLayers(PlayerDrawSet drawInfo)
         {
-            if (!Player.HasBuff(ModContent.BuffType<RacePeriodBuff>()))
+            if (!BunnyModeEnabled || !Player.HasBuff(ModContent.BuffType<RacePeriodBuff>()))
                 return;
 
             foreach (PlayerDrawLayer layer in PlayerDrawLayerLoader.Layers)
@@ -171,12 +191,31 @@ namespace PvPAdventure.Common.Players
 
         public override void PostUpdateMiscEffects()
         {
+#if DEBUG
+            if (Player.whoAmI == Main.myPlayer && KeyboardHelper.Pressed(Keys.F7))
+            {
+                _bunnyModeEnabled = !_bunnyModeEnabled;
+                Main.NewText($"Bunny mode: {(_bunnyModeEnabled ? "On" : "Off")}");
+            }
+#endif
+
             int buffType = ModContent.BuffType<RacePeriodBuff>();
             int mountType = ModContent.MountType<RacePeriodMount>();
             bool inSpawn = InSpawn();
             bool isMounted = Player.mount.Active && Player.mount.Type == mountType;
             bool hasBuff = Player.HasBuff(buffType);
             bool isWaiting = IsGameWaiting;
+
+            if (!BunnyModeEnabled)
+            {
+                if (hasBuff)
+                    Player.ClearBuff(buffType);
+                if (isMounted)
+                    Player.mount.Dismount(Player);
+
+                _wasMounted = false;
+                return;
+            }
 
             if (_wasWaiting && !isWaiting)
                 _gameHasStarted = true;

@@ -45,12 +45,6 @@ public sealed class ServerConfig : ModConfig
     [Expand(false, false)]
     public TravelSystemConfig TravelSystem = new();
 
-    [Header("WorldGen")]
-    [HeaderIcon(ItemID.WorldGlobe)]
-    [BackgroundColor(114, 90, 46)]
-    [Expand(false, false)]
-    public WorldGenerationConfig WorldGeneration = new();
-
     [Header("World")]
     [HeaderIcon(ItemID.WorldGlobe)]
     [BackgroundColor(72, 104, 72)]
@@ -78,6 +72,12 @@ public sealed class ServerConfig : ModConfig
     [DefaultValue(true)]
     public bool BroadcastWeatherMessages = true;
 
+    [Header("WorldGen")]
+    [HeaderIcon(ItemID.WorldGlobe)]
+    [BackgroundColor(114, 90, 46)]
+    [Expand(false, false)]
+    public WorldGenerationConfig WorldGeneration = new();
+
     public override void OnLoaded()
     {
         Points ??= new();
@@ -98,6 +98,7 @@ public sealed class ServerConfig : ModConfig
         public int StartingCoins = ServerConfigDefaults.StartingCoins;
 
         [Expand(false, false)]
+        [CustomModConfigItem(typeof(ShopItemListElement))]
         public List<ShopItem> ShopItems = ServerConfigDefaults.CreateShopItems();
     }
 

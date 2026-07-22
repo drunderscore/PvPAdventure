@@ -130,8 +130,6 @@ public class PvPAdventure : Mod
     private static string CurrentMatchToken()
     {
         GameManager game = ModContent.GetInstance<GameManager>();
-        return game.CurrentPhase == GameManager.Phase.Playing && game.MatchStartTime.HasValue
-            ? game.MatchStartTime.Value.ToUniversalTime().Ticks.ToString()
-            : "";
+        return game.CurrentPhase == GameManager.Phase.Playing ? game.CurrentMatchToken : "";
     }
 }

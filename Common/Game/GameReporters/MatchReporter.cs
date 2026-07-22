@@ -1,14 +1,12 @@
-using PvPAdventure.Common.Statistics;
-using PvPFramework.Common.Scoreboard;
 using PvPHub.Common.MainMenu.API;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
-using Terraria.ModLoader;
 using CompletedMatchPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.CompletedMatchPayload;
 using MatchPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.MatchPayload;
 using MatchPlayerPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.MatchPlayerPayload;
@@ -19,35 +17,35 @@ namespace PvPAdventure.Common.Game.GameReporters;
 internal static class MatchReporter
 {
     private const string GameMode = "pvpa";
+    private const string MatchTokenMetric = "match_token";
 
-    public static void PostCompletedMatchSafe(DateTime startUtc, DateTime endUtc)
+    public static void PostCompletedMatchSafe(CompletedAdventureMatch completedMatch, string replayFilePath = null)
     {
-        ExecutePost(startUtc, endUtc, null);
-    }
+        if (Main.netMode != NetmodeID.Server || completedMatch == null)
+            return;
 
-    public static void PostCompletedMatchSafe(DateTime startUtc, DateTime endUtc, string replayFilePath)
-    {
-        if (string.IsNullOrWhiteSpace(replayFilePath) || !File.Exists(replayFilePath))
+        if (!string.IsNullOrWhiteSpace(replayFilePath) && !File.Exists(replayFilePath))
         {
-            Log.Chat($"Replay file missing. Falling back to match/v1. Path={replayFilePath}");
+            Log.Warn($"Replay file missing. Falling back to match/v1. Path={replayFilePath}");
             replayFilePath = null;
         }
 
-        ExecutePost(startUtc, endUtc, replayFilePath);
-    }
+        try
+        {
+            MatchPayload payload = BuildMatchPayload(completedMatch);
+            LogMatchPayload(payload, completedMatch.Token);
 
-    private static void ExecutePost(DateTime startUtc, DateTime endUtc, string replayFilePath)
-    {
-        if (Main.netMode != NetmodeID.Server)
-            return;
+            if (!IsValidPayload(payload))
+                return;
 
-        MatchPayload payload = BuildMatchPayload(startUtc, endUtc);
-        LogMatchPayload(payload);
-
-        if (!IsValidPayload(payload))
-            return;
-
-        _ = PostMatchSafeAsync(payload, replayFilePath);
+            // Intentionally no automatic retry: Tavernkeep currently has no idempotency key, so an
+            // ambiguous retry could duplicate the match, achievements, and gem rewards.
+            _ = PostMatchSafeAsync(payload, replayFilePath);
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Failed to build or queue match payload. MatchToken={completedMatch.Token}, Error={ex}");
+        }
     }
 
     private static async Task PostMatchSafeAsync(MatchPayload payload, string replayFilePath)
@@ -65,7 +63,7 @@ internal static class MatchReporter
                     ? $"Match {version} post failed: 401 Unauthorized. Error={result.ErrorMessage}"
                     : $"Match {version} post failed: Status={statusCode}. Error={result.ErrorMessage}";
                 WriteMatchPostConsole(WithRequestSummary(message, result.RequestSummary));
-                Log.Error(message);
+                Log.Error(message + " The request was not retried because match posting is not idempotent.");
                 return;
             }
 
@@ -84,141 +82,111 @@ internal static class MatchReporter
         catch (Exception ex)
         {
             WriteMatchPostConsole($"Match post failed with an unexpected error: {ex.GetType().Name}: {ex.Message}");
-            Log.Error($"Unexpected error while posting match: {ex}");
+            Log.Error($"Unexpected error while posting match; request was not retried: {ex}");
         }
     }
 
-    private static MatchPayload BuildMatchPayload(DateTime startUtc, DateTime endUtc)
+    private static MatchPayload BuildMatchPayload(CompletedAdventureMatch completedMatch)
     {
-        PointsManager pointsManager = ModContent.GetInstance<PointsManager>();
         PvPHubService.LogMatchPostAuthPreflight();
 
-        Dictionary<ulong, MatchPlayerPayload> players = BuildPlayersDictionary(pointsManager);
-        if (players.Count == 0)
-            Log.Chat("Refusing to post match because payload has no authenticated players.");
-
-        return new MatchPayload(
-            DateTime.SpecifyKind(startUtc, DateTimeKind.Utc),
-            DateTime.SpecifyKind(endUtc, DateTimeKind.Utc),
-            GameMode,
-            players,
-            new Dictionary<string, string>(),
-            BuildTeamsList(pointsManager));
-    }
-
-    private static Dictionary<ulong, MatchPlayerPayload> BuildPlayersDictionary(PointsManager pointsManager)
-    {
-        Dictionary<ulong, MatchPlayerPayload> result = [];
-        bool hasWinningTeam = TryGetSingleWinningTeam(pointsManager, out Team winningTeam);
-
-        foreach (Player player in Main.ActivePlayers)
+        Dictionary<ulong, MatchPlayerPayload> players = [];
+        foreach ((ulong steamId, CompletedAdventurePlayer player) in completedMatch.Players)
         {
-            if (player?.active != true)
-                continue;
+            Dictionary<string, uint> stats = new(player.Stats);
+            Dictionary<string, IDictionary<int, uint>> itemStats = [];
+            foreach ((string statKey, IDictionary<int, uint> byItem) in player.ItemStats)
+                itemStats[statKey] = new Dictionary<int, uint>(byItem);
 
-            ScoreboardEntry statsPlayer = ScoreboardService.GetPlayerStats(player);
-            if (!PvPHubService.TryGetSteamId(player, out ulong steamId))
-            {
-                Log.Chat($"Skipping player with no valid SteamID. PlayerName={player.name}");
-                continue;
-            }
-
-            MatchRewardContext rewardContext = MatchRewardCalculator.CreateContext(player, pointsManager);
-            uint reward = MatchRewardCalculator.Calculate(rewardContext);
-            Dictionary<string, uint> stats = StatsReporter.CopyStats(player);
-            Dictionary<string, IDictionary<int, uint>> itemStats = StatsReporter.CopyItemStats(player);
-            bool winner = hasWinningTeam && rewardContext.Team == winningTeam;
-
-            result[steamId] = new MatchPlayerPayload(
-                player.name,
-                (uint)rewardContext.Team,
-                reward,
-                statsPlayer.Kills,
-                statsPlayer.Deaths,
-                winner,
+            players[steamId] = new MatchPlayerPayload(
+                player.Name,
+                (uint)player.Team,
+                player.Reward,
+                player.Kills,
+                player.Deaths,
+                player.Winner,
                 stats,
                 itemStats);
 
-            Log.Info($"Reward for {player.name}: Team={rewardContext.Team}, Winner={winner}, TeamPoints={rewardContext.TeamPoints}, Kills={rewardContext.Kills}, Deaths={rewardContext.Deaths}, Reward={reward}, Stats={stats.Count}, ItemStats={itemStats.Count}");
+            Log.Info($"Match player: Name={player.Name}, SteamId={steamId}, Team={player.Team}, " +
+                     $"Winner={player.Winner}, Kills={player.Kills}, Deaths={player.Deaths}, " +
+                     $"Reward={player.Reward}, Stats={stats.Count}, ItemStats={itemStats.Count}");
         }
 
-        return result;
-    }
-
-    private static bool TryGetSingleWinningTeam(PointsManager pointsManager, out Team winningTeam)
-    {
-        winningTeam = Team.None;
-        if (pointsManager == null)
-            return false;
-
-        int winningPoints = int.MinValue;
-        int winningTeamCount = 0;
-        foreach ((Team team, int points) in pointsManager.Points)
+        Dictionary<string, string> metrics = new()
         {
-            if (team == Team.None || points <= 0)
-                continue;
+            [MatchTokenMetric] = completedMatch.Token
+        };
 
-            if (points > winningPoints)
-            {
-                winningPoints = points;
-                winningTeam = team;
-                winningTeamCount = 1;
-            }
-            else if (points == winningPoints)
-            {
-                winningTeamCount++;
-            }
-        }
-
-        return winningTeamCount == 1;
+        return new MatchPayload(
+            DateTime.SpecifyKind(completedMatch.StartUtc, DateTimeKind.Utc),
+            DateTime.SpecifyKind(completedMatch.EndUtc, DateTimeKind.Utc),
+            GameMode,
+            players,
+            metrics,
+            BuildTeamsList(completedMatch.Teams));
     }
 
-    private static List<MatchTeamPayload?> BuildTeamsList(PointsManager pointsManager)
+    private static List<MatchTeamPayload?> BuildTeamsList(
+        IReadOnlyDictionary<Team, CompletedAdventureTeam> teams)
     {
-        List<MatchTeamPayload?> result = [];
-        for (int i = 0; i <= 6; i++)
-            result.Add(null);
+        int lastTeamId = Math.Max(0, teams.Keys.Select(team => (int)team).DefaultIfEmpty(0).Max());
+        List<MatchTeamPayload?> result = Enumerable.Repeat<MatchTeamPayload?>(null, lastTeamId + 1).ToList();
 
-        foreach ((Team team, int points) in pointsManager.Points)
+        foreach ((Team team, CompletedAdventureTeam teamResult) in teams)
         {
             if (team == Team.None)
                 continue;
 
-            List<short> bosses = [];
-            if (pointsManager.DownedNpcs.TryGetValue(team, out ISet<short> downedNpcs))
-                bosses.AddRange(downedNpcs);
-
             int teamId = (int)team;
             while (result.Count <= teamId)
                 result.Add(null);
-            result[teamId] = new MatchTeamPayload(points, bosses);
+            result[teamId] = new MatchTeamPayload(teamResult.Points, teamResult.Bosses.ToList());
         }
 
         return result;
     }
 
-    private static void LogMatchPayload(MatchPayload payload)
+    private static void LogMatchPayload(MatchPayload payload, string matchToken)
     {
-        Log.Chat($"Match ended! Start={payload.Start:yyyy-MM-dd HH:mm:ss}, End={payload.End:yyyy-MM-dd HH:mm:ss}");
-        Log.Chat($"Payload players={payload.Players.Count}, teams={payload.Teams.Count}, team0Null={payload.Teams.Count > 0 && payload.Teams[0] == null}");
+        Log.Chat($"Match ended! Token={matchToken}, Start={payload.Start:O}, End={payload.End:O}");
+        Log.Chat($"Payload players={payload.Players.Count}, teams={payload.Teams.Count}, " +
+                 $"team0Null={payload.Teams.Count > 0 && payload.Teams[0] == null}");
 
         for (int i = 0; i < payload.Teams.Count; i++)
             if (payload.Teams[i] is MatchTeamPayload team)
-                Log.Info($"Team {i}: {team.Points} points");
+                Log.Info($"Team {i}: {team.Points} points, {team.Bosses.Count} bosses");
     }
 
     private static bool IsValidPayload(MatchPayload payload)
     {
+        if (payload.End < payload.Start)
+        {
+            Log.Error("Refusing to post malformed match: end time precedes start time.");
+            return false;
+        }
+
         if (payload.Players.Count == 0)
         {
-            Log.Chat("Refusing to post malformed match: no players in payload.");
+            Log.Warn("Refusing to post malformed match: no authenticated participants in payload.");
             return false;
         }
 
         if (payload.Teams.Count == 0 || payload.Teams[0] != null)
         {
-            Log.Chat("Refusing to post malformed match: team 0 must exist and be null.");
+            Log.Error("Refusing to post malformed match: team 0 must exist and be null.");
             return false;
+        }
+
+        foreach ((ulong steamId, MatchPlayerPayload player) in payload.Players)
+        {
+            if (steamId == 0 || player.Team == 0 || player.Team >= payload.Teams.Count ||
+                payload.Teams[(int)player.Team] == null || player.Kills < 0 || player.Deaths < 0)
+            {
+                Log.Error($"Refusing to post malformed match player. SteamId={steamId}, Team={player.Team}, " +
+                          $"Kills={player.Kills}, Deaths={player.Deaths}");
+                return false;
+            }
         }
 
         return true;
