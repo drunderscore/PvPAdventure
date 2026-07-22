@@ -21,6 +21,13 @@ internal sealed class TeamBedPlayer : ModPlayer
         On_Player.ItemCheck_UseMiningTools -= OnPlayerItemCheckUseMiningTools;
     }
 
+    public override void OnEnterWorld()
+    {
+        // Request beds claimed before this client connected after its world is ready to receive them.
+        if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI == Main.myPlayer)
+            TeamBedNetHandler.SendStateRequest();
+    }
+
     public override void PostUpdate()
     {
         if (Main.netMode != NetmodeID.MultiplayerClient || Player.whoAmI != Main.myPlayer)

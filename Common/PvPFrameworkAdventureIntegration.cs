@@ -1,5 +1,8 @@
+using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Statistics;
+using PvPAdventure.Common.Travel.Beds;
+using PvPFramework.Common.Visualization.TileOutlines;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.Enums;
@@ -18,6 +21,9 @@ public class PvPFrameworkAdventureIntegration : ModSystem
         PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = () =>
             ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
 
+        // PvP Framework draws bed outlines; Adventure supplies the synchronized team ownership.
+        BedOutlineTile.TeamResolver = ResolveBedTeam;
+
         // Award team points when a team lands the killing blow on a boss/scoring NPC.
         PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer += AwardNpcKill;
     }
@@ -25,9 +31,13 @@ public class PvPFrameworkAdventureIntegration : ModSystem
     public override void Unload()
     {
         PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer -= AwardNpcKill;
+        BedOutlineTile.TeamResolver = null;
         // Drop our delegate so it doesn't retain a reference to an unloaded GameManager.
         PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = static () => true;
     }
+
+    private static Team? ResolveBedTeam(Point origin) =>
+        ModContent.GetInstance<TeamBedSystem>().TryGetTeam(origin, out Team team) ? team : null;
 
     private static void AwardNpcKill(Player player, NPC npc) =>
         ModContent.GetInstance<PointsManager>().AwardNpcKillToTeam((Team)player.team, npc);

@@ -15,6 +15,7 @@ internal enum TeamBedPacketType : byte
     PlayerSpawn,
     DestroyAttempt,
     BedDestroyFx,
+    StateRequest,
 }
 
 public static class TeamBedNetHandler
@@ -40,7 +41,30 @@ public static class TeamBedNetHandler
             case TeamBedPacketType.BedDestroyFx:
                 ReceiveBedDestructionFx(reader);
                 break;
+
+            case TeamBedPacketType.StateRequest:
+                ReceiveStateRequest(whoAmI);
+                break;
         }
+    }
+
+    public static void SendStateRequest()
+    {
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            return;
+
+        ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+        packet.Write((byte)AdventurePacketIdentifier.TeamBed);
+        packet.Write((byte)TeamBedPacketType.StateRequest);
+        packet.Send();
+    }
+
+    private static void ReceiveStateRequest(int whoAmI)
+    {
+        if (Main.netMode != NetmodeID.Server || whoAmI < 0 || whoAmI >= Main.maxPlayers)
+            return;
+
+        ModContent.GetInstance<TeamBedSystem>().SendAllStateToClient(whoAmI);
     }
 
     public static void SendBedDestructionFx(float worldX, float worldY, bool killed)
