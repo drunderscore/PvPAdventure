@@ -67,7 +67,7 @@ public class AdventureScoreboardHeader : ModSystem
             shards.ToString(),
             iconScaleMultiplier: 1.8f);
 
-        Point mouse = Main.MouseScreen.ToPoint();
+        Point mouse = ScoreboardTeamHeader.Cursor;
 
         if (pointsCell.Contains(mouse))
         {
