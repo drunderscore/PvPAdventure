@@ -6,7 +6,7 @@ using System;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Tools.PointsSetter;
+namespace PvPAdventure.Common.AdminTools.PointsSetter;
 
 [Autoload(Side = ModSide.Client)]
 internal sealed class PointsSetterErkySSCTool : ModSystem

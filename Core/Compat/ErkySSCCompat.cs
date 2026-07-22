@@ -79,6 +79,5 @@ public static class ErkySSCCompat
     }
 
     private static bool TryGetMod(out Mod mod) =>
-        ModLoader.TryGetMod("ErkySSC", out mod) ||
-        ModLoader.TryGetMod("ErkySsc", out mod);
+        ModLoader.TryGetMod("ErkySSC", out mod);
 }

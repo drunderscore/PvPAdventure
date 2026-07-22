@@ -5,7 +5,6 @@ using PvPAdventure.Content.Portals;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace PvPAdventure.Common.Travel;
@@ -33,13 +32,7 @@ internal class TravelPlayer : ModPlayer
 
         PortalCreatorItem.ResetUseState(Player);
 
-        PopupText.NewText(new AdvancedPopupRequest
-        {
-            Color = Color.Crimson,
-            Text = Language.GetTextValue("Mods.PvPAdventure.PortalCreator.Cancelled"),
-            Velocity = new Vector2(0f, -4f),
-            DurationInFrames = 120
-        }, Player.Top + new Vector2(0f, -4f));
+        PortalCreatorItem.Warning(Player, "Mods.PvPAdventure.PortalCreator.Cancelled", Color.Crimson);
     }
 
     private bool IsUsingPortalCreator()

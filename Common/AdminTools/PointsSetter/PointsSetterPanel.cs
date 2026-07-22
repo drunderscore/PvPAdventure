@@ -19,7 +19,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.Tools.PointsSetter;
+namespace PvPAdventure.Common.AdminTools.PointsSetter;
 
 internal class PointsSetterPanel : UIDraggablePanel
 {

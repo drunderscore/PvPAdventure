@@ -10,7 +10,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
+namespace PvPAdventure.Common.AdminTools.GameManagerTool;
 
 [Autoload(Side = ModSide.Client)]
 internal sealed class GameManagerErkySSCTool : ModSystem

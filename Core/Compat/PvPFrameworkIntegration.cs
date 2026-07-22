@@ -9,10 +9,10 @@ using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common;
+namespace PvPAdventure.Core.Compat;
 
 // Wires PvP Adventure's match rules into PvP Framework's shared systems.
-public class PvPFrameworkAdventureIntegration : ModSystem
+public class PvPFrameworkIntegration : ModSystem
 {
     public override void Load()
     {

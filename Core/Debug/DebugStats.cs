@@ -11,14 +11,14 @@ namespace PvPAdventure.Core.Debug;
 #if DEBUG
 internal readonly record struct DebugStatGroup(string Header, Color Color, Func<string[]> BuildRows);
 
-/// <summary>
-/// // ┌─────────────────────────────────────────────────────────────────────┐
-// │  THE ONLY FILE TO EDIT when adding a new stat group.                │
-// │                                                                     │
-// │  1. Add a yield return line in AllGroups()                          │
-// │  2. Add a static BuildXxx() method below                            │
-// └─────────────────────────────────────────────────────────────────────┘
-/// </summary>
+/*
+┌─────────────────────────────────────────────────────────────────────┐
+│  THE ONLY FILE TO EDIT when adding a new stat group.                │
+│                                                                     │
+│  1. Add a yield return line in AllGroups()                          │
+│  2. Add a static BuildXxx() method below                            │
+└─────────────────────────────────────────────────────────────────────┘
+ */
 internal static class DebugStats
 {
     // ── ADD NEW GROUPS HERE ───────────────────────────────────────────

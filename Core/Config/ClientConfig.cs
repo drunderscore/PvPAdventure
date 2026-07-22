@@ -8,6 +8,7 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
+using PvPFramework.Core.Configs.ConfigElements;
 
 namespace PvPAdventure.Core.Config;
 
@@ -29,16 +30,45 @@ public class ClientConfig : ModConfig
         Big,
     }
 
+    public enum ScorelineSize
+    {
+        Small,
+        Medium,
+        Large,
+        VeryLarge,
+    }
+
     [Header("UI")]
+    [ConfigIcon(nameof(Ass.SmallPanelHighlight))]
     [BackgroundColor(36, 104, 118)]
-    [DefaultValue(TravelUIPosition.Top)]
-    [JsonConverter(typeof(StringEnumConverter))]
-    public TravelUIPosition PortalTravelUIPosition = TravelUIPosition.Top;
+    [DefaultValue(true)]
+    public bool TravelUI = true;
 
     [BackgroundColor(36, 104, 118)]
     [DefaultValue(TravelUISize.Small)]
     [JsonConverter(typeof(StringEnumConverter))]
+    [RequiresField(nameof(TravelUI))]
     public TravelUISize PortalTravelUISize = TravelUISize.Small;
+
+    [BackgroundColor(36, 104, 118)]
+    [DefaultValue(TravelUIPosition.Top)]
+    [JsonConverter(typeof(StringEnumConverter))]
+    [RequiresField(nameof(TravelUI))]
+    public TravelUIPosition PortalTravelUIPosition = TravelUIPosition.Top;
+
+    [BackgroundColor(36, 104, 118)]
+    [DefaultValue(true)]
+    public bool ShowPortalWarnings = true;
+
+    [BackgroundColor(36, 104, 118)]
+    [DefaultValue(true)]
+    public bool Scoreline = true;
+
+    [BackgroundColor(36, 104, 118)]
+    [DefaultValue(ScorelineSize.Medium)]
+    [JsonConverter(typeof(StringEnumConverter))]
+    [RequiresField(nameof(Scoreline))]
+    public ScorelineSize ScorelineUISize = ScorelineSize.Medium;
 
     [Header("Chat")]
     [HeaderIcon(nameof(Ass.ConfigChat))]

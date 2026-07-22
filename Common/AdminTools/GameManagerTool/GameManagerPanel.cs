@@ -12,7 +12,7 @@ using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
+namespace PvPAdventure.Common.AdminTools.GameManagerTool;
 
 internal class GameManagerPanel : UIDraggablePanel
 {

@@ -244,7 +244,7 @@ public class PortalHooks : ModSystem
             {
                 inv[slot].favorited = true;
 
-                PopupTextHelper.NewText("Mods.PvPAdventure.PortalCreator.CannotUnfavorite");
+                PopupTextHelper.NewLocalizedText("Mods.PvPAdventure.PortalCreator.CannotUnfavorite");
                 return; // swallow favorite toggle
             }
         }
@@ -253,7 +253,7 @@ public class PortalHooks : ModSystem
         if (context == ItemSlot.Context.TrashItem && IsPortalCreatorItem(Main.mouseItem))
         {
             if (Main.mouseLeft && Main.mouseLeftRelease)
-                PopupTextHelper.NewText("Mods.PvPAdventure.PortalCreator.CannotTrash");
+                PopupTextHelper.NewLocalizedText("Mods.PvPAdventure.PortalCreator.CannotTrash");
             return;
         }
 
@@ -261,7 +261,7 @@ public class PortalHooks : ModSystem
         if (IsShopOpen() && !IsAdventureSantaShopOpen() && IsPortalCreatorItem(Main.mouseItem))
         {
             if (Main.mouseLeft && Main.mouseLeftRelease)
-                PopupTextHelper.NewText("Mods.PvPAdventure.PortalCreator.CannotSell");
+                PopupTextHelper.NewLocalizedText("Mods.PvPAdventure.PortalCreator.CannotSell");
 
             return;
         }
@@ -271,7 +271,7 @@ public class PortalHooks : ModSystem
             || context == ItemSlot.Context.BankItem && IsPortalCreatorItem(Main.mouseItem))
         {
             if (Main.mouseLeft && Main.mouseLeftRelease)
-                PopupTextHelper.NewText("Mods.PvPAdventure.PortalCreator.CannotStore");
+                PopupTextHelper.NewLocalizedText("Mods.PvPAdventure.PortalCreator.CannotStore");
             return;
         }
 

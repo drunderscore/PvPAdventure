@@ -14,7 +14,7 @@ namespace PvPAdventure.Common.Fishing;
 /// - Removes fishable NPC catches by converting them into item rewards.
 /// - Makes crates, potion fish, bait, bars, and utility fishing loot more common.
 /// </summary>
-public class AdventureFishingPlayer : ModPlayer
+public class BetterFishingCatchPlayer : ModPlayer
 {
     public override void CatchFish(FishingAttempt attempt, ref int itemDrop, ref int npcSpawn, ref AdvancedPopupRequest sonar, ref Vector2 sonarPosition)
     {

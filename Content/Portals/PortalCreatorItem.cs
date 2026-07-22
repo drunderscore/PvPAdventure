@@ -266,23 +266,7 @@ public class PortalCreatorItem : ModItem
     }
     internal static void Warning(Player player, string localizationKey, Color color = default)
     {
-        if (player.whoAmI != Main.myPlayer)
-            return;
-
-        if (color == default)
-            color = Main.teamColor[player.team];
-
-        ShowPopup(player, Language.GetTextValue(localizationKey), color);
-    }
-    private static void ShowPopup(Player player, string text, Color color)
-    {
-        PopupText.NewText(new AdvancedPopupRequest
-        {
-            Color = color,
-            Text = text,
-            Velocity = new Vector2(0f, -4f),
-            DurationInFrames = 120
-        }, player.Top + new Vector2(0, -4));
+        PopupTextHelper.NewLocalizedText(player, localizationKey, color);
     }
     #endregion
 
@@ -309,7 +293,7 @@ public class PortalCreatorItem : ModItem
         if (secondsLeft < 1)
             return;
 
-        ShowPopup(player, secondsLeft.ToString(), color);
+        PopupTextHelper.NewText(player, secondsLeft.ToString(), color);
     }
     #endregion
 

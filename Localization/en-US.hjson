@@ -249,7 +249,7 @@ Mods: {
 				Headers: {
 					Visualization: Visualization
 					Movement: Movement
-					UI: Portal Travel UI
+					UI: UI
 					Sound: Sound
 					Chat: Chat
 				}
@@ -274,13 +274,33 @@ Mods: {
 					Tooltip: Whether double tapping a movement direction will cause a dash
 				}
 
+				TravelUI: {
+					Label: Travel UI
+					Tooltip: Show the travel destination interface
+				}
+
 				PortalTravelUIPosition: {
-					Label: Portal Travel UI Position
+					Label: Travel UI Position
 					Tooltip: ""
 				}
 
 				PortalTravelUISize: {
-					Label: Portal Travel UI Size
+					Label: Travel UI Size
+					Tooltip: ""
+				}
+
+				ShowPortalWarnings: {
+					Label: Portal Warnings
+					Tooltip: Show warnings and status messages related to portals
+				}
+
+				Scoreline: {
+					Label: Scoreline
+					Tooltip: Show team scores and the match timer at the top of the screen
+				}
+
+				ScorelineUISize: {
+					Label: Scoreline UI Size
 					Tooltip: ""
 				}
 
@@ -1294,6 +1314,30 @@ Mods: {
 				Big: {
 					Label: Big
 					Tooltip: "1.15"
+				}
+			}
+
+			ScorelineSize: {
+				Tooltip: ""
+
+				Small: {
+					Label: Small
+					Tooltip: "0.9"
+				}
+
+				Medium: {
+					Label: Medium
+					Tooltip: "1.0"
+				}
+
+				Large: {
+					Label: Large
+					Tooltip: "1.15"
+				}
+
+				VeryLarge: {
+					Label: Very Large
+					Tooltip: "1.5"
 				}
 			}
 

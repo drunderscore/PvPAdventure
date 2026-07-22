@@ -1,4 +1,5 @@
 using PvPAdventure.Core.Config.ConfigElements;
+using PvPFramework.Core.Configs.ConfigElements;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

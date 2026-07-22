@@ -8,7 +8,7 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.AdminTools.Tools.GameManagerTool;
+namespace PvPAdventure.Common.AdminTools.GameManagerTool;
 
 internal class ConfirmEndGamePanel : UIDraggablePanel
 {

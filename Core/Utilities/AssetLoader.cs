@@ -60,6 +60,7 @@ public static class Ass
     public static Asset<Texture2D> ConfigPvP;
     public static Asset<Texture2D> ConfigTreasureBag;
     public static Asset<Texture2D> ConfigTreasureBagOutline;
+    public static Asset<Texture2D> SmallPanelHighlight;
 
     // End screen summary
     public static Asset<Texture2D> IconGem;
