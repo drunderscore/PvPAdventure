@@ -16,7 +16,13 @@
 
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->
 	<ItemGroup>
-		<PackageReference Include="Krafs.Publicizer" PrivateAssets="true" Version="2.2.1" />
-		<Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
-	</ItemGroup>
+	<PackageReference Include="Krafs.Publicizer" Version="2.3.0">
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+	</PackageReference>
+
+	<Publicize Include="tModLoader"
+			   IncludeVirtualMembers="false"
+			   IncludeCompilerGeneratedMembers="false" />
+</ItemGroup>
 </Project>

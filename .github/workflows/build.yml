@@ -2,15 +2,20 @@ name: Build Mod
 
 on:
   push:
-    branches: 
+    branches:
       - erkys-features
       - feature/missinginmaster
   pull_request:
-    branches: [main]
+    branches:
+      - main
+
+env:
+  TML_VERSION: v2026.03.3.0
 
 jobs:
   build-mod:
     runs-on: windows-latest
+
     permissions:
       contents: read
 
@@ -24,7 +29,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: emyhrberg/PvPFramework
-          ref: 9bbd1a6805cda951f0cbfd71f4268843dc23179e
+          ref: 367f280e254feab558f63564f572f43ce341f7f2
           token: ${{ secrets.PVPFRAMEWORK_READ_TOKEN }}
           path: PvPFramework
 
@@ -36,16 +41,47 @@ jobs:
           token: ${{ secrets.PVPHUB_READ_TOKEN }}
           path: PvPHub
 
+      - name: Verify dependency revisions
+        shell: pwsh
+        run: |
+          Write-Host "PvPAdventure:"
+          git -C PvPAdventure rev-parse HEAD
+
+          Write-Host "PvPFramework:"
+          git -C PvPFramework rev-parse HEAD
+
+          Write-Host "PvPHub:"
+          git -C PvPHub rev-parse HEAD
+
+          git -C PvPFramework grep -n "ConfigUI"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Checked-out PvPFramework does not define ConfigUI."
+          }
+
+          git -C PvPFramework grep -n "ConfigChat"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Checked-out PvPFramework does not define ConfigChat."
+          }
+
       - name: Download tModLoader
         shell: pwsh
         run: |
-          curl.exe -sSL https://github.com/tModLoader/tModLoader/releases/latest/download/tModLoader.zip -o tModLoader.zip
+          $url = "https://github.com/tModLoader/tModLoader/releases/download/$env:TML_VERSION/tModLoader.zip"
+          curl.exe --fail --location --silent --show-error $url -o tModLoader.zip
 
       - name: Extract tModLoader
         shell: pwsh
         run: |
-          Expand-Archive -LiteralPath tModLoader.zip -DestinationPath tModLoader -Force
+          Expand-Archive `
+            -LiteralPath tModLoader.zip `
+            -DestinationPath tModLoader `
+            -Force
+
           Remove-Item -LiteralPath tModLoader.zip
+
+          if (!(Test-Path "tModLoader\tMLMod.targets")) {
+            throw "tMLMod.targets was not found after extracting tModLoader."
+          }
 
       - name: Create tModLoader.targets
         shell: pwsh
@@ -54,7 +90,9 @@ jobs:
           <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
             <Import Project="tModLoader\tMLMod.targets" />
           </Project>
-          '@ | Set-Content -LiteralPath tModLoader.targets
+          '@ | Set-Content `
+            -LiteralPath tModLoader.targets `
+            -Encoding utf8
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
@@ -67,12 +105,19 @@ jobs:
 
       - name: Build solution
         working-directory: PvPAdventure
-        run: dotnet build PvPAdventure.sln --configuration Release --no-restore "-p:ExtraBuildModFlags=-tmlsavedirectory $env:GITHUB_WORKSPACE\tModLoaderSave"
+        run: >
+          dotnet build
+          PvPAdventure.sln
+          --configuration Release
+          --no-restore
+          --verbosity normal
+          "-p:ExtraBuildModFlags=-tmlsavedirectory $env:GITHUB_WORKSPACE\tModLoaderSave"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: PvPAdventure-Binaries
+          if-no-files-found: error
           path: |
             PvPAdventure/bin/Release/net8.0/PvPAdventure.dll
             PvPAdventure/bin/Release/net8.0/PvPAdventure.pdb
