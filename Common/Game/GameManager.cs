@@ -151,9 +151,12 @@ public class GameManager : ModSystem
     private static void ResetActivePlayerMatchState()
     {
         ScoreboardService.ResetAllPlayers();
-        foreach (Player player in Main.player)
-            if (player != null)
-                player.GetModPlayer<MatchStatsPlayer>().ResetMatchStats();
+
+        foreach (Player player in Main.ActivePlayers)
+        {
+            if (player.TryGetModPlayer(out MatchStatsPlayer matchStats))
+                matchStats.ResetMatchStats();
+        }
     }
 
     public void StartGame(int time, int countdownTimeInSeconds = 10)
