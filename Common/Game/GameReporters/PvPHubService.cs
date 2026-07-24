@@ -39,33 +39,48 @@ internal static class PvPHubService
             ulong? identity = ModContent.GetInstance<SteamAuthentication>()
                 .GetAuthenticatedIdentity((byte)player.whoAmI);
 
+
             if (identity is not ulong id || id == 0)
             {
-                Log.Warn(
+                if (Main.GameUpdateCount % 60 == 5)
+                {
+                    Log.Warn(
                     $"PvPHub Steam ID lookup failed. " +
                     $"Player={DescribePlayer(player)}, " +
                     $"Result={identity?.ToString() ?? "<null>"}");
+                }
+
+                    
                 return false;
             }
 
             if (id > long.MaxValue)
             {
-                Log.Warn(
+                if (Main.GameUpdateCount % 60 == 5)
+                {
+                    Log.Warn(
                     $"PvPHub Steam ID lookup rejected identity above Int64 range. " +
                     $"Player={DescribePlayer(player)}, SteamId={id}, " +
                     $"Int64Max={long.MaxValue}");
+                }
+                    
                 return false;
             }
 
             steamId = id;
 
-            steamId = id;
-            Log.Debug($"PvPHub Steam ID lookup succeeded. Player={DescribePlayer(player)}, SteamId={steamId}");
+            if (Main.GameUpdateCount % 60 == 5)
+            {
+                Log.Debug($"PvPHub Steam ID lookup succeeded. Player={DescribePlayer(player)}, SteamId={steamId}");
+            }
             return true;
         }
         catch (System.Exception ex)
         {
-            Log.Warn($"PvPHub Steam ID lookup failed. Player={DescribePlayer(player)}, Error={ex}");
+            if (Main.GameUpdateCount % 60 == 5)
+            {
+                Log.Warn($"PvPHub Steam ID lookup failed. Player={DescribePlayer(player)}, Error={ex}");
+            }
             return false;
         }
     }
