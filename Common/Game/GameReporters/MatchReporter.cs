@@ -33,6 +33,7 @@ internal static class MatchReporter
         try
         {
             MatchPayload payload = BuildMatchPayload(completedMatch);
+            SavePermanentBackupSafe(payload, completedMatch.Token);
             LogMatchPayloadDetails(payload, completedMatch.Token);
             bool isValid = IsValidPayload(payload);
             LogMatchEndSummary(payload, replayFilePath, isValid);
@@ -47,6 +48,20 @@ internal static class MatchReporter
         catch (Exception ex)
         {
             Log.Error($"Failed to build or queue match payload. MatchToken={completedMatch.Token}, Error={ex}");
+        }
+    }
+
+    private static void SavePermanentBackupSafe(MatchPayload payload, string matchToken)
+    {
+        try
+        {
+            string backupPath = MatchBackupStore.Save(payload, matchToken);
+            Log.Chat($"Saved permanent match JSON backup. MatchToken={matchToken}, Path={backupPath}");
+        }
+        catch (Exception ex)
+        {
+            // A backup failure must not prevent the normal API submission attempt.
+            Log.Error($"Failed to save permanent match JSON backup. MatchToken={matchToken}, Error={ex}");
         }
     }
 
