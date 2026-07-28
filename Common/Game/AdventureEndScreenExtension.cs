@@ -15,9 +15,12 @@ namespace PvPAdventure.Common.Game;
 
 internal static class AdventureEndScreenExtension
 {
-    public static EndScreenSummary CreateSummary()
+    public static EndScreenSummary CreateSummary(string presentationKey)
     {
-        EndScreenSummary summary = new();
+        EndScreenSummary summary = new()
+        {
+            PresentationKey = presentationKey ?? ""
+        };
         PointsManager points = ModContent.GetInstance<PointsManager>();
 
         IEnumerable<Player> activePlayers = Main.player.Where(player => player?.active == true);

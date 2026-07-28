@@ -1,4 +1,5 @@
 using PvPHub.Common.MainMenu.API;
+using PvPFramework.Common.EndScreen;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,24 +31,38 @@ internal static class MatchReporter
             replayFilePath = null;
         }
 
+        List<GemRecipient> gemRecipients = [];
+
         try
         {
             MatchPayload payload = BuildMatchPayload(completedMatch);
             SavePermanentBackupSafe(payload, completedMatch.Token);
+            gemRecipients = CaptureActiveGemRecipients(payload, completedMatch.Token);
             LogMatchPayloadDetails(payload, completedMatch.Token);
             bool isValid = IsValidPayload(payload);
             LogMatchEndSummary(payload, replayFilePath, isValid);
 
             if (!isValid)
+            {
+                ReportGemFailure(
+                    completedMatch.Token,
+                    gemRecipients,
+                    400,
+                    "The match payload was invalid, so Tavernkeep did not add the gems.");
                 return;
+            }
 
             // Intentionally no automatic retry: Tavernkeep currently has no idempotency key, so an
             // ambiguous retry could duplicate the match, achievements, and gem rewards.
-            _ = PostMatchSafeAsync(payload, replayFilePath);
+            _ = PostMatchSafeAsync(payload, replayFilePath, completedMatch.Token, gemRecipients);
         }
         catch (Exception ex)
         {
             Log.Error($"Failed to build or queue match payload. MatchToken={completedMatch.Token}, Error={ex}");
+            ReportGemFailureToActivePlayers(
+                completedMatch.Token,
+                0,
+                $"The match could not be prepared for upload: {ex.Message}");
         }
     }
 
@@ -65,7 +80,11 @@ internal static class MatchReporter
         }
     }
 
-    private static async Task PostMatchSafeAsync(MatchPayload payload, string replayFilePath)
+    private static async Task PostMatchSafeAsync(
+        MatchPayload payload,
+        string replayFilePath,
+        string presentationKey,
+        IReadOnlyList<GemRecipient> gemRecipients)
     {
         try
         {
@@ -81,6 +100,11 @@ internal static class MatchReporter
                     : $"Match {version} post failed: Status={statusCode}. Error={result.ErrorMessage}";
                 WriteMatchPostConsole(WithRequestSummary(message, result.RequestSummary));
                 Log.Error(message + " The request was not retried because match posting is not idempotent.");
+                ReportGemFailure(
+                    presentationKey,
+                    gemRecipients,
+                    statusCode,
+                    result.ErrorMessage ?? "Tavernkeep rejected the match upload.");
                 return;
             }
 
@@ -89,18 +113,140 @@ internal static class MatchReporter
             {
                 WriteMatchPostConsole(WithRequestSummary(
                     $"Match {version} post succeeded, but the backend returned no match id.", result.RequestSummary));
-                return;
+            }
+            else
+            {
+                WriteMatchPostConsole(WithRequestSummary(
+                    $"Match {version} post succeeded. MatchId={matchId}", result.RequestSummary));
+                Log.Info($"Posted match successfully. MatchId={matchId}");
             }
 
-            WriteMatchPostConsole(WithRequestSummary(
-                $"Match {version} post succeeded. MatchId={matchId}", result.RequestSummary));
-            Log.Info($"Posted match successfully. MatchId={matchId}");
+            // Tavernkeep increments gems inside the same transaction as the match. Only a successful
+            // match response reaches this point, so the following profile reads are authoritative totals.
+            await PublishConfirmedGemTotalsAsync(presentationKey, gemRecipients).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             WriteMatchPostConsole($"Match post failed with an unexpected error: {ex.GetType().Name}: {ex.Message}");
             Log.Error($"Unexpected error while posting match; request was not retried: {ex}");
+            ReportGemFailure(
+                presentationKey,
+                gemRecipients,
+                0,
+                $"Unexpected {ex.GetType().Name}: {ex.Message}");
         }
+    }
+
+    private static List<GemRecipient> CaptureActiveGemRecipients(
+        MatchPayload payload,
+        string presentationKey)
+    {
+        List<GemRecipient> recipients = [];
+        HashSet<ulong> capturedSteamIds = [];
+
+        foreach (Player player in Main.ActivePlayers)
+        {
+            if (player?.active != true || (Team)player.team == Team.None)
+                continue;
+
+            if (!PvPHubService.TryGetSteamId(player, out ulong steamId) ||
+                !payload.Players.ContainsKey(steamId))
+            {
+                QueueGemResult(
+                    presentationKey,
+                    player.whoAmI,
+                    EndScreenGemResult.Failed(
+                        401,
+                        "Steam authentication was unavailable, so this player was not included in the match upload."));
+                continue;
+            }
+
+            if (capturedSteamIds.Add(steamId))
+                recipients.Add(new GemRecipient(steamId, player.whoAmI));
+        }
+
+        return recipients;
+    }
+
+    private static async Task PublishConfirmedGemTotalsAsync(
+        string presentationKey,
+        IReadOnlyList<GemRecipient> recipients)
+    {
+        Task[] requests = recipients.Select(recipient =>
+            PublishConfirmedGemTotalAsync(presentationKey, recipient)).ToArray();
+        await Task.WhenAll(requests).ConfigureAwait(false);
+    }
+
+    private static async Task PublishConfirmedGemTotalAsync(
+        string presentationKey,
+        GemRecipient recipient)
+    {
+        try
+        {
+            ApiResult<long> result = await PvPHubService
+                .GetTotalGemsAsync(recipient.SteamId)
+                .ConfigureAwait(false);
+
+            EndScreenGemResult gemResult = result.IsSuccess
+                ? EndScreenGemResult.Confirmed(result.Data, (int)result.Status)
+                : EndScreenGemResult.TotalUnavailable(
+                    (int)result.Status,
+                    CleanReason(result.ErrorMessage, "Tavernkeep did not return the confirmed gem balance."));
+            QueueGemResult(presentationKey, recipient.PlayerIndex, gemResult);
+        }
+        catch (Exception ex)
+        {
+            QueueGemResult(
+                presentationKey,
+                recipient.PlayerIndex,
+                EndScreenGemResult.TotalUnavailable(
+                    0,
+                    CleanReason(ex.Message, $"Unexpected {ex.GetType().Name} while loading the gem balance.")));
+        }
+    }
+
+    private static void ReportGemFailure(
+        string presentationKey,
+        IEnumerable<GemRecipient> recipients,
+        int statusCode,
+        string reason)
+    {
+        EndScreenGemResult result = EndScreenGemResult.Failed(
+            statusCode,
+            CleanReason(reason, "Tavernkeep did not confirm the gem update."));
+
+        foreach (GemRecipient recipient in recipients)
+            QueueGemResult(presentationKey, recipient.PlayerIndex, result);
+    }
+
+    private static void ReportGemFailureToActivePlayers(
+        string presentationKey,
+        int statusCode,
+        string reason)
+    {
+        EndScreenGemResult result = EndScreenGemResult.Failed(
+            statusCode,
+            CleanReason(reason, "Tavernkeep did not confirm the gem update."));
+
+        foreach (Player player in Main.ActivePlayers)
+            if (player?.active == true && (Team)player.team != Team.None)
+                QueueGemResult(presentationKey, player.whoAmI, result);
+    }
+
+    private static void QueueGemResult(
+        string presentationKey,
+        int playerIndex,
+        EndScreenGemResult result)
+    {
+        Main.QueueMainThreadAction(() =>
+            EndScreenService.ReportGemResult(presentationKey, playerIndex, result));
+    }
+
+    private static string CleanReason(string reason, string fallback)
+    {
+        string result = string.IsNullOrWhiteSpace(reason) ? fallback : reason;
+        result = result.Replace('\r', ' ').Replace('\n', ' ').Trim();
+        return result.Length <= 300 ? result : result[..300] + "...";
     }
 
     private static MatchPayload BuildMatchPayload(CompletedAdventureMatch completedMatch)
@@ -231,4 +377,6 @@ internal static class MatchReporter
 
     private static void WriteMatchPostConsole(string message) =>
         Console.WriteLine($"[PvPAdventure/OfficialMatchReporter] {message}");
+
+    private readonly record struct GemRecipient(ulong SteamId, int PlayerIndex);
 }

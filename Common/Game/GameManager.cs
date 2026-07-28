@@ -437,7 +437,8 @@ public class GameManager : ModSystem
 
             try
             {
-                EndScreenService.Present(AdventureEndScreenExtension.CreateSummary());
+                EndScreenService.Present(AdventureEndScreenExtension.CreateSummary(
+                    completedMatch?.Token ?? completingMatchToken));
             }
             catch (Exception ex)
             {
