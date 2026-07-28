@@ -19,15 +19,7 @@ public class PvPAdventure : Mod
     /// </summary>
     public override void HandlePacket(BinaryReader reader, int whoAmI)
     {
-        base.HandlePacket(reader, whoAmI);
-
-        // This causes read underflow and bogus logs, dont do it!
-        //long packetStart = reader.BaseStream.Position;
-        //long packetLength = reader.BaseStream.Length;
-
         var id = (AdventurePacketIdentifier)reader.ReadByte();
-
-        //Log.Debug($"[Packet] Start id={(byte)id} ({id}), whoAmI={whoAmI}, bytes={packetLength - packetStart}");
 
         switch (id)
         {
@@ -55,18 +47,14 @@ public class PvPAdventure : Mod
                 Common.Game.StatTrackers.MatchStatsNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
+            case AdventurePacketIdentifier.Hellhex:
+                Common.Combat.EJ.HellhexNetHandler.HandlePacket(reader, whoAmI);
+                break;
+
             default:
                 Log.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
                 break;
         }
-
-        //long bytesLeft = reader.BaseStream.Length - reader.BaseStream.Position;
-
-        //if (bytesLeft != 0)
-        //{
-        //    Log.Warn($"[Packet] Handler left unread bytes: id={(byte)id} ({id}), left={bytesLeft}, total={packetLength - packetStart}");
-        //    reader.BaseStream.Position = reader.BaseStream.Length;
-        //}
     }
 
     public override object Call(params object[] args)
