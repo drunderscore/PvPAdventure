@@ -17,11 +17,13 @@ internal enum MatchStatKey : byte
     TilesPlaced,
     TilesMined,
     MiningToolsUsed,
-    LavaDeaths,
+    LavaTouched,
     FoodEaten,
     BossDamageDealt,
     PortalKills,
-    LostHoney
+    LostHoney,
+    PointKills,
+    PointDeaths
 }
 
 internal sealed class MatchStatsPlayer : ModPlayer
@@ -55,6 +57,12 @@ internal sealed class MatchStatsPlayer : ModPlayer
 
     public Dictionary<string, uint> CopyStats() => new(stats);
 
+    public uint GetStat(MatchStatKey statKey)
+    {
+        string key = StatsReporter.GetStatKey(statKey);
+        return !string.IsNullOrEmpty(key) && stats.TryGetValue(key, out uint value) ? value : 0;
+    }
+
     public Dictionary<string, IDictionary<int, uint>> CopyItemStats()
     {
         Dictionary<string, IDictionary<int, uint>> result = [];
@@ -75,6 +83,17 @@ internal sealed class MatchStatsPlayer : ModPlayer
 
         if (itemKey >= 0)
             AddItemStat(key, itemKey, amount);
+    }
+
+    public void ReplaceNetworkStats(IReadOnlyDictionary<MatchStatKey, uint> values)
+    {
+        stats.Clear();
+
+        foreach ((MatchStatKey key, uint value) in values)
+        {
+            if (value > 0)
+                AddStat(StatsReporter.GetStatKey(key), value);
+        }
     }
 
     public static void RecordLocalItemStat(MatchStatKey statKey, int itemKey, uint amount = 1)

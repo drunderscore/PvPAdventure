@@ -44,7 +44,11 @@ public class PvPAdventure : Mod
                 break;
 
             case AdventurePacketIdentifier.MatchStatDelta:
-                Common.Game.StatTrackers.MatchStatsNetHandler.HandlePacket(reader, whoAmI);
+                Common.Game.StatTrackers.MatchStatsNetHandler.HandleDeltaPacket(reader, whoAmI);
+                break;
+
+            case AdventurePacketIdentifier.MatchStatsSnapshot:
+                Common.Game.StatTrackers.MatchStatsNetHandler.HandleSnapshotPacket(reader);
                 break;
 
             case AdventurePacketIdentifier.Hellhex:
@@ -91,7 +95,14 @@ public class PvPAdventure : Mod
         if ((!string.IsNullOrEmpty(savedCharacter) && savedCharacter != characterKey) || savedMatch != CurrentMatchToken())
             return true;
 
-        ScoreboardService.SetPlayerStats(player, saved.GetInt("kills"), saved.GetInt("deaths"), saved.Get<long>("damage"));
+        ScoreboardService.SetPlayerStats(
+            player,
+            saved.GetInt("kills"),
+            saved.GetInt("deaths"),
+            saved.Get<long>("damage"),
+            saved.ContainsKey("damageTaken") ? saved.Get<long>("damageTaken") : 0,
+            saved.ContainsKey("currentStreak") ? saved.GetInt("currentStreak") : 0,
+            saved.ContainsKey("bestStreak") ? saved.GetInt("bestStreak") : 0);
         return true;
     }
 
@@ -104,12 +115,15 @@ public class PvPAdventure : Mod
         TagCompound ssc = root.ContainsKey("ErkySSC") ? root.GetCompound("ErkySSC") : [];
         ssc["PvPAdventure"] = new TagCompound
         {
-            ["version"] = 1,
+            ["version"] = 2,
             ["characterKey"] = characterKey ?? "",
             ["matchToken"] = CurrentMatchToken(),
             ["kills"] = stats.Kills,
             ["deaths"] = stats.Deaths,
-            ["damage"] = stats.Damage
+            ["damage"] = stats.Damage,
+            ["damageTaken"] = stats.DamageTaken,
+            ["currentStreak"] = stats.CurrentStreak,
+            ["bestStreak"] = stats.BestStreak
         };
         root["ErkySSC"] = ssc;
         return true;

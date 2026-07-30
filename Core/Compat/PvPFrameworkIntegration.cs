@@ -1,14 +1,21 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel.Beds;
 using PvPAdventure.Content.Mounts;
+using PvPFramework.Common.Scoreboard;
 using PvPFramework.Common.Visualization.TileOutlines;
+using AdventureAssets = PvPAdventure.Core.Utilities.Ass;
+using FrameworkAssets = PvPFramework.Core.Utilities.Ass;
+using System.Collections.Generic;
+using System.Globalization;
 using Terraria;
 using Terraria.Chat;
 using Terraria.DataStructures;
 using Terraria.Enums;
+using Terraria.GameContent;
 using Terraria.GameContent.UI.Chat;
 using Terraria.ID;
 using Terraria.Localization;
@@ -35,12 +42,15 @@ public class PvPFrameworkIntegration : ModSystem
         // Award team points when a team lands the killing blow on a boss/scoring NPC.
         PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer += AwardNpcKill;
         PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.BossDamageDealt += RecordBossDamage;
+
+        ScoreboardPlayerInfoService.RowsProvider = BuildScoreboardInfoRows;
     }
 
     public override void Unload()
     {
         PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer -= AwardNpcKill;
         PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.BossDamageDealt -= RecordBossDamage;
+        ScoreboardPlayerInfoService.RowsProvider = null;
         BedOutlineTile.TeamResolver = null;
         // Drop our delegate so it doesn't retain a reference to an unloaded GameManager.
         PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = static () => true;
@@ -55,6 +65,79 @@ public class PvPFrameworkIntegration : ModSystem
 
     private static void RecordBossDamage(Player player, uint damage, int itemType) =>
         MatchStatsPlayer.RecordServerStat(player, MatchStatKey.BossDamageDealt, damage, itemType);
+
+    private static IReadOnlyList<ScoreboardInfoRow> BuildScoreboardInfoRows(
+        Player player,
+        ScoreboardEntry scoreboard)
+    {
+        int[] itemIcons =
+        [
+            ItemID.LavaBucket,
+            ItemID.GoldCrown,
+            ItemID.PlatinumCrown,
+            ItemID.Skull,
+            ItemID.SuspiciousLookingEye,
+            ItemID.PickaxeAxe,
+            ItemID.DirtBlock,
+            ItemID.HoneyBucket
+        ];
+
+        foreach (int itemId in itemIcons)
+            Main.instance.LoadItem(itemId);
+
+        MatchStatsPlayer stats = player.GetModPlayer<MatchStatsPlayer>();
+        long pointBalance =
+            (long)stats.GetStat(MatchStatKey.PointKills) -
+            stats.GetStat(MatchStatKey.PointDeaths);
+
+        return
+        [
+            Row(Stat(FrameworkAssets.Attack.Value, "Damage dealt", scoreboard.Damage, 1f, 0), Stat(FrameworkAssets.Defense.Value, "Damage taken", scoreboard.DamageTaken, 1f, 0)),
+            Row(ItemStat(ItemID.GoldCrown, "Current streak", scoreboard.CurrentStreak, 1f, -2), ItemStat(ItemID.PlatinumCrown, "Best streak", scoreboard.BestStreak, 1f, -2)),
+            Row(ItemStat(ItemID.PickaxeAxe, "Tiles mined", stats.GetStat(MatchStatKey.TilesMined), 1f, 0), ItemStat(ItemID.DirtBlock, "Tiles placed", stats.GetStat(MatchStatKey.TilesPlaced), 1f, 0)),
+            Row(ItemStat(ItemID.LavaBucket, "Lava touched", stats.GetStat(MatchStatKey.LavaTouched), 1f, -2), ItemStat(ItemID.HoneyBucket, "Honey lost", stats.GetStat(MatchStatKey.LostHoney), 1f, -2)),
+            Row(Stat(PortalMinimapIcon(player), "Portal kills", stats.GetStat(MatchStatKey.PortalKills), 1f, -2), ItemStat(ItemID.SuspiciousLookingEye, "Boss damage", stats.GetStat(MatchStatKey.BossDamageDealt), 1f, -2)),
+            Row(Stat(TextureAssets.Item[ItemID.Skull].Value, "K/D", Kd(scoreboard), 1f, 0), Stat(AdventureAssets.IconPointsSetter.Value, "Points positive", Signed(pointBalance), 1f, 0))
+        ];
+    }
+
+    private static ScoreboardInfoRow Row(ScoreboardInfoStat left, ScoreboardInfoStat right) => new(left, right);
+
+    private static Texture2D PortalMinimapIcon(Player player)
+    {
+        string team = (Team)player.team switch
+        {
+            Team.Red => "Red",
+            Team.Green => "Green",
+            Team.Blue => "Blue",
+            Team.Yellow => "Yellow",
+            Team.Pink => "Pink",
+            _ => "NoTeam"
+        };
+
+        return ModContent.Request<Texture2D>(
+            $"PvPAdventure/Assets/Portals/PortalMinimap_{team}").Value;
+    }
+
+    private static ScoreboardInfoStat ItemStat(int itemId, string label, long value, float iconScale = 1f, int iconY = 0)
+    {
+        Texture2D texture = TextureAssets.Item[itemId].Value;
+        Rectangle? frame = Main.itemAnimations[itemId]?.GetFrame(texture);
+        return new(texture, label, value.ToString("N0"), frame, iconScale, iconY);
+    }
+
+    private static ScoreboardInfoStat Stat(Texture2D icon, string label, long value, float iconScale = 1f, int iconY = 0) => Stat(icon, label, value.ToString("N0"), iconScale, iconY);
+
+    private static ScoreboardInfoStat Stat(Texture2D icon, string label, string value, float iconScale = 1f, int iconY = 0) => new(icon, label, value, IconScale: iconScale, IconYOffset: iconY);
+
+    private static string Signed(long value) => value > 0 ? $"+{value:N0}" : value.ToString("N0");
+
+    private static string Kd(ScoreboardEntry stats)
+    {
+        double ratio = stats.Deaths == 0 ? stats.Kills : stats.Kills / (double)stats.Deaths;
+        return $"{stats.Kills:N0}/{stats.Deaths:N0} ({ratio.ToString("0.00", CultureInfo.InvariantCulture)} KD)";
+    }
+
 }
 
 // Awards team points for PvP kills that happen during a match.

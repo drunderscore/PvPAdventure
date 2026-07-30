@@ -10,6 +10,6 @@ public class LavaDeathTracker : ModPlayer
     public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
     {
         if (Player.lavaWet || Player.lavaTime > 0)
-            MatchStatsPlayer.RecordServerStat(Player, MatchStatKey.LavaDeaths);
+            MatchStatsPlayer.RecordServerStat(Player, MatchStatKey.LavaTouched);
     }
 }

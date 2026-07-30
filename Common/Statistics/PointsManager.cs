@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PvPAdventure.Common.Bounties;
+using PvPAdventure.Common.Game.StatTrackers;
 using BossDisplaySettings = PvPFramework.Common.NPCs.BossDisplaySettings;
 using PvPAdventure.Common.NPCs;
 using PvPAdventure.Core.Config;
@@ -300,6 +301,9 @@ public class PointsManager : ModSystem
         {
             _points[(Team)victim.team] -= pointsToTrade;
             _points[killerTeam] += pointsToTrade;
+
+            MatchStatsPlayer.RecordServerStat(killer, MatchStatKey.PointKills);
+            MatchStatsPlayer.RecordServerStat(victim, MatchStatKey.PointDeaths);
 
             VisualizePointChange(pointsToTrade, (Team)killer.team, killer.position,
                 $"[c/{Main.teamColor[victim.team].Hex3()}:{victim.name}]");

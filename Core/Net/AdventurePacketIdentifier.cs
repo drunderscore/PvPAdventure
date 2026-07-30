@@ -9,4 +9,5 @@ public enum AdventurePacketIdentifier : byte
     UsePortal, // use portal creator item to create a portal, sync to everyone
     MatchStatDelta,
     Hellhex,
+    MatchStatsSnapshot,
 }
