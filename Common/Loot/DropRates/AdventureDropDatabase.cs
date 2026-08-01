@@ -258,7 +258,14 @@ public static class AdventureDropDatabase
                     ModifyDropRate(drop, ItemID.LaserDrill, 1, 300);
                 }
                 break;
-
+            case NPCID.IceElemental:
+            case NPCID.IcyMerman:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.IceSickle, 1, 15);
+                    ModifyDropRate(drop, ItemID.FrostStaff, 1, 10);
+                }
+                break;
             case NPCID.AngryNimbus:
                 foreach (var drop in drops)
                 {
@@ -526,22 +533,26 @@ public static class AdventureDropDatabase
                 break;
 
             case NPCID.MartianSaucerCore:
-                foreach (var drop in drops)
-                {
-                    if (drop is OneFromOptionsNotScaledWithLuckDropRule oneFromOptionsNotScaledWithLuckDropRule)
-                    {
-                        oneFromOptionsNotScaledWithLuckDropRule.dropIds = oneFromOptionsNotScaledWithLuckDropRule
-                            .dropIds.Where(id => id != ItemID.CosmicCarKey).ToArray();
-                    }
-                }
+                npcLoot.RemoveWhere(drop => true); // Removes all drops
+                npcLoot.Add(
+                    new FewFromRulesRule(2, 1,
+                        ItemDropRule.Common(ItemID.XenoStaff),
+                        ItemDropRule.Common(ItemID.Xenopopper),
+                        ItemDropRule.Common(ItemID.ElectrosphereLauncher),
+                        ItemDropRule.Common(ItemID.LaserMachinegun),
+                        ItemDropRule.Common(ItemID.InfluxWaver)
+                    )
 
+                );
                 break;
-
+            case NPCID.Shark:
+                npcLoot.Add(ItemDropRule.Common(ItemID.SharkFin, 1, 6, 7));
+                break;
             case NPCID.WallofFlesh:
 
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
                 npcLoot.Add(
-                    new OneFromRulesRule(1,
+                    new FewFromRulesRule(2, 1,
                         ItemDropRule.Common(ItemID.WarriorEmblem),
                         ItemDropRule.Common(ItemID.RangerEmblem),
                         ItemDropRule.Common(ItemID.SorcererEmblem),
@@ -561,10 +572,23 @@ public static class AdventureDropDatabase
                     )
                 );
                 break;
+            case NPCID.Deerclops:
+
+                npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
+                npcLoot.Add(
+                    new FewFromRulesRule(4, 1,
+                        ItemDropRule.Common(ItemID.WeatherPain),
+                        ItemDropRule.Common(ItemID.LucyTheAxe),
+                        ItemDropRule.Common(ItemID.PewMaticHorn),
+                        ItemDropRule.Common(ItemID.HoundiusShootius)
+                    )
+                );
+                break;
 
             case NPCID.DukeFishron:
 
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
+                npcLoot.Add(ItemDropRule.Common(ItemID.SharkFin, 1, 14, 14));
                 npcLoot.Add(
                     new FewFromRulesRule(2, 1,
                         ItemDropRule.Common(ItemID.BubbleGun),
@@ -632,6 +656,7 @@ public static class AdventureDropDatabase
             case NPCID.Plantera:
                 npcLoot.RemoveWhere(drop => drop is LeadingConditionRule);
                 npcLoot.Add(ItemDropRule.Common(ItemID.TempleKey, 1, 1, 1));
+                npcLoot.Add(ItemDropRule.Common(ItemID.TheAxe, 1, 1, 1));
                 npcLoot.Add(
                     new FewFromRulesRule(2, 1,
                         ItemDropRule.Common(ItemID.Seedler),

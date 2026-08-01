@@ -3,48 +3,48 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using PvPAdventure.Content.Buffs;
 
-namespace PvPAdventure.Common.Combat.EJ
+namespace PvPAdventure.Common.Combat.EJ;
+
 /// <summary>
-/// Grants GodsProtection to players who take damage with cross Necklace / Star Viel equipped
+/// Grants GodsProtection to players who take damage with Cross Necklace / Star Veil equipped
 /// </summary>
+public class CrossNecklaceChanges : ModPlayer
 {
-    public class CrossNecklaceChanges : ModPlayer
+    public float CrossEnergy;
+
+    public bool IsWearingCrossItem => HasCrossNecklaceOrStarVeil();
+
+    public override void PostHurt(Player.HurtInfo info)
     {
-        public float CrossEnergy;
-
-        public override void PostHurt(Player.HurtInfo info)
+        if (info.PvP && HasCrossNecklaceOrStarVeil())
         {
-            if (info.PvP && HasCrossNecklaceOrStarVeil())
-            {
-                CrossEnergy += info.Damage * 2;
-            }
+            CrossEnergy += info.Damage * 2;
+        }
+    }
+
+    public override void PostUpdate()
+    {
+        if (CrossEnergy > 0)
+        {
+            CrossEnergy -= 1;
+            if (CrossEnergy < 0)
+                CrossEnergy = 0;
         }
 
-        public override void PostUpdate()
+        if (CrossEnergy >= Player.statLifeMax2)
         {
-            if (CrossEnergy > 0)
-            {
-                CrossEnergy -= 1;
-                if (CrossEnergy < 0)
-                    CrossEnergy = 0;
-            }
-
-            if (CrossEnergy > 400)
-            {
-                Player.AddBuff(ModContent.BuffType<GodsProtection>(), 2);
-            }
+            Player.AddBuff(ModContent.BuffType<GodsProtection>(), 2);
         }
+    }
 
-        private bool HasCrossNecklaceOrStarVeil()
+    private bool HasCrossNecklaceOrStarVeil()
+    {
+        for (int i = 3; i <= 9; i++)
         {
-            for (int i = 3; i <= 9; i++)
-            {
-                Item item = Player.armor[i];
-                if (item.type == ItemID.CrossNecklace || item.type == ItemID.StarVeil)
-                    return true;
-            }
-
-            return false;
+            Item item = Player.armor[i];
+            if (item.type == ItemID.CrossNecklace || item.type == ItemID.StarVeil)
+                return true;
         }
+        return false;
     }
 }

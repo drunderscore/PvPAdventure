@@ -2,20 +2,16 @@
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-
 namespace PvPAdventure.Common.Combat;
-
 public class PermanentInfoDisplays : GlobalInfoDisplay
 {
     public override bool? Active(InfoDisplay currentDisplay)
     {
         if (currentDisplay == InfoDisplay.Sextant || currentDisplay == InfoDisplay.DPSMeter)
             return true;
-
         return null;
     }
 }
-
 public class PermanentInfoAccessoriesItem : GlobalItem
 {
     public override void UpdateInventory(Item item, Player player)
@@ -36,12 +32,10 @@ internal class PreventHotswapPlayer : ModPlayer
         {
             Player.shinyStone = false;
         }
-
         if (Player.hasPaladinShield)
         {
             Player.buffImmune[BuffID.PaladinsShield] = true;
         }
-
         if (Player.active)
         {
             Player.buffImmune[BuffID.Confused] = true;
@@ -54,10 +48,20 @@ internal class PreventHotswapPlayer : ModPlayer
 
     public override void PostUpdate()
     {
+        CheckHotswaps();
+    }
+
+    public override void UpdateDead()
+    {
+        CheckHotswaps();
+    }
+
+    private void CheckHotswaps()
+    {
         bool hasShinyStone = IsShinyStoneEquipped();
         if (hasShinyStone && !hadShinyStoneLastFrame)
         {
-            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 3600); // 60 seconds
+            Player.AddBuff(ModContent.BuffType<ShinyStoneHotswap>(), 60 * 30); // 30 seconds
         }
         hadShinyStoneLastFrame = hasShinyStone;
 
@@ -97,7 +101,7 @@ internal class PreventHotswapPlayer : ModPlayer
     {
         for (int i = 3; i < 10; i++) // Check all accessory slots
         {
-            if (Player.armor[i].type == ItemID.PhilosophersStone || (Player.armor[i].type == ItemID.CharmofMyths) &&
+            if ((Player.armor[i].type == ItemID.PhilosophersStone || Player.armor[i].type == ItemID.CharmofMyths) &&
                (i < 7 || !Player.hideVisibleAccessory[i - 3]))
             {
                 return true;

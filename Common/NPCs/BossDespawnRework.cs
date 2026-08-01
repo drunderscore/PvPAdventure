@@ -16,13 +16,17 @@ internal class BossDespawnRework : GlobalNPC
     private const float AggroRange = AggroRangeTiles * 16f;
     private const float GolemLeashRangeTiles = 175f;
     private const float GolemLeashRange = GolemLeashRangeTiles * 16f;
+    private const float CultistLeashRangeTiles = 300f;
+    private const float CultistLeashRange = CultistLeashRangeTiles * 16f;
     private const double DespawnAtDawnTicks = 600.0;
 
     private const float ReturnSpeed = 12f;
+    private const int ResumeTimeLeft = 3600;
     private Vector2 spawnCenter;
     private bool initialized;
     private bool wasAway;
     private bool golemChildrenSpawned;
+    private bool despawningForDawn;
     private static bool IsTrackedNonBoss(NPC npc) => npc.type is
         NPCID.PlanterasHook or
         NPCID.Golem or
@@ -73,6 +77,9 @@ internal class BossDespawnRework : GlobalNPC
 
         if (IsWallOfFlesh(npc))
         {
+            if (npc.type == NPCID.WallofFlesh)
+                npc.localAI[1] = 0f;
+
             if (HasNearbyPlayer(npc))
             {
                 ResumeVanillaAI(npc);
@@ -85,6 +92,23 @@ internal class BossDespawnRework : GlobalNPC
             return false;
         }
 
+        if (npc.type == NPCID.CultistBoss)
+        {
+            var pause = npc.GetGlobalNPC<BossPausePeriod>();
+
+            if (HasNearbyPlayer(npc))
+            {
+                pause.ForceUnpause(npc);
+                ResumeVanillaAI(npc);
+                return true;
+            }
+
+            wasAway = true;
+            pause.ForcePause(npc);
+            npc.netUpdate = true;
+            return true;
+        }
+
         if (!initialized)
         {
             spawnCenter = npc.Center;
@@ -94,6 +118,7 @@ internal class BossDespawnRework : GlobalNPC
         if (IsNocturnal(npc) && Main.dayTime && Main.time >= DespawnAtDawnTicks)
         {
             npc.active = false;
+            despawningForDawn = true;
             return false;
         }
 
@@ -104,7 +129,7 @@ internal class BossDespawnRework : GlobalNPC
             NPC.NewNPC(source, (int)npc.Center.X - 84, (int)npc.Center.Y - 9, NPCID.GolemFistLeft);
             NPC.NewNPC(source, (int)npc.Center.X + 78, (int)npc.Center.Y - 9, NPCID.GolemFistRight);
             NPC.NewNPC(source, (int)npc.Center.X - 3, (int)npc.Center.Y - 57, NPCID.GolemHead);
-            npc.localAI[0] = 1f;    
+            npc.localAI[0] = 1f;
             NPC.golemBoss = npc.whoAmI;
         }
 
@@ -131,6 +156,28 @@ internal class BossDespawnRework : GlobalNPC
         npc.netUpdate = true;
         return false;
     }
+
+    public override void PostAI(NPC npc)
+    {
+        if (!IsTracked(npc))
+            return;
+
+        if (despawningForDawn)
+        {
+            despawningForDawn = false;
+            return;
+        }
+
+        if (!npc.active && npc.life > 0)
+        {
+            npc.active = true;
+            npc.netUpdate = true;
+        }
+
+        if (npc.type == NPCID.WallofFlesh)
+            npc.localAI[1] = 0f;
+    }
+
     private void ResumeVanillaAI(NPC npc)
     {
         if (!wasAway)
@@ -142,7 +189,11 @@ internal class BossDespawnRework : GlobalNPC
         {
             if (npc.ai[i] < 0f)
                 npc.ai[i] = 0f;
+            if (npc.localAI[i] < 0f)
+                npc.localAI[i] = 0f;
         }
+
+        npc.timeLeft = ResumeTimeLeft;
 
         npc.TargetClosest(faceTarget: true);
         npc.netUpdate = true;
@@ -150,7 +201,9 @@ internal class BossDespawnRework : GlobalNPC
 
     private static bool HasNearbyPlayer(NPC npc)
     {
-        float range = IsGolemPart(npc) ? GolemLeashRange : AggroRange;
+        float range = IsGolemPart(npc) ? GolemLeashRange
+            : npc.type == NPCID.CultistBoss ? CultistLeashRange
+            : AggroRange;
         float rangeSquared = range * range;
 
         for (int i = 0; i < Main.maxPlayers; i++)
