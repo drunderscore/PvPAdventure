@@ -4,7 +4,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Combat;
+namespace PvPAdventure.Common.Combat.EJ;
 
 public class ShadowFlamePlayer : ModPlayer
 {

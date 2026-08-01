@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -21,6 +20,11 @@ internal sealed class DebugStatsSystem : ModSystem
     internal static bool IsVisible { get; private set; }
     internal static void Toggle() => IsVisible = !IsVisible;
     internal static void SetVisible(bool value) => IsVisible = value;
+    internal static void ToggleFromKeybind()
+    {
+        Toggle();
+        SyncBuilderToggle();
+    }
 
     // ── Per-group enabled state ───────────────────────────────────────
     private static readonly Dictionary<string, bool> _groupEnabled = [];
@@ -245,12 +249,6 @@ internal sealed class DebugStatsSystem : ModSystem
         if (Main.dedServ)
             return;
 
-        if (KeyboardHelper.Pressed(Keys.F6))
-        {
-            Toggle();
-            SyncBuilderToggle();
-        }
-
         bool showFishingPanel = IsVisible && IsGroupEnabled(DebugFishingCatchPanel.GroupHeader);
         fishingUI?.SetState(showFishingPanel ? fishingState : null);
 
@@ -326,7 +324,7 @@ internal sealed class DebugStatsSystem : ModSystem
 }
 
 /// <summary>
-/// Hotbar builder toggle. Mirrors F6 visibility state.
+/// Hotbar builder toggle. Mirrors debug-key visibility state.
 /// Uses InventoryTickOn/Off textures — no custom asset required.
 /// </summary>
 [Autoload(Side = ModSide.Client)]

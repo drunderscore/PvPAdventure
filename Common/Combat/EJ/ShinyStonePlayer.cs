@@ -3,7 +3,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Microsoft.Xna.Framework;
 
-namespace PvPAdventure.Common.Combat;
+namespace PvPAdventure.Common.Combat.EJ;
 /// <summary>
 /// Creates a healing aura around players using the shiny stone
 /// </summary>

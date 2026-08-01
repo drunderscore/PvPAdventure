@@ -19,15 +19,7 @@ public class PvPAdventure : Mod
     /// </summary>
     public override void HandlePacket(BinaryReader reader, int whoAmI)
     {
-        base.HandlePacket(reader, whoAmI);
-
-        // This causes read underflow and bogus logs, dont do it!
-        //long packetStart = reader.BaseStream.Position;
-        //long packetLength = reader.BaseStream.Length;
-
         var id = (AdventurePacketIdentifier)reader.ReadByte();
-
-        //Log.Debug($"[Packet] Start id={(byte)id} ({id}), whoAmI={whoAmI}, bytes={packetLength - packetStart}");
 
         switch (id)
         {
@@ -52,21 +44,21 @@ public class PvPAdventure : Mod
                 break;
 
             case AdventurePacketIdentifier.MatchStatDelta:
-                Common.Game.StatTrackers.MatchStatsNetHandler.HandlePacket(reader, whoAmI);
+                Common.Game.StatTrackers.MatchStatsNetHandler.HandleDeltaPacket(reader, whoAmI);
+                break;
+
+            case AdventurePacketIdentifier.MatchStatsSnapshot:
+                Common.Game.StatTrackers.MatchStatsNetHandler.HandleSnapshotPacket(reader);
+                break;
+
+            case AdventurePacketIdentifier.Hellhex:
+                Common.Combat.EJ.HellhexNetHandler.HandlePacket(reader, whoAmI);
                 break;
 
             default:
                 Log.Warn($"[Packet] Unknown packet id: {(byte)id} ({id})");
                 break;
         }
-
-        //long bytesLeft = reader.BaseStream.Length - reader.BaseStream.Position;
-
-        //if (bytesLeft != 0)
-        //{
-        //    Log.Warn($"[Packet] Handler left unread bytes: id={(byte)id} ({id}), left={bytesLeft}, total={packetLength - packetStart}");
-        //    reader.BaseStream.Position = reader.BaseStream.Length;
-        //}
     }
 
     public override object Call(params object[] args)
@@ -103,7 +95,14 @@ public class PvPAdventure : Mod
         if ((!string.IsNullOrEmpty(savedCharacter) && savedCharacter != characterKey) || savedMatch != CurrentMatchToken())
             return true;
 
-        ScoreboardService.SetPlayerStats(player, saved.GetInt("kills"), saved.GetInt("deaths"), saved.Get<long>("damage"));
+        ScoreboardService.SetPlayerStats(
+            player,
+            saved.GetInt("kills"),
+            saved.GetInt("deaths"),
+            saved.Get<long>("damage"),
+            saved.ContainsKey("damageTaken") ? saved.Get<long>("damageTaken") : 0,
+            saved.ContainsKey("currentStreak") ? saved.GetInt("currentStreak") : 0,
+            saved.ContainsKey("bestStreak") ? saved.GetInt("bestStreak") : 0);
         return true;
     }
 
@@ -116,12 +115,15 @@ public class PvPAdventure : Mod
         TagCompound ssc = root.ContainsKey("ErkySSC") ? root.GetCompound("ErkySSC") : [];
         ssc["PvPAdventure"] = new TagCompound
         {
-            ["version"] = 1,
+            ["version"] = 2,
             ["characterKey"] = characterKey ?? "",
             ["matchToken"] = CurrentMatchToken(),
             ["kills"] = stats.Kills,
             ["deaths"] = stats.Deaths,
-            ["damage"] = stats.Damage
+            ["damage"] = stats.Damage,
+            ["damageTaken"] = stats.DamageTaken,
+            ["currentStreak"] = stats.CurrentStreak,
+            ["bestStreak"] = stats.BestStreak
         };
         root["ErkySSC"] = ssc;
         return true;

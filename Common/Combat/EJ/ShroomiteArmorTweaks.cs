@@ -2,7 +2,7 @@
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace PvPAdventure.Common.Combat;
+namespace PvPAdventure.Common.Combat.EJ;
 
 // this is kind of scuffed but its all temp anyways
 public class ShroomiteArmorTweaks : ModPlayer

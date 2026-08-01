@@ -2,6 +2,7 @@ using PvPHub.Common.Authentication;
 using PvPHub.Common.MainMenu.API;
 using PvPHub.Common.MainMenu.API.Achievements;
 using PvPHub.Common.MainMenu.API.MatchHistory;
+using PvPHub.Common.MainMenu.API.Profile;
 using System.Threading;
 using System.Threading.Tasks;
 using Terraria;
@@ -93,6 +94,13 @@ internal static class PvPHubService
         return string.IsNullOrWhiteSpace(replayFilePath)
             ? MatchApi.PostOfficialMatchAsync(payload, cancellationToken)
             : MatchApi.PostOfficialMatchV2Async(payload, replayFilePath, cancellationToken);
+    }
+
+    public static Task<ApiResult<long>> GetTotalGemsAsync(
+        ulong steamId,
+        CancellationToken cancellationToken = default)
+    {
+        return GemBalanceApi.GetTotalGemsAsync(steamId, cancellationToken);
     }
 
     public static Task<ApiResult<ApiAchievement>> ProgressAchievementAsync(

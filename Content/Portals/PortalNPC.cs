@@ -254,6 +254,9 @@ public sealed class PortalNPC : ModNPC
         if (projectile == null || !projectile.active || !projectile.friendly || projectile.hostile || projectile.damage <= 0)
             return false;
 
+        if (projectile.type is ProjectileID.Bee or ProjectileID.GiantBee)
+            return false;
+
         if (projectile.owner < 0 || projectile.owner >= Main.maxPlayers)
             return false;
 

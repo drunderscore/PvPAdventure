@@ -19,6 +19,8 @@ internal static class StatsReporter
     public const string BossDamageDealt = "boss_damage_dealt";
     public const string PortalKills = "portal_kills";
     public const string LostHoney = "lost_honey";
+    public const string PointKills = "point_kills";
+    public const string PointDeaths = "point_deaths";
 
     public static Dictionary<string, uint> CopyStats(Player player) =>
         player == null ? [] : player.GetModPlayer<MatchStatsPlayer>().CopyStats();
@@ -34,11 +36,13 @@ internal static class StatsReporter
         MatchStatKey.TilesPlaced => TilesPlaced,
         MatchStatKey.TilesMined => TilesMined,
         MatchStatKey.MiningToolsUsed => MiningToolsUsed,
-        MatchStatKey.LavaDeaths => LavaDeaths,
+        MatchStatKey.LavaTouched => LavaDeaths,
         MatchStatKey.FoodEaten => FoodEaten,
         MatchStatKey.BossDamageDealt => BossDamageDealt,
         MatchStatKey.PortalKills => PortalKills,
         MatchStatKey.LostHoney => LostHoney,
+        MatchStatKey.PointKills => PointKills,
+        MatchStatKey.PointDeaths => PointDeaths,
         _ => ""
     };
 

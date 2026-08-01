@@ -1,10 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using PvPAdventure.Content.Buffs;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
@@ -44,6 +40,7 @@ public class SummonerArmorPlayer : ModPlayer
 public abstract class WhipDebuffPlayer : ModPlayer
 {
     public int applierIndex = -1;
+    private bool wasDebuffActive;
 
     protected abstract int WhipProjectileID { get; }
     protected abstract int DebuffType { get; }
@@ -94,7 +91,9 @@ public abstract class WhipDebuffPlayer : ModPlayer
 
     public override void PostUpdateBuffs()
     {
-        if (Player.HasBuff(DebuffType) && applierIndex >= 0 && applierIndex < Main.maxPlayers)
+        bool hasDebuff = Player.HasBuff(DebuffType);
+
+        if (hasDebuff && applierIndex >= 0 && applierIndex < Main.maxPlayers)
         {
             Player applier = Main.player[applierIndex];
             if (applier == null || !applier.active || applier.dead)
@@ -104,17 +103,22 @@ public abstract class WhipDebuffPlayer : ModPlayer
                     Player.buffTime[buffIndex] = 0;
                 OnApplierRemoved();
                 applierIndex = -1;
+                wasDebuffActive = false;
                 return;
             }
         }
 
-        if (Player.HasBuff(DebuffType))
+        if (hasDebuff)
         {
+            wasDebuffActive = true;
             UpdateVisualEffects();
         }
         else
         {
-            OnDebuffExpired();
+            if (wasDebuffActive)
+                OnDebuffExpired();
+
+            wasDebuffActive = false;
             applierIndex = -1;
         }
     }
@@ -380,15 +384,7 @@ public class HellhexPlayer : WhipDebuffPlayer
 
         if (Main.netMode == NetmodeID.MultiplayerClient)
         {
-            ModPacket packet = Mod.GetPacket();
-            packet.Write((byte)1);
-            packet.Write((byte)Player.whoAmI);
-            packet.Write(position.X);
-            packet.Write(position.Y);
-            packet.Write(damage);
-            packet.Write(scale);
-            packet.Write((sbyte)owner);
-            packet.Send();
+            HellhexNetHandler.SendExplosionRequest(Player.whoAmI, position, damage, scale, owner);
             return;
         }
 
@@ -423,13 +419,27 @@ public class HellhexPlayer : WhipDebuffPlayer
     protected override void OnDebuffApplied(Player.HurtInfo info, int duration)
     {
         if (Main.netMode == NetmodeID.Server)
-        {
-            ModPacket packet = Mod.GetPacket();
-            packet.Write((byte)0);
-            packet.Write((byte)Player.whoAmI);
-            packet.Write((byte)applierIndex);
-            packet.Send();
-        }
+            HellhexNetHandler.SendApplied(Player.whoAmI, applierIndex);
+    }
+
+    internal void SetApplierFromNetwork(int applier)
+    {
+        applierIndex = applier;
+        explosionSpawned = false;
+    }
+
+    internal void SpawnExplosionFromNetwork(Vector2 position, int damage, float scale, int owner)
+    {
+        if (Main.netMode != NetmodeID.Server || explosionSpawned)
+            return;
+
+        explosionSpawned = true;
+
+        int buffIndex = Player.FindBuffIndex(DebuffType);
+        if (buffIndex >= 0)
+            Player.buffTime[buffIndex] = 0;
+
+        SpawnExplosion(Player.GetSource_Misc("HellhexNetwork"), position, damage, scale, owner);
     }
 
     public override void PostHurt(Player.HurtInfo info)
