@@ -291,18 +291,4 @@ internal class TravelUIState : UIState
     }
 
 
-    #region Debug
-#if DEBUG
-    public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
-
-        if (Main.keyState.IsKeyDown(Keys.F5) && !Main.oldKeyState.IsKeyDown(Keys.F5))
-        {
-            ForceRebuildNextUpdate();
-        }
-    }
-#endif
-    #endregion
-
 }

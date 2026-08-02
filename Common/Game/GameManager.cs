@@ -604,10 +604,6 @@ public class GameManager : ModSystem
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
             OnPhaseChange(Phase.Waiting, Phase.Waiting);
-
-#if DEBUG
-        StartGame(MaxGameDurationFrames, 0);
-#endif
     }
 
     public override void ClearWorld()

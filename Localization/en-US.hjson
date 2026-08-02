@@ -146,11 +146,6 @@ Mods: {
 				Description: Take 4 more damage from enemies
 			}
 
-			RacePeriodBuff: {
-				DisplayName: Spirit Animal
-				Description: You are seeing the world through the eyes of your spirit guide
-			}
-
 			GodsProtection: {
 				DisplayName: Holy Protection
 				Description: God's left hand is holding your soul tightly
