@@ -260,6 +260,7 @@ internal static class MatchReporter
             Dictionary<string, IDictionary<int, uint>> itemStats = [];
             foreach ((string statKey, IDictionary<int, uint> byItem) in player.ItemStats)
                 itemStats[statKey] = new Dictionary<int, uint>(byItem);
+            stats.TryGetValue(StatsReporter.BossDamageDealt, out uint bossDamage);
 
             players[steamId] = new MatchPlayerPayload(
                 player.Name,
@@ -269,7 +270,9 @@ internal static class MatchReporter
                 player.Deaths,
                 player.Winner,
                 stats,
-                itemStats);
+                itemStats,
+                [], // PvP Adventure currently has no gem-capture mechanic.
+                bossDamage);
 
             Log.Info($"Match player: Name={player.Name}, SteamId={steamId}, Team={player.Team}, " +
                      $"Winner={player.Winner}, Kills={player.Kills}, Deaths={player.Deaths}, " +
@@ -287,14 +290,26 @@ internal static class MatchReporter
             GameMode,
             players,
             metrics,
-            BuildTeamsList(completedMatch.Teams));
+            BuildTeamsList(completedMatch.Teams, completedMatch.Players.Values),
+            0); // PvP Adventure can feature several bosses; the per-team lists remain authoritative.
     }
 
     private static List<MatchTeamPayload?> BuildTeamsList(
-        IReadOnlyDictionary<Team, CompletedAdventureTeam> teams)
+        IReadOnlyDictionary<Team, CompletedAdventureTeam> teams,
+        IEnumerable<CompletedAdventurePlayer> players)
     {
         int lastTeamId = Math.Max(0, teams.Keys.Select(team => (int)team).DefaultIfEmpty(0).Max());
         List<MatchTeamPayload?> result = Enumerable.Repeat<MatchTeamPayload?>(null, lastTeamId + 1).ToList();
+        Dictionary<Team, uint> bossDamageByTeam = [];
+
+        foreach (CompletedAdventurePlayer player in players)
+        {
+            player.Stats.TryGetValue(StatsReporter.BossDamageDealt, out uint bossDamage);
+            bossDamageByTeam.TryGetValue(player.Team, out uint current);
+            bossDamageByTeam[player.Team] = uint.MaxValue - current < bossDamage
+                ? uint.MaxValue
+                : current + bossDamage;
+        }
 
         foreach ((Team team, CompletedAdventureTeam teamResult) in teams)
         {
@@ -304,7 +319,8 @@ internal static class MatchReporter
             int teamId = (int)team;
             while (result.Count <= teamId)
                 result.Add(null);
-            result[teamId] = new MatchTeamPayload(teamResult.Points, teamResult.Bosses.ToList());
+            bossDamageByTeam.TryGetValue(team, out uint bossDamage);
+            result[teamId] = new MatchTeamPayload(teamResult.Points, teamResult.Bosses.ToList(), bossDamage);
         }
 
         return result;
