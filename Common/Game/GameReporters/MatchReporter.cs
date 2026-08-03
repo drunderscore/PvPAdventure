@@ -320,7 +320,8 @@ internal static class MatchReporter
             while (result.Count <= teamId)
                 result.Add(null);
             bossDamageByTeam.TryGetValue(team, out uint bossDamage);
-            result[teamId] = new MatchTeamPayload(teamResult.Points, teamResult.Bosses.ToList(), bossDamage);
+            // PvP Adventure has no gem captures; send an empty array like the player payload does.
+            result[teamId] = new MatchTeamPayload(teamResult.Points, teamResult.Bosses.ToList(), [], bossDamage);
         }
 
         return result;
