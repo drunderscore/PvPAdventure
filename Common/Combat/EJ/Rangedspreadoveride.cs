@@ -34,7 +34,7 @@ public class RangedSpreadOverride : GlobalItem
         { ItemID.BubbleGun,           (3,  10f) },
         { ItemID.PoisonStaff,         (4,  15f) },
         { ItemID.LaserMachinegun,     (1,   0f) }, // TODO: Fix with IL edit
-        { ItemID.VenomStaff,          (7,  15f) },
+        { ItemID.VenomStaff,          (6,  15f) },
         { ItemID.LeafBlower,          (1,   0f) }, // TODO: Fix with IL edit
         { ItemID.CrystalStorm,        (1,   0f) },
     };

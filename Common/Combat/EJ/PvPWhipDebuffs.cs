@@ -61,9 +61,22 @@ public abstract class WhipDebuffPlayer : ModPlayer
                 Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
                 if (attacker != null && attacker.active)
                 {
+                    bool hasHerculesBeetle = false;
+                    for (int i = 3; i <= 7; i++)
+                    {
+                        if (attacker.armor[i].type == ItemID.HerculesBeetle)
+                        {
+                            hasHerculesBeetle = true;
+                            break;
+                        }
+                    }
+                    if (hasHerculesBeetle)
+                        duration = (int)(duration * 1.33f);
+
                     SummonerArmorPlayer summonerPlayer = attacker.GetModPlayer<SummonerArmorPlayer>();
                     if (summonerPlayer.hasSummonSet)
                         duration = (int)(duration * 4f);
+
                     newApplierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }

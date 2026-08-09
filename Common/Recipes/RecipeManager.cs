@@ -38,6 +38,9 @@ public class RecipeManager : ModSystem
             ItemID.DemonWings,
             ItemID.AngelWings,
             ItemID.FairyWings,
+            ItemID.SnailStatue,
+            ItemID.FrogStatue,
+            ItemID.DuckStatue,
             ItemID.ManaCrystal
 
 
@@ -181,6 +184,24 @@ public class RecipeManager : ModSystem
         // Recipe for Sunflower Statue
         Recipe.Create(ItemID.SunflowerStatue, 1)
             .AddIngredient(ItemID.Sunflower, 5)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+        // Recipe for Duck Statue
+        Recipe.Create(ItemID.DuckStatue, 1)
+            .AddIngredient(ItemID.Duck, 1)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+        // Recipe for Frog Statue
+        Recipe.Create(ItemID.FrogStatue, 1)
+            .AddIngredient(ItemID.Frog, 1)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+        // Recipe for Snail Statue
+        Recipe.Create(ItemID.SnailStatue, 1)
+            .AddIngredient(ItemID.Snail, 1)
             .AddIngredient(ItemID.StoneBlock, 50)
             .AddTile(TileID.HeavyWorkBench)
             .Register();

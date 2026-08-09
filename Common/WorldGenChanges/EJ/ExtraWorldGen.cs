@@ -32,7 +32,41 @@ public class ExtraWorldGen : ModSystem
         // New features
         AddExtraLivingTrees(tasks);
 
+        RemoveWorldGenTiles(tasks);
+
         ModContent.GetInstance<PvPAdventure>().Logger.Info("Added extra worldgen passes for multiple structures");
+    }
+
+    private void RemoveWorldGenTiles(List<GenPass> tasks)
+    {
+        int finalCleanupIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Final Cleanup"));
+        int insertIndex = finalCleanupIndex == -1 ? tasks.Count : finalCleanupIndex;
+
+        var tileTypesToRemove = new HashSet<int>
+        {
+            TileID.Loom,
+            TileID.Kegs,
+            TileID.Anvils,
+        };
+
+        tasks.Insert(insertIndex, new PassLegacy("Remove Worldgen Tiles", delegate (GenerationProgress progress, GameConfiguration passConfig)
+        {
+            progress.Message = "Removing unwanted tiles...";
+
+            for (int x = 0; x < Main.maxTilesX; x++)
+            {
+                progress.Set((double)x / Main.maxTilesX);
+                for (int y = 0; y < Main.maxTilesY; y++)
+                {
+                    Tile tile = Main.tile[x, y];
+                    if (tile.HasTile && tileTypesToRemove.Contains(tile.TileType))
+                    {
+                        tile.HasTile = false;
+                        tile.TileType = 0;
+                    }
+                }
+            }
+        }));
     }
 
     private void AddExtraPyramids(List<GenPass> tasks)
