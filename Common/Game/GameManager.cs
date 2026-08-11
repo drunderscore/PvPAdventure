@@ -35,6 +35,12 @@ public class GameManager : ModSystem
     /// </summary>
     private const int EndScreenRespawnSettleFrames = 20;
 
+    /// <summary>
+    /// How often, in frames, to refresh the end screen's picture of each player while playing.
+    /// Half a second is close enough to "just before the game ended" and keeps the cloning cheap.
+    /// </summary>
+    private const int EndScreenCaptureInterval = FramesPerSecond / 2;
+
     public int TimeRemaining { get; set; }
     public int? _startGameCountdown = null;
     private Phase _currentPhase;
@@ -145,6 +151,12 @@ public class GameManager : ModSystem
                         _activeMatch?.CaptureActivePlayers(discoverPlayers);
                     }
 
+                    // Keep a recent picture of how everyone looks mid-match for the end screen.
+                    // Capturing when the summary arrives would catch the post-match cleanup instead:
+                    // by then everyone is back at spawn, revived and sitting on the race mount.
+                    if (!Main.dedServ && Main.GameUpdateCount % EndScreenCaptureInterval == 0)
+                        EndScreenService.CaptureLivePlayers();
+
                     if (--TimeRemaining <= 0)
                     {
                         CurrentPhase = Phase.Waiting;
@@ -192,6 +204,7 @@ public class GameManager : ModSystem
     private static void ResetActivePlayerMatchState()
     {
         ScoreboardService.ResetAllPlayers();
+        EndScreenService.ClearLiveCaptures();
 
         foreach (Player player in Main.ActivePlayers)
         {
