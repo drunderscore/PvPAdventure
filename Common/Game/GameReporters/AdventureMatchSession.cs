@@ -1,6 +1,6 @@
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
-using PvPFramework.Common.Scoreboard;
+using PvPOnline.Common.Scoreboard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +46,7 @@ internal sealed class AdventureMatchSession
 
             if (liveSegments.TryGetValue(slot, out LivePlayerSegment segment))
             {
-                if (discoverPlayers && PvPHubService.TryGetSteamId(player, out ulong currentSteamId) &&
+                if (discoverPlayers && PvPOnlineService.TryGetSteamId(player, out ulong currentSteamId) &&
                     currentSteamId != segment.SteamId)
                 {
                     Log.Warn($"Player slot {slot} changed authenticated identity during a match. " +
@@ -61,7 +61,7 @@ internal sealed class AdventureMatchSession
             }
 
             if (!discoverPlayers || (Team)player.team == Team.None ||
-                !PvPHubService.TryGetSteamId(player, out ulong steamId))
+                !PvPOnlineService.TryGetSteamId(player, out ulong steamId))
                 continue;
 
             TryEnroll(player, steamId);
@@ -84,7 +84,7 @@ internal sealed class AdventureMatchSession
         }
 
         // Covers a player who authenticated, played, and disconnected between discovery samples.
-        if (PvPHubService.TryGetSteamId(player, out ulong steamId))
+        if (PvPOnlineService.TryGetSteamId(player, out ulong steamId))
         {
             TryEnroll(player, steamId);
             if (liveSegments.Remove(player.whoAmI, out segment) &&

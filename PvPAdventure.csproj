@@ -10,8 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\PvPFramework\PvPFramework.csproj" />
-		<ProjectReference Include="..\PvPHub\PvPHub.csproj" />
+		<ProjectReference Include="..\PvPOnline\PvPOnline.csproj" />
 	</ItemGroup>
 
 	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->

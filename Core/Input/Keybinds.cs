@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Bounties;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Content.Portals;
-using FrameworkKeybinds = PvPFramework.Core.Input.Keybinds;
+using FrameworkKeybinds = PvPOnline.Core.Input.Keybinds;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.GameInput;

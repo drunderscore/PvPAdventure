@@ -22,21 +22,13 @@ jobs:
         with:
           path: PvPAdventure
 
-      - name: Checkout PvPFramework
+      - name: Checkout PvPOnline
         uses: actions/checkout@v6
         with:
-          repository: emyhrberg/PvPFramework
+          repository: emyhrberg/PvPOnline
           ref: 9bbd1a6805cda951f0cbfd71f4268843dc23179e
-          token: ${{ secrets.PVPFRAMEWORK_READ_TOKEN }}
-          path: PvPFramework
-
-      - name: Checkout PvPHub
-        uses: actions/checkout@v6
-        with:
-          repository: emyhrberg/PvPHub
-          ref: e33f312f2669f20a86303321891aeada006faca6
-          token: ${{ secrets.PVPHUB_READ_TOKEN }}
-          path: PvPHub
+          token: ${{ secrets.PVPONLINE_READ_TOKEN }}
+          path: PvPOnline
 
       - name: Download tModLoader
         shell: pwsh

@@ -3,8 +3,8 @@ using PvPAdventure.Common.Game.GameReporters;
 using PvPAdventure.Common.Game.MatchReplays;
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
-using PvPFramework.Common.EndScreen;
-using PvPFramework.Common.Scoreboard;
+using PvPOnline.Common.EndScreen;
+using PvPOnline.Common.Scoreboard;
 using System;
 using System.IO;
 using System.Linq;
@@ -483,7 +483,7 @@ public class GameManager : ModSystem
 
             // Get everyone back on their feet before the match is closed out, so nobody is stuck
             // on a respawn timer and the end screen captures living players for its cards.
-            PvPFramework.Common.Combat.RespawnService.RespawnAll();
+            PvPOnline.Common.Combat.RespawnService.RespawnAll();
 
             string completingMatchToken = _activeMatch?.Token;
             CompletedAdventureMatch completedMatch = CompleteActiveMatch();

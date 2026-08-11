@@ -56,28 +56,6 @@ public static class ErkySSCCompat
         }
     }
 
-    public static void TrySendErkySSCSave()
-    {
-        if (Main.netMode != NetmodeID.MultiplayerClient)
-            return;
-
-        if (!TryGetMod(out Mod erkySsc))
-        {
-            Log.Warn("[PvPAdventure] Could not request ErkySSC save because ErkySSC is not loaded.");
-            return;
-        }
-
-        try
-        {
-            if (erkySsc.Call("RequestClientSave") is not true)
-                Log.Warn("[PvPAdventure] ErkySSC rejected the client save request.");
-        }
-        catch (Exception exception)
-        {
-            Log.Warn($"[PvPAdventure] Could not request an ErkySSC save: {exception.Message}");
-        }
-    }
-
     private static bool TryGetMod(out Mod mod) =>
         ModLoader.TryGetMod("ErkySSC", out mod);
 }

@@ -1,5 +1,5 @@
 ﻿using PvPAdventure.Common.Statistics;
-using PvPFramework.Common.Scoreboard;
+using PvPOnline.Common.Scoreboard;
 using System;
 using Terraria;
 using Terraria.Enums;

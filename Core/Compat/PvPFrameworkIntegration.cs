@@ -4,10 +4,10 @@ using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel.Beds;
-using PvPFramework.Common.Scoreboard;
-using PvPFramework.Common.Visualization.TileOutlines;
+using PvPOnline.Common.Scoreboard;
+using PvPOnline.Common.Visualization.TileOutlines;
 using AdventureAssets = PvPAdventure.Core.Utilities.Ass;
-using FrameworkAssets = PvPFramework.Core.Utilities.Ass;
+using FrameworkAssets = PvPOnline.Core.Utilities.Ass;
 using System.Collections.Generic;
 using System.Globalization;
 using Terraria;
@@ -23,33 +23,33 @@ using Terraria.ModLoader;
 namespace PvPAdventure.Core.Compat;
 
 // Wires PvP Adventure's match rules into PvP Framework's shared systems.
-public class PvPFrameworkIntegration : ModSystem
+public class PvPOnlineIntegration : ModSystem
 {
     public override void Load()
     {
         // Confine players to the spawn box until the match actually begins.
         // While Waiting (pre-game), CanExit is false and the spawn box border blocks movement out.
-        PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = () =>
+        PvPOnline.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = () =>
             ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
 
         // PvP Framework draws bed outlines; Adventure supplies the synchronized team ownership.
         BedOutlineTile.TeamResolver = ResolveBedTeam;
 
         // Award team points when a team lands the killing blow on a boss/scoring NPC.
-        PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer += AwardNpcKill;
-        PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.BossDamageDealt += RecordBossDamage;
+        PvPOnline.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer += AwardNpcKill;
+        PvPOnline.Common.Combat.TeamBoss.TeamBossNPC.BossDamageDealt += RecordBossDamage;
 
         ScoreboardPlayerInfoService.RowsProvider = BuildScoreboardInfoRows;
     }
 
     public override void Unload()
     {
-        PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer -= AwardNpcKill;
-        PvPFramework.Common.Combat.TeamBoss.TeamBossNPC.BossDamageDealt -= RecordBossDamage;
+        PvPOnline.Common.Combat.TeamBoss.TeamBossNPC.NpcKilledByPlayer -= AwardNpcKill;
+        PvPOnline.Common.Combat.TeamBoss.TeamBossNPC.BossDamageDealt -= RecordBossDamage;
         ScoreboardPlayerInfoService.RowsProvider = null;
         BedOutlineTile.TeamResolver = null;
         // Drop our delegate so it doesn't retain a reference to an unloaded GameManager.
-        PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = static () => true;
+        PvPOnline.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = static () => true;
     }
 
     private static Team? ResolveBedTeam(Point origin) =>
@@ -148,7 +148,7 @@ public class AdventureMatchPlayer : ModPlayer
         // Use the framework's attribution so team points and the scoreboard always credit the same
         // player: the one who landed the killing blow, falling back to the last attacker only for
         // indirect kills like DoTs or knockback into a hazard.
-        int killerId = Player.GetModPlayer<PvPFramework.Common.Combat.RecentDamagePlayer>()
+        int killerId = Player.GetModPlayer<PvPOnline.Common.Combat.RecentDamagePlayer>()
             .ResolveKiller(damageSource.SourcePlayerIndex);
 
         if (killerId < 0 || killerId >= Main.maxPlayers || killerId == Player.whoAmI)
