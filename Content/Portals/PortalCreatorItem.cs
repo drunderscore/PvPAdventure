@@ -206,14 +206,28 @@ public class PortalCreatorItem : ModItem
     {
         const float itemScale = 0.6f;
 
-        Texture2D texture = PortalAssets.GetCreatorTexture(Main.LocalPlayer?.team ?? 0);
-        sb.Draw(texture, position, frame, drawColor, 0f, origin, itemScale, SpriteEffects.None, 0f);
+        int team = Main.LocalPlayer?.team ?? 0;
+        Texture2D texture = PortalAssets.GetCreatorTexture(team);
+        Rectangle source = frame;
+        Vector2 pivot = origin;
+
+        if (PortalCreatorSkin.TryGetTexture(Item, team, out Texture2D skin))
+        {
+            (source, pivot) = PortalCreatorSkin.Rescale(frame, origin, texture, skin);
+            texture = skin;
+        }
+
+        sb.Draw(texture, position, source, drawColor, 0f, pivot, itemScale, SpriteEffects.None, 0f);
         return false;
     }
 
     public override bool PreDrawInWorld(SpriteBatch sb, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
     {
-        Texture2D texture = PortalAssets.GetCreatorTexture(Main.LocalPlayer?.team ?? 0);
+        int team = Main.LocalPlayer?.team ?? 0;
+        Texture2D texture = PortalCreatorSkin.TryGetTexture(Item, team, out Texture2D skin)
+            ? skin
+            : PortalAssets.GetCreatorTexture(team);
+
         Rectangle frame = texture.Frame();
         Vector2 origin = frame.Size() * 0.5f;
         Vector2 position = Item.Center - Main.screenPosition;

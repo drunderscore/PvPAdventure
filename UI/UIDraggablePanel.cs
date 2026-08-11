@@ -28,6 +28,16 @@ public abstract class UIDraggablePanel : UIElement
     private static readonly Color AdminTitleButtonBorderColor = new(50, 26, 78);
     private static readonly Color AdminTitleButtonHoverBorderColor = new(184, 139, 230);
 
+#if DEBUG
+    // DebugKeybinds owns the refresh key and bumps this counter; every live panel notices the
+    // change on its next Update and rebuilds. A counter (rather than an event) means panels never
+    // need to subscribe/unsubscribe, so short-lived panels can't leak or miss a rebuild.
+    private static int debugRebuildGeneration;
+    private int seenDebugRebuildGeneration;
+
+    internal static void RequestDebugRebuild() => debugRebuildGeneration++;
+#endif
+
     // Dragging
     private bool dragging;
     private Vector2 dragOffset;
@@ -281,8 +291,9 @@ public abstract class UIDraggablePanel : UIElement
         }
 
 #if DEBUG
-        if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5) && !Main.oldKeyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5))
+        if (seenDebugRebuildGeneration != debugRebuildGeneration)
         {
+            seenDebugRebuildGeneration = debugRebuildGeneration;
             Rebuild();
             OnPanelRebuilt();
         }

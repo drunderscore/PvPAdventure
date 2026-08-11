@@ -40,7 +40,7 @@ internal sealed class PointsSetterErkySSCTool : ModSystem
             "RegisterAdminQuickbarEntry",
             Owner,
             "points_setter",
-            "PvPAdventure : Points Setter",
+            "PvP Adventure : Points Setter",
             "Set team points",
             icon,
             new Action(ToggleDialog),

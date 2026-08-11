@@ -46,10 +46,12 @@ internal sealed class PortalCreatorItemDrawer : GlobalItem
         Texture2D vanilla = TextureAssets.Item[item.type].Value;
 
         // Resolve which texture we actually want to show
-        Texture2D replacement;
+        int team = drawInfo.drawPlayer.team;
 
-        // Use the team-specific texture
-        replacement = PortalAssets.GetCreatorTexture(drawInfo.drawPlayer.team);
+        // Prefer the equipped portal gun skin for this team, otherwise the plain team texture
+        Texture2D replacement = PortalCreatorSkin.TryGetTexture(item, team, out Texture2D skin)
+            ? skin
+            : PortalAssets.GetCreatorTexture(team);
 
         // Standard detour pattern: Capture the cache before and after the original call
         int start = drawInfo.DrawDataCache.Count;

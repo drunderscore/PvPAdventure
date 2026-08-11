@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Core.Config;
 using PvPAdventure.Core.Net;
@@ -38,68 +37,6 @@ public class BountyManager : ModSystem
     {
         public IList<Item[]> Bounties { get; } = bounties;
     }
-
-#if DEBUG
-    public override void PostUpdateEverything()
-    {
-        Keys debugKey = Keys.NumPad4; 
-
-        if (!Main.keyState.IsKeyDown(debugKey) || Main.oldKeyState.IsKeyDown(debugKey))
-            return;
-
-        Team team = (Team)Main.LocalPlayer.team;
-
-        if (team == Team.None)
-        {
-            Log.Chat($"{debugKey}: you are Team.None. Join a team first.");
-            return;
-        }
-
-        if (!_bounties.TryGetValue(team, out var pages))
-        {
-            pages = new List<Page>();
-            _bounties[team] = pages;
-        }
-
-        var eligibleBounties = ModContent.GetInstance<ServerConfig>().Bounties.ClaimableItems
-            .Where(IsBountyAvailable)
-            .Select(b => b.Items)
-            .Select(items => items.Select(i => new Item(i.Item.Type, i.Stack, i.Prefix.Type)).ToArray())
-            .ToList();
-
-        if (eligibleBounties.Count == 0)
-        {
-            Log.Chat($"{debugKey}: no eligible bounties (check conditions/config).");
-            return;
-        }
-
-        // +500 bounty shards = +500 pages
-        for (int i = 0; i < 500; i++)
-            pages.Add(new Page(CloneBounties(eligibleBounties)));
-
-        UiBountyShop?.Invalidate();
-
-        Log.Chat($"+500 bounty shards to {team}. Shard count now: {pages.Count}");
-    }
-
-    private static IList<Item[]> CloneBounties(IList<Item[]> src)
-    {
-        List<Item[]> clone = new(src.Count);
-
-        for (int i = 0; i < src.Count; i++)
-        {
-            Item[] bounty = src[i];
-            Item[] bountyClone = new Item[bounty.Length];
-
-            for (int j = 0; j < bounty.Length; j++)
-                bountyClone[j] = bounty[j].Clone();
-
-            clone.Add(bountyClone);
-        }
-
-        return clone;
-    }
-#endif
 
     public sealed class Transaction(int id, byte team, byte pageIndex, byte bountyIndex)
     {
@@ -618,15 +555,68 @@ public class BountyManager : ModSystem
         UiBountyShop.Invalidate();
     }
 
-    public void Award(Player killer, Player victim)
+    /// <summary>
+    /// Grants <paramref name="count"/> bounty shards (pages) to a team and reports the team's new
+    /// shard total. Returns false if the team is <see cref="Team.None"/> or nothing is claimable
+    /// right now, so callers can report why nothing happened.
+    /// </summary>
+    public bool TryAddBountyShards(Team team, int count, out int totalShards)
     {
-        var team = (Team)killer.team;
+        totalShards = 0;
 
-        var eligibleBounties = ModContent.GetInstance<ServerConfig>().Bounties.ClaimableItems
+        if (team == Team.None || count <= 0)
+            return false;
+
+        List<Item[]> eligibleBounties = GetEligibleBounties();
+
+        if (eligibleBounties.Count == 0)
+            return false;
+
+        if (!_bounties.TryGetValue(team, out IList<Page> pages))
+        {
+            pages = new List<Page>();
+            _bounties[team] = pages;
+        }
+
+        // Every page owns its own Item instances so bulk-added shards never share mutated state.
+        for (int i = 0; i < count; i++)
+            pages.Add(new Page(CloneBounties(eligibleBounties)));
+
+        UiBountyShop?.Invalidate();
+
+        totalShards = pages.Count;
+        return true;
+    }
+
+    private List<Item[]> GetEligibleBounties() =>
+        ModContent.GetInstance<ServerConfig>().Bounties.ClaimableItems
             .Where(IsBountyAvailable)
             .Select(bounty => bounty.Items)
             .Select(items => items.Select(item => new Item(item.Item.Type, item.Stack, item.Prefix.Type)).ToArray())
             .ToList();
+
+    private static IList<Item[]> CloneBounties(IList<Item[]> source)
+    {
+        List<Item[]> clone = new(source.Count);
+
+        foreach (Item[] bounty in source)
+        {
+            Item[] bountyClone = new Item[bounty.Length];
+
+            for (int i = 0; i < bounty.Length; i++)
+                bountyClone[i] = bounty[i].Clone();
+
+            clone.Add(bountyClone);
+        }
+
+        return clone;
+    }
+
+    public void Award(Player killer, Player victim)
+    {
+        var team = (Team)killer.team;
+
+        var eligibleBounties = GetEligibleBounties();
 
         if (eligibleBounties.Count == 0)
             return;

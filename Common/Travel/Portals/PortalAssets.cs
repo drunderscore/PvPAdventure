@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using PvPHub.Core.Utilities;
 using ReLogic.Content;
 using Terraria.ModLoader;
 
@@ -29,6 +30,25 @@ internal static class PortalAssets
             GetCreatorTexturePath(index),
             AssetRequestMode.ImmediateLoad
         ).Value;
+    }
+
+    /// <summary>
+    /// The portal gun skin variant for a team, or null when the team has no variant (no team) or the
+    /// texture has not finished loading. Callers fall back to <see cref="GetCreatorTexture"/>.
+    /// </summary>
+    public static Texture2D GetPortalGunSkinTexture(int team)
+    {
+        Asset<Texture2D> asset = GetTeamIndex(team) switch
+        {
+            1 => PvPHub.Core.Utilities.Ass.PortalGunSkinRed,
+            2 => PvPHub.Core.Utilities.Ass.PortalGunSkinGreen,
+            3 => PvPHub.Core.Utilities.Ass.PortalGunSkinBlue,
+            4 => PvPHub.Core.Utilities.Ass.PortalGunSkinYellow,
+            5 => PvPHub.Core.Utilities.Ass.PortalGunSkinPink,
+            _ => null
+        };
+
+        return asset is { IsLoaded: true } ? asset.Value : null;
     }
 
     public static Texture2D GetPortalTexture(int team)

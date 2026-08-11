@@ -4,7 +4,6 @@ using PvPAdventure.Common.Game;
 using PvPAdventure.Common.Game.StatTrackers;
 using PvPAdventure.Common.Statistics;
 using PvPAdventure.Common.Travel.Beds;
-using PvPAdventure.Content.Mounts;
 using PvPFramework.Common.Scoreboard;
 using PvPFramework.Common.Visualization.TileOutlines;
 using AdventureAssets = PvPAdventure.Core.Utilities.Ass;
@@ -33,9 +32,6 @@ public class PvPFrameworkIntegration : ModSystem
         PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = () =>
             ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
 
-        PvPFramework.Common.Spawnbox.SpawnBoxSystem.BunnyPlayerProvider = player =>
-            player?.mount.Active == true && player.mount.Type == ModContent.MountType<RacePeriodMount>();
-
         // PvP Framework draws bed outlines; Adventure supplies the synchronized team ownership.
         BedOutlineTile.TeamResolver = ResolveBedTeam;
 
@@ -54,7 +50,6 @@ public class PvPFrameworkIntegration : ModSystem
         BedOutlineTile.TeamResolver = null;
         // Drop our delegate so it doesn't retain a reference to an unloaded GameManager.
         PvPFramework.Common.Spawnbox.SpawnBoxSystem.CanExitProvider = static () => true;
-        PvPFramework.Common.Spawnbox.SpawnBoxSystem.BunnyPlayerProvider = static _ => false;
     }
 
     private static Team? ResolveBedTeam(Point origin) =>
@@ -150,11 +145,11 @@ public class AdventureMatchPlayer : ModPlayer
             ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
             return;
 
-        // Prefer the direct killer; fall back to whoever most recently dealt PvP damage
-        // (covers indirect kills like DoTs, knockback into hazards, etc.).
-        int killerId = damageSource.SourcePlayerIndex;
-        if (killerId < 0 || killerId >= Main.maxPlayers || killerId == Player.whoAmI)
-            killerId = Player.GetModPlayer<PvPFramework.Common.Combat.RecentDamagePlayer>().Attacker ?? -1;
+        // Use the framework's attribution so team points and the scoreboard always credit the same
+        // player: the one who landed the killing blow, falling back to the last attacker only for
+        // indirect kills like DoTs or knockback into a hazard.
+        int killerId = Player.GetModPlayer<PvPFramework.Common.Combat.RecentDamagePlayer>()
+            .ResolveKiller(damageSource.SourcePlayerIndex);
 
         if (killerId < 0 || killerId >= Main.maxPlayers || killerId == Player.whoAmI)
             return;

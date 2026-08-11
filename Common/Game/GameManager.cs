@@ -28,10 +28,27 @@ public class GameManager : ModSystem
     internal const int MaxGameDurationFrames = 195 * 60 * FramesPerSecond;
     internal const int MaxCountdownSeconds = 300;
 
+    /// <summary>
+    /// Frames to wait between force-respawning everyone and sending out the end screen. Clients
+    /// clone each player when the snapshot arrives, so this gives the respawns time to round-trip
+    /// (client spawn -> server -> other clients) and leaves the cards drawing living players.
+    /// </summary>
+    private const int EndScreenRespawnSettleFrames = 20;
+
+    /// <summary>
+    /// How often, in frames, to refresh the end screen's picture of each player while playing.
+    /// Half a second is close enough to "just before the game ended" and keeps the cloning cheap.
+    /// </summary>
+    private const int EndScreenCaptureInterval = FramesPerSecond / 2;
+
     public int TimeRemaining { get; set; }
     public int? _startGameCountdown = null;
     private Phase _currentPhase;
     private AdventureMatchSession _activeMatch;
+
+    // End screen built at match end but held back a few frames; see EndScreenRespawnSettleFrames.
+    private EndScreenSummary _pendingEndScreen;
+    private int _pendingEndScreenDelay;
     public DateTime? MatchStartTime { get; private set; }
     public DateTime? MatchEndTime { get; private set; }
     internal string CurrentMatchToken => _activeMatch?.Token ?? "";
@@ -76,6 +93,8 @@ public class GameManager : ModSystem
 
     public override void PostUpdateTime()
     {
+        TickPendingEndScreen();
+
         switch (CurrentPhase)
         {
             case Phase.Waiting:
@@ -132,6 +151,12 @@ public class GameManager : ModSystem
                         _activeMatch?.CaptureActivePlayers(discoverPlayers);
                     }
 
+                    // Keep a recent picture of how everyone looks mid-match for the end screen.
+                    // Capturing when the summary arrives would catch the post-match cleanup instead:
+                    // by then everyone is back at spawn, revived and sitting on the race mount.
+                    if (!Main.dedServ && Main.GameUpdateCount % EndScreenCaptureInterval == 0)
+                        EndScreenService.CaptureLivePlayers();
+
                     if (--TimeRemaining <= 0)
                     {
                         CurrentPhase = Phase.Waiting;
@@ -148,9 +173,38 @@ public class GameManager : ModSystem
         MatchEndTime = null;
     }
 
+    /// <summary>Sends the held-back end screen once the post-match respawns have had time to settle.</summary>
+    private void TickPendingEndScreen()
+    {
+        if (_pendingEndScreen == null || Main.netMode == NetmodeID.MultiplayerClient)
+            return;
+
+        if (--_pendingEndScreenDelay > 0)
+            return;
+
+        EndScreenSummary summary = _pendingEndScreen;
+        ClearPendingEndScreen();
+
+        try
+        {
+            EndScreenService.Present(summary);
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Failed to present the match end screen: {ex}");
+        }
+    }
+
+    private void ClearPendingEndScreen()
+    {
+        _pendingEndScreen = null;
+        _pendingEndScreenDelay = 0;
+    }
+
     private static void ResetActivePlayerMatchState()
     {
         ScoreboardService.ResetAllPlayers();
+        EndScreenService.ClearLiveCaptures();
 
         foreach (Player player in Main.ActivePlayers)
         {
@@ -427,6 +481,10 @@ public class GameManager : ModSystem
         {
             //BroadcastEndGameSummary();
 
+            // Get everyone back on their feet before the match is closed out, so nobody is stuck
+            // on a respawn timer and the end screen captures living players for its cards.
+            PvPFramework.Common.Combat.RespawnService.RespawnAll();
+
             string completingMatchToken = _activeMatch?.Token;
             CompletedAdventureMatch completedMatch = CompleteActiveMatch();
 
@@ -437,12 +495,15 @@ public class GameManager : ModSystem
 
             try
             {
-                EndScreenService.Present(AdventureEndScreenExtension.CreateSummary(
-                    completedMatch?.Token ?? completingMatchToken));
+                // Build now, while match state is still intact, but hold the send back a few frames
+                // so the respawns above have landed on every client before they snapshot players.
+                _pendingEndScreen = AdventureEndScreenExtension.CreateSummary(
+                    completedMatch?.Token ?? completingMatchToken);
+                _pendingEndScreenDelay = EndScreenRespawnSettleFrames;
             }
             catch (Exception ex)
             {
-                Log.Error($"Failed to present the match end screen: {ex}");
+                Log.Error($"Failed to build the match end screen: {ex}");
             }
 
             string replayFilePath = string.IsNullOrWhiteSpace(completingMatchToken)
@@ -551,14 +612,11 @@ public class GameManager : ModSystem
         _activeMatch = null;
         _startGameCountdown = null;
         TimeRemaining = 0;
+        ClearPendingEndScreen();
         ResetMatchState();
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
             OnPhaseChange(Phase.Waiting, Phase.Waiting);
-
-#if DEBUG
-        StartGame(MaxGameDurationFrames, 0);
-#endif
     }
 
     public override void ClearWorld()
@@ -569,6 +627,7 @@ public class GameManager : ModSystem
         _startGameCountdown = null;
         TimeRemaining = 0;
         _currentPhase = Phase.Waiting;
+        ClearPendingEndScreen();
         ResetMatchState();
     }
 

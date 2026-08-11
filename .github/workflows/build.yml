@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: emyhrberg/PvPFramework
-          ref: 367f280e254feab558f63564f572f43ce341f7f2
+          ref: 0d3ab2eeaccb74a6c48d841d32cdece5b49f2f02
           token: ${{ secrets.PVPFRAMEWORK_READ_TOKEN }}
           path: PvPFramework
 
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: emyhrberg/PvPHub
-          ref: e33f312f2669f20a86303321891aeada006faca6
+          ref: 5a8d984ef8b44dd0c3d7a0d7ed197cc3610a5668
           token: ${{ secrets.PVPHUB_READ_TOKEN }}
           path: PvPHub
 
