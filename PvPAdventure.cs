@@ -1,6 +1,6 @@
 using PvPAdventure.Core.Net;
 using PvPAdventure.Common.Game;
-using PvPOnline.Common.Scoreboard;
+using PvPFramework.Common.Scoreboard;
 using System.IO;
 using Terraria;
 using Terraria.ModLoader;

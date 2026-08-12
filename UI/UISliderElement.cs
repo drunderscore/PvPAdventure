@@ -158,10 +158,10 @@ internal class UISliderElement : UIElement
         Rectangle rect = GetDimensions().ToRectangle();
         spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, Color.Black * 0.35f);
 
-        if (!ShowDisabledLockIcon || PvPOnline.Core.Utilities.Ass.Lock?.Value == null)
+        if (!ShowDisabledLockIcon || PvPFramework.Core.Utilities.Ass.IconLock?.Value == null)
             return;
 
-        Texture2D lockTexture = PvPOnline.Core.Utilities.Ass.Lock.Value;
+        Texture2D lockTexture = PvPFramework.Core.Utilities.Ass.IconLock.Value;
         const int lockSize = 20;
         Rectangle lockRect = new(rect.Right - lockSize - 4, rect.Center.Y - lockSize / 2, lockSize, lockSize);
         spriteBatch.Draw(lockTexture, lockRect, Color.White * 0.85f);

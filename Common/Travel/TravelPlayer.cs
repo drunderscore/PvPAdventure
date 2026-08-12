@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPOnline.Common.Combat;
+using PvPFramework.Common.Combat;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Content.Portals;
 using Terraria;

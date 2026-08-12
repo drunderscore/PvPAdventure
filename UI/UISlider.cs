@@ -26,8 +26,8 @@ public class UISlider : UIElement
     {
         Width.Set(0, 1f);
         Height.Set(16, 0f);
-        InnerTexture = PvPOnline.Core.Utilities.Ass.SliderGradient;
-        OuterTexture = PvPOnline.Core.Utilities.Ass.SliderHighlight;
+        InnerTexture = PvPFramework.Core.Utilities.Ass.SliderGradient;
+        OuterTexture = PvPFramework.Core.Utilities.Ass.SliderHighlight;
     }
 
     public override void LeftMouseDown(UIMouseEvent evt)
@@ -87,7 +87,7 @@ public class UISlider : UIElement
     {
         Rectangle rect = GetDimensions().ToRectangle();
         Color drawColor = Enabled ? Color.White : Color.Gray * 0.65f;
-        DrawBar(sb, PvPOnline.Core.Utilities.Ass.Slider.Value, rect, drawColor);
+        DrawBar(sb, PvPFramework.Core.Utilities.Ass.Slider.Value, rect, drawColor);
         if (Enabled && (IsHeld || IsMouseHovering))
             DrawBar(sb, OuterTexture.Value, rect, Main.OurFavoriteColor);
         Rectangle innerBarArea = rect;

@@ -8,7 +8,7 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
-using PvPOnline.Core.Configs.ConfigElements;
+using PvPFramework.Core.Configs.ConfigElements;
 
 namespace PvPAdventure.Core.Config;
 
@@ -39,7 +39,7 @@ public class ClientConfig : ModConfig
     }
 
     [Header("UI")]
-    [HeaderIcon(nameof(PvPOnline.Core.Utilities.Ass.ConfigUI))]
+    [HeaderIcon(nameof(PvPFramework.Core.Utilities.Ass.ConfigUI))]
     [BackgroundColor(36, 104, 118)]
     [DefaultValue(true)]
     public bool TravelUI = true;
@@ -71,7 +71,7 @@ public class ClientConfig : ModConfig
     public ScorelineSize ScorelineUISize = ScorelineSize.Medium;
 
     [Header("Chat")]
-    [HeaderIcon(nameof(PvPOnline.Core.Utilities.Ass.ConfigChat))]
+    [HeaderIcon(nameof(PvPFramework.Core.Utilities.Ass.ConfigChat))]
 
     [BackgroundColor(70, 92, 126)]
     [DefaultValue(true)]

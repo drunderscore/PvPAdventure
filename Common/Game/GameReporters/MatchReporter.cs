@@ -1,5 +1,5 @@
-using PvPOnline.Common.MainMenu.API;
-using PvPOnline.Common.EndScreen;
+using PvPHub.Common.MainMenu.API;
+using PvPFramework.Common.EndScreen;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.Enums;
 using Terraria.ID;
-using CompletedMatchPayload = PvPOnline.Common.MainMenu.API.MatchHistory.MatchApi.CompletedMatchPayload;
-using MatchPayload = PvPOnline.Common.MainMenu.API.MatchHistory.MatchApi.MatchPayload;
-using MatchPlayerPayload = PvPOnline.Common.MainMenu.API.MatchHistory.MatchApi.MatchPlayerPayload;
-using MatchTeamPayload = PvPOnline.Common.MainMenu.API.MatchHistory.MatchApi.MatchTeamPayload;
+using CompletedMatchPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.CompletedMatchPayload;
+using MatchPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.MatchPayload;
+using MatchPlayerPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.MatchPlayerPayload;
+using MatchTeamPayload = PvPHub.Common.MainMenu.API.MatchHistory.MatchApi.MatchTeamPayload;
 
 namespace PvPAdventure.Common.Game.GameReporters;
 
@@ -88,7 +88,7 @@ internal static class MatchReporter
     {
         try
         {
-            ApiResult<CompletedMatchPayload> result = await PvPOnlineService.PostMatchAsync(payload, replayFilePath)
+            ApiResult<CompletedMatchPayload> result = await PvPHubService.PostMatchAsync(payload, replayFilePath)
                 .ConfigureAwait(false);
             string version = string.IsNullOrWhiteSpace(replayFilePath) ? "v1" : "v2";
 
@@ -149,7 +149,7 @@ internal static class MatchReporter
             if (player?.active != true || (Team)player.team == Team.None)
                 continue;
 
-            if (!PvPOnlineService.TryGetSteamId(player, out ulong steamId) ||
+            if (!PvPHubService.TryGetSteamId(player, out ulong steamId) ||
                 !payload.Players.ContainsKey(steamId))
             {
                 QueueGemResult(
@@ -183,7 +183,7 @@ internal static class MatchReporter
     {
         try
         {
-            ApiResult<long> result = await PvPOnlineService
+            ApiResult<long> result = await PvPHubService
                 .GetTotalGemsAsync(recipient.SteamId)
                 .ConfigureAwait(false);
 
@@ -251,7 +251,7 @@ internal static class MatchReporter
 
     private static MatchPayload BuildMatchPayload(CompletedAdventureMatch completedMatch)
     {
-        PvPOnlineService.LogMatchPostAuthPreflight();
+        PvPHubService.LogMatchPostAuthPreflight();
 
         Dictionary<ulong, MatchPlayerPayload> players = [];
         foreach ((ulong steamId, CompletedAdventurePlayer player) in completedMatch.Players)
@@ -340,7 +340,7 @@ internal static class MatchReporter
 
     private static void LogMatchEndSummary(MatchPayload payload, string replayFilePath, bool willPost)
     {
-        bool isOfficial = Main.dedServ && global::PvPOnline.PvPOnline.IsOfficial;
+        bool isOfficial = Main.dedServ && global::PvPHub.PvPHub.IsOfficial;
         bool hasReplay = !string.IsNullOrWhiteSpace(replayFilePath);
         string endpoint = hasReplay ? "match/v2" : "match/v1";
         string post = willPost ? endpoint + " queued" : "skipped (invalid payload)";

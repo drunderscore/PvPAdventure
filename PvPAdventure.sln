@@ -5,7 +5,7 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PvPAdventure", "PvPAdventure.csproj", "{4B843C62-7DA3-4C31-AA4D-C4C89F713B19}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PvPOnline", "..\PvPOnline\PvPOnline.csproj", "{DDF4AF34-4413-4821-8034-03B9B48DD5C2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PvPFramework", "..\PvPFramework\PvPFramework.csproj", "{DDF4AF34-4413-4821-8034-03B9B48DD5C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

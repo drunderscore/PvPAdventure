@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using PvPOnline.Core.Utilities;
+using PvPHub.Core.Utilities;
 using ReLogic.Content;
 using Terraria.ModLoader;
 
@@ -40,11 +40,11 @@ internal static class PortalAssets
     {
         Asset<Texture2D> asset = GetTeamIndex(team) switch
         {
-            1 => PvPOnline.Core.Utilities.Ass.PortalGunSkinRed,
-            2 => PvPOnline.Core.Utilities.Ass.PortalGunSkinGreen,
-            3 => PvPOnline.Core.Utilities.Ass.PortalGunSkinBlue,
-            4 => PvPOnline.Core.Utilities.Ass.PortalGunSkinYellow,
-            5 => PvPOnline.Core.Utilities.Ass.PortalGunSkinPink,
+            1 => PvPHub.Core.Utilities.Ass.PortalGunSkinRed,
+            2 => PvPHub.Core.Utilities.Ass.PortalGunSkinGreen,
+            3 => PvPHub.Core.Utilities.Ass.PortalGunSkinBlue,
+            4 => PvPHub.Core.Utilities.Ass.PortalGunSkinYellow,
+            5 => PvPHub.Core.Utilities.Ass.PortalGunSkinPink,
             _ => null
         };
 

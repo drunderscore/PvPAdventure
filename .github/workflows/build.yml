@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - erkys-features
+      - feature/missinginmaster
   pull_request:
     branches:
       - main
@@ -24,13 +25,21 @@ jobs:
         with:
           path: PvPAdventure
 
-      - name: Checkout PvPOnline
+      - name: Checkout PvPFramework
         uses: actions/checkout@v6
         with:
-          repository: emyhrberg/PvPOnline
+          repository: emyhrberg/PvPFramework
+          ref: 0d3ab2eeaccb74a6c48d841d32cdece5b49f2f02
+          token: ${{ secrets.PVPFRAMEWORK_READ_TOKEN }}
+          path: PvPFramework
+
+      - name: Checkout PvPHub
+        uses: actions/checkout@v6
+        with:
+          repository: emyhrberg/PvPHub
           ref: 5a8d984ef8b44dd0c3d7a0d7ed197cc3610a5668
-          token: ${{ secrets.PVPONLINE_READ_TOKEN }}
-          path: PvPOnline
+          token: ${{ secrets.PVPHUB_READ_TOKEN }}
+          path: PvPHub
 
       - name: Verify dependency revisions
         shell: pwsh
@@ -38,17 +47,20 @@ jobs:
           Write-Host "PvPAdventure:"
           git -C PvPAdventure rev-parse HEAD
 
-          Write-Host "PvPOnline:"
-          git -C PvPOnline rev-parse HEAD
+          Write-Host "PvPFramework:"
+          git -C PvPFramework rev-parse HEAD
 
-          git -C PvPOnline grep -n "ConfigUI"
+          Write-Host "PvPHub:"
+          git -C PvPHub rev-parse HEAD
+
+          git -C PvPFramework grep -n "ConfigUI"
           if ($LASTEXITCODE -ne 0) {
-            throw "Checked-out PvPOnline does not define ConfigUI."
+            throw "Checked-out PvPFramework does not define ConfigUI."
           }
 
-          git -C PvPOnline grep -n "ConfigChat"
+          git -C PvPFramework grep -n "ConfigChat"
           if ($LASTEXITCODE -ne 0) {
-            throw "Checked-out PvPOnline does not define ConfigChat."
+            throw "Checked-out PvPFramework does not define ConfigChat."
           }
 
       - name: Download tModLoader

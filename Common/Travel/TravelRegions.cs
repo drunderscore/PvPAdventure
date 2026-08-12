@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using PvPOnline.Common.Spawnbox;
+using PvPFramework.Common.Spawnbox;
 using PvPAdventure.Common.Travel.Beds;
 using PvPAdventure.Common.Travel.Portals;
 using PvPAdventure.Content.Portals;
