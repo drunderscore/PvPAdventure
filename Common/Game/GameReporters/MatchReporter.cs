@@ -291,7 +291,7 @@ internal static class MatchReporter
             players,
             metrics,
             BuildTeamsList(completedMatch.Teams, completedMatch.Players.Values),
-            0); // PvP Adventure can feature several bosses; the per-team lists remain authoritative.
+            null);
     }
 
     private static List<MatchTeamPayload?> BuildTeamsList(
@@ -320,8 +320,7 @@ internal static class MatchReporter
             while (result.Count <= teamId)
                 result.Add(null);
             bossDamageByTeam.TryGetValue(team, out uint bossDamage);
-            // PvP Adventure has no gem captures; send an empty array like the player payload does.
-            result[teamId] = new MatchTeamPayload(teamResult.Points, teamResult.Bosses.ToList(), [], bossDamage);
+            result[teamId] = new MatchTeamPayload(teamResult.Points, teamResult.Bosses.ToList(), null, bossDamage);
         }
 
         return result;
