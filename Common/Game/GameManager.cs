@@ -91,7 +91,11 @@ public class GameManager : ModSystem
         Playing,
     }
 
-    public override void PostUpdateTime()
+    /// <summary>
+    /// Advances the match clock independently of Terraria's world clock. The waiting phase freezes
+    /// world time, and admin time controls may also suppress or scale the time-update hook.
+    /// </summary>
+    public override void PostUpdateEverything()
     {
         TickPendingEndScreen();
 
@@ -219,9 +223,27 @@ public class GameManager : ModSystem
             _startGameCountdown.HasValue)
             return;
 
+        if (time <= 0)
+        {
+            Log.Warn($"Ignored a game start with a non-positive duration. Time={time}");
+            return;
+        }
+
         EndScreenService.Hide();
-        TimeRemaining = Math.Clamp(time, 0, MaxGameDurationFrames);
+        TimeRemaining = Math.Clamp(time, 1, MaxGameDurationFrames);
         countdownTimeInSeconds = Math.Clamp(countdownTimeInSeconds, 0, MaxCountdownSeconds);
+
+        Log.Info($"Starting game. DurationFrames={TimeRemaining}, CountdownSeconds={countdownTimeInSeconds}");
+
+        // A zero-second countdown is an immediate start, not a one-tick countdown state. This is
+        // particularly useful for the debug start key and avoids leaving clients displaying 0s.
+        if (countdownTimeInSeconds == 0)
+        {
+            _startGameCountdown = null;
+            CurrentPhase = Phase.Playing;
+            return;
+        }
+
         _startGameCountdown = ToCountdownFrames(countdownTimeInSeconds);
 
         if (Main.dedServ)

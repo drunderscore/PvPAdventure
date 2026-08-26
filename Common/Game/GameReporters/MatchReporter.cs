@@ -18,7 +18,6 @@ namespace PvPAdventure.Common.Game.GameReporters;
 internal static class MatchReporter
 {
     private const string GameMode = "pvpa";
-    private const string MatchTokenMetric = "match_token";
 
     public static void PostCompletedMatchSafe(CompletedAdventureMatch completedMatch, string replayFilePath = null)
     {
@@ -271,7 +270,7 @@ internal static class MatchReporter
                 player.Winner,
                 stats,
                 itemStats,
-                [], // PvP Adventure currently has no gem-capture mechanic.
+                null, // Omit CTG-only captures from PvP Adventure payloads.
                 bossDamage);
 
             Log.Info($"Match player: Name={player.Name}, SteamId={steamId}, Team={player.Team}, " +
@@ -279,17 +278,12 @@ internal static class MatchReporter
                      $"Reward={player.Reward}, Stats={stats.Count}, ItemStats={itemStats.Count}");
         }
 
-        Dictionary<string, string> metrics = new()
-        {
-            [MatchTokenMetric] = completedMatch.Token
-        };
-
         return new MatchPayload(
             DateTime.SpecifyKind(completedMatch.StartUtc, DateTimeKind.Utc),
             DateTime.SpecifyKind(completedMatch.EndUtc, DateTimeKind.Utc),
             GameMode,
             players,
-            metrics,
+            null, // Tavernkeep currently cannot persist metrics for multi-player matches.
             BuildTeamsList(completedMatch.Teams, completedMatch.Players.Values),
             null);
     }
