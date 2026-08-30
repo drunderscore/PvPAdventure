@@ -19,6 +19,7 @@ namespace PvPAdventure.Core.Debug;
 //
 //   Shift+NumPad1  toggle debug stats
 //   Shift+NumPad2  start a match
+//   Shift+NumPad3  end a match or cancel its countdown
 //   Shift+NumPad4  grant bounty shards
 //   F5             rebuild debug UI (travel UI + draggable panels)
 //
@@ -58,6 +59,9 @@ internal sealed class DebugKeybinds : ModSystem
         if (PressedWithShift(Keys.NumPad2, ref numPad2Released))
             StartGame();
 
+        if (PressedWithShift(Keys.NumPad3, ref numPad3Released))
+            EndGame();
+
         if (PressedWithShift(Keys.NumPad4, ref numPad4Released))
             AddBountyShards();
 
@@ -91,6 +95,32 @@ internal sealed class DebugKeybinds : ModSystem
         }
 
         Log.Chat("Shift+NumPad2: starting a match.");
+    }
+
+    /// <summary>Ends a running match or cancels an active start countdown.</summary>
+    private static void EndGame()
+    {
+        GameManager gameManager = ModContent.GetInstance<GameManager>();
+
+        if (gameManager.CurrentPhase != GameManager.Phase.Playing && !gameManager._startGameCountdown.HasValue)
+        {
+            Log.Chat("Shift+NumPad3: no match or countdown to end.");
+            return;
+        }
+
+        if (Main.netMode == NetmodeID.MultiplayerClient)
+        {
+            ModPacket packet = ModContent.GetInstance<PvPAdventure>().GetPacket();
+            packet.Write((byte)AdventurePacketIdentifier.GameManager);
+            packet.Write((byte)GameManagerNetHandler.GameManagerPacketType.EndGame);
+            packet.Send();
+        }
+        else
+        {
+            gameManager.EndGame();
+        }
+
+        Log.Chat("Shift+NumPad3: ending the match or active countdown.");
     }
 
     /// <summary>Forces the debug-refreshable UI to rebuild, so layout tweaks show without a reload.</summary>

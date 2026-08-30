@@ -18,6 +18,7 @@ internal class GameManagerPanel : UIDraggablePanel
 {
     private const int FramesPerSecond = 60;
     private const int FramesPerMinute = FramesPerSecond * 60;
+    private const int MinGameMinutes = 1;
     private const int MaxGameMinutes = 195;
     private const int MaxCountdownSeconds = 300;
     private const int CountdownStepSeconds = 10;
@@ -29,6 +30,8 @@ internal class GameManagerPanel : UIDraggablePanel
 
     private int _countdownTimeInSeconds = 10;
     private int _gameTimeInFrames = MaxGameMinutes * FramesPerMinute;
+    private int _configuredGameTimeInFrames = MaxGameMinutes * FramesPerMinute;
+    private bool _wasActive;
 
     protected override float MinResizeH => 380f;
     protected override float MinResizeW => 365f;
@@ -58,7 +61,7 @@ internal class GameManagerPanel : UIDraggablePanel
             iconScale: 0.8f);
 
         _time = AddSliderSection(ref top, "Time", Ass.Stopwatch.Value,
-            0f,
+            MinGameMinutes,
             MaxGameMinutes,
             MaxGameMinutes,
             1f,
@@ -88,6 +91,7 @@ internal class GameManagerPanel : UIDraggablePanel
         GameManager gm = ModContent.GetInstance<GameManager>();
         bool isPlaying = gm.CurrentPhase == GameManager.Phase.Playing;
         bool hasCountdown = gm._startGameCountdown.HasValue;
+        bool isActive = isPlaying || hasCountdown;
 
         UpdateStatus(gm);
         _countdown.Enabled = !isPlaying;
@@ -101,11 +105,20 @@ internal class GameManagerPanel : UIDraggablePanel
             _countdown.SetValue(secondsLeft);
         }
 
-        if ((isPlaying || hasCountdown) && !_time.IsHeld)
+        if (isActive && !_time.IsHeld)
         {
             _gameTimeInFrames = gm.TimeRemaining;
             _time.SetValue(gm.TimeRemaining / (float)FramesPerMinute);
         }
+        else if (!isActive && _wasActive && !_time.IsHeld)
+        {
+            // TimeRemaining reaches zero when a match ends. Keep that display value from becoming
+            // the duration of the next match opened from this long-lived panel.
+            _gameTimeInFrames = _configuredGameTimeInFrames;
+            _time.SetValue(_gameTimeInFrames / (float)FramesPerMinute);
+        }
+
+        _wasActive = isActive;
     }
 
     protected override void OnClosePanelLeftClick()
@@ -240,7 +253,9 @@ internal class GameManagerPanel : UIDraggablePanel
     private void SetIdleGameTime(int frames)
     {
         int maxFrames = MinutesToFrames(MaxGameMinutes);
-        _gameTimeInFrames = Math.Clamp(frames, 0, maxFrames);
+        int minFrames = MinutesToFrames(MinGameMinutes);
+        _gameTimeInFrames = Math.Clamp(frames, minFrames, maxFrames);
+        _configuredGameTimeInFrames = _gameTimeInFrames;
         _time.SetValue(_gameTimeInFrames / (float)FramesPerMinute);
     }
 
@@ -256,6 +271,8 @@ internal class GameManagerPanel : UIDraggablePanel
             Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLStartGameTool.CannotStart"), Color.Red);
             return;
         }
+
+        _configuredGameTimeInFrames = _gameTimeInFrames;
 
         if (Main.netMode == NetmodeID.SinglePlayer)
         {
@@ -276,13 +293,9 @@ internal class GameManagerPanel : UIDraggablePanel
     {
         GameManager gm = ModContent.GetInstance<GameManager>();
 
-        if (gm.CurrentPhase == GameManager.Phase.Playing)
+        if (gm.CurrentPhase == GameManager.Phase.Playing || gm._startGameCountdown.HasValue)
         {
             ModContent.GetInstance<ConfirmEndGameUISystem>().ToggleActive();
-        }
-        else if (gm._startGameCountdown.HasValue)
-        {
-            Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.CountdownInProgress"), Color.Red);
         }
         else
         {
@@ -294,12 +307,9 @@ internal class GameManagerPanel : UIDraggablePanel
     {
         GameManager gm = ModContent.GetInstance<GameManager>();
 
-        if (gm.CurrentPhase != GameManager.Phase.Playing)
+        if (gm.CurrentPhase != GameManager.Phase.Playing && !gm._startGameCountdown.HasValue)
         {
-            string key = gm._startGameCountdown.HasValue
-                ? "Mods.PvPAdventure.Tools.DLEndGameTool.CountdownInProgress"
-                : "Mods.PvPAdventure.Tools.DLEndGameTool.GameNotStartedYet";
-            Main.NewText(Language.GetTextValue(key), Color.Red);
+            Main.NewText(Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.GameNotStartedYet"), Color.Red);
             return;
         }
 
@@ -333,14 +343,15 @@ internal class GameManagerPanel : UIDraggablePanel
     }
 
     private static bool CanEndGame()
-        => ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing;
+    {
+        GameManager gm = ModContent.GetInstance<GameManager>();
+        return gm.CurrentPhase == GameManager.Phase.Playing || gm._startGameCountdown.HasValue;
+    }
 
     private static string EndDisabledReason()
     {
         GameManager gm = ModContent.GetInstance<GameManager>();
-        return gm._startGameCountdown.HasValue
-            ? Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.CountdownInProgress")
-            : Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.GameNotStartedYet");
+        return Language.GetTextValue("Mods.PvPAdventure.Tools.DLEndGameTool.GameNotStartedYet");
     }
 
     private static int MinutesToFrames(int minutes) => minutes * FramesPerMinute;

@@ -45,7 +45,7 @@ public static class GameManagerNetHandler
             {
                 int time = reader.ReadInt32();
                 int countdown = reader.ReadInt32();
-                if (time is < 0 or > GameManager.MaxGameDurationFrames ||
+                if (time is <= 0 or > GameManager.MaxGameDurationFrames ||
                     countdown is < 0 or > GameManager.MaxCountdownSeconds)
                 {
                     Log.Warn($"Rejected invalid StartGame values. Sender={whoAmI}, Time={time}, Countdown={countdown}");

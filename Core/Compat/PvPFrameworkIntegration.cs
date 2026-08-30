@@ -145,9 +145,9 @@ public class AdventureMatchPlayer : ModPlayer
             ModContent.GetInstance<GameManager>().CurrentPhase != GameManager.Phase.Playing)
             return;
 
-        // Use the framework's recent-damage attribution so team points and the scoreboard always
-        // credit the same player (covers indirect kills like DoTs, knockback into hazards, and
-        // chip-damage finishers stealing a kill from whoever did the real damage).
+        // Use the framework's attribution so team points and the scoreboard always credit the same
+        // player: the one who landed the killing blow, falling back to the last attacker only for
+        // indirect kills like DoTs or knockback into a hazard.
         int killerId = Player.GetModPlayer<PvPFramework.Common.Combat.RecentDamagePlayer>()
             .ResolveKiller(damageSource.SourcePlayerIndex);
 

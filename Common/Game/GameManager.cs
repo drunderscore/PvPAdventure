@@ -35,6 +35,12 @@ public class GameManager : ModSystem
     /// </summary>
     private const int EndScreenRespawnSettleFrames = 20;
 
+    /// <summary>
+    /// How often, in frames, to refresh the end screen's picture of each player while playing.
+    /// Half a second is close enough to "just before the game ended" and keeps the cloning cheap.
+    /// </summary>
+    private const int EndScreenCaptureInterval = FramesPerSecond / 2;
+
     public int TimeRemaining { get; set; }
     public int? _startGameCountdown = null;
     private Phase _currentPhase;
@@ -85,7 +91,11 @@ public class GameManager : ModSystem
         Playing,
     }
 
-    public override void PostUpdateTime()
+    /// <summary>
+    /// Advances the match clock independently of Terraria's world clock. The waiting phase freezes
+    /// world time, and admin time controls may also suppress or scale the time-update hook.
+    /// </summary>
+    public override void PostUpdateEverything()
     {
         TickPendingEndScreen();
 
@@ -145,6 +155,12 @@ public class GameManager : ModSystem
                         _activeMatch?.CaptureActivePlayers(discoverPlayers);
                     }
 
+                    // Keep a recent picture of how everyone looks mid-match for the end screen.
+                    // Capturing when the summary arrives would catch the post-match cleanup instead:
+                    // by then everyone is back at spawn, revived and sitting on the race mount.
+                    if (!Main.dedServ && Main.GameUpdateCount % EndScreenCaptureInterval == 0)
+                        EndScreenService.CaptureLivePlayers();
+
                     if (--TimeRemaining <= 0)
                     {
                         CurrentPhase = Phase.Waiting;
@@ -192,6 +208,7 @@ public class GameManager : ModSystem
     private static void ResetActivePlayerMatchState()
     {
         ScoreboardService.ResetAllPlayers();
+        EndScreenService.ClearLiveCaptures();
 
         foreach (Player player in Main.ActivePlayers)
         {
@@ -206,9 +223,27 @@ public class GameManager : ModSystem
             _startGameCountdown.HasValue)
             return;
 
+        if (time <= 0)
+        {
+            Log.Warn($"Ignored a game start with a non-positive duration. Time={time}");
+            return;
+        }
+
         EndScreenService.Hide();
-        TimeRemaining = Math.Clamp(time, 0, MaxGameDurationFrames);
+        TimeRemaining = Math.Clamp(time, 1, MaxGameDurationFrames);
         countdownTimeInSeconds = Math.Clamp(countdownTimeInSeconds, 0, MaxCountdownSeconds);
+
+        Log.Info($"Starting game. DurationFrames={TimeRemaining}, CountdownSeconds={countdownTimeInSeconds}");
+
+        // A zero-second countdown is an immediate start, not a one-tick countdown state. This is
+        // particularly useful for the debug start key and avoids leaving clients displaying 0s.
+        if (countdownTimeInSeconds == 0)
+        {
+            _startGameCountdown = null;
+            CurrentPhase = Phase.Playing;
+            return;
+        }
+
         _startGameCountdown = ToCountdownFrames(countdownTimeInSeconds);
 
         if (Main.dedServ)

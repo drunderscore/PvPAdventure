@@ -46,7 +46,7 @@ internal sealed class GameManagerErkySSCTool : ModSystem
             "RegisterAdminQuickbarEntry",
             Owner,
             "open_game_timer",
-            "PvPAdventure : Game Manager",
+            "PvP Adventure : Game Manager",
             "Open the game manager",
             startIcon,
             new Action(ToggleDialog),
