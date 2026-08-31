@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.11.35222.181
+# Visual Studio Version 18
+VisualStudioVersion = 18.7.12002.237 oobstable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PvPAdventure", "PvPAdventure.csproj", "{4B843C62-7DA3-4C31-AA4D-C4C89F713B19}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PvPFramework", "..\PvPFramework\PvPFramework.csproj", "{DDF4AF34-4413-4821-8034-03B9B48DD5C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PvPHub", "..\PvPHub\PvPHub.csproj", "{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,18 @@ Global
 		{DDF4AF34-4413-4821-8034-03B9B48DD5C2}.Release|x64.Build.0 = Release|Any CPU
 		{DDF4AF34-4413-4821-8034-03B9B48DD5C2}.Release|x86.ActiveCfg = Release|Any CPU
 		{DDF4AF34-4413-4821-8034-03B9B48DD5C2}.Release|x86.Build.0 = Release|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Debug|x64.Build.0 = Debug|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Debug|x86.Build.0 = Debug|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Release|x64.ActiveCfg = Release|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Release|x64.Build.0 = Release|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Release|x86.ActiveCfg = Release|Any CPU
+		{0A4C3FC5-D1E6-AC83-7D6D-CA595F6C8778}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
