@@ -45,6 +45,25 @@ public class CrossNecklaceChanges : ModPlayer
             if (item.type == ItemID.CrossNecklace || item.type == ItemID.StarVeil)
                 return true;
         }
+
+        if (HasFullHallowedArmor())
+            return true;
+
         return false;
+    }
+
+    private bool HasFullHallowedArmor()
+    {
+        int head = Player.armor[0].type;
+        int chest = Player.armor[1].type;
+        int legs = Player.armor[2].type;
+
+        bool isHallowedHead = head == ItemID.HallowedHelmet
+            || head == ItemID.HallowedHeadgear
+            || head == ItemID.HallowedMask;
+
+        return isHallowedHead
+            && chest == ItemID.HallowedPlateMail
+            && legs == ItemID.HallowedGreaves;
     }
 }

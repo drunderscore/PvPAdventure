@@ -19,6 +19,8 @@ public class DeadProjectileList : GlobalProjectile
                entity.type == ProjectileID.SporeGas2 ||
                entity.type == ProjectileID.RainCloudRaining ||
                entity.type == ProjectileID.BloodCloudRaining ||
+               entity.type == ProjectileID.RainbowFront ||
+               entity.type == ProjectileID.RainbowBack ||
                entity.type == ProjectileID.SporeGas3;
     }
 

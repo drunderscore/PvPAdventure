@@ -192,6 +192,21 @@ Mods: {
 				DisplayName: Portal Creator
 				Tooltip: ""
 			}
+
+			BrokenShadowFlameBow: {
+				DisplayName: Broken Shadow Flame Bow
+				Tooltip: ""
+			}
+
+			BrokenShadowFlameHexDoll: {
+				DisplayName: Broken Shadow Flame Hex Doll
+				Tooltip: ""
+			}
+
+			BrokenShadowFlameKnife: {
+				DisplayName: Broken Shadow Flame Knife
+				Tooltip: ""
+			}
 		}
 
 		NPCs: {
