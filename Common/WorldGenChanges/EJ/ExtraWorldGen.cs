@@ -28,9 +28,9 @@ public class ExtraWorldGen : ModSystem
         AddExtraCorruptionPits(tasks);
         AddExtraGraniteBiomes(tasks);
         AddExtraMarbleBiomes(tasks);
-
-        // New features
         AddExtraLivingTrees(tasks);
+
+        AddForTheWorthyOreVeins(tasks);
 
         RemoveWorldGenTiles(tasks);
 
@@ -738,6 +738,74 @@ public class ExtraWorldGen : ModSystem
             }
         }));
     }
+    private void AddForTheWorthyOreVeins(List<GenPass> tasks)
+    {
+        int shiniesIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Shinies"));
+        if (shiniesIndex == -1) return;
+
+        tasks.Insert(shiniesIndex + 1, new PassLegacy("Extra For The Worthy Ore Veins", delegate (GenerationProgress progress, GameConfiguration passConfig)
+        {
+            progress.Message = "Enriching ore deposits...";
+
+            ushort evilOreType = WorldGen.crimson ? TileID.Crimtane : TileID.Demonite;
+            ushort richOreType = DetectRichOreType();
+            int minY = (int)Main.rockLayer;
+            int maxY = Main.UnderworldLayer - 50;
+
+            double sizeScale = Main.maxTilesX / 4200.0;
+
+            int richVeinCount = Math.Max(6, (int)(sizeScale * 100));
+            int richVeinsPlaced = AddOreVeins(richOreType, richVeinCount, 7, 16, 20, 30, minY, maxY);
+            int evilVeinCount = Math.Max(3, (int)(sizeScale * 45));
+            int evilVeinsPlaced = AddOreVeins(evilOreType, evilVeinCount, 4, 7, 10, 20, minY, maxY);
+
+            ModContent.GetInstance<PvPAdventure>().Logger.Info($"Added {richVeinsPlaced} extra gold/platinum veins and {evilVeinsPlaced} extra evil-ore veins");
+        }));
+    }
+
+    private ushort DetectRichOreType()
+    {
+        const int step = 15;
+        for (int x = 0; x < Main.maxTilesX; x += step)
+        {
+            for (int y = (int)Main.worldSurface; y < Main.maxTilesY; y += step)
+            {
+                if (!WorldGen.InWorld(x, y)) continue;
+
+                Tile tile = Main.tile[x, y];
+                if (!tile.HasTile) continue;
+
+                if (tile.TileType == TileID.Gold) return TileID.Gold;
+                if (tile.TileType == TileID.Platinum) return TileID.Platinum;
+            }
+        }
+        return TileID.Gold;
+    }
+
+    private int AddOreVeins(ushort tileType, int veinCount, int minStrength, int maxStrength, int minSteps, int maxSteps, int minY, int maxY)
+    {
+        int placed = 0;
+        int attempts = 0;
+        int maxAttempts = veinCount * 50;
+
+        while (placed < veinCount && attempts < maxAttempts)
+        {
+            int x = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
+            int y = WorldGen.genRand.Next(minY, maxY);
+
+            if (WorldGen.InWorld(x, y))
+            {
+                double strength = WorldGen.genRand.Next(minStrength, maxStrength + 1);
+                int steps = WorldGen.genRand.Next(minSteps, maxSteps + 1);
+                WorldGen.OreRunner(x, y, strength, steps, tileType);
+                placed++;
+            }
+            attempts++;
+        }
+
+        return placed;
+    }
+
     // Helper Methods
     private bool IsJungleBiome(Point point)
     {

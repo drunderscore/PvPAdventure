@@ -1,9 +1,12 @@
+using PvPAdventure.Content.Items.BiomeKeyMolds;
+using PvPAdventure.Content.Portals;
 using PvPAdventure.Core.Config;
 using System.Linq;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
+using PvPAdventure.Content.Items.BrokenShadowFlameItems;
 
 namespace PvPAdventure.Common.Loot.DropRates;
 
@@ -184,18 +187,13 @@ public static class AdventureDropDatabase
                 break;
 
             case NPCID.GoblinSummoner:
-                foreach (var drop in drops)
-                {
-                    if (drop is DropBasedOnExpertMode dropBasedOnExpertMode)
-                    {
-                        ((OneFromOptionsDropRule)dropBasedOnExpertMode.ruleForNormalMode).chanceNumerator = 1;
-                        ((OneFromOptionsDropRule)dropBasedOnExpertMode.ruleForNormalMode).chanceDenominator = 1;
-
-                        ((OneFromOptionsDropRule)dropBasedOnExpertMode.ruleForExpertMode).chanceNumerator = 1;
-                        ((OneFromOptionsDropRule)dropBasedOnExpertMode.ruleForExpertMode).chanceDenominator = 1;
-                    }
-                }
-
+                npcLoot.RemoveWhere(drop => true); // Removes all drops
+                npcLoot.Add(ItemDropRule.Common(ItemID.GoldCoin, 1, 3, 3));
+                npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                    ModContent.ItemType<BrokenShadowFlameBow>(),
+                    ModContent.ItemType<BrokenShadowFlameKnife>(),
+                    ModContent.ItemType<BrokenShadowFlameHexDoll>()
+                ));
                 break;
 
             case NPCID.Moth:
@@ -280,6 +278,12 @@ public static class AdventureDropDatabase
                 }
                 npcLoot.Add(ItemDropRule.Common(ItemID.Vine, 1, 1, 1));
                 break;
+            case NPCID.DesertDjinn:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.DjinnLamp, 1, 10);
+                }
+                break;
 
             case NPCID.ManEater:
                 foreach (var drop in drops)
@@ -327,6 +331,30 @@ public static class AdventureDropDatabase
                 foreach (var drop in drops)
                 {
                     ModifyDropRate(drop, ItemID.ToxicFlask, 1, 6);
+                }
+                break;
+            case NPCID.Salamander:
+            case NPCID.GiantShelly:
+            case NPCID.Crawdad:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.Rally, 1, 6);
+                }
+                break;
+            case NPCID.Skeleton:
+            case NPCID.UndeadMiner:
+            case NPCID.UndeadViking:
+            case NPCID.Piranha:
+            case NPCID.GreekSkeleton:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.Hook, 1, 5);
+                }
+                break;
+            case NPCID.CaveBat:
+                foreach (var drop in drops)
+                {
+                    ModifyDropRate(drop, ItemID.ChainKnife, 1, 11);
                 }
                 break;
 
@@ -546,6 +574,10 @@ public static class AdventureDropDatabase
                 );
                 break;
             case NPCID.Shark:
+            case NPCID.SandShark:
+            case NPCID.SandsharkHallow:
+            case NPCID.SandsharkCorrupt:
+            case NPCID.SandsharkCrimson:
                 npcLoot.Add(ItemDropRule.Common(ItemID.SharkFin, 1, 6, 7));
                 break;
             case NPCID.WallofFlesh:
