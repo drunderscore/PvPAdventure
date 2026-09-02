@@ -49,27 +49,49 @@ public abstract class WhipDebuffPlayer : ModPlayer
     protected virtual float PercentDamageBonus => 0f;
     protected virtual float FairyQueenDamageMultiplier => 0.25f;
 
+    protected virtual bool AppliesCoolWhipPlayerBuff => false;
+
     public override void PostHurt(Player.HurtInfo info)
     {
         if (info.DamageSource.SourceProjectileType == WhipProjectileID)
         {
             int duration = BaseDuration;
             int newApplierIndex = -1;
+            Player? attacker = null;
 
             if (info.DamageSource.SourcePlayerIndex >= 0 && info.DamageSource.SourcePlayerIndex < Main.maxPlayers)
             {
-                Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+                attacker = Main.player[info.DamageSource.SourcePlayerIndex];
                 if (attacker != null && attacker.active)
                 {
+                    bool hasHerculesBeetle = false;
+                    bool hasPygmyNecklace = false;
+                    for (int i = 3; i <= 7; i++)
+                    {
+                        if (attacker.armor[i].type == ItemID.HerculesBeetle)
+                            hasHerculesBeetle = true;
+                        if (attacker.armor[i].type == ItemID.PygmyNecklace)
+                            hasPygmyNecklace = true;
+                    }
+                    if (hasHerculesBeetle)
+                        duration = (int)(duration * 1.33f);
+                    if (hasPygmyNecklace)
+                        duration = (int)(duration * 1.5f);
+
                     SummonerArmorPlayer summonerPlayer = attacker.GetModPlayer<SummonerArmorPlayer>();
                     if (summonerPlayer.hasSummonSet)
                         duration = (int)(duration * 4f);
+
                     newApplierIndex = info.DamageSource.SourcePlayerIndex;
                 }
             }
 
             applierIndex = newApplierIndex;
             Player.AddBuff(DebuffType, duration);
+
+            if (AppliesCoolWhipPlayerBuff && attacker != null && attacker.active)
+                attacker.AddBuff(BuffID.CoolWhipPlayerBuff, duration);
+
             OnDebuffApplied(info, duration);
         }
     }
@@ -202,6 +224,7 @@ public class BitingEmbracePlayer : WhipDebuffPlayer
     protected override int DebuffType => ModContent.BuffType<BitingEmbrace>();
     protected override int BaseDuration => 150;
     protected override int FlatDamageBonus => 7;
+    protected override bool AppliesCoolWhipPlayerBuff => true;
     protected override void OnDebuffApplied(Player.HurtInfo info, int duration) => Player.AddBuff(BuffID.Frostburn2, duration);
     protected override void OnApplierRemoved() => Player.ClearBuff(BuffID.Frostburn2);
     protected override void UpdateVisualEffects()

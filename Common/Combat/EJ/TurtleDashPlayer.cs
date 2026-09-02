@@ -2,6 +2,7 @@
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static Terraria.ModLoader.BackupIO;
 
 namespace PvPAdventure.Common.Combat.EJ;
 
@@ -23,16 +24,14 @@ public class HeavyArmorPlayer : ModPlayer
                                   Player.armor[1].type == ItemID.BeetleShell &&
                                   Player.armor[2].type == ItemID.BeetleLeggings;
 
-        isWearingFullHeavyarmor = wearingTurtle || wearingBeetleShell;
+        isWearingFullHeavyarmor = wearingTurtle; //|| wearingBeetleShell;
 
-        //if (isWearingFullHeavyarmor)
-        //{
-        //    Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
+        if (isWearingFullHeavyarmor)
+        {
+            //Player.AddBuff(ModContent.BuffType<BROISACHOJ>(), 1 * 60 * 60);
 
-        //    Player.GetDamage(DamageClass.Ranged) *= 0.5f;
-        //    Player.GetDamage(DamageClass.Magic) *= 0.5f;
-        //    Player.GetDamage(DamageClass.Summon) *= 0.5f;
-        //}
+            Player.GetAttackSpeed<MeleeDamageClass>() -= 0.3f;
+        }
     }
 
     public override void PostUpdate()

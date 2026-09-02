@@ -15,10 +15,10 @@ internal class ShinyStonePlayer : ModPlayer
     private int _stillTimer = 0;
 
     private const int PulseInterval = 180;
-    private const int HealAmount = 2;
-    private const int HealInterval = 6;
+    private const int HealAmount = 1;
+    private const int HealInterval = 4;
     private const float PulseRange = 20 * 16f;
-    private const int RampUpDuration = 300;
+    private const int RampUpDuration = 600;
 
     private bool IsActive => Player.shinyStone && Player.velocity.X == 0f && Player.velocity.Y == 0f && Player.itemAnimation == 0;
 

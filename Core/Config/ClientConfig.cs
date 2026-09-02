@@ -70,8 +70,7 @@ public class ClientConfig : ModConfig
     [RequiresField(nameof(Scoreline))]
     public ScorelineSize ScorelineUISize = ScorelineSize.Medium;
 
-    [Header("Chat")]
-    [HeaderIcon(nameof(PvPFramework.Core.Utilities.Ass.ConfigChat))]
+
 
     [BackgroundColor(70, 92, 126)]
     [DefaultValue(true)]

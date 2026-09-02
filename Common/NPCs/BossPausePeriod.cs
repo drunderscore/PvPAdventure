@@ -4,8 +4,8 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-
 namespace PvPAdventure.Common.NPCs;
+
 /// <summary>
 /// Makes bosses not do anything for a period after they spawn by replacing their AI with the LunaticDevote AI and preventing them from getting hit
 /// </summary>
@@ -15,14 +15,18 @@ internal class BossPausePeriod : GlobalNPC
 
     private static readonly Dictionary<int, int> PauseDurations = new()
     {
-        { NPCID.Plantera,          30 * 60 }, 
+        { NPCID.Plantera,          30 * 60 },
         { NPCID.CultistBoss,       60 * 60 },
-        { NPCID.SkeletronHead,       60 * 60 },
+        { NPCID.SkeletronHead,     60 * 60 },
     };
 
-    private int _pauseTimer;  
-    private int _originalAiStyle; 
+    private int _pauseTimer;
+    private int _originalAiStyle;
+    private bool _hasOriginalAiStyle;
     private bool _isPaused;
+    private bool _timedPause; // true while a countdown should keep ticking (the initial spawn-window pause); false for an externally-forced pause with no timer
+
+    public bool IsPaused => _isPaused;
 
     public override void OnSpawn(NPC npc, Terraria.DataStructures.IEntitySource source)
     {
@@ -30,29 +34,36 @@ internal class BossPausePeriod : GlobalNPC
             return;
 
         _pauseTimer = duration;
-        _originalAiStyle = npc.aiStyle;
+        _timedPause = true;
+        CaptureOriginalAiStyle(npc);
         _isPaused = true;
-
         ApplyPause(npc);
     }
 
+    // (see BossDespawnRework)
+    private static readonly HashSet<int> ExternallyManagedTypes = new() { NPCID.CultistBoss };
+
     public override void AI(NPC npc)
     {
-        if (!_isPaused)
+        if (!_isPaused || !_timedPause)
             return;
 
-        // Only the server/singleplayer should tick the timer and decide when to unpause.
         if (Main.netMode == NetmodeID.MultiplayerClient)
             return;
 
         _pauseTimer--;
-
         if (_pauseTimer <= 0)
         {
-            RemovePause(npc);
-
-            // Sync the unpaused state to all clients immediately.
-            NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
+            if (ExternallyManagedTypes.Contains(npc.type))
+            {
+                _timedPause = false;
+                npc.netUpdate = true;
+            }
+            else
+            {
+                RemovePause(npc);
+                NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
+            }
         }
     }
 
@@ -61,6 +72,36 @@ internal class BossPausePeriod : GlobalNPC
 
     public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
         => _isPaused ? false : null;
+
+    public void ForcePause(NPC npc)
+    {
+        if (_isPaused)
+            return;
+
+        CaptureOriginalAiStyle(npc);
+        _timedPause = false;
+        _isPaused = true;
+        ApplyPause(npc);
+        npc.netUpdate = true;
+    }
+
+    public void ForceUnpause(NPC npc)
+    {
+        if (!_isPaused || _timedPause)
+            return;
+
+        RemovePause(npc);
+        npc.netUpdate = true;
+    }
+
+    private void CaptureOriginalAiStyle(NPC npc)
+    {
+        if (_hasOriginalAiStyle)
+            return;
+
+        _originalAiStyle = npc.aiStyle;
+        _hasOriginalAiStyle = true;
+    }
 
     private void ApplyPause(NPC npc)
     {
@@ -74,9 +115,11 @@ internal class BossPausePeriod : GlobalNPC
         npc.dontTakeDamage = false;
         _isPaused = false;
     }
+
     public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
     {
         bitWriter.WriteBit(_isPaused);
+        bitWriter.WriteBit(_timedPause);
         binaryWriter.Write(_pauseTimer);
         binaryWriter.Write(_originalAiStyle);
     }
@@ -84,10 +127,11 @@ internal class BossPausePeriod : GlobalNPC
     public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
     {
         bool wasPaused = _isPaused;
-
         _isPaused = bitReader.ReadBit();
+        _timedPause = bitReader.ReadBit();
         _pauseTimer = binaryReader.ReadInt32();
         _originalAiStyle = binaryReader.ReadInt32();
+        _hasOriginalAiStyle = true;
 
         if (_isPaused && !wasPaused)
             ApplyPause(npc);

@@ -5,7 +5,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
-
+using PvPAdventure.Content.Items.BrokenShadowFlameItems;
 namespace PvPAdventure.Common.Recipes;
 
 [Autoload(Side = ModSide.Both)]
@@ -38,6 +38,9 @@ public class RecipeManager : ModSystem
             ItemID.DemonWings,
             ItemID.AngelWings,
             ItemID.FairyWings,
+            ItemID.SnailStatue,
+            ItemID.FrogStatue,
+            ItemID.DuckStatue,
             ItemID.ManaCrystal
 
 
@@ -143,20 +146,20 @@ public class RecipeManager : ModSystem
         // Make Demon Wings cheaper
         Recipe.Create(ItemID.DemonWings, 1)
             .AddIngredient(ItemID.SoulofNight, 5)
-            .AddIngredient(ItemID.Feather, 10)
+            .AddIngredient(ItemID.Feather, 3)
             .AddIngredient(ItemID.SoulofFlight, 20)
             .AddTile(TileID.MythrilAnvil)
             .Register();
         // Make Angel Wings cheaper
         Recipe.Create(ItemID.AngelWings, 1)
             .AddIngredient(ItemID.SoulofLight, 5)
-            .AddIngredient(ItemID.Feather, 10)
+            .AddIngredient(ItemID.Feather, 3)
             .AddIngredient(ItemID.SoulofFlight, 20)
             .AddTile(TileID.MythrilAnvil)
             .Register();
         // Make Fairy Wings cheaper
         Recipe.Create(ItemID.FairyWings, 1)
-            .AddIngredient(ItemID.PixieDust, 25)
+            .AddIngredient(ItemID.PixieDust, 45)
             .AddIngredient(ItemID.SoulofFlight, 20)
             .AddTile(TileID.MythrilAnvil)
             .Register();
@@ -184,22 +187,43 @@ public class RecipeManager : ModSystem
             .AddIngredient(ItemID.StoneBlock, 50)
             .AddTile(TileID.HeavyWorkBench)
             .Register();
+        // Recipe for Duck Statue
+        Recipe.Create(ItemID.DuckStatue, 1)
+            .AddIngredient(ItemID.Duck, 1)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+        // Recipe for Frog Statue
+        Recipe.Create(ItemID.FrogStatue, 1)
+            .AddIngredient(ItemID.Frog, 1)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
+        // Recipe for Snail Statue
+        Recipe.Create(ItemID.SnailStatue, 1)
+            .AddIngredient(ItemID.Snail, 1)
+            .AddIngredient(ItemID.StoneBlock, 50)
+            .AddTile(TileID.HeavyWorkBench)
+            .Register();
         Recipe.Create(ItemID.Hellforge, 1)
             .AddIngredient(ItemID.Furnace, 1)
             .AddIngredient(ItemID.Hellstone, 30)
             .AddTile(TileID.Anvils)
             .DisableDecraft()
             .Register();
-        //temp sudo terrablade (no longer used)
-        //Recipe.Create(ItemID.TrueNightsEdge)
-        //    .AddIngredient(ItemID.SoulofFright, 20)
-        //    .AddIngredient(ItemID.SoulofMight, 20)
-        //    .AddIngredient(ItemID.SoulofSight, 20)
-        //    .AddIngredient(ItemID.NightsEdge)
-        //    .AddIngredient(ItemID.TrueExcalibur)
-        //    .AddIngredient(ItemID.BrokenHeroSword)
-        //    .AddTile(TileID.MythrilAnvil)
-        //    .Register();
+        // Recipe for all repaired shadowflame weapons
+        Recipe.Create(ItemID.ShadowFlameBow, 1)
+        .AddIngredient(ModContent.ItemType<BrokenShadowFlameBow>(), 1)
+        .AddTile(TileID.TinkerersWorkbench)
+         .Register();
+        Recipe.Create(ItemID.ShadowFlameKnife, 1)
+        .AddIngredient(ModContent.ItemType<BrokenShadowFlameKnife>(), 1)
+        .AddTile(TileID.TinkerersWorkbench)
+        .Register();
+        Recipe.Create(ItemID.ShadowFlameHexDoll, 1)
+        .AddIngredient(ModContent.ItemType<BrokenShadowFlameHexDoll>(), 1)
+        .AddTile(TileID.TinkerersWorkbench)
+        .Register();
 
 
     }
