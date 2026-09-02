@@ -10,4 +10,5 @@ public enum AdventurePacketIdentifier : byte
     MatchStatDelta,
     Hellhex,
     MatchStatsSnapshot,
+    ShakingChest,
 }
