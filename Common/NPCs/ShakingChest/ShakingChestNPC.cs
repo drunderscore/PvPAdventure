@@ -5,6 +5,7 @@ using PvPAdventure.Common.Game;
 using PvPAdventure.Content.Portals;
 using PvPAdventure.Core.Compat;
 using PvPAdventure.Core.Config;
+using PvPFramework.Common.Spawnbox;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -16,6 +17,8 @@ public sealed class ShakingChestNPC : GlobalNPC
 {
     internal const int TargetType = NPCID.BoundTownSlimeOld;
     private const string ShopName = "Shop";
+    private const float DisplayScale = 4f;
+    private const int SpawnBoxPadding = 8;
 
     private static ServerConfig.ShakingChestConfig Config =>
         ModContent.GetInstance<ServerConfig>().ShakingChest;
@@ -33,10 +36,8 @@ public sealed class ShakingChestNPC : GlobalNPC
         npc.dontTakeDamage = true;
         npc.immortal = true;
         npc.homeless = true;
-        npc.aiStyle = NPCAIStyleID.Passive;
-        npc.scale = 4f;
-        npc.width *= 4;
-        npc.height *= 4;
+        npc.aiStyle = NPCAIStyleID.Slime;
+        npc.scale = DisplayScale;
     }
 
     public override bool? CanChat(NPC npc) => npc.type == TargetType ? true : null;
@@ -146,8 +147,40 @@ public sealed class ShakingChestNPC : GlobalNPC
             return;
         }
 
-        npc.velocity.X = 0f;
-        npc.position.X = Main.spawnTileX * 16f - npc.width / 2f;
+        ConfineToSpawnBox(npc);
+    }
+
+    private static void ConfineToSpawnBox(NPC npc)
+    {
+        Rectangle tileArea = ModContent.GetInstance<SpawnBoxSystem>().TileArea;
+        if (tileArea.IsEmpty)
+            return;
+
+        Rectangle area = SpawnBoxSystem.TileToWorld(tileArea);
+        float minX = area.Left + SpawnBoxPadding;
+        float maxX = area.Right - SpawnBoxPadding - npc.width;
+
+        if (maxX < minX)
+        {
+            npc.Center = new Vector2(area.Center.X, npc.Center.Y);
+            npc.velocity.X = 0f;
+            return;
+        }
+
+        if (npc.position.X < minX)
+        {
+            npc.position.X = minX;
+            npc.velocity.X = System.Math.Abs(npc.velocity.X);
+            npc.direction = 1;
+            npc.netUpdate = true;
+        }
+        else if (npc.position.X > maxX)
+        {
+            npc.position.X = maxX;
+            npc.velocity.X = -System.Math.Abs(npc.velocity.X);
+            npc.direction = -1;
+            npc.netUpdate = true;
+        }
     }
 
     public override void ModifyHoverBoundingBox(NPC npc, ref Rectangle boundingBox)
