@@ -140,6 +140,7 @@ public sealed class ShakingChestNPC : GlobalNPC
 
         if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing)
         {
+            ShakingChestNetHandler.SendDisappearFx(npc);
             npc.active = false;
             npc.life = 0;
             if (Main.dedServ)
@@ -148,6 +149,46 @@ public sealed class ShakingChestNPC : GlobalNPC
         }
 
         ConfineToSpawnBox(npc);
+    }
+
+    internal static void PlayDisappearFx(
+        Vector2 position,
+        int width,
+        int height,
+        Vector2 velocity)
+    {
+        if (Main.dedServ)
+            return;
+
+        SoundEngine.PlaySound(SoundID.NPCDeath6, position + new Vector2(width, height) / 2f);
+
+        for (int i = 0; i < 100; i++)
+        {
+            Dust dust = Dust.NewDustDirect(
+                new Vector2(position.X - 20f, position.Y),
+                width + 40,
+                height,
+                DustID.RainbowMk2,
+                0f,
+                0f,
+                60,
+                new Color(130, 60, 255, 70));
+
+            dust.scale += Main.rand.Next(-10, 21) * 0.01f;
+            dust.noGravity = true;
+            dust.velocity += velocity * 0.8f;
+            dust.velocity *= Main.rand.NextFloat();
+            dust.velocity.Y += 2f * Main.rand.NextFloatDirection();
+            dust.noLight = true;
+
+            if (Main.rand.Next(3) == 0)
+            {
+                Dust whiteDust = Dust.CloneDust(dust);
+                whiteDust.color = Color.White;
+                whiteDust.scale *= 0.5f;
+                whiteDust.alpha = 0;
+            }
+        }
     }
 
     private static void ConfineToSpawnBox(NPC npc)
