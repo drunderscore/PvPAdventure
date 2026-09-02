@@ -133,18 +133,21 @@ public sealed class ShakingChestSystem : ModSystem
 
     private static void Spawn()
     {
-        Rectangle tileArea = ModContent.GetInstance<SpawnBoxSystem>().TileArea;
+        SpawnBoxSystem spawnBox = ModContent.GetInstance<SpawnBoxSystem>();
+        Rectangle tileArea = spawnBox.AnchorTile.X > 0 && spawnBox.AnchorTile.Y > 0
+            ? spawnBox.TileArea
+            : Rectangle.Empty;
         Rectangle area = tileArea.IsEmpty ? Rectangle.Empty : SpawnBoxSystem.TileToWorld(tileArea);
         int x = area.IsEmpty ? Main.spawnTileX * 16 : area.Center.X;
         int y = (Main.spawnTileY - 1) * 16;
 
-        if (!area.IsEmpty)
-            y = System.Math.Clamp(y, area.Top + 16, area.Bottom - 16);
-
-        NPC.NewNPC(
+        int npcIndex = NPC.NewNPC(
             Entity.GetSource_NaturalSpawn(),
             x,
             y,
             ShakingChestNPC.TargetType);
+
+        if (!area.IsEmpty && npcIndex >= 0 && npcIndex < Main.maxNPCs)
+            ShakingChestNPC.PlaceInsideSpawnBox(Main.npc[npcIndex], area);
     }
 }

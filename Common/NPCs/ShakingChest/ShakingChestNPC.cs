@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using PvPAdventure.Common.Game;
@@ -10,6 +11,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 
 namespace PvPAdventure.Common.NPCs;
 
@@ -19,6 +21,27 @@ public sealed class ShakingChestNPC : GlobalNPC
     private const string ShopName = "Shop";
     private const float DisplayScale = 4f;
     private const int SpawnBoxPadding = 8;
+    private const int HoldDurationTicks = 60 * 10;
+    private const int RoamDurationTicks = 60 * 3;
+    private const int ReturnTimeoutTicks = 60 * 5;
+    private const float RoamRangeTiles = 3f;
+    private const float RoamRange = RoamRangeTiles * 16f;
+    private const float ReturnSpeed = 2f;
+
+    private enum AnchorState : byte
+    {
+        Holding,
+        Roaming,
+        Returning
+    }
+
+    private AnchorState _anchorState = AnchorState.Holding;
+    private int _anchorTimer = HoldDurationTicks;
+
+    public override bool InstancePerEntity => true;
+
+    public override bool AppliesToEntity(NPC entity, bool lateInstantiation) =>
+        entity.type == TargetType;
 
     private static ServerConfig.ShakingChestConfig Config =>
         ModContent.GetInstance<ServerConfig>().ShakingChest;
@@ -135,10 +158,11 @@ public sealed class ShakingChestNPC : GlobalNPC
 
     public override void PostAI(NPC npc)
     {
-        if (npc.type != TargetType || Main.netMode == NetmodeID.MultiplayerClient)
+        if (npc.type != TargetType)
             return;
 
-        if (ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing)
+        if (Main.netMode != NetmodeID.MultiplayerClient &&
+            ModContent.GetInstance<GameManager>().CurrentPhase == GameManager.Phase.Playing)
         {
             ShakingChestNetHandler.SendDisappearFx(npc);
             npc.active = false;
@@ -148,7 +172,121 @@ public sealed class ShakingChestNPC : GlobalNPC
             return;
         }
 
+        UpdateAnchor(npc);
         ConfineToSpawnBox(npc);
+    }
+
+    public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    {
+        binaryWriter.Write((byte)_anchorState);
+        binaryWriter.Write((short)_anchorTimer);
+    }
+
+    public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+    {
+        _anchorState = (AnchorState)binaryReader.ReadByte();
+        _anchorTimer = binaryReader.ReadInt16();
+    }
+
+    // The chest stands perfectly still on the spawn box's center line. Every HoldDurationTicks it is
+    // handed back to the slime AI for a short window, but only within RoamRangeTiles of that line,
+    // and is then leashed home before holding again. Only the server drives the state machine;
+    // clients mirror it through SendExtraAI so both sides pin the chest to the same spot.
+    private void UpdateAnchor(NPC npc)
+    {
+        if (!TryGetAnchorX(npc, out float anchorX))
+            return;
+
+        bool authority = Main.netMode != NetmodeID.MultiplayerClient;
+
+        if (_anchorTimer > 0)
+            _anchorTimer--;
+
+        switch (_anchorState)
+        {
+            case AnchorState.Roaming:
+                LimitRoaming(npc, anchorX);
+                if (authority && _anchorTimer <= 0)
+                    SetAnchorState(npc, AnchorState.Returning, ReturnTimeoutTicks);
+                break;
+
+            case AnchorState.Returning:
+                if (!MoveTowardsAnchor(npc, anchorX) && _anchorTimer > 0)
+                    break;
+
+                StandStill(npc, anchorX);
+                if (authority)
+                    SetAnchorState(npc, AnchorState.Holding, HoldDurationTicks);
+                break;
+
+            default:
+                StandStill(npc, anchorX);
+                if (authority && _anchorTimer <= 0)
+                    SetAnchorState(npc, AnchorState.Roaming, RoamDurationTicks);
+                break;
+        }
+    }
+
+    private void SetAnchorState(NPC npc, AnchorState state, int duration)
+    {
+        _anchorState = state;
+        _anchorTimer = duration;
+        npc.netUpdate = true;
+    }
+
+    private static bool TryGetAnchorX(NPC npc, out float anchorX)
+    {
+        anchorX = 0f;
+
+        Rectangle tileArea = ModContent.GetInstance<SpawnBoxSystem>().TileArea;
+        if (tileArea.IsEmpty)
+            return false;
+
+        anchorX = SpawnBoxSystem.TileToWorld(tileArea).Center.X - npc.width / 2f;
+        return true;
+    }
+
+    private static void StandStill(NPC npc, float anchorX)
+    {
+        npc.position.X = anchorX;
+        npc.velocity.X = 0f;
+
+        // Cancel the slime AI's hops so it settles on the ground and stays put.
+        if (npc.velocity.Y < 0f)
+            npc.velocity.Y = 0f;
+    }
+
+    private static void LimitRoaming(NPC npc, float anchorX)
+    {
+        float minX = anchorX - RoamRange;
+        float maxX = anchorX + RoamRange;
+
+        if (npc.position.X < minX)
+        {
+            npc.position.X = minX;
+            npc.velocity.X = System.Math.Abs(npc.velocity.X);
+            npc.direction = 1;
+        }
+        else if (npc.position.X > maxX)
+        {
+            npc.position.X = maxX;
+            npc.velocity.X = -System.Math.Abs(npc.velocity.X);
+            npc.direction = -1;
+        }
+    }
+
+    private static bool MoveTowardsAnchor(NPC npc, float anchorX)
+    {
+        float distance = anchorX - npc.position.X;
+        if (System.Math.Abs(distance) <= ReturnSpeed)
+        {
+            StandStill(npc, anchorX);
+            return true;
+        }
+
+        npc.direction = System.Math.Sign(distance);
+        npc.velocity.X = npc.direction * ReturnSpeed;
+        return false;
     }
 
     internal static void PlayDisappearFx(
@@ -200,6 +338,16 @@ public sealed class ShakingChestNPC : GlobalNPC
         Rectangle area = SpawnBoxSystem.TileToWorld(tileArea);
         float minX = area.Left + SpawnBoxPadding;
         float maxX = area.Right - SpawnBoxPadding - npc.width;
+        float minY = area.Top + SpawnBoxPadding;
+        float maxY = area.Bottom - SpawnBoxPadding - npc.height;
+
+        // A chest that spawned above the box can land on the outer face of its top border. Move it
+        // wholly inside before applying the normal horizontal leash so gravity can find the floor.
+        if (maxY >= minY && (npc.position.Y < minY || npc.position.Y > maxY))
+        {
+            PlaceInsideSpawnBox(npc, area);
+            return;
+        }
 
         if (maxX < minX)
         {
@@ -222,6 +370,47 @@ public sealed class ShakingChestNPC : GlobalNPC
             npc.direction = -1;
             npc.netUpdate = true;
         }
+    }
+
+    internal static void PlaceInsideSpawnBox(NPC npc, Rectangle area)
+    {
+        float x = area.Center.X - npc.width / 2f;
+        float minY = area.Top + SpawnBoxPadding;
+        float maxY = area.Bottom - SpawnBoxPadding - npc.height;
+
+        npc.position.X = x;
+        npc.position.Y = maxY < minY
+            ? area.Center.Y - npc.height / 2f
+            : FindOpenSpawnY(npc, x, minY, maxY);
+        npc.velocity = Vector2.Zero;
+
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+            npc.netUpdate = true;
+    }
+
+    private static float FindOpenSpawnY(NPC npc, float x, float minY, float maxY)
+    {
+        float desiredY = System.Math.Clamp(Main.spawnTileY * 16f - npc.height, minY, maxY);
+        if (!Collision.SolidCollision(new Vector2(x, desiredY), npc.width, npc.height))
+            return desiredY;
+
+        // Search downward first so the chest stays near the normal ground level, then upward if the
+        // terrain at the spawn-box center is occupied.
+        int searchDistance = (int)System.Math.Ceiling(maxY - minY);
+        for (int offset = 8; offset <= searchDistance; offset += 8)
+        {
+            float below = desiredY + offset;
+            if (below <= maxY &&
+                !Collision.SolidCollision(new Vector2(x, below), npc.width, npc.height))
+                return below;
+
+            float above = desiredY - offset;
+            if (above >= minY &&
+                !Collision.SolidCollision(new Vector2(x, above), npc.width, npc.height))
+                return above;
+        }
+
+        return minY;
     }
 
     public override void ModifyHoverBoundingBox(NPC npc, ref Rectangle boundingBox)
