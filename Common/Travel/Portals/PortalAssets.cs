@@ -33,13 +33,14 @@ internal static class PortalAssets
     }
 
     /// <summary>
-    /// The portal gun skin variant for a team, or null when the team has no variant (no team) or the
-    /// texture has not finished loading. Callers fall back to <see cref="GetCreatorTexture"/>.
+    /// The portal gun skin variant for a team, or null when the texture has not finished loading.
+    /// Callers fall back to <see cref="GetCreatorTexture"/>.
     /// </summary>
     public static Texture2D GetPortalGunSkinTexture(int team)
     {
         Asset<Texture2D> asset = GetTeamIndex(team) switch
         {
+            0 => PvPHub.Core.Utilities.Ass.PortalGunSkinWhite,
             1 => PvPHub.Core.Utilities.Ass.PortalGunSkinRed,
             2 => PvPHub.Core.Utilities.Ass.PortalGunSkinGreen,
             3 => PvPHub.Core.Utilities.Ass.PortalGunSkinBlue,

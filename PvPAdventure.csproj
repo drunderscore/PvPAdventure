@@ -1,7 +1,8 @@
-﻿
-<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\tModLoader.targets" />
+﻿<Project Sdk="Tomat.Terraria.ModLoader.Sdk/2.1.1">
+
 	<PropertyGroup>
+		<TmlVersion>steam</TmlVersion>
+		<Nullable>disable</Nullable>
 		<AssemblyName>PvPAdventure</AssemblyName>
 		<LangVersion>latest</LangVersion>
 		<!-- tModLoader dependency packaging writes shared files and cannot run concurrently. -->
@@ -14,15 +15,5 @@
 		<ProjectReference Include="..\PvPHub\PvPHub.csproj" />
 	</ItemGroup>
 
-	<!-- Makes use of Krafs Publicizer when compiling tModLoader.dll, making all access modifiers public -->
-	<ItemGroup>
-	<PackageReference Include="Krafs.Publicizer" Version="2.3.0">
-		<PrivateAssets>all</PrivateAssets>
-		<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-	</PackageReference>
-
-	<Publicize Include="tModLoader"
-			   IncludeVirtualMembers="false"
-			   IncludeCompilerGeneratedMembers="false" />
-</ItemGroup>
+	<!-- tml-build supplies Krafs.Publicizer and publicizes tModLoader by default. -->
 </Project>
