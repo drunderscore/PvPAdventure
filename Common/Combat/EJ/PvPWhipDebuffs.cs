@@ -76,7 +76,7 @@ public abstract class WhipDebuffPlayer : ModPlayer
                     if (hasHerculesBeetle)
                         duration = (int)(duration * 1.33f);
                     if (hasPygmyNecklace)
-                        duration = (int)(duration * 1.5f);
+                        duration = (int)(duration * 1.33f);
 
                     SummonerArmorPlayer summonerPlayer = attacker.GetModPlayer<SummonerArmorPlayer>();
                     if (summonerPlayer.hasSummonSet)

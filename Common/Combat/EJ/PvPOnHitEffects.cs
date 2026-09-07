@@ -9,6 +9,15 @@ namespace PvPAdventure.Common.Combat.EJ;
 
 internal class PvPOnHitEffects : ModPlayer
 {
+    // Ticks remaining before this player's Bone Helm can spawn another Shadow Hand.
+    public int ShadowHandCooldown;
+
+    public override void PreUpdate()
+    {
+        if (ShadowHandCooldown > 0)
+            ShadowHandCooldown--;
+    }
+
     public override void OnHurt(Player.HurtInfo info)
     {
         if (!info.PvP)
@@ -99,6 +108,58 @@ internal class PvPOnHitEffects : ModPlayer
                 if (proj >= 0 && proj < Main.maxProjectiles && Main.netMode == NetmodeID.Server)
                 {
                     NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+                }
+            }
+        }
+
+        // Spawn a Shadow Hand when hit by a player wearing the Bone Helm
+        if (info.DamageSource.SourcePlayerIndex >= 0 &&
+            info.DamageSource.SourcePlayerIndex < Main.maxPlayers &&
+            Main.netMode != NetmodeID.MultiplayerClient)
+        {
+            Player attacker = Main.player[info.DamageSource.SourcePlayerIndex];
+
+            if (attacker.active)
+            {
+                bool hasBoneHelm = false;
+                for (int i = 0; i < attacker.armor.Length; i++)
+                {
+                    if (attacker.armor[i].type == ItemID.BoneHelm)
+                    {
+                        hasBoneHelm = true;
+                        break;
+                    }
+                }
+
+                if (hasBoneHelm)
+                {
+                    var attackerEffects = attacker.GetModPlayer<PvPOnHitEffects>();
+
+                    if (attackerEffects.ShadowHandCooldown <= 0)
+                    {
+                        attackerEffects.ShadowHandCooldown = 50;
+                        float angle = Main.rand.NextFloat(MathHelper.TwoPi);
+                        float radius = 300f;
+                        Vector2 spawnPos = Player.Center + angle.ToRotationVector2() * radius;
+                        Vector2 velocity = (Player.Center - spawnPos).SafeNormalize(Vector2.UnitY) * 12f;
+
+                        int proj = Projectile.NewProjectile(
+                            Player.GetSource_OnHurt(info.DamageSource),
+                            spawnPos,
+                            velocity,
+                            ProjectileID.InsanityShadowFriendly,
+                            20,
+                            0f,
+                            attacker.whoAmI,
+                            0f,
+                            0f
+                        );
+
+                        if (proj >= 0 && proj < Main.maxProjectiles && Main.netMode == NetmodeID.Server)
+                        {
+                            NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, proj);
+                        }
+                    }
                 }
             }
         }
