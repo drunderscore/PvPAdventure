@@ -36,8 +36,8 @@ public class Keybinds : ModSystem
 
     public override void Load()
     {
-        BountyShop = KeybindLoader.RegisterKeybind(Mod, "BountyShop", Keys.P);
-        UsePortalCreator = KeybindLoader.RegisterKeybind(Mod, "UsePortalCreator", Keys.G);
+        BountyShop = KeybindLoader.RegisterKeybind(Mod, "BountyShop", Keys.B);
+        UsePortalCreator = KeybindLoader.RegisterKeybind(Mod, "UsePortalCreator", Keys.P);
     }
 }
 

@@ -54,7 +54,7 @@ internal sealed class GameManagerErkySSCTool : ModSystem
             new Func<Color>(() => Color.White),
             true,
             20,
-            "Ctrl+Y"
+            "Ctrl+G"
         );
     }
 

@@ -14,6 +14,10 @@ namespace PvPAdventure.Common.Travel.Portals;
 [Autoload(Side = ModSide.Client)]
 internal sealed class PortalCreatorItemDrawer : GlobalItem
 {
+    // The portal gun's grip is much closer to its vertical center than the staff-shaped creator's
+    // grip. Move the replacement toward the player's hand instead of leaving it above their head.
+    private const float PortalGunHeldOffsetY = 14f;
+
     public override bool AppliesToEntity(Item entity, bool lateInstantiation)
     {
         return true;
@@ -49,9 +53,8 @@ internal sealed class PortalCreatorItemDrawer : GlobalItem
         int team = drawInfo.drawPlayer.team;
 
         // Prefer the equipped portal gun skin for this team, otherwise the plain team texture
-        Texture2D replacement = PortalCreatorSkin.TryGetTexture(item, team, out Texture2D skin)
-            ? skin
-            : PortalAssets.GetCreatorTexture(team);
+        bool usingPortalGunSkin = PortalCreatorSkin.TryGetTexture(item, team, out Texture2D skin);
+        Texture2D replacement = usingPortalGunSkin ? skin : PortalAssets.GetCreatorTexture(team);
 
         // Standard detour pattern: Capture the cache before and after the original call
         int start = drawInfo.DrawDataCache.Count;
@@ -65,7 +68,11 @@ internal sealed class PortalCreatorItemDrawer : GlobalItem
             // If the original draw call used the vanilla texture, replace it with the team-specific texture
             if (data.texture == vanilla)
             {
-                drawInfo.DrawDataCache[i] = ScaleDrawData(data, vanilla, replacement);
+                data = ScaleDrawData(data, vanilla, replacement);
+                if (usingPortalGunSkin)
+                    data.position.Y += PortalGunHeldOffsetY * drawInfo.drawPlayer.gravDir;
+
+                drawInfo.DrawDataCache[i] = data;
             }
         }
     }
