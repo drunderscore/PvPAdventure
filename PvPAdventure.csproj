@@ -1,4 +1,12 @@
-﻿<Project Sdk="Tomat.Terraria.ModLoader.Sdk/2.1.1">
+﻿<Project>
+
+	<!-- Choose the SDK before its default properties are imported. -->
+	<PropertyGroup>
+		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+	</PropertyGroup>
+	<Import Project="Sdk.props" Sdk="Tomat.Terraria.ModLoader.Sdk" Version="2.1.1" Condition="'$(Configuration)' == 'Debug'" />
+	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" Condition="'$(Configuration)' != 'Debug'" />
+	<Import Project="..\tModLoader.targets" Condition="'$(Configuration)' != 'Debug'" />
 
 	<PropertyGroup>
 		<TmlVersion>steam</TmlVersion>
@@ -15,5 +23,12 @@
 		<ProjectReference Include="..\PvPHub\PvPHub.csproj" />
 	</ItemGroup>
 
-	<!-- tml-build supplies Krafs.Publicizer and publicizes tModLoader by default. -->
+	<!-- Tomat supplies these in Debug; the standard build needs them explicitly. -->
+	<ItemGroup Condition="'$(Configuration)' != 'Debug'">
+		<PackageReference Include="Krafs.Publicizer" Version="2.3.0" PrivateAssets="all" ExcludeAssets="runtime" />
+		<Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+	</ItemGroup>
+
+	<Import Project="Sdk.targets" Sdk="Tomat.Terraria.ModLoader.Sdk" Version="2.1.1" Condition="'$(Configuration)' == 'Debug'" />
+	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" Condition="'$(Configuration)' != 'Debug'" />
 </Project>

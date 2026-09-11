@@ -70,7 +70,7 @@ internal sealed class PortalCreatorItemDrawer : GlobalItem
             {
                 data = ScaleDrawData(data, vanilla, replacement);
                 if (usingPortalGunSkin)
-                    data.position.Y += PortalGunHeldOffsetY * drawInfo.drawPlayer.gravDir;
+                    data.position.Y += 0 + 0 * drawInfo.drawPlayer.gravDir;
 
                 drawInfo.DrawDataCache[i] = data;
             }

@@ -201,6 +201,21 @@ public class PortalCreatorItem : ModItem
         DrawPortalCreatorUseVisuals(player, Math.Max(0, player.itemAnimation - 3));
     }
 
+    public override void UseItemFrame(Player player)
+    {
+        return;
+        if (Main.dedServ ||
+            !PortalCreatorSkin.TryGetTexture(Item, player.team, out _))
+            return;
+
+        const float armAngleDegrees = -90f;
+
+        player.SetCompositeArmFront(
+            true,
+            Player.CompositeArmStretchAmount.Full,
+            MathHelper.ToRadians(armAngleDegrees) * player.direction);
+    }
+
     #region Drawing
     public override bool PreDrawInInventory(SpriteBatch sb, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
     {
